@@ -7,8 +7,8 @@ namespace YC.Presentation
 {
     public sealed class StartMenuController : MonoBehaviour
     {
-        private const float CoverReferenceSize = 4404f;
-        private static readonly Rect ButtonImageRect = new Rect(1240f, 3360f, 1940f, 430f);
+        private static readonly Vector2 CoverReferenceSize = new Vector2(5888f, 3312f);
+        private static readonly Rect ButtonImageRect = new Rect(1950f, 2460f, 1988f, 388f);
 
         [SerializeField] private string mapSceneName = "SampleScene";
         [SerializeField] private Texture2D coverTexture;
@@ -54,13 +54,21 @@ namespace YC.Presentation
             coverFrame.pivot = new Vector2(0.5f, 0.5f);
 
             var canvasSize = canvasTransform.rect.size;
-            var sideLength = Mathf.Min(canvasSize.x, canvasSize.y);
-            if (sideLength <= 0f)
+            var frameWidth = canvasSize.x;
+            var frameHeight = frameWidth * CoverReferenceSize.y / CoverReferenceSize.x;
+            if (frameHeight > canvasSize.y)
             {
-                sideLength = 1080f;
+                frameHeight = canvasSize.y;
+                frameWidth = frameHeight * CoverReferenceSize.x / CoverReferenceSize.y;
             }
 
-            coverFrame.sizeDelta = new Vector2(sideLength, sideLength);
+            if (frameWidth <= 0f || frameHeight <= 0f)
+            {
+                frameWidth = 1920f;
+                frameHeight = 1080f;
+            }
+
+            coverFrame.sizeDelta = new Vector2(frameWidth, frameHeight);
             coverFrame.anchoredPosition = Vector2.zero;
             return coverFrame;
         }
@@ -92,12 +100,16 @@ namespace YC.Presentation
             rectTransform.pivot = new Vector2(0.5f, 0.5f);
 
             var parentTransform = (RectTransform)parent;
-            var frameSide = parentTransform.sizeDelta.x > 0f ? parentTransform.sizeDelta.x : 1080f;
-            var scale = frameSide / CoverReferenceSize;
-            rectTransform.sizeDelta = new Vector2(ButtonImageRect.width * scale, ButtonImageRect.height * scale);
+            var frameSize = parentTransform.sizeDelta.x > 0f && parentTransform.sizeDelta.y > 0f
+                ? parentTransform.sizeDelta
+                : new Vector2(1920f, 1080f);
+            var scaleX = frameSize.x / CoverReferenceSize.x;
+            var scaleY = frameSize.y / CoverReferenceSize.y;
+
+            rectTransform.sizeDelta = new Vector2(ButtonImageRect.width * scaleX, ButtonImageRect.height * scaleY);
             rectTransform.anchoredPosition = new Vector2(
-                (ButtonImageRect.center.x - CoverReferenceSize * 0.5f) * scale,
-                (CoverReferenceSize * 0.5f - ButtonImageRect.center.y) * scale);
+                (ButtonImageRect.center.x - CoverReferenceSize.x * 0.5f) * scaleX,
+                (CoverReferenceSize.y * 0.5f - ButtonImageRect.center.y) * scaleY);
 
             var image = buttonObject.GetComponent<Image>();
             image.color = new Color(0.16f, 0.1f, 0.055f, 0.96f);
@@ -122,7 +134,7 @@ namespace YC.Presentation
             text.text = "开始游戏";
             text.alignment = TextAnchor.MiddleCenter;
             text.color = new Color(0.86f, 0.75f, 0.55f, 1f);
-            text.fontSize = Mathf.RoundToInt(90f * scale);
+            text.fontSize = Mathf.RoundToInt(140f * scaleY);
             text.fontStyle = FontStyle.Bold;
             text.font = Font.CreateDynamicFontFromOSFont(new[] { "SimHei", "Microsoft YaHei", "Arial" }, text.fontSize);
 
