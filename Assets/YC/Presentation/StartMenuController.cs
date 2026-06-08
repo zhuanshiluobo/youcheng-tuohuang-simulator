@@ -79,6 +79,7 @@ namespace YC.Presentation
             var image = coverObject.GetComponent<Image>();
             image.sprite = coverSprite;
             image.color = Color.white;
+            image.preserveAspect = true;
         }
 
         private void CreateStartButton(Transform parent)
