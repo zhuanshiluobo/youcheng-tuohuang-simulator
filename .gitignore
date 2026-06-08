@@ -1,0 +1,48 @@
+# Unity generated folders
+/Library/
+/Temp/
+/Obj/
+/Build/
+/Builds/
+/Logs/
+/UserSettings/
+
+# Unity generated files
+*.pidb
+*.booproj
+*.svd
+*.user
+*.userprefs
+*.csproj
+*.sln
+*.suo
+*.tmp
+*.unityproj
+*.pidb.meta
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity crash and memory captures
+/sysinfo.txt
+*.stackdump
+
+# IDE/editor
+/.vs/
+/.vscode/
+/.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local build/cache artifacts
+/MemoryCaptures/
+/Recordings/
+/Captures/
+/AssetBundles/
+
+# Derived planning/reference exports
+/游城拓荒/_pdf_extracted_images/
+
