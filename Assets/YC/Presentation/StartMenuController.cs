@@ -8,7 +8,7 @@ namespace YC.Presentation
     public sealed class StartMenuController : MonoBehaviour
     {
         private static readonly Vector2 CoverReferenceSize = new Vector2(5888f, 3312f);
-        private static readonly Rect ButtonImageRect = new Rect(1950f, 2460f, 1988f, 388f);
+        private static readonly Rect ButtonImageRect = new Rect(2220f, 2528f, 1460f, 323f);
 
         [SerializeField] private string mapSceneName = "SampleScene";
         [SerializeField] private Texture2D coverTexture;
