@@ -11,7 +11,7 @@ namespace YC.Presentation
         private static readonly Rect ButtonImageRect = new Rect(1240f, 3360f, 1940f, 430f);
 
         [SerializeField] private string mapSceneName = "SampleScene";
-        [SerializeField] private Sprite coverSprite;
+        [SerializeField] private Texture2D coverTexture;
 
         private void Awake()
         {
@@ -67,7 +67,7 @@ namespace YC.Presentation
 
         private void CreateCover(Transform parent)
         {
-            var coverObject = new GameObject("Rulebook Cover", typeof(RectTransform), typeof(Image));
+            var coverObject = new GameObject("Rulebook Cover", typeof(RectTransform), typeof(RawImage));
             coverObject.transform.SetParent(parent, false);
 
             var rectTransform = coverObject.GetComponent<RectTransform>();
@@ -76,10 +76,9 @@ namespace YC.Presentation
             rectTransform.offsetMin = Vector2.zero;
             rectTransform.offsetMax = Vector2.zero;
 
-            var image = coverObject.GetComponent<Image>();
-            image.sprite = coverSprite;
+            var image = coverObject.GetComponent<RawImage>();
+            image.texture = coverTexture;
             image.color = Color.white;
-            image.preserveAspect = true;
         }
 
         private void CreateStartButton(Transform parent)
