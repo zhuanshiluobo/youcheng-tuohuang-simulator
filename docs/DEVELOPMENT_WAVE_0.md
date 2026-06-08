@@ -1,56 +1,100 @@
-# 第 0 波开发契约
+# 当前工程进展
 
-本文记录当前 Unity 工程的第一批代码落点，供后续多 Agent 并行开发使用。
+本文件记录 Unity 工程中已经落地的代码和资源。设计资料的统一入口见：
 
-## 已建立目录
+- `游城拓荒/项目总览.md`
+
+## 已完成
+
+### 工程结构
 
 ```text
 Assets/YC/
   Domain/
-    Commands/
-    Events/
-    Maps/
-    Rules/
-    State/
   Application/
-    Sessions/
   Infrastructure/
   Presentation/
   Data/
+  Editor/
   Tests/EditMode/
 ```
 
-## 程序集边界
+已建立程序集：
 
-- `YC.Domain`：纯 C# 规则核心，`noEngineReferences=true`，不能引用 `UnityEngine`。
-- `YC.Application`：整局编排、命令提交、日志和回放入口，依赖 `YC.Domain`。
-- `YC.Tests.EditMode`：编辑器测试，覆盖规则核心和应用层。
+- `YC.Domain`
+- `YC.Application`
+- `YC.Tests.EditMode`
 
-## 共享契约
+### Domain
 
-- 基础枚举：`PlayerColor`、`ResourceType`、`GamePhase`、`GameCommandKind`、`CommandErrorCode`、`GameEventKind`。
-- 状态结构：`GameState`、`PlayerState`、`MapRuntimeState`、`DeckRuntimeState`、`PendingChoiceState`、`GameLogEntry`。
-- 命令结构：`IGameCommand`、`GameCommand`、`ValidationResult`、`CommandResult`。
-- 事件结构：`GameEvent`。
-- 地图结构：`GameMapDefinition`、`MapLocationDefinition`、`MapRouteDefinition`、`MapRegionDefinition`、`IMapQueryService`。
-- 地图路径：`MapPath`、`MapPathSearchService`，用于查找最短路径和枚举有限步数内的简单路径。
-- 费用服务：`TravelCostService`，当前把航道路费建模为金券费用，并提供城市移动基础费用入口。
-- 应用入口：`GameSession.Submit(GameCommand command)` 和 `IGameCommandHandler`。
-- 入场命令：`SetupCommandHandler`，当前处理 `ChooseStartPlayer` 和 `ChooseInitialLocation`。
+已实现：
 
-## 并行开发边界
+- 基础枚举：玩家颜色、资源类型、阶段、卡牌类型、命令类型、错误码、事件类型。
+- 状态：`GameState`、`PlayerState`、地图运行状态、牌堆状态、待选择状态、日志状态。
+- 命令：`IGameCommand`、`GameCommand`。
+- 结果：`ValidationResult`、`CommandResult`。
+- 事件：`GameEvent`。
+- 地图：`GameMapDefinition`、位置、航道、区块定义。
+- 地图查询：`IMapQueryService`、`MapQueryService`。
+- 地图路径：`MapPath`、`MapPathSearchService`。
+- 费用：`TravelCostService`。
+- 阶段：`PhaseFlow`、`CommandPhasePolicy`。
 
-- 地图 Agent：只扩展 `Assets/YC/Domain/Maps` 和地图相关测试。
-- 状态机 Agent：只扩展 `Assets/YC/Domain/Rules` 和阶段相关测试。
-- 命令流水线 Agent：新增具体 command handler 时应放在 `Assets/YC/Application` 或后续明确的 resolver 目录。
-- UI Agent：只能读取 `GameState` 并提交 `GameCommand`，不能直接写规则状态。
+### Application
 
-## 当前验收口径
+已实现：
 
-- `Domain` 不依赖 Unity 场景对象。
-- 非法命令必须返回 `ValidationResult.Failure`，不能修改 `GameState`。
-- 合法命令通过 handler/resolver 修改状态，并生成事件或日志。
-- 资源与影响力后续必须有守恒测试。
-- 地图图片只做表现层底图，规则判断必须依赖结构化地图数据。
-- 当前地图结构仍是 placeholder，真实节点、航道、区块和费用需要后续从规则书/地图图面录入。
-- 当前入场流程只处理起始玩家和初始城市位置，后续还需补齐入场事件与多人依次选择推进。
+- `GameSession.Submit(GameCommand command)`。
+- `IGameCommandHandler`。
+- `SetupCommandHandler`：
+  - `ChooseStartPlayer`
+  - `ChooseInitialLocation`
+
+### Presentation
+
+已实现：
+
+- `StartScene`：开始页。
+- `StartMenuController`：开始按钮进入 `SampleScene`。
+- `SampleScene`：默认显示四人地图。
+- `MapDisplayController`：正交相机适配地图。
+
+### Data / Editor
+
+已导入：
+
+- 三人地图贴图。
+- 四人地图贴图。
+- 16:9 开始页封面图。
+
+已实现：
+
+- `MapTexturePostprocessor`：地图贴图导入设置。
+
+### Tests
+
+已建立并通过用户本地 Unity EditMode 测试：
+
+- `ResourceSetTests`
+- `GameSessionTests`
+- `MapQueryServiceTests`
+- `MapPathSearchServiceTests`
+- `TravelCostServiceTests`
+- `PhaseFlowTests`
+- `SetupCommandHandlerTests`
+
+## 当前限制
+
+- 地图规则数据仍是 placeholder，不是真实地图。
+- 入场流程只完成起始玩家和初始城市位置。
+- 开始页和地图页尚未接入真实 `GameSession`。
+- 未实现日志详情、回放、存档。
+- 未实现主要行动、采集、收尾、最终计分。
+
+## 下一步建议
+
+1. 录入真实四人地图。
+2. 补齐入场事件和多人入场顺序。
+3. 实现合法命令枚举。
+4. 实现第一个主要行动。
+5. 建立 Debug 对局 UI。
