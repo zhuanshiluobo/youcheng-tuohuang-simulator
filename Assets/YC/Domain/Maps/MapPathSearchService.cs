@@ -1,0 +1,120 @@
+using System;
+using System.Collections.Generic;
+
+namespace YC.Domain.Maps
+{
+    public sealed class MapPathSearchService
+    {
+        private readonly IMapQueryService mapQuery;
+
+        public MapPathSearchService(IMapQueryService mapQuery)
+        {
+            this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
+        }
+
+        public MapPath FindShortestPath(string fromLocationId, string toLocationId)
+        {
+            mapQuery.GetLocation(fromLocationId);
+            mapQuery.GetLocation(toLocationId);
+
+            if (fromLocationId == toLocationId)
+            {
+                return new MapPath { LocationIds = new List<string> { fromLocationId } };
+            }
+
+            var visited = new HashSet<string> { fromLocationId };
+            var queue = new Queue<MapPath>();
+            queue.Enqueue(new MapPath { LocationIds = new List<string> { fromLocationId } });
+
+            while (queue.Count > 0)
+            {
+                var currentPath = queue.Dequeue();
+                var currentLocationId = currentPath.LocationIds[currentPath.LocationIds.Count - 1];
+                var adjacentLocations = mapQuery.GetAdjacentLocations(currentLocationId);
+
+                for (var i = 0; i < adjacentLocations.Count; i++)
+                {
+                    var nextLocationId = adjacentLocations[i].LocationId;
+                    if (visited.Contains(nextLocationId))
+                    {
+                        continue;
+                    }
+
+                    var route = mapQuery.FindRoute(currentLocationId, nextLocationId);
+                    var nextPath = ClonePath(currentPath);
+                    nextPath.LocationIds.Add(nextLocationId);
+                    nextPath.RouteIds.Add(route.RouteId);
+
+                    if (nextLocationId == toLocationId)
+                    {
+                        return nextPath;
+                    }
+
+                    visited.Add(nextLocationId);
+                    queue.Enqueue(nextPath);
+                }
+            }
+
+            throw new ArgumentException("No path exists between the supplied locations.");
+        }
+
+        public IReadOnlyList<MapPath> EnumerateSimplePaths(string fromLocationId, string toLocationId, int maxSteps)
+        {
+            if (maxSteps < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxSteps), "Max steps cannot be negative.");
+            }
+
+            mapQuery.GetLocation(fromLocationId);
+            mapQuery.GetLocation(toLocationId);
+
+            var results = new List<MapPath>();
+            var initialPath = new MapPath { LocationIds = new List<string> { fromLocationId } };
+            Explore(initialPath, toLocationId, maxSteps, results);
+            return results.AsReadOnly();
+        }
+
+        private void Explore(MapPath currentPath, string targetLocationId, int maxSteps, List<MapPath> results)
+        {
+            var currentLocationId = currentPath.LocationIds[currentPath.LocationIds.Count - 1];
+            if (currentLocationId == targetLocationId)
+            {
+                results.Add(ClonePath(currentPath));
+                return;
+            }
+
+            if (currentPath.StepCount >= maxSteps)
+            {
+                return;
+            }
+
+            var adjacentLocations = mapQuery.GetAdjacentLocations(currentLocationId);
+            for (var i = 0; i < adjacentLocations.Count; i++)
+            {
+                var nextLocationId = adjacentLocations[i].LocationId;
+                if (currentPath.LocationIds.Contains(nextLocationId))
+                {
+                    continue;
+                }
+
+                var route = mapQuery.FindRoute(currentLocationId, nextLocationId);
+                currentPath.LocationIds.Add(nextLocationId);
+                currentPath.RouteIds.Add(route.RouteId);
+
+                Explore(currentPath, targetLocationId, maxSteps, results);
+
+                currentPath.RouteIds.RemoveAt(currentPath.RouteIds.Count - 1);
+                currentPath.LocationIds.RemoveAt(currentPath.LocationIds.Count - 1);
+            }
+        }
+
+        private static MapPath ClonePath(MapPath source)
+        {
+            return new MapPath
+            {
+                LocationIds = new List<string>(source.LocationIds),
+                RouteIds = new List<string>(source.RouteIds)
+            };
+        }
+    }
+}

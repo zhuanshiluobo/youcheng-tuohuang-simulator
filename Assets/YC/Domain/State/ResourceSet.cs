@@ -1,0 +1,107 @@
+using System;
+using System.Collections.Generic;
+using YC.Domain.Rules;
+
+namespace YC.Domain.State
+{
+    [Serializable]
+    public sealed class ResourceSet
+    {
+        public int PureOriginium;
+        public int OriginiumShard;
+        public int Iron;
+        public int GoldVoucher;
+
+        public int Get(ResourceType type)
+        {
+            switch (type)
+            {
+                case ResourceType.PureOriginium:
+                    return PureOriginium;
+                case ResourceType.OriginiumShard:
+                    return OriginiumShard;
+                case ResourceType.Iron:
+                    return Iron;
+                case ResourceType.GoldVoucher:
+                    return GoldVoucher;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
+
+        public void Set(ResourceType type, int amount)
+        {
+            if (amount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Resource amount cannot be negative.");
+            }
+
+            switch (type)
+            {
+                case ResourceType.PureOriginium:
+                    PureOriginium = amount;
+                    break;
+                case ResourceType.OriginiumShard:
+                    OriginiumShard = amount;
+                    break;
+                case ResourceType.Iron:
+                    Iron = amount;
+                    break;
+                case ResourceType.GoldVoucher:
+                    GoldVoucher = amount;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
+
+        public bool CanPay(ResourceSet cost)
+        {
+            return PureOriginium >= cost.PureOriginium
+                && OriginiumShard >= cost.OriginiumShard
+                && Iron >= cost.Iron
+                && GoldVoucher >= cost.GoldVoucher;
+        }
+
+        public bool TryPay(ResourceSet cost)
+        {
+            if (!CanPay(cost))
+            {
+                return false;
+            }
+
+            PureOriginium -= cost.PureOriginium;
+            OriginiumShard -= cost.OriginiumShard;
+            Iron -= cost.Iron;
+            GoldVoucher -= cost.GoldVoucher;
+            return true;
+        }
+
+        public void Add(ResourceSet gain)
+        {
+            PureOriginium += gain.PureOriginium;
+            OriginiumShard += gain.OriginiumShard;
+            Iron += gain.Iron;
+            GoldVoucher += gain.GoldVoucher;
+        }
+
+        public IEnumerable<KeyValuePair<ResourceType, int>> Enumerate()
+        {
+            yield return new KeyValuePair<ResourceType, int>(ResourceType.PureOriginium, PureOriginium);
+            yield return new KeyValuePair<ResourceType, int>(ResourceType.OriginiumShard, OriginiumShard);
+            yield return new KeyValuePair<ResourceType, int>(ResourceType.Iron, Iron);
+            yield return new KeyValuePair<ResourceType, int>(ResourceType.GoldVoucher, GoldVoucher);
+        }
+
+        public ResourceSet Clone()
+        {
+            return new ResourceSet
+            {
+                PureOriginium = PureOriginium,
+                OriginiumShard = OriginiumShard,
+                Iron = Iron,
+                GoldVoucher = GoldVoucher
+            };
+        }
+    }
+}
