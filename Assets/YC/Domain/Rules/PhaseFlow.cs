@@ -50,9 +50,18 @@ namespace YC.Domain.Rules
             if (state.Phase == GamePhase.Cleanup && nextPhase == GamePhase.RoundStart)
             {
                 state.Round += 1;
+                ResetRoundActionFlags(state);
             }
 
             state.Phase = nextPhase;
+        }
+
+        private static void ResetRoundActionFlags(GameState state)
+        {
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                state.Players[i].HasMovedCityThisRound = false;
+            }
         }
     }
 }

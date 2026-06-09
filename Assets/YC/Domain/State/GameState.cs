@@ -39,20 +39,25 @@ namespace YC.Domain.State
         public string Name = string.Empty;
         public PlayerColor Color;
         public int Score;
-        public int InfluenceSupply = 20;
+        public int InfluenceSupply = 30;
         public string CityLocationId = string.Empty;
+        public bool HasMovedCityThisRound;
+        public bool ActedMainActionThisTurn;
+        public bool UsedCharacterThisRound;
         public ResourceSet Resources = new ResourceSet();
         public List<string> HandCardIds = new List<string>();
         public List<string> CoveredCharacterCardIds = new List<string>();
         public List<string> DiscardCardIds = new List<string>();
         public List<string> BuiltFacilityIds = new List<string>();
         public List<string> DeclaredCityStyleIds = new List<string>();
+        public List<string> UsedSpecialActionIdsThisRound = new List<string>();
     }
 
     [Serializable]
     public sealed class MapRuntimeState
     {
         public List<string> OpenLocationIds = new List<string>();
+        public List<string> RoadRouteIds = new List<string>();
         public List<InfluencePlacement> Influences = new List<InfluencePlacement>();
         public List<FacilityPlacement> Facilities = new List<FacilityPlacement>();
         public List<ResourceTokenState> ResourceTokens = new List<ResourceTokenState>();

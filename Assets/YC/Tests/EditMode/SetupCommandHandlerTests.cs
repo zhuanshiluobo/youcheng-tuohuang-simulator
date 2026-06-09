@@ -110,9 +110,51 @@ namespace YC.Tests.EditMode
             Assert.That(state.Map.OpenLocationIds, Is.Empty);
         }
 
+        [Test]
+        public void ChooseInitialLocation_OnFourPlayerMap_WithAllowedEntranceLocation_Succeeds()
+        {
+            var state = CreateState(GamePhase.Entrance);
+            var handler = CreateFourPlayerHandler();
+
+            var result = handler.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.ChooseInitialLocation,
+                PlayerId = 1,
+                TargetId = "G-01"
+            });
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(state.FindPlayer(1).CityLocationId, Is.EqualTo("G-01"));
+            Assert.That(state.Map.OpenLocationIds, Does.Contain("G-01"));
+        }
+
+        [Test]
+        public void ChooseInitialLocation_OnFourPlayerMap_WithDisallowedEntranceLocation_FailsWithoutChangingState()
+        {
+            var state = CreateState(GamePhase.Entrance);
+            var handler = CreateFourPlayerHandler();
+
+            var result = handler.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.ChooseInitialLocation,
+                PlayerId = 1,
+                TargetId = "G-02"
+            });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(state.FindPlayer(1).CityLocationId, Is.Empty);
+            Assert.That(state.Map.OpenLocationIds, Is.Empty);
+        }
+
         private static SetupCommandHandler CreateHandler()
         {
             return new SetupCommandHandler(new MapQueryService(StaticMapDefinitions.CreateThreePlayerPlaceholder()));
+        }
+
+        private static SetupCommandHandler CreateFourPlayerHandler()
+        {
+            return new SetupCommandHandler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
         }
 
         private static GameState CreateState(GamePhase phase)

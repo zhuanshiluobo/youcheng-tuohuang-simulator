@@ -32,14 +32,14 @@ namespace YC.Tests.EditMode
         [Test]
         public void EnumerateSimplePaths_ReturnsPathsWithinStepLimit()
         {
-            var mapQuery = new MapQueryService(StaticMapDefinitions.CreateFourPlayerPlaceholder());
+            var mapQuery = new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap());
             var service = new MapPathSearchService(mapQuery);
 
-            var paths = service.EnumerateSimplePaths("city-a", "harbor-c", 2)
+            var paths = service.EnumerateSimplePaths("D-01", "D-03", 2)
                 .Select(path => string.Join(">", path.LocationIds))
                 .ToArray();
 
-            Assert.That(paths, Is.EquivalentTo(new[] { "city-a>mine-b>harbor-c", "city-a>market-d>harbor-c" }));
+            Assert.That(paths, Is.EquivalentTo(new[] { "D-01>D-02>D-03", "D-01>D-03" }));
         }
 
         [Test]

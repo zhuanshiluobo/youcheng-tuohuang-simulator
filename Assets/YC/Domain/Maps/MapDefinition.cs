@@ -33,6 +33,8 @@ namespace YC.Domain.Maps
         public string RouteId = string.Empty;
         public string FromLocationId = string.Empty;
         public string ToLocationId = string.Empty;
+        public string RegionId = string.Empty;
+        public List<string> CoveredLocationIds = new List<string>();
         public int InfluenceSlotCount;
         public int BaseCost;
     }
@@ -44,5 +46,6 @@ namespace YC.Domain.Maps
         public string DisplayName = string.Empty;
         public int ScoreValue;
         public List<string> LocationIds = new List<string>();
+        public List<string> RouteIds = new List<string>();
     }
 }

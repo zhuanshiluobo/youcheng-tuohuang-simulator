@@ -36,14 +36,33 @@ namespace YC.Domain.Maps
                     routesById[route.RouteId] = route;
                 }
 
-                if (!locationsById.TryGetValue(route.FromLocationId, out var fromLocation) ||
-                    !locationsById.TryGetValue(route.ToLocationId, out var toLocation))
+                var coveredLocationIds = GetCoveredLocationIds(route);
+                if (coveredLocationIds.Count < 2)
                 {
                     continue;
                 }
 
-                adjacentLocationsById[fromLocation.LocationId].Add(toLocation);
-                adjacentLocationsById[toLocation.LocationId].Add(fromLocation);
+                for (var fromIndex = 0; fromIndex < coveredLocationIds.Count; fromIndex++)
+                {
+                    if (!locationsById.TryGetValue(coveredLocationIds[fromIndex], out var fromLocation))
+                    {
+                        continue;
+                    }
+
+                    for (var toIndex = 0; toIndex < coveredLocationIds.Count; toIndex++)
+                    {
+                        if (fromIndex == toIndex ||
+                            !locationsById.TryGetValue(coveredLocationIds[toIndex], out var toLocation))
+                        {
+                            continue;
+                        }
+
+                        if (!adjacentLocationsById[fromLocation.LocationId].Contains(toLocation))
+                        {
+                            adjacentLocationsById[fromLocation.LocationId].Add(toLocation);
+                        }
+                    }
+                }
             }
 
             foreach (var region in Map.Regions)
@@ -127,8 +146,32 @@ namespace YC.Domain.Maps
 
         private static bool IsRouteBetween(MapRouteDefinition route, string fromLocationId, string toLocationId)
         {
-            return route.FromLocationId == fromLocationId && route.ToLocationId == toLocationId ||
-                   route.FromLocationId == toLocationId && route.ToLocationId == fromLocationId;
+            var coveredLocationIds = GetCoveredLocationIds(route);
+            return ContainsLocationId(coveredLocationIds, fromLocationId) &&
+                   ContainsLocationId(coveredLocationIds, toLocationId);
+        }
+
+        private static IReadOnlyList<string> GetCoveredLocationIds(MapRouteDefinition route)
+        {
+            if (route.CoveredLocationIds != null && route.CoveredLocationIds.Count > 0)
+            {
+                return route.CoveredLocationIds;
+            }
+
+            return new List<string> { route.FromLocationId, route.ToLocationId };
+        }
+
+        private static bool ContainsLocationId(IReadOnlyList<string> locationIds, string locationId)
+        {
+            for (var i = 0; i < locationIds.Count; i++)
+            {
+                if (locationIds[i] == locationId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

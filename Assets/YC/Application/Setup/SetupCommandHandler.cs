@@ -11,6 +11,16 @@ namespace YC.Application.Setup
 {
     public sealed class SetupCommandHandler : IGameCommandHandler
     {
+        private static readonly HashSet<string> FourPlayerInitialLocationIds = new HashSet<string>
+        {
+            "G-01",
+            "A-01",
+            "A-02",
+            "B-01",
+            "B-02",
+            "C-01"
+        };
+
         private readonly IMapQueryService mapQueryService;
 
         public SetupCommandHandler(IMapQueryService mapQueryService)
@@ -106,6 +116,11 @@ namespace YC.Application.Setup
                 return Invalid(CommandErrorCode.InvalidTarget, "Initial city location must allow city docking.");
             }
 
+            if (!IsInitialLocationAllowed(command.TargetId))
+            {
+                return Invalid(CommandErrorCode.InvalidTarget, "Initial city location must be one of the allowed entrance locations.");
+            }
+
             for (var i = 0; i < state.Players.Count; i++)
             {
                 var otherPlayer = state.Players[i];
@@ -122,11 +137,47 @@ namespace YC.Application.Setup
                 state.Map.OpenLocationIds.Add(command.TargetId);
             }
 
+            if (AllPlayersHaveInitialCities(state))
+            {
+                if (state.StartPlayerId < 0)
+                {
+                    state.StartPlayerId = command.PlayerId;
+                }
+
+                state.CurrentPlayerId = state.StartPlayerId;
+                state.Phase = GamePhase.ActionRound1;
+                state.ActionRound = 1;
+                state.Round = 1;
+            }
+
             var message = string.Format("Player {0} placed their initial city at {1}.", command.PlayerId, command.TargetId);
             return CommandResult.SuccessResult(new List<GameEvent>
             {
                 GameEvent.Log(message)
             }, message);
+        }
+
+        private bool IsInitialLocationAllowed(string locationId)
+        {
+            if (mapQueryService.Map.MapId != "map-four-players")
+            {
+                return true;
+            }
+
+            return FourPlayerInitialLocationIds.Contains(locationId);
+        }
+
+        private static bool AllPlayersHaveInitialCities(GameState state)
+        {
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                if (string.IsNullOrEmpty(state.Players[i].CityLocationId))
+                {
+                    return false;
+                }
+            }
+
+            return state.Players.Count > 0;
         }
 
         private static CommandResult Invalid(CommandErrorCode errorCode, string reason)
