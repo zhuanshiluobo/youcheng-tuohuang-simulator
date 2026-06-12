@@ -7,21 +7,24 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class ResourceSet
     {
-        public int PureOriginium;
+        public int Originium;
         public int OriginiumShard;
         public int Iron;
+        public int PureOriginium;
         public int GoldVoucher;
 
         public int Get(ResourceType type)
         {
             switch (type)
             {
-                case ResourceType.PureOriginium:
-                    return PureOriginium;
+                case ResourceType.Originium:
+                    return Originium;
                 case ResourceType.OriginiumShard:
                     return OriginiumShard;
                 case ResourceType.Iron:
                     return Iron;
+                case ResourceType.PureOriginium:
+                    return PureOriginium;
                 case ResourceType.GoldVoucher:
                     return GoldVoucher;
                 default:
@@ -38,14 +41,17 @@ namespace YC.Domain.State
 
             switch (type)
             {
-                case ResourceType.PureOriginium:
-                    PureOriginium = amount;
+                case ResourceType.Originium:
+                    Originium = amount;
                     break;
                 case ResourceType.OriginiumShard:
                     OriginiumShard = amount;
                     break;
                 case ResourceType.Iron:
                     Iron = amount;
+                    break;
+                case ResourceType.PureOriginium:
+                    PureOriginium = amount;
                     break;
                 case ResourceType.GoldVoucher:
                     GoldVoucher = amount;
@@ -57,9 +63,10 @@ namespace YC.Domain.State
 
         public bool CanPay(ResourceSet cost)
         {
-            return PureOriginium >= cost.PureOriginium
+            return Originium >= cost.Originium
                 && OriginiumShard >= cost.OriginiumShard
                 && Iron >= cost.Iron
+                && PureOriginium >= cost.PureOriginium
                 && GoldVoucher >= cost.GoldVoucher;
         }
 
@@ -70,26 +77,29 @@ namespace YC.Domain.State
                 return false;
             }
 
-            PureOriginium -= cost.PureOriginium;
+            Originium -= cost.Originium;
             OriginiumShard -= cost.OriginiumShard;
             Iron -= cost.Iron;
+            PureOriginium -= cost.PureOriginium;
             GoldVoucher -= cost.GoldVoucher;
             return true;
         }
 
         public void Add(ResourceSet gain)
         {
-            PureOriginium += gain.PureOriginium;
+            Originium += gain.Originium;
             OriginiumShard += gain.OriginiumShard;
             Iron += gain.Iron;
+            PureOriginium += gain.PureOriginium;
             GoldVoucher += gain.GoldVoucher;
         }
 
         public IEnumerable<KeyValuePair<ResourceType, int>> Enumerate()
         {
-            yield return new KeyValuePair<ResourceType, int>(ResourceType.PureOriginium, PureOriginium);
+            yield return new KeyValuePair<ResourceType, int>(ResourceType.Originium, Originium);
             yield return new KeyValuePair<ResourceType, int>(ResourceType.OriginiumShard, OriginiumShard);
             yield return new KeyValuePair<ResourceType, int>(ResourceType.Iron, Iron);
+            yield return new KeyValuePair<ResourceType, int>(ResourceType.PureOriginium, PureOriginium);
             yield return new KeyValuePair<ResourceType, int>(ResourceType.GoldVoucher, GoldVoucher);
         }
 
@@ -97,9 +107,10 @@ namespace YC.Domain.State
         {
             return new ResourceSet
             {
-                PureOriginium = PureOriginium,
+                Originium = Originium,
                 OriginiumShard = OriginiumShard,
                 Iron = Iron,
+                PureOriginium = PureOriginium,
                 GoldVoucher = GoldVoucher
             };
         }

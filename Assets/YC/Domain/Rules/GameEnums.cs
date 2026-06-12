@@ -10,9 +10,10 @@ namespace YC.Domain.Rules
 
     public enum ResourceType
     {
-        PureOriginium,
+        Originium,
         OriginiumShard,
         Iron,
+        PureOriginium,
         GoldVoucher
     }
 
@@ -28,6 +29,13 @@ namespace YC.Domain.Rules
         Cleanup,
         FinalScoring,
         GameOver
+    }
+
+    public enum EventColor
+    {
+        Green,
+        Yellow,
+        Red
     }
 
     public enum CardType

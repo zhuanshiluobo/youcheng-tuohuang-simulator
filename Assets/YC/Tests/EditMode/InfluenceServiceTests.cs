@@ -63,7 +63,7 @@ namespace YC.Tests.EditMode
             var result = service.Place(state, 1, InfluenceService.GetRouteSlotId("route-a-b", 0));
 
             Assert.That(result.Succeeded, Is.False);
-            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.OccupiedSlot));
             Assert.That(state.Map.Influences, Is.Empty);
         }
 
@@ -115,6 +115,61 @@ namespace YC.Tests.EditMode
             Assert.That(result.Succeeded, Is.True);
             Assert.That(state.Map.Influences, Is.Empty);
             Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(30));
+        }
+
+        [Test]
+        public void Replace_ExistingInfluence_TransfersOwnershipAndAdjustsSupply()
+        {
+            var state = CreateState();
+            AddResourceToken(state, "city-a");
+            var slotId = InfluenceService.GetLocationSlotId("city-a", 0);
+            state.FindPlayer(1).InfluenceSupply = 29;
+            state.FindPlayer(2).InfluenceSupply = 30;
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = slotId,
+                LocationId = "city-a"
+            });
+            var service = CreateService();
+
+            var result = service.Replace(state, slotId, 2);
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(result.StateChanged, Is.True);
+            Assert.That(state.Map.Influences, Has.Count.EqualTo(1));
+            Assert.That(state.Map.Influences[0].PlayerId, Is.EqualTo(2));
+            Assert.That(state.Map.Influences[0].SlotId, Is.EqualTo(slotId));
+            Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(30));
+            Assert.That(state.FindPlayer(2).InfluenceSupply, Is.EqualTo(29));
+        }
+
+        [Test]
+        public void Replace_WhenNewOwnerHasNoSupply_FailsWithoutMutatingState()
+        {
+            var state = CreateState();
+            AddResourceToken(state, "city-a");
+            var slotId = InfluenceService.GetLocationSlotId("city-a", 0);
+            state.FindPlayer(1).InfluenceSupply = 29;
+            state.FindPlayer(2).InfluenceSupply = 0;
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = slotId,
+                LocationId = "city-a"
+            });
+            var service = CreateService();
+
+            var result = service.Replace(state, slotId, 2);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.StateChanged, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InsufficientInfluence));
+            Assert.That(state.Map.Influences, Has.Count.EqualTo(1));
+            Assert.That(state.Map.Influences[0].PlayerId, Is.EqualTo(1));
+            Assert.That(state.Map.Influences[0].SlotId, Is.EqualTo(slotId));
+            Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(29));
+            Assert.That(state.FindPlayer(2).InfluenceSupply, Is.EqualTo(0));
         }
 
         [Test]

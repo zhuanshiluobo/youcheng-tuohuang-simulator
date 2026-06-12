@@ -5,12 +5,32 @@ namespace YC.Domain.Maps
 {
     public static class StaticMapDefinitions
     {
+        public const string FourPlayerMapId = "map-four-players";
+        public const string ThreePlayerMapId = "placeholder-3p";
+
+        public static readonly HashSet<string> FourPlayerInitialLocationIds = new HashSet<string>
+        {
+            "G-01", "A-01", "A-02", "B-01", "B-02", "C-01"
+        };
+
+        public static readonly HashSet<string> FourPlayerRedZoneLocationIds = new HashSet<string>
+        {
+            "G-04", "F-01", "F-02", "F-03", "E-02", "E-03"
+        };
+
+        public static EventColor GetEventColor(string locationId)
+        {
+            if (FourPlayerInitialLocationIds.Contains(locationId)) return EventColor.Green;
+            if (FourPlayerRedZoneLocationIds.Contains(locationId)) return EventColor.Red;
+            return EventColor.Yellow;
+        }
+
         // Three-player map data is still a compact test placeholder until its routebook is transcribed.
         public static GameMapDefinition CreateThreePlayerPlaceholder()
         {
             return new GameMapDefinition
             {
-                MapId = "placeholder-3p",
+                MapId = ThreePlayerMapId,
                 MinPlayers = 3,
                 MaxPlayers = 3,
                 Locations = new List<MapLocationDefinition>
@@ -88,7 +108,7 @@ namespace YC.Domain.Maps
             // All 22 locations, 22 routes, and 8 regions verified against 游城拓荒/路线图终版.txt.
             return new GameMapDefinition
             {
-                MapId = "map-four-players",
+                MapId = FourPlayerMapId,
                 MinPlayers = 4,
                 MaxPlayers = 4,
                 Locations = new List<MapLocationDefinition>
@@ -106,15 +126,15 @@ namespace YC.Domain.Maps
                     Location("D-02", "D", ResourceType.Iron, 2),
                     Location("D-03", "D", ResourceType.Iron, 2),
                     Location("E-01", "E", ResourceType.OriginiumShard, 2),
-                    Location("E-02", "E", ResourceType.OriginiumShard, 2),
-                    Location("E-03", "E", ResourceType.OriginiumShard, 2),
-                    Location("F-01", "F", ResourceType.OriginiumShard, 2),
-                    Location("F-02", "F", ResourceType.OriginiumShard, 2),
-                    Location("F-03", "F", ResourceType.OriginiumShard, 2),
+                    Location("E-02", "E", ResourceType.OriginiumShard, 2, isRedZone: true),
+                    Location("E-03", "E", ResourceType.OriginiumShard, 2, isRedZone: true),
+                    Location("F-01", "F", ResourceType.OriginiumShard, 2, isRedZone: true),
+                    Location("F-02", "F", ResourceType.OriginiumShard, 2, isRedZone: true),
+                    Location("F-03", "F", ResourceType.OriginiumShard, 2, isRedZone: true),
                     Location("G-01", "G", ResourceType.PureOriginium, 2),
                     Location("G-02", "G", ResourceType.PureOriginium, 2),
                     Location("G-03", "G", ResourceType.PureOriginium, 2),
-                    Location("G-04", "G", ResourceType.PureOriginium, 2)
+                    Location("G-04", "G", ResourceType.PureOriginium, 2, isRedZone: true)
                 },
                 Routes = new List<MapRouteDefinition>
                 {
@@ -159,7 +179,8 @@ namespace YC.Domain.Maps
             string locationId,
             string regionId,
             ResourceType resourceType,
-            int influenceSlotCount)
+            int influenceSlotCount,
+            bool isRedZone = false)
         {
             return new MapLocationDefinition
             {
@@ -167,6 +188,7 @@ namespace YC.Domain.Maps
                 RegionId = regionId,
                 ResourceType = resourceType,
                 CanDockCity = true,
+                IsRedZone = isRedZone,
                 ResourceSlotCount = 1,
                 InfluenceSlotCount = influenceSlotCount,
                 EventSlotCount = 1

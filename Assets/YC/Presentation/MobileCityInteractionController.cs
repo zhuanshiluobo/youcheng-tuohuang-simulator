@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using YC.Application.Gameplay;
 using YC.Application.Sessions;
 using YC.Application.Setup;
+using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
@@ -10,27 +11,15 @@ using YC.Domain.Movement;
 using YC.Domain.Rules;
 using YC.Domain.State;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace YC.Presentation
 {
     public sealed class MobileCityInteractionController : MonoBehaviour
     {
-        private const int PlayerId = 1;
-
-        private static readonly HashSet<string> InitialLocationIds = new HashSet<string>
-        {
-            "G-01",
-            "A-01",
-            "A-02",
-            "B-01",
-            "B-02",
-            "C-01"
-        };
-
         private readonly Dictionary<string, LocationView> locationsById = new Dictionary<string, LocationView>();
-        private readonly List<MapHotspot> hotspots = new List<MapHotspot>();
+        private readonly Dictionary<string, MapHotspot> hotspotsById = new Dictionary<string, MapHotspot>();
+        private readonly Dictionary<string, List<SpriteRenderer>> influenceSlotRenderers = new Dictionary<string, List<SpriteRenderer>>();
         private readonly HashSet<string> highlightedLocationIds = new HashSet<string>();
 
         [SerializeField] private SpriteRenderer mapRenderer;
@@ -39,10 +28,16 @@ namespace YC.Presentation
 
         private GameSession session;
         private MapQueryService mapQuery;
+        private InfluenceService influenceService;
+        private EventDeckService eventDeckService;
+        private ExpandableInfoPanel infoPanel;
         private GameObject cityObject;
         private Text promptText;
+        private GameObject eventChoiceOverlay;
+        private EventCardDefinition pendingEventCard;
         private bool awaitingInitialPlacement = true;
         private bool choosingMoveTarget;
+        private int localPlayerId = 1;
         private int lastDebugCoordinateLogFrame = -1;
 
         private void Awake()
@@ -61,6 +56,8 @@ namespace YC.Presentation
             BuildSession();
             BuildPromptUi();
             BuildHotspots();
+            BuildInfluenceSlotViews();
+            EnsureInfoPanel();
             ShowInitialPlacementChoices();
         }
 
@@ -77,7 +74,7 @@ namespace YC.Presentation
         public void BeginNextRound()
         {
             var state = session.State;
-            var player = state.FindPlayer(PlayerId);
+            var player = state.FindPlayer(localPlayerId);
             if (player != null)
             {
                 player.HasMovedCityThisRound = false;
@@ -91,6 +88,8 @@ namespace YC.Presentation
 
             choosingMoveTarget = false;
             ClearHighlights();
+            RefreshInfoPanel();
+            RefreshInfluenceDisplay();
             SetPrompt("点击移动城市，查看本回合可到达的资源点。");
         }
 
@@ -104,6 +103,12 @@ namespace YC.Presentation
 
             if (awaitingInitialPlacement)
             {
+                if (!IsLocalPlayersTurn())
+                {
+                    SetPrompt("等待玩家 " + session.State.CurrentPlayerId + " 完成入场。");
+                    return;
+                }
+
                 TryPlaceInitialCity(locationId);
                 return;
             }
@@ -127,7 +132,13 @@ namespace YC.Presentation
                 return;
             }
 
-            var player = session.State.FindPlayer(PlayerId);
+            if (!IsLocalPlayersTurn())
+            {
+                SetPrompt("等待玩家 " + session.State.CurrentPlayerId + " 行动。");
+                return;
+            }
+
+            var player = session.State.FindPlayer(localPlayerId);
             if (player == null)
             {
                 return;
@@ -150,7 +161,7 @@ namespace YC.Presentation
             var result = session.Submit(new GameCommand
             {
                 Kind = GameCommandKind.ChooseInitialLocation,
-                PlayerId = PlayerId,
+                PlayerId = localPlayerId,
                 TargetId = locationId
             });
 
@@ -163,8 +174,18 @@ namespace YC.Presentation
             awaitingInitialPlacement = false;
             choosingMoveTarget = false;
             MoveCityView(locationId);
+            RefreshResourceDisplay();
+            RefreshInfluenceDisplay();
             ClearHighlights();
-            SetPrompt("点击移动城市，查看本回合可到达的资源点。");
+
+            if (session.State.PendingChoice != null)
+            {
+                ShowPendingEventCardOptions();
+            }
+            else
+            {
+                UpdateEntranceOrActionPrompt();
+            }
         }
 
         private void TryMoveCity(string locationId)
@@ -172,7 +193,7 @@ namespace YC.Presentation
             var result = session.Submit(new GameCommand
             {
                 Kind = GameCommandKind.MoveCity,
-                PlayerId = PlayerId,
+                PlayerId = localPlayerId,
                 TargetId = locationId
             });
 
@@ -185,35 +206,258 @@ namespace YC.Presentation
             choosingMoveTarget = false;
             MoveCityView(locationId);
             ClearHighlights();
+            RefreshResourceDisplay();
+            RefreshInfluenceDisplay();
+
             SetPrompt("移动城市已移动。本回合不能再次移动。");
+        }
+
+        private void EnsureInfoPanel()
+        {
+            infoPanel = FindObjectOfType<ExpandableInfoPanel>();
+            if (infoPanel == null)
+            {
+                var go = new GameObject("ExpandableInfoPanel");
+                go.transform.SetParent(transform, false);
+                infoPanel = go.AddComponent<ExpandableInfoPanel>();
+            }
+
+            infoPanel.Initialize(infoPanel.transform);
+            RefreshInfoPanel();
+        }
+
+        private void RefreshInfoPanel()
+        {
+            if (infoPanel == null)
+            {
+                infoPanel = FindObjectOfType<ExpandableInfoPanel>();
+            }
+
+            if (infoPanel == null) return;
+
+            var player = session.State.FindPlayer(localPlayerId);
+            if (player == null) return;
+
+            infoPanel.SetRowValue("玩家概览", "玩家", player.Name);
+            infoPanel.SetRowValue("玩家概览", "分数", player.Score.ToString());
+
+            var r = player.Resources;
+            infoPanel.SetRowValue("资源状态", "源岩", r.Originium.ToString());
+            infoPanel.SetRowValue("资源状态", "源石", r.OriginiumShard.ToString());
+            infoPanel.SetRowValue("资源状态", "异铁", r.Iron.ToString());
+            infoPanel.SetRowValue("资源状态", "至纯源石", r.PureOriginium.ToString());
+            infoPanel.SetRowValue("资源状态", "金券", r.GoldVoucher.ToString());
+
+            infoPanel.SetRowValue("城市与行动", "城市位置", player.CityLocationId);
+            infoPanel.SetRowValue("城市与行动", "本回合", session.State.Round + " / 8");
+            infoPanel.SetRowValue("城市与行动", "行动轮", session.State.ActionRound.ToString());
+            infoPanel.SetRowValue("城市与行动", "已执行行动", player.ActedMainActionThisTurn ? "是" : "否");
+            infoPanel.SetRowValue("城市与行动", "已移动城市", player.HasMovedCityThisRound ? "是" : "否");
+        }
+
+        private void ShowPendingEventCardOptions()
+        {
+            var pendingChoice = session.State.PendingChoice;
+            if (pendingChoice == null) return;
+
+            var card = EventCardDatabase.Get(pendingChoice.CardId);
+            if (card == null) return;
+
+            ShowEventCardOptions(card);
+        }
+
+        private void ShowEventCardOptions(EventCardDefinition card)
+        {
+            if (card == null || card.ChoiceRewards.Count == 0) return;
+            pendingEventCard = card;
+
+            var canvasTransform = promptText.canvas.GetComponent<RectTransform>();
+
+            eventChoiceOverlay = new GameObject("Event Choice Overlay", typeof(RectTransform), typeof(Image));
+            eventChoiceOverlay.transform.SetParent(canvasTransform, false);
+
+            var overlayRect = eventChoiceOverlay.GetComponent<RectTransform>();
+            overlayRect.anchorMin = Vector2.zero;
+            overlayRect.anchorMax = Vector2.one;
+            overlayRect.offsetMin = Vector2.zero;
+            overlayRect.offsetMax = Vector2.zero;
+
+            eventChoiceOverlay.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.5f);
+
+            var panel = new GameObject("Choice Panel", typeof(RectTransform), typeof(Image), typeof(Outline));
+            panel.transform.SetParent(overlayRect, false);
+
+            var panelRect = panel.GetComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            panelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            panelRect.sizeDelta = new Vector2(500f, 120f + card.ChoiceRewards.Count * 52f);
+            panelRect.anchoredPosition = Vector2.zero;
+
+            panel.GetComponent<Image>().color = UiTheme.PanelBackground;
+            panel.GetComponent<Outline>().effectColor = UiTheme.GoldOutline;
+            panel.GetComponent<Outline>().effectDistance = new Vector2(3f, -3f);
+
+            var titleObj = new GameObject("Title", typeof(RectTransform), typeof(Text));
+            titleObj.transform.SetParent(panelRect, false);
+            var titleRect = titleObj.GetComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0f, 1f);
+            titleRect.anchorMax = new Vector2(1f, 1f);
+            titleRect.sizeDelta = new Vector2(0f, 40f);
+            titleRect.anchoredPosition = new Vector2(0f, -20f);
+
+            var titleText = titleObj.GetComponent<Text>();
+            titleText.text = "事件牌 · " + card.CardId;
+            titleText.alignment = TextAnchor.MiddleCenter;
+            titleText.color = UiTheme.GoldText;
+            titleText.fontSize = 22;
+            titleText.fontStyle = FontStyle.Bold;
+            titleText.font = FontUtility.GetCjkFont(22);
+
+            for (var i = 0; i < card.ChoiceRewards.Count; i++)
+            {
+                var capturedIndex = i;
+                var desc = card.ChoiceDescriptions[i];
+
+                var btnObj = new GameObject("Choice " + (i + 1), typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
+                btnObj.transform.SetParent(panelRect, false);
+
+                var btnRect = btnObj.GetComponent<RectTransform>();
+                btnRect.anchorMin = new Vector2(0.05f, 1f);
+                btnRect.anchorMax = new Vector2(0.95f, 1f);
+                btnRect.sizeDelta = new Vector2(0f, 42f);
+                btnRect.anchoredPosition = new Vector2(0f, -55f - i * 50f);
+
+                btnObj.GetComponent<Image>().color = UiTheme.ButtonBackground;
+                btnObj.GetComponent<Outline>().effectColor = UiTheme.GoldOutlineThin;
+                btnObj.GetComponent<Outline>().effectDistance = new Vector2(1f, -1f);
+
+                var labelObj = new GameObject("Label", typeof(RectTransform), typeof(Text));
+                labelObj.transform.SetParent(btnRect, false);
+                var labelRect = labelObj.GetComponent<RectTransform>();
+                labelRect.anchorMin = Vector2.zero;
+                labelRect.anchorMax = Vector2.one;
+                labelRect.offsetMin = new Vector2(12f, 0f);
+                labelRect.offsetMax = new Vector2(-12f, 0f);
+
+                var labelText = labelObj.GetComponent<Text>();
+                labelText.text = (i + 1) + ". " + desc;
+                labelText.alignment = TextAnchor.MiddleLeft;
+                labelText.color = UiTheme.GoldText;
+                labelText.fontSize = 16;
+                labelText.font = FontUtility.GetCjkFont(16);
+
+                btnObj.GetComponent<Button>().onClick.AddListener(() => ApplyEventChoice(capturedIndex));
+            }
+
+            SetPrompt("请选择事件牌的一个选项。");
+        }
+
+        private void ApplyEventChoice(int choiceIndex)
+        {
+            if (pendingEventCard == null) return;
+            if (choiceIndex < 0 || choiceIndex >= pendingEventCard.ChoiceRewards.Count) return;
+
+            var result = session.Submit(new GameCommand
+            {
+                Kind = GameCommandKind.ResolveEntranceEvent,
+                PlayerId = localPlayerId,
+                OptionIds = new List<string> { choiceIndex.ToString() }
+            });
+
+            if (!result.Succeeded)
+            {
+                SetPrompt(result.Validation.Reason);
+                return;
+            }
+
+            HideEventCardOptions();
+            ClearHighlights();
+            RefreshResourceDisplay();
+            UpdateEntranceOrActionPrompt();
+        }
+
+        private void HideEventCardOptions()
+        {
+            if (eventChoiceOverlay != null)
+            {
+                Destroy(eventChoiceOverlay);
+                eventChoiceOverlay = null;
+            }
+
+            pendingEventCard = null;
         }
 
         private void BuildSession()
         {
             mapQuery = new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap());
+
+            eventDeckService = new EventDeckService();
+            var launchContext = GameLaunchContext.Instance;
+            if (launchContext != null && launchContext.LocalPlayerId > 0)
+            {
+                localPlayerId = launchContext.LocalPlayerId;
+            }
+
+            var startPlayerId = GetStartPlayerId(launchContext);
+
             var state = new GameState
             {
                 Phase = GamePhase.Entrance,
-                StartPlayerId = PlayerId,
-                CurrentPlayerId = PlayerId,
-                MapId = mapQuery.Map.MapId,
-                Players =
-                {
-                    new PlayerState
-                    {
-                        PlayerId = PlayerId,
-                        Name = "Player 1",
-                        Color = PlayerColor.Blue
-                    }
-                }
+                StartPlayerId = startPlayerId,
+                CurrentPlayerId = startPlayerId,
+                MapId = mapQuery.Map.MapId
             };
+
+            AddPlayersFromLaunchContext(state, launchContext);
+
+            eventDeckService.InitializeDecks(
+                state.Decks,
+                EventCardDatabase.GreenCardIds,
+                EventCardDatabase.YellowCardIds,
+                EventCardDatabase.RedCardIds);
 
             session = new GameSession(state);
             session.RegisterHandler(new SetupCommandHandler(mapQuery));
-            var influenceService = new InfluenceService(mapQuery);
+            influenceService = new InfluenceService(mapQuery);
             var travelCostService = new TravelCostService(mapQuery);
             var movementService = new CityMovementService(mapQuery, influenceService, travelCostService);
             session.RegisterHandler(new MoveCityCommandHandler(movementService));
+        }
+
+        private static int GetStartPlayerId(GameLaunchContext launchContext)
+        {
+            if (launchContext != null && launchContext.Players.Count > 0)
+            {
+                return launchContext.Players[0].PlayerId;
+            }
+
+            return 1;
+        }
+
+        private void AddPlayersFromLaunchContext(GameState state, GameLaunchContext launchContext)
+        {
+            if (launchContext != null && launchContext.Players.Count > 0)
+            {
+                for (var i = 0; i < launchContext.Players.Count; i++)
+                {
+                    var seat = launchContext.Players[i];
+                    state.Players.Add(new PlayerState
+                    {
+                        PlayerId = seat.PlayerId,
+                        Name = string.IsNullOrEmpty(seat.PlayerName) ? "Player " + seat.PlayerId : seat.PlayerName,
+                        Color = seat.Color
+                    });
+                }
+
+                return;
+            }
+
+            state.Players.Add(new PlayerState
+            {
+                PlayerId = localPlayerId,
+                Name = "Player " + localPlayerId,
+                Color = PlayerColor.Blue
+            });
         }
 
         private void BuildHotspots()
@@ -226,7 +470,7 @@ namespace YC.Presentation
                 hotspotObject.transform.position = ToWorldPosition(view.NormalizedPosition, -0.2f);
 
                 var renderer = hotspotObject.GetComponent<SpriteRenderer>();
-                renderer.sprite = CreateCircleSprite(96, 40f, 8f);
+                renderer.sprite = UguiUtility.CreateCircleSprite(96, 40f, 8f);
                 renderer.color = new Color(0.25f, 0.95f, 0.45f, 0f);
                 renderer.sortingOrder = 10;
 
@@ -234,8 +478,8 @@ namespace YC.Presentation
                 collider.radius = 0.45f;
 
                 var hotspot = hotspotObject.GetComponent<MapHotspot>();
-                hotspot.Initialize(this, pair.Key, renderer);
-                hotspots.Add(hotspot);
+                hotspot.Initialize(this, pair.Key);
+                hotspotsById[pair.Key] = hotspot;
             }
 
             ApplyDebugHotspotHighlights();
@@ -254,9 +498,73 @@ namespace YC.Presentation
             cityObject.GetComponent<MobileCityClickTarget>().Initialize(this);
         }
 
+        private void BuildInfluenceSlotViews()
+        {
+            foreach (var pair in locationsById)
+            {
+                var locationId = pair.Key;
+                var view = pair.Value;
+                var slotRenderers = new List<SpriteRenderer>();
+
+                var location = mapQuery.GetLocation(locationId);
+                var slotCount = location.InfluenceSlotCount;
+
+                for (var i = 0; i < slotCount; i++)
+                {
+                    var slotObject = new GameObject("InfluenceSlot " + locationId + ":" + i, typeof(SpriteRenderer));
+                    slotObject.transform.SetParent(transform, false);
+
+                    // Test coordinates: positioned to the left of the movement point.
+                    // Offset x by -0.022 per slot column; stagger y for multiple slots.
+                    // TODO: replace with actual adapted coordinates later.
+                    var slotPos = view.NormalizedPosition;
+                    var yOffset = slotCount > 1 ? (i - (slotCount - 1) * 0.5f) * 0.016f : 0f;
+                    slotObject.transform.position = ToWorldPosition(
+                        new Vector2(slotPos.x - 0.028f, slotPos.y + yOffset), -0.25f);
+
+                    var renderer = slotObject.GetComponent<SpriteRenderer>();
+                    renderer.sprite = UguiUtility.CreateCircleSprite(24, 8f, 2f);
+                    renderer.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
+                    renderer.sortingOrder = 15;
+
+                    slotRenderers.Add(renderer);
+                }
+
+                influenceSlotRenderers[locationId] = slotRenderers;
+            }
+
+            RefreshInfluenceDisplay();
+        }
+
+        private void RefreshInfluenceDisplay()
+        {
+            if (session == null || influenceService == null) return;
+
+            foreach (var pair in influenceSlotRenderers)
+            {
+                var locationId = pair.Key;
+                var renderers = pair.Value;
+
+                for (var i = 0; i < renderers.Count; i++)
+                {
+                    var slotId = InfluenceService.GetLocationSlotId(locationId, i);
+                    var placement = influenceService.FindInfluence(session.State, slotId);
+
+                    if (placement != null)
+                    {
+                        renderers[i].color = new Color(0.9f, 0.3f, 0.3f, 0.85f);
+                    }
+                    else
+                    {
+                        renderers[i].color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
+                    }
+                }
+            }
+        }
+
         private void BuildPromptUi()
         {
-            EnsureEventSystem();
+            UguiUtility.EnsureEventSystem();
 
             var canvasObject = new GameObject("Mobile City UI Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasObject.transform.SetParent(transform, false);
@@ -280,9 +588,9 @@ namespace YC.Presentation
             panelTransform.sizeDelta = new Vector2(820f, 68f);
             panelTransform.anchoredPosition = new Vector2(0f, -32f);
 
-            panelObject.GetComponent<Image>().color = new Color(0.08f, 0.07f, 0.055f, 0.88f);
+            panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
             var outline = panelObject.GetComponent<Outline>();
-            outline.effectColor = new Color(0.78f, 0.63f, 0.38f, 0.9f);
+            outline.effectColor = UiTheme.GoldOutline;
             outline.effectDistance = new Vector2(3f, -3f);
 
             var textObject = new GameObject("Prompt Text", typeof(RectTransform), typeof(Text));
@@ -296,22 +604,60 @@ namespace YC.Presentation
 
             promptText = textObject.GetComponent<Text>();
             promptText.alignment = TextAnchor.MiddleCenter;
-            promptText.color = new Color(0.86f, 0.75f, 0.55f, 1f);
+            promptText.color = UiTheme.GoldText;
             promptText.fontSize = 30;
             promptText.fontStyle = FontStyle.Bold;
-            promptText.font = Font.CreateDynamicFontFromOSFont(new[] { "SimHei", "Microsoft YaHei", "Arial" }, promptText.fontSize);
+            promptText.font = FontUtility.GetCjkFont(promptText.fontSize);
+        }
+
+        private void RefreshResourceDisplay()
+        {
+            RefreshInfoPanel();
         }
 
         private void ShowInitialPlacementChoices()
         {
             ClearHighlights();
-            foreach (var locationId in InitialLocationIds)
+            if (IsLocalPlayersTurn())
             {
-                SetHighlighted(locationId, new Color(0.25f, 0.95f, 0.45f, 0.82f));
+                foreach (var locationId in StaticMapDefinitions.FourPlayerInitialLocationIds)
+                {
+                    SetHighlighted(locationId, new Color(0.25f, 0.95f, 0.45f, 0.82f));
+                }
             }
 
-            SetPrompt("选择绿色资源点放置移动城市");
+            UpdateEntranceOrActionPrompt();
             ApplyDebugHotspotHighlights();
+        }
+
+        private bool IsLocalPlayersTurn()
+        {
+            return session == null || session.State.CurrentPlayerId == localPlayerId;
+        }
+
+        private void UpdateEntranceOrActionPrompt()
+        {
+            if (session == null)
+            {
+                return;
+            }
+
+            if (session.State.Phase == GamePhase.Entrance)
+            {
+                var player = session.State.FindPlayer(localPlayerId);
+                if (player != null && string.IsNullOrEmpty(player.CityLocationId) && IsLocalPlayersTurn())
+                {
+                    SetPrompt("选择绿色资源点放置移动城市");
+                }
+                else
+                {
+                    SetPrompt("等待玩家 " + session.State.CurrentPlayerId + " 完成入场。");
+                }
+
+                return;
+            }
+
+            SetPrompt("点击移动城市，查看本回合可到达的资源点。");
         }
 
         private void HighlightReachableLocations(string sourceLocationId)
@@ -334,7 +680,7 @@ namespace YC.Presentation
             for (var i = 0; i < session.State.Players.Count; i++)
             {
                 var player = session.State.Players[i];
-                if (player.PlayerId != PlayerId && player.CityLocationId == locationId)
+                if (player.PlayerId != localPlayerId && player.CityLocationId == locationId)
                 {
                     return true;
                 }
@@ -346,22 +692,18 @@ namespace YC.Presentation
         private void SetHighlighted(string locationId, Color color)
         {
             highlightedLocationIds.Add(locationId);
-            for (var i = 0; i < hotspots.Count; i++)
+            if (hotspotsById.TryGetValue(locationId, out var hotspot))
             {
-                if (hotspots[i].LocationId == locationId)
-                {
-                    hotspots[i].SetColor(color);
-                    return;
-                }
+                hotspot.SetColor(color);
             }
         }
 
         private void ClearHighlights()
         {
             highlightedLocationIds.Clear();
-            for (var i = 0; i < hotspots.Count; i++)
+            foreach (var pair in hotspotsById)
             {
-                hotspots[i].SetColor(new Color(0.25f, 0.95f, 0.45f, 0f));
+                pair.Value.SetColor(new Color(0.25f, 0.95f, 0.45f, 0f));
             }
 
             ApplyDebugHotspotHighlights();
@@ -428,14 +770,14 @@ namespace YC.Presentation
                 return;
             }
 
-            for (var i = 0; i < hotspots.Count; i++)
+            foreach (var pair in hotspotsById)
             {
-                if (highlightedLocationIds.Contains(hotspots[i].LocationId))
+                if (highlightedLocationIds.Contains(pair.Key))
                 {
                     continue;
                 }
 
-                hotspots[i].SetColor(new Color(1f, 0.78f, 0.18f, 0.42f));
+                pair.Value.SetColor(new Color(1f, 0.78f, 0.18f, 0.42f));
             }
         }
 
@@ -478,27 +820,6 @@ namespace YC.Presentation
             locationsById[locationId] = new LocationView(new Vector2(x, y));
         }
 
-        private static Sprite CreateCircleSprite(int size, float radius, float thickness)
-        {
-            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
-            texture.wrapMode = TextureWrapMode.Clamp;
-            texture.filterMode = FilterMode.Bilinear;
-
-            var center = new Vector2((size - 1) * 0.5f, (size - 1) * 0.5f);
-            for (var y = 0; y < size; y++)
-            {
-                for (var x = 0; x < size; x++)
-                {
-                    var distance = Vector2.Distance(new Vector2(x, y), center);
-                    var alpha = distance <= radius && distance >= radius - thickness ? 1f : 0f;
-                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
-                }
-            }
-
-            texture.Apply();
-            return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size);
-        }
-
         private static Sprite CreateCitySprite()
         {
             const int width = 80;
@@ -526,16 +847,6 @@ namespace YC.Presentation
             return Sprite.Create(texture, new Rect(0f, 0f, width, height), new Vector2(0.5f, 0.5f), 100f);
         }
 
-        private static void EnsureEventSystem()
-        {
-            if (FindObjectOfType<EventSystem>() != null)
-            {
-                return;
-            }
-
-            new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
-        }
-
         private sealed class LocationView
         {
             public readonly Vector2 NormalizedPosition;
@@ -554,11 +865,11 @@ namespace YC.Presentation
 
         public string LocationId { get; private set; }
 
-        public void Initialize(MobileCityInteractionController owner, string locationId, SpriteRenderer renderer)
+        public void Initialize(MobileCityInteractionController owner, string locationId)
         {
             controller = owner;
             LocationId = locationId;
-            spriteRenderer = renderer;
+            spriteRenderer = GetComponent<SpriteRenderer>();
         }
 
         public void SetColor(Color color)

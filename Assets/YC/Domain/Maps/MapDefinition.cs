@@ -22,6 +22,7 @@ namespace YC.Domain.Maps
         public string RegionId = string.Empty;
         public ResourceType ResourceType;
         public bool CanDockCity;
+        public bool IsRedZone;
         public int ResourceSlotCount;
         public int InfluenceSlotCount;
         public int EventSlotCount;

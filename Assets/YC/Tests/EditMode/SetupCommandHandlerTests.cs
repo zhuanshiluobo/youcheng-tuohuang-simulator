@@ -147,6 +147,101 @@ namespace YC.Tests.EditMode
             Assert.That(state.Map.OpenLocationIds, Is.Empty);
         }
 
+        [Test]
+        public void ChooseInitialLocation_WhenFourPlayerEntranceCompletes_GrantsInitialGoldByTurnOrder()
+        {
+            var state = CreateFourPlayerState(GamePhase.Entrance);
+            state.StartPlayerId = 2;
+            state.CurrentPlayerId = 2;
+            var handler = CreateFourPlayerHandler();
+
+            handler.Handle(state, InitialLocationCommand(2, "G-01"));
+            handler.Handle(state, InitialLocationCommand(3, "A-01"));
+            handler.Handle(state, InitialLocationCommand(4, "A-02"));
+            var result = handler.Handle(state, InitialLocationCommand(1, "B-01"));
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(state.FindPlayer(2).Resources.GoldVoucher, Is.EqualTo(10));
+            Assert.That(state.FindPlayer(3).Resources.GoldVoucher, Is.EqualTo(12));
+            Assert.That(state.FindPlayer(4).Resources.GoldVoucher, Is.EqualTo(14));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(18));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
+            Assert.That(state.Round, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ChooseInitialLocation_InEntranceTurnOrder_AdvancesCurrentPlayer()
+        {
+            var state = CreateFourPlayerState(GamePhase.Entrance);
+            state.StartPlayerId = 2;
+            state.CurrentPlayerId = 2;
+            var handler = CreateFourPlayerHandler();
+
+            var result = handler.Handle(state, InitialLocationCommand(2, "G-01"));
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(state.FindPlayer(2).CityLocationId, Is.EqualTo("G-01"));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(3));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.Entrance));
+        }
+
+        [Test]
+        public void ChooseInitialLocation_OutOfEntranceTurnOrder_FailsWithoutChangingState()
+        {
+            var state = CreateFourPlayerState(GamePhase.Entrance);
+            state.StartPlayerId = 2;
+            state.CurrentPlayerId = 2;
+            var handler = CreateFourPlayerHandler();
+
+            var result = handler.Handle(state, InitialLocationCommand(3, "G-01"));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.NotCurrentPlayer));
+            Assert.That(state.FindPlayer(3).CityLocationId, Is.Empty);
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
+            Assert.That(state.Map.OpenLocationIds, Is.Empty);
+        }
+
+        [Test]
+        public void ResolveEntranceEvent_WithValidOption_GrantsRewardAndAdvancesEntrance()
+        {
+            var state = CreateFourPlayerState(GamePhase.Entrance);
+            state.StartPlayerId = 1;
+            state.CurrentPlayerId = 1;
+            state.Decks.EventDeckGreen.Add("event_green_01");
+            var handler = CreateFourPlayerHandler();
+
+            var placeResult = handler.Handle(state, InitialLocationCommand(1, "G-01"));
+            var resolveResult = handler.Handle(state, EntranceEventCommand(1, "0"));
+
+            Assert.That(placeResult.Succeeded, Is.True);
+            Assert.That(resolveResult.Succeeded, Is.True);
+            Assert.That(state.PendingChoice, Is.Null);
+            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(3));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
+            Assert.That(state.Map.ResourceTokens, Has.Count.EqualTo(1));
+            Assert.That(state.Map.ResourceTokens[0].LocationId, Is.EqualTo("G-01"));
+        }
+
+        [Test]
+        public void ResolveEntranceEvent_WithInvalidOption_FailsWithoutGrantingReward()
+        {
+            var state = CreateFourPlayerState(GamePhase.Entrance);
+            state.StartPlayerId = 1;
+            state.CurrentPlayerId = 1;
+            state.Decks.EventDeckGreen.Add("event_green_01");
+            var handler = CreateFourPlayerHandler();
+
+            handler.Handle(state, InitialLocationCommand(1, "G-01"));
+            var result = handler.Handle(state, EntranceEventCommand(1, "9"));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(state.PendingChoice, Is.Not.Null);
+            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.Zero);
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+        }
+
         private static SetupCommandHandler CreateHandler()
         {
             return new SetupCommandHandler(new MapQueryService(StaticMapDefinitions.CreateThreePlayerPlaceholder()));
@@ -177,6 +272,61 @@ namespace YC.Tests.EditMode
                         Color = PlayerColor.Blue
                     }
                 }
+            };
+        }
+
+        private static GameState CreateFourPlayerState(GamePhase phase)
+        {
+            return new GameState
+            {
+                Phase = phase,
+                Players =
+                {
+                    new PlayerState
+                    {
+                        PlayerId = 1,
+                        Name = "Player 1",
+                        Color = PlayerColor.Red
+                    },
+                    new PlayerState
+                    {
+                        PlayerId = 2,
+                        Name = "Player 2",
+                        Color = PlayerColor.Blue
+                    },
+                    new PlayerState
+                    {
+                        PlayerId = 3,
+                        Name = "Player 3",
+                        Color = PlayerColor.Green
+                    },
+                    new PlayerState
+                    {
+                        PlayerId = 4,
+                        Name = "Player 4",
+                        Color = PlayerColor.Yellow
+                    }
+                }
+            };
+        }
+
+        private static GameCommand InitialLocationCommand(int playerId, string locationId)
+        {
+            return new GameCommand
+            {
+                Kind = GameCommandKind.ChooseInitialLocation,
+                PlayerId = playerId,
+                TargetId = locationId
+            };
+        }
+
+        private static GameCommand EntranceEventCommand(int playerId, string optionId)
+        {
+            return new GameCommand
+            {
+                Kind = GameCommandKind.ResolveEntranceEvent,
+                PlayerId = playerId,
+                OptionIds = { optionId }
             };
         }
     }

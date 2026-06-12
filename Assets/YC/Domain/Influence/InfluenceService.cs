@@ -13,6 +13,10 @@ namespace YC.Domain.Influence
         private readonly GameState boundState;
         private readonly IMapQueryService mapQuery;
         private readonly IInfluenceRoadCoverageQuery roadCoverageQuery;
+        private readonly InfluencePlacementRule placementRule;
+        private readonly InfluenceMoveRule moveRule;
+        private readonly InfluenceRemovalService removalService;
+        private readonly InfluenceQueryService queryService;
 
         public InfluenceService(IMapQueryService mapQuery)
             : this(null, mapQuery, new RuntimeStateRoadCoverageQuery())
@@ -29,9 +33,43 @@ namespace YC.Domain.Influence
             IMapQueryService mapQuery,
             IInfluenceRoadCoverageQuery roadCoverageQuery)
         {
-            this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
+            _ = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
+            this.mapQuery = mapQuery;
             boundState = state;
             this.roadCoverageQuery = roadCoverageQuery ?? new NoInfluenceRoadCoverageQuery();
+            placementRule = new InfluencePlacementRule(mapQuery, roadCoverageQuery);
+            moveRule = new InfluenceMoveRule(placementRule);
+            removalService = new InfluenceRemovalService();
+            queryService = new InfluenceQueryService(mapQuery);
+        }
+
+        public InfluenceService(
+            GameState state,
+            InfluencePlacementRule placementRule,
+            InfluenceMoveRule moveRule,
+            InfluenceRemovalService removalService,
+            InfluenceQueryService queryService)
+        {
+            _ = placementRule ?? throw new ArgumentNullException(nameof(placementRule));
+            _ = moveRule ?? throw new ArgumentNullException(nameof(moveRule));
+            _ = removalService ?? throw new ArgumentNullException(nameof(removalService));
+            _ = queryService ?? throw new ArgumentNullException(nameof(queryService));
+            this.placementRule = placementRule;
+            this.moveRule = moveRule;
+            this.removalService = removalService;
+            this.queryService = queryService;
+            boundState = state;
+            mapQuery = null;
+            roadCoverageQuery = null;
+        }
+
+        public InfluenceService(
+            InfluencePlacementRule placementRule,
+            InfluenceMoveRule moveRule,
+            InfluenceRemovalService removalService,
+            InfluenceQueryService queryService)
+            : this(null, placementRule, moveRule, removalService, queryService)
+        {
         }
 
         public ValidationResult CanPlace(GameState state, int playerId, string slotId)
@@ -130,12 +168,13 @@ namespace YC.Domain.Influence
 
         public bool HasInfluenceAt(GameState state, string slotId)
         {
-            return FindInfluence(state, slotId) != null;
+            ValidateState(state);
+            return queryService.HasInfluenceAt(state, slotId);
         }
 
         public bool HasInfluenceAt(string slotId)
         {
-            return FindInfluence(GetBoundState(), slotId) != null;
+            return HasInfluenceAt(GetBoundState(), slotId);
         }
 
         public static string GetLocationSlotId(string locationId, int index)
@@ -151,42 +190,12 @@ namespace YC.Domain.Influence
         public InfluencePlacement FindInfluence(GameState state, string influenceId)
         {
             ValidateState(state);
-
             if (string.IsNullOrEmpty(influenceId))
             {
                 return null;
             }
 
-            InfluenceSlotReference requestedSlot;
-            string ignoredReason;
-            var requestedSlotValid = InfluenceSlotReference.TryParse(
-                mapQuery,
-                influenceId,
-                out requestedSlot,
-                out ignoredReason);
-
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var placement = state.Map.Influences[i];
-                if (placement.SlotId == influenceId)
-                {
-                    return placement;
-                }
-
-                if (!requestedSlotValid)
-                {
-                    continue;
-                }
-
-                InfluenceSlotReference placedSlot;
-                if (InfluenceSlotReference.TryParse(mapQuery, placement.SlotId, out placedSlot, out ignoredReason) &&
-                    placedSlot.SlotId == requestedSlot.SlotId)
-                {
-                    return placement;
-                }
-            }
-
-            return null;
+            return queryService.FindInfluence(state, influenceId);
         }
 
         public InfluencePlacement FindInfluence(string influenceId)
@@ -197,99 +206,50 @@ namespace YC.Domain.Influence
         private InfluenceOperationResult CanPlaceCore(GameState state, int playerId, string slotId)
         {
             ValidateState(state);
-            InfluenceSlotReference slot;
-            var slotResult = TryResolveSlot(slotId, playerId, out slot);
-            if (!slotResult.Succeeded)
-            {
-                return slotResult;
-            }
-
-            return ValidateDestination(state, playerId, slot, true);
+            return placementRule.Validate(state, playerId, slotId, true);
         }
 
         private InfluenceOperationResult PlaceCore(GameState state, int playerId, string slotId)
         {
             ValidateState(state);
-            InfluenceSlotReference slot;
-            var slotResult = TryResolveSlot(slotId, playerId, out slot);
-            if (!slotResult.Succeeded)
-            {
-                return slotResult;
-            }
-
-            var validation = ValidateDestination(state, playerId, slot, true);
+            var validation = placementRule.Validate(state, playerId, slotId, true);
             if (!validation.Succeeded)
             {
                 return validation;
             }
 
             var player = state.FindPlayer(playerId);
+            var canonicalSlotId = validation.SlotId;
             player.InfluenceSupply -= 1;
-            state.Map.Influences.Add(CreatePlacement(playerId, slot));
-            return InfluenceOperationResult.Success(playerId, slot.SlotId, true);
+            state.Map.Influences.Add(CreatePlacementFromSlotId(playerId, canonicalSlotId));
+            return InfluenceOperationResult.Success(playerId, canonicalSlotId, true);
         }
 
         private InfluenceOperationResult CanMoveCore(GameState state, int playerId, string sourceInfluenceId, string targetSlotId)
         {
             ValidateState(state);
-            var placement = FindInfluence(state, sourceInfluenceId);
-            if (placement == null)
-            {
-                return Failure(InfluenceFailureCode.InfluenceNotFound, "Source influence must exist before it can move.", playerId, sourceInfluenceId, false);
-            }
-
-            if (placement.PlayerId != playerId)
-            {
-                return Failure(InfluenceFailureCode.InfluenceOwnerMismatch, "Only the owner can move this influence.", playerId, sourceInfluenceId, false);
-            }
-
-            InfluenceSlotReference targetSlot;
-            var slotResult = TryResolveSlot(targetSlotId, playerId, out targetSlot);
-            if (!slotResult.Succeeded)
-            {
-                return slotResult;
-            }
-
-            return ValidateDestination(state, playerId, targetSlot, false);
+            return moveRule.Validate(state, playerId, sourceInfluenceId, targetSlotId);
         }
 
         private InfluenceOperationResult MoveCore(GameState state, int playerId, string sourceInfluenceId, string targetSlotId)
         {
             ValidateState(state);
-            var validation = CanMoveCore(state, playerId, sourceInfluenceId, targetSlotId);
+            var validation = moveRule.Validate(state, playerId, sourceInfluenceId, targetSlotId);
             if (!validation.Succeeded)
             {
                 return validation;
             }
 
-            InfluenceSlotReference targetSlot;
-            TryResolveSlot(targetSlotId, playerId, out targetSlot);
-
             var placement = FindInfluence(state, sourceInfluenceId);
-            ApplySlot(placement, targetSlot);
-            return InfluenceOperationResult.Success(playerId, targetSlot.SlotId, true);
+            var canonicalTargetSlotId = validation.SlotId;
+            ApplySlotFromId(placement, canonicalTargetSlotId);
+            return InfluenceOperationResult.Success(playerId, canonicalTargetSlotId, true);
         }
 
         private InfluenceOperationResult RemoveCore(GameState state, string influenceId)
         {
             ValidateState(state);
-            var placement = FindInfluence(state, influenceId);
-            if (placement == null)
-            {
-                return Failure(InfluenceFailureCode.InfluenceNotFound, "Influence must exist before it can be removed.", -1, influenceId, false);
-            }
-
-            var playerId = placement.PlayerId;
-            var player = state.FindPlayer(playerId);
-            var slotId = placement.SlotId;
-            state.Map.Influences.Remove(placement);
-
-            if (player != null)
-            {
-                player.InfluenceSupply += 1;
-            }
-
-            return InfluenceOperationResult.Success(playerId, slotId, true);
+            return removalService.Remove(state, influenceId);
         }
 
         private InfluenceOperationResult ReplaceCore(GameState state, string targetInfluenceId, int newOwnerPlayerId)
@@ -301,294 +261,79 @@ namespace YC.Domain.Influence
                 return Failure(InfluenceFailureCode.InfluenceNotFound, "Target influence must exist before it can be replaced.", newOwnerPlayerId, targetInfluenceId, false);
             }
 
-            if (state.FindPlayer(newOwnerPlayerId) == null)
+            var newOwner = state.FindPlayer(newOwnerPlayerId);
+            if (newOwner == null)
             {
                 return Failure(InfluenceFailureCode.InvalidPlayer, "Replacement owner must be an existing player.", newOwnerPlayerId, targetInfluenceId, false);
             }
 
-            InfluenceSlotReference targetSlot;
-            var slotResult = TryResolveSlot(target.SlotId, newOwnerPlayerId, out targetSlot);
-            if (!slotResult.Succeeded)
+            var targetSlotId = target.SlotId;
+            if (newOwner.InfluenceSupply <= 0)
             {
-                return slotResult;
+                return Failure(
+                    InfluenceFailureCode.InsufficientSupply,
+                    "Replacement owner must have an available marker in supply.",
+                    newOwnerPlayerId,
+                    targetSlotId,
+                    false);
+            }
+
+            var targetIndex = state.Map.Influences.IndexOf(target);
+            state.Map.Influences.RemoveAt(targetIndex);
+
+            var placementValidation = placementRule.Validate(state, newOwnerPlayerId, targetSlotId, false);
+            if (!placementValidation.Succeeded)
+            {
+                state.Map.Influences.Insert(targetIndex, target);
+                return Failure(
+                    placementValidation.FailureCode,
+                    placementValidation.Reason,
+                    newOwnerPlayerId,
+                    targetSlotId,
+                    false);
             }
 
             var oldOwner = state.FindPlayer(target.PlayerId);
-            state.Map.Influences.Remove(target);
             if (oldOwner != null)
             {
                 oldOwner.InfluenceSupply += 1;
             }
 
-            var placementValidation = ValidateDestination(state, newOwnerPlayerId, targetSlot, true);
-            if (!placementValidation.Succeeded)
-            {
-                return Failure(
-                    placementValidation.FailureCode,
-                    placementValidation.Reason,
-                    newOwnerPlayerId,
-                    targetSlot.SlotId,
-                    true);
-            }
-
-            var newOwner = state.FindPlayer(newOwnerPlayerId);
             newOwner.InfluenceSupply -= 1;
-            state.Map.Influences.Add(CreatePlacement(newOwnerPlayerId, targetSlot));
-            return InfluenceOperationResult.Success(newOwnerPlayerId, targetSlot.SlotId, true);
+            state.Map.Influences.Insert(targetIndex, CreatePlacementFromSlotId(newOwnerPlayerId, targetSlotId));
+            return InfluenceOperationResult.Success(newOwnerPlayerId, targetSlotId, true);
         }
 
         private int CountInRegionCore(GameState state, int playerId, string regionId, bool includeCity)
         {
             ValidateState(state);
-            var region = FindRegion(regionId);
-            if (region == null)
-            {
-                throw new ArgumentException("Unknown map region id.", nameof(regionId));
-            }
-
-            var count = 0;
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var placement = state.Map.Influences[i];
-                if (placement.PlayerId != playerId)
-                {
-                    continue;
-                }
-
-                if (IsPlacementInRegion(placement, region))
-                {
-                    count += 1;
-                }
-            }
-
-            if (includeCity)
-            {
-                var player = state.FindPlayer(playerId);
-                if (player != null && IsLocationInRegion(player.CityLocationId, region))
-                {
-                    count += 2;
-                }
-            }
-
-            return count;
+            return queryService.CountInRegion(state, playerId, regionId, includeCity);
         }
 
-        private InfluenceOperationResult TryResolveSlot(
-            string slotId,
-            int playerId,
-            out InfluenceSlotReference slot)
-        {
-            string reason;
-            if (InfluenceSlotReference.TryParse(mapQuery, slotId, out slot, out reason))
-            {
-                return InfluenceOperationResult.Success(playerId, slot.SlotId, false);
-            }
-
-            return InfluenceOperationResult.Failure(
-                InfluenceFailureCode.InvalidSlot,
-                reason,
-                playerId,
-                slotId,
-                false);
-        }
-
-        private InfluenceOperationResult ValidateDestination(
-            GameState state,
-            int playerId,
-            InfluenceSlotReference slot,
-            bool requireAvailableSupply)
-        {
-            var player = state.FindPlayer(playerId);
-            if (player == null)
-            {
-                return InfluenceOperationResult.Failure(
-                    InfluenceFailureCode.InvalidPlayer,
-                    "Player must exist before placing influence.",
-                    playerId,
-                    slot.SlotId,
-                    false);
-            }
-
-            if (FindInfluence(state, slot.SlotId) != null)
-            {
-                return InfluenceOperationResult.Failure(
-                    InfluenceFailureCode.OccupiedSlot,
-                    "Influence slot is already occupied.",
-                    playerId,
-                    slot.SlotId,
-                    false);
-            }
-
-            if (requireAvailableSupply && player.InfluenceSupply <= 0)
-            {
-                return InfluenceOperationResult.Failure(
-                    InfluenceFailureCode.InsufficientSupply,
-                    "Player has no available markers in supply.",
-                    playerId,
-                    slot.SlotId,
-                    false);
-            }
-
-            if (slot.Kind == InfluenceSlotKind.Location)
-            {
-                if (!HasResourceToken(state, slot.LocationId))
-                {
-                    return InfluenceOperationResult.Failure(
-                        InfluenceFailureCode.ResourceTokenRequired,
-                        "Location influence slots require an existing resource token.",
-                        playerId,
-                        slot.SlotId,
-                        false);
-                }
-
-                if (HasOpponentCity(state, playerId, slot.LocationId))
-                {
-                    return InfluenceOperationResult.Failure(
-                        InfluenceFailureCode.OpponentCityPresent,
-                        "Location has an opponent mobile city docked.",
-                        playerId,
-                        slot.SlotId,
-                        false);
-                }
-            }
-            else if (roadCoverageQuery.IsRouteCoveredByRoad(state, slot.RouteId))
-            {
-                return InfluenceOperationResult.Failure(
-                    InfluenceFailureCode.RouteCoveredByRoad,
-                    "Route influence slots cannot be used when covered by a road.",
-                    playerId,
-                    slot.SlotId,
-                    false);
-            }
-
-            return InfluenceOperationResult.Success(playerId, slot.SlotId, false);
-        }
-
-        private bool HasResourceToken(GameState state, string locationId)
-        {
-            for (var i = 0; i < state.Map.ResourceTokens.Count; i++)
-            {
-                if (state.Map.ResourceTokens[i].LocationId == locationId)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool HasOpponentCity(GameState state, int playerId, string locationId)
-        {
-            for (var i = 0; i < state.Players.Count; i++)
-            {
-                var player = state.Players[i];
-                if (player.PlayerId != playerId && player.CityLocationId == locationId)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private MapRegionDefinition FindRegion(string regionId)
-        {
-            for (var i = 0; i < mapQuery.Map.Regions.Count; i++)
-            {
-                if (mapQuery.Map.Regions[i].RegionId == regionId)
-                {
-                    return mapQuery.Map.Regions[i];
-                }
-            }
-
-            return null;
-        }
-
-        private bool IsPlacementInRegion(InfluencePlacement placement, MapRegionDefinition region)
-        {
-            if (!string.IsNullOrEmpty(placement.LocationId))
-            {
-                return IsLocationInRegion(placement.LocationId, region);
-            }
-
-            if (!string.IsNullOrEmpty(placement.RouteId))
-            {
-                return IsRouteInRegion(placement.RouteId, region);
-            }
-
-            InfluenceSlotReference slot;
-            string reason;
-            if (!InfluenceSlotReference.TryParse(mapQuery, placement.SlotId, out slot, out reason))
-            {
-                return false;
-            }
-
-            return slot.Kind == InfluenceSlotKind.Location
-                ? IsLocationInRegion(slot.LocationId, region)
-                : IsRouteInRegion(slot.RouteId, region);
-        }
-
-        private bool IsLocationInRegion(string locationId, MapRegionDefinition region)
-        {
-            if (string.IsNullOrEmpty(locationId))
-            {
-                return false;
-            }
-
-            try
-            {
-                var location = mapQuery.GetLocation(locationId);
-                if (location.RegionId == region.RegionId)
-                {
-                    return true;
-                }
-            }
-            catch (ArgumentException)
-            {
-                return false;
-            }
-
-            return region.LocationIds.Contains(locationId);
-        }
-
-        private bool IsRouteInRegion(string routeId, MapRegionDefinition region)
-        {
-            MapRouteDefinition route;
-            try
-            {
-                route = mapQuery.GetRoute(routeId);
-            }
-            catch (ArgumentException)
-            {
-                return false;
-            }
-
-            if (!string.IsNullOrEmpty(route.RegionId))
-            {
-                return route.RegionId == region.RegionId;
-            }
-
-            if (region.RouteIds.Contains(routeId))
-            {
-                return true;
-            }
-
-            return IsLocationInRegion(route.FromLocationId, region)
-                && IsLocationInRegion(route.ToLocationId, region);
-        }
-
-        private static InfluencePlacement CreatePlacement(int playerId, InfluenceSlotReference slot)
+        private static InfluencePlacement CreatePlacementFromSlotId(int playerId, string slotId)
         {
             var placement = new InfluencePlacement { PlayerId = playerId };
-            ApplySlot(placement, slot);
+            ApplySlotFromId(placement, slotId);
             return placement;
         }
 
-        private static void ApplySlot(InfluencePlacement placement, InfluenceSlotReference slot)
+        private static void ApplySlotFromId(InfluencePlacement placement, string slotId)
         {
-            placement.SlotId = slot.SlotId;
-            placement.LocationId = slot.Kind == InfluenceSlotKind.Location ? slot.LocationId : string.Empty;
-            placement.RouteId = slot.Kind == InfluenceSlotKind.Route ? slot.RouteId : string.Empty;
+            placement.SlotId = slotId;
+            if (slotId.StartsWith(InfluenceSlotReference.LocationPrefix, StringComparison.Ordinal))
+            {
+                var rest = slotId.Substring(InfluenceSlotReference.LocationPrefix.Length);
+                var lastColon = rest.LastIndexOf(':');
+                placement.LocationId = lastColon >= 0 ? rest.Substring(0, lastColon) : rest;
+                placement.RouteId = string.Empty;
+            }
+            else if (slotId.StartsWith(InfluenceSlotReference.RoutePrefix, StringComparison.Ordinal))
+            {
+                var rest = slotId.Substring(InfluenceSlotReference.RoutePrefix.Length);
+                var lastColon = rest.LastIndexOf(':');
+                placement.RouteId = lastColon >= 0 ? rest.Substring(0, lastColon) : rest;
+                placement.LocationId = string.Empty;
+            }
         }
 
         private GameState GetBoundState()

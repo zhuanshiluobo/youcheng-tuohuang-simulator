@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using YC.Domain.Commands;
+using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -267,6 +268,12 @@ namespace YC.Tests.EditMode
 
         private static void AssertSucceeded(object result)
         {
+            if (result is InfluenceOperationResult influenceResult)
+            {
+                Assert.That(influenceResult.Succeeded, Is.True);
+                return;
+            }
+
             if (result is CommandResult commandResult)
             {
                 Assert.That(commandResult.Succeeded, Is.True);
@@ -285,11 +292,18 @@ namespace YC.Tests.EditMode
                 return;
             }
 
-            Assert.Fail("Expected CommandResult, ValidationResult, or bool result.");
+            Assert.Fail("Expected CommandResult, ValidationResult, InfluenceOperationResult, or bool result.");
         }
 
         private static void AssertRejected(object result, CommandErrorCode expectedErrorCode)
         {
+            if (result is InfluenceOperationResult influenceResult)
+            {
+                Assert.That(influenceResult.Succeeded, Is.False);
+                Assert.That(influenceResult.Validation.ErrorCode, Is.EqualTo(expectedErrorCode));
+                return;
+            }
+
             if (result is CommandResult commandResult)
             {
                 Assert.That(commandResult.Succeeded, Is.False);
@@ -304,7 +318,7 @@ namespace YC.Tests.EditMode
                 return;
             }
 
-            Assert.Fail("Failure checks must return CommandResult or ValidationResult so callers can inspect the error code.");
+            Assert.Fail("Failure checks must return CommandResult, ValidationResult, or InfluenceOperationResult so callers can inspect the error code.");
         }
 
         private static void AddRoadRoute(GameState state, string routeId)

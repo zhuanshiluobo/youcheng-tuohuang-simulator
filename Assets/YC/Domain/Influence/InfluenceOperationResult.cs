@@ -81,6 +81,7 @@ namespace YC.Domain.Influence
                     return CommandErrorCode.InvalidPlayer;
                 case InfluenceFailureCode.OccupiedSlot:
                 case InfluenceFailureCode.OpponentCityPresent:
+                case InfluenceFailureCode.RouteCoveredByRoad:
                     return CommandErrorCode.OccupiedSlot;
                 case InfluenceFailureCode.InsufficientSupply:
                     return CommandErrorCode.InsufficientInfluence;
@@ -90,7 +91,6 @@ namespace YC.Domain.Influence
                 case InfluenceFailureCode.InfluenceOwnerMismatch:
                     return CommandErrorCode.InvalidSource;
                 case InfluenceFailureCode.InvalidSlot:
-                case InfluenceFailureCode.RouteCoveredByRoad:
                 case InfluenceFailureCode.InvalidState:
                 default:
                     return CommandErrorCode.InvalidTarget;

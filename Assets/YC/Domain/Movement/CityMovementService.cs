@@ -10,11 +10,6 @@ namespace YC.Domain.Movement
 {
     public sealed class CityMovementService
     {
-        private static readonly HashSet<string> RedZoneLocationIds = new HashSet<string>
-        {
-            "G-04", "F-01", "F-02", "F-03", "E-02", "E-03"
-        };
-
         private readonly IMapQueryService mapQuery;
         private readonly InfluenceService influenceService;
         private readonly TravelCostService travelCostService;
@@ -68,7 +63,7 @@ namespace YC.Domain.Movement
             }
 
             mapQuery.GetLocation(targetLocationId);
-            var route = FindAdjacentRoute(player.CityLocationId, targetLocationId);
+            var route = FindAdjacentRoute(mapQuery, player.CityLocationId, targetLocationId);
             if (route == null)
             {
                 return ValidationResult.Failure(CommandErrorCode.NoRoute, "目标地点与当前城市位置不相邻。");
@@ -167,16 +162,32 @@ namespace YC.Domain.Movement
             return removed;
         }
 
-        private MapRouteDefinition FindAdjacentRoute(string sourceLocationId, string targetLocationId)
+        private static MapRouteDefinition FindAdjacentRoute(IMapQueryService mapQuery, string sourceLocationId, string targetLocationId)
         {
-            try
+            var map = mapQuery.Map;
+            for (var i = 0; i < map.Routes.Count; i++)
             {
-                return mapQuery.FindRoute(sourceLocationId, targetLocationId);
+                var route = map.Routes[i];
+                if (RouteCoversBothLocations(route.CoveredLocationIds, sourceLocationId, targetLocationId))
+                {
+                    return route;
+                }
             }
-            catch (ArgumentException)
+
+            return null;
+        }
+
+        private static bool RouteCoversBothLocations(System.Collections.Generic.IReadOnlyList<string> coveredIds, string idA, string idB)
+        {
+            var hasA = false;
+            var hasB = false;
+            for (var i = 0; i < coveredIds.Count; i++)
             {
-                return null;
+                if (coveredIds[i] == idA) hasA = true;
+                if (coveredIds[i] == idB) hasB = true;
             }
+
+            return hasA && hasB;
         }
 
         private static bool HasOpponentCityAtLocation(GameState state, int playerId, string locationId)
@@ -193,9 +204,10 @@ namespace YC.Domain.Movement
             return false;
         }
 
-        private static bool IsRedZoneClosed(GameState state, string locationId)
+        private bool IsRedZoneClosed(GameState state, string locationId)
         {
-            if (!RedZoneLocationIds.Contains(locationId))
+            var location = mapQuery.GetLocation(locationId);
+            if (!location.IsRedZone)
             {
                 return false;
             }

@@ -51,6 +51,7 @@ namespace YC.Domain.State
         public List<string> BuiltFacilityIds = new List<string>();
         public List<string> DeclaredCityStyleIds = new List<string>();
         public List<string> UsedSpecialActionIdsThisRound = new List<string>();
+        public string CoveredCharacterCardId = string.Empty;
     }
 
     [Serializable]
@@ -58,6 +59,7 @@ namespace YC.Domain.State
     {
         public List<string> OpenLocationIds = new List<string>();
         public List<string> RoadRouteIds = new List<string>();
+        public List<string> RemovedFromGameCardIds = new List<string>();
         public List<InfluencePlacement> Influences = new List<InfluencePlacement>();
         public List<FacilityPlacement> Facilities = new List<FacilityPlacement>();
         public List<ResourceTokenState> ResourceTokens = new List<ResourceTokenState>();
@@ -94,8 +96,9 @@ namespace YC.Domain.State
     {
         public List<string> CharacterDeck = new List<string>();
         public List<string> CharacterDiscard = new List<string>();
-        public List<string> EventDeck = new List<string>();
-        public List<string> EventDiscard = new List<string>();
+        public List<string> EventDeckGreen = new List<string>();
+        public List<string> EventDeckYellow = new List<string>();
+        public List<string> EventDeckRed = new List<string>();
         public List<string> FacilitySupply = new List<string>();
         public List<string> CityStyleSupply = new List<string>();
     }
@@ -106,6 +109,8 @@ namespace YC.Domain.State
         public string ChoiceId = string.Empty;
         public int PlayerId;
         public string ChoiceType = string.Empty;
+        public string CardId = string.Empty;
+        public string TargetId = string.Empty;
         public List<string> OptionIds = new List<string>();
         public string SourceCommandId = string.Empty;
     }
