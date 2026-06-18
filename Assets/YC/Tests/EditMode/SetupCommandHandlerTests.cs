@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using YC.Application.Setup;
+using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -186,6 +187,34 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void ChooseInitialLocation_WithSeatTurnOrder_UsesPlayerIdOrderForEntranceAndFirstAction()
+        {
+            var state = CreateFourPlayerState(GamePhase.Entrance);
+            state.UseSeatTurnOrder = true;
+            state.StartPlayerId = 2;
+            state.CurrentPlayerId = 1;
+            var handler = CreateFourPlayerHandler();
+
+            var firstResult = handler.Handle(state, InitialLocationCommand(1, "G-01"));
+            handler.Handle(state, InitialLocationCommand(2, "A-01"));
+            handler.Handle(state, InitialLocationCommand(3, "A-02"));
+            var finalResult = handler.Handle(state, InitialLocationCommand(4, "B-01"));
+
+            Assert.That(firstResult.Succeeded, Is.True);
+            Assert.That(finalResult.Succeeded, Is.True);
+            Assert.That(state.FindPlayer(1).CityLocationId, Is.EqualTo("G-01"));
+            Assert.That(state.FindPlayer(2).CityLocationId, Is.EqualTo("A-01"));
+            Assert.That(state.FindPlayer(3).CityLocationId, Is.EqualTo("A-02"));
+            Assert.That(state.FindPlayer(4).CityLocationId, Is.EqualTo("B-01"));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(10));
+            Assert.That(state.FindPlayer(2).Resources.GoldVoucher, Is.EqualTo(12));
+            Assert.That(state.FindPlayer(3).Resources.GoldVoucher, Is.EqualTo(14));
+            Assert.That(state.FindPlayer(4).Resources.GoldVoucher, Is.EqualTo(18));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+        }
+
+        [Test]
         public void ChooseInitialLocation_OutOfEntranceTurnOrder_FailsWithoutChangingState()
         {
             var state = CreateFourPlayerState(GamePhase.Entrance);
@@ -215,12 +244,38 @@ namespace YC.Tests.EditMode
             var resolveResult = handler.Handle(state, EntranceEventCommand(1, "0"));
 
             Assert.That(placeResult.Succeeded, Is.True);
+            Assert.That(placeResult.Events[1].Message, Does.Contain("中立采石场"));
+            Assert.That(placeResult.Events[1].Data["cardName"], Is.EqualTo("中立采石场"));
             Assert.That(resolveResult.Succeeded, Is.True);
+            Assert.That(resolveResult.LogMessage, Does.Contain("中立采石场"));
             Assert.That(state.PendingChoice, Is.Null);
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(3));
             Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
             Assert.That(state.Map.ResourceTokens, Has.Count.EqualTo(1));
             Assert.That(state.Map.ResourceTokens[0].LocationId, Is.EqualTo("G-01"));
+            Assert.That(state.Map.ResourceTokens[0].ResourceType, Is.EqualTo(ResourceType.Originium));
+            Assert.That(state.Map.ResourceTokens[0].Amount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void EventCardDatabase_AllCardsHaveDisplayText()
+        {
+            AssertCardsHaveDisplayText(EventCardDatabase.GreenCardIds);
+            AssertCardsHaveDisplayText(EventCardDatabase.YellowCardIds);
+            AssertCardsHaveDisplayText(EventCardDatabase.RedCardIds);
+        }
+
+        [Test]
+        public void EventCardDatabase_StoresUnimplementedChoiceEffectsAsPendingText()
+        {
+            var scoreCard = EventCardDatabase.Get("event_yellow_01");
+            Assert.That(scoreCard.ChoicePendingEffects[1], Does.Contain("分数"));
+
+            var routeCard = EventCardDatabase.Get("event_yellow_05");
+            Assert.That(routeCard.ChoicePendingEffects[0], Does.Contain("航道"));
+
+            var opponentRewardCard = EventCardDatabase.Get("event_red_05");
+            Assert.That(opponentRewardCard.ChoicePendingEffects[2], Does.Contain("所有对手"));
         }
 
         [Test]
@@ -328,6 +383,19 @@ namespace YC.Tests.EditMode
                 PlayerId = playerId,
                 OptionIds = { optionId }
             };
+        }
+
+        private static void AssertCardsHaveDisplayText(System.Collections.Generic.IEnumerable<string> cardIds)
+        {
+            foreach (var cardId in cardIds)
+            {
+                var card = EventCardDatabase.Get(cardId);
+                Assert.That(card, Is.Not.Null, cardId);
+                Assert.That(card.Name, Is.Not.Null.And.Not.Empty, cardId);
+                Assert.That(card.Description, Is.Not.Null.And.Not.Empty, cardId);
+                Assert.That(card.RepresentativeResourceAmount, Is.GreaterThan(0), cardId);
+                Assert.That(card.ChoicePendingEffects, Has.Count.EqualTo(card.ChoiceRewards.Count), cardId);
+            }
         }
     }
 }

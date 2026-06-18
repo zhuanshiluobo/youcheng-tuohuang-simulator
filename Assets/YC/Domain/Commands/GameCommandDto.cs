@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.Rules;
+using YC.Domain.State;
 
 namespace YC.Domain.Commands
 {
@@ -53,12 +54,23 @@ namespace YC.Domain.Commands
                 PlayerId = PlayerId,
                 SourceId = SourceId,
                 TargetId = TargetId,
-                OptionIds = new List<string>(OptionIds)
+                OptionIds = OptionIds == null ? new List<string>() : new List<string>(OptionIds)
             };
+
+            if (Parameters == null)
+            {
+                return command;
+            }
 
             for (var i = 0; i < Parameters.Count; i++)
             {
-                command.Parameters[Parameters[i].Key] = Parameters[i].Value;
+                var parameter = Parameters[i];
+                if (parameter == null || string.IsNullOrEmpty(parameter.Key))
+                {
+                    continue;
+                }
+
+                command.Parameters[parameter.Key] = parameter.Value ?? string.Empty;
             }
 
             return command;
@@ -70,5 +82,32 @@ namespace YC.Domain.Commands
     {
         public string Key = string.Empty;
         public string Value = string.Empty;
+    }
+
+    [Serializable]
+    public sealed class ConfirmedGameCommandDto
+    {
+        public int Sequence;
+        public GameCommandDto Command = new GameCommandDto();
+        public GameState State;
+    }
+
+    [Serializable]
+    public sealed class RejectedGameCommandDto
+    {
+        public GameCommandDto Command = new GameCommandDto();
+        public CommandErrorCode ErrorCode = CommandErrorCode.UnknownCommand;
+        public string Reason = string.Empty;
+
+        public static RejectedGameCommandDto FromResult(GameCommandDto command, CommandResult result)
+        {
+            var validation = result == null ? null : result.Validation;
+            return new RejectedGameCommandDto
+            {
+                Command = command ?? new GameCommandDto(),
+                ErrorCode = validation == null ? CommandErrorCode.UnknownCommand : validation.ErrorCode,
+                Reason = validation == null ? string.Empty : validation.Reason
+            };
+        }
     }
 }

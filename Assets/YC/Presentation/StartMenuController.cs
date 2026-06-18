@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using YC.Application.Sessions;
 using YC.Domain.Rules;
 using YC.Infrastructure.Multiplayer;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -448,10 +449,49 @@ namespace YC.Presentation
 
         private void StartRoomGame(RoomState room)
         {
+            if (room == null)
+            {
+                SetRoomStatus("房间状态不可用，请重新加入房间。");
+                return;
+            }
+
             loadingGame = true;
-            var mode = room.LocalPlayerId == room.HostPlayerId ? LaunchMode.Host : LaunchMode.Client;
-            GameLaunchContext.Ensure().Configure(mode, room.LocalPlayerId, room.RoomId, room.Seats);
+            var localPlayerId = room.LocalPlayerId;
+            var manager = NetworkManager.Singleton;
+            localPlayerId = GameLaunchStateFactory.ResolveHostLocalPlayerId(
+                localPlayerId,
+                room.HostPlayerId,
+                manager != null && manager.IsHost,
+                room.Seats);
+
+            if (localPlayerId <= 0 || !RoomContainsPlayer(room, localPlayerId))
+            {
+                loadingGame = false;
+                SetRoomStatus("无法确认本机玩家座位，请重新加入房间。");
+                return;
+            }
+
+            var mode = localPlayerId == room.HostPlayerId ? LaunchMode.Host : LaunchMode.Client;
+            GameLaunchContext.Ensure().Configure(mode, localPlayerId, room.RoomId, room.Seats);
             SceneManager.LoadScene(mapSceneName);
+        }
+
+        private static bool RoomContainsPlayer(RoomState room, int playerId)
+        {
+            if (room == null || room.Seats == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < room.Seats.Count; i++)
+            {
+                if (room.Seats[i].PlayerId == playerId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void HideRoomPanel()

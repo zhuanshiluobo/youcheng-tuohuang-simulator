@@ -31,8 +31,8 @@ namespace YC.Infrastructure.Multiplayer
 
         private static readonly PlayerColor[] SeatColors =
         {
-            PlayerColor.Red,
             PlayerColor.Blue,
+            PlayerColor.Red,
             PlayerColor.Green,
             PlayerColor.Yellow
         };
@@ -482,6 +482,11 @@ namespace YC.Infrastructure.Multiplayer
             lock (syncRoot)
             {
                 currentRoom = BuildRoomState(lobby);
+                currentRoom.LocalPlayerId = GameLaunchStateFactory.ResolveHostLocalPlayerId(
+                    currentRoom.LocalPlayerId,
+                    currentRoom.HostPlayerId,
+                    isHost,
+                    currentRoom.Seats);
             }
         }
 
@@ -515,7 +520,10 @@ namespace YC.Infrastructure.Multiplayer
             {
                 var lobbyPlayer = orderedPlayers[i];
                 var seat = room.Seats[i];
-                seat.PlayerName = GetPlayerData(lobbyPlayer, PlayerNameKey, "Player " + seat.PlayerId);
+                var playerName = GetPlayerData(lobbyPlayer, PlayerNameKey, string.Empty);
+                seat.PlayerName = string.IsNullOrEmpty(playerName) || playerName.StartsWith("Player ", StringComparison.Ordinal)
+                    ? "Player " + seat.PlayerId
+                    : playerName;
                 seat.IsReady = GetPlayerData(lobbyPlayer, ReadyKey, "1") == "1";
 
                 if (AuthenticationService.Instance.IsSignedIn && lobbyPlayer.Id == AuthenticationService.Instance.PlayerId)
@@ -549,13 +557,17 @@ namespace YC.Infrastructure.Multiplayer
                 }
             }
 
+            var nonHostPlayers = new List<Player>();
             for (var i = 0; i < lobby.Players.Count; i++)
             {
                 if (lobby.Players[i].Id != lobby.HostId)
                 {
-                    players.Add(lobby.Players[i]);
+                    nonHostPlayers.Add(lobby.Players[i]);
                 }
             }
+
+            nonHostPlayers.Sort((left, right) => string.CompareOrdinal(left.Id, right.Id));
+            players.AddRange(nonHostPlayers);
 
             return players;
         }

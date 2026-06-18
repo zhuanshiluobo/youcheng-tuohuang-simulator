@@ -37,7 +37,7 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(result.Validation);
             }
 
-            roundAdvanceService.CompleteMainAction(state, command.PlayerId);
+            roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
 
             return CommandResult.SuccessResult(
                 new List<GameEvent>

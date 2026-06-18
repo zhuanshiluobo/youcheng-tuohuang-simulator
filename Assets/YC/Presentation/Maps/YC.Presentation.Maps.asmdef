@@ -1,0 +1,16 @@
+{
+  "name": "YC.Presentation.Maps",
+  "rootNamespace": "YC.Presentation.Maps",
+  "references": [
+    "YC.Domain"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

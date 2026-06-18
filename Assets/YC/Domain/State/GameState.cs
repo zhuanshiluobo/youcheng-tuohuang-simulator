@@ -14,7 +14,9 @@ namespace YC.Domain.State
         public int StartPlayerId = -1;
         public int CurrentPlayerId = -1;
         public int ActionRound = 0;
+        public bool UseSeatTurnOrder;
         public string MapId = string.Empty;
+        public int EventDeckSeed = YC.Domain.Cards.EventDeckService.DefaultSeed;
         public List<PlayerState> Players = new List<PlayerState>();
         public MapRuntimeState Map = new MapRuntimeState();
         public DeckRuntimeState Decks = new DeckRuntimeState();

@@ -28,22 +28,22 @@ namespace YC.Application.Gameplay
             var player = state.FindPlayer(command.PlayerId);
             if (player == null)
             {
-                return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "Command player does not exist.");
+                return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "命令玩家不存在。");
             }
 
             if (state.CurrentPlayerId != command.PlayerId)
             {
-                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "Command player is not the current player.");
+                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "命令玩家不是当前玩家。");
             }
 
             if (state.HasPendingChoice())
             {
-                return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "Resolve the pending choice before submitting another action.");
+                return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择项，再提交其他行动。");
             }
 
             if (player.ActedMainActionThisTurn)
             {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "Player already resolved a main action this turn.");
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该玩家本行动轮已执行过主要行动。");
             }
 
             return ValidationResult.Success;

@@ -7,13 +7,37 @@ namespace YC.Domain.Cards
 {
     public sealed class EventDeckService
     {
+        public const int DefaultSeed = 20260615;
+
         private readonly Random random;
 
-        public EventDeckService() : this(new Random()) { }
+        public EventDeckService() : this(DefaultSeed) { }
+
+        public EventDeckService(int seed) : this(new Random(seed)) { }
 
         public EventDeckService(Random random)
         {
             this.random = random ?? throw new ArgumentNullException(nameof(random));
+        }
+
+        public static int CreateSeed(string source)
+        {
+            if (string.IsNullOrEmpty(source))
+            {
+                return DefaultSeed;
+            }
+
+            unchecked
+            {
+                var hash = 2166136261u;
+                for (var i = 0; i < source.Length; i++)
+                {
+                    hash ^= source[i];
+                    hash *= 16777619u;
+                }
+
+                return (int)(hash & 0x7fffffff);
+            }
         }
 
         public void InitializeDecks(

@@ -56,5 +56,29 @@ namespace YC.Presentation
             texture.Apply();
             return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size);
         }
+
+        public static Sprite CreateFilledSquareSprite(int size, float sideLength)
+        {
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Point;
+
+            var center = (size - 1) * 0.5f;
+            var halfSide = sideLength * 0.5f;
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var alpha = Mathf.Abs(x - center) <= halfSide &&
+                                Mathf.Abs(y - center) <= halfSide
+                        ? 1f
+                        : 0f;
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size);
+        }
     }
 }

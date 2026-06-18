@@ -12,7 +12,7 @@ namespace YC.Tests.EditMode
     public sealed class GameplayCommandHandlerTests
     {
         [Test]
-        public void DeployInfluence_SucceedsAndAdvancesCurrentPlayer()
+        public void DeployInfluence_SucceedsAndMarksMainActionComplete()
         {
             var state = CreateActionState();
             AddResourceToken(state, "city-a");
@@ -27,7 +27,7 @@ namespace YC.Tests.EditMode
 
             Assert.That(result.Succeeded, Is.True);
             Assert.That(state.Map.Influences, Has.Count.EqualTo(1));
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.True);
         }
 
@@ -52,7 +52,27 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void DispatchInfluence_MovesOneInfluenceAndAdvances()
+        public void DeployInfluence_OnRouteSlot_SucceedsAndMarksMainActionComplete()
+        {
+            var state = CreateActionState();
+            var handler = new DeployInfluenceCommandHandler(CreateInfluenceService());
+
+            var result = handler.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.DeployInfluence,
+                PlayerId = 1,
+                TargetId = InfluenceService.GetRouteSlotId("route-a-b", 0)
+            });
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(state.Map.Influences, Has.Count.EqualTo(1));
+            Assert.That(state.Map.Influences[0].SlotId, Is.EqualTo(InfluenceService.GetRouteSlotId("route-a-b", 0)));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.True);
+        }
+
+        [Test]
+        public void DispatchInfluence_MovesOneInfluenceAndMarksMainActionComplete()
         {
             var state = CreateActionState();
             AddResourceToken(state, "city-a");
@@ -73,11 +93,57 @@ namespace YC.Tests.EditMode
 
             Assert.That(result.Succeeded, Is.True);
             Assert.That(state.Map.Influences[0].SlotId, Is.EqualTo(target));
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.True);
         }
 
         [Test]
-        public void MoveCity_Succeeds_PaysCostRemovesOpponentsPlacesSourceInfluenceAndAdvancesRound()
+        public void DispatchInfluence_MovesTwoInfluencesAndMarksMainActionComplete()
+        {
+            var state = CreateActionState();
+            AddResourceToken(state, "C-01");
+            AddResourceToken(state, "D-01");
+            var influenceService = new InfluenceService(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
+            var firstSource = InfluenceService.GetLocationSlotId("A-01", 0);
+            var firstTarget = InfluenceService.GetLocationSlotId("C-01", 0);
+            var secondSource = InfluenceService.GetLocationSlotId("B-01", 0);
+            var secondTarget = InfluenceService.GetLocationSlotId("D-01", 0);
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = firstSource,
+                LocationId = "A-01"
+            });
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = secondSource,
+                LocationId = "B-01"
+            });
+            var handler = new DispatchInfluenceCommandHandler(influenceService);
+
+            var result = handler.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.DispatchInfluence,
+                PlayerId = 1,
+                SourceId = firstSource,
+                TargetId = firstTarget,
+                Parameters =
+                {
+                    { "source2", secondSource },
+                    { "target2", secondTarget }
+                }
+            });
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(state.Map.Influences.Exists(influence => influence.SlotId == firstTarget), Is.True);
+            Assert.That(state.Map.Influences.Exists(influence => influence.SlotId == secondTarget), Is.True);
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.True);
+        }
+
+        [Test]
+        public void MoveCity_Succeeds_PaysCostRemovesOpponentsPlacesSourceInfluenceAndMarksMainActionComplete()
         {
             var state = CreateActionState();
             AddResourceToken(state, "city-a");
@@ -106,7 +172,8 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(2).InfluenceSupply, Is.EqualTo(30));
             Assert.That(state.Map.Influences.Exists(influence => influence.PlayerId == 2), Is.False);
             Assert.That(state.Map.Influences.Exists(influence => influence.PlayerId == 1 && influence.LocationId == "city-a"), Is.True);
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.True);
         }
 
         [Test]
@@ -131,6 +198,87 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(1).CityLocationId, Is.EqualTo("city-a"));
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(2));
             Assert.That(state.Map.Influences, Is.Empty);
+        }
+
+        [Test]
+        public void EndAction_AfterMainActionComplete_AdvancesCurrentPlayer()
+        {
+            var state = CreateActionState();
+            state.FindPlayer(1).ActedMainActionThisTurn = true;
+            var handler = new EndActionCommandHandler();
+
+            var result = handler.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.EndAction,
+                PlayerId = 1
+            });
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void EndAction_BeforeMainActionComplete_FailsWithoutAdvancing()
+        {
+            var state = CreateActionState();
+            var handler = new EndActionCommandHandler();
+
+            var result = handler.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.EndAction,
+                PlayerId = 1
+            });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void RoundAdvance_WithSeatTurnOrder_AdvancesActionRoundsAsOneTwoThreeFour()
+        {
+            var state = CreateFourPlayerActionState();
+            var service = new RoundAdvanceService();
+
+            service.CompleteMainAction(state, 1);
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
+            service.CompleteMainAction(state, 2);
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(3));
+            service.CompleteMainAction(state, 3);
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(4));
+            service.CompleteMainAction(state, 4);
+
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound2));
+            Assert.That(state.ActionRound, Is.EqualTo(2));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+
+            service.CompleteMainAction(state, 1);
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
+            service.CompleteMainAction(state, 2);
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(3));
+            service.CompleteMainAction(state, 3);
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(4));
+            service.CompleteMainAction(state, 4);
+
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ResourceCollection));
+            Assert.That(state.ActionRound, Is.EqualTo(0));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void RoundAdvance_WithSinglePlayer_EndsSecondActionRoundIntoNextRound()
+        {
+            var state = CreateSinglePlayerSecondActionRoundState();
+            var service = new RoundAdvanceService();
+
+            service.CompleteMainAction(state, 1);
+
+            Assert.That(state.Round, Is.EqualTo(2));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
+            Assert.That(state.ActionRound, Is.EqualTo(1));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+            Assert.That(state.FindPlayer(1).HasMovedCityThisRound, Is.False);
         }
 
         private static MoveCityCommandHandler CreateMoveCityHandler()
@@ -167,6 +315,63 @@ namespace YC.Tests.EditMode
                     {
                         PlayerId = 2,
                         Color = PlayerColor.Blue
+                    }
+                }
+            };
+        }
+
+        private static GameState CreateSinglePlayerSecondActionRoundState()
+        {
+            return new GameState
+            {
+                Phase = GamePhase.ActionRound2,
+                Round = 1,
+                ActionRound = 2,
+                StartPlayerId = 1,
+                CurrentPlayerId = 1,
+                Players =
+                {
+                    new PlayerState
+                    {
+                        PlayerId = 1,
+                        Color = PlayerColor.Blue,
+                        HasMovedCityThisRound = true
+                    }
+                }
+            };
+        }
+
+        private static GameState CreateFourPlayerActionState()
+        {
+            return new GameState
+            {
+                Phase = GamePhase.ActionRound1,
+                Round = 1,
+                ActionRound = 1,
+                UseSeatTurnOrder = true,
+                StartPlayerId = 3,
+                CurrentPlayerId = 1,
+                Players =
+                {
+                    new PlayerState
+                    {
+                        PlayerId = 1,
+                        Color = PlayerColor.Red
+                    },
+                    new PlayerState
+                    {
+                        PlayerId = 2,
+                        Color = PlayerColor.Blue
+                    },
+                    new PlayerState
+                    {
+                        PlayerId = 3,
+                        Color = PlayerColor.Green
+                    },
+                    new PlayerState
+                    {
+                        PlayerId = 4,
+                        Color = PlayerColor.Yellow
                     }
                 }
             };

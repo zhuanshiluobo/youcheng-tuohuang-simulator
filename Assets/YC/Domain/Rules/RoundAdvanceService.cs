@@ -1,4 +1,5 @@
 using System;
+using YC.Domain.Commands;
 using YC.Domain.State;
 
 namespace YC.Domain.Rules
@@ -19,6 +20,12 @@ namespace YC.Domain.Rules
 
         public void CompleteMainAction(GameState state, int playerId)
         {
+            MarkMainActionComplete(state, playerId);
+            EndCompletedAction(state, playerId);
+        }
+
+        public void MarkMainActionComplete(GameState state, int playerId)
+        {
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
@@ -31,18 +38,49 @@ namespace YC.Domain.Rules
             }
 
             player.ActedMainActionThisTurn = true;
+        }
+
+        public ValidationResult EndCompletedAction(GameState state, int playerId)
+        {
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
             if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
             {
-                return;
+                return ValidationResult.Failure(CommandErrorCode.WrongPhase, "End action is only available during action rounds.");
+            }
+
+            var player = state.FindPlayer(playerId);
+            if (player == null)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "Player must exist before ending an action.");
+            }
+
+            if (state.CurrentPlayerId != playerId)
+            {
+                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "Only the current player can end their action.");
+            }
+
+            if (state.HasPendingChoice())
+            {
+                return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "Resolve the pending choice before ending the action.");
+            }
+
+            if (!player.ActedMainActionThisTurn)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "Complete a main action before ending the action.");
             }
 
             if (AllPlayersActed(state))
             {
                 AdvanceActionRound(state);
-                return;
+                return ValidationResult.Success;
             }
 
             state.CurrentPlayerId = FindNextUnactedPlayerId(state);
+            return ValidationResult.Success;
         }
 
         public void ResetActionFlags(GameState state)
@@ -66,15 +104,34 @@ namespace YC.Domain.Rules
             {
                 state.Phase = GamePhase.ActionRound2;
                 state.ActionRound = 2;
-                state.CurrentPlayerId = state.StartPlayerId;
+                state.CurrentPlayerId = GetFirstTurnPlayerId(state);
                 return;
             }
 
             if (state.Phase == GamePhase.ActionRound2)
             {
+                if (IsSinglePlayerState(state))
+                {
+                    AdvanceSinglePlayerToNextRound(state);
+                    return;
+                }
+
                 state.Phase = GamePhase.ResourceCollection;
                 state.ActionRound = 0;
-                state.CurrentPlayerId = state.StartPlayerId;
+                state.CurrentPlayerId = GetFirstTurnPlayerId(state);
+            }
+        }
+
+        private void AdvanceSinglePlayerToNextRound(GameState state)
+        {
+            state.Round += 1;
+            state.Phase = GamePhase.ActionRound1;
+            state.ActionRound = 1;
+            state.CurrentPlayerId = GetFirstTurnPlayerId(state);
+
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                state.Players[i].HasMovedCityThisRound = false;
             }
         }
 
@@ -89,6 +146,17 @@ namespace YC.Domain.Rules
             }
 
             return state.Players.Count > 0;
+        }
+
+        private static bool IsSinglePlayerState(GameState state)
+        {
+            return state.Players.Count == 1;
+        }
+
+        private int GetFirstTurnPlayerId(GameState state)
+        {
+            var order = turnOrderService.GetTurnOrder(state);
+            return order.Count > 0 ? order[0] : state.StartPlayerId;
         }
 
         private int FindNextUnactedPlayerId(GameState state)

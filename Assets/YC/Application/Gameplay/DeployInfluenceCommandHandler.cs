@@ -43,7 +43,7 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(placement.Validation);
             }
 
-            roundAdvanceService.CompleteMainAction(state, command.PlayerId);
+            roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
 
             var message = "Player " + command.PlayerId + " deployed influence to " + command.TargetId + ".";
             return CommandResult.SuccessResult(new List<GameEvent>

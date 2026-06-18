@@ -9,8 +9,8 @@ namespace YC.Infrastructure.Multiplayer
         private static readonly Random Random = new Random();
         private static readonly PlayerColor[] SeatColors =
         {
-            PlayerColor.Red,
             PlayerColor.Blue,
+            PlayerColor.Red,
             PlayerColor.Green,
             PlayerColor.Yellow
         };

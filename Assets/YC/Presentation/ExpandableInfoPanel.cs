@@ -21,6 +21,11 @@ namespace YC.Presentation
         private Button toggleButton;
         private Text toggleButtonText;
         private bool isExpanded;
+        [SerializeField] private float panelLerpSpeed = 10f;
+        [SerializeField] private float panelSnapThreshold = 0.5f;
+        private float targetPanelWidth = CollapsedWidth;
+        private bool isAnimating;
+        private bool pendingExpandedState;
 
         private bool initialized;
 
@@ -32,6 +37,35 @@ namespace YC.Presentation
             Initialize(transform);
         }
 
+        private void Update()
+        {
+            if (!isAnimating || panelTransform == null)
+            {
+                return;
+            }
+
+            var currentWidth = panelTransform.rect.width;
+            var nextWidth = Mathf.Lerp(
+                currentWidth,
+                targetPanelWidth,
+                Time.deltaTime * panelLerpSpeed);
+
+            if (Mathf.Abs(nextWidth - targetPanelWidth) <= panelSnapThreshold)
+            {
+                nextWidth = targetPanelWidth;
+                isAnimating = false;
+            }
+
+            panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, nextWidth);
+            RebuildLayout();
+
+            if (!isAnimating && !pendingExpandedState)
+            {
+                contentArea.gameObject.SetActive(false);
+                RebuildLayout();
+            }
+        }
+
         public void Initialize(Transform parent)
         {
             if (initialized) return;
@@ -40,8 +74,7 @@ namespace YC.Presentation
             var canvas = UguiUtility.CreateCanvas("Info Panel Canvas", 100);
             BuildPanel(canvas.transform);
             BuildDemoModules();
-            SetExpanded(false);
-            RebuildLayout();
+            SetExpandedImmediate(false);
         }
 
         public void SetRowValue(string moduleTitle, string label, string value)
@@ -72,9 +105,26 @@ namespace YC.Presentation
 
         private void SetExpanded(bool expand)
         {
+            pendingExpandedState = expand;
             isExpanded = expand;
-            var targetWidth = expand ? ExpandedWidth : CollapsedWidth;
-            panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, targetWidth);
+            targetPanelWidth = expand ? ExpandedWidth : CollapsedWidth;
+            isAnimating = true;
+
+            if (expand)
+            {
+                contentArea.gameObject.SetActive(true);
+            }
+
+            toggleButtonText.text = expand ? ExpandedArrow : CollapsedArrow;
+        }
+
+        private void SetExpandedImmediate(bool expand)
+        {
+            pendingExpandedState = expand;
+            isExpanded = expand;
+            targetPanelWidth = expand ? ExpandedWidth : CollapsedWidth;
+            isAnimating = false;
+            panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, targetPanelWidth);
             contentArea.gameObject.SetActive(expand);
             toggleButtonText.text = expand ? ExpandedArrow : CollapsedArrow;
             RebuildLayout();
@@ -271,7 +321,7 @@ namespace YC.Presentation
             var labelObj = new GameObject("Label", typeof(RectTransform), typeof(Text));
             labelObj.transform.SetParent(rowRect, false);
             var labelRect = labelObj.GetComponent<RectTransform>();
-            labelRect.sizeDelta = new Vector2(54f, 18f);
+            labelRect.sizeDelta = new Vector2(80f, 18f);
             var labelText = labelObj.GetComponent<Text>();
             labelText.text = label;
             labelText.alignment = TextAnchor.MiddleLeft;
@@ -312,6 +362,7 @@ namespace YC.Presentation
             var overview = AddModule("玩家概览");
             AddTextRow(overview, "玩家", "Player 1");
             AddTextRow(overview, "颜色", "蓝色");
+            AddTextRow(overview, "剩余影响力", "30");
             AddTextRow(overview, "分数", "0");
 
             var resources = AddModule("资源状态");

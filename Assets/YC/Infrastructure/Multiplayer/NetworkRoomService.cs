@@ -17,8 +17,8 @@ namespace YC.Infrastructure.Multiplayer
 
         private static readonly PlayerColor[] SeatColors =
         {
-            PlayerColor.Red,
             PlayerColor.Blue,
+            PlayerColor.Red,
             PlayerColor.Green,
             PlayerColor.Yellow
         };

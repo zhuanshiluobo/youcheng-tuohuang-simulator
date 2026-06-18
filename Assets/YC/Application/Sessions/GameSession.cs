@@ -27,6 +27,11 @@ namespace YC.Application.Sessions
             commandHandlers.Add(handler);
         }
 
+        public void ReplaceState(GameState state)
+        {
+            State = state ?? throw new ArgumentNullException(nameof(state));
+        }
+
         public CommandResult Submit(GameCommand command)
         {
             if (command == null)
@@ -46,7 +51,7 @@ namespace YC.Application.Sessions
                 return result;
             }
 
-            var invalid = ValidationResult.Failure(Domain.Rules.CommandErrorCode.UnknownCommand, "No command handler registered for this command.");
+            var invalid = ValidationResult.Failure(Domain.Rules.CommandErrorCode.UnknownCommand, "没有为该命令注册处理器。");
             return CommandResult.Invalid(invalid);
         }
 

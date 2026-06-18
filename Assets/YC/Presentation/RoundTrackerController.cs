@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using YC.Application.Sessions;
+using YC.Domain.Rules;
+using YC.Domain.State;
 
 namespace YC.Presentation
 {
@@ -21,6 +24,7 @@ namespace YC.Presentation
         private RectTransform trackSlotsTransform;
         private Button endRoundButton;
         private int currentIndex = FirstRoundIndex;
+        private bool gameOverDialogShown;
 
         private void Awake()
         {
@@ -28,28 +32,51 @@ namespace YC.Presentation
             MoveMarkerToCurrentIndex();
         }
 
-        public void EndCurrentRound()
+        public void RefreshFromState(GameState state)
         {
-            if (currentIndex >= FinalIndex)
+            if (state == null)
             {
-                ShowGameOverDialog();
                 return;
             }
 
-            currentIndex++;
+            currentIndex = GetRoundIndex(state);
             MoveMarkerToCurrentIndex();
 
+            if (endRoundButton != null)
+            {
+                var mobileCityInteraction = FindObjectOfType<MobileCityInteractionController>();
+                endRoundButton.interactable = mobileCityInteraction != null &&
+                                              mobileCityInteraction.CanEndCurrentAction() &&
+                                              currentIndex < FinalIndex;
+            }
+
             if (currentIndex >= FinalIndex)
             {
-                endRoundButton.interactable = false;
+                ShowGameOverDialog();
+            }
+        }
+
+        public void EndCurrentRound()
+        {
+            var mobileCityInteraction = FindObjectOfType<MobileCityInteractionController>();
+            var state = mobileCityInteraction == null ? null : mobileCityInteraction.CurrentState;
+            if (state != null && (GetRoundIndex(state) >= FinalIndex || state.Round >= state.MaxRounds))
+            {
+                currentIndex = FinalIndex;
+                MoveMarkerToCurrentIndex();
+                if (endRoundButton != null)
+                {
+                    endRoundButton.interactable = false;
+                }
+
                 ShowGameOverDialog();
                 return;
             }
 
-            var mobileCityInteraction = FindObjectOfType<MobileCityInteractionController>();
             if (mobileCityInteraction != null)
             {
-                mobileCityInteraction.BeginNextRound();
+                mobileCityInteraction.EndCurrentAction();
+                RefreshFromState(mobileCityInteraction.CurrentState);
             }
         }
 
@@ -188,12 +215,19 @@ namespace YC.Presentation
 
             endRoundButton = buttonObject.GetComponent<Button>();
             endRoundButton.onClick.AddListener(EndCurrentRound);
+            endRoundButton.interactable = false;
 
             CreateButtonText(buttonTransform, "结束本回合", 34);
         }
 
         private void ShowGameOverDialog()
         {
+            if (gameOverDialogShown)
+            {
+                return;
+            }
+
+            gameOverDialogShown = true;
             var canvasTransform = markerTransform.GetComponentInParent<Canvas>().GetComponent<RectTransform>();
             var overlayObject = new GameObject("Game Over Overlay", typeof(RectTransform), typeof(Image));
             overlayObject.transform.SetParent(canvasTransform, false);
@@ -305,6 +339,21 @@ namespace YC.Presentation
         private static float GetSlotX(int index)
         {
             return (index - (RoundLabels.Length - 1) * 0.5f) * 65f;
+        }
+
+        private static int GetRoundIndex(GameState state)
+        {
+            if (state.Phase == GamePhase.FinalScoring || state.Phase == GamePhase.GameOver)
+            {
+                return FinalIndex;
+            }
+
+            return Mathf.Clamp(state.Round, FirstRoundIndex, FinalIndex - 1);
+        }
+
+        private static bool IsNetworkLaunch()
+        {
+            return GameLaunchContext.Instance != null && GameLaunchContext.Instance.Mode != LaunchMode.Local;
         }
 
         private static Sprite CreateCircleSprite()

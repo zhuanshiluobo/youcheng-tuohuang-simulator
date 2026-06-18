@@ -49,6 +49,14 @@ namespace YC.Application.Gameplay
                 !string.IsNullOrEmpty(source2) &&
                 !string.IsNullOrEmpty(target2))
             {
+                if (source2 == command.TargetId)
+                {
+                    influenceService.Move(state, command.PlayerId, command.TargetId, command.SourceId);
+                    return CommandResult.Invalid(ValidationResult.Failure(
+                        CommandErrorCode.InvalidSource,
+                        "一次行动中不能重复调度同一个影响力。"));
+                }
+
                 var secondMove = influenceService.Move(state, command.PlayerId, source2, target2);
                 if (!secondMove.Succeeded)
                 {
@@ -59,7 +67,7 @@ namespace YC.Application.Gameplay
                 movedCount = 2;
             }
 
-            roundAdvanceService.CompleteMainAction(state, command.PlayerId);
+            roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
 
             var message = "Player " + command.PlayerId + " dispatched influence " + movedCount + " time(s).";
             return CommandResult.SuccessResult(new List<GameEvent>

@@ -19,6 +19,17 @@ namespace YC.Domain.Rules
                 return order;
             }
 
+            if (state.UseSeatTurnOrder)
+            {
+                for (var i = 0; i < state.Players.Count; i++)
+                {
+                    order.Add(state.Players[i].PlayerId);
+                }
+
+                order.Sort();
+                return order;
+            }
+
             var startIndex = 0;
             for (var i = 0; i < state.Players.Count; i++)
             {

@@ -71,7 +71,7 @@ namespace YC.Application.Setup
                 default:
                     return CommandResult.Invalid(ValidationResult.Failure(
                         CommandErrorCode.UnknownCommand,
-                        "Setup command handler cannot handle this command."));
+                        "设置命令处理器无法处理该命令。"));
             }
         }
 
@@ -79,13 +79,13 @@ namespace YC.Application.Setup
         {
             if (state.Phase != GamePhase.Setup)
             {
-                return Invalid(CommandErrorCode.WrongPhase, "Start player can only be chosen during setup.");
+                return Invalid(CommandErrorCode.WrongPhase, "只能在设置阶段选择起始玩家。");
             }
 
             var player = state.FindPlayer(command.PlayerId);
             if (player == null)
             {
-                return Invalid(CommandErrorCode.InvalidPlayer, "Start player must exist in the game.");
+                return Invalid(CommandErrorCode.InvalidPlayer, "起始玩家必须存在于游戏中。");
             }
 
             state.StartPlayerId = command.PlayerId;
@@ -103,28 +103,28 @@ namespace YC.Application.Setup
         {
             if (state.Phase != GamePhase.Entrance)
             {
-                return Invalid(CommandErrorCode.WrongPhase, "Initial city location can only be chosen during entrance.");
+                return Invalid(CommandErrorCode.WrongPhase, "只能在入场阶段选择初始城市位置。");
             }
 
             var player = state.FindPlayer(command.PlayerId);
             if (player == null)
             {
-                return Invalid(CommandErrorCode.InvalidPlayer, "Player must exist before choosing an initial city location.");
+                return Invalid(CommandErrorCode.InvalidPlayer, "选择初始城市位置前，玩家必须存在。");
             }
 
             if (state.HasPendingChoice())
             {
-                return Invalid(CommandErrorCode.PendingChoiceRequired, "Resolve the pending entrance event before choosing another initial city location.");
+                return Invalid(CommandErrorCode.PendingChoiceRequired, "请先处理待处理入场事件，再选择其他初始城市位置。");
             }
 
             if (state.CurrentPlayerId >= 0 && state.CurrentPlayerId != command.PlayerId)
             {
-                return Invalid(CommandErrorCode.NotCurrentPlayer, "Initial city locations must be chosen in entrance turn order.");
+                return Invalid(CommandErrorCode.NotCurrentPlayer, "必须按入场顺序选择初始城市位置。");
             }
 
             if (!string.IsNullOrEmpty(player.CityLocationId))
             {
-                return Invalid(CommandErrorCode.InvalidTarget, "Player already has an initial city location.");
+                return Invalid(CommandErrorCode.InvalidTarget, "玩家已经拥有初始城市位置。");
             }
 
             MapLocationDefinition location;
@@ -134,17 +134,17 @@ namespace YC.Application.Setup
             }
             catch (ArgumentException)
             {
-                return Invalid(CommandErrorCode.InvalidTarget, "Initial city location target must be a known map location.");
+                return Invalid(CommandErrorCode.InvalidTarget, "初始城市位置目标必须是已知地图地点。");
             }
 
             if (!location.CanDockCity)
             {
-                return Invalid(CommandErrorCode.InvalidTarget, "Initial city location must allow city docking.");
+                return Invalid(CommandErrorCode.InvalidTarget, "初始城市位置必须允许城市停靠。");
             }
 
             if (!IsInitialLocationAllowed(command.TargetId))
             {
-                return Invalid(CommandErrorCode.InvalidTarget, "Initial city location must be one of the allowed entrance locations.");
+                return Invalid(CommandErrorCode.InvalidTarget, "初始城市位置必须是允许的入场地点之一。");
             }
 
             for (var i = 0; i < state.Players.Count; i++)
@@ -153,7 +153,7 @@ namespace YC.Application.Setup
                 if (otherPlayer.PlayerId != command.PlayerId &&
                     otherPlayer.CityLocationId == command.TargetId)
                 {
-                    return Invalid(CommandErrorCode.OccupiedSlot, "Initial city location is already occupied by another player's city.");
+                    return Invalid(CommandErrorCode.OccupiedSlot, "初始城市位置已被其他玩家的城市占用。");
                 }
             }
 
@@ -182,49 +182,49 @@ namespace YC.Application.Setup
         {
             if (state.Phase != GamePhase.Entrance)
             {
-                return Invalid(CommandErrorCode.WrongPhase, "Entrance events can only be resolved during entrance.");
+                return Invalid(CommandErrorCode.WrongPhase, "入场事件只能在入场阶段处理。");
             }
 
             var player = state.FindPlayer(command.PlayerId);
             if (player == null)
             {
-                return Invalid(CommandErrorCode.InvalidPlayer, "Player must exist before resolving an entrance event.");
+                return Invalid(CommandErrorCode.InvalidPlayer, "处理入场事件前，玩家必须存在。");
             }
 
             var pendingChoice = state.PendingChoice;
             if (pendingChoice == null || pendingChoice.ChoiceType != EntranceEventChoiceType)
             {
-                return Invalid(CommandErrorCode.PendingChoiceRequired, "There is no pending entrance event to resolve.");
+                return Invalid(CommandErrorCode.PendingChoiceRequired, "当前没有待处理的入场事件。");
             }
 
             if (pendingChoice.PlayerId != command.PlayerId)
             {
-                return Invalid(CommandErrorCode.NotCurrentPlayer, "Only the player with the pending entrance event can resolve it.");
+                return Invalid(CommandErrorCode.NotCurrentPlayer, "只有持有待处理入场事件的玩家可以处理它。");
             }
 
             var selectedOptionId = GetSelectedOptionId(command);
             var choiceIndex = ParseChoiceIndex(selectedOptionId);
             if (choiceIndex < 0)
             {
-                return Invalid(CommandErrorCode.InvalidTarget, "Entrance event option must be a valid option id.");
+                return Invalid(CommandErrorCode.InvalidTarget, "入场事件选项必须是有效选项编号。");
             }
 
             var card = EventCardDatabase.Get(pendingChoice.CardId);
             if (card == null)
             {
-                return Invalid(CommandErrorCode.InvalidTarget, "Pending entrance event card is unknown.");
+                return Invalid(CommandErrorCode.InvalidTarget, "待处理入场事件牌未知。");
             }
 
             if (choiceIndex >= card.ChoiceRewards.Count || !pendingChoice.OptionIds.Contains(selectedOptionId))
             {
-                return Invalid(CommandErrorCode.InvalidTarget, "Entrance event option is not available.");
+                return Invalid(CommandErrorCode.InvalidTarget, "入场事件选项不可用。");
             }
 
             player.Resources.Add(card.ChoiceRewards[choiceIndex]);
             state.PendingChoice = null;
             CompleteEntranceStep(state, command.PlayerId);
 
-            var message = string.Format("Player {0} resolved entrance event {1} with option {2}.", command.PlayerId, card.CardId, selectedOptionId);
+            var message = string.Format("Player {0} resolved entrance event {1} with option {2}.", command.PlayerId, card.Name, selectedOptionId);
             return CommandResult.SuccessResult(new List<GameEvent>
             {
                 new GameEvent
@@ -232,7 +232,12 @@ namespace YC.Application.Setup
                     Kind = GameEventKind.ChoiceResolved,
                     PlayerId = command.PlayerId,
                     SubjectId = card.CardId,
-                    Message = message
+                    Message = message,
+                    Data =
+                    {
+                        { "cardName", card.Name },
+                        { "cardDescription", card.Description }
+                    }
                 }
             }, message);
         }
@@ -257,7 +262,11 @@ namespace YC.Application.Setup
                 return false;
             }
 
-            resourceTokenService.PlaceToken(state.Map, command.TargetId, card.ResourceType, card.ResourceAmount);
+            resourceTokenService.PlaceToken(
+                state.Map,
+                command.TargetId,
+                card.RepresentativeResourceType,
+                card.RepresentativeResourceAmount);
 
             var optionIds = new List<string>();
             for (var i = 0; i < card.ChoiceRewards.Count; i++)
@@ -281,7 +290,14 @@ namespace YC.Application.Setup
                 Kind = GameEventKind.ChoiceOpened,
                 PlayerId = command.PlayerId,
                 SubjectId = card.CardId,
-                Message = "Entrance event choice opened for " + card.CardId + "."
+                Message = "Entrance event choice opened for " + card.Name + ".",
+                Data =
+                {
+                    { "cardName", card.Name },
+                    { "cardDescription", card.Description },
+                    { "representativeResourceType", card.RepresentativeResourceType.ToString() },
+                    { "representativeResourceAmount", card.RepresentativeResourceAmount.ToString() }
+                }
             });
 
             return true;
@@ -320,7 +336,7 @@ namespace YC.Application.Setup
                 }
 
                 GrantInitialGoldVouchers(state);
-                state.CurrentPlayerId = state.StartPlayerId;
+                state.CurrentPlayerId = GetFirstTurnPlayerId(state);
                 state.Phase = GamePhase.ActionRound1;
                 state.ActionRound = 1;
                 state.Round = 1;
@@ -354,6 +370,12 @@ namespace YC.Application.Setup
             }
 
             return playerId;
+        }
+
+        private int GetFirstTurnPlayerId(GameState state)
+        {
+            var turnOrder = turnOrderService.GetTurnOrder(state);
+            return turnOrder.Count > 0 ? turnOrder[0] : state.StartPlayerId;
         }
 
         private void GrantInitialGoldVouchers(GameState state)
