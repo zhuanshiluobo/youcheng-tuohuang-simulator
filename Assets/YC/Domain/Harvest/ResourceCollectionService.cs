@@ -7,6 +7,7 @@ using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Travel;
 
 namespace YC.Domain.Harvest
 {
@@ -14,6 +15,7 @@ namespace YC.Domain.Harvest
     {
         private readonly IMapQueryService mapQuery;
         private readonly ResourceTokenService resourceTokenService;
+        private readonly RouteTollService routeTollService;
 
         public ResourceCollectionService(IMapQueryService mapQuery)
             : this(mapQuery, new ResourceTokenService())
@@ -24,6 +26,7 @@ namespace YC.Domain.Harvest
         {
             this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
             this.resourceTokenService = resourceTokenService ?? throw new ArgumentNullException(nameof(resourceTokenService));
+            routeTollService = new RouteTollService(this.mapQuery);
         }
 
         public ResourceCollectionResult Collect(
@@ -53,8 +56,20 @@ namespace YC.Domain.Harvest
             var player = state.FindPlayer(playerId);
             var uniqueLocationIds = NormalizeLocationIds(locationIds);
             var collectionRouteIds = ResolveCollectionRouteIds(player.CityLocationId, uniqueLocationIds, routeIds);
-            var payments = BuildPaymentPlan(state, playerId, collectionRouteIds, paymentRecipientsByRouteId);
-            ApplyPayments(state, player, payments);
+            List<ExplorationTravelPayment> payments;
+            var paymentValidation = routeTollService.TryBuildPaymentPlan(
+                state,
+                playerId,
+                collectionRouteIds,
+                paymentRecipientsByRouteId,
+                RouteTollPaymentKeyMode.SharedRegion,
+                out payments);
+            if (!paymentValidation.IsValid)
+            {
+                return ResourceCollectionResult.Failure(paymentValidation);
+            }
+
+            routeTollService.ApplyPayments(state, player, payments);
 
             var reward = new ResourceSet();
             for (var i = 0; i < uniqueLocationIds.Count; i++)
@@ -154,13 +169,19 @@ namespace YC.Domain.Harvest
             }
 
             List<ExplorationTravelPayment> payments;
-            var paymentValidation = TryBuildPaymentPlan(state, playerId, collectionRouteIds, paymentRecipientsByRouteId, out payments);
+            var paymentValidation = routeTollService.TryBuildPaymentPlan(
+                state,
+                playerId,
+                collectionRouteIds,
+                paymentRecipientsByRouteId,
+                RouteTollPaymentKeyMode.SharedRegion,
+                out payments);
             if (!paymentValidation.IsValid)
             {
                 return paymentValidation;
             }
 
-            var totalCost = SumPayments(payments);
+            var totalCost = routeTollService.SumPayments(payments);
             var collectionStartGold = GetResourceCollectionStartGoldVoucher(player);
             var payableGold = Math.Min(player.Resources.GoldVoucher, collectionStartGold);
             if (payableGold < totalCost)
@@ -355,106 +376,6 @@ namespace YC.Domain.Harvest
             return new List<string> { route.FromLocationId, route.ToLocationId };
         }
 
-        private ValidationResult TryBuildPaymentPlan(
-            GameState state,
-            int playerId,
-            IReadOnlyList<string> routeIds,
-            IDictionary<string, int> paymentRecipientsByRouteId,
-            out List<ExplorationTravelPayment> payments)
-        {
-            payments = BuildPaymentPlan(state, playerId, routeIds, paymentRecipientsByRouteId);
-            if (paymentRecipientsByRouteId == null || paymentRecipientsByRouteId.Count <= 0)
-            {
-                return ValidationResult.Success;
-            }
-
-            foreach (var entry in paymentRecipientsByRouteId)
-            {
-                if (!ContainsRouteId(routeIds, entry.Key))
-                {
-                    return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "指定的路费接收航道不在本次采集路线中。");
-                }
-
-                if (!PaymentPlanContainsRoute(payments, entry.Key))
-                {
-                    return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该航道无需支付路费，不能指定接收方。");
-                }
-            }
-
-            for (var i = 0; i < payments.Count; i++)
-            {
-                var payment = payments[i];
-                if (paymentRecipientsByRouteId.TryGetValue(payment.RouteId, out var requestedReceiver) &&
-                    payment.ReceiverPlayerId != requestedReceiver)
-                {
-                    return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "指定路费接收玩家在该航道上没有影响力。");
-                }
-            }
-
-            return ValidationResult.Success;
-        }
-
-        private List<ExplorationTravelPayment> BuildPaymentPlan(
-            GameState state,
-            int playerId,
-            IReadOnlyList<string> routeIds,
-            IDictionary<string, int> paymentRecipientsByRouteId)
-        {
-            var payments = new List<ExplorationTravelPayment>();
-            for (var i = 0; i < routeIds.Count; i++)
-            {
-                var routeId = routeIds[i];
-                if (HasRouteInfluenceOwnedBy(state, routeId, playerId))
-                {
-                    continue;
-                }
-
-                var receiverPlayerId = -1;
-                var opponentOwners = GetOpponentInfluenceOwnersOnRoute(state, routeId, playerId);
-                if (opponentOwners.Count > 0)
-                {
-                    if (paymentRecipientsByRouteId != null &&
-                        paymentRecipientsByRouteId.TryGetValue(routeId, out var requestedReceiver) &&
-                        opponentOwners.Contains(requestedReceiver))
-                    {
-                        receiverPlayerId = requestedReceiver;
-                    }
-                    else
-                    {
-                        receiverPlayerId = opponentOwners[0];
-                    }
-                }
-
-                payments.Add(new ExplorationTravelPayment
-                {
-                    RouteId = routeId,
-                    Amount = ExplorationService.RouteCostGoldVoucher,
-                    ReceiverPlayerId = receiverPlayerId
-                });
-            }
-
-            return payments;
-        }
-
-        private void ApplyPayments(GameState state, PlayerState player, IReadOnlyList<ExplorationTravelPayment> payments)
-        {
-            for (var i = 0; i < payments.Count; i++)
-            {
-                var payment = payments[i];
-                player.Resources.GoldVoucher -= payment.Amount;
-                if (payment.PaidToSupply)
-                {
-                    continue;
-                }
-
-                var receiver = state.FindPlayer(payment.ReceiverPlayerId);
-                if (receiver != null)
-                {
-                    receiver.Resources.GoldVoucher += payment.Amount;
-                }
-            }
-        }
-
         private bool CanPlayerCollectLocation(GameState state, int playerId, string locationId)
         {
             var player = state.FindPlayer(playerId);
@@ -473,54 +394,6 @@ namespace YC.Domain.Harvest
             }
 
             return false;
-        }
-
-        private bool HasRouteInfluenceOwnedBy(GameState state, string routeId, int playerId)
-        {
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var influence = state.Map.Influences[i];
-                if (influence.PlayerId == playerId && IsInfluenceOnRoute(influence, routeId))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private List<int> GetOpponentInfluenceOwnersOnRoute(GameState state, string routeId, int playerId)
-        {
-            var owners = new List<int>();
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var influence = state.Map.Influences[i];
-                if (influence.PlayerId == playerId || !IsInfluenceOnRoute(influence, routeId))
-                {
-                    continue;
-                }
-
-                if (!owners.Contains(influence.PlayerId))
-                {
-                    owners.Add(influence.PlayerId);
-                }
-            }
-
-            return owners;
-        }
-
-        private bool IsInfluenceOnRoute(InfluencePlacement influence, string routeId)
-        {
-            if (influence.RouteId == routeId)
-            {
-                return true;
-            }
-
-            InfluenceSlotReference slot;
-            string reason;
-            return InfluenceSlotReference.TryParse(mapQuery, influence.SlotId, out slot, out reason) &&
-                   slot.Kind == InfluenceSlotKind.Route &&
-                   slot.RouteId == routeId;
         }
 
         private bool IsInfluenceOnLocation(InfluencePlacement influence, string locationId)
@@ -616,43 +489,6 @@ namespace YC.Domain.Harvest
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        private static bool PaymentPlanContainsRoute(IReadOnlyList<ExplorationTravelPayment> payments, string routeId)
-        {
-            for (var i = 0; i < payments.Count; i++)
-            {
-                if (payments[i].RouteId == routeId)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool ContainsRouteId(IReadOnlyList<string> routeIds, string routeId)
-        {
-            for (var i = 0; i < routeIds.Count; i++)
-            {
-                if (routeIds[i] == routeId)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static int SumPayments(IReadOnlyList<ExplorationTravelPayment> payments)
-        {
-            var total = 0;
-            for (var i = 0; i < payments.Count; i++)
-            {
-                total += payments[i].Amount;
-            }
-
-            return total;
         }
 
         private static int GetResourceCollectionStartGoldVoucher(PlayerState player)

@@ -249,6 +249,7 @@ namespace YC.Presentation
             CreateCover(coverFrame);
             CreateExternalLinkButtons(coverFrame);
             CreateMenuButtons(coverFrame);
+            GameSettingsMenuController.EnsureInScene(transform, false);
         }
 
         private static RectTransform CreateCoverFrame(RectTransform canvasTransform)
@@ -326,7 +327,7 @@ namespace YC.Presentation
             rectTransform.anchorMin = Vector2.zero;
             rectTransform.anchorMax = Vector2.zero;
             rectTransform.pivot = new Vector2(0f, 0.5f);
-            rectTransform.sizeDelta = new Vector2(iconWidth, iconHeight);
+            rectTransform.sizeDelta = new Vector2(expandedWidth, iconHeight);
             rectTransform.anchoredPosition = new Vector2(38f, 52f + row * (iconHeight + spacing));
 
             var hitArea = buttonObject.GetComponent<Image>();
@@ -442,11 +443,12 @@ namespace YC.Presentation
                 for (var x = 0; x < width; x++)
                 {
                     var inside = true;
-                    if (y >= height - notchHeight)
+                    if (y < notchHeight)
                     {
-                        var notchY = height - 1 - y;
-                        var notchHalfWidth = Mathf.Lerp(0f, width * 0.34f, 1f - notchY / (float)notchHeight);
-                        inside = Mathf.Abs(x - center) > notchHalfWidth;
+                        var progress = y / (float)notchHeight;
+                        var leftBoundary = Mathf.Lerp(0f, center, progress);
+                        var rightBoundary = Mathf.Lerp(width - 1f, center, progress);
+                        inside = x <= leftBoundary || x >= rightBoundary;
                     }
 
                     texture.SetPixel(x, y, new Color(1f, 1f, 1f, inside ? 1f : 0f));
@@ -968,7 +970,7 @@ namespace YC.Presentation
 
             private void ApplyState(float progress)
             {
-                buttonRect.sizeDelta = new Vector2(currentWidth, buttonRect.sizeDelta.y);
+                buttonRect.sizeDelta = new Vector2(expandedWidth, buttonRect.sizeDelta.y);
                 labelRect.sizeDelta = new Vector2(Mathf.Max(0f, currentWidth - collapsedWidth + 4f), labelRect.sizeDelta.y);
 
                 if (extensionGroup != null)

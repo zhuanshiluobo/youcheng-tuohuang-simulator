@@ -7,12 +7,13 @@ using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Travel;
 
 namespace YC.Domain.Exploration
 {
     public sealed class ExplorationService
     {
-        public const int RouteCostGoldVoucher = 2;
+        public const int RouteCostGoldVoucher = RouteTollService.RouteCostGoldVoucher;
 
         private readonly IMapQueryService mapQuery;
         private readonly InfluenceService influenceService;
@@ -20,6 +21,7 @@ namespace YC.Domain.Exploration
         private readonly ResourceTokenService resourceTokenService;
         private readonly EventEffectResolver eventEffectResolver;
         private readonly CardFlowService cardFlowService;
+        private readonly RouteTollService routeTollService;
 
         public ExplorationService(IMapQueryService mapQuery)
             : this(mapQuery, new InfluenceService(mapQuery), new EventDeckService(), new ResourceTokenService())
@@ -38,6 +40,7 @@ namespace YC.Domain.Exploration
             this.resourceTokenService = resourceTokenService ?? throw new ArgumentNullException(nameof(resourceTokenService));
             eventEffectResolver = new EventEffectResolver(this.mapQuery, this.influenceService);
             cardFlowService = new CardFlowService();
+            routeTollService = new RouteTollService(this.mapQuery);
         }
 
         public ValidationResult CanExplore(
@@ -143,18 +146,19 @@ namespace YC.Domain.Exploration
             }
 
             List<ExplorationTravelPayment> payments;
-            var paymentValidation = TryBuildPaymentPlan(
+            var paymentValidation = routeTollService.TryBuildPaymentPlan(
                 state,
                 playerId,
-                path,
+                path.RouteIds,
                 paymentRecipientsByRouteId,
+                RouteTollPaymentKeyMode.SharedRegion,
                 out payments);
             if (!paymentValidation.IsValid)
             {
                 return paymentValidation;
             }
 
-            var totalCost = SumPayments(payments);
+            var totalCost = routeTollService.SumPayments(payments);
             var travelCost = new ResourceSet { GoldVoucher = totalCost };
             if (!player.Resources.CanPay(travelCost))
             {
@@ -340,13 +344,19 @@ namespace YC.Domain.Exploration
             }
 
             List<ExplorationTravelPayment> payments;
-            var paymentValidation = TryBuildPaymentPlan(state, playerId, path, paymentRecipientsByRouteId, out payments);
+            var paymentValidation = routeTollService.TryBuildPaymentPlan(
+                state,
+                playerId,
+                path.RouteIds,
+                paymentRecipientsByRouteId,
+                RouteTollPaymentKeyMode.SharedRegion,
+                out payments);
             if (!paymentValidation.IsValid)
             {
                 return paymentValidation;
             }
 
-            ApplyPayments(state, player, payments);
+            routeTollService.ApplyPayments(state, player, payments);
             resourceTokenService.PlaceToken(
                 state.Map,
                 targetLocationId,
@@ -584,110 +594,12 @@ namespace YC.Domain.Exploration
             return string.Empty;
         }
 
-        private ValidationResult TryBuildPaymentPlan(
-            GameState state,
-            int playerId,
-            MapPath path,
-            IDictionary<string, int> paymentRecipientsByRouteId,
-            out List<ExplorationTravelPayment> payments)
-        {
-            payments = new List<ExplorationTravelPayment>();
-
-            for (var i = 0; i < path.RouteIds.Count; i++)
-            {
-                var routeId = path.RouteIds[i];
-                var paymentKey = GetRoutePaymentKey(routeId);
-                if (PaymentPlanContainsPaymentKey(payments, paymentKey) ||
-                    HasRoutePaymentKeyInfluenceOwnedBy(state, paymentKey, playerId))
-                {
-                    continue;
-                }
-
-                var opponentOwners = GetOpponentInfluenceOwnersOnRoutePaymentKey(state, paymentKey, playerId);
-                var receiverPlayerId = -1;
-                if (opponentOwners.Count > 0)
-                {
-                    if (paymentRecipientsByRouteId != null && paymentRecipientsByRouteId.TryGetValue(routeId, out var requestedReceiver))
-                    {
-                        if (!opponentOwners.Contains(requestedReceiver))
-                        {
-                            return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "指定路费接收玩家在该航道上没有影响力。");
-                        }
-
-                        receiverPlayerId = requestedReceiver;
-                    }
-                    else
-                    {
-                        receiverPlayerId = opponentOwners[0];
-                    }
-                }
-                else if (paymentRecipientsByRouteId != null && paymentRecipientsByRouteId.ContainsKey(routeId))
-                {
-                    return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该航道没有对手影响力，不能指定玩家接收路费。");
-                }
-
-                payments.Add(new ExplorationTravelPayment
-                {
-                    RouteId = routeId,
-                    Amount = RouteCostGoldVoucher,
-                    ReceiverPlayerId = receiverPlayerId
-                });
-            }
-
-            return ValidationResult.Success;
-        }
-
-        private void ApplyPayments(GameState state, PlayerState player, IReadOnlyList<ExplorationTravelPayment> payments)
-        {
-            for (var i = 0; i < payments.Count; i++)
-            {
-                var payment = payments[i];
-                player.Resources.GoldVoucher -= payment.Amount;
-                if (!payment.PaidToSupply)
-                {
-                    var receiver = state.FindPlayer(payment.ReceiverPlayerId);
-                    if (receiver != null)
-                    {
-                        receiver.Resources.GoldVoucher += payment.Amount;
-                    }
-                }
-            }
-        }
-
         private static void MarkLocationOpen(GameState state, string locationId)
         {
             if (!state.Map.OpenLocationIds.Contains(locationId))
             {
                 state.Map.OpenLocationIds.Add(locationId);
             }
-        }
-
-        private bool HasRouteInfluenceOwnedBy(GameState state, string routeId, int playerId)
-        {
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var influence = state.Map.Influences[i];
-                if (influence.PlayerId == playerId && IsInfluenceOnRoute(influence, routeId))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool HasRoutePaymentKeyInfluenceOwnedBy(GameState state, string paymentKey, int playerId)
-        {
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var influence = state.Map.Influences[i];
-                if (influence.PlayerId == playerId && IsInfluenceOnRoutePaymentKey(influence, paymentKey))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private DefaultPathPaymentScore GetDefaultPathPaymentScore(GameState state, int playerId, MapPath path)
@@ -702,17 +614,25 @@ namespace YC.Domain.Exploration
             for (var i = 0; i < path.RouteIds.Count; i++)
             {
                 var routeId = path.RouteIds[i];
-                var paymentKey = GetRoutePaymentKey(routeId);
+                var paymentKey = routeTollService.GetRoutePaymentKey(routeId, RouteTollPaymentKeyMode.SharedRegion);
                 score.StepCount += 1;
                 if (paidPaymentKeys.Contains(paymentKey) ||
-                    HasRoutePaymentKeyInfluenceOwnedBy(state, paymentKey, playerId))
+                    !routeTollService.IsPaymentRequired(
+                        state,
+                        routeId,
+                        playerId,
+                        RouteTollPaymentKeyMode.SharedRegion))
                 {
                     continue;
                 }
 
                 paidPaymentKeys.Add(paymentKey);
                 score.TollRouteCount += 1;
-                if (GetOpponentInfluenceOwnersOnRoutePaymentKey(state, paymentKey, playerId).Count > 0)
+                if (routeTollService.GetOpponentInfluenceOwnersOnPaymentKey(
+                        state,
+                        paymentKey,
+                        playerId,
+                        RouteTollPaymentKeyMode.SharedRegion).Count > 0)
                 {
                     score.OpponentTollRouteCount += 1;
                 }
@@ -845,13 +765,21 @@ namespace YC.Domain.Exploration
             var score = current.Score;
             score.StepCount += 1;
 
-            var paymentKey = GetRoutePaymentKey(routeId);
+            var paymentKey = routeTollService.GetRoutePaymentKey(routeId, RouteTollPaymentKeyMode.SharedRegion);
             if (!paidPaymentKeys.Contains(paymentKey) &&
-                !HasRoutePaymentKeyInfluenceOwnedBy(state, paymentKey, playerId))
+                routeTollService.IsPaymentRequired(
+                    state,
+                    routeId,
+                    playerId,
+                    RouteTollPaymentKeyMode.SharedRegion))
             {
                 paidPaymentKeys.Add(paymentKey);
                 score.TollRouteCount += 1;
-                if (GetOpponentInfluenceOwnersOnRoutePaymentKey(state, paymentKey, playerId).Count > 0)
+                if (routeTollService.GetOpponentInfluenceOwnersOnPaymentKey(
+                        state,
+                        paymentKey,
+                        playerId,
+                        RouteTollPaymentKeyMode.SharedRegion).Count > 0)
                 {
                     score.OpponentTollRouteCount += 1;
                 }
@@ -918,113 +846,6 @@ namespace YC.Domain.Exploration
             };
         }
 
-        private bool PaymentPlanContainsPaymentKey(IReadOnlyList<ExplorationTravelPayment> payments, string paymentKey)
-        {
-            for (var i = 0; i < payments.Count; i++)
-            {
-                if (GetRoutePaymentKey(payments[i].RouteId) == paymentKey)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private List<int> GetOpponentInfluenceOwnersOnRoute(GameState state, string routeId, int playerId)
-        {
-            var owners = new List<int>();
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var influence = state.Map.Influences[i];
-                if (influence.PlayerId == playerId || !IsInfluenceOnRoute(influence, routeId))
-                {
-                    continue;
-                }
-
-                if (!owners.Contains(influence.PlayerId))
-                {
-                    owners.Add(influence.PlayerId);
-                }
-            }
-
-            return owners;
-        }
-
-        private List<int> GetOpponentInfluenceOwnersOnRoutePaymentKey(GameState state, string paymentKey, int playerId)
-        {
-            var owners = new List<int>();
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var influence = state.Map.Influences[i];
-                if (influence.PlayerId == playerId || !IsInfluenceOnRoutePaymentKey(influence, paymentKey))
-                {
-                    continue;
-                }
-
-                if (!owners.Contains(influence.PlayerId))
-                {
-                    owners.Add(influence.PlayerId);
-                }
-            }
-
-            return owners;
-        }
-
-        private bool IsInfluenceOnRoute(InfluencePlacement influence, string routeId)
-        {
-            if (influence.RouteId == routeId)
-            {
-                return true;
-            }
-
-            InfluenceSlotReference slot;
-            string reason;
-            return InfluenceSlotReference.TryParse(mapQuery, influence.SlotId, out slot, out reason) &&
-                   slot.Kind == InfluenceSlotKind.Route &&
-                   slot.RouteId == routeId;
-        }
-
-        private bool IsInfluenceOnRoutePaymentKey(InfluencePlacement influence, string paymentKey)
-        {
-            if (!string.IsNullOrEmpty(influence.RouteId) &&
-                GetRoutePaymentKey(influence.RouteId) == paymentKey)
-            {
-                return true;
-            }
-
-            InfluenceSlotReference slot;
-            string reason;
-            return InfluenceSlotReference.TryParse(mapQuery, influence.SlotId, out slot, out reason) &&
-                   slot.Kind == InfluenceSlotKind.Route &&
-                   GetRoutePaymentKey(slot.RouteId) == paymentKey;
-        }
-
-        private string GetRoutePaymentKey(string routeId)
-        {
-            var route = mapQuery.GetRoute(routeId);
-            if (!string.IsNullOrEmpty(route.RegionId) && IsRoutePaymentRegion(route.RegionId))
-            {
-                return route.RegionId;
-            }
-
-            return route.RouteId;
-        }
-
-        private bool IsRoutePaymentRegion(string regionId)
-        {
-            for (var i = 0; i < mapQuery.Map.Regions.Count; i++)
-            {
-                var region = mapQuery.Map.Regions[i];
-                if (region.RegionId == regionId)
-                {
-                    return region.LocationIds != null && region.LocationIds.Count > 0;
-                }
-            }
-
-            return false;
-        }
-
         private InfluencePlacement FindInfluenceAtSlot(GameState state, string slotId)
         {
             InfluenceSlotReference requestedSlot;
@@ -1046,17 +867,6 @@ namespace YC.Domain.Exploration
             }
 
             return null;
-        }
-
-        private static int SumPayments(IReadOnlyList<ExplorationTravelPayment> payments)
-        {
-            var total = 0;
-            for (var i = 0; i < payments.Count; i++)
-            {
-                total += payments[i].Amount;
-            }
-
-            return total;
         }
 
         private static bool HasOpponentCityAtLocation(GameState state, int playerId, string locationId)

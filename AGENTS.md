@@ -17,6 +17,18 @@ Remove-Item "C:\path\to\file.txt"
 
 如果需要批量删除文件，应停止操作，并向用户请求，让用户手动删除。
 
+## Unity 陈旧锁文件
+
+`Temp\UnityLockfile` 不能单独作为项目被占用的依据。
+脚本删除该文件前，必须确认没有命令行包含当前项目路径的 Unity 进程。
+若无匹配进程，允许删除唯一明确文件：
+
+```powershell
+Remove-Item -LiteralPath "F:\游城拓荒模拟器\Temp\UnityLockfile" -Force
+```
+
+仍禁止删除目录、通配符删除、批量删除和递归删除。
+
 ## Codex 输出语言
 
 请始终使用中文回复用户。

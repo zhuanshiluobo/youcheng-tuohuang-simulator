@@ -12,11 +12,10 @@ namespace YC.Presentation
     {
         private const int FirstRoundIndex = RoundTrackRule.FirstRoundIndex;
         private const int FinalIndex = RoundTrackRule.FinalIndex;
-        private const float ExpandedPanelHeight = 136f;
-        private const float CollapsedPanelHeight = 42f;
-        private const float PanelWidth = 1120f;
-        private const string ExpandedArrow = "▲";
-        private const string CollapsedArrow = "▼";
+        private const float PanelHeight = 78f;
+        private const float PanelWidth = 720f;
+        private const float BorderHeightRatio = 0.2f;
+        private const float BorderThickness = PanelHeight * BorderHeightRatio;
 
         private static readonly string[] RoundLabels =
         {
@@ -24,27 +23,16 @@ namespace YC.Presentation
         };
 
         [SerializeField] private string startSceneName = "StartScene";
-        [SerializeField] private bool startExpanded = true;
-        [SerializeField] private float panelLerpSpeed = 10f;
-        [SerializeField] private float panelSnapThreshold = 0.5f;
 
         private RectTransform panelTransform;
         private RectTransform contentArea;
         private RectTransform canvasTransform;
         private RectTransform markerTransform;
         private RectTransform trackSlotsTransform;
-        private Image panelImage;
-        private Outline panelOutline;
-        private Button toggleButton;
-        private Text toggleButtonText;
         private int currentIndex = FirstRoundIndex;
-        private bool isExpanded = true;
-        private float targetPanelHeight = ExpandedPanelHeight;
-        private bool isAnimating;
-        private bool pendingExpandedState = true;
         private bool gameOverDialogShown;
 
-        public bool IsExpanded => isExpanded;
+        public bool IsExpanded => true;
 
         private void Awake()
         {
@@ -54,36 +42,10 @@ namespace YC.Presentation
 
         private void Update()
         {
-            StepPanelAnimation(Time.deltaTime);
         }
 
         private void StepPanelAnimation(float deltaTime)
         {
-            if (!isAnimating || panelTransform == null)
-            {
-                return;
-            }
-
-            var currentHeight = panelTransform.rect.height;
-            var nextHeight = Mathf.Lerp(
-                currentHeight,
-                targetPanelHeight,
-                deltaTime * panelLerpSpeed);
-
-            var finishedThisFrame = false;
-            if (Mathf.Abs(nextHeight - targetPanelHeight) <= panelSnapThreshold)
-            {
-                nextHeight = targetPanelHeight;
-                isAnimating = false;
-                finishedThisFrame = true;
-            }
-
-            panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, nextHeight);
-
-            if (finishedThisFrame)
-            {
-                SetPanelChromeVisible(pendingExpandedState);
-            }
         }
 
         public void RefreshFromState(GameState state)
@@ -126,106 +88,27 @@ namespace YC.Presentation
             canvasTransform = canvasObject.GetComponent<RectTransform>();
             CreateRoundPanel(canvasTransform);
             CreateRoundTrack(contentArea);
-            SetExpandedImmediate(startExpanded);
         }
 
         public void Toggle()
         {
-            SetExpanded(!isExpanded);
-        }
-
-        private void SetExpanded(bool expand)
-        {
-            pendingExpandedState = expand;
-            isExpanded = expand;
-            targetPanelHeight = expand ? ExpandedPanelHeight : CollapsedPanelHeight;
-            isAnimating = true;
-
-            SetPanelChromeVisible(expand);
-
-            if (contentArea != null)
-            {
-                contentArea.gameObject.SetActive(expand);
-            }
-
-            if (toggleButtonText != null)
-            {
-                toggleButtonText.text = expand ? ExpandedArrow : CollapsedArrow;
-            }
-        }
-
-        private void SetExpandedImmediate(bool expand)
-        {
-            pendingExpandedState = expand;
-            isExpanded = expand;
-            targetPanelHeight = expand ? ExpandedPanelHeight : CollapsedPanelHeight;
-            isAnimating = false;
-            panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, targetPanelHeight);
-            contentArea.gameObject.SetActive(expand);
-            SetPanelChromeVisible(expand);
-            toggleButtonText.text = expand ? ExpandedArrow : CollapsedArrow;
         }
 
         private void CreateRoundPanel(RectTransform parent)
         {
-            var panelObject = new GameObject("Round Panel", typeof(RectTransform), typeof(Image), typeof(Outline), typeof(RectMask2D));
+            var panelObject = new GameObject("Round Panel", typeof(RectTransform), typeof(Image));
             panelObject.transform.SetParent(parent, false);
 
             panelTransform = panelObject.GetComponent<RectTransform>();
             panelTransform.anchorMin = new Vector2(0.5f, 1f);
             panelTransform.anchorMax = new Vector2(0.5f, 1f);
             panelTransform.pivot = new Vector2(0.5f, 1f);
-            panelTransform.sizeDelta = new Vector2(PanelWidth, ExpandedPanelHeight);
+            panelTransform.sizeDelta = new Vector2(PanelWidth, PanelHeight);
             panelTransform.anchoredPosition = Vector2.zero;
 
-            panelImage = panelObject.GetComponent<Image>();
-            panelImage.color = UiTheme.PanelBackground;
-            panelImage.raycastTarget = false;
-
-            panelOutline = panelObject.GetComponent<Outline>();
-            panelOutline.effectColor = UiTheme.GoldOutline;
-            panelOutline.effectDistance = new Vector2(2f, -2f);
-
-            BuildToggleButton(panelTransform);
+            panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
+            CreateBorderFrame(panelTransform);
             BuildContentArea(panelTransform);
-        }
-
-        private void SetPanelChromeVisible(bool visible)
-        {
-            if (panelImage != null)
-            {
-                panelImage.enabled = visible;
-            }
-
-            if (panelOutline != null)
-            {
-                panelOutline.enabled = visible;
-            }
-        }
-
-        private void BuildToggleButton(RectTransform parent)
-        {
-            var buttonObject = new GameObject("Toggle Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
-            buttonObject.transform.SetParent(parent, false);
-
-            var buttonTransform = buttonObject.GetComponent<RectTransform>();
-            buttonTransform.anchorMin = new Vector2(0.5f, 0f);
-            buttonTransform.anchorMax = new Vector2(0.5f, 0f);
-            buttonTransform.pivot = new Vector2(0.5f, 0f);
-            buttonTransform.sizeDelta = new Vector2(132f, 34f);
-            buttonTransform.anchoredPosition = new Vector2(0f, 4f);
-
-            var buttonImage = buttonObject.GetComponent<Image>();
-            buttonImage.color = UiTheme.PanelBackgroundLighter;
-
-            var outline = buttonObject.GetComponent<Outline>();
-            outline.effectColor = UiTheme.GoldOutlineThin;
-            outline.effectDistance = new Vector2(1f, -1f);
-
-            toggleButton = buttonObject.GetComponent<Button>();
-            toggleButton.onClick.AddListener(Toggle);
-
-            toggleButtonText = CreateButtonText(buttonTransform, ExpandedArrow, 24);
         }
 
         private void BuildContentArea(RectTransform parent)
@@ -235,28 +118,51 @@ namespace YC.Presentation
             contentArea.anchorMin = Vector2.zero;
             contentArea.anchorMax = Vector2.one;
             contentArea.pivot = new Vector2(0.5f, 0.5f);
-            contentArea.offsetMin = new Vector2(16f, 38f);
-            contentArea.offsetMax = new Vector2(-16f, -8f);
+            contentArea.offsetMin = new Vector2(BorderThickness, BorderThickness);
+            contentArea.offsetMax = new Vector2(-BorderThickness, -BorderThickness);
+        }
+
+        private static void CreateBorderFrame(RectTransform parent)
+        {
+            CreateBorder(parent, "Round Border Top", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, BorderThickness), Vector2.zero);
+            CreateBorder(parent, "Round Border Bottom", new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, BorderThickness), Vector2.zero);
+            CreateBorder(parent, "Round Border Left", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(0f, 0.5f), new Vector2(BorderThickness, 0f), Vector2.zero);
+            CreateBorder(parent, "Round Border Right", new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(1f, 0.5f), new Vector2(BorderThickness, 0f), Vector2.zero);
+        }
+
+        private static void CreateBorder(
+            RectTransform parent,
+            string name,
+            Vector2 anchorMin,
+            Vector2 anchorMax,
+            Vector2 pivot,
+            Vector2 sizeDelta,
+            Vector2 anchoredPosition)
+        {
+            var borderObject = new GameObject(name, typeof(RectTransform), typeof(Image));
+            borderObject.transform.SetParent(parent, false);
+
+            var rect = borderObject.GetComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.pivot = pivot;
+            rect.sizeDelta = sizeDelta;
+            rect.anchoredPosition = anchoredPosition;
+
+            borderObject.GetComponent<Image>().color = UiTheme.GoldOutline;
         }
 
         private void CreateRoundTrack(RectTransform parent)
         {
-            var trackObject = new GameObject("Round Track", typeof(RectTransform), typeof(Image), typeof(Outline));
+            var trackObject = new GameObject("Round Track", typeof(RectTransform));
             trackObject.transform.SetParent(parent, false);
 
             var trackTransform = trackObject.GetComponent<RectTransform>();
-            trackTransform.anchorMin = new Vector2(0.5f, 0f);
-            trackTransform.anchorMax = new Vector2(0.5f, 0f);
-            trackTransform.pivot = new Vector2(0.5f, 0f);
-            trackTransform.sizeDelta = new Vector2(720f, 84f);
-            trackTransform.anchoredPosition = new Vector2(0f, 3f);
-
-            var background = trackObject.GetComponent<Image>();
-            background.color = UiTheme.TrackBackground;
-
-            var outline = trackObject.GetComponent<Outline>();
-            outline.effectColor = UiTheme.GoldOutline;
-            outline.effectDistance = new Vector2(2f, -2f);
+            trackTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            trackTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            trackTransform.pivot = new Vector2(0.5f, 0.5f);
+            trackTransform.sizeDelta = new Vector2(650f, 42f);
+            trackTransform.anchoredPosition = Vector2.zero;
 
             CreateTrackBand(trackTransform, "Start Band", 0, 3, UiTheme.SafeBand);
             CreateTrackBand(trackTransform, "Danger Band", 4, FinalIndex, UiTheme.DangerBand);
@@ -279,7 +185,7 @@ namespace YC.Presentation
             markerTransform.anchorMin = new Vector2(0.5f, 0.5f);
             markerTransform.anchorMax = new Vector2(0.5f, 0.5f);
             markerTransform.pivot = new Vector2(0.5f, 0.5f);
-            markerTransform.sizeDelta = new Vector2(32f, 32f);
+            markerTransform.sizeDelta = new Vector2(34f, 34f);
 
             var markerImage = markerTransform.GetComponent<Image>();
             markerImage.sprite = CreateCircleSprite();
@@ -303,8 +209,21 @@ namespace YC.Presentation
             var slotWidth = 65f;
             var width = (toIndex - fromIndex + 1) * slotWidth;
             var centerIndex = (fromIndex + toIndex) * 0.5f;
+            var x = (centerIndex - (RoundLabels.Length - 1) * 0.5f) * slotWidth;
+            if (fromIndex == 0)
+            {
+                width += 22f;
+                x -= 11f;
+            }
+
+            if (toIndex == FinalIndex)
+            {
+                width += 22f;
+                x += 11f;
+            }
+
             band.sizeDelta = new Vector2(width, 36f);
-            band.anchoredPosition = new Vector2((centerIndex - (RoundLabels.Length - 1) * 0.5f) * slotWidth, 0f);
+            band.anchoredPosition = new Vector2(x, 0f);
 
             bandObject.GetComponent<Image>().color = color;
         }
@@ -513,7 +432,7 @@ namespace YC.Presentation
                 return;
             }
 
-            markerTransform.anchoredPosition = new Vector2(GetSlotX(currentIndex), 33f);
+            markerTransform.anchoredPosition = new Vector2(GetSlotX(currentIndex), 0f);
         }
 
         private static float GetSlotX(int index)

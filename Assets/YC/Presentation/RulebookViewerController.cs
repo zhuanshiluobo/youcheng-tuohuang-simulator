@@ -151,12 +151,12 @@ namespace YC.Presentation
             closeRect.anchorMin = new Vector2(1f, 1f);
             closeRect.anchorMax = new Vector2(1f, 1f);
             closeRect.pivot = new Vector2(1f, 1f);
-            closeRect.sizeDelta = new Vector2(92f, 42f);
+            closeRect.sizeDelta = new Vector2(42f, 42f);
             closeRect.anchoredPosition = new Vector2(-18f, -12f);
 
             ApplyButtonStyle(closeButton);
             closeButton.GetComponent<Button>().onClick.AddListener(Close);
-            CreateButtonText(closeRect, "关闭", 20);
+            CreateButtonText(closeRect, "×", 30);
         }
 
         private void CreateViewport(RectTransform parent)

@@ -6,6 +6,9 @@ namespace YC.Presentation
 {
     internal sealed class ActionPanelController
     {
+        private const float ActionPanelWidth = 360f;
+        private const float ActionPanelHeight = 488f;
+
         private readonly GameObject panelObject;
         private readonly Text currentPlayerText;
         private readonly Text phaseText;
@@ -83,13 +86,14 @@ namespace YC.Presentation
             panelRect.anchorMin = new Vector2(1f, 0f);
             panelRect.anchorMax = new Vector2(1f, 0f);
             panelRect.pivot = new Vector2(1f, 0f);
-            panelRect.sizeDelta = new Vector2(360f, 488f);
-            panelRect.anchoredPosition = new Vector2(-24f, 118f);
+            panelRect.sizeDelta = new Vector2(ActionPanelWidth, ActionPanelHeight);
+            panelRect.anchoredPosition = Vector2.zero;
 
             panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
             var outline = panelObject.GetComponent<Outline>();
             outline.effectColor = UiTheme.GoldOutline;
             outline.effectDistance = new Vector2(3f, -3f);
+
             var localPlayerColorSwatch = CreateColorSwatch(panelRect, new Vector2(-150f, -58f));
 
             var currentPlayerText = CreateText(panelRect, "当前玩家", 20, new Vector2(0f, -26f), FontStyle.Bold);
@@ -113,7 +117,7 @@ namespace YC.Presentation
             statusText.resizeTextMinSize = 11;
             statusText.resizeTextMaxSize = 15;
 
-            return new ActionPanelController(
+            var controller = new ActionPanelController(
                 panelObject,
                 currentPlayerText,
                 phaseText,
@@ -128,6 +132,7 @@ namespace YC.Presentation
                 buildButton,
                 specialActionButton,
                 endRoundButton);
+            return controller;
         }
 
         public void SetHeader(string currentPlayer, string phase)

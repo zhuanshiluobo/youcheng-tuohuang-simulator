@@ -146,7 +146,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void BuildInfoPanel_RefreshCreatesInteractiveBuildPlaceholders()
+        public void BuildInfoPanel_RefreshCreatesInteractiveBuildHotspotsWithoutEmptySlotLabels()
         {
             var owner = new GameObject("Build Info Panel Test");
             GameObject canvasObject = null;
@@ -174,9 +174,17 @@ namespace YC.Tests.EditMode
                 Assert.That(CountButtonsByNamePrefix(buttons, "设施 "), Is.EqualTo(state.Decks.FacilitySupply.Count));
                 Assert.That(CountButtonsByNamePrefix(buttons, "城市样式 "), Is.EqualTo(state.Decks.CityStyleSupply.Count));
 
+                var boardImage = FindRectTransformByName(canvasObject, "城市面板底图");
+                Assert.That(boardImage, Is.Not.Null);
+                Assert.That(boardImage.rect.height / boardImage.rect.width, Is.EqualTo(3801f / 2059f).Within(0.01f));
+                Assert.That(HasTextContaining(canvasObject, "空位 "), Is.False);
+                Assert.That(GetButtonLabel(FindButtonByName(buttons, "槽位 4")), Is.EqualTo("源石精炼厂"));
+                AssertCityBoardSlotIsCenteredOnBoard(FindButtonByName(buttons, "槽位 2"), boardImage, 0.502f, 0.162f);
+
                 Assert.That(HasText(canvasObject, "剩余牌堆：1"), Is.True);
                 Assert.That(HasTextContaining(canvasObject, "玩家一：源石工业中枢"), Is.True);
                 Assert.That(HasTextContaining(canvasObject, "玩家二：暂无宣告"), Is.True);
+                Assert.That(AllTextRenderersAreMaskable(canvasObject), Is.True);
 
                 InvokeButtonByName(buttons, "槽位 12");
                 InvokeButtonByName(buttons, "设施 1");
@@ -185,6 +193,63 @@ namespace YC.Tests.EditMode
                 Assert.That(clickedSlotIndex, Is.EqualTo(11));
                 Assert.That(clickedFacilityId, Is.EqualTo(FacilityCardDatabase.TradeDistrict));
                 Assert.That(clickedCityStyleId, Is.EqualTo(CityStyleDatabase.SourceStoneIndustrialHub));
+            }
+            finally
+            {
+                if (canvasObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(canvasObject);
+                }
+
+                UnityEngine.Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void BuildInfoPanel_RefreshRotatesDeclaredCityStyleSlotsOnly()
+        {
+            var owner = new GameObject("Build Info Panel Used Slot Test");
+            GameObject canvasObject = null;
+            try
+            {
+                var type = Type.GetType("YC.Presentation.BuildInfoPanel, Assembly-CSharp", false);
+                Assert.That(type, Is.Not.Null);
+                var panel = owner.AddComponent(type);
+                var state = CreateBuildInfoPanelUsedSlotState();
+
+                type.GetMethod("Initialize").Invoke(panel, new object[] { owner.transform });
+                type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
+
+                canvasObject = GameObject.Find("Build Info Panel Canvas");
+                Assert.That(canvasObject, Is.Not.Null);
+
+                var buttons = canvasObject.GetComponentsInChildren<Button>(true);
+                AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 1"), 0f);
+                AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 4"), 0f);
+                Assert.That(CountTexts(canvasObject, "已使用"), Is.EqualTo(0));
+
+                var player = state.FindPlayer(1);
+                player.DeclaredCityStyleIds.Add(CityStyleDatabase.SourceStoneIndustrialHub);
+                player.DeclaredCityStyles.Add(new CityStyleDeclarationState
+                {
+                    CityStyleId = CityStyleDatabase.SourceStoneIndustrialHub,
+                    UsedFacilityIds =
+                    {
+                        FacilityCardDatabase.SourceStoneRefinery,
+                        FacilityCardDatabase.UrbanizedArea,
+                        FacilityCardDatabase.TradeDistrict
+                    },
+                    UsedCityBoardSlotIndexes = { 0, 1, 2 }
+                });
+
+                type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
+
+                buttons = canvasObject.GetComponentsInChildren<Button>(true);
+                AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 1"), 180f);
+                AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 2"), 180f);
+                AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 3"), 180f);
+                AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 4"), 0f);
+                Assert.That(CountTexts(canvasObject, "已使用"), Is.EqualTo(3));
             }
             finally
             {
@@ -339,6 +404,27 @@ namespace YC.Tests.EditMode
             return state;
         }
 
+        private static GameState CreateBuildInfoPanelUsedSlotState()
+        {
+            var state = new GameState
+            {
+                Players =
+                {
+                    new PlayerState
+                    {
+                        PlayerId = 1,
+                        Name = "玩家一"
+                    }
+                }
+            };
+
+            AddFacility(state, FacilityCardDatabase.SourceStoneRefinery, 0);
+            AddFacility(state, FacilityCardDatabase.UrbanizedArea, 1);
+            AddFacility(state, FacilityCardDatabase.TradeDistrict, 2);
+            AddFacility(state, FacilityCardDatabase.EquipmentWarehouse, 3);
+            return state;
+        }
+
         private static int CountButtonsByNamePrefix(Button[] buttons, string prefix)
         {
             var count = 0;
@@ -367,6 +453,58 @@ namespace YC.Tests.EditMode
             Assert.Fail("Missing button: " + name);
         }
 
+        private static Button FindButtonByName(Button[] buttons, string name)
+        {
+            for (var i = 0; i < buttons.Length; i++)
+            {
+                if (buttons[i].name == name)
+                {
+                    return buttons[i];
+                }
+            }
+
+            Assert.Fail("Missing button: " + name);
+            return null;
+        }
+
+        private static void AssertCityBoardSlotRotation(Button button, float expectedZ)
+        {
+            Assert.That(button, Is.Not.Null);
+            var rect = button.GetComponent<RectTransform>();
+            Assert.That(Mathf.Abs(Mathf.DeltaAngle(rect.localEulerAngles.z, expectedZ)), Is.LessThan(0.1f));
+        }
+
+        private static void AssertCityBoardSlotIsCenteredOnBoard(Button button, RectTransform boardImage, float normalizedX, float normalizedY)
+        {
+            Assert.That(button, Is.Not.Null);
+            Assert.That(boardImage, Is.Not.Null);
+            var rect = button.GetComponent<RectTransform>();
+            Assert.That(rect.parent, Is.EqualTo(boardImage));
+            Assert.That(rect.anchoredPosition.x, Is.EqualTo((normalizedX - 0.5f) * boardImage.rect.width).Within(0.5f));
+            Assert.That(rect.anchoredPosition.y, Is.EqualTo((0.5f - normalizedY) * boardImage.rect.height).Within(0.5f));
+        }
+
+        private static string GetButtonLabel(Button button)
+        {
+            Assert.That(button, Is.Not.Null);
+            var text = button.GetComponentInChildren<Text>(true);
+            return text == null ? string.Empty : text.text;
+        }
+
+        private static RectTransform FindRectTransformByName(GameObject root, string name)
+        {
+            var rects = root.GetComponentsInChildren<RectTransform>(true);
+            for (var i = 0; i < rects.Length; i++)
+            {
+                if (rects[i].name == name)
+                {
+                    return rects[i];
+                }
+            }
+
+            return null;
+        }
+
         private static bool HasText(GameObject root, string expected)
         {
             var texts = root.GetComponentsInChildren<Text>(true);
@@ -381,6 +519,21 @@ namespace YC.Tests.EditMode
             return false;
         }
 
+        private static int CountTexts(GameObject root, string expected)
+        {
+            var count = 0;
+            var texts = root.GetComponentsInChildren<Text>(true);
+            for (var i = 0; i < texts.Length; i++)
+            {
+                if (texts[i].text == expected)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         private static bool HasTextContaining(GameObject root, string expected)
         {
             var texts = root.GetComponentsInChildren<Text>(true);
@@ -393,6 +546,20 @@ namespace YC.Tests.EditMode
             }
 
             return false;
+        }
+
+        private static bool AllTextRenderersAreMaskable(GameObject root)
+        {
+            var texts = root.GetComponentsInChildren<Text>(true);
+            for (var i = 0; i < texts.Length; i++)
+            {
+                if (texts[i] != null && !texts[i].maskable)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static void AddFacility(GameState state, string facilityId, int slotIndex)

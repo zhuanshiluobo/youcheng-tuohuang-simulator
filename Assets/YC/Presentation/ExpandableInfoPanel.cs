@@ -81,7 +81,11 @@ namespace YC.Presentation
             }
             else
             {
-                contentArea.gameObject.SetActive(false);
+                if (contentArea.gameObject.activeSelf)
+                {
+                    contentArea.gameObject.SetActive(false);
+                }
+
                 RebuildLayout();
             }
         }
@@ -145,6 +149,11 @@ namespace YC.Presentation
             {
                 contentArea.gameObject.SetActive(true);
                 pendingTextRefresh = true;
+            }
+            else
+            {
+                pendingTextRefresh = false;
+                contentArea.gameObject.SetActive(false);
             }
 
             toggleButtonText.text = expand ? ExpandedArrow : CollapsedArrow;
@@ -229,7 +238,7 @@ namespace YC.Presentation
 
         private void BuildContentArea(RectTransform parent)
         {
-            contentArea = new GameObject("Content Area", typeof(RectTransform)).GetComponent<RectTransform>();
+            contentArea = new GameObject("Content Area", typeof(RectTransform), typeof(RectMask2D)).GetComponent<RectTransform>();
             contentArea.SetParent(parent, false);
             contentArea.anchorMin = new Vector2(0f, 0f);
             contentArea.anchorMax = new Vector2(1f, 1f);
@@ -295,7 +304,7 @@ namespace YC.Presentation
 
             var scrollRect = scrollObject.GetComponent<ScrollRect>();
 
-            var viewportObject = new GameObject("Viewport", typeof(RectTransform));
+            var viewportObject = new GameObject("Viewport", typeof(RectTransform), typeof(RectMask2D));
             viewportObject.transform.SetParent(scrollTransform, false);
 
             var viewportTransform = viewportObject.GetComponent<RectTransform>();
@@ -407,7 +416,7 @@ namespace YC.Presentation
             text.fontStyle = style;
             text.font = FontUtility.GetCjkFont(14);
             text.supportRichText = false;
-            text.maskable = false;
+            text.maskable = true;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Overflow;
             text.raycastTarget = false;

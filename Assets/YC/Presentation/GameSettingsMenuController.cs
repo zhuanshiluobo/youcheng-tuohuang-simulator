@@ -12,11 +12,13 @@ namespace YC.Presentation
         private const string DefaultStartSceneName = "StartScene";
 
         [SerializeField] private string startSceneName = DefaultStartSceneName;
+        [SerializeField] private bool showReturnToStartButton = true;
 
         private RectTransform canvasTransform;
         private RectTransform menuPanel;
         private GameObject overlayObject;
         private GameObject confirmationObject;
+        private GameObject returnButtonObject;
         private bool isOpen;
         private bool isAnimating;
         private Vector2 targetPosition;
@@ -80,6 +82,41 @@ namespace YC.Presentation
             targetPosition = new Vector2(0f, GetHiddenPanelY());
         }
 
+        public void SetReturnToStartButtonVisible(bool visible)
+        {
+            showReturnToStartButton = visible;
+
+            if (returnButtonObject != null)
+            {
+                returnButtonObject.SetActive(visible);
+            }
+
+            if (!visible && confirmationObject != null)
+            {
+                confirmationObject.SetActive(false);
+            }
+        }
+
+        public static GameSettingsMenuController EnsureInScene(Transform parent, bool showReturnToStartButton = true)
+        {
+            var existing = FindObjectOfType<GameSettingsMenuController>();
+            if (existing != null)
+            {
+                existing.SetReturnToStartButtonVisible(showReturnToStartButton);
+                return existing;
+            }
+
+            var go = new GameObject("GameSettingsMenu");
+            if (parent != null)
+            {
+                go.transform.SetParent(parent, false);
+            }
+
+            var controller = go.AddComponent<GameSettingsMenuController>();
+            controller.SetReturnToStartButtonVisible(showReturnToStartButton);
+            return controller;
+        }
+
         private void BuildUi()
         {
             UguiUtility.EnsureEventSystem();
@@ -88,7 +125,6 @@ namespace YC.Presentation
             canvasTransform = canvas.GetComponent<RectTransform>();
 
             BuildGearButton(canvasTransform);
-            BuildRulebookButton(canvasTransform);
             BuildOverlay(canvasTransform);
         }
 
@@ -124,23 +160,6 @@ namespace YC.Presentation
             var iconImage = iconObject.GetComponent<Image>();
             iconImage.sprite = CreateGearSprite();
             iconImage.color = UiTheme.GoldText;
-        }
-
-        private void BuildRulebookButton(RectTransform parent)
-        {
-            var buttonObject = new GameObject("Rulebook Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
-            buttonObject.transform.SetParent(parent, false);
-
-            var rect = buttonObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(1f, 1f);
-            rect.anchorMax = new Vector2(1f, 1f);
-            rect.pivot = new Vector2(1f, 1f);
-            rect.sizeDelta = new Vector2(126f, 48f);
-            rect.anchoredPosition = new Vector2(-34f, -112f);
-
-            ApplyButtonStyle(buttonObject);
-            buttonObject.GetComponent<Button>().onClick.AddListener(OpenRulebook);
-            CreateButtonText(rect, "规则书", 22);
         }
 
         private void BuildOverlay(RectTransform parent)
@@ -180,7 +199,7 @@ namespace YC.Presentation
             outline.effectDistance = new Vector2(3f, -3f);
 
             BuildHeader(menuPanel);
-            BuildEmptyBody(menuPanel);
+            BuildBody(menuPanel);
             BuildReturnButton(menuPanel);
         }
 
@@ -223,9 +242,9 @@ namespace YC.Presentation
             CreateHeaderCloseButton(parent);
         }
 
-        private void BuildEmptyBody(RectTransform parent)
+        private void BuildBody(RectTransform parent)
         {
-            var bodyObject = new GameObject("Settings Empty Body", typeof(RectTransform), typeof(Image));
+            var bodyObject = new GameObject("Settings Body", typeof(RectTransform), typeof(Image));
             bodyObject.transform.SetParent(parent, false);
 
             var bodyRect = bodyObject.GetComponent<RectTransform>();
@@ -235,11 +254,15 @@ namespace YC.Presentation
             bodyRect.offsetMax = new Vector2(-28f, -76f);
 
             bodyObject.GetComponent<Image>().color = UiTheme.ScrollBackground;
+
+            CreateBodyButton(bodyRect, "规则书", new Vector2(184f, 52f), new Vector2(24f, -24f), OpenRulebook);
         }
 
         private void BuildReturnButton(RectTransform parent)
         {
-            CreatePanelButton(parent, "返回主菜单", new Vector2(174f, 48f), new Vector2(-28f, 20f), ShowConfirmation);
+            var button = CreatePanelButton(parent, "返回主菜单", new Vector2(174f, 48f), new Vector2(-28f, 20f), ShowConfirmation);
+            returnButtonObject = button.gameObject;
+            returnButtonObject.SetActive(showReturnToStartButton);
         }
 
         private void CreateHeaderCloseButton(RectTransform parent)
@@ -315,6 +338,31 @@ namespace YC.Presentation
             button.onClick.AddListener(action);
 
             CreateButtonText(rect, label, 20);
+            return button;
+        }
+
+        private static Button CreateBodyButton(
+            RectTransform parent,
+            string label,
+            Vector2 size,
+            Vector2 anchoredPosition,
+            UnityEngine.Events.UnityAction action)
+        {
+            var buttonObject = new GameObject(label + " Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
+            buttonObject.transform.SetParent(parent, false);
+
+            var rect = buttonObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.sizeDelta = size;
+            rect.anchoredPosition = anchoredPosition;
+
+            ApplyButtonStyle(buttonObject);
+            var button = buttonObject.GetComponent<Button>();
+            button.onClick.AddListener(action);
+
+            CreateButtonText(rect, label, 22);
             return button;
         }
 

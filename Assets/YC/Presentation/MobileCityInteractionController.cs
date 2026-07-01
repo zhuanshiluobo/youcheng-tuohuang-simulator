@@ -948,14 +948,7 @@ namespace YC.Presentation
 
         private void EnsureSettingsMenu()
         {
-            if (FindObjectOfType<GameSettingsMenuController>() != null)
-            {
-                return;
-            }
-
-            var go = new GameObject("GameSettingsMenu");
-            go.transform.SetParent(transform, false);
-            go.AddComponent<GameSettingsMenuController>();
+            GameSettingsMenuController.EnsureInScene(transform);
         }
 
         private void RefreshInfoPanel()

@@ -6,16 +6,20 @@ namespace YC.Presentation
     internal sealed class PromptPresenter
     {
         private const float VisibleSeconds = 3f;
-        private const float FadeSeconds = 0.25f;
-        private const float PanelWidth = 820f;
-        private const float MinPanelHeight = 68f;
+        private const float FadeSeconds = 0.16f;
+        private const float SlideSpeed = 2200f;
+        private const float PanelWidth = 520f;
+        private const float MinPanelHeight = 82f;
         private const float HorizontalPadding = 44f;
         private const float VerticalPadding = 28f;
+        private const float VisibleTopInset = 128f;
+        private const float HiddenRightOffset = PanelWidth + 24f;
 
         private readonly Text promptText;
         private readonly RectTransform panelTransform;
         private readonly CanvasGroup promptCanvasGroup;
         private float hideAt;
+        private float targetX;
         private float targetAlpha;
         private bool hideScheduled;
 
@@ -29,6 +33,8 @@ namespace YC.Presentation
             this.promptText = promptText;
             this.panelTransform = panelTransform;
             this.promptCanvasGroup = promptCanvasGroup;
+            targetX = GetHiddenX();
+            targetAlpha = 0f;
         }
 
         public Canvas Canvas { get; private set; }
@@ -53,11 +59,11 @@ namespace YC.Presentation
             panelObject.transform.SetParent(canvasObject.transform, false);
 
             var panelTransform = panelObject.GetComponent<RectTransform>();
-            panelTransform.anchorMin = new Vector2(0.5f, 1f);
-            panelTransform.anchorMax = new Vector2(0.5f, 1f);
-            panelTransform.pivot = new Vector2(0.5f, 1f);
+            panelTransform.anchorMin = new Vector2(1f, 1f);
+            panelTransform.anchorMax = new Vector2(1f, 1f);
+            panelTransform.pivot = new Vector2(1f, 1f);
             panelTransform.sizeDelta = new Vector2(PanelWidth, MinPanelHeight);
-            panelTransform.anchoredPosition = new Vector2(0f, -32f);
+            panelTransform.anchoredPosition = new Vector2(GetHiddenX(), GetVisibleY());
 
             panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
             var outline = panelObject.GetComponent<Outline>();
@@ -92,14 +98,21 @@ namespace YC.Presentation
 
         public void SetPrompt(string message)
         {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                Hide();
+                return;
+            }
+
             if (promptText != null)
             {
-                promptText.text = message ?? string.Empty;
+                promptText.text = message;
                 ResizePanelToText();
             }
 
             if (promptCanvasGroup != null)
             {
+                targetX = GetVisibleX();
                 targetAlpha = 1f;
                 hideAt = 0f;
                 hideScheduled = false;
@@ -124,21 +137,32 @@ namespace YC.Presentation
 
         public void Update(bool keepVisible)
         {
-            if (promptCanvasGroup == null)
+            if (promptCanvasGroup == null || panelTransform == null)
             {
                 return;
             }
 
-            if (targetAlpha > 0f && hideScheduled && !keepVisible && Time.unscaledTime >= hideAt)
+            if (Mathf.Approximately(targetX, GetVisibleX()) &&
+                hideScheduled &&
+                !keepVisible &&
+                Time.unscaledTime >= hideAt)
             {
-                targetAlpha = 0f;
-                hideScheduled = false;
+                Hide();
             }
 
             if (keepVisible)
             {
+                targetX = GetVisibleX();
+                targetAlpha = 1f;
                 hideScheduled = false;
             }
+
+            var currentPosition = panelTransform.anchoredPosition;
+            currentPosition.x = Mathf.MoveTowards(
+                currentPosition.x,
+                targetX,
+                SlideSpeed * Time.unscaledDeltaTime);
+            panelTransform.anchoredPosition = currentPosition;
 
             var fadeDuration = Mathf.Max(0.01f, FadeSeconds);
             promptCanvasGroup.alpha = Mathf.MoveTowards(
@@ -146,12 +170,36 @@ namespace YC.Presentation
                 targetAlpha,
                 Time.unscaledDeltaTime / fadeDuration);
 
-            if (targetAlpha > 0f && !hideScheduled && !keepVisible && promptCanvasGroup.alpha >= 0.999f)
+            if (Mathf.Approximately(targetX, GetVisibleX()) &&
+                !hideScheduled &&
+                !keepVisible &&
+                Mathf.Abs(panelTransform.anchoredPosition.x - targetX) <= 0.1f)
             {
-                promptCanvasGroup.alpha = 1f;
                 hideAt = Time.unscaledTime + VisibleSeconds;
                 hideScheduled = true;
             }
+        }
+
+        private void Hide()
+        {
+            targetX = GetHiddenX();
+            targetAlpha = 0f;
+            hideScheduled = false;
+        }
+
+        private static float GetVisibleX()
+        {
+            return 0f;
+        }
+
+        private static float GetVisibleY()
+        {
+            return -VisibleTopInset;
+        }
+
+        private static float GetHiddenX()
+        {
+            return HiddenRightOffset;
         }
     }
 }

@@ -30,73 +30,69 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void BuildRoundUi_CreatesExpandedDynamicPanelByDefault()
+        public void BuildRoundUi_CreatesTopDockedRoundTrackWithBorderFrame()
         {
             controller = CreateController();
 
             var panel = GetPrivateField<RectTransform>("panelTransform");
             var content = GetPrivateField<RectTransform>("contentArea");
-            var toggle = GetPrivateField<Button>("toggleButton");
-            var expandedHeight = GetPrivateStaticFloat("ExpandedPanelHeight");
-            var panelImage = panel.GetComponent<Image>();
+            var marker = GetPrivateField<RectTransform>("markerTransform");
 
             Assert.That(GetPublicProperty<bool>("IsExpanded"), Is.True);
-            Assert.That(panel.GetComponent<RectMask2D>(), Is.Not.Null);
-            Assert.That(panelImage, Is.Not.Null);
-            Assert.That(panelImage.enabled, Is.True);
-            Assert.That(panelImage.raycastTarget, Is.False);
+            Assert.That(panel.GetComponent<RectMask2D>(), Is.Null);
+            Assert.That(panel.GetComponent<Image>(), Is.Not.Null);
+            Assert.That(panel.GetComponent<Outline>(), Is.Null);
             Assert.That(panel.anchorMin, Is.EqualTo(new Vector2(0.5f, 1f)));
             Assert.That(panel.anchorMax, Is.EqualTo(new Vector2(0.5f, 1f)));
             Assert.That(panel.pivot, Is.EqualTo(new Vector2(0.5f, 1f)));
-            Assert.That(panel.rect.height, Is.EqualTo(expandedHeight).Within(0.01f));
+            Assert.That(panel.anchoredPosition, Is.EqualTo(Vector2.zero));
+            Assert.That(panel.rect.height, Is.EqualTo(78f).Within(0.01f));
+            var borderThickness = GetPrivateStaticFloat("BorderThickness");
+            Assert.That(borderThickness, Is.EqualTo(panel.rect.height * 0.2f).Within(0.01f));
+            Assert.That(content.offsetMin.x, Is.EqualTo(borderThickness).Within(0.01f));
+            Assert.That(content.offsetMin.y, Is.EqualTo(borderThickness).Within(0.01f));
+            Assert.That(content.offsetMax.x, Is.EqualTo(-borderThickness).Within(0.01f));
+            Assert.That(content.offsetMax.y, Is.EqualTo(-borderThickness).Within(0.01f));
             Assert.That(content.gameObject.activeSelf, Is.True);
-            Assert.That(toggle, Is.Not.Null);
+            Assert.That(marker.anchoredPosition.y, Is.EqualTo(0f).Within(0.01f));
 
             Assert.That(FindChild(content, "Round Track"), Is.Not.Null);
+            Assert.That(FindChild(panel, "Round Border Top"), Is.Not.Null);
+            Assert.That(FindChild(panel, "Round Border Bottom"), Is.Not.Null);
+            Assert.That(FindChild(panel, "Round Border Left"), Is.Not.Null);
+            Assert.That(FindChild(panel, "Round Border Right"), Is.Not.Null);
             Assert.That(FindChild(content, "End Round Button"), Is.Null);
+            Assert.That(FindChild(panel, "Toggle Button"), Is.Null);
         }
 
         [Test]
-        public void Toggle_CollapsesAndExpandsRoundPanelVertically()
+        public void Toggle_DoesNotCollapseFixedRoundTrack()
         {
             controller = CreateController();
             var panel = GetPrivateField<RectTransform>("panelTransform");
             var content = GetPrivateField<RectTransform>("contentArea");
-            var toggleText = GetPrivateField<Text>("toggleButtonText");
-            var collapsedHeight = GetPrivateStaticFloat("CollapsedPanelHeight");
-            var expandedHeight = GetPrivateStaticFloat("ExpandedPanelHeight");
-            var panelImage = panel.GetComponent<Image>();
-            var panelOutline = panel.GetComponent<Outline>();
-
-            InvokePublic("Toggle");
-
-            Assert.That(GetPublicProperty<bool>("IsExpanded"), Is.False);
-            Assert.That(content.gameObject.activeSelf, Is.False, "Content should hide immediately while collapse animates.");
-            Assert.That(panelImage.enabled, Is.False);
-            Assert.That(panelImage.raycastTarget, Is.False);
-            Assert.That(panelOutline.enabled, Is.False);
-            Assert.That(GetPrivateField<float>("targetPanelHeight"), Is.EqualTo(collapsedHeight));
-
-            StepAnimationToTarget();
-
-            Assert.That(panel.rect.height, Is.EqualTo(collapsedHeight).Within(0.01f));
-            Assert.That(content.gameObject.activeSelf, Is.False);
-            Assert.That(panelImage.enabled, Is.False);
-            Assert.That(panelOutline.enabled, Is.False);
-            Assert.That(toggleText.text, Is.EqualTo(GetPrivateStaticString("CollapsedArrow")));
+            var initialHeight = panel.rect.height;
 
             InvokePublic("Toggle");
 
             Assert.That(GetPublicProperty<bool>("IsExpanded"), Is.True);
             Assert.That(content.gameObject.activeSelf, Is.True);
-            Assert.That(panelImage.enabled, Is.True);
-            Assert.That(panelOutline.enabled, Is.True);
+            Assert.That(panel.rect.height, Is.EqualTo(initialHeight).Within(0.01f));
 
             StepAnimationToTarget();
 
-            Assert.That(panel.rect.height, Is.EqualTo(expandedHeight).Within(0.01f));
+            Assert.That(panel.rect.height, Is.EqualTo(initialHeight).Within(0.01f));
             Assert.That(content.gameObject.activeSelf, Is.True);
-            Assert.That(toggleText.text, Is.EqualTo(GetPrivateStaticString("ExpandedArrow")));
+
+            InvokePublic("Toggle");
+
+            Assert.That(GetPublicProperty<bool>("IsExpanded"), Is.True);
+            Assert.That(content.gameObject.activeSelf, Is.True);
+
+            StepAnimationToTarget();
+
+            Assert.That(panel.rect.height, Is.EqualTo(initialHeight).Within(0.01f));
+            Assert.That(content.gameObject.activeSelf, Is.True);
         }
 
         private Component CreateController()

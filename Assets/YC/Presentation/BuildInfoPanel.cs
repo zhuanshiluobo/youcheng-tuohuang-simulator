@@ -12,11 +12,44 @@ namespace YC.Presentation
     public sealed class BuildInfoPanel : MonoBehaviour
     {
         private const float ExpandedWidth = 520f;
-        private const float CollapsedWidth = 65f;
+        private const float CollapsedWidth = 47f;
+        private const float ContentLeftInset = 65f;
+        private const float ExpandedHeight = 520f;
+        private const float CollapsedHeight = 90f;
+        private const float ToggleButtonWidth = 47f;
         private const float SectionTitleHeight = 26f;
         private const float ContentWidth = 432f;
         private const float RowSpacing = 6f;
+        private const int ScrollContentHorizontalPadding = 6;
+        private const float StatusRowHeight = 62f;
+        private const float TextBoxHorizontalPadding = 15f;
+        private const float TextBoxVerticalPadding = 4f;
+        private const float ScrollSensitivity = 15f;
+        private const float CityBoardSourceWidth = 2059f;
+        private const float CityBoardSourceHeight = 3801f;
+        private const float CityBoardSlotWidthRatio = 0.292f;
+        private const float CityBoardSlotHeightRatio = 0.205f;
         private const string CityBoardImageRelativePath = "游城拓荒/素材/城市面板.png";
+        private static readonly Color UsedCityBoardSlotBackground = new Color(0.42f, 0.12f, 0.055f, 0.98f);
+        private static readonly Color UsedCityBoardSlotOutline = new Color(1f, 0.55f, 0.16f, 0.95f);
+        private static readonly Color UsedCityBoardSlotBadgeBackground = new Color(0.62f, 0.08f, 0.05f, 0.96f);
+        private static readonly Color OccupiedCityBoardSlotBackground = new Color(0.18f, 0.105f, 0.055f, 0.82f);
+        private static readonly Color InvisibleCityBoardSlotColor = new Color(1f, 1f, 1f, 0f);
+        private static readonly Vector2[] CityBoardSlotCenters =
+        {
+            new Vector2(0.176f, 0.162f),
+            new Vector2(0.502f, 0.162f),
+            new Vector2(0.827f, 0.162f),
+            new Vector2(0.176f, 0.381f),
+            new Vector2(0.502f, 0.381f),
+            new Vector2(0.827f, 0.381f),
+            new Vector2(0.176f, 0.600f),
+            new Vector2(0.502f, 0.600f),
+            new Vector2(0.827f, 0.600f),
+            new Vector2(0.176f, 0.819f),
+            new Vector2(0.502f, 0.819f),
+            new Vector2(0.827f, 0.819f)
+        };
 
         private readonly List<RectTransform> dynamicItems = new List<RectTransform>();
         private RectTransform panelTransform;
@@ -74,6 +107,7 @@ namespace YC.Presentation
         {
             isExpanded = expand;
             panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, expand ? ExpandedWidth : CollapsedWidth);
+            panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, expand ? ExpandedHeight : CollapsedHeight);
             contentArea.gameObject.SetActive(expand);
             toggleButtonText.text = expand ? "▶" : "◀";
             RebuildLayout();
@@ -81,20 +115,17 @@ namespace YC.Presentation
 
         private void BuildPanel(Transform parent)
         {
-            var panelObject = new GameObject("Build Sidebar Panel", typeof(RectTransform), typeof(Image), typeof(Outline));
+            var panelObject = new GameObject("Build Sidebar Panel", typeof(RectTransform), typeof(Image));
             panelObject.transform.SetParent(parent, false);
 
             panelTransform = panelObject.GetComponent<RectTransform>();
-            panelTransform.anchorMin = new Vector2(1f, 0f);
-            panelTransform.anchorMax = new Vector2(1f, 1f);
+            panelTransform.anchorMin = new Vector2(1f, 0.5f);
+            panelTransform.anchorMax = new Vector2(1f, 0.5f);
             panelTransform.pivot = new Vector2(1f, 0.5f);
-            panelTransform.sizeDelta = new Vector2(CollapsedWidth, 0f);
+            panelTransform.sizeDelta = new Vector2(CollapsedWidth, CollapsedHeight);
             panelTransform.anchoredPosition = Vector2.zero;
 
             panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
-            var outline = panelObject.GetComponent<Outline>();
-            outline.effectColor = UiTheme.GoldOutline;
-            outline.effectDistance = new Vector2(-2f, 0f);
 
             BuildToggleButton(panelTransform);
             BuildContentArea(panelTransform);
@@ -109,7 +140,7 @@ namespace YC.Presentation
             buttonTransform.anchorMin = new Vector2(0f, 0.5f);
             buttonTransform.anchorMax = new Vector2(0f, 0.5f);
             buttonTransform.pivot = new Vector2(0f, 0.5f);
-            buttonTransform.sizeDelta = new Vector2(47f, 90f);
+            buttonTransform.sizeDelta = new Vector2(ToggleButtonWidth, CollapsedHeight);
             buttonTransform.anchoredPosition = Vector2.zero;
 
             buttonObject.GetComponent<Image>().color = UiTheme.PanelBackgroundLighter;
@@ -138,7 +169,7 @@ namespace YC.Presentation
             contentArea.SetParent(parent, false);
             contentArea.anchorMin = Vector2.zero;
             contentArea.anchorMax = Vector2.one;
-            contentArea.offsetMin = new Vector2(54f, 11f);
+            contentArea.offsetMin = new Vector2(ContentLeftInset, 11f);
             contentArea.offsetMax = new Vector2(-11f, -11f);
 
             var titleObject = new GameObject("Header", typeof(RectTransform), typeof(Text), typeof(Outline));
@@ -185,11 +216,11 @@ namespace YC.Presentation
             scrollContent.anchoredPosition = Vector2.zero;
 
             var layout = scrollContent.GetComponent<VerticalLayoutGroup>();
-            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childAlignment = TextAnchor.UpperLeft;
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
             layout.spacing = RowSpacing;
-            layout.padding = new RectOffset(6, 6, 6, 6);
+            layout.padding = new RectOffset(ScrollContentHorizontalPadding, 6, 6, 6);
 
             scrollContent.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
@@ -199,6 +230,7 @@ namespace YC.Presentation
             scrollRect.horizontal = false;
             scrollRect.vertical = true;
             scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = ScrollSensitivity;
         }
 
         private void RebuildContent()
@@ -218,7 +250,14 @@ namespace YC.Presentation
             {
                 if (dynamicItems[i] != null)
                 {
-                    Destroy(dynamicItems[i].gameObject);
+                    if (UnityEngine.Application.isPlaying)
+                    {
+                        Destroy(dynamicItems[i].gameObject);
+                    }
+                    else
+                    {
+                        DestroyImmediate(dynamicItems[i].gameObject);
+                    }
                 }
             }
 
@@ -227,39 +266,51 @@ namespace YC.Presentation
 
         private void AddStatusRow()
         {
-            statusText = AddTextBox("当前选择", "点击设施、槽位或城市样式方框进行测试。", 50f, FontStyle.Bold);
+            statusText = AddTextBox(
+                "当前选择",
+                "当前选择：点击设施、槽位或城市样式方框进行测试。",
+                StatusRowHeight,
+                FontStyle.Bold);
         }
 
         private void AddCityBoardSection()
         {
             AddSectionTitle("城市面板");
-            var board = AddPanelItem("City Board", 396f);
             var boardImage = TryLoadCityBoardTexture();
+            var boardSize = CalculateCityBoardDisplaySize(boardImage);
+            var board = AddPanelItem("City Board", boardSize.y);
+            RectTransform slotRoot = board;
             if (boardImage != null)
             {
                 var imageObject = new GameObject("城市面板底图", typeof(RectTransform), typeof(RawImage));
                 imageObject.transform.SetParent(board, false);
                 var rect = imageObject.GetComponent<RectTransform>();
-                rect.anchorMin = Vector2.zero;
-                rect.anchorMax = Vector2.one;
-                rect.offsetMin = Vector2.zero;
-                rect.offsetMax = Vector2.zero;
-                imageObject.GetComponent<RawImage>().texture = boardImage;
-                imageObject.GetComponent<RawImage>().color = new Color(1f, 1f, 1f, 0.58f);
+                rect.anchorMin = new Vector2(0.5f, 0.5f);
+                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.sizeDelta = boardSize;
+                rect.anchoredPosition = Vector2.zero;
+
+                var rawImage = imageObject.GetComponent<RawImage>();
+                rawImage.texture = boardImage;
+                rawImage.color = Color.white;
+                rawImage.raycastTarget = false;
+                slotRoot = rect;
             }
 
             for (var i = 0; i < BuildFacilityService.CityBoardSlotCount; i++)
             {
                 var slotIndex = i;
-                var button = CreateButton(board, "槽位 " + (i + 1), GetCityBoardSlotLabel(i));
+                var isUsedForDeclaration = IsCityBoardSlotUsedForDeclaration(slotIndex);
+                var label = GetCityBoardSlotLabel(i);
+                var isEmpty = IsCityBoardSlotEmpty(slotIndex);
+                var button = CreateCityBoardSlotButton(slotRoot, slotIndex, label, isEmpty, isUsedForDeclaration, boardSize);
                 var rect = button.GetComponent<RectTransform>();
-                var row = i / BuildFacilityService.CityBoardSlotCountPerRow;
-                var col = i % BuildFacilityService.CityBoardSlotCountPerRow;
-                rect.anchorMin = new Vector2(0f, 1f);
-                rect.anchorMax = new Vector2(0f, 1f);
-                rect.pivot = new Vector2(0f, 1f);
-                rect.sizeDelta = new Vector2(118f, 82f);
-                rect.anchoredPosition = new Vector2(18f + col * 126f, -20f - row * 88f);
+                if (isUsedForDeclaration)
+                {
+                    AddUsedCityBoardSlotBadge(slotRoot, slotIndex, rect.anchoredPosition, boardSize);
+                }
+
                 button.onClick.AddListener(() =>
                 {
                     SetStatus("已选择城市面板槽位：" + (slotIndex + 1));
@@ -365,6 +416,135 @@ namespace YC.Presentation
             return "空位 " + (slotIndex + 1);
         }
 
+        private bool IsCityBoardSlotUsedForDeclaration(int slotIndex)
+        {
+            var player = currentState == null ? null : currentState.FindPlayer(currentPlayerId);
+            if (player == null || player.DeclaredCityStyles == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < player.DeclaredCityStyles.Count; i++)
+            {
+                var declaration = player.DeclaredCityStyles[i];
+                if (declaration == null || declaration.UsedCityBoardSlotIndexes == null)
+                {
+                    continue;
+                }
+
+                if (declaration.UsedCityBoardSlotIndexes.Contains(slotIndex))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsCityBoardSlotEmpty(int slotIndex)
+        {
+            if (currentState == null)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < currentState.Map.Facilities.Count; i++)
+            {
+                var placement = currentState.Map.Facilities[i];
+                if (placement.PlayerId == currentPlayerId && placement.CityBoardSlotIndex == slotIndex)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static Button CreateCityBoardSlotButton(
+            RectTransform parent,
+            int slotIndex,
+            string label,
+            bool isEmpty,
+            bool isUsedForDeclaration,
+            Vector2 boardSize)
+        {
+            var buttonObject = new GameObject("槽位 " + (slotIndex + 1), typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
+            buttonObject.transform.SetParent(parent, false);
+
+            var rect = buttonObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = new Vector2(
+                boardSize.x * CityBoardSlotWidthRatio,
+                boardSize.y * CityBoardSlotHeightRatio);
+            rect.anchoredPosition = GetCityBoardSlotAnchoredPosition(slotIndex, boardSize);
+
+            var image = buttonObject.GetComponent<Image>();
+            image.color = isEmpty
+                ? InvisibleCityBoardSlotColor
+                : isUsedForDeclaration ? UsedCityBoardSlotBackground : OccupiedCityBoardSlotBackground;
+
+            var outline = buttonObject.GetComponent<Outline>();
+            outline.effectColor = isEmpty
+                ? InvisibleCityBoardSlotColor
+                : isUsedForDeclaration ? UsedCityBoardSlotOutline : UiTheme.GoldOutlineThin;
+            outline.effectDistance = isUsedForDeclaration ? new Vector2(2f, -2f) : new Vector2(1f, -1f);
+
+            rect.localEulerAngles = isUsedForDeclaration
+                ? new Vector3(0f, 0f, 180f)
+                : Vector3.zero;
+
+            var text = CreateText(rect, isEmpty ? string.Empty : label, 14, FontStyle.Bold, UiTheme.ValueText, TextAnchor.MiddleCenter);
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = 10;
+            text.resizeTextMaxSize = 14;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.raycastTarget = false;
+            text.gameObject.SetActive(!isEmpty);
+
+            return buttonObject.GetComponent<Button>();
+        }
+
+        private static Vector2 GetCityBoardSlotAnchoredPosition(int slotIndex, Vector2 boardSize)
+        {
+            var center = CityBoardSlotCenters[Mathf.Clamp(slotIndex, 0, CityBoardSlotCenters.Length - 1)];
+            return new Vector2(
+                (center.x - 0.5f) * boardSize.x,
+                (0.5f - center.y) * boardSize.y);
+        }
+
+        private static Vector2 CalculateCityBoardDisplaySize(Texture2D texture)
+        {
+            var sourceWidth = texture == null ? CityBoardSourceWidth : texture.width;
+            var sourceHeight = texture == null ? CityBoardSourceHeight : texture.height;
+            var height = ContentWidth * sourceHeight / sourceWidth;
+            return new Vector2(ContentWidth, height);
+        }
+
+        private static void AddUsedCityBoardSlotBadge(RectTransform parent, int slotIndex, Vector2 slotCenterPosition, Vector2 boardSize)
+        {
+            var badgeObject = new GameObject("槽位 " + (slotIndex + 1) + " 已使用标记", typeof(RectTransform), typeof(Image), typeof(Outline));
+            badgeObject.transform.SetParent(parent, false);
+            var rect = badgeObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.sizeDelta = new Vector2(boardSize.x * 0.125f, boardSize.y * 0.022f);
+            rect.anchoredPosition = slotCenterPosition + new Vector2(boardSize.x * 0.136f, boardSize.y * 0.082f);
+
+            var image = badgeObject.GetComponent<Image>();
+            image.color = UsedCityBoardSlotBadgeBackground;
+            image.raycastTarget = false;
+
+            var outline = badgeObject.GetComponent<Outline>();
+            outline.effectColor = UsedCityBoardSlotOutline;
+            outline.effectDistance = new Vector2(1f, -1f);
+
+            var text = CreateText(rect, "已使用", 12, FontStyle.Bold, UiTheme.ValueText, TextAnchor.MiddleCenter);
+            text.raycastTarget = false;
+        }
+
         private int GetFacilityDeckCount()
         {
             return currentState == null || currentState.Decks == null ? 0 : currentState.Decks.FacilityDeck.Count;
@@ -393,8 +573,8 @@ namespace YC.Presentation
             item.GetComponent<Image>().color = UiTheme.SectionTitleBackground;
             var text = CreateText(item, title, 15, FontStyle.Bold, UiTheme.GoldText, TextAnchor.MiddleLeft);
             var rect = text.GetComponent<RectTransform>();
-            rect.offsetMin = new Vector2(8f, 0f);
-            rect.offsetMax = new Vector2(-8f, 0f);
+            rect.offsetMin = new Vector2(TextBoxHorizontalPadding, 0f);
+            rect.offsetMax = new Vector2(-TextBoxHorizontalPadding, 0f);
         }
 
         private Text AddTextBox(string name, string value, float height, FontStyle style)
@@ -402,8 +582,9 @@ namespace YC.Presentation
             var item = AddPanelItem(name, height);
             var text = CreateText(item, value, 14, style, UiTheme.ValueText, TextAnchor.MiddleLeft);
             var rect = text.GetComponent<RectTransform>();
-            rect.offsetMin = new Vector2(8f, 0f);
-            rect.offsetMax = new Vector2(-8f, 0f);
+            rect.offsetMin = new Vector2(TextBoxHorizontalPadding, TextBoxVerticalPadding);
+            rect.offsetMax = new Vector2(-TextBoxHorizontalPadding, -TextBoxVerticalPadding);
+            text.verticalOverflow = VerticalWrapMode.Truncate;
             return text;
         }
 
@@ -457,7 +638,7 @@ namespace YC.Presentation
             text.resizeTextForBestFit = true;
             text.resizeTextMinSize = 10;
             text.resizeTextMaxSize = 13;
-            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
             return buttonObject.GetComponent<Button>();
         }
 
@@ -485,9 +666,9 @@ namespace YC.Presentation
             text.color = color;
             text.alignment = alignment;
             text.supportRichText = false;
-            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
             text.verticalOverflow = VerticalWrapMode.Overflow;
-            text.maskable = false;
+            text.maskable = true;
 
             var outline = textObject.GetComponent<Outline>();
             outline.effectColor = UiTheme.DarkShadowLight;

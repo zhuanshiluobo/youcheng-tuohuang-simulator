@@ -69,6 +69,7 @@ namespace YC.Application.DevTools
             var resourceTokenService = new ResourceTokenService();
             var eventDeckService = new EventDeckService(eventDeckSeed);
             var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Host, 1, seats, map.MapId, eventDeckSeed);
+            EnsureAutoplayAffordableFacilitySupply(state);
 
             eventDeckService.InitializeDecks(
                 state.Decks,
@@ -102,6 +103,31 @@ namespace YC.Application.DevTools
                 new FinalScoringService(mapQuery)));
             session.RegisterHandler(new CollectResourceCommandHandler(new ResourceCollectionService(mapQuery, resourceTokenService)));
             return session;
+        }
+
+        private static void EnsureAutoplayAffordableFacilitySupply(GameState state)
+        {
+            const string autoplayFacilityId = FacilityCardDatabase.SimpleEngineeringCamp;
+            if (state == null || state.Decks.FacilitySupply.Contains(autoplayFacilityId))
+            {
+                return;
+            }
+
+            var deckIndex = state.Decks.FacilityDeck.IndexOf(autoplayFacilityId);
+            if (deckIndex < 0)
+            {
+                return;
+            }
+
+            state.Decks.FacilityDeck.RemoveAt(deckIndex);
+            if (state.Decks.FacilitySupply.Count >= 6)
+            {
+                var displacedFacilityId = state.Decks.FacilitySupply[state.Decks.FacilitySupply.Count - 1];
+                state.Decks.FacilitySupply.RemoveAt(state.Decks.FacilitySupply.Count - 1);
+                state.Decks.FacilityDeck.Insert(0, displacedFacilityId);
+            }
+
+            state.Decks.FacilitySupply.Insert(0, autoplayFacilityId);
         }
 
         private static bool SubmitInitialPlacements(
