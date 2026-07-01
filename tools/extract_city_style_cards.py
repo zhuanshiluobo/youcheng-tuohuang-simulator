@@ -1,0 +1,195 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from PIL import Image
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE_DIR = ROOT / "游城拓荒" / "素材"
+OUTPUT_ROOT = ROOT / "docs" / "城市样式牌输出"
+CARD_DIR = OUTPUT_ROOT / "卡片截图"
+
+CARD_WIDTH = 930
+CARD_HEIGHT = 600
+
+
+CITY_STYLE_CARDS = [
+    {
+        "id": "city_style_001",
+        "sourceImage": "城市样式牌1.jpg",
+        "annotatedSourceImage": "城市样式牌1待拆.jpg",
+        "row": 1,
+        "column": 1,
+        "name": "军工化区域",
+        "score": "2",
+        "description": "拓荒者不是军人，但必要之时他们依旧会为了利益而拿起武器。",
+        "condition": "同一横排相邻布局：蓝/黄设施 + 红色设施。",
+        "conditionLayout": [["蓝/黄", "红"]],
+        "specialActionEffect": "放置 X 个影响力，至多 3 个。X 为此样式上你的玩家标记的数量。",
+        "declarationMode": "可重复宣告",
+    },
+    {
+        "id": "city_style_002",
+        "sourceImage": "城市样式牌1.jpg",
+        "annotatedSourceImage": "城市样式牌1待拆.jpg",
+        "row": 1,
+        "column": 2,
+        "name": "动员配套体系",
+        "score": "3",
+        "description": "一杯荒地龙舌兰下肚，这里便都是可以一起赴汤蹈火的兄弟。",
+        "condition": "同一横排相邻布局：黄色设施 + 黄色设施 + 红色设施。",
+        "conditionLayout": [["黄", "黄", "红"]],
+        "specialActionEffect": "执行牌面企业等级图标效果：红色上升企业图标与绿色下降企业图标。",
+        "specialActionRaw": "红色上升企业图标 + 绿色下降企业图标。",
+        "declarationMode": "可重复宣告",
+    },
+    {
+        "id": "city_style_003",
+        "sourceImage": "城市样式牌1.jpg",
+        "annotatedSourceImage": "城市样式牌1待拆.jpg",
+        "row": 1,
+        "column": 3,
+        "name": "复合动力系统",
+        "score": "3",
+        "description": "新的巡航周期已经开始！小心手里的热咖啡。",
+        "condition": "2x2 局部布局：上方黄色；下方红色 + 黄色。",
+        "conditionLayout": [["黄"], ["红", "黄"]],
+        "specialActionEffect": "支付 1 源石碎片和合计 3 个源岩/异铁，执行 1 次免费移动城市，并在通过的航道上放置 1 影响力。",
+        "declarationMode": "可重复宣告",
+    },
+    {
+        "id": "city_style_004",
+        "sourceImage": "城市样式牌1.jpg",
+        "annotatedSourceImage": "城市样式牌1待拆.jpg",
+        "row": 3,
+        "column": 3,
+        "name": "物资中继站",
+        "score": "2",
+        "description": "我们和聚居区居民的交易一向公平。",
+        "condition": "同一横排相邻布局：蓝/红设施 + 黄色设施。",
+        "conditionLayout": [["蓝/红", "黄"]],
+        "specialActionEffect": "无特殊行动；宣告时获得 1 源岩、1 异铁、1 源石碎片。",
+        "declarationMode": "仅可宣告一次",
+        "notes": "牌面右侧为“已宣告”，没有“未使用/已使用”特殊行动区。",
+    },
+    {
+        "id": "city_style_005",
+        "sourceImage": "城市样式牌2.jpg",
+        "annotatedSourceImage": "城市样式牌2待拆.jpg",
+        "row": 1,
+        "column": 1,
+        "name": "源石工业中枢",
+        "score": "6",
+        "scoreTrack": "+2 / +1 / 0",
+        "description": "在源石工业化带来的强劲效率面前，代价显得如此微不足道。",
+        "condition": "3 行阶梯布局：上方蓝色；中间红色 + 蓝色；下方黄色 + 黄色 + 红色。",
+        "conditionLayout": [["蓝"], ["红", "蓝"], ["黄", "黄", "红"]],
+        "specialActionEffect": "使用此行动的轮中，不能使用角色牌。支付 6 金券；本轮中你可以额外执行 2 次主要行动，2 次主要行动之间可以使用快速行动。",
+        "declarationMode": "可宣告两次",
+    },
+    {
+        "id": "city_style_006",
+        "sourceImage": "城市样式牌2.jpg",
+        "annotatedSourceImage": "城市样式牌2待拆.jpg",
+        "row": 1,
+        "column": 2,
+        "name": "高效移动管理体系",
+        "score": "7",
+        "scoreTrack": "+2 / +1 / 0",
+        "description": "通过迁徙来躲避天灾的生活方式被烙印在泰拉人的血脉之中，至今犹存。",
+        "condition": "3 行阶梯布局：上方黄色；中间红色 + 黄色；下方蓝色 + 蓝色 + 红色。",
+        "conditionLayout": [["黄"], ["红", "黄"], ["蓝", "蓝", "红"]],
+        "specialActionEffect": "使用此行动的轮中，不能使用角色牌。支付 3 源石碎片；连续执行 2 次免费移动城市。",
+        "declarationMode": "可宣告两次",
+    },
+]
+
+
+def crop_card(source: Image.Image, row: int, column: int) -> Image.Image:
+    left = (column - 1) * CARD_WIDTH
+    top = (row - 1) * CARD_HEIGHT
+    return source.crop((left, top, left + CARD_WIDTH, top + CARD_HEIGHT))
+
+
+def write_markdown(manifest: dict, path: Path) -> None:
+    lines = [
+        "# 城市样式牌拆分清单",
+        "",
+        "- 只记录原图中红色圈出的城市样式牌。",
+        "- `蓝/黄`、`蓝/红` 表示该条件格可使用任一标示颜色的设施。",
+        "",
+        "| 序号 | 分数 | 名字 | 描述 | 条件 | 特殊行动效果 | 宣告限制 | 截图 |",
+        "| --- | ---: | --- | --- | --- | --- | --- | --- |",
+    ]
+
+    for card in manifest["cards"]:
+        score = card["score"]
+        if card.get("scoreTrack"):
+            score = f"{score}（轨道 {card['scoreTrack']}）"
+        lines.append(
+            "| {id} | {score} | {name} | {description} | {condition} | {effect} | {mode} | `{image}` |".format(
+                id=card["id"],
+                score=score,
+                name=card["name"],
+                description=card["description"].replace("|", "/"),
+                condition=card["condition"].replace("|", "/"),
+                effect=card["specialActionEffect"].replace("|", "/"),
+                mode=card["declarationMode"],
+                image=card["image"],
+            )
+        )
+
+    lines.extend(["", "## 备注", ""])
+    for note in manifest["notes"]:
+        lines.append(f"- {note}")
+
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def main() -> None:
+    CARD_DIR.mkdir(parents=True, exist_ok=True)
+
+    source_cache: dict[str, Image.Image] = {}
+    cards = []
+    for card in CITY_STYLE_CARDS:
+        source_name = card["sourceImage"]
+        if source_name not in source_cache:
+            image = Image.open(SOURCE_DIR / source_name)
+            if image.size[0] % CARD_WIDTH != 0 or image.size[1] % CARD_HEIGHT != 0:
+                raise ValueError(f"Unexpected source image size for {source_name}: {image.size}")
+            source_cache[source_name] = image
+
+        output_path = CARD_DIR / f"{card['id']}_{card['name']}.jpg"
+        crop_card(source_cache[source_name], card["row"], card["column"]).save(output_path, quality=95)
+
+        entry = dict(card)
+        entry["image"] = str(output_path.relative_to(ROOT)).replace("\\", "/")
+        cards.append(entry)
+
+    manifest = {
+        "sourceDirectory": str(SOURCE_DIR.relative_to(ROOT)).replace("\\", "/"),
+        "outputDirectory": str(OUTPUT_ROOT.relative_to(ROOT)).replace("\\", "/"),
+        "grid": {"cardWidth": CARD_WIDTH, "cardHeight": CARD_HEIGHT},
+        "counts": {"cityStyleCards": len(cards)},
+        "cards": cards,
+        "notes": [
+            "红圈范围来自“城市样式牌1待拆.jpg”和“城市样式牌2待拆.jpg”，截图使用无红圈的“城市样式牌1.jpg”和“城市样式牌2.jpg”。",
+            "II 级牌右侧有 +2/+1/0 轨道，分数字段同时保留标题分数与轨道标记。",
+            "纯图标效果已按当前项目术语转写；若后续有正式规则术语，可基于 specialActionRaw 或截图继续校准。",
+        ],
+    }
+
+    (OUTPUT_ROOT / "city_style_cards_manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    write_markdown(manifest, OUTPUT_ROOT / "city_style_cards_manifest.md")
+
+    print(f"城市样式牌: {len(cards)}")
+    print(f"输出目录: {OUTPUT_ROOT}")
+
+
+if __name__ == "__main__":
+    main()

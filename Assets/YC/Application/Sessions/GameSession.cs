@@ -15,6 +15,7 @@ namespace YC.Application.Sessions
         public GameSession(GameState initialState)
         {
             State = initialState ?? throw new ArgumentNullException(nameof(initialState));
+            ClearInvalidPendingChoice();
         }
 
         public void RegisterHandler(IGameCommandHandler handler)
@@ -30,6 +31,20 @@ namespace YC.Application.Sessions
         public void ReplaceState(GameState state)
         {
             State = state ?? throw new ArgumentNullException(nameof(state));
+            ClearInvalidPendingChoice();
+        }
+
+        private void ClearInvalidPendingChoice()
+        {
+            if (State.PendingChoice != null && !State.PendingChoice.IsValid())
+            {
+                State.PendingChoice = null;
+            }
+
+            if (State.PendingCardSession != null && !State.PendingCardSession.IsValid())
+            {
+                State.PendingCardSession = null;
+            }
         }
 
         public CommandResult Submit(GameCommand command)
@@ -39,6 +54,14 @@ namespace YC.Application.Sessions
                 throw new ArgumentNullException(nameof(command));
             }
 
+            if (State.HasPendingChoice() && !IsPendingChoiceResolutionCommand(command))
+            {
+                return CommandResult.Invalid(ValidationResult.Failure(
+                    Domain.Rules.CommandErrorCode.PendingChoiceRequired,
+                    "请先处理待选择项，再提交其他行动。"));
+            }
+
+            CommandResult deferredPendingChoiceResult = null;
             for (var i = 0; i < commandHandlers.Count; i++)
             {
                 if (!commandHandlers[i].CanHandle(command))
@@ -47,12 +70,37 @@ namespace YC.Application.Sessions
                 }
 
                 var result = commandHandlers[i].Handle(State, command);
+                if (command.Kind == Domain.Rules.GameCommandKind.ResolvePendingChoice &&
+                    !result.Succeeded &&
+                    result.Validation != null &&
+                    result.Validation.ErrorCode == Domain.Rules.CommandErrorCode.PendingChoiceRequired)
+                {
+                    if (deferredPendingChoiceResult == null)
+                    {
+                        deferredPendingChoiceResult = result;
+                    }
+
+                    continue;
+                }
+
                 AppendLog(command, result);
                 return result;
             }
 
             var invalid = ValidationResult.Failure(Domain.Rules.CommandErrorCode.UnknownCommand, "没有为该命令注册处理器。");
+            if (deferredPendingChoiceResult != null)
+            {
+                return deferredPendingChoiceResult;
+            }
+
             return CommandResult.Invalid(invalid);
+        }
+
+        private static bool IsPendingChoiceResolutionCommand(GameCommand command)
+        {
+            return command != null &&
+                   (command.Kind == Domain.Rules.GameCommandKind.ResolvePendingChoice ||
+                    command.Kind == Domain.Rules.GameCommandKind.ResolveEntranceEvent);
         }
 
         private void AppendLog(GameCommand command, CommandResult result)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
+using YC.Domain.CardFlows;
 using YC.Domain.Commands;
 using YC.Domain.Events;
 using YC.Domain.Maps;
@@ -12,12 +13,13 @@ namespace YC.Application.Setup
 {
     public sealed class SetupCommandHandler : IGameCommandHandler
     {
-        private const string EntranceEventChoiceType = "entrance_event";
+        private const string EntranceEventChoiceType = CardFlowChoiceTypes.EntranceEvent;
 
         private readonly IMapQueryService mapQueryService;
         private readonly EventDeckService eventDeckService;
         private readonly ResourceTokenService resourceTokenService;
         private readonly TurnOrderService turnOrderService;
+        private readonly CardFlowService cardFlowService;
 
         public SetupCommandHandler(IMapQueryService mapQueryService)
             : this(mapQueryService, new EventDeckService(), new ResourceTokenService(), new TurnOrderService())
@@ -34,6 +36,7 @@ namespace YC.Application.Setup
             this.eventDeckService = eventDeckService ?? throw new ArgumentNullException(nameof(eventDeckService));
             this.resourceTokenService = resourceTokenService ?? throw new ArgumentNullException(nameof(resourceTokenService));
             this.turnOrderService = turnOrderService ?? throw new ArgumentNullException(nameof(turnOrderService));
+            cardFlowService = new CardFlowService();
         }
 
         public bool CanHandle(GameCommand command)
@@ -191,7 +194,7 @@ namespace YC.Application.Setup
                 return Invalid(CommandErrorCode.InvalidPlayer, "处理入场事件前，玩家必须存在。");
             }
 
-            var pendingChoice = state.PendingChoice;
+            var pendingChoice = CardFlowStateAdapter.GetPendingChoiceView(state);
             if (pendingChoice == null || pendingChoice.ChoiceType != EntranceEventChoiceType)
             {
                 return Invalid(CommandErrorCode.PendingChoiceRequired, "当前没有待处理的入场事件。");
@@ -215,13 +218,26 @@ namespace YC.Application.Setup
                 return Invalid(CommandErrorCode.InvalidTarget, "待处理入场事件牌未知。");
             }
 
-            if (choiceIndex >= card.ChoiceRewards.Count || !pendingChoice.OptionIds.Contains(selectedOptionId))
+            if (!pendingChoice.OptionIds.Contains(selectedOptionId))
             {
                 return Invalid(CommandErrorCode.InvalidTarget, "入场事件选项不可用。");
             }
 
-            player.Resources.Add(card.ChoiceRewards[choiceIndex]);
-            state.PendingChoice = null;
+            var resolveResult = cardFlowService.ResolvePendingChoice(
+                state,
+                new CardFlowResolveRequest
+                {
+                    PlayerId = command.PlayerId,
+                    SessionId = state.PendingCardSession == null ? string.Empty : state.PendingCardSession.SessionId,
+                    OptionIndex = choiceIndex
+                },
+                new EntranceEventCardScenario(resourceTokenService));
+            if (!resolveResult.Succeeded)
+            {
+                return CommandResult.Invalid(resolveResult.Validation);
+            }
+
+            card = resolveResult.Card;
             CompleteEntranceStep(state, command.PlayerId);
 
             var message = string.Format("Player {0} resolved entrance event {1} with option {2}.", command.PlayerId, card.Name, selectedOptionId);
@@ -249,41 +265,21 @@ namespace YC.Application.Setup
                 return false;
             }
 
-            var eventColor = StaticMapDefinitions.GetEventColor(command.TargetId);
-            if (eventDeckService.RemainingCount(state.Decks, eventColor) <= 0)
+            var startResult = cardFlowService.StartPendingChoice(
+                state,
+                new CardFlowStartRequest
+                {
+                    PlayerId = command.PlayerId,
+                    TargetId = command.TargetId,
+                    SourceCommandId = command.CommandId
+                },
+                new EntranceEventCardScenario(resourceTokenService));
+            if (!startResult.Succeeded)
             {
                 return false;
             }
 
-            var cardId = eventDeckService.Draw(state.Decks, eventColor);
-            var card = EventCardDatabase.Get(cardId);
-            if (card == null || card.ChoiceRewards.Count == 0)
-            {
-                return false;
-            }
-
-            resourceTokenService.PlaceToken(
-                state.Map,
-                command.TargetId,
-                card.RepresentativeResourceType,
-                card.RepresentativeResourceAmount);
-
-            var optionIds = new List<string>();
-            for (var i = 0; i < card.ChoiceRewards.Count; i++)
-            {
-                optionIds.Add(i.ToString());
-            }
-
-            state.PendingChoice = new PendingChoiceState
-            {
-                ChoiceId = "entrance_event:" + card.CardId,
-                PlayerId = command.PlayerId,
-                ChoiceType = EntranceEventChoiceType,
-                CardId = card.CardId,
-                TargetId = command.TargetId,
-                OptionIds = optionIds,
-                SourceCommandId = command.CommandId
-            };
+            var card = startResult.Card;
 
             events.Add(new GameEvent
             {

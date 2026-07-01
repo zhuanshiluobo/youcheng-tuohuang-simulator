@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
+using YC.Domain.CardFlows;
 using YC.Domain.Commands;
 using YC.Domain.Events;
 using YC.Domain.Exploration;
@@ -17,6 +18,8 @@ namespace YC.Application.Gameplay
         public const string PathLocationIdsParameter = "pathLocationIds";
         public const string EventOptionIdParameter = "eventOptionId";
         public const string InfluenceSlotIdParameter = "influenceSlotId";
+        public const string EventInfluenceSlotIdParameter = "eventInfluenceSlotId";
+        public const string EventInfluenceSlotIdsParameter = "eventInfluenceSlotIds";
         public const string PaymentRecipientsParameter = "paymentRecipients";
         public const string ExploreEventChoiceType = "explore_event";
 
@@ -69,7 +72,14 @@ namespace YC.Application.Gameplay
             }
 
             var influenceSlotId = GetParameter(command, InfluenceSlotIdParameter);
-            var paymentRecipients = ResolvePaymentRecipients(command);
+            var eventInfluenceSlotIds = ResolveEventInfluenceSlotIds(command);
+            Dictionary<string, int> paymentRecipients;
+            var paymentRecipientsValidation = ResolvePaymentRecipients(command, out paymentRecipients);
+            if (!paymentRecipientsValidation.IsValid)
+            {
+                return CommandResult.Invalid(paymentRecipientsValidation);
+            }
+
             var result = explorationService.Explore(
                 state,
                 command.PlayerId,
@@ -77,7 +87,8 @@ namespace YC.Application.Gameplay
                 path,
                 selectedOptionIndex,
                 influenceSlotId,
-                paymentRecipients);
+                paymentRecipients,
+                eventInfluenceSlotIds);
             if (!result.Succeeded)
             {
                 return CommandResult.Invalid(result.Validation);
@@ -138,37 +149,27 @@ namespace YC.Application.Gameplay
         private CommandResult HandleBeginExploreEvent(GameState state, GameCommand command, MapPath path)
         {
             var influenceSlotId = GetParameter(command, InfluenceSlotIdParameter);
-            var paymentRecipients = ResolvePaymentRecipients(command);
+            Dictionary<string, int> paymentRecipients;
+            var paymentRecipientsValidation = ResolvePaymentRecipients(command, out paymentRecipients);
+            if (!paymentRecipientsValidation.IsValid)
+            {
+                return CommandResult.Invalid(paymentRecipientsValidation);
+            }
+
             var result = explorationService.BeginExploreEvent(
                 state,
                 command.PlayerId,
                 command.TargetId,
                 path,
                 influenceSlotId,
-                paymentRecipients);
+                paymentRecipients,
+                command.CommandId);
             if (!result.Succeeded)
             {
                 return CommandResult.Invalid(result.Validation);
             }
 
             var card = EventCardDatabase.Get(result.EventCardId);
-            var optionIds = new List<string>();
-            for (var i = 0; i < card.ChoiceRewards.Count; i++)
-            {
-                optionIds.Add(i.ToString());
-            }
-
-            state.PendingChoice = new PendingChoiceState
-            {
-                ChoiceId = ExploreEventChoiceType + ":" + result.EventCardId,
-                PlayerId = command.PlayerId,
-                ChoiceType = ExploreEventChoiceType,
-                CardId = result.EventCardId,
-                TargetId = result.TargetLocationId,
-                OptionIds = optionIds,
-                SourceCommandId = command.CommandId
-            };
-
             var message = "Player " + command.PlayerId + " began exploring " + result.TargetLocationId + ".";
             return CommandResult.SuccessResult(new List<GameEvent>
             {
@@ -211,7 +212,7 @@ namespace YC.Application.Gameplay
 
         private CommandResult HandleResolveExploreEvent(GameState state, GameCommand command)
         {
-            var pendingChoice = state.PendingChoice;
+            var pendingChoice = CardFlowStateAdapter.GetPendingChoiceView(state);
             if (pendingChoice == null || pendingChoice.ChoiceType != ExploreEventChoiceType)
             {
                 return Invalid(CommandErrorCode.PendingChoiceRequired, "当前没有待处理的探索事件。");
@@ -235,19 +236,20 @@ namespace YC.Application.Gameplay
             }
 
             var influenceSlotId = GetParameter(command, InfluenceSlotIdParameter);
+            var eventInfluenceSlotIds = ResolveEventInfluenceSlotIds(command);
             var result = explorationService.ResolveExploreEvent(
                 state,
                 command.PlayerId,
                 pendingChoice.TargetId,
                 pendingChoice.CardId,
                 selectedOptionIndex,
-                influenceSlotId);
+                influenceSlotId,
+                eventInfluenceSlotIds);
             if (!result.Succeeded)
             {
                 return CommandResult.Invalid(result.Validation);
             }
 
-            state.PendingChoice = null;
             roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
 
             var card = EventCardDatabase.Get(result.EventCardId);
@@ -324,9 +326,11 @@ namespace YC.Application.Gameplay
             }
         }
 
-        private static Dictionary<string, int> ResolvePaymentRecipients(GameCommand command)
+        private static ValidationResult ResolvePaymentRecipients(
+            GameCommand command,
+            out Dictionary<string, int> paymentRecipients)
         {
-            var result = new Dictionary<string, int>();
+            paymentRecipients = new Dictionary<string, int>();
             var encoded = GetParameter(command, PaymentRecipientsParameter);
             if (!string.IsNullOrEmpty(encoded))
             {
@@ -334,16 +338,18 @@ namespace YC.Application.Gameplay
                 for (var i = 0; i < entries.Length; i++)
                 {
                     var parts = entries[i].Split(new[] { '=', ':' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length != 2)
+                    if (parts.Length != 2 || string.IsNullOrEmpty(parts[0].Trim()))
                     {
-                        continue;
+                        return InvalidPaymentRecipients();
                     }
 
                     int playerId;
-                    if (int.TryParse(parts[1], out playerId))
+                    if (!int.TryParse(parts[1], out playerId))
                     {
-                        result[parts[0]] = playerId;
+                        return InvalidPaymentRecipients();
                     }
+
+                    paymentRecipients[parts[0].Trim()] = playerId;
                 }
             }
 
@@ -357,11 +363,26 @@ namespace YC.Application.Gameplay
                     }
 
                     int playerId;
-                    if (int.TryParse(entry.Value, out playerId))
+                    var routeId = entry.Key.Substring("payment:".Length).Trim();
+                    if (string.IsNullOrEmpty(routeId) || !int.TryParse(entry.Value, out playerId))
                     {
-                        result[entry.Key.Substring("payment:".Length)] = playerId;
+                        return InvalidPaymentRecipients();
                     }
+
+                    paymentRecipients[routeId] = playerId;
                 }
+            }
+
+            return ValidationResult.Success;
+        }
+
+        private static List<string> ResolveEventInfluenceSlotIds(GameCommand command)
+        {
+            var result = SplitIds(GetParameter(command, EventInfluenceSlotIdsParameter));
+            var singleSlotId = GetParameter(command, EventInfluenceSlotIdParameter);
+            if (!string.IsNullOrEmpty(singleSlotId))
+            {
+                result.Add(singleSlotId.Trim());
             }
 
             return result;
@@ -443,17 +464,31 @@ namespace YC.Application.Gameplay
                 return string.Empty;
             }
 
-            return card.ChoicePendingEffects[selectedOptionIndex];
+            return EventEffectUtility.Format(card.ChoicePendingEffects[selectedOptionIndex]);
         }
 
         private static bool HasScorePendingEffect(EventCardDefinition card, int selectedOptionIndex)
         {
-            return GetPendingEffect(card, selectedOptionIndex).Contains("分数");
+            if (card == null ||
+                selectedOptionIndex < 0 ||
+                selectedOptionIndex >= card.ChoicePendingEffects.Count)
+            {
+                return false;
+            }
+
+            return EventEffectUtility.HasScoreEffect(card.ChoicePendingEffects[selectedOptionIndex]);
         }
 
         private static CommandResult Invalid(CommandErrorCode errorCode, string reason)
         {
             return CommandResult.Invalid(ValidationResult.Failure(errorCode, reason));
+        }
+
+        private static ValidationResult InvalidPaymentRecipients()
+        {
+            return ValidationResult.Failure(
+                CommandErrorCode.InvalidTarget,
+                "路费接收方参数格式不正确。");
         }
     }
 }

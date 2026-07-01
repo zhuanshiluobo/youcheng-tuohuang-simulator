@@ -39,7 +39,7 @@ namespace YC.Tests.EditMode
                 .Select(path => string.Join(">", path.LocationIds))
                 .ToArray();
 
-            Assert.That(paths, Is.EquivalentTo(new[] { "D-01>D-02>D-03", "D-01>D-03" }));
+            Assert.That(paths, Is.EquivalentTo(new[] { "D-01>A-03>D-03", "D-01>D-02>D-03", "D-01>D-03" }));
         }
 
         [Test]

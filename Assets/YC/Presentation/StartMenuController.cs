@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using YC.Application.DevTools;
 using YC.Application.Sessions;
 using YC.Domain.Rules;
 using YC.Infrastructure.Multiplayer;
@@ -15,6 +16,9 @@ namespace YC.Presentation
     {
         private static readonly Vector2 CoverReferenceSize = new Vector2(5888f, 3312f);
         private static readonly Rect ButtonImageRect = new Rect(2220f, 2528f, 1460f, 323f);
+        private const string OfficialSiteUrl = "https://ak.hypergryph.com/boardgame_nomadcity";
+        private const string WikiUrl = "https://prts.wiki/w/%E6%B8%B8%E5%9F%8E%E6%8B%93%E8%8D%92%EF%BC%9A%E9%93%B8%E5%9F%BA%E8%80%85";
+        private static Sprite bookmarkSprite;
 
         [SerializeField] private string mapSceneName = "SampleScene";
         [SerializeField] private Texture2D coverTexture;
@@ -36,11 +40,93 @@ namespace YC.Presentation
         private void Awake()
         {
             UnityEngine.Application.runInBackground = true;
+            if (TryRunDevCommandLineTask())
+            {
+                return;
+            }
+
             roomService.RoomUpdated += QueueRoomUpdate;
             roomService.GameStarted += QueueGameStart;
             roomService.RoomDisbanded += QueueRoomDisbanded;
             roomService.ErrorOccurred += QueueNetworkError;
             BuildMenu();
+        }
+
+        private static bool TryRunDevCommandLineTask()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var args = Environment.GetCommandLineArgs();
+            if (HasCommandLineArg(args, "--yc-dev-font-health-check") ||
+                HasCommandLineArg(args, "--yc-dev-font-health-check-simulate"))
+            {
+                var mode = HasCommandLineArg(args, "--yc-dev-font-health-check-simulate")
+                    ? FontHealthCheckMode.SimulateRecreate
+                    : FontHealthCheckMode.CheckOnly;
+                try
+                {
+                    var result = FontHealthCheckRunner.Run(mode);
+                    Debug.Log(result.Snapshot);
+                    if (!UnityEngine.Application.isEditor && UnityEngine.Application.isBatchMode)
+                    {
+                        UnityEngine.Application.Quit(0);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    if (!UnityEngine.Application.isEditor && UnityEngine.Application.isBatchMode)
+                    {
+                        UnityEngine.Application.Quit(1);
+                    }
+                }
+
+                return true;
+            }
+
+            for (var i = 0; i < args.Length; i++)
+            {
+                if (!string.Equals(args[i], "--yc-dev-autoplay-localhost", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var result = LocalhostAutoplayRunner.RunToRound8Settlement();
+                if (result.Succeeded)
+                {
+                    Debug.Log(result.Snapshot);
+                }
+                else
+                {
+                    Debug.LogError(result.Snapshot);
+                }
+
+                if (!UnityEngine.Application.isEditor && UnityEngine.Application.isBatchMode)
+                {
+                    UnityEngine.Application.Quit(result.Succeeded ? 0 : 1);
+                }
+
+                return true;
+            }
+#endif
+            return false;
+        }
+
+        private static bool HasCommandLineArg(string[] args, string expectedValue)
+        {
+            if (args == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < args.Length; i++)
+            {
+                if (string.Equals(args[i], expectedValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void Update()
@@ -161,6 +247,7 @@ namespace YC.Presentation
 
             coverFrame = CreateCoverFrame(canvasObject.GetComponent<RectTransform>());
             CreateCover(coverFrame);
+            CreateExternalLinkButtons(coverFrame);
             CreateMenuButtons(coverFrame);
         }
 
@@ -214,9 +301,161 @@ namespace YC.Presentation
 
         private void CreateMenuButtons(Transform parent)
         {
-            CreateMenuButton(parent, "单机开始", 0, StartGame);
+            CreateMenuButton(parent, "单机开始", 2, StartGame);
             CreateMenuButton(parent, "创建房间", 1, CreateRoom);
-            CreateMenuButton(parent, "加入房间", 2, JoinRoom);
+            CreateMenuButton(parent, "加入房间", 0, JoinRoom);
+        }
+
+        private void CreateExternalLinkButtons(RectTransform parent)
+        {
+            CreateExternalLinkButton(parent, "官方网站", OfficialSiteUrl, "官", 1);
+            CreateExternalLinkButton(parent, "进入wiki", WikiUrl, "W", 0);
+        }
+
+        private static void CreateExternalLinkButton(RectTransform parent, string label, string url, string mark, int row)
+        {
+            const float iconWidth = 52f;
+            const float iconHeight = 76f;
+            const float expandedWidth = 210f;
+            const float spacing = 12f;
+
+            var buttonObject = new GameObject(label + " Link Button", typeof(RectTransform), typeof(Image), typeof(Button));
+            buttonObject.transform.SetParent(parent, false);
+
+            var rectTransform = buttonObject.GetComponent<RectTransform>();
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.zero;
+            rectTransform.pivot = new Vector2(0f, 0.5f);
+            rectTransform.sizeDelta = new Vector2(iconWidth, iconHeight);
+            rectTransform.anchoredPosition = new Vector2(38f, 52f + row * (iconHeight + spacing));
+
+            var hitArea = buttonObject.GetComponent<Image>();
+            hitArea.color = new Color(1f, 1f, 1f, 0.001f);
+
+            buttonObject.GetComponent<Button>().onClick.AddListener(() => UnityEngine.Application.OpenURL(url));
+
+            var extensionObject = new GameObject("Hover Label", typeof(RectTransform), typeof(Image), typeof(Outline), typeof(CanvasGroup));
+            extensionObject.transform.SetParent(buttonObject.transform, false);
+
+            var extensionRect = extensionObject.GetComponent<RectTransform>();
+            extensionRect.anchorMin = new Vector2(0f, 0.5f);
+            extensionRect.anchorMax = new Vector2(0f, 0.5f);
+            extensionRect.pivot = new Vector2(0f, 0.5f);
+            extensionRect.sizeDelta = new Vector2(0f, 42f);
+            extensionRect.anchoredPosition = new Vector2(iconWidth - 4f, 0f);
+
+            var extensionImage = extensionObject.GetComponent<Image>();
+            extensionImage.color = new Color(0.14f, 0.085f, 0.045f, 0.95f);
+            extensionImage.raycastTarget = false;
+            var extensionOutline = extensionObject.GetComponent<Outline>();
+            extensionOutline.effectColor = new Color(0.78f, 0.63f, 0.38f, 0.85f);
+            extensionOutline.effectDistance = new Vector2(2f, -2f);
+
+            var labelObject = new GameObject("Text", typeof(RectTransform), typeof(Text), typeof(Outline), typeof(CanvasGroup));
+            labelObject.transform.SetParent(extensionObject.transform, false);
+
+            var labelRect = labelObject.GetComponent<RectTransform>();
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = new Vector2(18f, 0f);
+            labelRect.offsetMax = new Vector2(-16f, 0f);
+
+            var text = labelObject.GetComponent<Text>();
+            text.text = label;
+            text.alignment = TextAnchor.MiddleLeft;
+            text.color = new Color(0.86f, 0.75f, 0.55f, 1f);
+            text.fontSize = 22;
+            text.fontStyle = FontStyle.Bold;
+            text.font = FontUtility.GetCjkFont(text.fontSize);
+            text.raycastTarget = false;
+
+            var textOutline = labelObject.GetComponent<Outline>();
+            textOutline.effectColor = new Color(0.06f, 0.04f, 0.025f, 0.96f);
+            textOutline.effectDistance = new Vector2(2f, -2f);
+
+            var labelCanvasGroup = labelObject.GetComponent<CanvasGroup>();
+            labelCanvasGroup.alpha = 0f;
+
+            var iconObject = new GameObject("Bookmark Icon", typeof(RectTransform), typeof(Image), typeof(Outline));
+            iconObject.transform.SetParent(buttonObject.transform, false);
+
+            var iconRect = iconObject.GetComponent<RectTransform>();
+            iconRect.anchorMin = new Vector2(0f, 0.5f);
+            iconRect.anchorMax = new Vector2(0f, 0.5f);
+            iconRect.pivot = new Vector2(0.5f, 0.5f);
+            iconRect.sizeDelta = new Vector2(iconWidth, iconHeight);
+            iconRect.anchoredPosition = new Vector2(iconWidth * 0.5f, 0f);
+
+            var iconImage = iconObject.GetComponent<Image>();
+            iconImage.sprite = GetBookmarkSprite();
+            iconImage.color = new Color(0.16f, 0.1f, 0.055f, 0.98f);
+            iconImage.raycastTarget = false;
+
+            var iconOutline = iconObject.GetComponent<Outline>();
+            iconOutline.effectColor = new Color(0.78f, 0.63f, 0.38f, 0.9f);
+            iconOutline.effectDistance = new Vector2(2f, -2f);
+
+            var markerObject = new GameObject("Bookmark Mark", typeof(RectTransform), typeof(Text), typeof(Outline));
+            markerObject.transform.SetParent(iconObject.transform, false);
+
+            var markerRect = markerObject.GetComponent<RectTransform>();
+            markerRect.anchorMin = new Vector2(0.5f, 0.5f);
+            markerRect.anchorMax = new Vector2(0.5f, 0.5f);
+            markerRect.pivot = new Vector2(0.5f, 0.5f);
+            markerRect.sizeDelta = new Vector2(34f, 34f);
+            markerRect.anchoredPosition = new Vector2(0f, 9f);
+
+            var marker = markerObject.GetComponent<Text>();
+            marker.text = mark;
+            marker.alignment = TextAnchor.MiddleCenter;
+            marker.color = new Color(0.86f, 0.75f, 0.55f, 1f);
+            marker.fontSize = 24;
+            marker.fontStyle = FontStyle.Bold;
+            marker.font = FontUtility.GetCjkFont(marker.fontSize);
+            marker.raycastTarget = false;
+
+            var markerOutline = markerObject.GetComponent<Outline>();
+            markerOutline.effectColor = new Color(0.06f, 0.04f, 0.025f, 0.96f);
+            markerOutline.effectDistance = new Vector2(1f, -1f);
+
+            var hover = buttonObject.AddComponent<BookmarkLinkHover>();
+            hover.Initialize(rectTransform, extensionRect, extensionObject.GetComponent<CanvasGroup>(), labelCanvasGroup, iconWidth, expandedWidth);
+        }
+
+        private static Sprite GetBookmarkSprite()
+        {
+            if (bookmarkSprite != null)
+            {
+                return bookmarkSprite;
+            }
+
+            const int width = 64;
+            const int height = 96;
+            const int notchHeight = 22;
+            var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Bilinear;
+
+            var center = (width - 1) * 0.5f;
+            for (var y = 0; y < height; y++)
+            {
+                for (var x = 0; x < width; x++)
+                {
+                    var inside = true;
+                    if (y >= height - notchHeight)
+                    {
+                        var notchY = height - 1 - y;
+                        var notchHalfWidth = Mathf.Lerp(0f, width * 0.34f, 1f - notchY / (float)notchHeight);
+                        inside = Mathf.Abs(x - center) > notchHalfWidth;
+                    }
+
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, inside ? 1f : 0f));
+                }
+            }
+
+            texture.Apply();
+            bookmarkSprite = Sprite.Create(texture, new Rect(0f, 0f, width, height), new Vector2(0.5f, 0.5f), height);
+            return bookmarkSprite;
         }
 
         private void CreateMenuButton(Transform parent, string label, int row, UnityEngine.Events.UnityAction action)
@@ -267,7 +506,7 @@ namespace YC.Presentation
             text.color = new Color(0.86f, 0.75f, 0.55f, 1f);
             text.fontSize = Mathf.RoundToInt(100f * scaleY);
             text.fontStyle = FontStyle.Bold;
-            text.font = Font.CreateDynamicFontFromOSFont(new[] { "SimHei", "Microsoft YaHei", "Arial" }, text.fontSize);
+            text.font = FontUtility.GetCjkFont(text.fontSize);
 
             var outline = textObject.GetComponent<Outline>();
             outline.effectColor = new Color(0.06f, 0.04f, 0.025f, 0.98f);
@@ -293,8 +532,8 @@ namespace YC.Presentation
             var inputRect = inputObject.GetComponent<RectTransform>();
             inputRect.anchorMin = new Vector2(0.5f, 0.5f);
             inputRect.anchorMax = new Vector2(0.5f, 0.5f);
-            inputRect.sizeDelta = new Vector2(420f, 46f);
-            inputRect.anchoredPosition = new Vector2(0f, 10f);
+            inputRect.sizeDelta = new Vector2(340f, 46f);
+            inputRect.anchoredPosition = new Vector2(-46f, 10f);
 
             inputObject.GetComponent<Image>().color = new Color(0.04f, 0.035f, 0.03f, 0.98f);
             inputObject.GetComponent<Outline>().effectColor = new Color(0.78f, 0.63f, 0.38f, 0.9f);
@@ -311,7 +550,7 @@ namespace YC.Presentation
             text.alignment = TextAnchor.MiddleLeft;
             text.color = new Color(0.86f, 0.75f, 0.55f, 1f);
             text.fontSize = 20;
-            text.font = Font.CreateDynamicFontFromOSFont(new[] { "SimHei", "Microsoft YaHei", "Arial" }, text.fontSize);
+            text.font = FontUtility.GetCjkFont(text.fontSize);
 
             var placeholderObject = new GameObject("Placeholder", typeof(RectTransform), typeof(Text));
             placeholderObject.transform.SetParent(inputObject.transform, false);
@@ -331,6 +570,8 @@ namespace YC.Presentation
             joinRoomInput = inputObject.GetComponent<InputField>();
             joinRoomInput.textComponent = text;
             joinRoomInput.placeholder = placeholder;
+
+            CreateSmallButton(rect, "粘贴", new Vector2(218f, 10f), PasteRoomCodeFromClipboard);
 
             roomStatusText = CreatePanelText(rect, string.Empty, 16, new Vector2(0f, -38f), FontStyle.Normal);
 
@@ -385,7 +626,9 @@ namespace YC.Presentation
             var rect = roomPanel.GetComponent<RectTransform>();
             roomStatusText = null;
 
-            CreatePanelText(rect, "房间号 " + room.RoomId, 28, new Vector2(0f, 170f), FontStyle.Bold);
+            var roomCodeText = CreatePanelText(rect, "房间号 " + room.RoomId, 28, new Vector2(-58f, 170f), FontStyle.Bold);
+            roomCodeText.GetComponent<RectTransform>().sizeDelta = new Vector2(410f, 34f);
+            CreateSmallButton(rect, "复制", new Vector2(235f, 170f), () => CopyRoomCodeToClipboard(room.RoomId));
 
             for (var i = 0; i < room.Seats.Count; i++)
             {
@@ -556,7 +799,7 @@ namespace YC.Presentation
             text.color = new Color(0.86f, 0.75f, 0.55f, 1f);
             text.fontSize = size;
             text.fontStyle = style;
-            text.font = Font.CreateDynamicFontFromOSFont(new[] { "SimHei", "Microsoft YaHei", "Arial" }, size);
+            text.font = FontUtility.GetCjkFont(size);
             return text;
         }
 
@@ -590,7 +833,7 @@ namespace YC.Presentation
             text.color = new Color(0.86f, 0.75f, 0.55f, 1f);
             text.fontSize = 20;
             text.fontStyle = FontStyle.Bold;
-            text.font = Font.CreateDynamicFontFromOSFont(new[] { "SimHei", "Microsoft YaHei", "Arial" }, text.fontSize);
+            text.font = FontUtility.GetCjkFont(text.fontSize);
         }
 
         private void SetRoomStatus(string message)
@@ -599,6 +842,37 @@ namespace YC.Presentation
             {
                 roomStatusText.text = message;
             }
+        }
+
+        private void CopyRoomCodeToClipboard(string roomCode)
+        {
+            if (string.IsNullOrEmpty(roomCode))
+            {
+                SetRoomStatus("房间号不可用，无法复制。");
+                return;
+            }
+
+            GUIUtility.systemCopyBuffer = roomCode;
+            SetRoomStatus("房间号已复制。");
+        }
+
+        private void PasteRoomCodeFromClipboard()
+        {
+            if (joinRoomInput == null)
+            {
+                return;
+            }
+
+            var roomCode = GUIUtility.systemCopyBuffer;
+            if (string.IsNullOrEmpty(roomCode))
+            {
+                SetRoomStatus("剪贴板没有可粘贴的房间号。");
+                return;
+            }
+
+            joinRoomInput.text = roomCode.Trim();
+            joinRoomInput.ActivateInputField();
+            SetRoomStatus("已粘贴房间号。");
         }
 
         private void QueueRoomUpdate(RoomState room)
@@ -630,6 +904,82 @@ namespace YC.Presentation
             lock (networkEventLock)
             {
                 pendingRoomDisbanded = true;
+            }
+        }
+
+        private sealed class BookmarkLinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+        {
+            private const float AnimationSpeed = 14f;
+
+            private RectTransform buttonRect;
+            private RectTransform labelRect;
+            private CanvasGroup extensionGroup;
+            private CanvasGroup labelGroup;
+            private float collapsedWidth;
+            private float expandedWidth;
+            private float currentWidth;
+            private float targetWidth;
+
+            public void Initialize(
+                RectTransform button,
+                RectTransform label,
+                CanvasGroup extension,
+                CanvasGroup text,
+                float collapsed,
+                float expanded)
+            {
+                buttonRect = button;
+                labelRect = label;
+                extensionGroup = extension;
+                labelGroup = text;
+                collapsedWidth = collapsed;
+                expandedWidth = expanded;
+                currentWidth = collapsedWidth;
+                targetWidth = collapsedWidth;
+                ApplyState(0f);
+            }
+
+            public void OnPointerEnter(PointerEventData eventData)
+            {
+                targetWidth = expandedWidth;
+            }
+
+            public void OnPointerExit(PointerEventData eventData)
+            {
+                targetWidth = collapsedWidth;
+            }
+
+            private void Update()
+            {
+                if (buttonRect == null || labelRect == null)
+                {
+                    return;
+                }
+
+                currentWidth = Mathf.Lerp(currentWidth, targetWidth, Time.unscaledDeltaTime * AnimationSpeed);
+                if (Mathf.Abs(currentWidth - targetWidth) < 0.5f)
+                {
+                    currentWidth = targetWidth;
+                }
+
+                var progress = Mathf.InverseLerp(collapsedWidth, expandedWidth, currentWidth);
+                ApplyState(progress);
+            }
+
+            private void ApplyState(float progress)
+            {
+                buttonRect.sizeDelta = new Vector2(currentWidth, buttonRect.sizeDelta.y);
+                labelRect.sizeDelta = new Vector2(Mathf.Max(0f, currentWidth - collapsedWidth + 4f), labelRect.sizeDelta.y);
+
+                if (extensionGroup != null)
+                {
+                    extensionGroup.alpha = progress;
+                }
+
+                if (labelGroup != null)
+                {
+                    labelGroup.alpha = Mathf.Clamp01((progress - 0.28f) / 0.72f);
+                }
             }
         }
 

@@ -5,6 +5,7 @@
 /Build/
 /Builds/
 /Logs/
+/TestResults/
 /UserSettings/
 
 # Unity generated files
@@ -45,4 +46,3 @@ Thumbs.db
 
 # Derived planning/reference exports
 /游城拓荒/_pdf_extracted_images/
-

@@ -260,9 +260,24 @@ namespace YC.Tests.EditMode
             Assert.That(state.CurrentPlayerId, Is.EqualTo(4));
             service.CompleteMainAction(state, 4);
 
+            Assert.That(state.Round, Is.EqualTo(1));
             Assert.That(state.Phase, Is.EqualTo(GamePhase.ResourceCollection));
             Assert.That(state.ActionRound, Is.EqualTo(0));
             Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).ResourceCollectionStartGoldVoucher, Is.EqualTo(0));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+            Assert.That(state.FindPlayer(2).ActedMainActionThisTurn, Is.False);
+            Assert.That(state.FindPlayer(3).ActedMainActionThisTurn, Is.False);
+            Assert.That(state.FindPlayer(4).ActedMainActionThisTurn, Is.False);
+
+            EndResourceCollectionAndCleanup(state, service);
+
+            Assert.That(state.Round, Is.EqualTo(2));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
+            Assert.That(state.ActionRound, Is.EqualTo(1));
+            Assert.That(state.StartPlayerId, Is.EqualTo(2));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
+            Assert.That(state.FindPlayer(1).ResourceCollectionStartGoldVoucher, Is.EqualTo(-1));
         }
 
         [Test]
@@ -273,12 +288,54 @@ namespace YC.Tests.EditMode
 
             service.CompleteMainAction(state, 1);
 
+            Assert.That(state.Round, Is.EqualTo(1));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ResourceCollection));
+            Assert.That(state.ActionRound, Is.EqualTo(0));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+            Assert.That(state.FindPlayer(1).ResourceCollectionStartGoldVoucher, Is.EqualTo(0));
+
+            EndResourceCollectionAndCleanup(state, service);
+
             Assert.That(state.Round, Is.EqualTo(2));
             Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
             Assert.That(state.ActionRound, Is.EqualTo(1));
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
-            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
             Assert.That(state.FindPlayer(1).HasMovedCityThisRound, Is.False);
+            Assert.That(state.FindPlayer(1).ResourceCollectionStartGoldVoucher, Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void RoundAdvance_OnLastRoundFirstActionRound_AdvancesToSecondActionRound()
+        {
+            var state = CreateSinglePlayerActionRoundState(GamePhase.ActionRound1, 8, 1);
+            var service = new RoundAdvanceService();
+
+            service.CompleteMainAction(state, 1);
+
+            Assert.That(state.Round, Is.EqualTo(8));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound2));
+            Assert.That(state.ActionRound, Is.EqualTo(2));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void RoundAdvance_OnLastRoundSecondActionRound_EntersFinalScoring()
+        {
+            var state = CreateSinglePlayerActionRoundState(GamePhase.ActionRound2, 8, 2);
+            var service = new RoundAdvanceService();
+
+            service.CompleteMainAction(state, 1);
+
+            Assert.That(state.Round, Is.EqualTo(8));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ResourceCollection));
+            Assert.That(state.ActionRound, Is.EqualTo(0));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+
+            EndResourceCollectionAndCleanup(state, service);
+
+            Assert.That(state.Round, Is.EqualTo(8));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.FinalScoring));
+            Assert.That(state.ActionRound, Is.EqualTo(0));
         }
 
         private static MoveCityCommandHandler CreateMoveCityHandler()
@@ -341,6 +398,28 @@ namespace YC.Tests.EditMode
             };
         }
 
+        private static GameState CreateSinglePlayerActionRoundState(GamePhase phase, int round, int actionRound)
+        {
+            return new GameState
+            {
+                Phase = phase,
+                Round = round,
+                MaxRounds = 8,
+                ActionRound = actionRound,
+                StartPlayerId = 1,
+                CurrentPlayerId = 1,
+                Players =
+                {
+                    new PlayerState
+                    {
+                        PlayerId = 1,
+                        Color = PlayerColor.Blue,
+                        HasMovedCityThisRound = true
+                    }
+                }
+            };
+        }
+
         private static GameState CreateFourPlayerActionState()
         {
             return new GameState
@@ -349,7 +428,7 @@ namespace YC.Tests.EditMode
                 Round = 1,
                 ActionRound = 1,
                 UseSeatTurnOrder = true,
-                StartPlayerId = 3,
+                StartPlayerId = 1,
                 CurrentPlayerId = 1,
                 Players =
                 {
@@ -385,6 +464,18 @@ namespace YC.Tests.EditMode
                 ResourceType = ResourceType.Iron,
                 Amount = 1
             });
+        }
+
+        private static void EndResourceCollectionAndCleanup(GameState state, RoundAdvanceService service)
+        {
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                state.Players[i].HasCollectedResourcesThisRound = true;
+            }
+
+            service.AdvanceResourceCollectionToCleanup(state);
+            var result = service.EndCompletedAction(state, state.CurrentPlayerId);
+            Assert.That(result.IsValid, Is.True, result.Reason);
         }
     }
 }

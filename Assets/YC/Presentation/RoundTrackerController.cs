@@ -10,8 +10,13 @@ namespace YC.Presentation
 {
     public sealed class RoundTrackerController : MonoBehaviour
     {
-        private const int FirstRoundIndex = 1;
-        private const int FinalIndex = 9;
+        private const int FirstRoundIndex = RoundTrackRule.FirstRoundIndex;
+        private const int FinalIndex = RoundTrackRule.FinalIndex;
+        private const float ExpandedPanelHeight = 136f;
+        private const float CollapsedPanelHeight = 42f;
+        private const float PanelWidth = 1120f;
+        private const string ExpandedArrow = "▲";
+        private const string CollapsedArrow = "▼";
 
         private static readonly string[] RoundLabels =
         {
@@ -19,17 +24,66 @@ namespace YC.Presentation
         };
 
         [SerializeField] private string startSceneName = "StartScene";
+        [SerializeField] private bool startExpanded = true;
+        [SerializeField] private float panelLerpSpeed = 10f;
+        [SerializeField] private float panelSnapThreshold = 0.5f;
 
+        private RectTransform panelTransform;
+        private RectTransform contentArea;
+        private RectTransform canvasTransform;
         private RectTransform markerTransform;
         private RectTransform trackSlotsTransform;
-        private Button endRoundButton;
+        private Image panelImage;
+        private Outline panelOutline;
+        private Button toggleButton;
+        private Text toggleButtonText;
         private int currentIndex = FirstRoundIndex;
+        private bool isExpanded = true;
+        private float targetPanelHeight = ExpandedPanelHeight;
+        private bool isAnimating;
+        private bool pendingExpandedState = true;
         private bool gameOverDialogShown;
+
+        public bool IsExpanded => isExpanded;
 
         private void Awake()
         {
             BuildRoundUi();
             MoveMarkerToCurrentIndex();
+        }
+
+        private void Update()
+        {
+            StepPanelAnimation(Time.deltaTime);
+        }
+
+        private void StepPanelAnimation(float deltaTime)
+        {
+            if (!isAnimating || panelTransform == null)
+            {
+                return;
+            }
+
+            var currentHeight = panelTransform.rect.height;
+            var nextHeight = Mathf.Lerp(
+                currentHeight,
+                targetPanelHeight,
+                deltaTime * panelLerpSpeed);
+
+            var finishedThisFrame = false;
+            if (Mathf.Abs(nextHeight - targetPanelHeight) <= panelSnapThreshold)
+            {
+                nextHeight = targetPanelHeight;
+                isAnimating = false;
+                finishedThisFrame = true;
+            }
+
+            panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, nextHeight);
+
+            if (finishedThisFrame)
+            {
+                SetPanelChromeVisible(pendingExpandedState);
+            }
         }
 
         public void RefreshFromState(GameState state)
@@ -39,44 +93,12 @@ namespace YC.Presentation
                 return;
             }
 
-            currentIndex = GetRoundIndex(state);
+            currentIndex = RoundTrackRule.GetRoundIndex(state);
             MoveMarkerToCurrentIndex();
-
-            if (endRoundButton != null)
-            {
-                var mobileCityInteraction = FindObjectOfType<MobileCityInteractionController>();
-                endRoundButton.interactable = mobileCityInteraction != null &&
-                                              mobileCityInteraction.CanEndCurrentAction() &&
-                                              currentIndex < FinalIndex;
-            }
 
             if (currentIndex >= FinalIndex)
             {
-                ShowGameOverDialog();
-            }
-        }
-
-        public void EndCurrentRound()
-        {
-            var mobileCityInteraction = FindObjectOfType<MobileCityInteractionController>();
-            var state = mobileCityInteraction == null ? null : mobileCityInteraction.CurrentState;
-            if (state != null && (GetRoundIndex(state) >= FinalIndex || state.Round >= state.MaxRounds))
-            {
-                currentIndex = FinalIndex;
-                MoveMarkerToCurrentIndex();
-                if (endRoundButton != null)
-                {
-                    endRoundButton.interactable = false;
-                }
-
-                ShowGameOverDialog();
-                return;
-            }
-
-            if (mobileCityInteraction != null)
-            {
-                mobileCityInteraction.EndCurrentAction();
-                RefreshFromState(mobileCityInteraction.CurrentState);
+                ShowGameOverDialog(state);
             }
         }
 
@@ -101,9 +123,120 @@ namespace YC.Presentation
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 0.5f;
 
-            var canvasTransform = canvasObject.GetComponent<RectTransform>();
-            CreateRoundTrack(canvasTransform);
-            CreateEndRoundButton(canvasTransform);
+            canvasTransform = canvasObject.GetComponent<RectTransform>();
+            CreateRoundPanel(canvasTransform);
+            CreateRoundTrack(contentArea);
+            SetExpandedImmediate(startExpanded);
+        }
+
+        public void Toggle()
+        {
+            SetExpanded(!isExpanded);
+        }
+
+        private void SetExpanded(bool expand)
+        {
+            pendingExpandedState = expand;
+            isExpanded = expand;
+            targetPanelHeight = expand ? ExpandedPanelHeight : CollapsedPanelHeight;
+            isAnimating = true;
+
+            SetPanelChromeVisible(expand);
+
+            if (contentArea != null)
+            {
+                contentArea.gameObject.SetActive(expand);
+            }
+
+            if (toggleButtonText != null)
+            {
+                toggleButtonText.text = expand ? ExpandedArrow : CollapsedArrow;
+            }
+        }
+
+        private void SetExpandedImmediate(bool expand)
+        {
+            pendingExpandedState = expand;
+            isExpanded = expand;
+            targetPanelHeight = expand ? ExpandedPanelHeight : CollapsedPanelHeight;
+            isAnimating = false;
+            panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, targetPanelHeight);
+            contentArea.gameObject.SetActive(expand);
+            SetPanelChromeVisible(expand);
+            toggleButtonText.text = expand ? ExpandedArrow : CollapsedArrow;
+        }
+
+        private void CreateRoundPanel(RectTransform parent)
+        {
+            var panelObject = new GameObject("Round Panel", typeof(RectTransform), typeof(Image), typeof(Outline), typeof(RectMask2D));
+            panelObject.transform.SetParent(parent, false);
+
+            panelTransform = panelObject.GetComponent<RectTransform>();
+            panelTransform.anchorMin = new Vector2(0.5f, 1f);
+            panelTransform.anchorMax = new Vector2(0.5f, 1f);
+            panelTransform.pivot = new Vector2(0.5f, 1f);
+            panelTransform.sizeDelta = new Vector2(PanelWidth, ExpandedPanelHeight);
+            panelTransform.anchoredPosition = Vector2.zero;
+
+            panelImage = panelObject.GetComponent<Image>();
+            panelImage.color = UiTheme.PanelBackground;
+            panelImage.raycastTarget = false;
+
+            panelOutline = panelObject.GetComponent<Outline>();
+            panelOutline.effectColor = UiTheme.GoldOutline;
+            panelOutline.effectDistance = new Vector2(2f, -2f);
+
+            BuildToggleButton(panelTransform);
+            BuildContentArea(panelTransform);
+        }
+
+        private void SetPanelChromeVisible(bool visible)
+        {
+            if (panelImage != null)
+            {
+                panelImage.enabled = visible;
+            }
+
+            if (panelOutline != null)
+            {
+                panelOutline.enabled = visible;
+            }
+        }
+
+        private void BuildToggleButton(RectTransform parent)
+        {
+            var buttonObject = new GameObject("Toggle Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
+            buttonObject.transform.SetParent(parent, false);
+
+            var buttonTransform = buttonObject.GetComponent<RectTransform>();
+            buttonTransform.anchorMin = new Vector2(0.5f, 0f);
+            buttonTransform.anchorMax = new Vector2(0.5f, 0f);
+            buttonTransform.pivot = new Vector2(0.5f, 0f);
+            buttonTransform.sizeDelta = new Vector2(132f, 34f);
+            buttonTransform.anchoredPosition = new Vector2(0f, 4f);
+
+            var buttonImage = buttonObject.GetComponent<Image>();
+            buttonImage.color = UiTheme.PanelBackgroundLighter;
+
+            var outline = buttonObject.GetComponent<Outline>();
+            outline.effectColor = UiTheme.GoldOutlineThin;
+            outline.effectDistance = new Vector2(1f, -1f);
+
+            toggleButton = buttonObject.GetComponent<Button>();
+            toggleButton.onClick.AddListener(Toggle);
+
+            toggleButtonText = CreateButtonText(buttonTransform, ExpandedArrow, 24);
+        }
+
+        private void BuildContentArea(RectTransform parent)
+        {
+            contentArea = new GameObject("Content Area", typeof(RectTransform)).GetComponent<RectTransform>();
+            contentArea.SetParent(parent, false);
+            contentArea.anchorMin = Vector2.zero;
+            contentArea.anchorMax = Vector2.one;
+            contentArea.pivot = new Vector2(0.5f, 0.5f);
+            contentArea.offsetMin = new Vector2(16f, 38f);
+            contentArea.offsetMax = new Vector2(-16f, -8f);
         }
 
         private void CreateRoundTrack(RectTransform parent)
@@ -116,17 +249,17 @@ namespace YC.Presentation
             trackTransform.anchorMax = new Vector2(0.5f, 0f);
             trackTransform.pivot = new Vector2(0.5f, 0f);
             trackTransform.sizeDelta = new Vector2(720f, 84f);
-            trackTransform.anchoredPosition = new Vector2(0f, 30f);
+            trackTransform.anchoredPosition = new Vector2(0f, 3f);
 
             var background = trackObject.GetComponent<Image>();
-            background.color = new Color(0.1f, 0.1f, 0.09f, 0.88f);
+            background.color = UiTheme.TrackBackground;
 
             var outline = trackObject.GetComponent<Outline>();
-            outline.effectColor = new Color(0.78f, 0.63f, 0.38f, 0.95f);
+            outline.effectColor = UiTheme.GoldOutline;
             outline.effectDistance = new Vector2(2f, -2f);
 
-            CreateTrackBand(trackTransform, "Start Band", 0, 3, new Color(0.82f, 0.78f, 0.67f, 0.95f));
-            CreateTrackBand(trackTransform, "Danger Band", 4, FinalIndex, new Color(0.56f, 0.08f, 0.06f, 0.95f));
+            CreateTrackBand(trackTransform, "Start Band", 0, 3, UiTheme.SafeBand);
+            CreateTrackBand(trackTransform, "Danger Band", 4, FinalIndex, UiTheme.DangerBand);
 
             trackSlotsTransform = new GameObject("Round Slots", typeof(RectTransform)).GetComponent<RectTransform>();
             trackSlotsTransform.SetParent(trackTransform, false);
@@ -196,31 +329,10 @@ namespace YC.Presentation
             label.color = index >= 4 ? Color.white : Color.black;
             label.fontSize = index == 0 || index == FinalIndex ? 22 : 28;
             label.fontStyle = FontStyle.Bold;
-            label.font = Font.CreateDynamicFontFromOSFont(new[] { "Arial", "Microsoft YaHei", "SimHei" }, label.fontSize);
+            label.font = FontUtility.GetCjkFont(label.fontSize);
         }
 
-        private void CreateEndRoundButton(RectTransform parent)
-        {
-            var buttonObject = new GameObject("End Round Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
-            buttonObject.transform.SetParent(parent, false);
-
-            var buttonTransform = buttonObject.GetComponent<RectTransform>();
-            buttonTransform.anchorMin = new Vector2(1f, 0f);
-            buttonTransform.anchorMax = new Vector2(1f, 0f);
-            buttonTransform.pivot = new Vector2(1f, 0f);
-            buttonTransform.sizeDelta = new Vector2(270f, 76f);
-            buttonTransform.anchoredPosition = new Vector2(-42f, 42f);
-
-            ApplyButtonStyle(buttonObject);
-
-            endRoundButton = buttonObject.GetComponent<Button>();
-            endRoundButton.onClick.AddListener(EndCurrentRound);
-            endRoundButton.interactable = false;
-
-            CreateButtonText(buttonTransform, "结束本回合", 34);
-        }
-
-        private void ShowGameOverDialog()
+        private void ShowGameOverDialog(GameState state)
         {
             if (gameOverDialogShown)
             {
@@ -228,7 +340,6 @@ namespace YC.Presentation
             }
 
             gameOverDialogShown = true;
-            var canvasTransform = markerTransform.GetComponentInParent<Canvas>().GetComponent<RectTransform>();
             var overlayObject = new GameObject("Game Over Overlay", typeof(RectTransform), typeof(Image));
             overlayObject.transform.SetParent(canvasTransform, false);
 
@@ -248,7 +359,7 @@ namespace YC.Presentation
             dialogTransform.anchorMin = new Vector2(0.5f, 0.5f);
             dialogTransform.anchorMax = new Vector2(0.5f, 0.5f);
             dialogTransform.pivot = new Vector2(0.5f, 0.5f);
-            dialogTransform.sizeDelta = new Vector2(620f, 300f);
+            dialogTransform.sizeDelta = new Vector2(760f, 460f);
             dialogTransform.anchoredPosition = Vector2.zero;
 
             var dialogImage = dialogObject.GetComponent<Image>();
@@ -260,7 +371,7 @@ namespace YC.Presentation
 
             var titleTransform = new GameObject("Game Over Text", typeof(RectTransform), typeof(Text), typeof(Outline)).GetComponent<RectTransform>();
             titleTransform.SetParent(dialogTransform, false);
-            titleTransform.anchorMin = new Vector2(0f, 0.48f);
+            titleTransform.anchorMin = new Vector2(0f, 0.72f);
             titleTransform.anchorMax = new Vector2(1f, 1f);
             titleTransform.offsetMin = new Vector2(28f, 0f);
             titleTransform.offsetMax = new Vector2(-28f, -18f);
@@ -271,11 +382,27 @@ namespace YC.Presentation
             titleText.color = new Color(0.86f, 0.75f, 0.55f, 1f);
             titleText.fontSize = 58;
             titleText.fontStyle = FontStyle.Bold;
-            titleText.font = Font.CreateDynamicFontFromOSFont(new[] { "SimHei", "Microsoft YaHei", "Arial" }, titleText.fontSize);
+            titleText.font = FontUtility.GetCjkFont(titleText.fontSize);
 
             var titleOutline = titleTransform.GetComponent<Outline>();
             titleOutline.effectColor = new Color(0.06f, 0.04f, 0.025f, 0.98f);
             titleOutline.effectDistance = new Vector2(3f, -3f);
+
+            var summaryTransform = new GameObject("Final Score Summary", typeof(RectTransform), typeof(Text)).GetComponent<RectTransform>();
+            summaryTransform.SetParent(dialogTransform, false);
+            summaryTransform.anchorMin = new Vector2(0f, 0.26f);
+            summaryTransform.anchorMax = new Vector2(1f, 0.73f);
+            summaryTransform.offsetMin = new Vector2(46f, 0f);
+            summaryTransform.offsetMax = new Vector2(-46f, -8f);
+
+            var summaryText = summaryTransform.GetComponent<Text>();
+            summaryText.text = BuildFinalScoreSummary(state);
+            summaryText.alignment = TextAnchor.UpperCenter;
+            summaryText.color = new Color(0.93f, 0.86f, 0.7f, 1f);
+            summaryText.fontSize = 24;
+            summaryText.font = FontUtility.GetCjkFont(summaryText.fontSize);
+            summaryText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            summaryText.verticalOverflow = VerticalWrapMode.Truncate;
 
             var returnButtonObject = new GameObject("Return Start Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
             returnButtonObject.transform.SetParent(dialogTransform, false);
@@ -285,11 +412,63 @@ namespace YC.Presentation
             returnButtonTransform.anchorMax = new Vector2(0.5f, 0f);
             returnButtonTransform.pivot = new Vector2(0.5f, 0f);
             returnButtonTransform.sizeDelta = new Vector2(430f, 86f);
-            returnButtonTransform.anchoredPosition = new Vector2(0f, 42f);
+            returnButtonTransform.anchoredPosition = new Vector2(0f, 38f);
 
             ApplyButtonStyle(returnButtonObject);
             returnButtonObject.GetComponent<Button>().onClick.AddListener(ReturnToStartScene);
             CreateButtonText(returnButtonTransform, "点击返回开始页面", 34);
+        }
+
+        private static string BuildFinalScoreSummary(GameState state)
+        {
+            if (state == null || state.FinalScoring == null || !state.FinalScoring.IsResolved)
+            {
+                return "最终计分尚未生成。";
+            }
+
+            var summary = "胜者：" + FormatWinnerIds(state.FinalScoring.WinnerPlayerIds) + "\n";
+            if (!string.IsNullOrEmpty(state.FinalScoring.TiebreakSummary))
+            {
+                summary += state.FinalScoring.TiebreakSummary + "\n";
+            }
+
+            for (var i = 0; i < state.FinalScoring.PlayerScores.Count; i++)
+            {
+                var score = state.FinalScoring.PlayerScores[i];
+                summary += "P" + score.PlayerId + " 总分 " + score.TotalScore +
+                           "（基础 " + score.BaseScore +
+                           " / 区控 " + score.RegionScore +
+                           " / 资源 " + score.ResourceScore +
+                           " / 设施 " + score.FacilityScore +
+                           " / 样式 " + score.CityStyleScore + "）";
+                if (i < state.FinalScoring.PlayerScores.Count - 1)
+                {
+                    summary += "\n";
+                }
+            }
+
+            return summary;
+        }
+
+        private static string FormatWinnerIds(System.Collections.Generic.List<int> winnerPlayerIds)
+        {
+            if (winnerPlayerIds == null || winnerPlayerIds.Count == 0)
+            {
+                return "无";
+            }
+
+            var result = string.Empty;
+            for (var i = 0; i < winnerPlayerIds.Count; i++)
+            {
+                if (i > 0)
+                {
+                    result += "、";
+                }
+
+                result += "P" + winnerPlayerIds[i];
+            }
+
+            return result;
         }
 
         private static void ApplyButtonStyle(GameObject buttonObject)
@@ -302,7 +481,7 @@ namespace YC.Presentation
             outline.effectDistance = new Vector2(4f, -4f);
         }
 
-        private static void CreateButtonText(RectTransform parent, string content, int fontSize)
+        private static Text CreateButtonText(RectTransform parent, string content, int fontSize)
         {
             var textObject = new GameObject("Text", typeof(RectTransform), typeof(Text), typeof(Outline));
             textObject.transform.SetParent(parent, false);
@@ -319,11 +498,12 @@ namespace YC.Presentation
             text.color = new Color(0.86f, 0.75f, 0.55f, 1f);
             text.fontSize = fontSize;
             text.fontStyle = FontStyle.Bold;
-            text.font = Font.CreateDynamicFontFromOSFont(new[] { "SimHei", "Microsoft YaHei", "Arial" }, text.fontSize);
+            text.font = FontUtility.GetCjkFont(text.fontSize);
 
             var outline = textObject.GetComponent<Outline>();
             outline.effectColor = new Color(0.06f, 0.04f, 0.025f, 0.98f);
             outline.effectDistance = new Vector2(3f, -3f);
+            return text;
         }
 
         private void MoveMarkerToCurrentIndex()
@@ -339,16 +519,6 @@ namespace YC.Presentation
         private static float GetSlotX(int index)
         {
             return (index - (RoundLabels.Length - 1) * 0.5f) * 65f;
-        }
-
-        private static int GetRoundIndex(GameState state)
-        {
-            if (state.Phase == GamePhase.FinalScoring || state.Phase == GamePhase.GameOver)
-            {
-                return FinalIndex;
-            }
-
-            return Mathf.Clamp(state.Round, FirstRoundIndex, FinalIndex - 1);
         }
 
         private static bool IsNetworkLaunch()

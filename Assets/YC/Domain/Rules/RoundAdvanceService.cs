@@ -47,6 +47,11 @@ namespace YC.Domain.Rules
                 throw new ArgumentNullException(nameof(state));
             }
 
+            if (state.Phase == GamePhase.Cleanup)
+            {
+                return EndCleanup(state, playerId);
+            }
+
             if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
             {
                 return ValidationResult.Failure(CommandErrorCode.WrongPhase, "End action is only available during action rounds.");
@@ -96,6 +101,41 @@ namespace YC.Domain.Rules
             }
         }
 
+        public bool AllPlayersCollectedResources(GameState state)
+        {
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            if (state.Players.Count <= 0)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                if (!state.Players[i].HasCollectedResourcesThisRound)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public void AdvanceResourceCollectionToCleanup(GameState state)
+        {
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            state.Phase = GamePhase.Cleanup;
+            state.ActionRound = 0;
+            state.CurrentPlayerId = state.StartPlayerId;
+        }
+
         private void AdvanceActionRound(GameState state)
         {
             ResetActionFlags(state);
@@ -110,29 +150,57 @@ namespace YC.Domain.Rules
 
             if (state.Phase == GamePhase.ActionRound2)
             {
-                if (IsSinglePlayerState(state))
-                {
-                    AdvanceSinglePlayerToNextRound(state);
-                    return;
-                }
-
-                state.Phase = GamePhase.ResourceCollection;
-                state.ActionRound = 0;
-                state.CurrentPlayerId = GetFirstTurnPlayerId(state);
+                AdvanceToResourceCollection(state);
             }
         }
 
-        private void AdvanceSinglePlayerToNextRound(GameState state)
+        private void AdvanceToResourceCollection(GameState state)
         {
-            state.Round += 1;
-            state.Phase = GamePhase.ActionRound1;
-            state.ActionRound = 1;
+            state.Phase = GamePhase.ResourceCollection;
+            state.ActionRound = 0;
             state.CurrentPlayerId = GetFirstTurnPlayerId(state);
 
             for (var i = 0; i < state.Players.Count; i++)
             {
-                state.Players[i].HasMovedCityThisRound = false;
+                state.Players[i].HasCollectedResourcesThisRound = false;
+                state.Players[i].ResourceCollectionStartGoldVoucher = state.Players[i].Resources.GoldVoucher;
             }
+        }
+
+        private ValidationResult EndCleanup(GameState state, int playerId)
+        {
+            if (state.HasPendingChoice())
+            {
+                return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "Resolve the pending choice before cleanup.");
+            }
+
+            if (playerId != state.StartPlayerId && playerId != state.CurrentPlayerId)
+            {
+                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "Only the start player can end cleanup.");
+            }
+
+            if (state.Round >= state.MaxRounds)
+            {
+                state.Phase = GamePhase.FinalScoring;
+                state.ActionRound = 0;
+                return ValidationResult.Success;
+            }
+
+            state.StartPlayerId = GetNextStartPlayerId(state);
+            state.CurrentPlayerId = GetFirstTurnPlayerId(state);
+            state.Round += 1;
+            state.Phase = GamePhase.ActionRound1;
+            state.ActionRound = 1;
+
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                state.Players[i].ActedMainActionThisTurn = false;
+                state.Players[i].HasMovedCityThisRound = false;
+                state.Players[i].HasCollectedResourcesThisRound = false;
+                state.Players[i].ResourceCollectionStartGoldVoucher = -1;
+            }
+
+            return ValidationResult.Success;
         }
 
         private static bool AllPlayersActed(GameState state)
@@ -148,15 +216,31 @@ namespace YC.Domain.Rules
             return state.Players.Count > 0;
         }
 
-        private static bool IsSinglePlayerState(GameState state)
-        {
-            return state.Players.Count == 1;
-        }
-
         private int GetFirstTurnPlayerId(GameState state)
         {
             var order = turnOrderService.GetTurnOrder(state);
             return order.Count > 0 ? order[0] : state.StartPlayerId;
+        }
+
+        private int GetNextStartPlayerId(GameState state)
+        {
+            var order = turnOrderService.GetTurnOrder(state);
+            if (order.Count <= 0)
+            {
+                return state.StartPlayerId;
+            }
+
+            var currentIndex = 0;
+            for (var i = 0; i < order.Count; i++)
+            {
+                if (order[i] == state.StartPlayerId)
+                {
+                    currentIndex = i;
+                    break;
+                }
+            }
+
+            return order[(currentIndex + 1) % order.Count];
         }
 
         private int FindNextUnactedPlayerId(GameState state)

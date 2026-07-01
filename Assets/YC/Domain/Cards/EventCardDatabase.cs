@@ -54,6 +54,11 @@ namespace YC.Domain.Cards
             };
         }
 
+        private static List<EventEffect> Effects(params EventEffect[] effects)
+        {
+            return new List<EventEffect>(effects);
+        }
+
         private static EventCardDefinition AddCard(string id, string name, string description,
             EventColor color, ResourceType rt, int amount,
             string descA, ResourceSet rewardA,
@@ -73,14 +78,14 @@ namespace YC.Domain.Cards
                 RepresentativeResourceAmount = representativeResourceAmount > 0 ? representativeResourceAmount : amount,
                 ChoiceDescriptions = new List<string> { descA, descB },
                 ChoiceRewards = new List<ResourceSet> { rewardA, rewardB },
-                ChoicePendingEffects = new List<string> { string.Empty, string.Empty }
+                ChoicePendingEffects = new List<List<EventEffect>> { Effects(), Effects() }
             };
 
             if (descC != null && rewardC != null)
             {
                 card.ChoiceDescriptions.Add(descC);
                 card.ChoiceRewards.Add(rewardC);
-                card.ChoicePendingEffects.Add(string.Empty);
+                card.ChoicePendingEffects.Add(Effects());
             }
 
             CardsById[id] = card;
@@ -134,7 +139,7 @@ namespace YC.Domain.Cards
                 "开采源岩，那些学者自有人去救：获得 7 源岩", R(7, 0, 0, 0, 0),
                 "在更多人遇害前开始清理源石：获得 6 源石碎片", R(0, 6, 0, 0, 0),
                 "你的人搭救了遇险的考察队，他们愿意还这份人情：获得 6 金券；在此资源点或相邻的航道上放置 1 个影响力标识", R(0, 0, 0, 0, 6));
-            red01.ChoicePendingEffects[2] = "在此资源点或相邻的航道上放置 1 个影响力标识";
+            red01.ChoicePendingEffects[2] = Effects(EventEffect.PlaceInfluence(EventEffectTargetScope.CurrentLocationOrAdjacentRoute, 1));
 
             AddCard("event_red_02", "裂谷矿脉",
                 "勘测队深入拓荒区的边界。在那里，他们发现了一条深不见底的裂谷。“良好的源石技艺传导性，极高的矿核密度。我想我们已经找到了跋涉至此的目的。”",
@@ -161,7 +166,7 @@ namespace YC.Domain.Cards
                 "先试着采集一些深层矿物样本：获得 1 源岩、1 至纯源石", R(1, 0, 0, 1, 0),
                 "让矿业机械逐步挖开坚硬岩层：获得 3 源石碎片、2 异铁", R(0, 3, 2, 0, 0),
                 "向联邦提出拨款请求以协助建设：获得 18 金券；所有对手获得 3 金券", R(0, 0, 0, 0, 18));
-            red05.ChoicePendingEffects[2] = "所有对手获得 3 金券";
+            red05.ChoicePendingEffects[2] = Effects(EventEffect.GrantResource(EventEffectTargetScope.Opponents, ResourceType.GoldVoucher, 3));
 
             AddCard("event_red_06", "地质瑰宝",
                 "高纯度源石往往在地下深层伴随着固化源石结晶一起被挖出，但这处巨缝中的高纯度源石被源岩所包裹，相当容易开采。或许这对于源石矿脉研究者来说会是一个有价值的发现。",
@@ -177,7 +182,7 @@ namespace YC.Domain.Cards
                 EventColor.Yellow, ResourceType.Originium, 1,
                 "独享这片矿区，趁其他人还未发现这里：获得 5 源岩", R(5, 0, 0, 0, 0),
                 "以部分开采权为代价，与聚合剂厂商合作：获得 4 金券、1 分数", R(0, 0, 0, 0, 4));
-            yellow01.ChoicePendingEffects[1] = "获得 1 分数";
+            yellow01.ChoicePendingEffects[1] = Effects(EventEffect.GainScore(1));
 
             AddCard("event_yellow_02", "洞穴和遗迹",
                 "“头儿，爆破小组炸开了一条隐藏的通道，后面竟然是一片……人造建筑的遗址，我们无法确认其年代，也无法确认其建造者。”——信使所带回的信息。",
@@ -197,7 +202,7 @@ namespace YC.Domain.Cards
                 "名为岩蹄安保的组织愿意保护矿区，但价格低廉得可疑……：可以支付 4 金券来放置 1 个影响力标识", R(0, 0, 0, 0, 0),
                 "真是中了大奖！向治安官举报此事：获得 10 金券", R(0, 0, 0, 0, 10),
                 "别招惹这些硬茬，埋头做我们的事：获得 4 源石碎片", R(0, 4, 0, 0, 0));
-            yellow04.ChoicePendingEffects[0] = "可以支付 4 金券来放置 1 个影响力标识";
+            yellow04.ChoicePendingEffects[0] = Effects(EventEffect.PlaceInfluence(EventEffectTargetScope.None, 1, 4));
 
             var yellow05 = AddCard("event_yellow_05", "情报交换（4）",
                 "早在第一家采矿公司来到这片荒地时，老杰弗里的驿站就已经屹立于此。其为旅客提供的佳酿据说源自一个古老的国家，那独特的味道曾在拓荒者间广受好评。不过你的特使来此可不是为了品酒的，至少不完全是……",
@@ -205,7 +210,7 @@ namespace YC.Domain.Cards
                 "杰弗里为你提供了一些当地的人脉：在此资源点相邻的航道上放置 1 个影响力标识", R(0, 0, 0, 0, 0),
                 "源石矿脉的位置可比美酒和伙计重要：获得 1 源岩、3 源石碎片", R(1, 3, 0, 0, 0),
                 "“杰弗里，这儿归我了，把酒馆开到城里去吧！”：获得 3 异铁", R(0, 0, 3, 0, 0));
-            yellow05.ChoicePendingEffects[0] = "在此资源点相邻的航道上放置 1 个影响力标识";
+            yellow05.ChoicePendingEffects[0] = Effects(EventEffect.PlaceInfluence(EventEffectTargetScope.AdjacentRoute, 1));
 
             AddCard("event_yellow_06", "风险任务",
                 "源石干扰了电台的通信，“头儿……我们已经……发现了目标源石矿……源石尘浓度极高！车队暴露在活性源石环境中！”",
@@ -218,14 +223,14 @@ namespace YC.Domain.Cards
                 EventColor.Yellow, ResourceType.Iron, 1,
                 "“我可没有义务分享成果”你打发走了治安官：获得 3 源岩、1 异铁", R(3, 0, 1, 0, 0),
                 "“联邦万岁！”你向治安官伸出了手：获得 13 金券；所有对手获得 1 异铁", R(0, 0, 0, 0, 13));
-            yellow07.ChoicePendingEffects[1] = "所有对手获得 1 异铁";
+            yellow07.ChoicePendingEffects[1] = Effects(EventEffect.GrantResource(EventEffectTargetScope.Opponents, ResourceType.Iron, 1));
 
             var yellow08 = AddCard("event_yellow_08", "敌对生态圈（4）",
                 "一支来自萨尔贡的驮兽商队向勘探队提供了一则有趣的情报——一群铜钳铁背的巨磐蟹占据着一片比他们更坚硬的异铁矿。你也许可以占据这些异铁，但是恐怕需要经过其现在的主人的同意。",
                 EventColor.Yellow, ResourceType.Iron, 1,
                 "派一队佣兵和磐蟹“谈判”：获得 3 异铁", R(0, 0, 3, 0, 0),
                 "雇佣萨尔贡术士役使这些大块头：获得 2 源岩、1 分数", R(2, 0, 0, 0, 0));
-            yellow08.ChoicePendingEffects[1] = "获得 1 分数";
+            yellow08.ChoicePendingEffects[1] = Effects(EventEffect.GainScore(1));
 
             AddCard("event_yellow_09", "富异铁区",
                 "一伙荒地人袭击了你的车队，但护卫的魔族佬利索地压制了他们，你们发现荒地人的武器虽做工粗糙，但锋刃都由优质异铁制成。不出意料，这里附近一定有一处异铁矿。",

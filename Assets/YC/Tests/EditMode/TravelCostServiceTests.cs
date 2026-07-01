@@ -23,14 +23,14 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void GetCityMoveBaseCost_ReturnsZeroOriginiumShardForDebugTesting()
+        public void GetCityMoveBaseCost_ReturnsThreeOriginiumShard()
         {
             var mapQuery = new MapQueryService(StaticMapDefinitions.CreateThreePlayerPlaceholder());
             var costService = new TravelCostService(mapQuery);
 
             var cost = costService.GetCityMoveBaseCost();
 
-            Assert.That(cost.OriginiumShard, Is.EqualTo(0));
+            Assert.That(cost.OriginiumShard, Is.EqualTo(3));
             Assert.That(cost.PureOriginium, Is.EqualTo(0));
             Assert.That(cost.GoldVoucher, Is.EqualTo(0));
         }

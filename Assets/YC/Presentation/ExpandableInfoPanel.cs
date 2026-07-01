@@ -9,7 +9,16 @@ namespace YC.Presentation
         private const float ExpandedWidth = 504f;
         private const float CollapsedWidth = 65f;
         private const float SectionTitleHeight = 25f;
-        private const float RowHeight = 18f;
+        private const float RowHeight = 22f;
+        private const float ModuleContentWidth = 420f;
+        private const float ModuleContentLeftPadding = 7f;
+        private const float ModuleContentRightPadding = 4f;
+        private const float ModuleContentTopPadding = 2f;
+        private const float ModuleContentSpacing = 2f;
+        private const float RowTextInset = 6f;
+        private const float HintCardPreviewMaxWidth = 320f;
+        private const float HintCardPreviewMaxHeight = 420f;
+        private const string HintCardResourcePath = "ProjectAssetLibrary/HintCards/提示卡";
         private const string ExpandedArrow = "◀";
         private const string CollapsedArrow = "▶";
 
@@ -26,9 +35,9 @@ namespace YC.Presentation
         private float targetPanelWidth = CollapsedWidth;
         private bool isAnimating;
         private bool pendingExpandedState;
+        private bool pendingTextRefresh;
 
         private bool initialized;
-
         public bool IsExpanded => isExpanded;
         public IReadOnlyList<InfoModule> Modules => modules;
 
@@ -50,19 +59,41 @@ namespace YC.Presentation
                 targetPanelWidth,
                 Time.deltaTime * panelLerpSpeed);
 
+            var finishedThisFrame = false;
             if (Mathf.Abs(nextWidth - targetPanelWidth) <= panelSnapThreshold)
             {
                 nextWidth = targetPanelWidth;
                 isAnimating = false;
+                finishedThisFrame = true;
             }
 
             panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, nextWidth);
             RebuildLayout();
 
-            if (!isAnimating && !pendingExpandedState)
+            if (!finishedThisFrame)
+            {
+                return;
+            }
+
+            if (pendingExpandedState)
+            {
+                RefreshVisibleTextRenderers();
+            }
+            else
             {
                 contentArea.gameObject.SetActive(false);
                 RebuildLayout();
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if (isExpanded &&
+                contentArea != null &&
+                contentArea.gameObject.activeInHierarchy &&
+                pendingTextRefresh)
+            {
+                RefreshVisibleTextRenderers();
             }
         }
 
@@ -113,9 +144,11 @@ namespace YC.Presentation
             if (expand)
             {
                 contentArea.gameObject.SetActive(true);
+                pendingTextRefresh = true;
             }
 
             toggleButtonText.text = expand ? ExpandedArrow : CollapsedArrow;
+
         }
 
         private void SetExpandedImmediate(bool expand)
@@ -128,6 +161,11 @@ namespace YC.Presentation
             contentArea.gameObject.SetActive(expand);
             toggleButtonText.text = expand ? ExpandedArrow : CollapsedArrow;
             RebuildLayout();
+            if (expand)
+            {
+                pendingTextRefresh = true;
+                RefreshVisibleTextRenderers();
+            }
         }
 
         private void BuildPanel(Transform parent)
@@ -257,7 +295,7 @@ namespace YC.Presentation
 
             var scrollRect = scrollObject.GetComponent<ScrollRect>();
 
-            var viewportObject = new GameObject("Viewport", typeof(RectTransform), typeof(RectMask2D));
+            var viewportObject = new GameObject("Viewport", typeof(RectTransform));
             viewportObject.transform.SetParent(scrollTransform, false);
 
             var viewportTransform = viewportObject.GetComponent<RectTransform>();
@@ -300,46 +338,159 @@ namespace YC.Presentation
                 return module;
             }
 
+            var rowRect = CreateContentItem(
+                module,
+                "Row: " + label,
+                ModuleContentWidth - ModuleContentLeftPadding - ModuleContentRightPadding,
+                RowHeight,
+                new Vector2(ModuleContentLeftPadding, 0f));
+
+            var rowText = CreateRowText(
+                module.ContentRect,
+                "Value: " + label,
+                FormatRowText(label, value),
+                UiTheme.GoldText,
+                FontStyle.Bold);
+            PlaceRowText(rowText, rowRect, RowTextInset, RowTextInset);
+
+            RebuildLayout();
+            return module;
+        }
+
+        private static RectTransform CreateContentItem(
+            InfoModule module,
+            string name,
+            float width,
+            float height,
+            Vector2 offset)
+        {
             var content = module.ContentRect;
-            var rowObject = new GameObject("Row: " + label, typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
+            var y = module.AppendContentItem(height);
+            var rowObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Outline), typeof(LayoutElement));
             rowObject.transform.SetParent(content, false);
 
-            var rowRect = rowObject.GetComponent<RectTransform>();
-            rowRect.sizeDelta = new Vector2(0f, RowHeight);
+            var rect = rowObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.sizeDelta = new Vector2(width, height);
+            rect.anchoredPosition = new Vector2(offset.x, y + offset.y);
 
-            var rowElement = rowObject.GetComponent<LayoutElement>();
-            rowElement.minHeight = RowHeight;
-            rowElement.preferredHeight = RowHeight;
-            rowElement.flexibleWidth = 1f;
+            var element = rowObject.GetComponent<LayoutElement>();
+            element.minWidth = width;
+            element.preferredWidth = width;
+            element.minHeight = height;
+            element.preferredHeight = height;
+            element.flexibleWidth = 1f;
 
-            var rowLayout = rowObject.GetComponent<HorizontalLayoutGroup>();
-            rowLayout.childAlignment = TextAnchor.MiddleLeft;
-            rowLayout.childForceExpandWidth = false;
-            rowLayout.childForceExpandHeight = false;
-            rowLayout.spacing = 4f;
+            var background = rowObject.GetComponent<Image>();
+            background.color = UiTheme.ScrollBackground;
+            background.raycastTarget = false;
 
-            var labelObj = new GameObject("Label", typeof(RectTransform), typeof(Text));
-            labelObj.transform.SetParent(rowRect, false);
-            var labelRect = labelObj.GetComponent<RectTransform>();
-            labelRect.sizeDelta = new Vector2(80f, 18f);
-            var labelText = labelObj.GetComponent<Text>();
-            labelText.text = label;
-            labelText.alignment = TextAnchor.MiddleLeft;
-            labelText.color = UiTheme.LabelText;
-            labelText.fontSize = 13;
-            labelText.font = FontUtility.GetCjkFont(13);
+            var outline = rowObject.GetComponent<Outline>();
+            outline.effectColor = UiTheme.ScrollBackground;
+            outline.effectDistance = new Vector2(1f, -1f);
 
-            var valueObj = new GameObject("Value", typeof(RectTransform), typeof(Text));
-            valueObj.transform.SetParent(rowRect, false);
-            var valueRect = valueObj.GetComponent<RectTransform>();
-            valueRect.sizeDelta = new Vector2(90f, 18f);
-            var valueText = valueObj.GetComponent<Text>();
-            valueText.text = value;
-            valueText.alignment = TextAnchor.MiddleLeft;
-            valueText.color = UiTheme.ValueText;
-            valueText.fontSize = 13;
-            valueText.fontStyle = FontStyle.Bold;
-            valueText.font = FontUtility.GetCjkFont(13);
+            return rect;
+        }
+
+        private static Text CreateRowText(RectTransform parent, string name, string value, Color color, FontStyle style)
+        {
+            var textObject = new GameObject(name, typeof(RectTransform), typeof(Text), typeof(Outline));
+            textObject.transform.SetParent(parent, false);
+
+            var text = textObject.GetComponent<Text>();
+            text.text = value;
+            text.alignment = TextAnchor.MiddleLeft;
+            text.color = color;
+            text.fontSize = 14;
+            text.fontStyle = style;
+            text.font = FontUtility.GetCjkFont(14);
+            text.supportRichText = false;
+            text.maskable = false;
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
+            text.raycastTarget = false;
+            text.FontTextureChanged();
+            text.SetAllDirty();
+
+            var outline = textObject.GetComponent<Outline>();
+            outline.effectColor = UiTheme.DarkShadowLight;
+            outline.effectDistance = new Vector2(1f, -1f);
+            return text;
+        }
+
+        private static string FormatRowText(string label, string value)
+        {
+            return label + "：" + (value ?? string.Empty);
+        }
+
+        private static void PlaceRowText(Text text, RectTransform rowRect, float left, float right)
+        {
+            var rect = text.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.sizeDelta = new Vector2(
+                Mathf.Max(1f, rowRect.sizeDelta.x - left - right),
+                rowRect.sizeDelta.y);
+            rect.anchoredPosition = rowRect.anchoredPosition + new Vector2(left, 0f);
+        }
+
+        public InfoModule AddImagePreview(InfoModule module, string label, Texture2D texture)
+        {
+            if (module == null)
+            {
+                return module;
+            }
+
+            if (texture == null)
+            {
+                AddTextRow(module, label, "未找到");
+                return module;
+            }
+
+            var aspect = texture.width / (float)texture.height;
+            var previewWidth = Mathf.Min(HintCardPreviewMaxWidth, HintCardPreviewMaxHeight * aspect);
+            var previewHeight = previewWidth / aspect;
+            var rowHeight = previewHeight + 12f;
+
+            var rowRect = CreateContentItem(module, "Image: " + label, ModuleContentWidth, rowHeight, Vector2.zero);
+
+            var frameObject = new GameObject(label + " Preview Frame", typeof(RectTransform), typeof(Image), typeof(Outline), typeof(LayoutElement));
+            frameObject.transform.SetParent(rowRect, false);
+
+            var frameRect = frameObject.GetComponent<RectTransform>();
+            frameRect.anchorMin = new Vector2(0.5f, 0.5f);
+            frameRect.anchorMax = new Vector2(0.5f, 0.5f);
+            frameRect.pivot = new Vector2(0.5f, 0.5f);
+            frameRect.sizeDelta = new Vector2(previewWidth + 8f, previewHeight + 8f);
+            frameRect.anchoredPosition = Vector2.zero;
+
+            var frameElement = frameObject.GetComponent<LayoutElement>();
+            frameElement.minWidth = previewWidth + 8f;
+            frameElement.preferredWidth = previewWidth + 8f;
+            frameElement.minHeight = previewHeight + 8f;
+            frameElement.preferredHeight = previewHeight + 8f;
+
+            frameObject.GetComponent<Image>().color = UiTheme.ScrollBackground;
+            var frameOutline = frameObject.GetComponent<Outline>();
+            frameOutline.effectColor = UiTheme.GoldOutlineThin;
+            frameOutline.effectDistance = new Vector2(1f, -1f);
+
+            var imageObject = new GameObject(label + " Preview", typeof(RectTransform), typeof(RawImage));
+            imageObject.transform.SetParent(frameRect, false);
+
+            var imageRect = imageObject.GetComponent<RectTransform>();
+            imageRect.anchorMin = new Vector2(0.5f, 0.5f);
+            imageRect.anchorMax = new Vector2(0.5f, 0.5f);
+            imageRect.pivot = new Vector2(0.5f, 0.5f);
+            imageRect.sizeDelta = new Vector2(previewWidth, previewHeight);
+            imageRect.anchoredPosition = Vector2.zero;
+
+            var image = imageObject.GetComponent<RawImage>();
+            image.texture = texture;
+            image.color = Color.white;
 
             RebuildLayout();
             return module;
@@ -357,6 +508,39 @@ namespace YC.Presentation
             LayoutRebuilder.ForceRebuildLayoutImmediate(panelTransform);
         }
 
+        private void RefreshVisibleTextRenderers()
+        {
+            if (contentArea == null || !contentArea.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            RebuildLayout();
+
+            var texts = contentArea.GetComponentsInChildren<Text>(true);
+            for (var i = 0; i < texts.Length; i++)
+            {
+                var text = texts[i];
+                if (text == null || !text.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                if (text.font != null)
+                {
+                    text.material = text.font.material;
+                }
+
+                text.canvasRenderer.cull = false;
+                text.canvasRenderer.SetAlpha(text.color.a);
+                text.FontTextureChanged();
+                text.SetAllDirty();
+            }
+
+            Canvas.ForceUpdateCanvases();
+            pendingTextRefresh = false;
+        }
+
         private void BuildDemoModules()
         {
             var overview = AddModule("玩家概览");
@@ -364,6 +548,9 @@ namespace YC.Presentation
             AddTextRow(overview, "颜色", "蓝色");
             AddTextRow(overview, "剩余影响力", "30");
             AddTextRow(overview, "分数", "0");
+
+            var hintCard = AddModule("提示卡");
+            AddImagePreview(hintCard, "提示卡", Resources.Load<Texture2D>(HintCardResourcePath));
 
             var resources = AddModule("资源状态");
             AddTextRow(resources, "源岩", "0");
@@ -385,8 +572,10 @@ namespace YC.Presentation
             private readonly string title;
             private RectTransform sectionTransform;
             private RectTransform contentTransform;
+            private LayoutElement contentElement;
             private Text titleText;
             private bool isContentVisible = true;
+            private float nextContentY;
 
             public string Title => title;
             public RectTransform ContentRect => contentTransform;
@@ -410,6 +599,22 @@ namespace YC.Presentation
                 titleText.text = (visible ? "▼ " : "▶ ") + title;
             }
 
+            internal float AppendContentItem(float height)
+            {
+                if (contentTransform == null || contentElement == null)
+                {
+                    return 0f;
+                }
+
+                var y = -(ModuleContentTopPadding + nextContentY);
+                nextContentY += height + ModuleContentSpacing;
+                var contentHeight = ModuleContentTopPadding + nextContentY;
+                contentTransform.sizeDelta = new Vector2(ModuleContentWidth, contentHeight);
+                contentElement.minHeight = contentHeight;
+                contentElement.preferredHeight = contentHeight;
+                return y;
+            }
+
             public void ToggleContent()
             {
                 SetContentVisible(!isContentVisible);
@@ -425,21 +630,17 @@ namespace YC.Presentation
                 for (var i = 0; i < contentTransform.childCount; i++)
                 {
                     var row = contentTransform.GetChild(i);
-                    if (!row.name.StartsWith("Row: " + label))
+                    if (!row.name.StartsWith("Value: " + label))
                     {
                         continue;
                     }
 
-                    var valueTransform = row.Find("Value");
-                    if (valueTransform == null)
-                    {
-                        return;
-                    }
-
-                    var text = valueTransform.GetComponent<Text>();
+                    var text = row.GetComponent<Text>();
                     if (text != null)
                     {
-                        text.text = value ?? string.Empty;
+                        text.text = FormatRowText(label, value);
+                        text.FontTextureChanged();
+                        text.SetAllDirty();
                     }
 
                     return;
@@ -506,20 +707,18 @@ namespace YC.Presentation
                 titleButtonRef = titleObject.GetComponent<Button>();
                 titleText = titleTextRef;
 
-                content = new GameObject("Section Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter))
+                content = new GameObject("Section Content", typeof(RectTransform), typeof(LayoutElement))
                     .GetComponent<RectTransform>();
                 content.SetParent(sectionTransform, false);
-                content.sizeDelta = new Vector2(0f, 0f);
+                content.anchorMin = new Vector2(0f, 1f);
+                content.anchorMax = new Vector2(0f, 1f);
+                content.pivot = new Vector2(0f, 1f);
+                content.sizeDelta = new Vector2(ModuleContentWidth, 0f);
 
-                var contentLayout = content.GetComponent<VerticalLayoutGroup>();
-                contentLayout.childAlignment = TextAnchor.UpperLeft;
-                contentLayout.childForceExpandWidth = true;
-                contentLayout.childForceExpandHeight = false;
-                contentLayout.spacing = 2f;
-                contentLayout.padding = new RectOffset(7, 4, 2, 2);
-
-                var contentFitter = content.GetComponent<ContentSizeFitter>();
-                contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+                contentElement = content.GetComponent<LayoutElement>();
+                contentElement.minWidth = ModuleContentWidth;
+                contentElement.preferredWidth = ModuleContentWidth;
+                contentElement.flexibleWidth = 1f;
             }
         }
 

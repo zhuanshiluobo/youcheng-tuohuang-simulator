@@ -11,95 +11,95 @@ namespace YC.Presentation.Maps
             return new List<MapRouteDisplayDefinition>
             {
                 Route("A1", Points("A-01", "A-02"), Slots(
-                    Point(0.816f, 0.358f))),
+                    Slot(0.816f, 0.358f))),
 
                 Route("A2", Points("A-02", "A-03", "B-03"), Slots(
-                    Point(0.697f, 0.587f),
-                    Point(0.717f, 0.587f))),
+                    Slot(0.697f, 0.587f),
+                    Slot(0.717f, 0.587f))),
 
                 Route("B1", Points("A-02", "B-02"), Slots(
-                    Point(0.776f, 0.628f))),
+                    Slot(0.776f, 0.628f))),
 
                 Route("B2", Points("B-01", "B-02", "C-01"), Slots(
-                    Point(0.884f, 0.834f),
-                    Point(0.904f, 0.834f))),
+                    Slot(0.884f, 0.834f),
+                    Slot(0.904f, 0.834f))),
 
                 Route("C1", Points("C-02", "C-03"), Slots(
-                    Point(0.300f, 0.820f))),
+                    Slot(0.300f, 0.820f))),
 
                 Route("C2", Points("B-02", "B-03", "C-01", "C-02"), Slots(
-                    Point(0.662f, 0.823f),
-                    Point(0.681f, 0.823f))),
+                    Slot(0.662f, 0.823f),
+                    Slot(0.681f, 0.823f))),
 
                 Route("D1", Points("A-03", "D-01", "D-02", "D-03"), Slots(
-                    Point(0.578f, 0.387f),
-                    Point(0.597f, 0.387f))),
+                    Slot(0.578f, 0.387f),
+                    Slot(0.597f, 0.387f))),
 
                 Route("D2", Points("D-02", "D-03", "F-02"), Slots(
-                    Point(0.455f, 0.434f),
-                    Point(0.474f, 0.434f))),
+                    Slot(0.455f, 0.434f),
+                    Slot(0.474f, 0.434f))),
 
                 Route("E1", Points("E-01", "E-02", "F-02"), Slots(
-                    Point(0.454f, 0.666f),
-                    Point(0.471f, 0.666f))),
+                    Slot(0.454f, 0.666f),
+                    Slot(0.471f, 0.666f))),
 
                 Route("E2", Points("C-03", "E-02", "E-03"), Slots(
-                    Point(0.196f, 0.690f),
-                    Point(0.213f, 0.690f))),
+                    Slot(0.196f, 0.690f),
+                    Slot(0.213f, 0.690f))),
 
                 Route("F1", Points("D-02", "F-01"), Slots(
-                    Point(0.440f, 0.303f))),
+                    Slot(0.440f, 0.303f))),
 
                 Route("F2", Points("F-01", "F-02"), Slots(
-                    Point(0.324f, 0.439f))),
+                    Slot(0.324f, 0.439f))),
 
                 Route("F3", Points("F-01", "F-03", "G-04"), Slots(
-                    Point(0.184f, 0.312f),
-                    Point(0.202f, 0.312f))),
+                    Slot(0.184f, 0.312f),
+                    Slot(0.202f, 0.312f))),
 
                 Route("G1", Points("G-02", "G-03"), Slots(
-                    Point(0.320f, 0.100f))),
+                    Slot(0.320f, 0.100f))),
 
                 Route("G2", Points("G-03", "G-04"), Slots(
-                    Point(0.180f, 0.244f))),
+                    Slot(0.180f, 0.244f))),
 
                 Route("R1", Points("A-01", "D-01", "G-01", "G-02"), Slots(
-                    Point(0.685f, 0.241f),
-                    Point(0.702f, 0.241f))),
+                    Slot(0.685f, 0.241f),
+                    Slot(0.702f, 0.241f))),
 
                 Route("R2", Points("A-01", "B-01", "G-01"), Slots(
-                    Point(0.913f, 0.354f),
-                    Point(0.932f, 0.354f))),
+                    Slot(0.913f, 0.354f),
+                    Slot(0.932f, 0.354f))),
 
                 Route("R3", Points("C-03", "G-03"), Slots(
-                    Point(0.090f, 0.443f))),
+                    Slot(0.090f, 0.443f))),
 
                 Route("R4", Points("E-03", "F-03"), Slots(
-                    Point(0.181f, 0.497f))),
+                    Slot(0.181f, 0.497f))),
 
                 Route("R5", Points("E-03", "F-02"), Slots(
-                    Point(0.286f, 0.539f))),
+                    Slot(0.286f, 0.539f))),
 
                 Route("R6", Points("A-02", "B-01"), Slots(
-                    Point(0.872f, 0.546f))),
+                    Slot(0.872f, 0.546f))),
 
                 Route("R7", Points("B-03", "D-03", "E-01"), Slots(
-                    Point(0.567f, 0.597f),
-                    Point(0.585f, 0.597f)))
+                    Slot(0.567f, 0.597f),
+                    Slot(0.585f, 0.597f)))
             };
         }
 
         private static MapRouteDisplayDefinition Route(
             string routeId,
             List<Vector2> normalizedPoints,
-            List<Vector2> influenceSlotPositions)
+            List<MapInfluenceSlotDisplayDefinition> influenceSlots)
         {
             return new MapRouteDisplayDefinition
             {
                 MapId = StaticMapDefinitions.FourPlayerMapId,
                 RouteId = routeId,
                 NormalizedPoints = normalizedPoints,
-                InfluenceSlotPositions = influenceSlotPositions
+                InfluenceSlots = influenceSlots
             };
         }
 
@@ -114,9 +114,19 @@ namespace YC.Presentation.Maps
             return points;
         }
 
-        private static List<Vector2> Slots(params Vector2[] points)
+        private static List<MapInfluenceSlotDisplayDefinition> Slots(params MapInfluenceSlotDisplayDefinition[] slots)
         {
-            return new List<Vector2>(points);
+            return new List<MapInfluenceSlotDisplayDefinition>(slots);
+        }
+
+        private static MapInfluenceSlotDisplayDefinition Slot(float x, float y, float size = 1f, float colliderRadius = 0.22f)
+        {
+            return new MapInfluenceSlotDisplayDefinition
+            {
+                NormalizedPosition = new Vector2(x, y),
+                Size = size,
+                ColliderRadius = colliderRadius
+            };
         }
 
         private static Vector2 Point(float x, float y)

@@ -1,5 +1,7 @@
 using YC.Domain.Commands;
 using YC.Domain.Influence;
+using YC.Domain.Rules;
+using YC.Domain.State;
 
 namespace YC.Domain.Movement
 {
@@ -12,6 +14,11 @@ namespace YC.Domain.Movement
         public string RouteId { get; private set; }
         public int RemovedInfluenceCount { get; private set; }
         public InfluenceOperationResult SourceInfluencePlacement { get; private set; }
+        public bool HasEventCard { get; private set; }
+        public string EventCardId { get; private set; }
+        public EventColor EventColor { get; private set; }
+        public int SelectedOptionIndex { get; private set; }
+        public ResourceSet EventReward { get; private set; }
 
         private CityMovementResult(
             bool succeeded,
@@ -20,7 +27,12 @@ namespace YC.Domain.Movement
             string targetLocationId,
             string routeId,
             int removedInfluenceCount,
-            InfluenceOperationResult sourceInfluencePlacement)
+            InfluenceOperationResult sourceInfluencePlacement,
+            bool hasEventCard,
+            string eventCardId,
+            EventColor eventColor,
+            int selectedOptionIndex,
+            ResourceSet eventReward)
         {
             Succeeded = succeeded;
             Validation = validation;
@@ -29,6 +41,11 @@ namespace YC.Domain.Movement
             RouteId = routeId;
             RemovedInfluenceCount = removedInfluenceCount;
             SourceInfluencePlacement = sourceInfluencePlacement;
+            HasEventCard = hasEventCard;
+            EventCardId = eventCardId;
+            EventColor = eventColor;
+            SelectedOptionIndex = selectedOptionIndex;
+            EventReward = eventReward;
         }
 
         public static CityMovementResult Success(
@@ -36,7 +53,12 @@ namespace YC.Domain.Movement
             string targetLocationId,
             string routeId,
             int removedInfluenceCount,
-            InfluenceOperationResult sourceInfluencePlacement)
+            InfluenceOperationResult sourceInfluencePlacement,
+            bool hasEventCard = false,
+            string eventCardId = "",
+            EventColor eventColor = EventColor.Green,
+            int selectedOptionIndex = -1,
+            ResourceSet eventReward = null)
         {
             return new CityMovementResult(
                 true,
@@ -45,12 +67,17 @@ namespace YC.Domain.Movement
                 targetLocationId,
                 routeId,
                 removedInfluenceCount,
-                sourceInfluencePlacement);
+                sourceInfluencePlacement,
+                hasEventCard,
+                eventCardId,
+                eventColor,
+                selectedOptionIndex,
+                eventReward);
         }
 
         public static CityMovementResult Failure(ValidationResult validation)
         {
-            return new CityMovementResult(false, validation, string.Empty, string.Empty, string.Empty, 0, null);
+            return new CityMovementResult(false, validation, string.Empty, string.Empty, string.Empty, 0, null, false, string.Empty, EventColor.Green, -1, null);
         }
     }
 }

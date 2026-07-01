@@ -106,12 +106,13 @@ namespace YC.Presentation.Maps
 
         private void BuildRouteSlots(MapRouteDisplayDefinition definition)
         {
-            var slotRenderers = new List<SpriteRenderer>(definition.InfluenceSlotPositions.Count);
-            for (var i = 0; i < definition.InfluenceSlotPositions.Count; i++)
+            var slotRenderers = new List<SpriteRenderer>(definition.InfluenceSlots.Count);
+            for (var i = 0; i < definition.InfluenceSlots.Count; i++)
             {
                 var slotObject = new GameObject("RouteInfluenceSlot " + definition.RouteId + ":" + i, typeof(SpriteRenderer));
                 slotObject.transform.SetParent(routeRoot, false);
-                slotObject.transform.position = ToWorldPosition(definition.InfluenceSlotPositions[i], slotZ);
+                slotObject.transform.position = ToWorldPosition(definition.InfluenceSlots[i].NormalizedPosition, slotZ);
+                slotObject.transform.localScale = Vector3.one * definition.InfluenceSlots[i].Size;
 
                 var renderer = slotObject.GetComponent<SpriteRenderer>();
                 renderer.sprite = slotSprite;

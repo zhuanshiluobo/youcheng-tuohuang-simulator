@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using YC.Domain.CityStyles;
+using YC.Domain.Facilities;
+using YC.Domain.Rules;
 using YC.Domain.State;
 
 namespace YC.Application.Sessions
@@ -67,7 +70,19 @@ namespace YC.Application.Sessions
             };
 
             AddPlayers(state, localPlayerId, players);
+            InitializeFacilityMarket(state);
+            state.Decks.CityStyleSupply.AddRange(CityStyleDatabase.DefaultSupplyIds);
             return state;
+        }
+
+        private static void InitializeFacilityMarket(GameState state)
+        {
+            state.Decks.FacilityDeck.AddRange(FacilityCardDatabase.DefaultSupplyIds);
+            while (state.Decks.FacilitySupply.Count < 6 && state.Decks.FacilityDeck.Count > 0)
+            {
+                state.Decks.FacilitySupply.Add(state.Decks.FacilityDeck[0]);
+                state.Decks.FacilityDeck.RemoveAt(0);
+            }
         }
 
         private static int GetStartPlayerId(LaunchMode mode, IList<PlayerSeat> players)

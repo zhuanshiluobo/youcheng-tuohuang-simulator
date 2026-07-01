@@ -31,7 +31,7 @@ namespace YC.Domain.Rules
 
         public ResourceSet GetCityMoveBaseCost()
         {
-            return new ResourceSet { OriginiumShard = 0 };
+            return new ResourceSet { OriginiumShard = 3 };
         }
     }
 }

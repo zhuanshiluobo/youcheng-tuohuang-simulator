@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.Cards;
+using YC.Domain.CardFlows;
 using YC.Domain.Commands;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
@@ -17,6 +18,8 @@ namespace YC.Domain.Exploration
         private readonly InfluenceService influenceService;
         private readonly EventDeckService eventDeckService;
         private readonly ResourceTokenService resourceTokenService;
+        private readonly EventEffectResolver eventEffectResolver;
+        private readonly CardFlowService cardFlowService;
 
         public ExplorationService(IMapQueryService mapQuery)
             : this(mapQuery, new InfluenceService(mapQuery), new EventDeckService(), new ResourceTokenService())
@@ -33,6 +36,8 @@ namespace YC.Domain.Exploration
             this.influenceService = influenceService ?? throw new ArgumentNullException(nameof(influenceService));
             this.eventDeckService = eventDeckService ?? throw new ArgumentNullException(nameof(eventDeckService));
             this.resourceTokenService = resourceTokenService ?? throw new ArgumentNullException(nameof(resourceTokenService));
+            eventEffectResolver = new EventEffectResolver(this.mapQuery, this.influenceService);
+            cardFlowService = new CardFlowService();
         }
 
         public ValidationResult CanExplore(
@@ -42,7 +47,9 @@ namespace YC.Domain.Exploration
             MapPath path,
             int selectedOptionIndex,
             string influenceSlotId,
-            IDictionary<string, int> paymentRecipientsByRouteId)
+            IDictionary<string, int> paymentRecipientsByRouteId,
+            IReadOnlyList<string> eventInfluenceSlotIds = null,
+            bool validateEventOption = true)
         {
             if (state == null)
             {
@@ -119,7 +126,12 @@ namespace YC.Domain.Exploration
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "事件牌数据不存在。");
             }
 
-            if (selectedOptionIndex < 0 || selectedOptionIndex >= card.ChoiceRewards.Count)
+            if (card.ChoiceRewards.Count <= 0)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件没有可用选项。");
+            }
+
+            if (validateEventOption && (selectedOptionIndex < 0 || selectedOptionIndex >= card.ChoiceRewards.Count))
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件选项无效。");
             }
@@ -143,156 +155,32 @@ namespace YC.Domain.Exploration
             }
 
             var totalCost = SumPayments(payments);
-            if (player.Resources.GoldVoucher < totalCost)
+            var travelCost = new ResourceSet { GoldVoucher = totalCost };
+            if (!player.Resources.CanPay(travelCost))
             {
                 return ValidationResult.Failure(CommandErrorCode.InsufficientResource, "玩家金券不足，无法支付探索路费。");
+            }
+
+            var resolvedSlotId = ResolveInfluenceSlotId(state, playerId, targetLocationId, influenceSlotId);
+            if (validateEventOption)
+            {
+                var eventEffectValidation = eventEffectResolver.Validate(
+                    state,
+                    playerId,
+                    card.ChoicePendingEffects[selectedOptionIndex],
+                    targetLocationId,
+                    eventInfluenceSlotIds,
+                    new List<string> { resolvedSlotId }.AsReadOnly(),
+                    travelCost);
+                if (!eventEffectValidation.IsValid)
+                {
+                    return eventEffectValidation;
+                }
             }
 
             return ValidationResult.Success;
         }
 
-#if false
-        public ValidationResult CanExplore(
-            GameState state,
-            int playerId,
-            string targetLocationId,
-            MapPath path,
-            int selectedOptionIndex,
-            string influenceSlotId,
-            IDictionary<string, int> paymentRecipientsByRouteId)
-        {
-            if (state == null)
-            {
-                throw new ArgumentNullException(nameof(state));
-            }
-
-            var player = state.FindPlayer(playerId);
-            if (player == null)
-            {
-                return ExplorationResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "探索玩家不存在。"));
-            }
-
-            var resolvedCard = EventCardDatabase.Get(eventCardId);
-            if (resolvedCard == null)
-            {
-                return ExplorationResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件牌不存在。"));
-            }
-
-            if (selectedOptionIndex < 0 || selectedOptionIndex >= resolvedCard.ChoiceRewards.Count)
-            {
-                return ExplorationResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件选项无效。"));
-            }
-
-            /*
-            if (player == null)
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "探索玩家不存在。");
-            }
-
-            var phaseValidation = CommandPhasePolicy.ValidatePhase(state, GameCommandKind.ExploreLocation);
-            if (!phaseValidation.IsValid)
-            {
-                return phaseValidation;
-            }
-
-            if (state.CurrentPlayerId != playerId)
-            {
-                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "当前不是该玩家的行动回合。");
-            }
-
-            if (state.HasPendingChoice())
-            {
-                return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择项再探索。");
-            }
-
-            if (player.ActedMainActionThisTurn)
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "本行动轮已执行过主要行动。");
-            }
-
-            if (string.IsNullOrEmpty(player.CityLocationId))
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidSource, "玩家城市不在场上。");
-            }
-
-            MapLocationDefinition targetLocation;
-            try
-            {
-                targetLocation = mapQuery.GetLocation(targetLocationId);
-            }
-            catch (ArgumentException)
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索目标必须是已知资源点。");
-            }
-
-            if (resourceTokenService.HasResourceToken(state.Map, targetLocationId))
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "已有资源点指示物的位置不能再次探索。");
-            }
-
-            if (!state.Map.OpenLocationIds.Contains(targetLocationId))
-            {
-                return ValidationResult.Failure(CommandErrorCode.ClosedLocation, "目标资源点尚未开放探索。");
-            }
-
-            if (IsRedZoneClosed(state, targetLocation))
-            {
-                return ValidationResult.Failure(CommandErrorCode.ClosedLocation, "红色区域当前回合尚未开放探索。");
-            }
-
-            var pathValidation = ValidatePath(player.CityLocationId, targetLocationId, path);
-            if (!pathValidation.IsValid)
-            {
-                return pathValidation;
-            }
-
-            var eventColor = StaticMapDefinitions.GetEventColor(targetLocationId);
-            if (eventDeckService.RemainingCount(state.Decks, eventColor) <= 0)
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "对应颜色事件牌堆已空。");
-            }
-
-            var card = EventCardDatabase.Get(PeekEventCardId(state.Decks, eventColor));
-            if (card == null)
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "事件牌数据不存在。");
-            }
-
-            if (selectedOptionIndex < 0 || selectedOptionIndex >= card.ChoiceRewards.Count)
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件选项无效。");
-            }
-
-            */
-
-            var slotValidation = ValidateExplorationInfluenceSlot(state, playerId, targetLocationId, influenceSlotId);
-            if (!slotValidation.IsValid)
-            {
-                return slotValidation;
-            }
-
-            List<ExplorationTravelPayment> payments;
-            var paymentValidation = TryBuildPaymentPlan(
-                state,
-                playerId,
-                path,
-                paymentRecipientsByRouteId,
-                out payments);
-            if (!paymentValidation.IsValid)
-            {
-                return paymentValidation;
-            }
-
-            var totalCost = SumPayments(payments);
-            if (player.Resources.GoldVoucher < totalCost)
-            {
-                return ValidationResult.Failure(CommandErrorCode.InsufficientResource, "玩家金券不足，无法支付探索路费。");
-            }
-
-            return ValidationResult.Success;
-        }
-
-#endif
 
         public ExplorationResult Explore(
             GameState state,
@@ -301,7 +189,8 @@ namespace YC.Domain.Exploration
             MapPath path,
             int selectedOptionIndex,
             string influenceSlotId,
-            IDictionary<string, int> paymentRecipientsByRouteId)
+            IDictionary<string, int> paymentRecipientsByRouteId,
+            IReadOnlyList<string> eventInfluenceSlotIds = null)
         {
             var validation = CanExplore(
                 state,
@@ -310,45 +199,36 @@ namespace YC.Domain.Exploration
                 path,
                 selectedOptionIndex,
                 influenceSlotId,
-                paymentRecipientsByRouteId);
+                paymentRecipientsByRouteId,
+                eventInfluenceSlotIds);
             if (!validation.IsValid)
             {
                 return ExplorationResult.Failure(validation);
             }
-
-            var player = state.FindPlayer(playerId);
-            List<ExplorationTravelPayment> payments;
-            TryBuildPaymentPlan(state, playerId, path, paymentRecipientsByRouteId, out payments);
-
-            ApplyPayments(state, player, payments);
-
-            var eventColor = StaticMapDefinitions.GetEventColor(targetLocationId);
-            var cardId = eventDeckService.Draw(state.Decks, eventColor);
-            var card = EventCardDatabase.Get(cardId);
-
-            resourceTokenService.PlaceToken(
-                state.Map,
-                targetLocationId,
-                card.RepresentativeResourceType,
-                card.RepresentativeResourceAmount);
-            MarkLocationOpen(state, targetLocationId);
-
-            var reward = card.ChoiceRewards[selectedOptionIndex].Clone();
-            player.Resources.Add(reward);
-            ApplyPendingEffectText(state, playerId, card.ChoicePendingEffects[selectedOptionIndex]);
-
-            var resolvedSlotId = ResolveInfluenceSlotId(state, playerId, targetLocationId, influenceSlotId);
-            var influencePlacement = influenceService.Place(state, playerId, resolvedSlotId);
+            var flowResult = cardFlowService.ExecuteImmediate(
+                state,
+                new CardFlowExecuteRequest
+                {
+                    PlayerId = playerId,
+                    TargetId = targetLocationId,
+                    OptionIndex = selectedOptionIndex,
+                    Arguments = BuildCardFlowArguments(path, influenceSlotId, paymentRecipientsByRouteId, eventInfluenceSlotIds)
+                },
+                new ExploreEventCardScenario(this));
+            if (!flowResult.Succeeded)
+            {
+                return ExplorationResult.Failure(flowResult.Validation);
+            }
 
             return ExplorationResult.Success(
                 path.LocationIds[0],
                 targetLocationId,
-                cardId,
-                eventColor,
+                flowResult.Card.CardId,
+                flowResult.Card.Color,
                 selectedOptionIndex,
-                reward,
-                payments.AsReadOnly(),
-                influencePlacement);
+                flowResult.Reward,
+                new List<ExplorationTravelPayment>().AsReadOnly(),
+                flowResult.PrimaryInfluencePlacement);
         }
 
         public ExplorationResult BeginExploreEvent(
@@ -357,46 +237,46 @@ namespace YC.Domain.Exploration
             string targetLocationId,
             MapPath path,
             string influenceSlotId,
-            IDictionary<string, int> paymentRecipientsByRouteId)
+            IDictionary<string, int> paymentRecipientsByRouteId,
+            string sourceCommandId = null)
         {
             var validation = CanExplore(
                 state,
                 playerId,
                 targetLocationId,
                 path,
-                0,
+                -1,
                 influenceSlotId,
-                paymentRecipientsByRouteId);
+                paymentRecipientsByRouteId,
+                null,
+                false);
             if (!validation.IsValid)
             {
                 return ExplorationResult.Failure(validation);
             }
-
-            var player = state.FindPlayer(playerId);
-            List<ExplorationTravelPayment> payments;
-            TryBuildPaymentPlan(state, playerId, path, paymentRecipientsByRouteId, out payments);
-
-            ApplyPayments(state, player, payments);
-
-            var eventColor = StaticMapDefinitions.GetEventColor(targetLocationId);
-            var cardId = eventDeckService.Draw(state.Decks, eventColor);
-            var card = EventCardDatabase.Get(cardId);
-
-            resourceTokenService.PlaceToken(
-                state.Map,
-                targetLocationId,
-                card.RepresentativeResourceType,
-                card.RepresentativeResourceAmount);
-            MarkLocationOpen(state, targetLocationId);
+            var flowResult = cardFlowService.StartPendingChoice(
+                state,
+                new CardFlowStartRequest
+                {
+                    PlayerId = playerId,
+                    TargetId = targetLocationId,
+                    SourceCommandId = sourceCommandId,
+                    Arguments = BuildCardFlowArguments(path, influenceSlotId, paymentRecipientsByRouteId, null)
+                },
+                new ExploreEventCardScenario(this));
+            if (!flowResult.Succeeded)
+            {
+                return ExplorationResult.Failure(flowResult.Validation);
+            }
 
             return ExplorationResult.Success(
                 path.LocationIds[0],
                 targetLocationId,
-                cardId,
-                eventColor,
+                flowResult.Card.CardId,
+                flowResult.Card.Color,
                 -1,
                 null,
-                payments.AsReadOnly(),
+                new List<ExplorationTravelPayment>().AsReadOnly(),
                 null);
         }
 
@@ -406,7 +286,84 @@ namespace YC.Domain.Exploration
             string targetLocationId,
             string eventCardId,
             int selectedOptionIndex,
-            string influenceSlotId)
+            string influenceSlotId,
+            IReadOnlyList<string> eventInfluenceSlotIds = null)
+        {
+            var flowResult = cardFlowService.ResolvePendingChoice(
+                state,
+                new CardFlowResolveRequest
+                {
+                    PlayerId = playerId,
+                    SessionId = state.PendingCardSession == null ? string.Empty : state.PendingCardSession.SessionId,
+                    OptionIndex = selectedOptionIndex,
+                    Arguments = BuildCardFlowArguments(null, influenceSlotId, null, eventInfluenceSlotIds)
+                },
+                new ExploreEventCardScenario(this));
+            if (!flowResult.Succeeded)
+            {
+                return ExplorationResult.Failure(flowResult.Validation);
+            }
+
+            return ExplorationResult.Success(
+                string.Empty,
+                targetLocationId,
+                flowResult.Card.CardId,
+                flowResult.Card.Color,
+                selectedOptionIndex,
+                flowResult.Reward,
+                new List<ExplorationTravelPayment>().AsReadOnly(),
+                flowResult.PrimaryInfluencePlacement);
+        }
+
+        internal ValidationResult RevealExploreCard(
+            GameState state,
+            int playerId,
+            string targetLocationId,
+            MapPath path,
+            IDictionary<string, int> paymentRecipientsByRouteId,
+            EventCardDefinition card)
+        {
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            if (card == null)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件牌不存在。");
+            }
+
+            var player = state.FindPlayer(playerId);
+            if (player == null)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "探索玩家不存在。");
+            }
+
+            List<ExplorationTravelPayment> payments;
+            var paymentValidation = TryBuildPaymentPlan(state, playerId, path, paymentRecipientsByRouteId, out payments);
+            if (!paymentValidation.IsValid)
+            {
+                return paymentValidation;
+            }
+
+            ApplyPayments(state, player, payments);
+            resourceTokenService.PlaceToken(
+                state.Map,
+                targetLocationId,
+                card.RepresentativeResourceType,
+                card.RepresentativeResourceAmount);
+            MarkLocationOpen(state, targetLocationId);
+            return ValidationResult.Success;
+        }
+
+        internal ValidationResult ValidateResolvedExploreOption(
+            GameState state,
+            int playerId,
+            string targetLocationId,
+            EventCardDefinition card,
+            int selectedOptionIndex,
+            string influenceSlotId,
+            IReadOnlyList<string> eventInfluenceSlotIds)
         {
             if (state == null)
             {
@@ -416,37 +373,78 @@ namespace YC.Domain.Exploration
             var player = state.FindPlayer(playerId);
             if (player == null)
             {
-                return ExplorationResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "探索玩家不存在。"));
+                return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "探索玩家不存在。");
             }
 
-            var card = EventCardDatabase.Get(eventCardId);
             if (card == null)
             {
-                return ExplorationResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件牌不存在。"));
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件牌不存在。");
             }
 
             if (selectedOptionIndex < 0 || selectedOptionIndex >= card.ChoiceRewards.Count)
             {
-                return ExplorationResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件选项无效。"));
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件选项无效。");
             }
 
             var slotValidation = ValidateExplorationInfluenceSlot(state, playerId, targetLocationId, influenceSlotId);
             if (!slotValidation.IsValid)
             {
-                return ExplorationResult.Failure(slotValidation);
+                return slotValidation;
             }
 
+            var resolvedSlotId = ResolveInfluenceSlotId(state, playerId, targetLocationId, influenceSlotId);
+            return eventEffectResolver.Validate(
+                state,
+                playerId,
+                card.ChoicePendingEffects[selectedOptionIndex],
+                targetLocationId,
+                eventInfluenceSlotIds,
+                new List<string> { resolvedSlotId }.AsReadOnly());
+        }
+
+        internal ExplorationResult ApplyExploreOption(
+            GameState state,
+            int playerId,
+            string targetLocationId,
+            EventCardDefinition card,
+            int selectedOptionIndex,
+            string influenceSlotId,
+            IReadOnlyList<string> eventInfluenceSlotIds)
+        {
+            var validation = ValidateResolvedExploreOption(
+                state,
+                playerId,
+                targetLocationId,
+                card,
+                selectedOptionIndex,
+                influenceSlotId,
+                eventInfluenceSlotIds);
+            if (!validation.IsValid)
+            {
+                return ExplorationResult.Failure(validation);
+            }
+
+            var player = state.FindPlayer(playerId);
             var reward = card.ChoiceRewards[selectedOptionIndex].Clone();
             player.Resources.Add(reward);
-            ApplyPendingEffectText(state, playerId, card.ChoicePendingEffects[selectedOptionIndex]);
 
             var resolvedSlotId = ResolveInfluenceSlotId(state, playerId, targetLocationId, influenceSlotId);
             var influencePlacement = influenceService.Place(state, playerId, resolvedSlotId);
+            var eventEffectResult = eventEffectResolver.Apply(
+                state,
+                playerId,
+                card.ChoicePendingEffects[selectedOptionIndex],
+                targetLocationId,
+                eventInfluenceSlotIds);
+            if (!eventEffectResult.Succeeded)
+            {
+                return ExplorationResult.Failure(eventEffectResult.Validation);
+            }
 
             return ExplorationResult.Success(
                 string.Empty,
                 targetLocationId,
-                eventCardId,
+                card.CardId,
                 card.Color,
                 selectedOptionIndex,
                 reward,
@@ -454,62 +452,6 @@ namespace YC.Domain.Exploration
                 influencePlacement);
         }
 
-#if false
-        public ExplorationResult ResolveExploreEvent(
-            GameState state,
-            int playerId,
-            string targetLocationId,
-            string eventCardId,
-            int selectedOptionIndex,
-            string influenceSlotId)
-        {
-            if (state == null)
-            {
-                throw new ArgumentNullException(nameof(state));
-            }
-
-            var player = state.FindPlayer(playerId);
-            if (player == null)
-            {
-                return ExplorationResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "鎺㈢储鐜╁涓嶅瓨鍦ㄣ€?));
-            }
-
-            var card = EventCardDatabase.Get(eventCardId);
-            if (card == null)
-            {
-                return ExplorationResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "浜嬩欢鐗屾暟鎹笉瀛樺湪銆?));
-            }
-
-            if (selectedOptionIndex < 0 || selectedOptionIndex >= card.ChoiceRewards.Count)
-            {
-                return ExplorationResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "鎺㈢储浜嬩欢閫夐」鏃犳晥銆?));
-            }
-
-            var slotValidation = ValidateExplorationInfluenceSlot(state, playerId, targetLocationId, influenceSlotId);
-            if (!slotValidation.IsValid)
-            {
-                return ExplorationResult.Failure(slotValidation);
-            }
-
-            var reward = card.ChoiceRewards[selectedOptionIndex].Clone();
-            player.Resources.Add(reward);
-            ApplyPendingEffectText(state, playerId, card.ChoicePendingEffects[selectedOptionIndex]);
-
-            var resolvedSlotId = ResolveInfluenceSlotId(state, playerId, targetLocationId, influenceSlotId);
-            var influencePlacement = influenceService.Place(state, playerId, resolvedSlotId);
-
-            return ExplorationResult.Success(
-                string.Empty,
-                targetLocationId,
-                eventCardId,
-                resolvedCard.Color,
-                selectedOptionIndex,
-                reward,
-                new List<ExplorationTravelPayment>().AsReadOnly(),
-                influencePlacement);
-        }
-
-#endif
 
         public MapPath FindDefaultPath(GameState state, int playerId, string targetLocationId)
         {
@@ -530,48 +472,11 @@ namespace YC.Domain.Exploration
                 return new List<MapPath>().AsReadOnly();
             }
 
-            var pathSearch = new MapPathSearchService(mapQuery);
-            var shortestPath = pathSearch.FindShortestPath(player.CityLocationId, targetLocationId);
-            var shortestPaths = pathSearch.EnumerateSimplePaths(
+            return FindMinimumPaymentPathChoices(
+                state,
+                playerId,
                 player.CityLocationId,
-                targetLocationId,
-                shortestPath.StepCount);
-
-            var bestPaths = new List<MapPath>();
-            var hasBestScore = false;
-            var bestScore = new DefaultPathPaymentScore();
-            for (var i = 0; i < shortestPaths.Count; i++)
-            {
-                var candidate = shortestPaths[i];
-                if (candidate.StepCount != shortestPath.StepCount)
-                {
-                    continue;
-                }
-
-                var candidateScore = GetDefaultPathPaymentScore(state, playerId, candidate);
-                if (IsBetterDefaultPathScore(candidateScore, bestScore))
-                {
-                    bestPaths.Clear();
-                    bestPaths.Add(candidate);
-                    bestScore = candidateScore;
-                    hasBestScore = true;
-                    continue;
-                }
-
-                if (!hasBestScore || IsSameDefaultPathScore(candidateScore, bestScore))
-                {
-                    bestPaths.Add(candidate);
-                    bestScore = candidateScore;
-                    hasBestScore = true;
-                }
-            }
-
-            if (bestPaths.Count <= 0)
-            {
-                bestPaths.Add(shortestPath);
-            }
-
-            return bestPaths.AsReadOnly();
+                targetLocationId).AsReadOnly();
         }
 
         private ValidationResult ValidatePath(string sourceLocationId, string targetLocationId, MapPath path)
@@ -691,12 +596,14 @@ namespace YC.Domain.Exploration
             for (var i = 0; i < path.RouteIds.Count; i++)
             {
                 var routeId = path.RouteIds[i];
-                if (HasRouteInfluenceOwnedBy(state, routeId, playerId))
+                var paymentKey = GetRoutePaymentKey(routeId);
+                if (PaymentPlanContainsPaymentKey(payments, paymentKey) ||
+                    HasRoutePaymentKeyInfluenceOwnedBy(state, paymentKey, playerId))
                 {
                     continue;
                 }
 
-                var opponentOwners = GetOpponentInfluenceOwnersOnRoute(state, routeId, playerId);
+                var opponentOwners = GetOpponentInfluenceOwnersOnRoutePaymentKey(state, paymentKey, playerId);
                 var receiverPlayerId = -1;
                 if (opponentOwners.Count > 0)
                 {
@@ -747,49 +654,11 @@ namespace YC.Domain.Exploration
             }
         }
 
-        private static void ApplyPendingEffectText(GameState state, int playerId, string pendingEffect)
-        {
-            if (string.IsNullOrEmpty(pendingEffect))
-            {
-                return;
-            }
-
-            var player = state.FindPlayer(playerId);
-            if (pendingEffect.Contains("获得 1 分数"))
-            {
-                player.Score += 1;
-            }
-
-            if (pendingEffect.Contains("所有对手获得 3 金券"))
-            {
-                GrantOpponents(state, playerId, ResourceType.GoldVoucher, 3);
-            }
-
-            if (pendingEffect.Contains("所有对手获得 1 异铁"))
-            {
-                GrantOpponents(state, playerId, ResourceType.Iron, 1);
-            }
-        }
-
         private static void MarkLocationOpen(GameState state, string locationId)
         {
             if (!state.Map.OpenLocationIds.Contains(locationId))
             {
                 state.Map.OpenLocationIds.Add(locationId);
-            }
-        }
-
-        private static void GrantOpponents(GameState state, int playerId, ResourceType type, int amount)
-        {
-            for (var i = 0; i < state.Players.Count; i++)
-            {
-                var opponent = state.Players[i];
-                if (opponent.PlayerId == playerId)
-                {
-                    continue;
-                }
-
-                opponent.Resources.Set(type, opponent.Resources.Get(type) + amount);
             }
         }
 
@@ -807,6 +676,20 @@ namespace YC.Domain.Exploration
             return false;
         }
 
+        private bool HasRoutePaymentKeyInfluenceOwnedBy(GameState state, string paymentKey, int playerId)
+        {
+            for (var i = 0; i < state.Map.Influences.Count; i++)
+            {
+                var influence = state.Map.Influences[i];
+                if (influence.PlayerId == playerId && IsInfluenceOnRoutePaymentKey(influence, paymentKey))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private DefaultPathPaymentScore GetDefaultPathPaymentScore(GameState state, int playerId, MapPath path)
         {
             var score = new DefaultPathPaymentScore();
@@ -815,16 +698,21 @@ namespace YC.Domain.Exploration
                 return score;
             }
 
+            var paidPaymentKeys = new List<string>();
             for (var i = 0; i < path.RouteIds.Count; i++)
             {
                 var routeId = path.RouteIds[i];
-                if (HasRouteInfluenceOwnedBy(state, routeId, playerId))
+                var paymentKey = GetRoutePaymentKey(routeId);
+                score.StepCount += 1;
+                if (paidPaymentKeys.Contains(paymentKey) ||
+                    HasRoutePaymentKeyInfluenceOwnedBy(state, paymentKey, playerId))
                 {
                     continue;
                 }
 
+                paidPaymentKeys.Add(paymentKey);
                 score.TollRouteCount += 1;
-                if (GetOpponentInfluenceOwnersOnRoute(state, routeId, playerId).Count > 0)
+                if (GetOpponentInfluenceOwnersOnRoutePaymentKey(state, paymentKey, playerId).Count > 0)
                 {
                     score.OpponentTollRouteCount += 1;
                 }
@@ -835,18 +723,212 @@ namespace YC.Domain.Exploration
 
         private static bool IsBetterDefaultPathScore(DefaultPathPaymentScore candidate, DefaultPathPaymentScore current)
         {
+            if (candidate.TollRouteCount != current.TollRouteCount)
+            {
+                return candidate.TollRouteCount < current.TollRouteCount;
+            }
+
             if (candidate.OpponentTollRouteCount != current.OpponentTollRouteCount)
             {
                 return candidate.OpponentTollRouteCount < current.OpponentTollRouteCount;
             }
 
-            return candidate.TollRouteCount < current.TollRouteCount;
+            return candidate.StepCount < current.StepCount;
         }
 
         private static bool IsSameDefaultPathScore(DefaultPathPaymentScore left, DefaultPathPaymentScore right)
         {
             return left.OpponentTollRouteCount == right.OpponentTollRouteCount &&
-                   left.TollRouteCount == right.TollRouteCount;
+                   left.TollRouteCount == right.TollRouteCount &&
+                   left.StepCount == right.StepCount;
+        }
+
+        private List<MapPath> FindMinimumPaymentPathChoices(
+            GameState state,
+            int playerId,
+            string fromLocationId,
+            string toLocationId)
+        {
+            mapQuery.GetLocation(fromLocationId);
+            mapQuery.GetLocation(toLocationId);
+
+            var open = new List<DefaultPathSearchNode>
+            {
+                new DefaultPathSearchNode
+                {
+                    LocationId = fromLocationId,
+                    Path = new MapPath { LocationIds = new List<string> { fromLocationId } },
+                    PaidPaymentKeys = new List<string>(),
+                    Score = new DefaultPathPaymentScore()
+                }
+            };
+            var bestScoresByState = new Dictionary<string, DefaultPathPaymentScore>();
+            bestScoresByState[BuildPathSearchStateKey(fromLocationId, open[0].PaidPaymentKeys)] = open[0].Score;
+
+            var bestPaths = new List<MapPath>();
+            var hasBestScore = false;
+            var bestScore = new DefaultPathPaymentScore();
+
+            while (open.Count > 0)
+            {
+                var nodeIndex = FindBestOpenPathNodeIndex(open);
+                var node = open[nodeIndex];
+                open.RemoveAt(nodeIndex);
+
+                if (node.LocationId == toLocationId)
+                {
+                    if (!hasBestScore || IsBetterDefaultPathScore(node.Score, bestScore))
+                    {
+                        bestPaths.Clear();
+                        bestPaths.Add(ClonePath(node.Path));
+                        bestScore = node.Score;
+                        hasBestScore = true;
+                        continue;
+                    }
+
+                    if (IsSameDefaultPathScore(node.Score, bestScore))
+                    {
+                        bestPaths.Add(ClonePath(node.Path));
+                    }
+
+                    continue;
+                }
+
+                if (hasBestScore && !CanStillMatchBestScore(node.Score, bestScore))
+                {
+                    continue;
+                }
+
+                var adjacentLocations = mapQuery.GetAdjacentLocations(node.LocationId);
+                for (var i = 0; i < adjacentLocations.Count; i++)
+                {
+                    var nextLocationId = adjacentLocations[i].LocationId;
+                    if (node.Path.LocationIds.Contains(nextLocationId))
+                    {
+                        continue;
+                    }
+
+                    var route = mapQuery.FindRoute(node.LocationId, nextLocationId);
+                    var nextNode = BuildNextPathSearchNode(state, playerId, node, nextLocationId, route.RouteId);
+                    var stateKey = BuildPathSearchStateKey(nextNode.LocationId, nextNode.PaidPaymentKeys);
+                    if (bestScoresByState.TryGetValue(stateKey, out var existingScore) &&
+                        !IsBetterDefaultPathScore(nextNode.Score, existingScore))
+                    {
+                        continue;
+                    }
+
+                    bestScoresByState[stateKey] = nextNode.Score;
+                    open.Add(nextNode);
+                }
+            }
+
+            if (bestPaths.Count <= 0)
+            {
+                throw new ArgumentException("No path exists between the supplied locations.");
+            }
+
+            return bestPaths;
+        }
+
+        private DefaultPathSearchNode BuildNextPathSearchNode(
+            GameState state,
+            int playerId,
+            DefaultPathSearchNode current,
+            string nextLocationId,
+            string routeId)
+        {
+            var nextPath = ClonePath(current.Path);
+            nextPath.LocationIds.Add(nextLocationId);
+            nextPath.RouteIds.Add(routeId);
+
+            var paidPaymentKeys = new List<string>(current.PaidPaymentKeys);
+            var score = current.Score;
+            score.StepCount += 1;
+
+            var paymentKey = GetRoutePaymentKey(routeId);
+            if (!paidPaymentKeys.Contains(paymentKey) &&
+                !HasRoutePaymentKeyInfluenceOwnedBy(state, paymentKey, playerId))
+            {
+                paidPaymentKeys.Add(paymentKey);
+                score.TollRouteCount += 1;
+                if (GetOpponentInfluenceOwnersOnRoutePaymentKey(state, paymentKey, playerId).Count > 0)
+                {
+                    score.OpponentTollRouteCount += 1;
+                }
+            }
+
+            return new DefaultPathSearchNode
+            {
+                LocationId = nextLocationId,
+                Path = nextPath,
+                PaidPaymentKeys = paidPaymentKeys,
+                Score = score
+            };
+        }
+
+        private static int FindBestOpenPathNodeIndex(IReadOnlyList<DefaultPathSearchNode> nodes)
+        {
+            var bestIndex = 0;
+            for (var i = 1; i < nodes.Count; i++)
+            {
+                if (IsBetterDefaultPathScore(nodes[i].Score, nodes[bestIndex].Score))
+                {
+                    bestIndex = i;
+                }
+            }
+
+            return bestIndex;
+        }
+
+        private static bool CanStillMatchBestScore(DefaultPathPaymentScore partial, DefaultPathPaymentScore best)
+        {
+            if (partial.TollRouteCount != best.TollRouteCount)
+            {
+                return partial.TollRouteCount < best.TollRouteCount;
+            }
+
+            if (partial.OpponentTollRouteCount != best.OpponentTollRouteCount)
+            {
+                return partial.OpponentTollRouteCount < best.OpponentTollRouteCount;
+            }
+
+            return partial.StepCount < best.StepCount;
+        }
+
+        private static string BuildPathSearchStateKey(string locationId, List<string> paidPaymentKeys)
+        {
+            var sortedKeys = new List<string>(paidPaymentKeys);
+            sortedKeys.Sort(StringComparer.Ordinal);
+
+            var key = locationId ?? string.Empty;
+            for (var i = 0; i < sortedKeys.Count; i++)
+            {
+                key += "|" + sortedKeys[i];
+            }
+
+            return key;
+        }
+
+        private static MapPath ClonePath(MapPath source)
+        {
+            return new MapPath
+            {
+                LocationIds = new List<string>(source.LocationIds),
+                RouteIds = new List<string>(source.RouteIds)
+            };
+        }
+
+        private bool PaymentPlanContainsPaymentKey(IReadOnlyList<ExplorationTravelPayment> payments, string paymentKey)
+        {
+            for (var i = 0; i < payments.Count; i++)
+            {
+                if (GetRoutePaymentKey(payments[i].RouteId) == paymentKey)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private List<int> GetOpponentInfluenceOwnersOnRoute(GameState state, string routeId, int playerId)
@@ -856,6 +938,26 @@ namespace YC.Domain.Exploration
             {
                 var influence = state.Map.Influences[i];
                 if (influence.PlayerId == playerId || !IsInfluenceOnRoute(influence, routeId))
+                {
+                    continue;
+                }
+
+                if (!owners.Contains(influence.PlayerId))
+                {
+                    owners.Add(influence.PlayerId);
+                }
+            }
+
+            return owners;
+        }
+
+        private List<int> GetOpponentInfluenceOwnersOnRoutePaymentKey(GameState state, string paymentKey, int playerId)
+        {
+            var owners = new List<int>();
+            for (var i = 0; i < state.Map.Influences.Count; i++)
+            {
+                var influence = state.Map.Influences[i];
+                if (influence.PlayerId == playerId || !IsInfluenceOnRoutePaymentKey(influence, paymentKey))
                 {
                     continue;
                 }
@@ -881,6 +983,46 @@ namespace YC.Domain.Exploration
             return InfluenceSlotReference.TryParse(mapQuery, influence.SlotId, out slot, out reason) &&
                    slot.Kind == InfluenceSlotKind.Route &&
                    slot.RouteId == routeId;
+        }
+
+        private bool IsInfluenceOnRoutePaymentKey(InfluencePlacement influence, string paymentKey)
+        {
+            if (!string.IsNullOrEmpty(influence.RouteId) &&
+                GetRoutePaymentKey(influence.RouteId) == paymentKey)
+            {
+                return true;
+            }
+
+            InfluenceSlotReference slot;
+            string reason;
+            return InfluenceSlotReference.TryParse(mapQuery, influence.SlotId, out slot, out reason) &&
+                   slot.Kind == InfluenceSlotKind.Route &&
+                   GetRoutePaymentKey(slot.RouteId) == paymentKey;
+        }
+
+        private string GetRoutePaymentKey(string routeId)
+        {
+            var route = mapQuery.GetRoute(routeId);
+            if (!string.IsNullOrEmpty(route.RegionId) && IsRoutePaymentRegion(route.RegionId))
+            {
+                return route.RegionId;
+            }
+
+            return route.RouteId;
+        }
+
+        private bool IsRoutePaymentRegion(string regionId)
+        {
+            for (var i = 0; i < mapQuery.Map.Regions.Count; i++)
+            {
+                var region = mapQuery.Map.Regions[i];
+                if (region.RegionId == regionId)
+                {
+                    return region.LocationIds != null && region.LocationIds.Count > 0;
+                }
+            }
+
+            return false;
         }
 
         private InfluencePlacement FindInfluenceAtSlot(GameState state, string slotId)
@@ -941,51 +1083,81 @@ namespace YC.Domain.Exploration
             return route.FromLocationId == locationId || route.ToLocationId == locationId;
         }
 
-        private static bool IsRedZoneClosed(GameState state, MapLocationDefinition location)
+        private bool IsRedZoneClosed(GameState state, MapLocationDefinition location)
         {
-            if (!location.IsRedZone)
-            {
-                return false;
-            }
-
-            return state.Round < GetRedZoneOpenRound(state.Players.Count);
-        }
-
-        private static int GetRedZoneOpenRound(int playerCount)
-        {
-            if (playerCount <= 2)
-            {
-                return 6;
-            }
-
-            return playerCount == 3 ? 5 : 4;
+            return RedZoneAccessRule.IsClosed(state, mapQuery.Map, location);
         }
 
         private static string PeekEventCardId(DeckRuntimeState decks, EventColor color)
         {
-            List<string> targetDeck;
-            switch (color)
+            return new EventDeckService().Peek(decks, color);
+        }
+
+        private static List<StringKeyValuePair> BuildCardFlowArguments(
+            MapPath path,
+            string influenceSlotId,
+            IDictionary<string, int> paymentRecipientsByRouteId,
+            IReadOnlyList<string> eventInfluenceSlotIds)
+        {
+            var result = new List<StringKeyValuePair>();
+            if (path != null)
             {
-                case EventColor.Green:
-                    targetDeck = decks.EventDeckGreen;
-                    break;
-                case EventColor.Yellow:
-                    targetDeck = decks.EventDeckYellow;
-                    break;
-                case EventColor.Red:
-                    targetDeck = decks.EventDeckRed;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(color), color, null);
+                CardFlowArgumentUtility.SetValue(result, ExploreEventCardScenario.PathLocationIdsArgument, JoinIds(path.LocationIds));
+                CardFlowArgumentUtility.SetValue(result, ExploreEventCardScenario.RouteIdsArgument, JoinIds(path.RouteIds));
             }
 
-            return targetDeck[targetDeck.Count - 1];
+            if (!string.IsNullOrEmpty(influenceSlotId))
+            {
+                CardFlowArgumentUtility.SetValue(result, ExploreEventCardScenario.InfluenceSlotIdArgument, influenceSlotId);
+            }
+
+            if (paymentRecipientsByRouteId != null && paymentRecipientsByRouteId.Count > 0)
+            {
+                var encoded = string.Empty;
+                foreach (var entry in paymentRecipientsByRouteId)
+                {
+                    if (!string.IsNullOrEmpty(encoded))
+                    {
+                        encoded += ";";
+                    }
+
+                    encoded += entry.Key + "=" + entry.Value;
+                }
+
+                CardFlowArgumentUtility.SetValue(result, ExploreEventCardScenario.PaymentRecipientsArgument, encoded);
+            }
+
+            if (eventInfluenceSlotIds != null && eventInfluenceSlotIds.Count > 0)
+            {
+                CardFlowArgumentUtility.SetValue(result, ExploreEventCardScenario.EventInfluenceSlotIdsArgument, JoinIds(eventInfluenceSlotIds));
+            }
+
+            return result;
+        }
+
+        private static string JoinIds(IReadOnlyList<string> ids)
+        {
+            if (ids == null || ids.Count <= 0)
+            {
+                return string.Empty;
+            }
+
+            return string.Join(",", ids);
         }
 
         private struct DefaultPathPaymentScore
         {
             public int OpponentTollRouteCount;
             public int TollRouteCount;
+            public int StepCount;
+        }
+
+        private sealed class DefaultPathSearchNode
+        {
+            public string LocationId;
+            public MapPath Path;
+            public List<string> PaidPaymentKeys;
+            public DefaultPathPaymentScore Score;
         }
     }
 }

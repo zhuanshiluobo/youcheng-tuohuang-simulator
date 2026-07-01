@@ -27,7 +27,7 @@ namespace YC.Domain.Rules
                 }
 
                 order.Sort();
-                return order;
+                return RotateOrder(order, state.StartPlayerId).AsReadOnly();
             }
 
             var startIndex = 0;
@@ -47,6 +47,27 @@ namespace YC.Domain.Rules
             }
 
             return order;
+        }
+
+        private static List<int> RotateOrder(List<int> order, int startPlayerId)
+        {
+            var startIndex = 0;
+            for (var i = 0; i < order.Count; i++)
+            {
+                if (order[i] == startPlayerId)
+                {
+                    startIndex = i;
+                    break;
+                }
+            }
+
+            var rotated = new List<int>();
+            for (var offset = 0; offset < order.Count; offset++)
+            {
+                rotated.Add(order[(startIndex + offset) % order.Count]);
+            }
+
+            return rotated;
         }
     }
 }

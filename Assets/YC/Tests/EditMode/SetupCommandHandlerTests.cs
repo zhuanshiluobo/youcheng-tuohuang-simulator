@@ -191,7 +191,7 @@ namespace YC.Tests.EditMode
         {
             var state = CreateFourPlayerState(GamePhase.Entrance);
             state.UseSeatTurnOrder = true;
-            state.StartPlayerId = 2;
+            state.StartPlayerId = 1;
             state.CurrentPlayerId = 1;
             var handler = CreateFourPlayerHandler();
 
@@ -241,6 +241,12 @@ namespace YC.Tests.EditMode
             var handler = CreateFourPlayerHandler();
 
             var placeResult = handler.Handle(state, InitialLocationCommand(1, "G-01"));
+            Assert.That(state.PendingCardSession, Is.Not.Null);
+            Assert.That(state.PendingCardSession.ChoiceType, Is.EqualTo("entrance_event"));
+            Assert.That(state.PendingCardSession.CardId, Is.EqualTo("event_green_01"));
+            Assert.That(state.PendingCardSession.TargetId, Is.EqualTo("G-01"));
+            state.PendingChoice = null;
+
             var resolveResult = handler.Handle(state, EntranceEventCommand(1, "0"));
 
             Assert.That(placeResult.Succeeded, Is.True);
@@ -249,6 +255,7 @@ namespace YC.Tests.EditMode
             Assert.That(resolveResult.Succeeded, Is.True);
             Assert.That(resolveResult.LogMessage, Does.Contain("中立采石场"));
             Assert.That(state.PendingChoice, Is.Null);
+            Assert.That(state.PendingCardSession, Is.Null);
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(3));
             Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
             Assert.That(state.Map.ResourceTokens, Has.Count.EqualTo(1));
@@ -266,16 +273,24 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void EventCardDatabase_StoresUnimplementedChoiceEffectsAsPendingText()
+        public void EventCardDatabase_StoresChoicePendingEffectsAsStructuredData()
         {
             var scoreCard = EventCardDatabase.Get("event_yellow_01");
-            Assert.That(scoreCard.ChoicePendingEffects[1], Does.Contain("分数"));
+            Assert.That(scoreCard.ChoicePendingEffects[1], Has.Count.EqualTo(1));
+            Assert.That(scoreCard.ChoicePendingEffects[1][0].Kind, Is.EqualTo(EventEffectKind.GainScore));
+            Assert.That(scoreCard.ChoicePendingEffects[1][0].Amount, Is.EqualTo(1));
 
             var routeCard = EventCardDatabase.Get("event_yellow_05");
-            Assert.That(routeCard.ChoicePendingEffects[0], Does.Contain("航道"));
+            Assert.That(routeCard.ChoicePendingEffects[0], Has.Count.EqualTo(1));
+            Assert.That(routeCard.ChoicePendingEffects[0][0].Kind, Is.EqualTo(EventEffectKind.PlaceInfluence));
+            Assert.That(routeCard.ChoicePendingEffects[0][0].TargetScope, Is.EqualTo(EventEffectTargetScope.AdjacentRoute));
 
             var opponentRewardCard = EventCardDatabase.Get("event_red_05");
-            Assert.That(opponentRewardCard.ChoicePendingEffects[2], Does.Contain("所有对手"));
+            Assert.That(opponentRewardCard.ChoicePendingEffects[2], Has.Count.EqualTo(1));
+            Assert.That(opponentRewardCard.ChoicePendingEffects[2][0].Kind, Is.EqualTo(EventEffectKind.GrantResource));
+            Assert.That(opponentRewardCard.ChoicePendingEffects[2][0].TargetScope, Is.EqualTo(EventEffectTargetScope.Opponents));
+            Assert.That(opponentRewardCard.ChoicePendingEffects[2][0].ResourceType, Is.EqualTo(ResourceType.GoldVoucher));
+            Assert.That(opponentRewardCard.ChoicePendingEffects[2][0].Amount, Is.EqualTo(3));
         }
 
         [Test]

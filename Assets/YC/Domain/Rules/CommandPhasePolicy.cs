@@ -33,7 +33,6 @@ namespace YC.Domain.Rules
                 case GameCommandKind.EndAction:
                     return phase == GamePhase.ActionRound1
                         || phase == GamePhase.ActionRound2
-                        || phase == GamePhase.ResourceCollection
                         || phase == GamePhase.Cleanup;
                 default:
                     return false;

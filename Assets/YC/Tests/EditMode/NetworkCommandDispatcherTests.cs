@@ -262,6 +262,37 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void ApplyConfirmedCommand_WhenSnapshotHasDefaultPendingChoice_ClearsInvalidPendingChoice()
+        {
+            var session = new GameSession(new GameState());
+            var dispatcher = new AuthoritativeCommandDispatcher(session);
+
+            var result = dispatcher.ApplyConfirmedCommand(new ConfirmedGameCommandDto
+            {
+                Sequence = 1,
+                Command = new GameCommandDto
+                {
+                    CommandId = "cmd-clears-invalid-pending-choice",
+                    Kind = GameCommandKind.EndAction,
+                    PlayerId = 2
+                },
+                State = new GameState
+                {
+                    Phase = GamePhase.ActionRound1,
+                    Round = 1,
+                    ActionRound = 1,
+                    CurrentPlayerId = 2,
+                    PendingChoice = new PendingChoiceState()
+                }
+            });
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(session.State.PendingChoice, Is.Null);
+            Assert.That(session.State.HasPendingChoice(), Is.False);
+            Assert.That(session.State.CurrentPlayerId, Is.EqualTo(2));
+        }
+
+        [Test]
         public void EventDeckService_WithSameSeed_InitializesSameDeckOrder()
         {
             var hostDecks = new DeckRuntimeState();

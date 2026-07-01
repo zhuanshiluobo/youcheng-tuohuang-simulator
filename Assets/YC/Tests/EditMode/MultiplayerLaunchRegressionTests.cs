@@ -16,6 +16,8 @@ namespace YC.Tests.EditMode
         public void HostLaunch_WithAllFourSeats_UsesOneTwoThreeFourForEntranceAndBothActionRounds()
         {
             var seats = CreateJoinedSeats();
+            Assert.That(GameLaunchStateFactory.ContainsPlayer(seats, -1), Is.False);
+
             var localPlayerId = GameLaunchStateFactory.ResolveHostLocalPlayerId(
                 -1,
                 1,
@@ -31,6 +33,7 @@ namespace YC.Tests.EditMode
             var setupHandler = new SetupCommandHandler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
 
             Assert.That(localPlayerId, Is.EqualTo(1));
+            Assert.That(GameLaunchStateFactory.ContainsPlayer(seats, localPlayerId), Is.True);
             Assert.That(state.UseSeatTurnOrder, Is.True);
             Assert.That(state.StartPlayerId, Is.EqualTo(1));
             Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
@@ -44,6 +47,91 @@ namespace YC.Tests.EditMode
             Assert.That(state.ActionRound, Is.EqualTo(1));
             AssertActionRoundOrder(state, GamePhase.ActionRound1, GamePhase.ActionRound2, 2);
             AssertActionRoundOrder(state, GamePhase.ActionRound2, GamePhase.ResourceCollection, 0);
+            EndResourceCollectionAndCleanup(state);
+            Assert.That(state.Round, Is.EqualTo(2));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
+            Assert.That(state.ActionRound, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void HostLaunch_FourPlayers_AdvancesToRound4AndSynchronizesRedZoneAndRoundTrack()
+        {
+            var map = StaticMapDefinitions.CreateFourPlayerMap();
+            var state = CreatePlacedFourPlayerState(map);
+
+            Assert.That(RedZoneAccessRule.GetOpenRound(map, state.Players.Count), Is.EqualTo(4));
+            Assert.That(RoundTrackRule.GetRoundIndex(state), Is.EqualTo(1));
+
+            AdvanceFullRound(state);
+            Assert.That(state.Round, Is.EqualTo(2));
+            Assert.That(RoundTrackRule.GetRoundIndex(state), Is.EqualTo(2));
+
+            AdvanceFullRound(state);
+            Assert.That(state.Round, Is.EqualTo(3));
+            Assert.That(RoundTrackRule.GetRoundIndex(state), Is.EqualTo(3));
+            AssertRedZoneClosed(state, map, true);
+
+            AdvanceFullRound(state);
+            Assert.That(state.Round, Is.EqualTo(4));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
+            Assert.That(state.ActionRound, Is.EqualTo(1));
+            Assert.That(state.StartPlayerId, Is.EqualTo(4));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(4));
+            Assert.That(RoundTrackRule.GetRoundIndex(state), Is.EqualTo(4));
+            AssertRedZoneClosed(state, map, false);
+        }
+
+        [Test]
+        public void HostLaunch_FourPlayers_EndsOnlyAfterRound8Cleanup()
+        {
+            var map = StaticMapDefinitions.CreateFourPlayerMap();
+            var state = CreatePlacedFourPlayerState(map);
+            var roundAdvanceService = new RoundAdvanceService();
+
+            for (var round = 1; round < state.MaxRounds; round++)
+            {
+                AdvanceFullRound(state);
+            }
+
+            Assert.That(state.Round, Is.EqualTo(8));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
+            Assert.That(state.ActionRound, Is.EqualTo(1));
+            Assert.That(RoundTrackRule.GetRoundIndex(state), Is.EqualTo(8));
+
+            roundAdvanceService.CompleteMainAction(state, 4);
+            roundAdvanceService.CompleteMainAction(state, 1);
+            roundAdvanceService.CompleteMainAction(state, 2);
+            roundAdvanceService.CompleteMainAction(state, 3);
+
+            Assert.That(state.Round, Is.EqualTo(8));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound2));
+            Assert.That(state.ActionRound, Is.EqualTo(2));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(4));
+            Assert.That(RoundTrackRule.GetRoundIndex(state), Is.EqualTo(8));
+
+            roundAdvanceService.CompleteMainAction(state, 4);
+            roundAdvanceService.CompleteMainAction(state, 1);
+            roundAdvanceService.CompleteMainAction(state, 2);
+
+            Assert.That(state.Round, Is.EqualTo(8));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound2));
+            Assert.That(state.ActionRound, Is.EqualTo(2));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(3));
+            Assert.That(RoundTrackRule.GetRoundIndex(state), Is.EqualTo(8));
+
+            roundAdvanceService.CompleteMainAction(state, 3);
+
+            Assert.That(state.Round, Is.EqualTo(8));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ResourceCollection));
+            Assert.That(state.ActionRound, Is.EqualTo(0));
+            Assert.That(RoundTrackRule.GetRoundIndex(state), Is.EqualTo(8));
+
+            EndResourceCollectionAndCleanup(state);
+
+            Assert.That(state.Round, Is.EqualTo(8));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.FinalScoring));
+            Assert.That(state.ActionRound, Is.EqualTo(0));
+            Assert.That(RoundTrackRule.GetRoundIndex(state), Is.EqualTo(RoundTrackRule.FinalIndex));
         }
 
         private static List<PlayerSeat> CreateJoinedSeats()
@@ -55,6 +143,30 @@ namespace YC.Tests.EditMode
                 CreateSeat(3, PlayerColor.Green),
                 CreateSeat(4, PlayerColor.Yellow)
             };
+        }
+
+        private static GameState CreatePlacedFourPlayerState(GameMapDefinition map)
+        {
+            var seats = CreateJoinedSeats();
+            var localPlayerId = GameLaunchStateFactory.ResolveHostLocalPlayerId(
+                -1,
+                1,
+                true,
+                seats);
+
+            var state = GameLaunchStateFactory.CreateInitialState(
+                LaunchMode.Host,
+                localPlayerId,
+                seats,
+                StaticMapDefinitions.FourPlayerMapId,
+                EventDeckService.DefaultSeed);
+            var setupHandler = new SetupCommandHandler(new MapQueryService(map));
+
+            AssertInitialPlacement(setupHandler, state, 1, "G-01", 2, GamePhase.Entrance);
+            AssertInitialPlacement(setupHandler, state, 2, "A-01", 3, GamePhase.Entrance);
+            AssertInitialPlacement(setupHandler, state, 3, "A-02", 4, GamePhase.Entrance);
+            AssertInitialPlacement(setupHandler, state, 4, "B-01", 1, GamePhase.ActionRound1);
+            return state;
         }
 
         private static PlayerSeat CreateSeat(int playerId, PlayerColor color)
@@ -107,21 +219,57 @@ namespace YC.Tests.EditMode
             int expectedEndingActionRound)
         {
             var roundAdvanceService = new RoundAdvanceService();
+            var order = new List<int>(new TurnOrderService().GetTurnOrder(state));
 
             Assert.That(state.Phase, Is.EqualTo(expectedStartingPhase));
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(order[0]));
 
-            roundAdvanceService.CompleteMainAction(state, 1);
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
-            roundAdvanceService.CompleteMainAction(state, 2);
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(3));
-            roundAdvanceService.CompleteMainAction(state, 3);
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(4));
-            roundAdvanceService.CompleteMainAction(state, 4);
+            for (var i = 0; i < order.Count; i++)
+            {
+                roundAdvanceService.CompleteMainAction(state, order[i]);
+                if (i < order.Count - 1)
+                {
+                    Assert.That(state.CurrentPlayerId, Is.EqualTo(order[i + 1]));
+                }
+            }
 
             Assert.That(state.Phase, Is.EqualTo(expectedEndingPhase));
             Assert.That(state.ActionRound, Is.EqualTo(expectedEndingActionRound));
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(order[0]));
+        }
+
+        private static void AdvanceFullRound(GameState state)
+        {
+            AssertActionRoundOrder(state, GamePhase.ActionRound1, GamePhase.ActionRound2, 2);
+            AssertActionRoundOrder(state, GamePhase.ActionRound2, GamePhase.ResourceCollection, 0);
+            EndResourceCollectionAndCleanup(state);
+        }
+
+        private static void EndResourceCollectionAndCleanup(GameState state)
+        {
+            var roundAdvanceService = new RoundAdvanceService();
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                state.Players[i].HasCollectedResourcesThisRound = true;
+            }
+
+            roundAdvanceService.AdvanceResourceCollectionToCleanup(state);
+            var result = roundAdvanceService.EndCompletedAction(state, state.CurrentPlayerId);
+            Assert.That(result.IsValid, Is.True, result.Reason);
+        }
+
+        private static void AssertRedZoneClosed(GameState state, GameMapDefinition map, bool expectedClosed)
+        {
+            var mapQuery = new MapQueryService(map);
+            foreach (var locationId in StaticMapDefinitions.FourPlayerRedZoneLocationIds)
+            {
+                var location = mapQuery.GetLocation(locationId);
+                Assert.That(location, Is.Not.Null, locationId);
+                Assert.That(
+                    RedZoneAccessRule.IsClosed(state, map, location),
+                    Is.EqualTo(expectedClosed),
+                    locationId);
+            }
         }
     }
 }

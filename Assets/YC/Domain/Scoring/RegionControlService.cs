@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.State;
 
@@ -7,10 +8,12 @@ namespace YC.Domain.Scoring
     public sealed class RegionControlService
     {
         private readonly IMapQueryService mapQuery;
+        private readonly InfluenceQueryService influenceQuery;
 
         public RegionControlService(IMapQueryService mapQuery)
         {
             this.mapQuery = mapQuery ?? throw new System.ArgumentNullException(nameof(mapQuery));
+            influenceQuery = new InfluenceQueryService(mapQuery);
         }
 
         public IReadOnlyList<RegionControlResult> Evaluate(GameState state)
@@ -19,28 +22,7 @@ namespace YC.Domain.Scoring
 
             foreach (var region in mapQuery.Map.Regions)
             {
-                var influenceCounts = new Dictionary<int, int>();
-
-                foreach (var locationId in region.LocationIds)
-                {
-                    foreach (var influence in state.Map.Influences)
-                    {
-                        if (influence.LocationId != locationId) continue;
-                        if (!influenceCounts.ContainsKey(influence.PlayerId))
-                            influenceCounts[influence.PlayerId] = 0;
-                        influenceCounts[influence.PlayerId]++;
-                    }
-
-                    foreach (var player in state.Players)
-                    {
-                        if (player.CityLocationId == locationId)
-                        {
-                            if (!influenceCounts.ContainsKey(player.PlayerId))
-                                influenceCounts[player.PlayerId] = 0;
-                            influenceCounts[player.PlayerId] += 2;
-                        }
-                    }
-                }
+                var influenceCounts = influenceQuery.CountAllPlayersInRegion(state, region.RegionId, true);
 
                 int? controllerId = null;
                 var maxCount = 0;

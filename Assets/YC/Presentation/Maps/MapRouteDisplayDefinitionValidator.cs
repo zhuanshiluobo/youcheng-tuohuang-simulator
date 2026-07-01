@@ -75,19 +75,19 @@ namespace YC.Presentation.Maps
                     errors.Add("Route " + definition.RouteId + " must define at least two normalized points.");
                 }
 
-                if (definition.InfluenceSlotPositions == null)
+                if (definition.InfluenceSlots == null)
                 {
-                    errors.Add("Route " + definition.RouteId + " must define influence slot positions.");
+                    errors.Add("Route " + definition.RouteId + " must define influence slots.");
                 }
-                else if (definition.InfluenceSlotPositions.Count != route.InfluenceSlotCount)
+                else if (definition.InfluenceSlots.Count != route.InfluenceSlotCount)
                 {
                     errors.Add(
-                        "Route " + definition.RouteId + " has " + definition.InfluenceSlotPositions.Count +
+                        "Route " + definition.RouteId + " has " + definition.InfluenceSlots.Count +
                         " display slots but rules require " + route.InfluenceSlotCount + ".");
                 }
 
                 ValidatePoints(definition.RouteId, "route point", definition.NormalizedPoints, errors);
-                ValidatePoints(definition.RouteId, "influence slot", definition.InfluenceSlotPositions, errors);
+                ValidateInfluenceSlots(definition.RouteId, definition.InfluenceSlots, errors);
             }
 
             for (var i = 0; i < map.Routes.Count; i++)
@@ -119,6 +119,43 @@ namespace YC.Presentation.Maps
                 if (point.x < 0f || point.x > 1f || point.y < 0f || point.y > 1f)
                 {
                     errors.Add("Route " + routeId + " " + label + " " + i + " is outside normalized map bounds.");
+                }
+            }
+        }
+
+        private static void ValidateInfluenceSlots(
+            string routeId,
+            IReadOnlyList<MapInfluenceSlotDisplayDefinition> slots,
+            List<string> errors)
+        {
+            if (slots == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < slots.Count; i++)
+            {
+                var slot = slots[i];
+                if (slot == null)
+                {
+                    errors.Add("Route " + routeId + " influence slot " + i + " is null.");
+                    continue;
+                }
+
+                var position = slot.NormalizedPosition;
+                if (position.x < 0f || position.x > 1f || position.y < 0f || position.y > 1f)
+                {
+                    errors.Add("Route " + routeId + " influence slot " + i + " is outside normalized map bounds.");
+                }
+
+                if (slot.Size <= 0f)
+                {
+                    errors.Add("Route " + routeId + " influence slot " + i + " must have a positive size.");
+                }
+
+                if (slot.ColliderRadius <= 0f)
+                {
+                    errors.Add("Route " + routeId + " influence slot " + i + " must have a positive collider radius.");
                 }
             }
         }

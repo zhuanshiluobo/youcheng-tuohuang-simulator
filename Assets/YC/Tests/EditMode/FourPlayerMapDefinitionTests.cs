@@ -26,9 +26,9 @@ namespace YC.Tests.EditMode
         {
             var map = StaticMapDefinitions.CreateFourPlayerMap();
 
-            Assert.That(map.Locations.Select(location => location.LocationId).Distinct(), Has.Count.EqualTo(22));
-            Assert.That(map.Routes.Select(route => route.RouteId).Distinct(), Has.Count.EqualTo(22));
-            Assert.That(map.Regions.Select(region => region.RegionId).Distinct(), Has.Count.EqualTo(8));
+            Assert.That(map.Locations.Select(location => location.LocationId).Distinct().Count(), Is.EqualTo(22));
+            Assert.That(map.Routes.Select(route => route.RouteId).Distinct().Count(), Is.EqualTo(22));
+            Assert.That(map.Regions.Select(region => region.RegionId).Distinct().Count(), Is.EqualTo(8));
         }
 
         [Test]

@@ -197,12 +197,12 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.services.authentication": {
-      "version": "3.3.3",
+      "version": "2.7.4",
       "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1",
-        "com.unity.services.core": "1.13.0",
+        "com.unity.services.core": "1.12.5",
         "com.unity.modules.unitywebrequest": "1.0.0",
         "com.unity.ugui": "1.0.0"
       },

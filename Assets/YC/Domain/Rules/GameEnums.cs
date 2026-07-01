@@ -38,14 +38,6 @@ namespace YC.Domain.Rules
         Red
     }
 
-    public enum CardType
-    {
-        Character,
-        Event,
-        Facility,
-        CityStyle
-    }
-
     public enum GameCommandKind
     {
         ChooseStartPlayer,
