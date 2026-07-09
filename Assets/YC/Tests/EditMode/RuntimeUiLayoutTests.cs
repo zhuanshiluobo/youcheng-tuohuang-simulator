@@ -4,6 +4,8 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
+using YC.Application.Sessions;
+using YC.Domain.State;
 
 namespace YC.Tests.EditMode
 {
@@ -25,6 +27,10 @@ namespace YC.Tests.EditMode
             DestroyNamedObject("Info Panel Canvas");
             DestroyNamedObject("Mobile City UI Canvas");
             DestroyNamedObject("Rulebook Viewer Canvas");
+            DestroyNamedObject("Shared Rulebook Viewer Canvas");
+            DestroyNamedObject("Hint Card Viewer Canvas");
+            DestroyNamedObject("Settings Menu Canvas");
+            DestroyNamedObject("Action Log Viewer Canvas");
             DestroyNamedObject("EventSystem");
         }
 
@@ -32,10 +38,11 @@ namespace YC.Tests.EditMode
         public void ActionPanel_IsDockedToBottomRightWithoutHintCardRail()
         {
             var canvas = CreateCanvas("Action Panel Test Canvas");
-            BuildActionPanel(canvas);
+            var controller = BuildActionPanel(canvas);
 
             var actionPanel = FindTransform("Action Panel");
             var hintPanel = FindTransform("Hint Card Panel");
+            var influenceText = FindTransform("Remaining Influence Text");
 
             Assert.That(actionPanel, Is.Not.Null);
             Assert.That(actionPanel.anchorMin, Is.EqualTo(new Vector2(1f, 0f)));
@@ -44,6 +51,11 @@ namespace YC.Tests.EditMode
             Assert.That(actionPanel.sizeDelta, Is.EqualTo(new Vector2(360f, 488f)));
             Assert.That(actionPanel.anchoredPosition, Is.EqualTo(Vector2.zero));
             Assert.That(hintPanel, Is.Null);
+            Assert.That(influenceText, Is.Not.Null);
+            Assert.That(influenceText.GetComponent<Text>().text, Is.EqualTo("× 0"));
+
+            InvokePublic(controller, "SetRemainingInfluence", 17);
+            Assert.That(influenceText.GetComponent<Text>().text, Is.EqualTo("× 17"));
         }
 
         [Test]
@@ -73,7 +85,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void InfoPanel_KeepsHintCardPreviewModule()
+        public void InfoPanel_DoesNotContainRemovedModules()
         {
             var type = Type.GetType("YC.Presentation.ExpandableInfoPanel, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.ExpandableInfoPanel.");
@@ -83,7 +95,9 @@ namespace YC.Tests.EditMode
             InvokePublic(controller, "Initialize", owner.transform);
 
             var modules = GetPublicProperty<System.Collections.IEnumerable>(controller, "Modules");
-            Assert.That(HasModuleTitle(modules, "提示卡"), Is.True);
+            Assert.That(HasModuleTitle(modules, "提示卡"), Is.False);
+            Assert.That(HasModuleTitle(modules, "玩家概览"), Is.False);
+            Assert.That(HasModuleTitle(modules, "城市与行动"), Is.False);
 
             var panel = FindTransform("Sidebar Panel");
             Assert.That(panel, Is.Not.Null);
@@ -150,6 +164,84 @@ namespace YC.Tests.EditMode
             var label = closeButton.GetComponentInChildren<Text>(true);
             Assert.That(label, Is.Not.Null);
             Assert.That(label.text, Is.EqualTo("×"));
+        }
+
+        [Test]
+        public void SettingsMenu_InGamePlacesLogHintAndGearButtonsWithMatchingSizeAndGap()
+        {
+            var type = Type.GetType("YC.Presentation.GameSettingsMenuController, Assembly-CSharp", false);
+            Assert.That(type, Is.Not.Null);
+
+            owner = new GameObject("Settings Menu Layout Test");
+            var controller = owner.AddComponent(type);
+            EnsureAwakeRan(controller, "canvasTransform");
+
+            var hint = FindTransform("Hint Card Button");
+            var gear = FindTransform("Settings Gear Button");
+            var configure = type.GetMethod("ConfigureActionLog", BindingFlags.Instance | BindingFlags.Public);
+            configure.Invoke(controller, new object[] { new GameSession(new GameState()) });
+            var log = FindTransform("Action Log Button");
+            Assert.That(hint, Is.Not.Null);
+            Assert.That(gear, Is.Not.Null);
+            Assert.That(log, Is.Not.Null);
+            Assert.That(hint.sizeDelta, Is.EqualTo(new Vector2(64f, 64f)));
+            Assert.That(log.sizeDelta, Is.EqualTo(gear.sizeDelta));
+            Assert.That(hint.anchoredPosition.y, Is.EqualTo(gear.anchoredPosition.y).Within(0.01f));
+            Assert.That(gear.anchoredPosition.x - hint.anchoredPosition.x - 64f, Is.EqualTo(12.8f).Within(0.01f));
+            Assert.That(hint.anchoredPosition.x - log.anchoredPosition.x - 64f, Is.EqualTo(12.8f).Within(0.01f));
+            Assert.That(FindTransform("Hint Bubble Icon"), Is.Not.Null);
+        }
+
+        [Test]
+        public void SettingsMenu_OnStartPageDoesNotCreateActionLogButton()
+        {
+            var type = Type.GetType("YC.Presentation.GameSettingsMenuController, Assembly-CSharp", false);
+            owner = new GameObject("Start Page Settings Layout Test");
+            var controller = owner.AddComponent(type);
+            EnsureAwakeRan(controller, "canvasTransform");
+
+            InvokePublic(controller, "SetReturnToStartButtonVisible", false);
+
+            Assert.That(FindTransform("Action Log Button"), Is.Null);
+            Assert.That(FindTransform("Hint Card Button"), Is.Not.Null);
+            Assert.That(FindTransform("Settings Gear Button"), Is.Not.Null);
+        }
+
+        [Test]
+        public void ZoomableImageViewer_ProvidesReusableZoomDragAndCloseSurface()
+        {
+            var type = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", false);
+            Assert.That(type, Is.Not.Null);
+
+            owner = new GameObject("Reusable Image Viewer Test");
+            var controller = owner.AddComponent(type);
+            var texture = new Texture2D(100, 200);
+            var configure = type.GetMethod("Configure", BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(configure, Is.Not.Null);
+            configure.Invoke(controller, new object[] { "Test Image", "测试图片", 1, new Func<int, Texture2D>(_ => texture) });
+            InvokePublic(controller, "Open", 0);
+
+            var viewport = FindTransform("Test Image Viewport");
+            var footer = FindTransform("Test Image Page Label");
+            Assert.That(viewport, Is.Not.Null);
+            Assert.That(footer, Is.Not.Null);
+            Assert.That(footer.gameObject.activeSelf, Is.False);
+            var scrollRect = viewport.GetComponent<ScrollRect>();
+            Assert.That(scrollRect, Is.Not.Null);
+            Assert.That(scrollRect.horizontal, Is.True);
+            Assert.That(scrollRect.vertical, Is.True);
+            Assert.That(
+                viewport.rect.width / viewport.rect.height,
+                Is.EqualTo((float)texture.width / texture.height).Within(0.001f));
+
+            InvokePublic(controller, "SetZoom", 2f);
+            var zoomProperty = type.GetProperty("Zoom", BindingFlags.Instance | BindingFlags.Public);
+            Assert.That((float)zoomProperty.GetValue(controller, null), Is.EqualTo(2f).Within(0.001f));
+
+            InvokePublic(controller, "Close");
+            var openProperty = type.GetProperty("IsOpen", BindingFlags.Instance | BindingFlags.Public);
+            Assert.That((bool)openProperty.GetValue(controller, null), Is.False);
+            Object.DestroyImmediate(texture);
         }
 
         private static Canvas CreateCanvas(string name)

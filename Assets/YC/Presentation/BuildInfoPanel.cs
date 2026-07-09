@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YC.Domain.CityStyles;
 using YC.Domain.Facilities;
@@ -9,6 +10,36 @@ using YC.Domain.State;
 
 namespace YC.Presentation
 {
+    internal sealed class ExternalCardClickHandler : MonoBehaviour, IPointerClickHandler
+    {
+        private Button button;
+        private Action singleClick;
+        private Action doubleClick;
+
+        public void Configure(Button configuredButton, Action configuredSingleClick, Action configuredDoubleClick)
+        {
+            button = configuredButton;
+            singleClick = configuredSingleClick;
+            doubleClick = configuredDoubleClick;
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (button == null || !button.IsInteractable() || eventData == null)
+            {
+                return;
+            }
+
+            if (eventData.clickCount >= 2)
+            {
+                doubleClick?.Invoke();
+                return;
+            }
+
+            singleClick?.Invoke();
+        }
+    }
+
     public sealed class BuildInfoPanel : MonoBehaviour
     {
         private const float ExpandedWidth = 520f;
@@ -29,12 +60,36 @@ namespace YC.Presentation
         private const float CityBoardSourceHeight = 3801f;
         private const float CityBoardSlotWidthRatio = 0.292f;
         private const float CityBoardSlotHeightRatio = 0.205f;
-        private const string CityBoardImageRelativePath = "游城拓荒/素材/城市面板.png";
+        private const string CityBoardImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Boards/city_board.png";
+        private const float ExternalCardFramePadding = 6f;
+        private const float ExternalCardAreaLeft = 72f;
+        private const float ExternalCardAreaWidth = 365f;/*区域部分*/
+        private const float ExternalFacilityAreaTop = 17f;
+        private const float ExternalFacilityAreaHeight = 323f;
+        private const float ExternalFacilityCardWidth = 99f;
+        private const float ExternalFacilityCardHeight = 141f;
+        private const float ExternalFacilityCardHorizontalSpacing = 25f;
+        private const float ExternalFacilityCardVerticalSpacing = 22f;
+        private const int ExternalFacilityColumnCount = 3;
+        private const int ExternalFacilitySlotCount = 6;/*建设卡部分*/
+        private const float ExternalCityStyleLeftPadding = 20f;
+        private const float ExternalCityStyleAreaTop = 340f;
+        private const float ExternalCityStyleAreaHeight = 330f;
+        private const float ExternalCityStyleCardWidth = 143f;
+        private const float ExternalCityStyleCardHeight = 91f;
+        private const float ExternalCityStyleCardHorizontalSpacing = 40f;
+        private const float ExternalCityStyleCardVerticalSpacing = 20f;/*样式卡部分*/
+        private const int ExternalCityStyleColumnCount = 2;
         private static readonly Color UsedCityBoardSlotBackground = new Color(0.42f, 0.12f, 0.055f, 0.98f);
         private static readonly Color UsedCityBoardSlotOutline = new Color(1f, 0.55f, 0.16f, 0.95f);
         private static readonly Color UsedCityBoardSlotBadgeBackground = new Color(0.62f, 0.08f, 0.05f, 0.96f);
         private static readonly Color OccupiedCityBoardSlotBackground = new Color(0.18f, 0.105f, 0.055f, 0.82f);
         private static readonly Color InvisibleCityBoardSlotColor = new Color(1f, 1f, 1f, 0f);
+        private static readonly Color ExternalCardFrameBackground = new Color(0.08f, 0.06f, 0.035f, 0.42f);
+        private static readonly Color ExternalCardFrameOutline = new Color(0.78f, 0.63f, 0.38f, 0.72f);
+        private static readonly Color ExternalCardBackground = new Color(0.09f, 0.07f, 0.045f, 0.72f);
+        private static readonly Color ExternalCardNormalOutline = new Color(0.78f, 0.63f, 0.38f, 0.72f);
+        private static readonly Color ExternalCardSelectedOutline = new Color(1f, 0.82f, 0.22f, 1f);
         private static readonly Vector2[] CityBoardSlotCenters =
         {
             new Vector2(0.176f, 0.162f),
@@ -52,9 +107,16 @@ namespace YC.Presentation
         };
 
         private readonly List<RectTransform> dynamicItems = new List<RectTransform>();
+        private readonly List<ExternalCardBinding> facilityCardBindings = new List<ExternalCardBinding>();
+        private readonly List<ExternalCardBinding> cityStyleCardBindings = new List<ExternalCardBinding>();
+        private static readonly Dictionary<string, Texture2D> FacilityCardTextures = new Dictionary<string, Texture2D>();
+        private static readonly Dictionary<string, Texture2D> CityStyleCardTextures = new Dictionary<string, Texture2D>();
+        private static readonly Dictionary<string, Texture2D> TexturePathCache = new Dictionary<string, Texture2D>();
         private RectTransform panelTransform;
         private RectTransform contentArea;
         private RectTransform scrollContent;
+        private RectTransform externalFacilityArea;
+        private RectTransform externalCityStyleArea;
         private Text toggleButtonText;
         private bool initialized;
         private bool isExpanded;
@@ -63,10 +125,21 @@ namespace YC.Presentation
         private string selectedFacilityId = string.Empty;
         private string selectedCityStyleId = string.Empty;
         private Text statusText;
+        private ZoomableImageViewerController cardImageViewer;
 
         public event Action<string> FacilityClicked;
         public event Action<string> CityStyleClicked;
         public event Action<int> CityBoardSlotClicked;
+
+        private sealed class ExternalCardBinding
+        {
+            public string Id = string.Empty;
+            public string Label = string.Empty;
+            public Button Button;
+            public Outline Outline;
+            public RawImage CardImage;
+            public Text FallbackText;
+        }
 
         private void Awake()
         {
@@ -96,6 +169,16 @@ namespace YC.Presentation
             }
 
             RebuildContent();
+        }
+
+        public void SetExpanded(bool expand)
+        {
+            if (!initialized)
+            {
+                Initialize(transform);
+            }
+
+            SetExpandedImmediate(expand);
         }
 
         private void Toggle()
@@ -129,6 +212,68 @@ namespace YC.Presentation
 
             BuildToggleButton(panelTransform);
             BuildContentArea(panelTransform);
+            BuildExternalCardAreas(parent);
+        }
+
+        private void BuildExternalCardAreas(Transform parent)
+        {
+            externalFacilityArea = CreateExternalCardArea(
+                parent,
+                "External Facility Supply Area",
+                ExternalCardAreaLeft,
+                ExternalFacilityAreaTop,
+                ExternalCardAreaWidth,
+                ExternalFacilityAreaHeight);
+
+            externalCityStyleArea = CreateExternalCardArea(
+                parent,
+                "External City Style Area",
+                ExternalCardAreaLeft,
+                ExternalCityStyleAreaTop,
+                ExternalCardAreaWidth,
+                ExternalCityStyleAreaHeight);
+
+            BuildExternalFacilitySlots();
+        }
+
+        private static float CalculateExternalCardAreaWidth(int columnCount, float cardWidth, float horizontalSpacing)
+        {
+            return ExternalCardFramePadding * 2f +
+                   columnCount * cardWidth +
+                   Mathf.Max(0, columnCount - 1) * horizontalSpacing;
+        }
+
+        private static float CalculateExternalCardAreaHeight(int rowCount, float cardHeight, float verticalSpacing)
+        {
+            return ExternalCardFramePadding * 2f +
+                   rowCount * cardHeight +
+                   Mathf.Max(0, rowCount - 1) * verticalSpacing;
+        }
+
+        private static RectTransform CreateExternalCardArea(
+            Transform parent,
+            string name,
+            float left,
+            float top,
+            float width,
+            float height)
+        {
+            var area = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Outline)).GetComponent<RectTransform>();
+            area.SetParent(parent, false);
+            area.anchorMin = new Vector2(0f, 1f);
+            area.anchorMax = new Vector2(0f, 1f);
+            area.pivot = new Vector2(0f, 1f);
+            area.sizeDelta = new Vector2(width, height);
+            area.anchoredPosition = new Vector2(left, -top);
+
+            var image = area.GetComponent<Image>();
+            image.color = ExternalCardFrameBackground;
+            image.raycastTarget = false;
+
+            var outline = area.GetComponent<Outline>();
+            outline.effectColor = ExternalCardFrameOutline;
+            outline.effectDistance = new Vector2(1f, -1f);
+            return area;
         }
 
         private void BuildToggleButton(RectTransform parent)
@@ -236,10 +381,11 @@ namespace YC.Presentation
         private void RebuildContent()
         {
             ClearDynamicItems();
+            ClearExternalCityStyleCards();
             AddStatusRow();
             AddCityBoardSection();
-            AddFacilitySupplySection();
-            AddCityStyleSection();
+            RebuildExternalFacilityCards();
+            RebuildExternalCityStyleCards();
             AddPlayerDeclarationsSection();
             RebuildLayout();
         }
@@ -262,6 +408,383 @@ namespace YC.Presentation
             }
 
             dynamicItems.Clear();
+        }
+
+        private void ClearExternalCityStyleCards()
+        {
+            cityStyleCardBindings.Clear();
+            ClearChildren(externalCityStyleArea);
+        }
+
+        private static void ClearChildren(RectTransform parent)
+        {
+            if (parent == null)
+            {
+                return;
+            }
+
+            for (var i = parent.childCount - 1; i >= 0; i--)
+            {
+                var child = parent.GetChild(i);
+                if (UnityEngine.Application.isPlaying)
+                {
+                    Destroy(child.gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(child.gameObject);
+                }
+            }
+        }
+
+        private void RebuildExternalFacilityCards()
+        {
+            if (externalFacilityArea == null)
+            {
+                return;
+            }
+
+            var count = currentState == null
+                ? 0
+                : Mathf.Min(ExternalFacilitySlotCount, currentState.Decks.FacilitySupply.Count);
+            for (var i = 0; i < facilityCardBindings.Count; i++)
+            {
+                var binding = facilityCardBindings[i];
+                if (i >= count)
+                {
+                    BindExternalFacilitySlot(binding, string.Empty, string.Empty, null);
+                    continue;
+                }
+
+                var facilityId = currentState.Decks.FacilitySupply[i];
+                var facility = FacilityCardDatabase.Get(facilityId);
+                var label = facility == null ? facilityId : facility.Name;
+                BindExternalFacilitySlot(binding, facilityId, label, TryLoadFacilityCardTexture(facilityId));
+            }
+        }
+
+        private void BuildExternalFacilitySlots()
+        {
+            facilityCardBindings.Clear();
+            for (var i = 0; i < ExternalFacilitySlotCount; i++)
+            {
+                var binding = CreateExternalFacilitySlot(i);
+                facilityCardBindings.Add(binding);
+                binding.Button.gameObject.AddComponent<ExternalCardClickHandler>().Configure(
+                    binding.Button,
+                    () => OnExternalFacilitySlotClicked(binding),
+                    () => OpenCardImage(
+                        binding.Label,
+                        binding.CardImage == null ? null : binding.CardImage.texture as Texture2D));
+                BindExternalFacilitySlot(binding, string.Empty, string.Empty, null);
+            }
+        }
+
+        private ExternalCardBinding CreateExternalFacilitySlot(int index)
+        {
+            var slotObject = new GameObject(
+                "BuildSlot_" + (index + 1),
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(Button),
+                typeof(Outline));
+            slotObject.transform.SetParent(externalFacilityArea, false);
+
+            var rect = slotObject.GetComponent<RectTransform>();
+            SetExternalCardRect(
+                rect,
+                index,
+                ExternalFacilityColumnCount,
+                ExternalFacilityCardWidth,
+                ExternalFacilityCardHeight,
+                ExternalFacilityCardHorizontalSpacing,
+                ExternalFacilityCardVerticalSpacing);
+
+            slotObject.GetComponent<Image>().color = ExternalCardBackground;
+            var outline = slotObject.GetComponent<Outline>();
+            SetExternalCardOutline(outline, false);
+
+            var imageObject = new GameObject("Card Image", typeof(RectTransform), typeof(RawImage));
+            imageObject.transform.SetParent(rect, false);
+            var imageRect = imageObject.GetComponent<RectTransform>();
+            imageRect.anchorMin = Vector2.zero;
+            imageRect.anchorMax = Vector2.one;
+            imageRect.offsetMin = new Vector2(3f, 3f);
+            imageRect.offsetMax = new Vector2(-3f, -3f);
+            var cardImage = imageObject.GetComponent<RawImage>();
+            cardImage.color = Color.white;
+            cardImage.raycastTarget = false;
+
+            var fallbackText = CreateText(
+                rect,
+                string.Empty,
+                12,
+                FontStyle.Bold,
+                UiTheme.ValueText,
+                TextAnchor.MiddleCenter);
+            fallbackText.gameObject.name = "Fallback Label";
+            fallbackText.resizeTextForBestFit = true;
+            fallbackText.resizeTextMinSize = 8;
+            fallbackText.resizeTextMaxSize = 12;
+            fallbackText.raycastTarget = false;
+
+            return new ExternalCardBinding
+            {
+                Button = slotObject.GetComponent<Button>(),
+                Outline = outline,
+                CardImage = cardImage,
+                FallbackText = fallbackText
+            };
+        }
+
+        private void BindExternalFacilitySlot(
+            ExternalCardBinding binding,
+            string facilityId,
+            string label,
+            Texture2D texture)
+        {
+            binding.Id = facilityId;
+            binding.Label = label;
+            binding.Button.interactable = !string.IsNullOrEmpty(facilityId);
+            binding.CardImage.texture = texture;
+            binding.CardImage.gameObject.SetActive(texture != null);
+            binding.FallbackText.text = string.IsNullOrEmpty(facilityId) ? "空卡位" : label;
+            binding.FallbackText.gameObject.SetActive(texture == null);
+            SetExternalCardOutline(
+                binding.Outline,
+                !string.IsNullOrEmpty(facilityId) && facilityId == selectedFacilityId);
+        }
+
+        private void OnExternalFacilitySlotClicked(ExternalCardBinding binding)
+        {
+            if (binding == null || string.IsNullOrEmpty(binding.Id))
+            {
+                return;
+            }
+
+            ToggleFacilitySelection(binding.Id, binding.Label);
+        }
+
+        private void RebuildExternalCityStyleCards()
+        {
+            if (externalCityStyleArea == null)
+            {
+                return;
+            }
+
+            var styleIds = GetCurrentCityStyleSupplyIds();
+            var count = Mathf.Min(6, styleIds.Count);
+            for (var i = 0; i < count; i++)
+            {
+                var cityStyleId = styleIds[i];
+                var cityStyle = CityStyleDatabase.Get(cityStyleId);
+                var label = cityStyle == null ? cityStyleId : cityStyle.Name;
+                var button = CreateExternalCardButton(
+                    externalCityStyleArea,
+                    "城市样式 " + (i + 1),
+                    i,
+                    ExternalCityStyleColumnCount,
+                    ExternalCityStyleCardWidth,
+                    ExternalCityStyleCardHeight,
+                    ExternalCityStyleCardHorizontalSpacing,
+                    ExternalCityStyleCardVerticalSpacing,
+                    ExternalCityStyleLeftPadding,
+                    TryLoadCityStyleCardTexture(cityStyleId),
+                    label,
+                    cityStyleId == selectedCityStyleId,
+                    cityStyleCardBindings,
+                    cityStyleId);
+
+                button.gameObject.AddComponent<ExternalCardClickHandler>().Configure(
+                    button,
+                    () => ToggleCityStyleSelection(cityStyleId, label),
+                    () => OpenCardImage(label, TryLoadCityStyleCardTexture(cityStyleId)));
+            }
+        }
+
+        private void OpenCardImage(string cardName, Texture2D texture)
+        {
+            if (texture == null)
+            {
+                return;
+            }
+
+            if (cardImageViewer == null)
+            {
+                var viewerObject = new GameObject("Card Image Viewer");
+                viewerObject.transform.SetParent(transform, false);
+                cardImageViewer = viewerObject.AddComponent<ZoomableImageViewerController>();
+            }
+
+            cardImageViewer.Configure("Card Image", cardName, 1, _ => texture);
+            cardImageViewer.Open();
+        }
+
+        private IReadOnlyList<string> GetCurrentCityStyleSupplyIds()
+        {
+            return CityStyleDatabase.PresentationSupplyIds;
+        }
+
+        private static Button CreateExternalCardButton(
+            RectTransform parent,
+            string name,
+            int index,
+            int columnCount,
+            float cardWidth,
+            float cardHeight,
+            float horizontalSpacing,
+            float verticalSpacing,
+            float leftPadding,
+            Texture2D texture,
+            string fallbackLabel,
+            bool selected,
+            List<ExternalCardBinding> bindings,
+            string id)
+        {
+            var buttonObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
+            buttonObject.transform.SetParent(parent, false);
+
+            var rect = buttonObject.GetComponent<RectTransform>();
+            SetExternalCardRect(
+                rect,
+                index,
+                columnCount,
+                cardWidth,
+                cardHeight,
+                horizontalSpacing,
+                verticalSpacing,
+                leftPadding);
+
+            buttonObject.GetComponent<Image>().color = ExternalCardBackground;
+            var outline = buttonObject.GetComponent<Outline>();
+            SetExternalCardOutline(outline, selected);
+
+            if (texture != null)
+            {
+                var imageObject = new GameObject("卡图", typeof(RectTransform), typeof(RawImage));
+                imageObject.transform.SetParent(rect, false);
+                var imageRect = imageObject.GetComponent<RectTransform>();
+                imageRect.anchorMin = Vector2.zero;
+                imageRect.anchorMax = Vector2.one;
+                imageRect.offsetMin = new Vector2(3f, 3f);
+                imageRect.offsetMax = new Vector2(-3f, -3f);
+
+                var rawImage = imageObject.GetComponent<RawImage>();
+                rawImage.texture = texture;
+                rawImage.color = Color.white;
+                rawImage.raycastTarget = false;
+            }
+            else
+            {
+                var text = CreateText(rect, fallbackLabel, 12, FontStyle.Bold, UiTheme.ValueText, TextAnchor.MiddleCenter);
+                text.resizeTextForBestFit = true;
+                text.resizeTextMinSize = 8;
+                text.resizeTextMaxSize = 12;
+                text.raycastTarget = false;
+            }
+
+            bindings.Add(new ExternalCardBinding
+            {
+                Id = id,
+                Outline = outline
+            });
+
+            return buttonObject.GetComponent<Button>();
+        }
+
+        private static void SetExternalCardRect(
+            RectTransform rect,
+            int index,
+            int columnCount,
+            float cardWidth,
+            float cardHeight,
+            float horizontalSpacing,
+            float verticalSpacing,
+            float leftPadding = ExternalCardFramePadding)
+        {
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.sizeDelta = new Vector2(cardWidth, cardHeight);
+            rect.anchoredPosition = new Vector2(
+                leftPadding + (index % columnCount) * (cardWidth + horizontalSpacing),
+                -ExternalCardFramePadding - (index / columnCount) * (cardHeight + verticalSpacing));
+        }
+
+        private void UpdateExternalCardHighlights()
+        {
+            UpdateExternalCardHighlights(facilityCardBindings, selectedFacilityId);
+            UpdateExternalCardHighlights(cityStyleCardBindings, selectedCityStyleId);
+        }
+
+        private void ToggleFacilitySelection(string facilityId, string label)
+        {
+            if (selectedFacilityId == facilityId)
+            {
+                selectedFacilityId = string.Empty;
+                SetStatus("已取消设施选择。");
+                UpdateExternalCardHighlights();
+                if (FacilityClicked != null)
+                {
+                    FacilityClicked(string.Empty);
+                }
+
+                return;
+            }
+
+            selectedFacilityId = facilityId;
+            SetStatus("已选择设施：" + label);
+            UpdateExternalCardHighlights();
+            if (FacilityClicked != null)
+            {
+                FacilityClicked(facilityId);
+            }
+        }
+
+        private void ToggleCityStyleSelection(string cityStyleId, string label)
+        {
+            if (selectedCityStyleId == cityStyleId)
+            {
+                selectedCityStyleId = string.Empty;
+                SetStatus("已取消城市样式选择。");
+                UpdateExternalCardHighlights();
+                if (CityStyleClicked != null)
+                {
+                    CityStyleClicked(string.Empty);
+                }
+
+                return;
+            }
+
+            selectedCityStyleId = cityStyleId;
+            SetStatus("已选择城市样式：" + label);
+            UpdateExternalCardHighlights();
+            if (CityStyleClicked != null)
+            {
+                CityStyleClicked(cityStyleId);
+            }
+        }
+
+        private static void UpdateExternalCardHighlights(List<ExternalCardBinding> bindings, string selectedId)
+        {
+            for (var i = 0; i < bindings.Count; i++)
+            {
+                var binding = bindings[i];
+                if (binding == null || binding.Outline == null)
+                {
+                    continue;
+                }
+
+                SetExternalCardOutline(
+                    binding.Outline,
+                    !string.IsNullOrEmpty(binding.Id) && binding.Id == selectedId);
+            }
+        }
+
+        private static void SetExternalCardOutline(Outline outline, bool selected)
+        {
+            outline.effectColor = selected ? ExternalCardSelectedOutline : ExternalCardNormalOutline;
+            outline.effectDistance = selected ? new Vector2(3f, -3f) : new Vector2(1f, -1f);
         }
 
         private void AddStatusRow()
@@ -302,9 +825,10 @@ namespace YC.Presentation
             {
                 var slotIndex = i;
                 var isUsedForDeclaration = IsCityBoardSlotUsedForDeclaration(slotIndex);
+                var facilityId = GetCityBoardSlotFacilityId(i);
                 var label = GetCityBoardSlotLabel(i);
-                var isEmpty = IsCityBoardSlotEmpty(slotIndex);
-                var button = CreateCityBoardSlotButton(slotRoot, slotIndex, label, isEmpty, isUsedForDeclaration, boardSize);
+                var isEmpty = string.IsNullOrEmpty(facilityId);
+                var button = CreateCityBoardSlotButton(slotRoot, slotIndex, facilityId, label, isEmpty, isUsedForDeclaration, boardSize);
                 var rect = button.GetComponent<RectTransform>();
                 if (isUsedForDeclaration)
                 {
@@ -341,12 +865,7 @@ namespace YC.Presentation
                 var button = AddButtonBox("设施 " + (i + 1), label, 46f);
                 button.onClick.AddListener(() =>
                 {
-                    selectedFacilityId = facilityId;
-                    SetStatus("已选择设施：" + label);
-                    if (FacilityClicked != null)
-                    {
-                        FacilityClicked(facilityId);
-                    }
+                    ToggleFacilitySelection(facilityId, label);
                 });
             }
         }
@@ -368,12 +887,7 @@ namespace YC.Presentation
                 var button = AddButtonBox("城市样式 " + (i + 1), label, 58f);
                 button.onClick.AddListener(() =>
                 {
-                    selectedCityStyleId = cityStyleId;
-                    SetStatus("已选择城市样式：" + label);
-                    if (CityStyleClicked != null)
-                    {
-                        CityStyleClicked(cityStyleId);
-                    }
+                    ToggleCityStyleSelection(cityStyleId, label);
                 });
             }
         }
@@ -398,7 +912,7 @@ namespace YC.Presentation
             }
         }
 
-        private string GetCityBoardSlotLabel(int slotIndex)
+        private string GetCityBoardSlotFacilityId(int slotIndex)
         {
             if (currentState != null)
             {
@@ -407,10 +921,21 @@ namespace YC.Presentation
                     var placement = currentState.Map.Facilities[i];
                     if (placement.PlayerId == currentPlayerId && placement.CityBoardSlotIndex == slotIndex)
                     {
-                        var facility = FacilityCardDatabase.Get(placement.FacilityCardId);
-                        return facility == null ? placement.FacilityCardId : facility.Name;
+                        return placement.FacilityCardId;
                     }
                 }
+            }
+
+            return string.Empty;
+        }
+
+        private string GetCityBoardSlotLabel(int slotIndex)
+        {
+            var facilityId = GetCityBoardSlotFacilityId(slotIndex);
+            if (!string.IsNullOrEmpty(facilityId))
+            {
+                var facility = FacilityCardDatabase.Get(facilityId);
+                return facility == null ? facilityId : facility.Name;
             }
 
             return "空位 " + (slotIndex + 1);
@@ -463,6 +988,7 @@ namespace YC.Presentation
         private static Button CreateCityBoardSlotButton(
             RectTransform parent,
             int slotIndex,
+            string facilityId,
             string label,
             bool isEmpty,
             bool isUsedForDeclaration,
@@ -495,6 +1021,11 @@ namespace YC.Presentation
                 ? new Vector3(0f, 0f, 180f)
                 : Vector3.zero;
 
+            if (!isEmpty)
+            {
+                AddFacilityCardImage(rect, facilityId);
+            }
+
             var text = CreateText(rect, isEmpty ? string.Empty : label, 14, FontStyle.Bold, UiTheme.ValueText, TextAnchor.MiddleCenter);
             text.resizeTextForBestFit = true;
             text.resizeTextMinSize = 10;
@@ -504,6 +1035,28 @@ namespace YC.Presentation
             text.gameObject.SetActive(!isEmpty);
 
             return buttonObject.GetComponent<Button>();
+        }
+
+        private static void AddFacilityCardImage(RectTransform parent, string facilityId)
+        {
+            var texture = TryLoadFacilityCardTexture(facilityId);
+            if (texture == null)
+            {
+                return;
+            }
+
+            var imageObject = new GameObject("设施卡图", typeof(RectTransform), typeof(RawImage));
+            imageObject.transform.SetParent(parent, false);
+            var rect = imageObject.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(4f, 4f);
+            rect.offsetMax = new Vector2(-4f, -4f);
+
+            var rawImage = imageObject.GetComponent<RawImage>();
+            rawImage.texture = texture;
+            rawImage.color = Color.white;
+            rawImage.raycastTarget = false;
         }
 
         private static Vector2 GetCityBoardSlotAnchoredPosition(int slotIndex, Vector2 boardSize)
@@ -520,6 +1073,133 @@ namespace YC.Presentation
             var sourceHeight = texture == null ? CityBoardSourceHeight : texture.height;
             var height = ContentWidth * sourceHeight / sourceWidth;
             return new Vector2(ContentWidth, height);
+        }
+
+        private static Texture2D TryLoadFacilityCardTexture(string facilityId)
+        {
+            if (string.IsNullOrEmpty(facilityId))
+            {
+                return null;
+            }
+
+            Texture2D cached;
+            if (FacilityCardTextures.TryGetValue(facilityId, out cached))
+            {
+                return cached;
+            }
+
+            var facility = FacilityCardDatabase.Get(facilityId);
+            if (facility == null || string.IsNullOrEmpty(facility.ImageRelativePath))
+            {
+                return null;
+            }
+
+            var texture = TryLoadTextureByRelativePath(facility.ImageRelativePath, facility.Name);
+            if (texture != null)
+            {
+                FacilityCardTextures[facilityId] = texture;
+            }
+
+            return texture;
+        }
+
+        private static Texture2D TryLoadCityStyleCardTexture(string cityStyleId)
+        {
+            if (string.IsNullOrEmpty(cityStyleId))
+            {
+                return null;
+            }
+
+            Texture2D cached;
+            if (CityStyleCardTextures.TryGetValue(cityStyleId, out cached))
+            {
+                return cached;
+            }
+
+            var cityStyle = CityStyleDatabase.Get(cityStyleId);
+            if (cityStyle == null || string.IsNullOrEmpty(cityStyle.ImageRelativePath))
+            {
+                return null;
+            }
+
+            var texture = TryLoadTextureByRelativePath(cityStyle.ImageRelativePath, cityStyle.Name);
+            if (texture != null)
+            {
+                CityStyleCardTextures[cityStyleId] = texture;
+            }
+
+            return texture;
+        }
+
+        private static Texture2D TryLoadTextureByRelativePath(string relativePath, string textureName)
+        {
+            if (string.IsNullOrEmpty(relativePath))
+            {
+                return null;
+            }
+
+            Texture2D cached;
+            if (TexturePathCache.TryGetValue(relativePath, out cached))
+            {
+                return cached;
+            }
+
+            var resourcePath = TryGetResourcesPath(relativePath);
+            if (!string.IsNullOrEmpty(resourcePath))
+            {
+                var resourceTexture = Resources.Load<Texture2D>(resourcePath);
+                if (resourceTexture != null)
+                {
+                    TexturePathCache[relativePath] = resourceTexture;
+                    return resourceTexture;
+                }
+            }
+
+            var candidates = new[]
+            {
+                Path.Combine(UnityEngine.Application.dataPath, "..", relativePath),
+                Path.Combine(UnityEngine.Application.dataPath, "..", "..", "..", relativePath),
+                Path.Combine(Directory.GetCurrentDirectory(), relativePath),
+                Path.Combine(Directory.GetCurrentDirectory(), "..", "..", relativePath)
+            };
+
+            for (var i = 0; i < candidates.Length; i++)
+            {
+                var path = Path.GetFullPath(candidates[i]);
+                if (!File.Exists(path))
+                {
+                    continue;
+                }
+
+                var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                if (texture.LoadImage(File.ReadAllBytes(path)))
+                {
+                    texture.name = textureName;
+                    TexturePathCache[relativePath] = texture;
+                    return texture;
+                }
+
+                UnityEngine.Object.Destroy(texture);
+            }
+
+            return null;
+        }
+
+        private static string TryGetResourcesPath(string relativePath)
+        {
+            var normalized = relativePath.Replace('\\', '/');
+            var marker = "/Resources/";
+            var markerIndex = normalized.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (markerIndex < 0)
+            {
+                return string.Empty;
+            }
+
+            var resourcePath = normalized.Substring(markerIndex + marker.Length);
+            var extension = Path.GetExtension(resourcePath);
+            return string.IsNullOrEmpty(extension)
+                ? resourcePath
+                : resourcePath.Substring(0, resourcePath.Length - extension.Length);
         }
 
         private static void AddUsedCityBoardSlotBadge(RectTransform parent, int slotIndex, Vector2 slotCenterPosition, Vector2 boardSize)
@@ -702,7 +1382,9 @@ namespace YC.Presentation
             var candidates = new[]
             {
                 Path.Combine(UnityEngine.Application.dataPath, "..", CityBoardImageRelativePath),
-                Path.Combine(Directory.GetCurrentDirectory(), CityBoardImageRelativePath)
+                Path.Combine(UnityEngine.Application.dataPath, "..", "..", "..", CityBoardImageRelativePath),
+                Path.Combine(Directory.GetCurrentDirectory(), CityBoardImageRelativePath),
+                Path.Combine(Directory.GetCurrentDirectory(), "..", "..", CityBoardImageRelativePath)
             };
 
             for (var i = 0; i < candidates.Length; i++)

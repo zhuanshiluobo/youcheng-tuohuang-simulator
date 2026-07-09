@@ -9,6 +9,7 @@ namespace YC.Domain.Facilities
     {
         public const int CityBoardSlotCount = 12;
         public const int CityBoardSlotCountPerRow = 3;
+        public const int CoreCommandTowerCityBoardSlotIndex = 7;
         public const string PaymentModeAuto = "auto";
         public const string PaymentModeResources = "resources";
         public const string PaymentModeGold = "gold";
@@ -63,6 +64,44 @@ namespace YC.Domain.Facilities
             }
         }
 
+        public static void EnsureInitialCoreCommandTowers(GameState state)
+        {
+            if (state == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                EnsureInitialCoreCommandTower(state, state.Players[i]);
+            }
+        }
+
+        public static void EnsureInitialCoreCommandTower(GameState state, PlayerState player)
+        {
+            if (state == null || player == null)
+            {
+                return;
+            }
+
+            if (!player.BuiltFacilityIds.Contains(FacilityCardDatabase.CoreCommandTower))
+            {
+                player.BuiltFacilityIds.Add(FacilityCardDatabase.CoreCommandTower);
+            }
+
+            if (HasFacilityAtCityBoardSlot(state, player.PlayerId, CoreCommandTowerCityBoardSlotIndex))
+            {
+                return;
+            }
+
+            state.Map.Facilities.Add(new FacilityPlacement
+            {
+                PlayerId = player.PlayerId,
+                FacilityCardId = FacilityCardDatabase.CoreCommandTower,
+                CityBoardSlotIndex = CoreCommandTowerCityBoardSlotIndex
+            });
+        }
+
         public ValidationResult Validate(
             GameState state,
             int playerId,
@@ -92,7 +131,7 @@ namespace YC.Domain.Facilities
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "设施供应区没有这张设施牌。");
             }
 
-            if (facility.Unique && player.BuiltFacilityIds.Contains(facility.FacilityId))
+            if (FacilityCardDatabase.PlayerHasBuiltUniqueFacility(player, facility))
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该唯一设施已经建设过。");
             }
@@ -160,6 +199,11 @@ namespace YC.Domain.Facilities
         }
 
         private static bool IsCityBoardSlotOccupied(GameState state, int playerId, int cityBoardSlotIndex)
+        {
+            return HasFacilityAtCityBoardSlot(state, playerId, cityBoardSlotIndex);
+        }
+
+        private static bool HasFacilityAtCityBoardSlot(GameState state, int playerId, int cityBoardSlotIndex)
         {
             for (var i = 0; i < state.Map.Facilities.Count; i++)
             {

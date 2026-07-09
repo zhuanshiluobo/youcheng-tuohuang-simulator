@@ -13,12 +13,16 @@ using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace YC.Tests.EditMode
 {
     public sealed class PresentationSelectionControllerTests
     {
+        private const string YellowSourceStoneRefinery = "building_028";
+        private const string RedIronRefinery = "building_032";
+
         [Test]
         public void ExplorePaymentRecipientSelection_BuildsDefaultsAllowsValidSelectionAndEncodesRecipients()
         {
@@ -43,6 +47,106 @@ namespace YC.Tests.EditMode
             Assert.That(Invoke(controller, "SelectRecipient", "route-opponent", 3), Is.True);
             Assert.That(Invoke(controller, "SelectRecipient", "route-opponent", 4), Is.False);
             Assert.That(Invoke(controller, "EncodeRecipients"), Is.EqualTo("route-opponent=3"));
+        }
+
+        [Test]
+        public void ExplorePathSelection_KeepsTargetAndSelectsIndexedPathChoice()
+        {
+            var controller = CreateController("YC.Presentation.ExplorePathSelectionController");
+            var directPath = new MapPath
+            {
+                LocationIds = { "A", "B" },
+                RouteIds = { "R1" }
+            };
+            var tollPath = new MapPath
+            {
+                LocationIds = { "A", "C", "B" },
+                RouteIds = { "R2", "R3" }
+            };
+
+            Invoke(controller, "BeginTarget", "B");
+            Invoke(
+                controller,
+                "SetPathChoices",
+                new List<MapPath> { directPath, tollPath },
+                new Func<MapPath, int, string>((path, index) => "路线 " + (index + 1) + "：" + string.Join(",", path.RouteIds.ToArray())));
+
+            Assert.That(GetProperty(controller, "TargetLocationId"), Is.EqualTo("B"));
+            Assert.That(GetProperty(controller, "SelectedPath"), Is.Null);
+            var pathChoices = (IList)GetProperty(controller, "PathChoices");
+            Assert.That(pathChoices.Count, Is.EqualTo(2));
+            Assert.That(GetField(pathChoices[1], "Label"), Is.EqualTo("路线 2：R2,R3"));
+
+            Assert.That(Invoke(controller, "TrySelectPathChoice", 1), Is.True);
+            Assert.That(GetProperty(controller, "SelectedPath"), Is.SameAs(tollPath));
+            Assert.That(Invoke(controller, "TrySelectPathChoice", 2), Is.False);
+        }
+
+        [Test]
+        public void ResourceCollectionSelection_TogglesLocationsBuildsRoutesAndEncodesPayments()
+        {
+            var controller = CreateController("YC.Presentation.ResourceCollectionSelectionController");
+            Invoke(controller, "AddCandidateLocation", "A");
+            Invoke(controller, "AddCandidateLocation", "B");
+            Invoke(controller, "SetPathForLocation", "A", new MapPath
+            {
+                LocationIds = { "City", "A" },
+                RouteIds = { "R1" }
+            });
+            Invoke(controller, "SetPathForLocation", "B", new MapPath
+            {
+                LocationIds = { "City", "A", "B" },
+                RouteIds = { "R1", "R2" }
+            });
+            Invoke(controller, "AddRoute", "R1");
+            Invoke(controller, "AddRoute", "R2");
+
+            Assert.That(Invoke(controller, "ToggleLocation", "B", new Func<string, bool>(locationId => locationId == "A")).ToString(), Is.EqualTo("Unavailable"));
+            Invoke(controller, "ConfirmRoutePayment", "R1", 2);
+            Invoke(controller, "RefreshSelection", new Func<string, bool>(locationId => locationId != "B"));
+            Assert.That(GetProperty(GetProperty(controller, "SelectedLocationIds"), "Count"), Is.EqualTo(1));
+
+            Assert.That(Invoke(controller, "ToggleLocation", "A", new Func<string, bool>(locationId => true)).ToString(), Is.EqualTo("Removed"));
+            Assert.That(GetProperty(GetProperty(controller, "SelectedLocationIds"), "Count"), Is.EqualTo(1));
+            Assert.That(Invoke(controller, "ToggleLocation", "A", new Func<string, bool>(locationId => true)).ToString(), Is.EqualTo("Added"));
+
+            var ordered = new List<MapLocationDefinition>
+            {
+                new MapLocationDefinition { LocationId = "B" },
+                new MapLocationDefinition { LocationId = "A" }
+            };
+            var selectedLocations = (IList)Invoke(controller, "BuildSelectedLocationIds", ordered);
+            var selectedRoutes = Invoke(controller, "BuildSelectedRouteIds", selectedLocations);
+
+            Assert.That(selectedLocations, Is.EqualTo(new List<string> { "B", "A" }));
+            Assert.That(Invoke(selectedRoutes, "SetEquals", (object)new[] { "R1", "R2" }), Is.True);
+            Assert.That(Invoke(controller, "EncodePaymentRecipients", selectedRoutes), Is.EqualTo("R1=2"));
+        }
+
+        [Test]
+        public void MapInteractionConfirmation_SecondRequestConfirmsAndClearRestoresState()
+        {
+            var controller = CreateController("YC.Presentation.MapInteractionConfirmationController");
+            var confirmed = false;
+            var firstRequest = new object[] { "move", "A", "A", "location:A:0", new Action(() => confirmed = true), null };
+
+            Assert.That(Invoke(controller, "Request", firstRequest), Is.False);
+            Assert.That(GetProperty(controller, "HasPending"), Is.True);
+            Assert.That(GetProperty(controller, "LocationId"), Is.EqualTo("A"));
+            Assert.That(GetProperty(controller, "SlotId"), Is.EqualTo("location:A:0"));
+
+            Invoke(controller, "Clear");
+            Assert.That(GetProperty(controller, "HasPending"), Is.False);
+
+            var pendingRequest = new object[] { "move", "A", "A", string.Empty, new Action(() => confirmed = true), null };
+            Assert.That(Invoke(controller, "Request", pendingRequest), Is.False);
+            var confirmRequest = new object[] { "move", "A", "A", string.Empty, new Action(() => Assert.Fail("第二次请求应使用首次回调")), null };
+            Assert.That(Invoke(controller, "Request", confirmRequest), Is.True);
+            Assert.That(GetProperty(controller, "HasPending"), Is.False);
+
+            var callback = (Action)confirmRequest[5];
+            callback();
+            Assert.That(confirmed, Is.True);
         }
 
         [Test]
@@ -120,9 +224,12 @@ namespace YC.Tests.EditMode
         {
             var controller = CreateController("YC.Presentation.CityStyleSelectionController");
             var state = CreateCityStyleActionState();
-            AddFacility(state, FacilityCardDatabase.SourceStoneRefinery, 0);
-            AddFacility(state, FacilityCardDatabase.UrbanizedArea, 1);
-            AddFacility(state, FacilityCardDatabase.TradeDistrict, 2);
+            AddFacility(state, FacilityCardDatabase.TradeDistrict, 0);
+            AddFacility(state, FacilityCardDatabase.EquipmentWarehouse, 3);
+            AddFacility(state, FacilityCardDatabase.UrbanizedArea, 4);
+            AddFacility(state, YellowSourceStoneRefinery, 6);
+            AddFacility(state, FacilityCardDatabase.OriginiumPurificationPlant, 7);
+            AddFacility(state, RedIronRefinery, 8);
 
             var options = (IList)Invoke(controller, "BuildOptions", state, 1);
             Assert.That(options.Count, Is.EqualTo(1));
@@ -171,28 +278,67 @@ namespace YC.Tests.EditMode
 
                 var buttons = canvasObject.GetComponentsInChildren<Button>(true);
                 Assert.That(CountButtonsByNamePrefix(buttons, "槽位 "), Is.EqualTo(12));
-                Assert.That(CountButtonsByNamePrefix(buttons, "设施 "), Is.EqualTo(state.Decks.FacilitySupply.Count));
-                Assert.That(CountButtonsByNamePrefix(buttons, "城市样式 "), Is.EqualTo(state.Decks.CityStyleSupply.Count));
+                Assert.That(CountButtonsByNamePrefix(buttons, "BuildSlot_"), Is.EqualTo(6));
+                Assert.That(CountButtonsByNamePrefix(buttons, "城市样式 "), Is.EqualTo(CityStyleDatabase.PresentationSupplyIds.Count));
 
                 var boardImage = FindRectTransformByName(canvasObject, "城市面板底图");
                 Assert.That(boardImage, Is.Not.Null);
                 Assert.That(boardImage.rect.height / boardImage.rect.width, Is.EqualTo(3801f / 2059f).Within(0.01f));
                 Assert.That(HasTextContaining(canvasObject, "空位 "), Is.False);
                 Assert.That(GetButtonLabel(FindButtonByName(buttons, "槽位 4")), Is.EqualTo("源石精炼厂"));
+                var coreTowerSlot = FindButtonByName(buttons, "槽位 8");
+                Assert.That(GetButtonLabel(coreTowerSlot), Is.EqualTo("核心指挥塔"));
+                Assert.That(HasChildRectTransform(coreTowerSlot.gameObject, "设施卡图"), Is.True);
                 AssertCityBoardSlotIsCenteredOnBoard(FindButtonByName(buttons, "槽位 2"), boardImage, 0.502f, 0.162f);
+                AssertExternalCardRect(FindButtonByName(buttons, "BuildSlot_1"), new Vector2(99f, 141f), new Vector2(6f, -6f));
+                AssertExternalCardRect(FindButtonByName(buttons, "BuildSlot_6"), new Vector2(99f, 141f), new Vector2(254f, -169f));
+                AssertExternalCardRect(FindButtonByName(buttons, "城市样式 1"), new Vector2(143f, 91f), new Vector2(20f, -6f));
+                AssertExternalCardRect(FindButtonByName(buttons, "城市样式 6"), new Vector2(143f, 91f), new Vector2(203f, -228f));
 
-                Assert.That(HasText(canvasObject, "剩余牌堆：1"), Is.True);
+                Assert.That(HasText(canvasObject, "剩余牌堆：1"), Is.False);
                 Assert.That(HasTextContaining(canvasObject, "玩家一：源石工业中枢"), Is.True);
                 Assert.That(HasTextContaining(canvasObject, "玩家二：暂无宣告"), Is.True);
                 Assert.That(AllTextRenderersAreMaskable(canvasObject), Is.True);
 
+                InvokeButtonByName(buttons, "Toggle Button");
                 InvokeButtonByName(buttons, "槽位 12");
-                InvokeButtonByName(buttons, "设施 1");
+                InvokeButtonByName(buttons, "BuildSlot_1");
+                AssertCardImageViewerIsClosed();
+                DoubleClickButtonByName(buttons, "BuildSlot_1");
+                AssertCardImageViewerIsOpen();
+                CloseCardImageViewer();
                 InvokeButtonByName(buttons, "城市样式 1");
+                AssertCardImageViewerIsClosed();
+                DoubleClickButtonByName(buttons, "城市样式 1");
+                AssertCardImageViewerIsOpen();
+                CloseCardImageViewer();
+                AssertExternalCardSelected(FindButtonByName(buttons, "BuildSlot_1"));
+                AssertExternalCardNotSelected(FindButtonByName(buttons, "BuildSlot_2"));
+                AssertExternalCardSelected(FindButtonByName(buttons, "城市样式 1"));
+                AssertExternalCardNotSelected(FindButtonByName(buttons, "城市样式 2"));
 
                 Assert.That(clickedSlotIndex, Is.EqualTo(11));
                 Assert.That(clickedFacilityId, Is.EqualTo(FacilityCardDatabase.TradeDistrict));
-                Assert.That(clickedCityStyleId, Is.EqualTo(CityStyleDatabase.SourceStoneIndustrialHub));
+                Assert.That(clickedCityStyleId, Is.EqualTo(CityStyleDatabase.MilitaryIndustrialArea));
+
+                InvokeButtonByName(buttons, "BuildSlot_1");
+                AssertExternalCardNotSelected(FindButtonByName(buttons, "BuildSlot_1"));
+                Assert.That(clickedFacilityId, Is.Empty);
+                Assert.That(HasText(canvasObject, "已取消设施选择。"), Is.True);
+
+                InvokeButtonByName(buttons, "城市样式 1");
+                AssertExternalCardNotSelected(FindButtonByName(buttons, "城市样式 1"));
+                Assert.That(clickedCityStyleId, Is.Empty);
+                Assert.That(HasText(canvasObject, "已取消城市样式选择。"), Is.True);
+
+                var firstBuildSlot = FindButtonByName(buttons, "BuildSlot_1");
+                state.Decks.FacilitySupply.RemoveAt(state.Decks.FacilitySupply.Count - 1);
+                type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
+                var refreshedButtons = canvasObject.GetComponentsInChildren<Button>(true);
+                Assert.That(CountButtonsByNamePrefix(refreshedButtons, "BuildSlot_"), Is.EqualTo(6));
+                Assert.That(FindButtonByName(refreshedButtons, "BuildSlot_1"), Is.SameAs(firstBuildSlot));
+                Assert.That(FindButtonByName(refreshedButtons, "BuildSlot_6").interactable, Is.False);
+                Assert.That(GetButtonLabel(FindButtonByName(refreshedButtons, "BuildSlot_6")), Is.EqualTo("空卡位"));
             }
             finally
             {
@@ -346,6 +492,13 @@ namespace YC.Tests.EditMode
             return property.GetValue(target);
         }
 
+        private static object GetField(object target, string fieldName)
+        {
+            var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(field, Is.Not.Null, "Missing field " + fieldName + ".");
+            return field.GetValue(target);
+        }
+
         private static GameState CreateCityStyleActionState()
         {
             return new GameState
@@ -392,8 +545,13 @@ namespace YC.Tests.EditMode
 
             state.Decks.FacilitySupply.Add(FacilityCardDatabase.TradeDistrict);
             state.Decks.FacilitySupply.Add(FacilityCardDatabase.EquipmentWarehouse);
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.FederalOffice);
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.SimpleEngineeringCamp);
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.SourceStoneRefinery);
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.UrbanizedArea);
             state.Decks.FacilityDeck.Add(FacilityCardDatabase.FederalOffice);
             state.Decks.CityStyleSupply.Add(CityStyleDatabase.SourceStoneIndustrialHub);
+            BuildFacilityService.EnsureInitialCoreCommandTower(state, state.FindPlayer(1));
             state.Map.Facilities.Add(new FacilityPlacement
             {
                 PlayerId = 1,
@@ -445,12 +603,28 @@ namespace YC.Tests.EditMode
             {
                 if (buttons[i].name == name)
                 {
-                    buttons[i].onClick.Invoke();
+                    ExecuteEvents.Execute(
+                        buttons[i].gameObject,
+                        new PointerEventData(EventSystem.current) { clickCount = 1 },
+                        ExecuteEvents.pointerClickHandler);
                     return;
                 }
             }
 
             Assert.Fail("Missing button: " + name);
+        }
+
+        private static void DoubleClickButtonByName(Button[] buttons, string name)
+        {
+            var button = FindButtonByName(buttons, name);
+            Assert.That(button, Is.Not.Null, "Missing button: " + name);
+            Assert.That(
+                ExecuteEvents.Execute(
+                    button.gameObject,
+                    new PointerEventData(EventSystem.current) { clickCount = 2 },
+                    ExecuteEvents.pointerClickHandler),
+                Is.True,
+                "Missing double-click handler: " + name);
         }
 
         private static Button FindButtonByName(Button[] buttons, string name)
@@ -503,6 +677,86 @@ namespace YC.Tests.EditMode
             }
 
             return null;
+        }
+
+        private static bool HasChildRectTransform(GameObject root, string name)
+        {
+            var rects = root.GetComponentsInChildren<RectTransform>(true);
+            for (var i = 0; i < rects.Length; i++)
+            {
+                if (rects[i].name == name)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void AssertExternalCardRect(Button button, Vector2 expectedSize, Vector2 expectedPosition)
+        {
+            Assert.That(button, Is.Not.Null);
+            var rect = button.GetComponent<RectTransform>();
+            Assert.That(rect.sizeDelta.x, Is.EqualTo(expectedSize.x).Within(0.01f));
+            Assert.That(rect.sizeDelta.y, Is.EqualTo(expectedSize.y).Within(0.01f));
+            Assert.That(rect.anchoredPosition.x, Is.EqualTo(expectedPosition.x).Within(0.01f));
+            Assert.That(rect.anchoredPosition.y, Is.EqualTo(expectedPosition.y).Within(0.01f));
+        }
+
+        private static void AssertExternalCardSelected(Button button)
+        {
+            AssertExternalCardOutlineDistance(button, new Vector2(3f, -3f));
+        }
+
+        private static void AssertExternalCardNotSelected(Button button)
+        {
+            AssertExternalCardOutlineDistance(button, new Vector2(1f, -1f));
+        }
+
+        private static void AssertExternalCardOutlineDistance(Button button, Vector2 expectedDistance)
+        {
+            Assert.That(button, Is.Not.Null);
+            var outline = button.GetComponent<Outline>();
+            Assert.That(outline, Is.Not.Null);
+            Assert.That(outline.effectDistance.x, Is.EqualTo(expectedDistance.x).Within(0.01f));
+            Assert.That(outline.effectDistance.y, Is.EqualTo(expectedDistance.y).Within(0.01f));
+        }
+
+        private static void AssertCardImageViewerIsOpen()
+        {
+            var type = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", false);
+            Assert.That(type, Is.Not.Null);
+            var viewerObject = GameObject.Find("Card Image Viewer");
+            var viewer = viewerObject == null ? null : viewerObject.GetComponent(type);
+            Assert.That(viewer, Is.Not.Null);
+            var isOpen = type.GetProperty("IsOpen", BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(isOpen, Is.Not.Null);
+            Assert.That((bool)isOpen.GetValue(viewer, null), Is.True);
+        }
+
+        private static void AssertCardImageViewerIsClosed()
+        {
+            var type = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", false);
+            var viewerObject = GameObject.Find("Card Image Viewer");
+            var viewer = type == null || viewerObject == null ? null : viewerObject.GetComponent(type);
+            if (viewer == null)
+            {
+                return;
+            }
+
+            var isOpen = type.GetProperty("IsOpen", BindingFlags.Instance | BindingFlags.Public);
+            Assert.That((bool)isOpen.GetValue(viewer, null), Is.False);
+        }
+
+        private static void CloseCardImageViewer()
+        {
+            var type = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", false);
+            var viewerObject = GameObject.Find("Card Image Viewer");
+            var viewer = type == null || viewerObject == null ? null : viewerObject.GetComponent(type);
+            if (viewer != null)
+            {
+                type.GetMethod("Close", BindingFlags.Instance | BindingFlags.Public).Invoke(viewer, null);
+            }
         }
 
         private static bool HasText(GameObject root, string expected)

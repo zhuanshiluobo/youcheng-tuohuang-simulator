@@ -1,5 +1,7 @@
 ﻿using NUnit.Framework;
 using YC.Application.DevTools;
+using YC.Domain.CityStyles;
+using YC.Domain.Facilities;
 using YC.Domain.Rules;
 
 namespace YC.Tests.EditMode
@@ -33,9 +35,21 @@ namespace YC.Tests.EditMode
             Assert.That(result.DispatchInfluenceRoutes, Is.Not.Empty, result.Snapshot);
             Assert.That(result.BuildFacilityAttempts, Is.GreaterThan(0), result.Snapshot);
             Assert.That(result.BuildFacilitySuccesses, Is.GreaterThan(0), result.Snapshot);
+            Assert.That(result.FormalSupplyBuilds, Is.Not.Empty, result.Snapshot);
+            Assert.That(result.FormalSupplyBuilds.Exists(
+                evidence => evidence.Contains("facility=" + FacilityCardDatabase.TradeDistrict)), Is.True, result.Snapshot);
+            Assert.That(result.FormalSupplyBuilds.Exists(
+                evidence => evidence.Contains("facility=" + FacilityCardDatabase.EquipmentWarehouse)), Is.True, result.Snapshot);
+            Assert.That(result.DeclareCityStyleAttempts, Is.GreaterThan(0), result.Snapshot);
+            Assert.That(result.DeclareCityStyleSuccesses, Is.GreaterThanOrEqualTo(1), result.Snapshot);
+            Assert.That(result.CityStyleDeclarations, Is.Not.Empty, result.Snapshot);
+            Assert.That(result.CityStyleDeclarations.Exists(
+                evidence => evidence.Contains("cityStyle=" + CityStyleDatabase.MilitaryIndustrialArea) &&
+                            evidence.Contains("score=2") &&
+                            evidence.Contains("slots=0,1")), Is.True, result.Snapshot);
             Assert.That(result.DeployInfluenceAttempts, Is.GreaterThan(0), result.Snapshot);
             Assert.That(result.DeployInfluenceSuccesses, Is.GreaterThan(0), result.Snapshot);
-            Assert.That(result.FinalState.Map.Facilities, Has.Count.EqualTo(result.BuildFacilitySuccesses));
+            Assert.That(result.FinalState.Map.Facilities, Has.Count.EqualTo(result.BuildFacilitySuccesses + result.Seats.Count));
             Assert.That(result.FinalState.Map.Influences.Count, Is.GreaterThanOrEqualTo(result.DeployInfluenceSuccesses));
             Assert.That(result.ResourceCollectionSubmissions, Is.GreaterThanOrEqualTo(4), result.Snapshot);
             Assert.That(result.ResourceCollectionSubmissions % result.FinalState.Players.Count, Is.EqualTo(0), result.Snapshot);
@@ -55,6 +69,9 @@ namespace YC.Tests.EditMode
             Assert.That(result.Snapshot, Does.Contain("DispatchInfluenceSuccesses:"));
             Assert.That(result.Snapshot, Does.Contain("DispatchInfluenceRoutes:"));
             Assert.That(result.Snapshot, Does.Contain("BuildFacilitySuccesses:"));
+            Assert.That(result.Snapshot, Does.Contain("FormalSupplyBuilds:"));
+            Assert.That(result.Snapshot, Does.Contain("DeclareCityStyleSuccesses:"));
+            Assert.That(result.Snapshot, Does.Contain("CityStyleDeclarations:"));
             Assert.That(result.Snapshot, Does.Contain("BuiltFacilities:"));
             Assert.That(result.Snapshot, Does.Contain("DeployInfluenceSuccesses:"));
             Assert.That(result.Snapshot, Does.Contain("InfluencePlacements:"));
@@ -74,6 +91,7 @@ namespace YC.Tests.EditMode
             Assert.That(result.FinalState.Logs.Exists(log => log.Message.Contains("collected resources")), Is.True, result.Snapshot);
             Assert.That(HasAnyCollectedResource(result.FinalState), Is.True, result.Snapshot);
             Assert.That(HasAnyFinalFacilityScore(result.FinalState), Is.True, result.Snapshot);
+            Assert.That(HasAnyFinalCityStyleScore(result.FinalState), Is.True, result.Snapshot);
             Assert.That(HasAnyFinalRegionScore(result.FinalState), Is.True, result.Snapshot);
             TestContext.WriteLine(result.Snapshot);
         }
@@ -95,6 +113,18 @@ namespace YC.Tests.EditMode
             for (var i = 0; i < state.FinalScoring.PlayerScores.Count; i++)
             {
                 if (state.FinalScoring.PlayerScores[i].FacilityScore != 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        private static bool HasAnyFinalCityStyleScore(YC.Domain.State.GameState state)
+        {
+            for (var i = 0; i < state.FinalScoring.PlayerScores.Count; i++)
+            {
+                if (state.FinalScoring.PlayerScores[i].CityStyleScore != 0)
                 {
                     return true;
                 }

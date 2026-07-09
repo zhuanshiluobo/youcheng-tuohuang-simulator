@@ -16,6 +16,7 @@ namespace YC.Presentation
     {
         private static readonly Vector2 CoverReferenceSize = new Vector2(5888f, 3312f);
         private static readonly Rect ButtonImageRect = new Rect(2220f, 2528f, 1460f, 323f);
+        private const string DevStartLocalhostArg = "--yc-dev-start-localhost";
         private const string OfficialSiteUrl = "https://ak.hypergryph.com/boardgame_nomadcity";
         private const string WikiUrl = "https://prts.wiki/w/%E6%B8%B8%E5%9F%8E%E6%8B%93%E8%8D%92%EF%BC%9A%E9%93%B8%E5%9F%BA%E8%80%85";
         private static Sprite bookmarkSprite;
@@ -45,11 +46,22 @@ namespace YC.Presentation
                 return;
             }
 
+            if (ShouldStartLocalhostFromCommandLine())
+            {
+                StartGame();
+                return;
+            }
+
             roomService.RoomUpdated += QueueRoomUpdate;
             roomService.GameStarted += QueueGameStart;
             roomService.RoomDisbanded += QueueRoomDisbanded;
             roomService.ErrorOccurred += QueueNetworkError;
             BuildMenu();
+        }
+
+        private static bool ShouldStartLocalhostFromCommandLine()
+        {
+            return HasCommandLineArg(Environment.GetCommandLineArgs(), DevStartLocalhostArg);
         }
 
         private static bool TryRunDevCommandLineTask()
@@ -249,7 +261,7 @@ namespace YC.Presentation
             CreateCover(coverFrame);
             CreateExternalLinkButtons(coverFrame);
             CreateMenuButtons(coverFrame);
-            GameSettingsMenuController.EnsureInScene(transform, false);
+            GameSettingsMenuController.EnsureInScene(transform, false, false);
         }
 
         private static RectTransform CreateCoverFrame(RectTransform canvasTransform)
@@ -403,8 +415,8 @@ namespace YC.Presentation
             markerRect.anchorMin = new Vector2(0.5f, 0.5f);
             markerRect.anchorMax = new Vector2(0.5f, 0.5f);
             markerRect.pivot = new Vector2(0.5f, 0.5f);
-            markerRect.sizeDelta = new Vector2(34f, 34f);
-            markerRect.anchoredPosition = new Vector2(0f, 9f);
+            markerRect.sizeDelta = new Vector2(iconWidth, 46f);
+            markerRect.anchoredPosition = new Vector2(0f, 8f);
 
             var marker = markerObject.GetComponent<Text>();
             marker.text = mark;
@@ -413,6 +425,10 @@ namespace YC.Presentation
             marker.fontSize = 24;
             marker.fontStyle = FontStyle.Bold;
             marker.font = FontUtility.GetCjkFont(marker.fontSize);
+            marker.horizontalOverflow = HorizontalWrapMode.Overflow;
+            marker.verticalOverflow = VerticalWrapMode.Overflow;
+            marker.alignByGeometry = true;
+            marker.supportRichText = false;
             marker.raycastTarget = false;
 
             var markerOutline = markerObject.GetComponent<Outline>();
@@ -970,7 +986,7 @@ namespace YC.Presentation
 
             private void ApplyState(float progress)
             {
-                buttonRect.sizeDelta = new Vector2(expandedWidth, buttonRect.sizeDelta.y);
+                buttonRect.sizeDelta = new Vector2(Mathf.Max(collapsedWidth, currentWidth), buttonRect.sizeDelta.y);
                 labelRect.sizeDelta = new Vector2(Mathf.Max(0f, currentWidth - collapsedWidth + 4f), labelRect.sizeDelta.y);
 
                 if (extensionGroup != null)

@@ -18,16 +18,26 @@ namespace YC.Presentation
         private Text pageLabel;
         private Button previousButton;
         private Button nextButton;
+        private ZoomableImageViewerController reusableViewer;
         private int pageIndex;
         private float zoom = 1f;
 
         private void Awake()
         {
             BuildUi();
+            var viewerObject = new GameObject("Reusable Rulebook Image Viewer");
+            viewerObject.transform.SetParent(transform, false);
+            reusableViewer = viewerObject.AddComponent<ZoomableImageViewerController>();
+            reusableViewer.Configure("Shared Rulebook", "规则书", PageCount, LoadPage);
         }
 
         private void Update()
         {
+            if (reusableViewer != null)
+            {
+                return;
+            }
+
             if (rootObject == null || !rootObject.activeSelf)
             {
                 return;
@@ -55,6 +65,12 @@ namespace YC.Presentation
 
         public void Open()
         {
+            if (reusableViewer != null)
+            {
+                reusableViewer.Open(pageIndex);
+                return;
+            }
+
             if (rootObject == null)
             {
                 BuildUi();
@@ -66,6 +82,11 @@ namespace YC.Presentation
 
         public void Close()
         {
+            if (reusableViewer != null)
+            {
+                reusableViewer.Close();
+            }
+
             if (rootObject != null)
             {
                 rootObject.SetActive(false);
@@ -269,6 +290,11 @@ namespace YC.Presentation
             zoom = 1f;
             ApplyPageSize(texture);
             UpdateControls();
+        }
+
+        private static Texture2D LoadPage(int index)
+        {
+            return Resources.Load<Texture2D>(PageResourcePrefix + (index + 1).ToString("00"));
         }
 
         private void SetZoom(float value)

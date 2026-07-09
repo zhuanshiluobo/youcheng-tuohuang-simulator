@@ -32,7 +32,9 @@ namespace YC.Domain.CityStyles
             }
 
             var requirement = cityStyle.DeclarationRequirement ?? new CityStyleRequirement();
-            var requiredCount = Math.Max(1, requirement.RequiredFacilityCount);
+            var requiredCount = requirement.RequiredPatternCells != null && requirement.RequiredPatternCells.Count > 0
+                ? requirement.RequiredPatternCells.Count
+                : Math.Max(1, requirement.RequiredFacilityCount);
             var candidates = BuildCandidates(state, player, requirement);
             if (candidates.Count < requiredCount)
             {
@@ -165,7 +167,92 @@ namespace YC.Domain.CityStyles
         {
             return SatisfiesEffectTypes(facilities, requirement.RequiredEffectTypes) &&
                    SatisfiesRequiredSlotCoverage(facilities, requirement.RequiredCityBoardSlotIndexes) &&
+                   SatisfiesColorPattern(facilities, requirement.RequiredPatternCells) &&
                    SatisfiesSameRow(facilities, requirement.RequireSameCityBoardRow);
+        }
+
+        private static bool SatisfiesColorPattern(
+            List<CityStyleFacilityCandidate> facilities,
+            List<CityStylePatternCell> patternCells)
+        {
+            if (patternCells == null || patternCells.Count == 0)
+            {
+                return true;
+            }
+
+            if (facilities.Count != patternCells.Count)
+            {
+                return false;
+            }
+
+            var rowCount = BuildFacilityService.CityBoardSlotCount / BuildFacilityService.CityBoardSlotCountPerRow;
+            for (var anchorRow = 0; anchorRow < rowCount; anchorRow++)
+            {
+                for (var anchorColumn = 0; anchorColumn < BuildFacilityService.CityBoardSlotCountPerRow; anchorColumn++)
+                {
+                    if (SatisfiesColorPatternAtAnchor(facilities, patternCells, anchorRow, anchorColumn, rowCount))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool SatisfiesColorPatternAtAnchor(
+            List<CityStyleFacilityCandidate> facilities,
+            List<CityStylePatternCell> patternCells,
+            int anchorRow,
+            int anchorColumn,
+            int rowCount)
+        {
+            var usedFacilityIndexes = new HashSet<int>();
+            for (var cellIndex = 0; cellIndex < patternCells.Count; cellIndex++)
+            {
+                var cell = patternCells[cellIndex];
+                var row = anchorRow + cell.RowOffset;
+                var column = anchorColumn + cell.ColumnOffset;
+                if (row < 0 ||
+                    row >= rowCount ||
+                    column < 0 ||
+                    column >= BuildFacilityService.CityBoardSlotCountPerRow)
+                {
+                    return false;
+                }
+
+                var slotIndex = row * BuildFacilityService.CityBoardSlotCountPerRow + column;
+                var matchedFacilityIndex = FindMatchingFacilityAtSlot(facilities, usedFacilityIndexes, slotIndex, cell);
+                if (matchedFacilityIndex < 0)
+                {
+                    return false;
+                }
+
+                usedFacilityIndexes.Add(matchedFacilityIndex);
+            }
+
+            return true;
+        }
+
+        private static int FindMatchingFacilityAtSlot(
+            List<CityStyleFacilityCandidate> facilities,
+            HashSet<int> usedFacilityIndexes,
+            int slotIndex,
+            CityStylePatternCell cell)
+        {
+            for (var facilityIndex = 0; facilityIndex < facilities.Count; facilityIndex++)
+            {
+                if (usedFacilityIndexes.Contains(facilityIndex) ||
+                    facilities[facilityIndex].CityBoardSlotIndex != slotIndex ||
+                    !MatchesFacilityColors(facilities[facilityIndex].Definition, cell.AllowedFacilityColors))
+                {
+                    continue;
+                }
+
+                return facilityIndex;
+            }
+
+            return -1;
         }
 
         private static bool SatisfiesEffectTypes(
@@ -250,6 +337,34 @@ namespace YC.Domain.CityStyles
             }
 
             return true;
+        }
+
+        private static bool MatchesFacilityColors(FacilityCardDefinition facility, List<string> allowedColors)
+        {
+            if (allowedColors == null || allowedColors.Count == 0)
+            {
+                return true;
+            }
+
+            if (facility == null || string.IsNullOrEmpty(facility.Color))
+            {
+                return false;
+            }
+
+            var facilityColors = facility.Color.Split(new[] { ',', '/', ';', '|', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            for (var facilityColorIndex = 0; facilityColorIndex < facilityColors.Length; facilityColorIndex++)
+            {
+                var facilityColor = Normalize(facilityColors[facilityColorIndex]);
+                for (var allowedColorIndex = 0; allowedColorIndex < allowedColors.Count; allowedColorIndex++)
+                {
+                    if (facilityColor == Normalize(allowedColors[allowedColorIndex]))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private static bool MatchesResourceTypes(FacilityCardDefinition facility, List<ResourceType> resourceTypes)

@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Collections.Generic;
 using YC.Application.Gameplay;
 using YC.Application.Sessions;
 using YC.Domain.Commands;
@@ -90,7 +91,7 @@ namespace YC.Tests.EditMode
 
             Assert.That(result.Succeeded, Is.True);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(0));
-            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(6));
+            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(6));
             Assert.That(state.Map.Facilities[0].CityBoardSlotIndex, Is.EqualTo(0));
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.True);
         }
@@ -159,7 +160,7 @@ namespace YC.Tests.EditMode
         public void BuildFacility_WhenUniqueAlreadyBuilt_FailsWithoutMutating()
         {
             var state = CreateActionState();
-            state.Decks.FacilitySupply.Add(FacilityCardDatabase.FederalOffice);
+            state.Decks.FacilitySupply.Add("building_008");
             state.FindPlayer(1).BuiltFacilityIds.Add(FacilityCardDatabase.FederalOffice);
             state.FindPlayer(1).Resources.GoldVoucher = 17;
             var handler = new BuildFacilityCommandHandler();
@@ -168,7 +169,7 @@ namespace YC.Tests.EditMode
             {
                 Kind = GameCommandKind.BuildFacility,
                 PlayerId = 1,
-                TargetId = FacilityCardDatabase.FederalOffice,
+                TargetId = "building_008",
                 Parameters =
                 {
                     { BuildFacilityCommandHandler.PaymentModeParameter, BuildFacilityService.PaymentModeGold }
@@ -223,6 +224,52 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void FacilityCardDatabase_LoadsFormalBuildingCardsManifest()
+        {
+            Assert.That(FacilityCardDatabase.DefaultSupplyIds, Has.Count.EqualTo(41));
+            Assert.That(FacilityCardDatabase.DefaultSupplyIds, Does.Not.Contain(FacilityCardDatabase.CoreCommandTower));
+            Assert.That(FacilityCardDatabase.DefaultSupplyIds, Does.Not.Contain(FacilityCardDatabase.ExtensionHubBlue));
+
+            for (var i = 0; i < FacilityCardDatabase.DefaultSupplyIds.Count; i++)
+            {
+                var facilityId = FacilityCardDatabase.DefaultSupplyIds[i];
+                var facility = FacilityCardDatabase.Get(facilityId);
+                Assert.That(facility, Is.Not.Null);
+                Assert.That(
+                    facility.ImageRelativePath,
+                    Is.EqualTo("Assets/YC/Presentation/Resources/CardImages/Facilities/" + facilityId + ".jpg"));
+            }
+
+            var logisticsHub = FacilityCardDatabase.Get(FacilityCardDatabase.LogisticsHub);
+            Assert.That(logisticsHub.Name, Is.EqualTo("物流枢纽"));
+            Assert.That(logisticsHub.ResourceCost.PureOriginium, Is.EqualTo(1));
+            Assert.That(logisticsHub.ResourceCost.GoldVoucher, Is.EqualTo(2));
+            Assert.That(logisticsHub.ImageRelativePath, Does.EndWith("building_012.jpg"));
+            Assert.That(
+                System.IO.File.Exists(
+                    System.IO.Path.Combine(
+                        System.IO.Directory.GetCurrentDirectory(),
+                        "Assets",
+                        "StreamingAssets",
+                        "YC",
+                        "Data",
+                        "building_cards_manifest.json")),
+                Is.True);
+
+            var extensionHub = FacilityCardDatabase.Get(FacilityCardDatabase.ExtensionHubBlue);
+            Assert.That(extensionHub.ReserveOnly, Is.True);
+            Assert.That(extensionHub.ImageRelativePath, Does.EndWith("reserve_002.jpg"));
+
+            for (var i = 0; i < FacilityCardDatabase.ReserveIds.Count; i++)
+            {
+                var reserveId = FacilityCardDatabase.ReserveIds[i];
+                Assert.That(
+                    FacilityCardDatabase.Get(reserveId).ImageRelativePath,
+                    Is.EqualTo("Assets/YC/Presentation/Resources/CardImages/Facilities/" + reserveId + ".jpg"));
+            }
+        }
+
+        [Test]
         public void GameLaunchStateFactory_InitializesFacilitySupply()
         {
             var state = GameLaunchStateFactory.CreateInitialState(
@@ -237,7 +284,46 @@ namespace YC.Tests.EditMode
             Assert.That(
                 state.Decks.FacilityDeck,
                 Has.Count.EqualTo(FacilityCardDatabase.DefaultSupplyIds.Count - 6));
-            Assert.That(state.Decks.FacilitySupply, Does.Contain(FacilityCardDatabase.BoroughAdministrativeDistrict));
+            Assert.That(
+                state.Decks.FacilitySupply,
+                Is.EqualTo(new[]
+                {
+                    FacilityCardDatabase.CityIndustrialDistrict,
+                    FacilityCardDatabase.OriginiumPurificationPlant,
+                    FacilityCardDatabase.LogisticsHub,
+                    "building_038",
+                    FacilityCardDatabase.SimpleEngineeringCamp,
+                    "building_008"
+                }));
+        }
+
+        [Test]
+        public void GameLaunchStateFactory_PlacesCoreCommandTowerOnSlotEightForEveryPlayer()
+        {
+            var state = GameLaunchStateFactory.CreateInitialState(
+                LaunchMode.Local,
+                1,
+                new List<PlayerSeat>
+                {
+                    new PlayerSeat { PlayerId = 1, PlayerName = "Player 1", Color = PlayerColor.Blue },
+                    new PlayerSeat { PlayerId = 2, PlayerName = "Player 2", Color = PlayerColor.Red },
+                    new PlayerSeat { PlayerId = 3, PlayerName = "Player 3", Color = PlayerColor.Green },
+                    new PlayerSeat { PlayerId = 4, PlayerName = "Player 4", Color = PlayerColor.Yellow }
+                },
+                "map_four_players",
+                123);
+
+            Assert.That(state.Map.Facilities, Has.Count.EqualTo(4));
+            for (var playerId = 1; playerId <= 4; playerId++)
+            {
+                Assert.That(
+                    CountCoreCommandTowerPlacements(state, playerId),
+                    Is.EqualTo(1),
+                    "Player " + playerId + " should start with one core command tower.");
+                Assert.That(
+                    state.FindPlayer(playerId).BuiltFacilityIds,
+                    Does.Contain(FacilityCardDatabase.CoreCommandTower));
+            }
         }
 
         private static GameState CreateActionState()
@@ -263,6 +349,23 @@ namespace YC.Tests.EditMode
                     }
                 }
             };
+        }
+
+        private static int CountCoreCommandTowerPlacements(GameState state, int playerId)
+        {
+            var count = 0;
+            for (var i = 0; i < state.Map.Facilities.Count; i++)
+            {
+                var placement = state.Map.Facilities[i];
+                if (placement.PlayerId == playerId &&
+                    placement.FacilityCardId == FacilityCardDatabase.CoreCommandTower &&
+                    placement.CityBoardSlotIndex == BuildFacilityService.CoreCommandTowerCityBoardSlotIndex)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
     }
 }

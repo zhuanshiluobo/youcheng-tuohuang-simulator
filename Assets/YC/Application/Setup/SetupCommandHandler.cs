@@ -5,6 +5,7 @@ using YC.Domain.Cards;
 using YC.Domain.CardFlows;
 using YC.Domain.Commands;
 using YC.Domain.Events;
+using YC.Domain.Facilities;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -161,6 +162,7 @@ namespace YC.Application.Setup
             }
 
             player.CityLocationId = command.TargetId;
+            BuildFacilityService.EnsureInitialCoreCommandTower(state, player);
             if (!state.Map.OpenLocationIds.Contains(command.TargetId))
             {
                 state.Map.OpenLocationIds.Add(command.TargetId);

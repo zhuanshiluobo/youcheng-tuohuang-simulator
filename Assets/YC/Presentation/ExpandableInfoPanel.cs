@@ -18,7 +18,6 @@ namespace YC.Presentation
         private const float RowTextInset = 6f;
         private const float HintCardPreviewMaxWidth = 320f;
         private const float HintCardPreviewMaxHeight = 420f;
-        private const string HintCardResourcePath = "ProjectAssetLibrary/HintCards/提示卡";
         private const string ExpandedArrow = "◀";
         private const string CollapsedArrow = "▶";
 
@@ -552,15 +551,6 @@ namespace YC.Presentation
 
         private void BuildDemoModules()
         {
-            var overview = AddModule("玩家概览");
-            AddTextRow(overview, "玩家", "Player 1");
-            AddTextRow(overview, "颜色", "蓝色");
-            AddTextRow(overview, "剩余影响力", "30");
-            AddTextRow(overview, "分数", "0");
-
-            var hintCard = AddModule("提示卡");
-            AddImagePreview(hintCard, "提示卡", Resources.Load<Texture2D>(HintCardResourcePath));
-
             var resources = AddModule("资源状态");
             AddTextRow(resources, "源岩", "0");
             AddTextRow(resources, "源石", "0");
@@ -568,12 +558,6 @@ namespace YC.Presentation
             AddTextRow(resources, "至纯源石", "0");
             AddTextRow(resources, "金券", "10");
 
-            var city = AddModule("城市与行动");
-            AddTextRow(city, "城市位置", "A-01");
-            AddTextRow(city, "本回合", "1 / 8");
-            AddTextRow(city, "行动轮", "1");
-            AddTextRow(city, "已执行行动", "否");
-            AddTextRow(city, "已移动城市", "否");
         }
 
         public sealed class InfoModule

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -11,6 +12,30 @@ namespace YC.Editor
     {
         private const string OutputDirectory = "Builds/Localhost";
         private const string OutputFileName = "tuohuang.exe";
+        private const string BatchBuildArgument = "-ycBuildLocalhost";
+
+        [InitializeOnLoadMethod]
+        private static void RunBatchBuildWhenRequested()
+        {
+            if (!Environment.GetCommandLineArgs().Contains(BatchBuildArgument))
+            {
+                return;
+            }
+
+            EditorApplication.delayCall += () =>
+            {
+                try
+                {
+                    BuildLocalhost();
+                    EditorApplication.Exit(0);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                    EditorApplication.Exit(1);
+                }
+            };
+        }
 
         [MenuItem("YC/Build/Localhost Simulator")]
         public static void BuildLocalhost()

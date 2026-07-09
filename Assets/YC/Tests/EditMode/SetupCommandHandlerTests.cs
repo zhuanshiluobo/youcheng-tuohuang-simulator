@@ -2,6 +2,7 @@ using NUnit.Framework;
 using YC.Application.Setup;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
+using YC.Domain.Facilities;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -67,6 +68,7 @@ namespace YC.Tests.EditMode
             Assert.That(result.Succeeded, Is.True);
             Assert.That(state.FindPlayer(1).CityLocationId, Is.EqualTo("city-a"));
             Assert.That(state.Map.OpenLocationIds, Does.Contain("city-a"));
+            AssertCoreCommandTowerPlaced(state, 1);
             Assert.That(result.Events, Has.Count.GreaterThanOrEqualTo(1));
             Assert.That(result.LogMessage, Does.Contain("city-a"));
         }
@@ -411,6 +413,25 @@ namespace YC.Tests.EditMode
                 Assert.That(card.RepresentativeResourceAmount, Is.GreaterThan(0), cardId);
                 Assert.That(card.ChoicePendingEffects, Has.Count.EqualTo(card.ChoiceRewards.Count), cardId);
             }
+        }
+
+        private static void AssertCoreCommandTowerPlaced(GameState state, int playerId)
+        {
+            Assert.That(state.FindPlayer(playerId).BuiltFacilityIds, Does.Contain(FacilityCardDatabase.CoreCommandTower));
+
+            var count = 0;
+            for (var i = 0; i < state.Map.Facilities.Count; i++)
+            {
+                var placement = state.Map.Facilities[i];
+                if (placement.PlayerId == playerId &&
+                    placement.FacilityCardId == FacilityCardDatabase.CoreCommandTower &&
+                    placement.CityBoardSlotIndex == BuildFacilityService.CoreCommandTowerCityBoardSlotIndex)
+                {
+                    count++;
+                }
+            }
+
+            Assert.That(count, Is.EqualTo(1));
         }
     }
 }

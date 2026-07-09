@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using YC.Application.Sessions;
 
 namespace YC.Presentation
 {
@@ -9,6 +10,9 @@ namespace YC.Presentation
         private const float PanelWidth = 640f;
         private const float PanelHeight = 430f;
         private const float AnimationSpeed = 14f;
+        private const float CornerButtonSize = 64f;
+        private const float CornerButtonGap = CornerButtonSize * 0.2f;
+        private const string HintCardResourcePath = "ProjectAssetLibrary/HintCards/提示卡";
         private const string DefaultStartSceneName = "StartScene";
 
         [SerializeField] private string startSceneName = DefaultStartSceneName;
@@ -19,9 +23,17 @@ namespace YC.Presentation
         private GameObject overlayObject;
         private GameObject confirmationObject;
         private GameObject returnButtonObject;
+        private GameObject actionLogButtonObject;
+        private ActionLogViewerController actionLogViewer;
+        private GameObject hintCardButtonObject;
         private bool isOpen;
         private bool isAnimating;
         private Vector2 targetPosition;
+
+        public bool IsOpen
+        {
+            get { return isOpen; }
+        }
 
         private void Awake()
         {
@@ -30,6 +42,11 @@ namespace YC.Presentation
 
         private void Update()
         {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                HandleEscapePressed();
+            }
+
             if (!isAnimating || menuPanel == null)
             {
                 return;
@@ -52,6 +69,29 @@ namespace YC.Presentation
             {
                 overlayObject.SetActive(false);
             }
+        }
+
+        public void HandleEscapePressed()
+        {
+            if (ZoomableImageViewerController.WasEscapeConsumedThisFrame() ||
+                ZoomableImageViewerController.HasOpenViewer())
+            {
+                return;
+            }
+
+            if (confirmationObject != null && confirmationObject.activeSelf)
+            {
+                HideConfirmation();
+                return;
+            }
+
+            if (isOpen)
+            {
+                Close();
+                return;
+            }
+
+            Open();
         }
 
         public void Open()
@@ -97,12 +137,47 @@ namespace YC.Presentation
             }
         }
 
-        public static GameSettingsMenuController EnsureInScene(Transform parent, bool showReturnToStartButton = true)
+        public void ConfigureActionLog(GameSession session)
+        {
+            if (session == null)
+            {
+                return;
+            }
+
+            if (actionLogButtonObject == null)
+            {
+                BuildActionLogButton(canvasTransform);
+            }
+
+            if (actionLogViewer == null)
+            {
+                var viewerObject = new GameObject("ActionLogViewer");
+                viewerObject.transform.SetParent(transform, false);
+                actionLogViewer = viewerObject.AddComponent<ActionLogViewerController>();
+            }
+
+            actionLogViewer.Configure(() => session.State);
+            actionLogButtonObject.SetActive(true);
+        }
+
+        public void SetHintCardButtonVisible(bool visible)
+        {
+            if (hintCardButtonObject != null)
+            {
+                hintCardButtonObject.SetActive(visible);
+            }
+        }
+
+        public static GameSettingsMenuController EnsureInScene(
+            Transform parent,
+            bool showReturnToStartButton = true,
+            bool showHintCardButton = true)
         {
             var existing = FindObjectOfType<GameSettingsMenuController>();
             if (existing != null)
             {
                 existing.SetReturnToStartButtonVisible(showReturnToStartButton);
+                existing.SetHintCardButtonVisible(showHintCardButton);
                 return existing;
             }
 
@@ -114,6 +189,7 @@ namespace YC.Presentation
 
             var controller = go.AddComponent<GameSettingsMenuController>();
             controller.SetReturnToStartButtonVisible(showReturnToStartButton);
+            controller.SetHintCardButtonVisible(showHintCardButton);
             return controller;
         }
 
@@ -125,6 +201,7 @@ namespace YC.Presentation
             canvasTransform = canvas.GetComponent<RectTransform>();
 
             BuildGearButton(canvasTransform);
+            BuildHintCardButton(canvasTransform);
             BuildOverlay(canvasTransform);
         }
 
@@ -160,6 +237,72 @@ namespace YC.Presentation
             var iconImage = iconObject.GetComponent<Image>();
             iconImage.sprite = CreateGearSprite();
             iconImage.color = UiTheme.GoldText;
+        }
+
+        private void BuildHintCardButton(RectTransform parent)
+        {
+            var buttonObject = new GameObject("Hint Card Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
+            buttonObject.transform.SetParent(parent, false);
+            hintCardButtonObject = buttonObject;
+
+            var rect = buttonObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(1f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.sizeDelta = new Vector2(CornerButtonSize, CornerButtonSize);
+            rect.anchoredPosition = new Vector2(-34f - CornerButtonSize - CornerButtonGap, -34f);
+
+            buttonObject.GetComponent<Image>().color = UiTheme.PanelBackgroundLighter;
+            var outline = buttonObject.GetComponent<Outline>();
+            outline.effectColor = UiTheme.GoldOutline;
+            outline.effectDistance = new Vector2(2f, -2f);
+            buttonObject.GetComponent<Button>().onClick.AddListener(OpenHintCard);
+
+            var iconObject = new GameObject("Hint Bubble Icon", typeof(RectTransform), typeof(Image));
+            iconObject.transform.SetParent(buttonObject.transform, false);
+            var iconRect = iconObject.GetComponent<RectTransform>();
+            iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRect.pivot = new Vector2(0.5f, 0.5f);
+            iconRect.sizeDelta = new Vector2(44f, 44f);
+            iconRect.anchoredPosition = Vector2.zero;
+            var iconImage = iconObject.GetComponent<Image>();
+            iconImage.sprite = CreateHintBubbleSprite();
+            iconImage.color = UiTheme.GoldText;
+        }
+
+        private void BuildActionLogButton(RectTransform parent)
+        {
+            actionLogButtonObject = new GameObject("Action Log Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
+            actionLogButtonObject.transform.SetParent(parent, false);
+
+            var rect = actionLogButtonObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(1f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.sizeDelta = new Vector2(CornerButtonSize, CornerButtonSize);
+            rect.anchoredPosition = new Vector2(-34f - (CornerButtonSize + CornerButtonGap) * 2f, -34f);
+
+            actionLogButtonObject.GetComponent<Image>().color = UiTheme.PanelBackgroundLighter;
+            var outline = actionLogButtonObject.GetComponent<Outline>();
+            outline.effectColor = UiTheme.GoldOutline;
+            outline.effectDistance = new Vector2(2f, -2f);
+            actionLogButtonObject.GetComponent<Button>().onClick.AddListener(() => actionLogViewer.Open());
+
+            var textObject = new GameObject("Action Log Icon", typeof(RectTransform), typeof(Text));
+            textObject.transform.SetParent(actionLogButtonObject.transform, false);
+            var textRect = textObject.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+            var text = textObject.GetComponent<Text>();
+            text.text = "\u65e5\u5fd7";
+            text.alignment = TextAnchor.MiddleCenter;
+            text.color = UiTheme.GoldText;
+            text.fontSize = 18;
+            text.fontStyle = FontStyle.Bold;
+            text.font = FontUtility.GetCjkFont(18);
         }
 
         private void BuildOverlay(RectTransform parent)
@@ -468,6 +611,23 @@ namespace YC.Presentation
             viewer.Open();
         }
 
+        private void OpenHintCard()
+        {
+            var viewerTransform = transform.Find("HintCardViewer");
+            var viewer = viewerTransform == null
+                ? null
+                : viewerTransform.GetComponent<ZoomableImageViewerController>();
+            if (viewer == null)
+            {
+                var viewerObject = new GameObject("HintCardViewer");
+                viewerObject.transform.SetParent(transform, false);
+                viewer = viewerObject.AddComponent<ZoomableImageViewerController>();
+                viewer.Configure("Hint Card", "提示卡", 1, _ => Resources.Load<Texture2D>(HintCardResourcePath));
+            }
+
+            viewer.Open();
+        }
+
         private void ReturnToStartScene()
         {
             SceneManager.LoadScene(string.IsNullOrEmpty(startSceneName) ? DefaultStartSceneName : startSceneName);
@@ -511,6 +671,40 @@ namespace YC.Presentation
                     var hasTooth = toothCenterDistance <= 11f;
                     var outerRadius = hasTooth ? toothRadius : ringRadius;
                     var alpha = distance >= innerRadius && distance <= outerRadius ? 1f : 0f;
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+
+        private static Sprite CreateHintBubbleSprite()
+        {
+            const int size = 96;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Bilinear;
+
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var bubble = x >= 13 && x <= 82 && y >= 25 && y <= 79;
+                    var roundedCorner =
+                        (x < 23 && y < 35 && Vector2.Distance(new Vector2(x, y), new Vector2(23f, 35f)) > 10f) ||
+                        (x > 72 && y < 35 && Vector2.Distance(new Vector2(x, y), new Vector2(72f, 35f)) > 10f) ||
+                        (x < 23 && y > 69 && Vector2.Distance(new Vector2(x, y), new Vector2(23f, 69f)) > 10f) ||
+                        (x > 72 && y > 69 && Vector2.Distance(new Vector2(x, y), new Vector2(72f, 69f)) > 10f);
+                    if (roundedCorner)
+                    {
+                        bubble = false;
+                    }
+
+                    var tail = y >= 14 && y < 27 && x >= 24 && x <= 43 && y <= x - 10;
+                    var mark = (x >= 44 && x <= 51 && y >= 43 && y <= 66) ||
+                               (x >= 44 && x <= 51 && y >= 32 && y <= 38);
+                    var alpha = (bubble || tail) && !mark ? 1f : 0f;
                     texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
                 }
             }

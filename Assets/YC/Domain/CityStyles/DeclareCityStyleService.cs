@@ -68,9 +68,18 @@ namespace YC.Domain.CityStyles
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "未知城市样式。");
             }
 
-            if (player.DeclaredCityStyleIds.Contains(cityStyle.CityStyleId))
+            var declaredCount = 0;
+            for (var i = 0; i < player.DeclaredCityStyleIds.Count; i++)
             {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该城市样式已经宣告过。");
+                if (player.DeclaredCityStyleIds[i] == cityStyle.CityStyleId)
+                {
+                    declaredCount += 1;
+                }
+            }
+
+            if (declaredCount >= cityStyle.MaxDeclarationsPerPlayer)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该城市样式已经达到宣告次数上限。");
             }
 
             if (player.InfluenceSupply <= 0)

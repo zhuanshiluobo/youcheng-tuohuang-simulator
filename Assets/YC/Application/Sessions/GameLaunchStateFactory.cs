@@ -70,18 +70,37 @@ namespace YC.Application.Sessions
             };
 
             AddPlayers(state, localPlayerId, players);
-            InitializeFacilityMarket(state);
+            BuildFacilityService.EnsureInitialCoreCommandTowers(state);
+            InitializeFacilityMarket(state, eventDeckSeed);
             state.Decks.CityStyleSupply.AddRange(CityStyleDatabase.DefaultSupplyIds);
             return state;
         }
 
-        private static void InitializeFacilityMarket(GameState state)
+        private static void InitializeFacilityMarket(GameState state, int seed)
         {
             state.Decks.FacilityDeck.AddRange(FacilityCardDatabase.DefaultSupplyIds);
+            Shuffle(state.Decks.FacilityDeck, seed);
             while (state.Decks.FacilitySupply.Count < 6 && state.Decks.FacilityDeck.Count > 0)
             {
                 state.Decks.FacilitySupply.Add(state.Decks.FacilityDeck[0]);
                 state.Decks.FacilityDeck.RemoveAt(0);
+            }
+        }
+
+        private static void Shuffle(List<string> cardIds, int seed)
+        {
+            if (cardIds == null || cardIds.Count <= 1)
+            {
+                return;
+            }
+
+            var random = new Random(seed);
+            for (var i = cardIds.Count - 1; i > 0; i--)
+            {
+                var swapIndex = random.Next(i + 1);
+                var value = cardIds[i];
+                cardIds[i] = cardIds[swapIndex];
+                cardIds[swapIndex] = value;
             }
         }
 

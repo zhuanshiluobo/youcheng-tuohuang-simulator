@@ -37,6 +37,18 @@ namespace YC.Presentation
             WaitingForNextPlayer
         }
 
+        private enum RightCardSmokeDialog
+        {
+            None,
+            Build,
+            Declare
+        }
+
+        private const string RightCardSmokeArg = "--yc-dev-right-card-smoke";
+        private const string RightCardSmokeBuildArg = "--yc-dev-right-card-smoke-build";
+        private const string RightCardSmokeDeclareArg = "--yc-dev-right-card-smoke-declare";
+        private const string RightCardSmokeNoDialogArg = "--yc-dev-right-card-smoke-no-dialog";
+
         [SerializeField] private SpriteRenderer mapRenderer;
         [SerializeField] private Camera targetCamera;
         [SerializeField] private bool debugClicks;
@@ -60,26 +72,14 @@ namespace YC.Presentation
         private ActionPanelController actionPanel;
         private PromptPresenter promptPresenter;
         private string completedMainActionName = string.Empty;
-        private string pendingExploreTargetId = string.Empty;
-        private MapPath pendingExplorePath;
-        private readonly List<ExplorePathChoice> pendingExplorePathChoices = new List<ExplorePathChoice>();
-        private readonly HashSet<string> collectionCandidateLocationIds = new HashSet<string>(StringComparer.Ordinal);
-        private readonly HashSet<string> collectionSelectedLocationIds = new HashSet<string>(StringComparer.Ordinal);
-        private readonly HashSet<string> collectionDeselectedLocationIds = new HashSet<string>(StringComparer.Ordinal);
-        private readonly HashSet<string> collectionRouteIds = new HashSet<string>(StringComparer.Ordinal);
-        private readonly HashSet<string> collectionPaidRouteIds = new HashSet<string>(StringComparer.Ordinal);
-        private readonly Dictionary<string, int> collectionPaymentRecipients = new Dictionary<string, int>(StringComparer.Ordinal);
-        private readonly Dictionary<string, MapPath> collectionPathsByLocationId = new Dictionary<string, MapPath>(StringComparer.Ordinal);
+        private readonly ExplorePathSelectionController explorePathSelection = new ExplorePathSelectionController();
+        private readonly ResourceCollectionSelectionController resourceCollectionSelection = new ResourceCollectionSelectionController();
+        private readonly MapInteractionConfirmationController mapInteractionConfirmation = new MapInteractionConfirmationController();
         private ActionPanelMode actionPanelMode = ActionPanelMode.Hidden;
         private bool awaitingInitialPlacement = true;
         private string pendingDispatchSourceSlotId = string.Empty;
         private string pendingDispatchFirstSourceSlotId = string.Empty;
         private string pendingDispatchFirstTargetSlotId = string.Empty;
-        private string pendingConfirmationActionKey = string.Empty;
-        private string pendingConfirmationTargetId = string.Empty;
-        private string pendingConfirmationLocationId = string.Empty;
-        private string pendingConfirmationSlotId = string.Empty;
-        private Action pendingConfirmationCallback;
         private int localPlayerId = 1;
         private int lastDebugCoordinateLogFrame = -1;
         private int lastEventInfluenceTargetSelectionFrame = -1;
@@ -213,6 +213,141 @@ namespace YC.Presentation
             EnsureSettingsMenu();
             ShowInitialPlacementChoices();
             BuildCommandSubmission(GameLaunchContext.Instance);
+            TryPrepareRightCardSmokeFromCommandLine();
+        }
+
+        private void TryPrepareRightCardSmokeFromCommandLine()
+        {
+            var args = Environment.GetCommandLineArgs();
+            if (!HasCommandLineArg(args, RightCardSmokeArg) &&
+                !HasCommandLineArg(args, RightCardSmokeBuildArg) &&
+                !HasCommandLineArg(args, RightCardSmokeDeclareArg) &&
+                !HasCommandLineArg(args, RightCardSmokeNoDialogArg))
+            {
+                return;
+            }
+
+            var dialog = RightCardSmokeDialog.Build;
+            if (HasCommandLineArg(args, RightCardSmokeDeclareArg))
+            {
+                dialog = RightCardSmokeDialog.Declare;
+            }
+            else if (HasCommandLineArg(args, RightCardSmokeNoDialogArg))
+            {
+                dialog = RightCardSmokeDialog.None;
+            }
+
+            PrepareRightCardSmoke(dialog);
+        }
+
+        private void PrepareRightCardSmoke(RightCardSmokeDialog dialog)
+        {
+            if (session == null || session.State == null)
+            {
+                return;
+            }
+
+            var state = session.State;
+            var player = state.FindPlayer(localPlayerId);
+            if (player == null && state.Players.Count > 0)
+            {
+                player = state.Players[0];
+                localPlayerId = player.PlayerId;
+            }
+
+            if (player == null)
+            {
+                Debug.LogWarning("Right card smoke setup skipped because no local player exists.");
+                return;
+            }
+
+            localPlayerId = player.PlayerId;
+            PrepareRightCardSmokeState(state, player);
+            actionPanelMode = ActionPanelMode.ChooseAction;
+            awaitingInitialPlacement = false;
+            completedMainActionName = string.Empty;
+            ClearPendingDispatch();
+            ClearHighlights();
+            eventChoiceDialog.Hide();
+            RefreshAllFromState();
+
+            if (buildInfoPanel != null)
+            {
+                buildInfoPanel.SetExpanded(true);
+            }
+
+            if (dialog == RightCardSmokeDialog.Declare)
+            {
+                OnDeclareCityStyleClicked();
+            }
+            else if (dialog == RightCardSmokeDialog.Build)
+            {
+                OnBuildActionClicked();
+            }
+
+            Debug.Log("Right card smoke setup ready. Dialog=" + dialog + ", PlayerId=" + localPlayerId + ".");
+        }
+
+        private static void PrepareRightCardSmokeState(GameState state, PlayerState player)
+        {
+            state.Round = Math.Max(1, state.Round);
+            state.Phase = GamePhase.ActionRound1;
+            state.ActionRound = 1;
+            state.StartPlayerId = player.PlayerId;
+            state.CurrentPlayerId = player.PlayerId;
+            state.PendingChoice = null;
+            state.PendingCardSession = null;
+
+            if (string.IsNullOrEmpty(player.CityLocationId))
+            {
+                player.CityLocationId = "G-01";
+            }
+
+            player.ActedMainActionThisTurn = false;
+            player.HasMovedCityThisRound = false;
+            player.HasCollectedResourcesThisRound = false;
+            player.Resources.Originium = Math.Max(player.Resources.Originium, 6);
+            player.Resources.OriginiumShard = Math.Max(player.Resources.OriginiumShard, 6);
+            player.Resources.Iron = Math.Max(player.Resources.Iron, 6);
+            player.Resources.PureOriginium = Math.Max(player.Resources.PureOriginium, 2);
+            player.Resources.GoldVoucher = Math.Max(player.Resources.GoldVoucher, 30);
+
+            if (state.Map != null && !state.Map.OpenLocationIds.Contains(player.CityLocationId))
+            {
+                state.Map.OpenLocationIds.Add(player.CityLocationId);
+            }
+
+            if (state.Decks.FacilitySupply.Count <= 0)
+            {
+                state.Decks.FacilitySupply.Add(FacilityCardDatabase.SimpleEngineeringCamp);
+            }
+            else if (!state.Decks.FacilitySupply.Contains(FacilityCardDatabase.SimpleEngineeringCamp))
+            {
+                state.Decks.FacilitySupply.Insert(0, FacilityCardDatabase.SimpleEngineeringCamp);
+            }
+
+            if (state.Decks.CityStyleSupply.Count <= 0)
+            {
+                state.Decks.CityStyleSupply.AddRange(CityStyleDatabase.DefaultSupplyIds);
+            }
+        }
+
+        private static bool HasCommandLineArg(string[] args, string expectedValue)
+        {
+            if (args == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < args.Length; i++)
+            {
+                if (string.Equals(args[i], expectedValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void Update()
@@ -948,7 +1083,8 @@ namespace YC.Presentation
 
         private void EnsureSettingsMenu()
         {
-            GameSettingsMenuController.EnsureInScene(transform);
+            var settingsMenu = GameSettingsMenuController.EnsureInScene(transform);
+            settingsMenu.ConfigureActionLog(session);
         }
 
         private void RefreshInfoPanel()
@@ -963,10 +1099,6 @@ namespace YC.Presentation
             var player = session.State.FindPlayer(localPlayerId);
             if (player == null) return;
 
-            infoPanel.SetRowValue("玩家概览", "玩家", player.Name);
-            infoPanel.SetRowValue("玩家概览", "剩余影响力", player.InfluenceSupply.ToString());
-            infoPanel.SetRowValue("玩家概览", "分数", player.Score.ToString());
-
             var r = player.Resources;
             infoPanel.SetRowValue("资源状态", "源岩", r.Originium.ToString());
             infoPanel.SetRowValue("资源状态", "源石", r.OriginiumShard.ToString());
@@ -974,11 +1106,6 @@ namespace YC.Presentation
             infoPanel.SetRowValue("资源状态", "至纯源石", r.PureOriginium.ToString());
             infoPanel.SetRowValue("资源状态", "金券", r.GoldVoucher.ToString());
 
-            infoPanel.SetRowValue("城市与行动", "城市位置", player.CityLocationId);
-            infoPanel.SetRowValue("城市与行动", "本回合", session.State.Round + " / 8");
-            infoPanel.SetRowValue("城市与行动", "行动轮", session.State.ActionRound.ToString());
-            infoPanel.SetRowValue("城市与行动", "已执行行动", player.ActedMainActionThisTurn ? "是" : "否");
-            infoPanel.SetRowValue("城市与行动", "已移动城市", player.HasMovedCityThisRound ? "是" : "否");
             RefreshBuildInfoPanel();
         }
 
@@ -999,6 +1126,12 @@ namespace YC.Presentation
 
         private void OnBuildInfoFacilityClicked(string facilityId)
         {
+            if (string.IsNullOrEmpty(facilityId))
+            {
+                SetPrompt("建设面板：已取消设施选择。");
+                return;
+            }
+
             var facility = FacilityCardDatabase.Get(facilityId);
             SetPrompt(facility == null
                 ? "建设面板：已选择设施。"
@@ -1007,6 +1140,12 @@ namespace YC.Presentation
 
         private void OnBuildInfoCityStyleClicked(string cityStyleId)
         {
+            if (string.IsNullOrEmpty(cityStyleId))
+            {
+                SetPrompt("建设面板：已取消城市样式选择。");
+                return;
+            }
+
             var cityStyle = CityStyleDatabase.Get(cityStyleId);
             SetPrompt(cityStyle == null
                 ? "建设面板：已选择城市样式。"
@@ -1044,14 +1183,9 @@ namespace YC.Presentation
                 return;
             }
 
-            pendingExploreTargetId = locationId ?? string.Empty;
-            pendingExplorePath = null;
+            explorePathSelection.BeginTarget(locationId);
             explorePaymentRecipientSelection.Clear();
-            pendingExplorePathChoices.Clear();
-            for (var i = 0; i < paths.Count; i++)
-            {
-                pendingExplorePathChoices.Add(new ExplorePathChoice(paths[i], GetExplorePathChoiceLabel(paths[i], i)));
-            }
+            explorePathSelection.SetPathChoices(paths, GetExplorePathChoiceLabel);
 
             ClearHighlights();
             RefreshActionPanel();
@@ -1067,10 +1201,8 @@ namespace YC.Presentation
 
         private void BeginExploreChoice(string locationId, MapPath path, EventCardDefinition card)
         {
-            pendingExploreTargetId = locationId ?? string.Empty;
-            pendingExplorePath = path;
+            explorePathSelection.BeginWithPath(locationId, path);
             explorePaymentRecipientSelection.Clear();
-            pendingExplorePathChoices.Clear();
             BuildExplorePaymentChoices(path);
 
             ClearHighlights();
@@ -1251,7 +1383,7 @@ namespace YC.Presentation
 
         private void SelectExplorePath(MapPath path)
         {
-            pendingExplorePath = path;
+            explorePathSelection.SelectPath(path);
             BuildExplorePaymentChoices(path);
 
             if (explorePaymentRecipientSelection.HasChoices)
@@ -1265,12 +1397,12 @@ namespace YC.Presentation
 
         private void SelectExplorePathChoice(int choiceIndex)
         {
-            if (choiceIndex < 0 || choiceIndex >= pendingExplorePathChoices.Count)
+            if (!explorePathSelection.TrySelectPathChoice(choiceIndex))
             {
                 return;
             }
 
-            SelectExplorePath(pendingExplorePathChoices[choiceIndex].Path);
+            SelectExplorePath(explorePathSelection.SelectedPath);
         }
 
         private void ShowPendingEventCardOptions()
@@ -1305,7 +1437,7 @@ namespace YC.Presentation
         {
             eventChoiceDialog.ShowExplorePathOptions(
                 GetUiCanvasTransform(),
-                pendingExplorePathChoices,
+                explorePathSelection.PathChoices,
                 SelectExplorePathChoice);
 
             SetPrompt("多条最短路线的路费相同，请选择要支付给哪一方。");
@@ -1369,7 +1501,7 @@ namespace YC.Presentation
                 return;
             }
 
-            if (!string.IsNullOrEmpty(pendingExploreTargetId))
+            if (explorePathSelection.HasTarget)
             {
                 SubmitExploreChoice(selection.ChoiceIndex);
                 return;
@@ -1548,7 +1680,7 @@ namespace YC.Presentation
 
         private void SubmitExploreStart()
         {
-            if (pendingExplorePath == null)
+            if (explorePathSelection.SelectedPath == null)
             {
                 SetPrompt("缺少探索路线。");
                 return;
@@ -1558,10 +1690,10 @@ namespace YC.Presentation
             {
                 Kind = GameCommandKind.ExploreLocation,
                 PlayerId = localPlayerId,
-                TargetId = pendingExploreTargetId
+                TargetId = explorePathSelection.TargetLocationId
             };
-            command.Parameters[ExploreLocationCommandHandler.PathLocationIdsParameter] = EncodeIds(pendingExplorePath.LocationIds);
-            command.Parameters[ExploreLocationCommandHandler.RouteIdsParameter] = EncodeIds(pendingExplorePath.RouteIds);
+            command.Parameters[ExploreLocationCommandHandler.PathLocationIdsParameter] = EncodeIds(explorePathSelection.SelectedPath.LocationIds);
+            command.Parameters[ExploreLocationCommandHandler.RouteIdsParameter] = EncodeIds(explorePathSelection.SelectedPath.RouteIds);
 
             var encodedPayments = EncodePaymentRecipients();
             if (!string.IsNullOrEmpty(encodedPayments))
@@ -1665,7 +1797,7 @@ namespace YC.Presentation
 
         private void SubmitExploreChoice(int choiceIndex)
         {
-            if (pendingExplorePath == null)
+            if (explorePathSelection.SelectedPath == null)
             {
                 SetPrompt("缺少探索路线。");
                 return;
@@ -1675,11 +1807,11 @@ namespace YC.Presentation
             {
                 Kind = GameCommandKind.ExploreLocation,
                 PlayerId = localPlayerId,
-                TargetId = pendingExploreTargetId
+                TargetId = explorePathSelection.TargetLocationId
             };
             command.Parameters[ExploreLocationCommandHandler.EventOptionIdParameter] = choiceIndex.ToString();
-            command.Parameters[ExploreLocationCommandHandler.PathLocationIdsParameter] = EncodeIds(pendingExplorePath.LocationIds);
-            command.Parameters[ExploreLocationCommandHandler.RouteIdsParameter] = EncodeIds(pendingExplorePath.RouteIds);
+            command.Parameters[ExploreLocationCommandHandler.PathLocationIdsParameter] = EncodeIds(explorePathSelection.SelectedPath.LocationIds);
+            command.Parameters[ExploreLocationCommandHandler.RouteIdsParameter] = EncodeIds(explorePathSelection.SelectedPath.RouteIds);
             AddPendingEventInfluenceSlots(command, ExploreLocationCommandHandler.EventInfluenceSlotIdsParameter);
 
             var encodedPayments = EncodePaymentRecipients();
@@ -1720,7 +1852,7 @@ namespace YC.Presentation
                 return EventCardDatabase.Get(pendingChoice.CardId);
             }
 
-            var card = PeekExploreEventCard(pendingExploreTargetId);
+            var card = PeekExploreEventCard(explorePathSelection.TargetLocationId);
             return card ?? eventOptionSelection.PendingEventCard;
         }
 
@@ -1732,7 +1864,7 @@ namespace YC.Presentation
                 return pendingChoice.TargetId;
             }
 
-            return pendingExploreTargetId;
+            return explorePathSelection.TargetLocationId;
         }
 
         private int HighlightEventInfluenceTargets(EventCardDefinition card, int choiceIndex)
@@ -1830,7 +1962,7 @@ namespace YC.Presentation
         {
             if (slot.Kind != InfluenceSlotKind.Location ||
                 slot.LocationId != originLocationId ||
-                string.IsNullOrEmpty(pendingExploreTargetId))
+                !explorePathSelection.HasTarget)
             {
                 return false;
             }
@@ -1928,10 +2060,15 @@ namespace YC.Presentation
             string locationId,
             string slotId)
         {
-            if (pendingConfirmationActionKey == actionKey && pendingConfirmationTargetId == targetId)
+            Action callback;
+            if (mapInteractionConfirmation.Request(
+                actionKey,
+                targetId,
+                locationId,
+                slotId,
+                confirmedAction,
+                out callback))
             {
-                var callback = pendingConfirmationCallback;
-                ClearPendingConfirmation(false);
                 ClearHighlights();
                 if (callback != null)
                 {
@@ -1941,12 +2078,6 @@ namespace YC.Presentation
                 return true;
             }
 
-            ClearPendingConfirmation(false);
-            pendingConfirmationActionKey = actionKey ?? string.Empty;
-            pendingConfirmationTargetId = targetId ?? string.Empty;
-            pendingConfirmationLocationId = locationId ?? string.Empty;
-            pendingConfirmationSlotId = slotId ?? string.Empty;
-            pendingConfirmationCallback = confirmedAction;
             HighlightPendingConfirmationTarget();
             SetPrompt(prompt);
             return false;
@@ -1954,7 +2085,7 @@ namespace YC.Presentation
 
         private bool HasPendingConfirmation()
         {
-            return !string.IsNullOrEmpty(pendingConfirmationActionKey);
+            return mapInteractionConfirmation.HasPending;
         }
 
         private void ClearPendingConfirmation(bool restoreCurrentMode)
@@ -1964,11 +2095,7 @@ namespace YC.Presentation
                 return;
             }
 
-            pendingConfirmationActionKey = string.Empty;
-            pendingConfirmationTargetId = string.Empty;
-            pendingConfirmationLocationId = string.Empty;
-            pendingConfirmationSlotId = string.Empty;
-            pendingConfirmationCallback = null;
+            mapInteractionConfirmation.Clear();
 
             if (restoreCurrentMode)
             {
@@ -1982,14 +2109,14 @@ namespace YC.Presentation
         {
             ClearHighlights();
 
-            if (!string.IsNullOrEmpty(pendingConfirmationLocationId))
+            if (!string.IsNullOrEmpty(mapInteractionConfirmation.LocationId))
             {
-                SetHighlighted(pendingConfirmationLocationId, new Color(1f, 0.82f, 0.2f, 0.95f));
+                SetHighlighted(mapInteractionConfirmation.LocationId, new Color(1f, 0.82f, 0.2f, 0.95f));
             }
 
-            if (!string.IsNullOrEmpty(pendingConfirmationSlotId) && mapView != null)
+            if (!string.IsNullOrEmpty(mapInteractionConfirmation.SlotId) && mapView != null)
             {
-                mapView.HighlightInfluenceSlot(pendingConfirmationSlotId);
+                mapView.HighlightInfluenceSlot(mapInteractionConfirmation.SlotId);
                 RefreshInfluenceDisplay();
             }
         }
@@ -2193,6 +2320,24 @@ namespace YC.Presentation
             return value;
         }
 
+        private static bool ContainsString(IEnumerable<string> values, string target)
+        {
+            if (values == null)
+            {
+                return false;
+            }
+
+            foreach (var value in values)
+            {
+                if (value == target)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private string EncodePaymentRecipients()
         {
             return explorePaymentRecipientSelection.EncodeRecipients();
@@ -2200,10 +2345,8 @@ namespace YC.Presentation
 
         private void ClearPendingExploreChoice()
         {
-            pendingExploreTargetId = string.Empty;
-            pendingExplorePath = null;
+            explorePathSelection.Clear();
             explorePaymentRecipientSelection.Clear();
-            pendingExplorePathChoices.Clear();
             ClearPendingEventInfluenceSelection();
         }
 
@@ -2221,7 +2364,7 @@ namespace YC.Presentation
 
         private string GetEventCardMetadataLabel(EventCardDefinition card)
         {
-            var targetId = pendingExploreTargetId;
+            var targetId = explorePathSelection.TargetLocationId;
             var pendingChoice = CurrentPendingChoice;
             if (string.IsNullOrEmpty(targetId) && pendingChoice != null)
             {
@@ -2465,6 +2608,7 @@ namespace YC.Presentation
                 "本机：" + GetPlayerDisplayName(localPlayerId) + " / 行动：" + GetPlayerDisplayName(state.CurrentPlayerId),
                 "第 " + state.Round + " 回合 / 行动轮 " + state.ActionRound);
             actionPanel.SetLocalPlayerColor(player == null ? Color.white : UiTheme.GetPlayerColor(player.Color, 1f));
+            actionPanel.SetRemainingInfluence(player == null ? 0 : player.InfluenceSupply);
             actionPanel.SetButtonStates(
                 canChooseQuickAction && player != null && !player.UsedCharacterThisRound,
                 canChooseQuickAction,
@@ -3065,7 +3209,7 @@ namespace YC.Presentation
                     continue;
                 }
 
-                collectionCandidateLocationIds.Add(locationId);
+                resourceCollectionSelection.AddCandidateLocation(locationId);
             }
 
             RefreshCollectionHighlights();
@@ -3122,70 +3266,52 @@ namespace YC.Presentation
             }
 
             var routeId = slot.RouteId;
-            if (collectionRouteIds.Contains(routeId) && !HasRouteInfluenceOwnedBy(routeId, localPlayerId))
+            if (resourceCollectionSelection.HasRoute(routeId) && !HasRouteInfluenceOwnedBy(routeId, localPlayerId))
             {
                 ShowCollectionRoutePaymentDialog(routeId, GetOpponentInfluenceOwnersOnRoute(routeId, localPlayerId));
                 return;
             }
 
-            if (!collectionRouteIds.Contains(routeId) || HasRouteInfluenceOwnedBy(routeId, localPlayerId))
+            if (!resourceCollectionSelection.HasRoute(routeId) || HasRouteInfluenceOwnedBy(routeId, localPlayerId))
             {
                 SetPrompt("该航道本次采集无需支付路费。");
                 return;
             }
 
-            collectionPaidRouteIds.Add(routeId);
             var owners = GetOpponentInfluenceOwnersOnRoute(routeId, localPlayerId);
             if (owners.Count <= 0)
             {
-                collectionPaymentRecipients.Remove(routeId);
+                resourceCollectionSelection.ConfirmRoutePayment(routeId, -1);
                 RefreshCollectionHighlights();
                 SetPrompt("航道 " + routeId + " 的路费将支付给银行。");
                 return;
             }
 
-            var nextIndex = 0;
-            int currentReceiver;
-            if (collectionPaymentRecipients.TryGetValue(routeId, out currentReceiver))
-            {
-                var currentIndex = owners.IndexOf(currentReceiver);
-                if (currentIndex >= 0)
-                {
-                    nextIndex = (currentIndex + 1) % owners.Count;
-                }
-            }
-
-            var receiverPlayerId = owners[nextIndex];
-            collectionPaymentRecipients[routeId] = receiverPlayerId;
+            var receiverPlayerId = resourceCollectionSelection.GetNextPaymentRecipient(routeId, owners);
+            resourceCollectionSelection.ConfirmRoutePayment(routeId, receiverPlayerId);
             RefreshCollectionHighlights();
             SetPrompt("航道 " + routeId + " 的路费将支付给 " + GetPlayerDisplayName(receiverPlayerId) + "。");
         }
 
         private void ToggleCollectionLocationSelection(string locationId)
         {
-            if (!collectionCandidateLocationIds.Contains(locationId))
-            {
-                SetPrompt("该资源点本次不能采集。");
-                return;
-            }
-
-            if (!IsCollectionLocationAvailable(locationId))
-            {
-                SetPrompt("请先支付通往该资源点所需的航道路费。");
-                return;
-            }
-
-            if (collectionSelectedLocationIds.Contains(locationId))
-            {
-                collectionDeselectedLocationIds.Add(locationId);
-                RefreshCollectionHighlights();
-                SetPrompt("已从本次采集中移除资源点 " + locationId + "。");
-                return;
-            }
-
-            collectionDeselectedLocationIds.Remove(locationId);
+            var result = resourceCollectionSelection.ToggleLocation(locationId, IsCollectionLocationAvailable);
             RefreshCollectionHighlights();
-            SetPrompt("已加入本次采集资源点 " + locationId + "。");
+            switch (result)
+            {
+                case CollectionToggleResult.NotCandidate:
+                    SetPrompt("该资源点本次不能采集。");
+                    break;
+                case CollectionToggleResult.Unavailable:
+                    SetPrompt("请先支付通往该资源点所需的航道路费。");
+                    break;
+                case CollectionToggleResult.Removed:
+                    SetPrompt("已从本次采集中移除资源点 " + locationId + "。");
+                    break;
+                case CollectionToggleResult.Added:
+                    SetPrompt("已加入本次采集资源点 " + locationId + "。");
+                    break;
+            }
         }
 
         private void RefreshCollectionHighlights()
@@ -3194,7 +3320,7 @@ namespace YC.Presentation
             ClearHighlights();
             RefreshCollectionSelection();
 
-            foreach (var routeId in collectionRouteIds)
+            foreach (var routeId in resourceCollectionSelection.RouteIds)
             {
                 if (!IsCollectionRoutePayable(routeId))
                 {
@@ -3202,7 +3328,7 @@ namespace YC.Presentation
                 }
 
                 var owners = GetOpponentInfluenceOwnersOnRoute(routeId, localPlayerId);
-                if (!collectionPaidRouteIds.Contains(routeId) || owners.Count > 1)
+                if (!ContainsString(resourceCollectionSelection.PaidRouteIds, routeId) || owners.Count > 1)
                 {
                     HighlightCollectionRoute(routeId);
                 }
@@ -3211,13 +3337,13 @@ namespace YC.Presentation
             for (var i = 0; i < mapQuery.Map.Locations.Count; i++)
             {
                 var locationId = mapQuery.Map.Locations[i].LocationId;
-                if (!collectionCandidateLocationIds.Contains(locationId) ||
+                if (!resourceCollectionSelection.HasCandidateLocation(locationId) ||
                     !IsCollectionLocationAvailable(locationId))
                 {
                     continue;
                 }
 
-                var color = collectionSelectedLocationIds.Contains(locationId)
+                var color = ContainsString(resourceCollectionSelection.SelectedLocationIds, locationId)
                     ? new Color(0.25f, 0.95f, 0.45f, 0.82f)
                     : new Color(0.15f, 0.8f, 1f, 0.65f);
                 SetHighlighted(locationId, color);
@@ -3229,17 +3355,7 @@ namespace YC.Presentation
 
         private void RefreshCollectionSelection()
         {
-            collectionSelectedLocationIds.Clear();
-            foreach (var locationId in collectionCandidateLocationIds)
-            {
-                if (collectionDeselectedLocationIds.Contains(locationId) ||
-                    !IsCollectionLocationAvailable(locationId))
-                {
-                    continue;
-                }
-
-                collectionSelectedLocationIds.Add(locationId);
-            }
+            resourceCollectionSelection.RefreshSelection(IsCollectionLocationAvailable);
         }
 
         private void ShowCollectionRoutePaymentDialog(string routeId, IReadOnlyList<int> owners)
@@ -3263,15 +3379,7 @@ namespace YC.Presentation
 
         private void ConfirmCollectionRoutePayment(string routeId, int receiverPlayerId)
         {
-            collectionPaidRouteIds.Add(routeId);
-            if (receiverPlayerId > 0)
-            {
-                collectionPaymentRecipients[routeId] = receiverPlayerId;
-            }
-            else
-            {
-                collectionPaymentRecipients.Remove(routeId);
-            }
+            resourceCollectionSelection.ConfirmRoutePayment(routeId, receiverPlayerId);
 
             RefreshCollectionHighlights();
             SetPrompt(receiverPlayerId > 0
@@ -3281,8 +3389,7 @@ namespace YC.Presentation
 
         private void RebuildCollectionNetwork()
         {
-            collectionRouteIds.Clear();
-            collectionPathsByLocationId.Clear();
+            resourceCollectionSelection.ClearRoutesAndPaths();
 
             var player = session.State.FindPlayer(localPlayerId);
             if (player == null || string.IsNullOrEmpty(player.CityLocationId))
@@ -3293,9 +3400,9 @@ namespace YC.Presentation
             var reachablePaths = BuildCollectionReachablePaths(player.CityLocationId);
             foreach (var pair in reachablePaths)
             {
-                if (collectionCandidateLocationIds.Contains(pair.Key))
+                if (resourceCollectionSelection.HasCandidateLocation(pair.Key))
                 {
-                    collectionPathsByLocationId[pair.Key] = pair.Value;
+                    resourceCollectionSelection.SetPathForLocation(pair.Key, pair.Value);
                 }
             }
 
@@ -3308,7 +3415,7 @@ namespace YC.Presentation
                     continue;
                 }
 
-                collectionRouteIds.Add(route.RouteId);
+                resourceCollectionSelection.AddRoute(route.RouteId);
             }
         }
 
@@ -3425,7 +3532,7 @@ namespace YC.Presentation
         private bool IsCollectionLocationAvailable(string locationId)
         {
             MapPath path;
-            if (!collectionPathsByLocationId.TryGetValue(locationId, out path))
+            if (!resourceCollectionSelection.TryGetPath(locationId, out path))
             {
                 return false;
             }
@@ -3443,102 +3550,37 @@ namespace YC.Presentation
 
         private bool IsCollectionRoutePayable(string routeId)
         {
-            return collectionRouteIds.Contains(routeId) && !HasRouteInfluenceOwnedBy(routeId, localPlayerId);
+            return resourceCollectionSelection.HasRoute(routeId) && !HasRouteInfluenceOwnedBy(routeId, localPlayerId);
         }
 
         private bool IsCollectionRouteSatisfied(string routeId)
         {
-            return HasRouteInfluenceOwnedBy(routeId, localPlayerId) || collectionPaidRouteIds.Contains(routeId);
+            return resourceCollectionSelection.IsRouteSatisfied(routeId, route => HasRouteInfluenceOwnedBy(route, localPlayerId));
         }
 
         private List<string> BuildSelectedCollectionLocationIds()
         {
-            var result = new List<string>();
-            for (var i = 0; i < mapQuery.Map.Locations.Count; i++)
-            {
-                var locationId = mapQuery.Map.Locations[i].LocationId;
-                if (collectionSelectedLocationIds.Contains(locationId))
-                {
-                    result.Add(locationId);
-                }
-            }
-
-            return result;
+            return resourceCollectionSelection.BuildSelectedLocationIds(mapQuery.Map.Locations);
         }
 
         private HashSet<string> BuildSelectedCollectionRouteIds(IReadOnlyList<string> locationIds)
         {
-            var result = new HashSet<string>(StringComparer.Ordinal);
-            for (var i = 0; i < locationIds.Count; i++)
-            {
-                MapPath path;
-                if (!collectionPathsByLocationId.TryGetValue(locationIds[i], out path))
-                {
-                    continue;
-                }
-
-                for (var routeIndex = 0; routeIndex < path.RouteIds.Count; routeIndex++)
-                {
-                    result.Add(path.RouteIds[routeIndex]);
-                }
-            }
-
-            return result;
+            return resourceCollectionSelection.BuildSelectedRouteIds(locationIds);
         }
 
         private string EncodeCollectionPaymentRecipients(HashSet<string> selectedRouteIds)
         {
-            var encoded = string.Empty;
-            foreach (var pair in collectionPaymentRecipients)
-            {
-                if (!selectedRouteIds.Contains(pair.Key))
-                {
-                    continue;
-                }
-
-                encoded += string.IsNullOrEmpty(encoded)
-                    ? pair.Key + "=" + pair.Value
-                    : ";" + pair.Key + "=" + pair.Value;
-            }
-
-            return encoded;
+            return resourceCollectionSelection.EncodePaymentRecipients(selectedRouteIds);
         }
 
         private void ClearCollectionSelection()
         {
-            collectionCandidateLocationIds.Clear();
-            collectionSelectedLocationIds.Clear();
-            collectionDeselectedLocationIds.Clear();
-            collectionRouteIds.Clear();
-            collectionPaidRouteIds.Clear();
-            collectionPaymentRecipients.Clear();
-            collectionPathsByLocationId.Clear();
+            resourceCollectionSelection.Clear();
         }
 
         private string BuildResourceCollectionStatus()
         {
-            RefreshCollectionSelection();
-
-            if (collectionCandidateLocationIds.Count <= 0)
-            {
-                return "采集阶段：没有可采集资源点，点击结束本回合跳过采集";
-            }
-
-            var unpaidRouteCount = 0;
-            foreach (var routeId in collectionRouteIds)
-            {
-                if (IsCollectionRoutePayable(routeId) && !collectionPaidRouteIds.Contains(routeId))
-                {
-                    unpaidRouteCount += 1;
-                }
-            }
-
-            if (collectionSelectedLocationIds.Count <= 0 && unpaidRouteCount > 0)
-            {
-                return "采集阶段：点击高亮航道支付路费，支付后会高亮可采集资源点";
-            }
-
-            return "采集阶段：已选择 " + collectionSelectedLocationIds.Count + " 个资源点。点击航道支付或切换接收方，结束本回合后结算";
+            return resourceCollectionSelection.BuildStatus(IsCollectionRoutePayable);
         }
 
         private static string BuildCollectionResultPrompt(CommandResult result)

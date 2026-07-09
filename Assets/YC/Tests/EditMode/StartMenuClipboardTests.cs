@@ -54,9 +54,10 @@ namespace YC.Tests.EditMode
             var type = Type.GetType("YC.Presentation.StartMenuController, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.StartMenuController.");
 
-            var parentObject = new GameObject("External Link Layout Test", typeof(RectTransform));
+            var parentObject = new GameObject("External Link Layout Test", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             try
             {
+                parentObject.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
                 var parent = parentObject.GetComponent<RectTransform>();
                 parent.sizeDelta = new Vector2(800f, 400f);
 
@@ -68,11 +69,13 @@ namespace YC.Tests.EditMode
                 for (var i = 0; i < buttons.Length; i++)
                 {
                     var rect = buttons[i].GetComponent<RectTransform>();
-                    Assert.That(rect.sizeDelta.x, Is.EqualTo(210f).Within(0.01f));
+                    Assert.That(rect.sizeDelta.x, Is.EqualTo(52f).Within(0.01f));
                 }
 
                 Assert.That(HasBookmarkMark(parent, "官"), Is.True);
                 Assert.That(HasBookmarkMark(parent, "W"), Is.True);
+
+                AssertBookmarkMarksCanGenerateVertices(parent);
 
                 var icon = FindChildRect(parent, "Bookmark Icon");
                 Assert.That(icon, Is.Not.Null);
@@ -154,6 +157,32 @@ namespace YC.Tests.EditMode
             }
 
             return false;
+        }
+
+        private static void AssertBookmarkMarksCanGenerateVertices(Transform parent)
+        {
+            var marks = parent.GetComponentsInChildren<Text>(true);
+            var checkedCount = 0;
+            for (var i = 0; i < marks.Length; i++)
+            {
+                var mark = marks[i];
+                if (mark == null || mark.name != "Bookmark Mark")
+                {
+                    continue;
+                }
+
+                checkedCount++;
+                var rect = mark.rectTransform.rect;
+                var settings = mark.GetGenerationSettings(rect.size);
+                var generator = new TextGenerator();
+
+                Assert.That(mark.verticalOverflow, Is.EqualTo(VerticalWrapMode.Overflow));
+                Assert.That(rect.height, Is.GreaterThanOrEqualTo(42f));
+                Assert.That(generator.Populate(mark.text, settings), Is.True);
+                Assert.That(generator.vertexCount, Is.GreaterThan(0), mark.text + " should generate visible UGUI vertices.");
+            }
+
+            Assert.That(checkedCount, Is.EqualTo(2));
         }
 
         private static RectTransform FindChildRect(Transform parent, string childName)

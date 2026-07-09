@@ -13,6 +13,7 @@ namespace YC.Presentation
         private readonly Text currentPlayerText;
         private readonly Text phaseText;
         private readonly Image localPlayerColorSwatch;
+        private readonly Text remainingInfluenceText;
         private readonly Text statusText;
         private readonly Button useCharacterButton;
         private readonly Button declareCityStyleButton;
@@ -29,6 +30,7 @@ namespace YC.Presentation
             Text currentPlayerText,
             Text phaseText,
             Image localPlayerColorSwatch,
+            Text remainingInfluenceText,
             Text statusText,
             Button useCharacterButton,
             Button declareCityStyleButton,
@@ -44,6 +46,7 @@ namespace YC.Presentation
             this.currentPlayerText = currentPlayerText;
             this.phaseText = phaseText;
             this.localPlayerColorSwatch = localPlayerColorSwatch;
+            this.remainingInfluenceText = remainingInfluenceText;
             this.statusText = statusText;
             this.useCharacterButton = useCharacterButton;
             this.declareCityStyleButton = declareCityStyleButton;
@@ -95,6 +98,10 @@ namespace YC.Presentation
             outline.effectDistance = new Vector2(3f, -3f);
 
             var localPlayerColorSwatch = CreateColorSwatch(panelRect, new Vector2(-150f, -58f));
+            var remainingInfluenceText = CreateText(panelRect, "× 0", 16, new Vector2(-105f, -58f), FontStyle.Bold);
+            remainingInfluenceText.gameObject.name = "Remaining Influence Text";
+            remainingInfluenceText.rectTransform.sizeDelta = new Vector2(64f, 30f);
+            remainingInfluenceText.alignment = TextAnchor.MiddleLeft;
 
             var currentPlayerText = CreateText(panelRect, "当前玩家", 20, new Vector2(0f, -26f), FontStyle.Bold);
             var phaseText = CreateText(panelRect, "阶段", 16, new Vector2(0f, -58f), FontStyle.Normal);
@@ -122,6 +129,7 @@ namespace YC.Presentation
                 currentPlayerText,
                 phaseText,
                 localPlayerColorSwatch,
+                remainingInfluenceText,
                 statusText,
                 useCharacterButton,
                 declareCityStyleButton,
@@ -146,6 +154,14 @@ namespace YC.Presentation
             if (localPlayerColorSwatch != null)
             {
                 localPlayerColorSwatch.color = color;
+            }
+        }
+
+        public void SetRemainingInfluence(int amount)
+        {
+            if (remainingInfluenceText != null)
+            {
+                remainingInfluenceText.text = "× " + Mathf.Max(0, amount);
             }
         }
 

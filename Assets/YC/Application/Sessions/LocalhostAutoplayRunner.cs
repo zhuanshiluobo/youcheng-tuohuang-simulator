@@ -4,6 +4,7 @@ using YC.Application.Gameplay;
 using YC.Application.Sessions;
 using YC.Application.Setup;
 using YC.Domain.Cards;
+using YC.Domain.CityStyles;
 using YC.Domain.Commands;
 using YC.Domain.Exploration;
 using YC.Domain.Facilities;
@@ -27,6 +28,10 @@ namespace YC.Application.DevTools
         private const int RequiredDispatchInfluenceSuccesses = 1;
         private const int RequiredPaidRouteCollectionSuccesses = 1;
         private const int RequiredOpponentRouteRecipientCollectionSuccesses = 1;
+        private const int FormalSupplyBuildPlayerId = 4;
+        private const string FormalSupplyBlueFacilityId = FacilityCardDatabase.TradeDistrict;
+        private const string FormalSupplyRedFacilityId = FacilityCardDatabase.EquipmentWarehouse;
+        private const string AutoplayCityStyleId = CityStyleDatabase.MilitaryIndustrialArea;
 
         public static LocalhostAutoplayResult RunToRound8Settlement()
         {
@@ -69,7 +74,7 @@ namespace YC.Application.DevTools
             var resourceTokenService = new ResourceTokenService();
             var eventDeckService = new EventDeckService(eventDeckSeed);
             var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Host, 1, seats, map.MapId, eventDeckSeed);
-            EnsureAutoplayAffordableFacilitySupply(state);
+            EnsureAutoplayFormalFacilitySupply(state);
 
             eventDeckService.InitializeDecks(
                 state.Decks,
@@ -105,15 +110,29 @@ namespace YC.Application.DevTools
             return session;
         }
 
-        private static void EnsureAutoplayAffordableFacilitySupply(GameState state)
+        private static void EnsureAutoplayFormalFacilitySupply(GameState state)
         {
-            const string autoplayFacilityId = FacilityCardDatabase.SimpleEngineeringCamp;
-            if (state == null || state.Decks.FacilitySupply.Contains(autoplayFacilityId))
+            if (state == null)
             {
                 return;
             }
 
-            var deckIndex = state.Decks.FacilityDeck.IndexOf(autoplayFacilityId);
+            MoveFacilityToFrontOfSupply(state, FacilityCardDatabase.SimpleEngineeringCamp);
+            MoveFacilityToFrontOfSupply(state, FormalSupplyRedFacilityId);
+            MoveFacilityToFrontOfSupply(state, FormalSupplyBlueFacilityId);
+        }
+
+        private static void MoveFacilityToFrontOfSupply(GameState state, string facilityId)
+        {
+            var supplyIndex = state.Decks.FacilitySupply.IndexOf(facilityId);
+            if (supplyIndex >= 0)
+            {
+                state.Decks.FacilitySupply.RemoveAt(supplyIndex);
+                state.Decks.FacilitySupply.Insert(0, facilityId);
+                return;
+            }
+
+            var deckIndex = state.Decks.FacilityDeck.IndexOf(facilityId);
             if (deckIndex < 0)
             {
                 return;
@@ -127,7 +146,7 @@ namespace YC.Application.DevTools
                 state.Decks.FacilityDeck.Insert(0, displacedFacilityId);
             }
 
-            state.Decks.FacilitySupply.Insert(0, autoplayFacilityId);
+            state.Decks.FacilitySupply.Insert(0, facilityId);
         }
 
         private static bool SubmitInitialPlacements(
@@ -223,6 +242,11 @@ namespace YC.Application.DevTools
                     return false;
                 }
 
+                if (!TrySubmitAutoplayCityStyle(dispatcher, state, player, result))
+                {
+                    return false;
+                }
+
                 if (!player.ActedMainActionThisTurn &&
                     !TrySubmitAutoplayMainAction(dispatcher, state, player, result) &&
                     string.IsNullOrEmpty(result.FailureReason))
@@ -273,7 +297,7 @@ namespace YC.Application.DevTools
                 return TrySubmitAutoplayDeployInfluence(dispatcher, state, player, result);
             }
 
-            var slotIndex = BuildFacilityService.FindFirstEmptyCityBoardSlot(state, player.PlayerId);
+            var slotIndex = ResolveAutoplayFacilitySlot(state, player, facilityId);
             if (slotIndex < 0)
             {
                 return false;
@@ -298,9 +322,78 @@ namespace YC.Application.DevTools
             if (player.BuiltFacilityIds.Count > beforeBuiltCount)
             {
                 result.BuildFacilitySuccesses++;
+                if (IsFormalSupplyEvidenceFacility(player.PlayerId, facilityId))
+                {
+                    result.FormalSupplyBuilds.Add(
+                        "P" + player.PlayerId + " facility=" + facilityId + " slot=" + slotIndex);
+                }
             }
 
             return true;
+        }
+
+        private static bool TrySubmitAutoplayCityStyle(
+            AuthoritativeCommandDispatcher dispatcher,
+            GameState state,
+            PlayerState player,
+            LocalhostAutoplayResult result)
+        {
+            if (player.PlayerId != FormalSupplyBuildPlayerId ||
+                player.DeclaredCityStyleIds.Contains(AutoplayCityStyleId))
+            {
+                return true;
+            }
+
+            var validation = new DeclareCityStyleService().Validate(state, player.PlayerId, AutoplayCityStyleId);
+            if (!validation.IsValid)
+            {
+                return true;
+            }
+
+            var command = CreateCommand(
+                "autoplay-declare-city-style-r" + state.Round + "-a" + state.ActionRound + "-p" + player.PlayerId,
+                GameCommandKind.DeclareCityStyle,
+                player.PlayerId,
+                AutoplayCityStyleId);
+            command.Parameters[DeclareCityStyleCommandHandler.CityStyleIdParameter] = AutoplayCityStyleId;
+
+            result.DeclareCityStyleAttempts++;
+            var beforeCount = player.DeclaredCityStyles.Count;
+            if (!SubmitCommand(dispatcher, command, result))
+            {
+                return false;
+            }
+
+            if (player.DeclaredCityStyles.Count > beforeCount)
+            {
+                result.DeclareCityStyleSuccesses++;
+                var declaration = player.DeclaredCityStyles[player.DeclaredCityStyles.Count - 1];
+                result.CityStyleDeclarations.Add(
+                    "P" + player.PlayerId +
+                    " cityStyle=" + declaration.CityStyleId +
+                    " score=" + CityStyleDatabase.Get(declaration.CityStyleId).Score +
+                    " slots=" + string.Join(",", declaration.UsedCityBoardSlotIndexes.ToArray()));
+            }
+
+            return true;
+        }
+
+        private static int ResolveAutoplayFacilitySlot(GameState state, PlayerState player, string facilityId)
+        {
+            if (player.PlayerId == FormalSupplyBuildPlayerId)
+            {
+                if (facilityId == FormalSupplyBlueFacilityId)
+                {
+                    return 0;
+                }
+
+                if (facilityId == FormalSupplyRedFacilityId)
+                {
+                    return 1;
+                }
+            }
+
+            return BuildFacilityService.FindFirstEmptyCityBoardSlot(state, player.PlayerId);
         }
 
         private static bool TrySubmitAutoplayExplore(
@@ -720,16 +813,36 @@ namespace YC.Application.DevTools
 
         private static string FindAffordableFacility(GameState state, PlayerState player)
         {
+            if (player.PlayerId == FormalSupplyBuildPlayerId)
+            {
+                if (!player.BuiltFacilityIds.Contains(FormalSupplyBlueFacilityId) &&
+                    CanBuildSuppliedFacility(state, player, FormalSupplyBlueFacilityId))
+                {
+                    return FormalSupplyBlueFacilityId;
+                }
+
+                if (!player.BuiltFacilityIds.Contains(FormalSupplyRedFacilityId) &&
+                    CanBuildSuppliedFacility(state, player, FormalSupplyRedFacilityId))
+                {
+                    return FormalSupplyRedFacilityId;
+                }
+            }
+
             for (var i = 0; i < state.Decks.FacilitySupply.Count; i++)
             {
                 var facilityId = state.Decks.FacilitySupply[i];
+                if (facilityId == FormalSupplyBlueFacilityId || facilityId == FormalSupplyRedFacilityId)
+                {
+                    continue;
+                }
+
                 FacilityCardDefinition facility;
                 if (!FacilityCardDatabase.TryGet(facilityId, out facility))
                 {
                     continue;
                 }
 
-                if (facility.Unique && player.BuiltFacilityIds.Contains(facility.FacilityId))
+                if (FacilityCardDatabase.PlayerHasBuiltUniqueFacility(player, facility))
                 {
                     continue;
                 }
@@ -741,6 +854,18 @@ namespace YC.Application.DevTools
             }
 
             return string.Empty;
+        }
+
+        private static bool CanBuildSuppliedFacility(GameState state, PlayerState player, string facilityId)
+        {
+            return state.Decks.FacilitySupply.Contains(facilityId) &&
+                   !string.IsNullOrEmpty(ResolveFacilityPaymentMode(player, facilityId));
+        }
+
+        private static bool IsFormalSupplyEvidenceFacility(int playerId, string facilityId)
+        {
+            return playerId == FormalSupplyBuildPlayerId &&
+                   (facilityId == FormalSupplyBlueFacilityId || facilityId == FormalSupplyRedFacilityId);
         }
 
         private static string ResolveFacilityPaymentMode(PlayerState player, string facilityId)
@@ -1185,6 +1310,8 @@ namespace YC.Application.DevTools
             builder.AppendLine("DispatchInfluenceSuccesses: " + result.DispatchInfluenceSuccesses);
             builder.AppendLine("BuildFacilityAttempts: " + result.BuildFacilityAttempts);
             builder.AppendLine("BuildFacilitySuccesses: " + result.BuildFacilitySuccesses);
+            builder.AppendLine("DeclareCityStyleAttempts: " + result.DeclareCityStyleAttempts);
+            builder.AppendLine("DeclareCityStyleSuccesses: " + result.DeclareCityStyleSuccesses);
             builder.AppendLine("DeployInfluenceAttempts: " + result.DeployInfluenceAttempts);
             builder.AppendLine("DeployInfluenceSuccesses: " + result.DeployInfluenceSuccesses);
             builder.AppendLine("ResourceCollectionSubmissions: " + result.ResourceCollectionSubmissions);
@@ -1233,6 +1360,8 @@ namespace YC.Application.DevTools
             builder.AppendLine("DispatchInfluenceRoutes: " + FormatIds(result.DispatchInfluenceRoutes));
             builder.AppendLine("PaidRouteCollections: " + FormatIds(result.PaidRouteCollectionRoutes));
             builder.AppendLine("OpponentRouteRecipientCollections: " + FormatIds(result.OpponentRouteRecipientCollections));
+            builder.AppendLine("FormalSupplyBuilds: " + FormatIds(result.FormalSupplyBuilds));
+            builder.AppendLine("CityStyleDeclarations: " + FormatIds(result.CityStyleDeclarations));
         }
 
         private static void AppendFacilities(StringBuilder builder, GameState state)
@@ -1456,6 +1585,8 @@ namespace YC.Application.DevTools
         public int DispatchInfluenceSuccesses;
         public int BuildFacilityAttempts;
         public int BuildFacilitySuccesses;
+        public int DeclareCityStyleAttempts;
+        public int DeclareCityStyleSuccesses;
         public int DeployInfluenceAttempts;
         public int DeployInfluenceSuccesses;
         public int ResourceCollectionSubmissions;
@@ -1469,6 +1600,8 @@ namespace YC.Application.DevTools
         public List<string> DispatchInfluenceRoutes = new List<string>();
         public List<string> PaidRouteCollectionRoutes = new List<string>();
         public List<string> OpponentRouteRecipientCollections = new List<string>();
+        public List<string> FormalSupplyBuilds = new List<string>();
+        public List<string> CityStyleDeclarations = new List<string>();
         public List<PlayerSeat> Seats = new List<PlayerSeat>();
         public GameState FinalState;
         public string Snapshot = string.Empty;
