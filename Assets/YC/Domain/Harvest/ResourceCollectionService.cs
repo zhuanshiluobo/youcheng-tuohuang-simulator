@@ -222,6 +222,153 @@ namespace YC.Domain.Harvest
             }
         }
 
+        public ResourceCollectionSelectionQuery QuerySelection(
+            GameState state,
+            int playerId,
+            IReadOnlyCollection<string> confirmedPaidRouteIds)
+        {
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            var baseValidation = CanCollect(
+                state,
+                playerId,
+                new List<string>(),
+                new List<string>(),
+                null);
+            if (!baseValidation.IsValid)
+            {
+                return ResourceCollectionSelectionQuery.Failure(baseValidation);
+            }
+
+            var player = state.FindPlayer(playerId);
+            var confirmedPaymentKeys = new HashSet<string>(StringComparer.Ordinal);
+            if (confirmedPaidRouteIds != null)
+            {
+                foreach (var routeId in confirmedPaidRouteIds)
+                {
+                    MapRouteDefinition route;
+                    try
+                    {
+                        route = mapQuery.GetRoute(routeId);
+                    }
+                    catch (ArgumentException)
+                    {
+                        return ResourceCollectionSelectionQuery.Failure(ValidationResult.Failure(
+                            CommandErrorCode.InvalidTarget,
+                            "已确认路费包含不存在的航道。"));
+                    }
+
+                    if (routeTollService.IsPaymentRequired(
+                        state,
+                        route.RouteId,
+                        playerId,
+                        RouteTollPaymentKeyMode.SharedRegion))
+                    {
+                        confirmedPaymentKeys.Add(routeTollService.GetRoutePaymentKey(
+                            route.RouteId,
+                            RouteTollPaymentKeyMode.SharedRegion));
+                    }
+                }
+            }
+
+            var result = new ResourceCollectionSelectionQuery
+            {
+                AvailableGoldVoucher = GetResourceCollectionStartGoldVoucher(player),
+                ConfirmedTollCost = confirmedPaymentKeys.Count * RouteTollService.RouteCostGoldVoucher
+            };
+
+            var pathSearch = new MapPathSearchService(mapQuery);
+            var reachablePaths = pathSearch.FindReachablePaths(
+                player.CityLocationId,
+                route => IsCollectionRouteSatisfied(state, playerId, route.RouteId, confirmedPaymentKeys));
+
+            for (var i = 0; i < mapQuery.Map.Locations.Count; i++)
+            {
+                var locationId = mapQuery.Map.Locations[i].LocationId;
+                if (!resourceTokenService.HasResourceToken(state.Map, locationId) ||
+                    !CanPlayerCollectLocation(state, playerId, locationId))
+                {
+                    continue;
+                }
+
+                result.CandidateLocationIds.Add(locationId);
+                MapPath path;
+                if (reachablePaths.TryGetValue(locationId, out path))
+                {
+                    result.AddPath(locationId, path);
+                }
+            }
+
+            for (var routeIndex = 0; routeIndex < mapQuery.Map.Routes.Count; routeIndex++)
+            {
+                var route = mapQuery.Map.Routes[routeIndex];
+                if (IsCollectionRouteSatisfied(state, playerId, route.RouteId, confirmedPaymentKeys) ||
+                    !RouteTouchesReachableLocation(route, reachablePaths))
+                {
+                    continue;
+                }
+
+                var paymentKey = routeTollService.GetRoutePaymentKey(
+                    route.RouteId,
+                    RouteTollPaymentKeyMode.SharedRegion);
+                result.AddRouteOption(new ResourceCollectionRouteOption
+                {
+                    RouteId = route.RouteId,
+                    PaymentKey = paymentKey,
+                    Cost = RouteTollService.RouteCostGoldVoucher,
+                    CanAfford = result.ConfirmedTollCost + RouteTollService.RouteCostGoldVoucher <=
+                                result.AvailableGoldVoucher,
+                    OpponentOwnerPlayerIds = routeTollService.GetOpponentInfluenceOwnersOnPaymentKey(
+                        state,
+                        paymentKey,
+                        playerId,
+                        RouteTollPaymentKeyMode.SharedRegion)
+                });
+            }
+
+            return result;
+        }
+
+        private bool IsCollectionRouteSatisfied(
+            GameState state,
+            int playerId,
+            string routeId,
+            ISet<string> confirmedPaymentKeys)
+        {
+            if (!routeTollService.IsPaymentRequired(
+                state,
+                routeId,
+                playerId,
+                RouteTollPaymentKeyMode.SharedRegion))
+            {
+                return true;
+            }
+
+            var paymentKey = routeTollService.GetRoutePaymentKey(
+                routeId,
+                RouteTollPaymentKeyMode.SharedRegion);
+            return confirmedPaymentKeys.Contains(paymentKey);
+        }
+
+        private static bool RouteTouchesReachableLocation(
+            MapRouteDefinition route,
+            IReadOnlyDictionary<string, MapPath> reachablePaths)
+        {
+            var coveredLocationIds = GetRouteCoveredLocationIds(route);
+            for (var i = 0; i < coveredLocationIds.Count; i++)
+            {
+                if (reachablePaths.ContainsKey(coveredLocationIds[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private List<MapPath> BuildDefaultPaths(string sourceLocationId, IReadOnlyList<string> locationIds)
         {
             var paths = new List<MapPath>();

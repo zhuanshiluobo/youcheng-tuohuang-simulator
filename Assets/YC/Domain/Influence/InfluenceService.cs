@@ -92,6 +92,126 @@ namespace YC.Domain.Influence
             return MoveCore(state, playerId, sourceInfluenceId, targetSlotId);
         }
 
+        public InfluenceOperationResult MoveAtomically(
+            GameState state,
+            int playerId,
+            IReadOnlyList<InfluenceMoveRequest> moves)
+        {
+            ValidateState(state);
+            if (moves == null || moves.Count == 0)
+            {
+                return Failure(
+                    InfluenceFailureCode.InvalidState,
+                    "至少需要提供一次影响力移动。",
+                    playerId,
+                    string.Empty,
+                    false);
+            }
+
+            var projectedState = CreateMoveProjection(state);
+            var movedInfluences = new HashSet<InfluencePlacement>();
+            var canonicalTargets = new List<string>(moves.Count);
+            for (var i = 0; i < moves.Count; i++)
+            {
+                var move = moves[i];
+                if (move == null)
+                {
+                    return Failure(
+                        InfluenceFailureCode.InvalidState,
+                        "影响力移动参数不能为空。",
+                        playerId,
+                        string.Empty,
+                        false);
+                }
+
+                var projectedInfluence = FindInfluence(projectedState, move.SourceSlotId);
+                if (projectedInfluence != null && movedInfluences.Contains(projectedInfluence))
+                {
+                    return Failure(
+                        InfluenceFailureCode.InfluenceOwnerMismatch,
+                        "一次行动中不能重复移动同一个影响力。",
+                        playerId,
+                        move.SourceSlotId,
+                        false);
+                }
+
+                var validation = moveRule.Validate(
+                    projectedState,
+                    playerId,
+                    move.SourceSlotId,
+                    move.TargetSlotId);
+                if (!validation.Succeeded)
+                {
+                    return validation;
+                }
+
+                movedInfluences.Add(projectedInfluence);
+                canonicalTargets.Add(validation.SlotId);
+                ApplySlotFromId(projectedInfluence, validation.SlotId);
+            }
+
+            for (var i = 0; i < moves.Count; i++)
+            {
+                var influence = FindInfluence(state, moves[i].SourceSlotId);
+                ApplySlotFromId(influence, canonicalTargets[i]);
+            }
+
+            return InfluenceOperationResult.Success(
+                playerId,
+                canonicalTargets[canonicalTargets.Count - 1],
+                true);
+        }
+
+        public ValidationResult CanMoveAtomically(
+            GameState state,
+            int playerId,
+            IReadOnlyList<InfluenceMoveRequest> moves)
+        {
+            ValidateState(state);
+            if (moves == null || moves.Count == 0)
+            {
+                return ValidationResult.Failure(
+                    CommandErrorCode.InvalidTarget,
+                    "At least one influence move is required.");
+            }
+
+            var projectedState = CreateMoveProjection(state);
+            var movedInfluences = new HashSet<InfluencePlacement>();
+            for (var i = 0; i < moves.Count; i++)
+            {
+                var move = moves[i];
+                if (move == null)
+                {
+                    return ValidationResult.Failure(
+                        CommandErrorCode.InvalidTarget,
+                        "Influence move cannot be null.");
+                }
+
+                var projectedInfluence = FindInfluence(projectedState, move.SourceSlotId);
+                if (projectedInfluence != null && movedInfluences.Contains(projectedInfluence))
+                {
+                    return ValidationResult.Failure(
+                        CommandErrorCode.InvalidSource,
+                        "The same influence cannot move twice in one action.");
+                }
+
+                var validation = moveRule.Validate(
+                    projectedState,
+                    playerId,
+                    move.SourceSlotId,
+                    move.TargetSlotId);
+                if (!validation.Succeeded)
+                {
+                    return ToValidationResult(validation);
+                }
+
+                movedInfluences.Add(projectedInfluence);
+                ApplySlotFromId(projectedInfluence, validation.SlotId);
+            }
+
+            return ValidationResult.Success;
+        }
+
         public InfluenceOperationResult Remove(GameState state, string influenceId)
         {
             return RemoveCore(state, influenceId);
@@ -315,6 +435,51 @@ namespace YC.Domain.Influence
             var placement = new InfluencePlacement { PlayerId = playerId };
             ApplySlotFromId(placement, slotId);
             return placement;
+        }
+
+        private static GameState CreateMoveProjection(GameState state)
+        {
+            var projection = new GameState
+            {
+                GameId = state.GameId,
+                Phase = state.Phase,
+                Round = state.Round,
+                MaxRounds = state.MaxRounds,
+                StartPlayerId = state.StartPlayerId,
+                CurrentPlayerId = state.CurrentPlayerId,
+                ActionRound = state.ActionRound,
+                UseSeatTurnOrder = state.UseSeatTurnOrder,
+                MapId = state.MapId,
+                EventDeckSeed = state.EventDeckSeed,
+                Players = state.Players,
+                Decks = state.Decks,
+                PendingChoice = state.PendingChoice,
+                PendingCardSession = state.PendingCardSession,
+                FinalScoring = state.FinalScoring,
+                Logs = state.Logs,
+                Map = new MapRuntimeState
+                {
+                    OpenLocationIds = state.Map.OpenLocationIds,
+                    ResourceTokens = state.Map.ResourceTokens,
+                    RoadRouteIds = state.Map.RoadRouteIds,
+                    RemovedFromGameCardIds = state.Map.RemovedFromGameCardIds,
+                    Facilities = state.Map.Facilities
+                }
+            };
+
+            for (var i = 0; i < state.Map.Influences.Count; i++)
+            {
+                var influence = state.Map.Influences[i];
+                projection.Map.Influences.Add(new InfluencePlacement
+                {
+                    PlayerId = influence.PlayerId,
+                    SlotId = influence.SlotId,
+                    LocationId = influence.LocationId,
+                    RouteId = influence.RouteId
+                });
+            }
+
+            return projection;
         }
 
         private static void ApplySlotFromId(InfluencePlacement placement, string slotId)

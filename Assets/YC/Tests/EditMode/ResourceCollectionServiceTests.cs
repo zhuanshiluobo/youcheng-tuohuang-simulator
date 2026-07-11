@@ -248,6 +248,67 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(0));
         }
 
+        [Test]
+        public void QuerySelection_UsesOwnedRoutesAndConfirmedTollsWithoutChangingState()
+        {
+            var map = CreateCollectionQueryMap();
+            var state = CreateCollectionQueryState();
+            var service = new ResourceCollectionService(new MapQueryService(map));
+
+            var initial = service.QuerySelection(state, 1, null);
+
+            Assert.That(initial.IsValid, Is.True, initial.Validation.Reason);
+            Assert.That(initial.CandidateLocationIds, Is.EquivalentTo(new[] { "B", "C" }));
+            Assert.That(initial.PathsByLocationId.ContainsKey("B"), Is.True);
+            Assert.That(initial.PathsByLocationId.ContainsKey("C"), Is.False);
+            ResourceCollectionRouteOption tollRoute;
+            Assert.That(initial.TryGetRouteOption("R2", out tollRoute), Is.True);
+            Assert.That(tollRoute.Cost, Is.EqualTo(2));
+            Assert.That(tollRoute.CanAfford, Is.True);
+            Assert.That(tollRoute.OpponentOwnerPlayerIds, Is.EqualTo(new[] { 2 }));
+
+            var afterConfirmation = service.QuerySelection(state, 1, new[] { "R2" });
+
+            Assert.That(afterConfirmation.IsValid, Is.True, afterConfirmation.Validation.Reason);
+            Assert.That(afterConfirmation.PathsByLocationId["C"].RouteIds, Is.EqualTo(new[] { "R1", "R2" }));
+            Assert.That(afterConfirmation.ConfirmedTollCost, Is.EqualTo(2));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(2));
+            Assert.That(state.FindPlayer(2).Resources.GoldVoucher, Is.EqualTo(0));
+            Assert.That(state.FindPlayer(1).ResourceCollectionStartGoldVoucher, Is.EqualTo(-1));
+            Assert.That(state.FindPlayer(1).HasCollectedResourcesThisRound, Is.False);
+        }
+
+        [Test]
+        public void QuerySelection_WhenTollIsUnaffordable_ReportsBoundaryRouteButNotReachableTarget()
+        {
+            var state = CreateCollectionQueryState();
+            state.FindPlayer(1).Resources.GoldVoucher = 0;
+            var service = new ResourceCollectionService(new MapQueryService(CreateCollectionQueryMap()));
+
+            var result = service.QuerySelection(state, 1, null);
+
+            ResourceCollectionRouteOption tollRoute;
+            Assert.That(result.IsValid, Is.True, result.Validation.Reason);
+            Assert.That(result.TryGetRouteOption("R2", out tollRoute), Is.True);
+            Assert.That(tollRoute.CanAfford, Is.False);
+            Assert.That(result.PathsByLocationId.ContainsKey("C"), Is.False);
+        }
+
+        [Test]
+        public void QuerySelection_OutsideResourceCollectionPhase_ReturnsExplicitFailure()
+        {
+            var state = CreateCollectionQueryState();
+            state.Phase = GamePhase.ActionRound1;
+            var service = new ResourceCollectionService(new MapQueryService(CreateCollectionQueryMap()));
+
+            var result = service.QuerySelection(state, 1, null);
+
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.WrongPhase));
+            Assert.That(result.CandidateLocationIds, Is.Empty);
+            Assert.That(state.FindPlayer(1).ResourceCollectionStartGoldVoucher, Is.EqualTo(-1));
+        }
+
         private static GameState CreateResourceCollectionState()
         {
             return new GameState
@@ -303,6 +364,94 @@ namespace YC.Tests.EditMode
                         PlayerId = 1,
                         Color = PlayerColor.Red,
                         CityLocationId = "A-01"
+                    }
+                }
+            };
+        }
+
+        private static GameMapDefinition CreateCollectionQueryMap()
+        {
+            return new GameMapDefinition
+            {
+                MapId = "collection-query",
+                Locations =
+                {
+                    new MapLocationDefinition { LocationId = "A", CanDockCity = true, InfluenceSlotCount = 1 },
+                    new MapLocationDefinition { LocationId = "B", InfluenceSlotCount = 1 },
+                    new MapLocationDefinition { LocationId = "C", InfluenceSlotCount = 1 }
+                },
+                Routes =
+                {
+                    new MapRouteDefinition
+                    {
+                        RouteId = "R1",
+                        FromLocationId = "A",
+                        ToLocationId = "B",
+                        InfluenceSlotCount = 1
+                    },
+                    new MapRouteDefinition
+                    {
+                        RouteId = "R2",
+                        FromLocationId = "B",
+                        ToLocationId = "C",
+                        InfluenceSlotCount = 1
+                    }
+                }
+            };
+        }
+
+        private static GameState CreateCollectionQueryState()
+        {
+            return new GameState
+            {
+                Phase = GamePhase.ResourceCollection,
+                Round = 1,
+                StartPlayerId = 1,
+                CurrentPlayerId = 1,
+                Players =
+                {
+                    new PlayerState
+                    {
+                        PlayerId = 1,
+                        Color = PlayerColor.Red,
+                        CityLocationId = "A",
+                        Resources = { GoldVoucher = 2 }
+                    },
+                    new PlayerState { PlayerId = 2, Color = PlayerColor.Blue }
+                },
+                Map =
+                {
+                    ResourceTokens =
+                    {
+                        new ResourceTokenState { LocationId = "B", ResourceType = ResourceType.Iron, Amount = 1 },
+                        new ResourceTokenState { LocationId = "C", ResourceType = ResourceType.Originium, Amount = 1 }
+                    },
+                    Influences =
+                    {
+                        new InfluencePlacement
+                        {
+                            PlayerId = 1,
+                            SlotId = InfluenceService.GetLocationSlotId("B", 0),
+                            LocationId = "B"
+                        },
+                        new InfluencePlacement
+                        {
+                            PlayerId = 1,
+                            SlotId = InfluenceService.GetLocationSlotId("C", 0),
+                            LocationId = "C"
+                        },
+                        new InfluencePlacement
+                        {
+                            PlayerId = 1,
+                            SlotId = InfluenceService.GetRouteSlotId("R1", 0),
+                            RouteId = "R1"
+                        },
+                        new InfluencePlacement
+                        {
+                            PlayerId = 2,
+                            SlotId = InfluenceService.GetRouteSlotId("R2", 0),
+                            RouteId = "R2"
+                        }
                     }
                 }
             };

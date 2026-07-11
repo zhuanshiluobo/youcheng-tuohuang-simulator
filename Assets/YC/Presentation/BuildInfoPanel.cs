@@ -1089,12 +1089,14 @@ namespace YC.Presentation
             }
 
             var facility = FacilityCardDatabase.Get(facilityId);
-            if (facility == null || string.IsNullOrEmpty(facility.ImageRelativePath))
+            string imageRelativePath;
+            if (facility == null ||
+                !CardImagePathCatalog.TryGetFacilityImageRelativePath(facilityId, out imageRelativePath))
             {
                 return null;
             }
 
-            var texture = TryLoadTextureByRelativePath(facility.ImageRelativePath, facility.Name);
+            var texture = TryLoadTextureByRelativePath(imageRelativePath, facility.Name);
             if (texture != null)
             {
                 FacilityCardTextures[facilityId] = texture;
@@ -1117,12 +1119,14 @@ namespace YC.Presentation
             }
 
             var cityStyle = CityStyleDatabase.Get(cityStyleId);
-            if (cityStyle == null || string.IsNullOrEmpty(cityStyle.ImageRelativePath))
+            string imageRelativePath;
+            if (cityStyle == null ||
+                !CardImagePathCatalog.TryGetCityStyleImageRelativePath(cityStyleId, out imageRelativePath))
             {
                 return null;
             }
 
-            var texture = TryLoadTextureByRelativePath(cityStyle.ImageRelativePath, cityStyle.Name);
+            var texture = TryLoadTextureByRelativePath(imageRelativePath, cityStyle.Name);
             if (texture != null)
             {
                 CityStyleCardTextures[cityStyleId] = texture;

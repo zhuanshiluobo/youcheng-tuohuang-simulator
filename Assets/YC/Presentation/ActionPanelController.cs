@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using YC.Presentation.Workflows;
 
 namespace YC.Presentation
 {
@@ -190,6 +191,31 @@ namespace YC.Presentation
         public void SetStatus(string status)
         {
             statusText.text = status ?? string.Empty;
+        }
+
+        public void Render(ActionPanelViewModel viewModel)
+        {
+            if (viewModel == null)
+            {
+                return;
+            }
+
+            SetHeader(viewModel.CurrentPlayerLabel, viewModel.PhaseLabel);
+            SetLocalPlayerColor(viewModel.HasLocalPlayer
+                ? UiTheme.GetPlayerColor(viewModel.LocalPlayerColor, 1f)
+                : Color.white);
+            SetRemainingInfluence(viewModel.RemainingInfluence);
+            SetButtonStates(
+                viewModel.CanUseCharacter,
+                viewModel.CanDeclareCityStyle,
+                viewModel.CanDeploy,
+                viewModel.CanDispatch,
+                viewModel.CanExplore,
+                viewModel.CanMoveCity,
+                viewModel.CanBuild,
+                viewModel.CanUseSpecialAction,
+                viewModel.CanEndAction);
+            SetStatus(viewModel.StatusText);
         }
 
         private static Text CreateText(RectTransform parent, string value, int size, Vector2 position, FontStyle style)

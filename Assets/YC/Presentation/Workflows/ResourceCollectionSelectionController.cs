@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using YC.Domain.Harvest;
 using YC.Domain.Maps;
 
 namespace YC.Presentation
@@ -75,6 +76,32 @@ namespace YC.Presentation
         {
             routeIds.Clear();
             pathsByLocationId.Clear();
+        }
+
+        public void ApplyQuery(ResourceCollectionSelectionQuery query)
+        {
+            candidateLocationIds.Clear();
+            routeIds.Clear();
+            pathsByLocationId.Clear();
+            if (query == null || !query.IsValid)
+            {
+                return;
+            }
+
+            for (var i = 0; i < query.CandidateLocationIds.Count; i++)
+            {
+                candidateLocationIds.Add(query.CandidateLocationIds[i]);
+            }
+
+            foreach (var pair in query.PathsByLocationId)
+            {
+                pathsByLocationId[pair.Key] = pair.Value;
+            }
+
+            foreach (var pair in query.RouteOptionsById)
+            {
+                routeIds.Add(pair.Key);
+            }
         }
 
         public void AddRoute(string routeId)

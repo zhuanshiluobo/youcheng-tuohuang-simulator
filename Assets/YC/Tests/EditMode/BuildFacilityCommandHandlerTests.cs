@@ -235,16 +235,12 @@ namespace YC.Tests.EditMode
                 var facilityId = FacilityCardDatabase.DefaultSupplyIds[i];
                 var facility = FacilityCardDatabase.Get(facilityId);
                 Assert.That(facility, Is.Not.Null);
-                Assert.That(
-                    facility.ImageRelativePath,
-                    Is.EqualTo("Assets/YC/Presentation/Resources/CardImages/Facilities/" + facilityId + ".jpg"));
             }
 
             var logisticsHub = FacilityCardDatabase.Get(FacilityCardDatabase.LogisticsHub);
             Assert.That(logisticsHub.Name, Is.EqualTo("物流枢纽"));
             Assert.That(logisticsHub.ResourceCost.PureOriginium, Is.EqualTo(1));
             Assert.That(logisticsHub.ResourceCost.GoldVoucher, Is.EqualTo(2));
-            Assert.That(logisticsHub.ImageRelativePath, Does.EndWith("building_012.jpg"));
             Assert.That(
                 System.IO.File.Exists(
                     System.IO.Path.Combine(
@@ -258,15 +254,14 @@ namespace YC.Tests.EditMode
 
             var extensionHub = FacilityCardDatabase.Get(FacilityCardDatabase.ExtensionHubBlue);
             Assert.That(extensionHub.ReserveOnly, Is.True);
-            Assert.That(extensionHub.ImageRelativePath, Does.EndWith("reserve_002.jpg"));
 
             for (var i = 0; i < FacilityCardDatabase.ReserveIds.Count; i++)
             {
                 var reserveId = FacilityCardDatabase.ReserveIds[i];
-                Assert.That(
-                    FacilityCardDatabase.Get(reserveId).ImageRelativePath,
-                    Is.EqualTo("Assets/YC/Presentation/Resources/CardImages/Facilities/" + reserveId + ".jpg"));
+                Assert.That(FacilityCardDatabase.Get(reserveId), Is.Not.Null);
             }
+
+            Assert.That(typeof(FacilityCardDefinition).GetField("ImageRelativePath"), Is.Null);
         }
 
         [Test]

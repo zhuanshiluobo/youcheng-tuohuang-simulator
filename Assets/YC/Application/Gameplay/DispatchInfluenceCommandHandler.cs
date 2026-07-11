@@ -37,38 +37,41 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(guard);
             }
 
-            var firstMove = influenceService.Move(state, command.PlayerId, command.SourceId, command.TargetId);
-            if (!firstMove.Succeeded)
+            if (command.Parameters == null)
             {
-                return CommandResult.Invalid(firstMove.Validation);
+                return CommandResult.Invalid(ValidationResult.Failure(
+                    CommandErrorCode.InvalidTarget,
+                    "调度参数不能为空。"));
             }
 
-            var movedCount = 1;
-            if (command.Parameters.TryGetValue("source2", out var source2) &&
-                command.Parameters.TryGetValue("target2", out var target2) &&
-                !string.IsNullOrEmpty(source2) &&
-                !string.IsNullOrEmpty(target2))
+            var hasSecondSource = command.Parameters.TryGetValue("source2", out var source2);
+            var hasSecondTarget = command.Parameters.TryGetValue("target2", out var target2);
+            if (hasSecondSource != hasSecondTarget ||
+                (hasSecondSource && (string.IsNullOrEmpty(source2) || string.IsNullOrEmpty(target2))))
             {
-                if (source2 == command.TargetId)
-                {
-                    influenceService.Move(state, command.PlayerId, command.TargetId, command.SourceId);
-                    return CommandResult.Invalid(ValidationResult.Failure(
-                        CommandErrorCode.InvalidSource,
-                        "一次行动中不能重复调度同一个影响力。"));
-                }
+                return CommandResult.Invalid(ValidationResult.Failure(
+                    CommandErrorCode.InvalidTarget,
+                    "第二次调度必须同时提供 source2 和 target2。"));
+            }
 
-                var secondMove = influenceService.Move(state, command.PlayerId, source2, target2);
-                if (!secondMove.Succeeded)
-                {
-                    influenceService.Move(state, command.PlayerId, command.TargetId, command.SourceId);
-                    return CommandResult.Invalid(secondMove.Validation);
-                }
+            var moves = new List<InfluenceMoveRequest>
+            {
+                new InfluenceMoveRequest(command.SourceId, command.TargetId)
+            };
+            if (hasSecondSource)
+            {
+                moves.Add(new InfluenceMoveRequest(source2, target2));
+            }
 
-                movedCount = 2;
+            var moveResult = influenceService.MoveAtomically(state, command.PlayerId, moves);
+            if (!moveResult.Succeeded)
+            {
+                return CommandResult.Invalid(moveResult.Validation);
             }
 
             roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
 
+            var movedCount = moves.Count;
             var message = "Player " + command.PlayerId + " dispatched influence " + movedCount + " time(s).";
             return CommandResult.SuccessResult(new List<GameEvent>
             {

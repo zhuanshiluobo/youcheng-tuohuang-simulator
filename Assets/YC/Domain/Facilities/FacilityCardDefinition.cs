@@ -20,6 +20,5 @@ namespace YC.Domain.Facilities
         public string ManifestId = string.Empty;
         public bool ReserveOnly;
         public ResourceSet OnBuiltReward = new ResourceSet();
-        public string ImageRelativePath = string.Empty;
     }
 }

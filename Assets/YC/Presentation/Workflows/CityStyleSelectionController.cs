@@ -8,7 +8,7 @@ using YC.Domain.State;
 
 namespace YC.Presentation
 {
-    internal sealed class CityStyleSelectionController
+    public sealed class CityStyleSelectionController
     {
         private readonly DeclareCityStyleService declareCityStyleService;
 
@@ -73,7 +73,7 @@ namespace YC.Presentation
         }
     }
 
-    internal sealed class CityStyleOptionViewModel
+    public sealed class CityStyleOptionViewModel
     {
         public string CityStyleId { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;

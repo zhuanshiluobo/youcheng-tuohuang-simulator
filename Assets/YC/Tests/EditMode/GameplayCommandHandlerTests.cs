@@ -6,6 +6,7 @@ using YC.Domain.Maps;
 using YC.Domain.Movement;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using UnityEngine;
 
 namespace YC.Tests.EditMode
 {
@@ -140,6 +141,105 @@ namespace YC.Tests.EditMode
             Assert.That(state.Map.Influences.Exists(influence => influence.SlotId == secondTarget), Is.True);
             Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.True);
+        }
+
+        [Test]
+        public void DispatchInfluence_WhenParametersAreNull_FailsWithoutMutatingState()
+        {
+            var scenario = CreateDispatchScenario();
+            var stateBefore = JsonUtility.ToJson(scenario.State);
+
+            var result = new DispatchInfluenceCommandHandler(scenario.Service).Handle(
+                scenario.State,
+                new GameCommand
+                {
+                    Kind = GameCommandKind.DispatchInfluence,
+                    PlayerId = 1,
+                    SourceId = scenario.FirstSource,
+                    TargetId = scenario.FirstTarget,
+                    Parameters = null
+                });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(JsonUtility.ToJson(scenario.State), Is.EqualTo(stateBefore));
+        }
+
+        [Test]
+        public void DispatchInfluence_WhenSecondMoveParametersAreIncomplete_FailsWithoutMutatingState()
+        {
+            var scenario = CreateDispatchScenario();
+            var stateBefore = JsonUtility.ToJson(scenario.State);
+
+            var result = new DispatchInfluenceCommandHandler(scenario.Service).Handle(
+                scenario.State,
+                new GameCommand
+                {
+                    Kind = GameCommandKind.DispatchInfluence,
+                    PlayerId = 1,
+                    SourceId = scenario.FirstSource,
+                    TargetId = scenario.FirstTarget,
+                    Parameters =
+                    {
+                        { "source2", scenario.SecondSource }
+                    }
+                });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(JsonUtility.ToJson(scenario.State), Is.EqualTo(stateBefore));
+        }
+
+        [Test]
+        public void DispatchInfluence_WhenSecondMoveIsIllegal_FailsWithoutMutatingState()
+        {
+            var scenario = CreateDispatchScenario();
+            var stateBefore = JsonUtility.ToJson(scenario.State);
+
+            var result = new DispatchInfluenceCommandHandler(scenario.Service).Handle(
+                scenario.State,
+                new GameCommand
+                {
+                    Kind = GameCommandKind.DispatchInfluence,
+                    PlayerId = 1,
+                    SourceId = scenario.FirstSource,
+                    TargetId = scenario.FirstTarget,
+                    Parameters =
+                    {
+                        { "source2", scenario.SecondSource },
+                        { "target2", "location:missing:0" }
+                    }
+                });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(JsonUtility.ToJson(scenario.State), Is.EqualTo(stateBefore));
+        }
+
+        [Test]
+        public void DispatchInfluence_WhenSameInfluenceIsMovedTwice_FailsWithoutMutatingState()
+        {
+            var scenario = CreateDispatchScenario();
+            var stateBefore = JsonUtility.ToJson(scenario.State);
+
+            var result = new DispatchInfluenceCommandHandler(scenario.Service).Handle(
+                scenario.State,
+                new GameCommand
+                {
+                    Kind = GameCommandKind.DispatchInfluence,
+                    PlayerId = 1,
+                    SourceId = scenario.FirstSource,
+                    TargetId = scenario.FirstTarget,
+                    Parameters =
+                    {
+                        { "source2", scenario.FirstTarget },
+                        { "target2", scenario.SecondTarget }
+                    }
+                });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidSource));
+            Assert.That(JsonUtility.ToJson(scenario.State), Is.EqualTo(stateBefore));
         }
 
         [Test]
@@ -350,6 +450,44 @@ namespace YC.Tests.EditMode
         private static InfluenceService CreateInfluenceService()
         {
             return new InfluenceService(new MapQueryService(StaticMapDefinitions.CreateThreePlayerPlaceholder()));
+        }
+
+        private static DispatchScenario CreateDispatchScenario()
+        {
+            var scenario = new DispatchScenario
+            {
+                State = CreateActionState(),
+                Service = new InfluenceService(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap())),
+                FirstSource = InfluenceService.GetLocationSlotId("A-01", 0),
+                FirstTarget = InfluenceService.GetLocationSlotId("C-01", 0),
+                SecondSource = InfluenceService.GetLocationSlotId("B-01", 0),
+                SecondTarget = InfluenceService.GetLocationSlotId("D-01", 0)
+            };
+            AddResourceToken(scenario.State, "C-01");
+            AddResourceToken(scenario.State, "D-01");
+            scenario.State.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = scenario.FirstSource,
+                LocationId = "A-01"
+            });
+            scenario.State.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = scenario.SecondSource,
+                LocationId = "B-01"
+            });
+            return scenario;
+        }
+
+        private sealed class DispatchScenario
+        {
+            public GameState State;
+            public InfluenceService Service;
+            public string FirstSource;
+            public string FirstTarget;
+            public string SecondSource;
+            public string SecondTarget;
         }
 
         private static GameState CreateActionState()

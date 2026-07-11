@@ -1,0 +1,17 @@
+{
+  "name": "YC.Presentation.Workflows",
+  "rootNamespace": "YC.Presentation.Workflows",
+  "references": [
+    "YC.Domain",
+    "YC.Application"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

@@ -4,6 +4,7 @@
   "references": [
     "YC.Domain",
     "YC.Application",
+    "YC.Presentation.Workflows",
     "YC.Presentation.Maps",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"

@@ -9,9 +9,11 @@ using YC.Domain.CardFlows;
 using YC.Domain.CityStyles;
 using YC.Domain.Commands;
 using YC.Domain.Facilities;
+using YC.Domain.Harvest;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Presentation;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -26,7 +28,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void ExplorePaymentRecipientSelection_BuildsDefaultsAllowsValidSelectionAndEncodesRecipients()
         {
-            var controller = CreateController("YC.Presentation.ExplorePaymentRecipientSelectionController");
+            var controller = new ExplorePaymentRecipientSelectionController();
             var path = new MapPath
             {
                 LocationIds = { "A", "B", "C" },
@@ -52,7 +54,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void ExplorePathSelection_KeepsTargetAndSelectsIndexedPathChoice()
         {
-            var controller = CreateController("YC.Presentation.ExplorePathSelectionController");
+            var controller = new ExplorePathSelectionController();
             var directPath = new MapPath
             {
                 LocationIds = { "A", "B" },
@@ -85,7 +87,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void ResourceCollectionSelection_TogglesLocationsBuildsRoutesAndEncodesPayments()
         {
-            var controller = CreateController("YC.Presentation.ResourceCollectionSelectionController");
+            var controller = new ResourceCollectionSelectionController();
             Invoke(controller, "AddCandidateLocation", "A");
             Invoke(controller, "AddCandidateLocation", "B");
             Invoke(controller, "SetPathForLocation", "A", new MapPath
@@ -124,9 +126,48 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void ResourceCollectionSelection_ApplyQuery_ReplacesDerivedNetworkAndPreservesPaymentChoice()
+        {
+            var controller = new ResourceCollectionSelectionController();
+            var initialQuery = new ResourceCollectionSelectionQuery();
+            initialQuery.CandidateLocationIds.Add("B");
+            initialQuery.GetType()
+                .GetMethod("AddRouteOption", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(initialQuery, new object[] { new ResourceCollectionRouteOption { RouteId = "R2" } });
+
+            Invoke(controller, "ApplyQuery", initialQuery);
+
+            Assert.That(Invoke(controller, "HasCandidateLocation", "B"), Is.True);
+            Assert.That(Invoke(controller, "HasRoute", "R2"), Is.True);
+            Invoke(controller, "ConfirmRoutePayment", "R2", 2);
+
+            var expandedQuery = new ResourceCollectionSelectionQuery();
+            expandedQuery.CandidateLocationIds.Add("B");
+            expandedQuery.GetType()
+                .GetMethod("AddPath", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(expandedQuery, new object[]
+                {
+                    "B",
+                    new MapPath
+                    {
+                        LocationIds = { "A", "B" },
+                        RouteIds = { "R2" }
+                    }
+                });
+
+            Invoke(controller, "ApplyQuery", expandedQuery);
+
+            Assert.That(Invoke(controller, "HasRoute", "R2"), Is.False);
+            Assert.That(GetProperty(GetProperty(controller, "PaidRouteIds"), "Count"), Is.EqualTo(1));
+            var pathArgs = new object[] { "B", null };
+            Assert.That(controller.GetType().GetMethod("TryGetPath").Invoke(controller, pathArgs), Is.True);
+            Assert.That(((MapPath)pathArgs[1]).RouteIds, Is.EqualTo(new[] { "R2" }));
+        }
+
+        [Test]
         public void MapInteractionConfirmation_SecondRequestConfirmsAndClearRestoresState()
         {
-            var controller = CreateController("YC.Presentation.MapInteractionConfirmationController");
+            var controller = new MapInteractionConfirmationController();
             var confirmed = false;
             var firstRequest = new object[] { "move", "A", "A", "location:A:0", new Action(() => confirmed = true), null };
 
@@ -152,7 +193,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void EventOptionSelection_ReportsInfluenceTargetRequirement()
         {
-            var controller = CreateController("YC.Presentation.EventOptionSelectionController");
+            var controller = new EventOptionSelectionController();
             var card = CreateInfluenceChoiceCard(2);
 
             Invoke(controller, "Begin", card);
@@ -168,7 +209,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void EventInfluenceTargetSelection_CompletesAfterRequiredSlotsAndWritesCommandParameter()
         {
-            var controller = CreateController("YC.Presentation.EventInfluenceTargetSelectionController");
+            var controller = new EventInfluenceTargetSelectionController();
             var card = CreateInfluenceChoiceCard(2);
 
             Invoke(controller, "Begin", 0);
@@ -196,7 +237,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void BuildFacilitySelection_CreatesBuildCommandWithFacilitySlotAndPaymentMode()
         {
-            var controller = CreateController("YC.Presentation.BuildFacilitySelectionController");
+            var controller = new BuildFacilitySelectionController();
 
             var method = controller.GetType().GetMethod(
                 "CreateCommand",
@@ -222,7 +263,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void CityStyleSelection_ReportsAvailabilityAndCreatesDeclareCommand()
         {
-            var controller = CreateController("YC.Presentation.CityStyleSelectionController");
+            var controller = new CityStyleSelectionController();
             var state = CreateCityStyleActionState();
             AddFacility(state, FacilityCardDatabase.TradeDistrict, 0);
             AddFacility(state, FacilityCardDatabase.EquipmentWarehouse, 3);
@@ -250,6 +291,37 @@ namespace YC.Tests.EditMode
 
             Assert.That(type, Is.Not.Null);
             Assert.That(BuildFacilityService.CityBoardSlotCount, Is.EqualTo(12));
+        }
+
+        [Test]
+        public void CardImagePathCatalog_CoversAllFacilityAndCityStyleDefinitions()
+        {
+            var type = Type.GetType("YC.Presentation.CardImagePathCatalog, Assembly-CSharp", false);
+            Assert.That(type, Is.Not.Null);
+
+            var facilityPathMethod = type.GetMethod("TryGetFacilityImageRelativePath", BindingFlags.Public | BindingFlags.Static);
+            var cityStylePathMethod = type.GetMethod("TryGetCityStyleImageRelativePath", BindingFlags.Public | BindingFlags.Static);
+            Assert.That(facilityPathMethod, Is.Not.Null);
+            Assert.That(cityStylePathMethod, Is.Not.Null);
+
+            var facilityIds = new List<string>(FacilityCardDatabase.DefaultSupplyIds);
+            facilityIds.AddRange(FacilityCardDatabase.ReserveIds);
+            for (var i = 0; i < facilityIds.Count; i++)
+            {
+                AssertImagePathExists(facilityPathMethod, facilityIds[i]);
+            }
+
+            for (var i = 0; i < CityStyleDatabase.DefaultSupplyIds.Count; i++)
+            {
+                AssertImagePathExists(cityStylePathMethod, CityStyleDatabase.DefaultSupplyIds[i]);
+            }
+
+            Assert.That(typeof(FacilityCardDefinition).GetField("ImageRelativePath"), Is.Null);
+            Assert.That(typeof(CityStyleDefinition).GetField("ImageRelativePath"), Is.Null);
+
+            var unknownArguments = new object[] { "unknown_card", null };
+            Assert.That(facilityPathMethod.Invoke(null, unknownArguments), Is.False);
+            Assert.That(unknownArguments[1], Is.EqualTo(string.Empty));
         }
 
         [Test]
@@ -469,13 +541,6 @@ namespace YC.Tests.EditMode
                     }
                 }
             };
-        }
-
-        private static object CreateController(string typeName)
-        {
-            var type = Type.GetType(typeName + ", Assembly-CSharp", false);
-            Assert.That(type, Is.Not.Null, "Missing presentation controller type " + typeName + ".");
-            return Activator.CreateInstance(type);
         }
 
         private static object Invoke(object target, string methodName, params object[] args)
@@ -720,6 +785,19 @@ namespace YC.Tests.EditMode
             Assert.That(outline, Is.Not.Null);
             Assert.That(outline.effectDistance.x, Is.EqualTo(expectedDistance.x).Within(0.01f));
             Assert.That(outline.effectDistance.y, Is.EqualTo(expectedDistance.y).Within(0.01f));
+        }
+
+        private static void AssertImagePathExists(MethodInfo pathMethod, string cardId)
+        {
+            var arguments = new object[] { cardId, null };
+            Assert.That(pathMethod.Invoke(null, arguments), Is.True, "图片路径映射缺失：" + cardId);
+
+            var relativePath = arguments[1] as string;
+            Assert.That(relativePath, Is.Not.Null.And.Not.Empty, "图片路径为空：" + cardId);
+            Assert.That(
+                System.IO.File.Exists(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), relativePath)),
+                Is.True,
+                "图片文件不存在：" + relativePath);
         }
 
         private static void AssertCardImageViewerIsOpen()

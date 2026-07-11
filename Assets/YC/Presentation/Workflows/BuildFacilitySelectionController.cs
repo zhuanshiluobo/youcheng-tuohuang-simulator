@@ -7,7 +7,7 @@ using YC.Domain.State;
 
 namespace YC.Presentation
 {
-    internal sealed class BuildFacilitySelectionController
+    public sealed class BuildFacilitySelectionController
     {
         public GameCommand CreateCommand(
             GameState state,

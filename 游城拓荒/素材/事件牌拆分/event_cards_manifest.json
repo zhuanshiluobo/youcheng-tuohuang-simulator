@@ -1,0 +1,284 @@
+{
+  "grid": {
+    "columns": 2,
+    "cardWidth": 850,
+    "cardHeight": 600
+  },
+  "cards": [
+    {
+      "name": "中立采石场",
+      "color": "green",
+      "sourceImage": "游城拓荒/素材/绿色.jpg",
+      "row": 1,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_green_01_中立采石场_r01c01.jpg",
+      "eventCardDatabaseId": "event_green_01",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "清理虫巢",
+      "color": "green",
+      "sourceImage": "游城拓荒/素材/绿色.jpg",
+      "row": 1,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_green_02_清理虫巢_r01c02.jpg",
+      "eventCardDatabaseId": "event_green_02",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "外露矿床",
+      "color": "green",
+      "sourceImage": "游城拓荒/素材/绿色.jpg",
+      "row": 2,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_green_03_外露矿床_r02c01.jpg",
+      "eventCardDatabaseId": "event_green_03",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "富饶岩层",
+      "color": "green",
+      "sourceImage": "游城拓荒/素材/绿色.jpg",
+      "row": 2,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_green_04_富饶岩层_r02c02.jpg",
+      "eventCardDatabaseId": "event_green_04",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "矿业聚落",
+      "color": "green",
+      "sourceImage": "游城拓荒/素材/绿色.jpg",
+      "row": 3,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_green_05_矿业聚落_r03c01.jpg",
+      "eventCardDatabaseId": "event_green_05",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "废弃矿坑（4）",
+      "color": "green",
+      "sourceImage": "游城拓荒/素材/绿色.jpg",
+      "row": 3,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_green_06_废弃矿坑（4）_r03c02.jpg",
+      "eventCardDatabaseId": "event_green_06",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "险中净土",
+      "color": "red",
+      "sourceImage": "游城拓荒/素材/红色.jpg",
+      "row": 1,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_red_07_险中净土_r01c01.jpg",
+      "eventCardDatabaseId": "event_red_01",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "裂谷矿脉",
+      "color": "red",
+      "sourceImage": "游城拓荒/素材/红色.jpg",
+      "row": 1,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_red_08_裂谷矿脉_r01c02.jpg",
+      "eventCardDatabaseId": "event_red_02",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "采集平台残骸",
+      "color": "red",
+      "sourceImage": "游城拓荒/素材/红色.jpg",
+      "row": 2,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_red_09_采集平台残骸_r02c01.jpg",
+      "eventCardDatabaseId": "event_red_03",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "高污染环境",
+      "color": "red",
+      "sourceImage": "游城拓荒/素材/红色.jpg",
+      "row": 2,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_red_10_高污染环境_r02c02.jpg",
+      "eventCardDatabaseId": "event_red_04",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "深层矿床（4）",
+      "color": "red",
+      "sourceImage": "游城拓荒/素材/红色.jpg",
+      "row": 3,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_red_11_深层矿床（4）_r03c01.jpg",
+      "eventCardDatabaseId": "event_red_05",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "地质瑰宝",
+      "color": "red",
+      "sourceImage": "游城拓荒/素材/红色.jpg",
+      "row": 3,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_red_12_地质瑰宝_r03c02.jpg",
+      "eventCardDatabaseId": "event_red_06",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "采集平台残骸（企业选项版）",
+      "color": "red",
+      "sourceImage": "游城拓荒/素材/红色.jpg",
+      "row": 4,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_red_13_采集平台残骸（企业选项版）_r04c01.jpg",
+      "eventCardDatabaseId": null,
+      "recordedInEventCardDatabase": false
+    },
+    {
+      "name": "大型源岩场",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 1,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_14_大型源岩场_r01c01.jpg",
+      "eventCardDatabaseId": "event_yellow_01",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "洞穴遗迹",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 1,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_15_洞穴遗迹_r01c02.jpg",
+      "eventCardDatabaseId": "event_yellow_02",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "荒地人村落",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 2,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_16_荒地人村落_r02c01.jpg",
+      "eventCardDatabaseId": "event_yellow_03",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "锈锤领地",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 2,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_17_锈锤领地_r02c02.jpg",
+      "eventCardDatabaseId": "event_yellow_04",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "情报交换（4）",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 3,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_18_情报交换（4）_r03c01.jpg",
+      "eventCardDatabaseId": "event_yellow_05",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "风险任务",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 3,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_19_风险任务_r03c02.jpg",
+      "eventCardDatabaseId": "event_yellow_06",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "异铁开采权",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 4,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_20_异铁开采权_r04c01.jpg",
+      "eventCardDatabaseId": "event_yellow_07",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "敌对生态圈（4）",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 4,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_21_敌对生态圈（4）_r04c02.jpg",
+      "eventCardDatabaseId": "event_yellow_08",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "富异铁区",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 5,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_22_富异铁区_r05c01.jpg",
+      "eventCardDatabaseId": "event_yellow_09",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "遭弃矿场",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 5,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_23_遭弃矿场_r05c02.jpg",
+      "eventCardDatabaseId": "event_yellow_10",
+      "recordedInEventCardDatabase": true
+    },
+    {
+      "name": "洞穴遗迹（企业选项版）",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 6,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_24_洞穴遗迹（企业选项版）_r06c02.jpg",
+      "eventCardDatabaseId": null,
+      "recordedInEventCardDatabase": false
+    }
+  ],
+  "unrecordedCards": [
+    {
+      "name": "采集平台残骸（企业选项版）",
+      "color": "red",
+      "sourceImage": "游城拓荒/素材/红色.jpg",
+      "row": 4,
+      "column": 1,
+      "image": "游城拓荒/素材/事件牌拆分/event_red_13_采集平台残骸（企业选项版）_r04c01.jpg",
+      "eventCardDatabaseId": null,
+      "recordedInEventCardDatabase": false
+    },
+    {
+      "name": "洞穴遗迹（企业选项版）",
+      "color": "yellow",
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 6,
+      "column": 2,
+      "image": "游城拓荒/素材/事件牌拆分/event_yellow_24_洞穴遗迹（企业选项版）_r06c02.jpg",
+      "eventCardDatabaseId": null,
+      "recordedInEventCardDatabase": false
+    }
+  ],
+  "termGlossary": {
+    "企业升级": "选择一家本局参与的合作企业，将自己在该企业板上的影响力标记提升 1 级。抵达普通奖励格时立即结算；抵达企业特效格时只解锁该特效，不立即发动。",
+    "企业特效": "从自己已解锁的企业特效中选择一项发动。企业特效的发动独立于企业升级，不能选择尚未解锁的特效。"
+  },
+  "skippedCells": [
+    {
+      "sourceImage": "游城拓荒/素材/黄色.jpg",
+      "row": 6,
+      "column": 1,
+      "name": "占位符",
+      "reason": "空白占位牌，不是可录入的事件卡。"
+    }
+  ]
+}

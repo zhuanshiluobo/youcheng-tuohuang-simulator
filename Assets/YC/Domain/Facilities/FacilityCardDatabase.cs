@@ -29,7 +29,6 @@ namespace YC.Domain.Facilities
         public const string ExtensionHubRed = "reserve_004";
         public const string EnterpriseOffice = "facility_enterprise_office";
 
-        private const string FacilityImageRoot = "Assets/YC/Presentation/Resources/CardImages/Facilities/";
         private static readonly string[] ManifestPathParts =
         {
             "StreamingAssets",
@@ -50,8 +49,7 @@ namespace YC.Domain.Facilities
                         Score = 0,
                         Unique = true,
                         Color = "rainbow",
-                        EffectType = "setup",
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/core_command_tower.jpg"
+                        EffectType = "setup"
                     }
                 },
                 {
@@ -65,8 +63,7 @@ namespace YC.Domain.Facilities
                         Color = "rainbow",
                         ResourceCost = new ResourceSet { Originium = 3, Iron = 3, OriginiumShard = 3 },
                         GoldVoucherCost = 30,
-                        EffectType = "unique",
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/borough_administrative_district.jpg"
+                        EffectType = "unique"
                     }
                 },
                 {
@@ -80,8 +77,7 @@ namespace YC.Domain.Facilities
                         Color = "rainbow",
                         ResourceCost = new ResourceSet { Originium = 2, Iron = 3, OriginiumShard = 2 },
                         GoldVoucherCost = 23,
-                        EffectType = "entry",
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/affiliated_energy_facility.jpg"
+                        EffectType = "entry"
                     }
                 },
                 {
@@ -95,8 +91,7 @@ namespace YC.Domain.Facilities
                         Color = "rainbow",
                         ResourceCost = new ResourceSet { Originium = 4, OriginiumShard = 2 },
                         GoldVoucherCost = 17,
-                        EffectType = "cleanup",
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/federal_office.jpg"
+                        EffectType = "cleanup"
                     }
                 },
                 {
@@ -110,8 +105,7 @@ namespace YC.Domain.Facilities
                         Color = "rainbow",
                         ResourceCost = new ResourceSet { Originium = 2, OriginiumShard = 1 },
                         GoldVoucherCost = 8,
-                        EffectType = "special_action",
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/simple_engineering_camp.jpg"
+                        EffectType = "special_action"
                     }
                 },
                 {
@@ -125,8 +119,7 @@ namespace YC.Domain.Facilities
                         ResourceCost = new ResourceSet { Originium = 1, Iron = 1, OriginiumShard = 1 },
                         GoldVoucherCost = 10,
                         EffectType = "entry",
-                        OnBuiltReward = new ResourceSet { OriginiumShard = 6 },
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/source_stone_refinery.jpg"
+                        OnBuiltReward = new ResourceSet { OriginiumShard = 6 }
                     }
                 },
                 {
@@ -139,8 +132,7 @@ namespace YC.Domain.Facilities
                         Score = 1,
                         ResourceCost = new ResourceSet { Originium = 3, Iron = 2 },
                         GoldVoucherCost = 16,
-                        EffectType = "scoring",
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/urbanized_area.jpg"
+                        EffectType = "scoring"
                     }
                 },
                 {
@@ -154,8 +146,7 @@ namespace YC.Domain.Facilities
                         ResourceCost = new ResourceSet { Originium = 2, Iron = 1, OriginiumShard = 2 },
                         GoldVoucherCost = 15,
                         EffectType = "entry",
-                        OnBuiltReward = new ResourceSet { Iron = 4 },
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/iron_refinery.jpg"
+                        OnBuiltReward = new ResourceSet { Iron = 4 }
                     }
                 },
                 {
@@ -168,8 +159,7 @@ namespace YC.Domain.Facilities
                         Score = 0,
                         ResourceCost = new ResourceSet { Originium = 1, Iron = 1 },
                         GoldVoucherCost = 6,
-                        EffectType = "special_action",
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/trade_district.jpg"
+                        EffectType = "special_action"
                     }
                 },
                 {
@@ -183,8 +173,7 @@ namespace YC.Domain.Facilities
                         ResourceCost = new ResourceSet { Originium = 1, Iron = 1, OriginiumShard = 1 },
                         GoldVoucherCost = 10,
                         EffectType = "entry",
-                        OnBuiltReward = new ResourceSet { Originium = 7 },
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/originium_purification_plant.jpg"
+                        OnBuiltReward = new ResourceSet { Originium = 7 }
                     }
                 },
                 {
@@ -197,8 +186,7 @@ namespace YC.Domain.Facilities
                         Score = 0,
                         ResourceCost = new ResourceSet { Originium = 1, OriginiumShard = 2 },
                         GoldVoucherCost = 9,
-                        EffectType = "special_action",
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/equipment_warehouse.jpg"
+                        EffectType = "special_action"
                     }
                 },
                 {
@@ -211,8 +199,7 @@ namespace YC.Domain.Facilities
                         Score = 1,
                         ResourceCost = new ResourceSet { Originium = 3, Iron = 1, OriginiumShard = 3 },
                         GoldVoucherCost = 23,
-                        EffectType = "entry",
-                        ImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Facilities/enterprise_office.jpg"
+                        EffectType = "entry"
                     }
                 }
             };
@@ -314,8 +301,7 @@ namespace YC.Domain.Facilities
                     Description = ReadString(card, "description"),
                     EffectText = effect,
                     ReserveOnly = reserveOnly,
-                    OnBuiltReward = ResolveOnBuiltReward(name),
-                    ImageRelativePath = BuildImageRelativePath(id, reserveOnly)
+                    OnBuiltReward = ResolveOnBuiltReward(name)
                 };
             }
         }
@@ -461,8 +447,7 @@ namespace YC.Domain.Facilities
                 EffectText = template.EffectText,
                 ManifestId = facilityId,
                 ReserveOnly = reserveOnly,
-                OnBuiltReward = template.OnBuiltReward.Clone(),
-                ImageRelativePath = BuildImageRelativePath(facilityId, reserveOnly)
+                OnBuiltReward = template.OnBuiltReward.Clone()
             };
         }
 
@@ -489,65 +474,8 @@ namespace YC.Domain.Facilities
                 UniqueGroupId = facilityId,
                 EffectType = effectType,
                 ManifestId = facilityId,
-                ReserveOnly = reserveOnly,
-                ImageRelativePath = BuildImageRelativePath(facilityId, reserveOnly)
+                ReserveOnly = reserveOnly
             };
-        }
-
-        private static string BuildImageRelativePath(string facilityId, bool reserveOnly)
-        {
-            return string.IsNullOrEmpty(facilityId)
-                ? string.Empty
-                : FacilityImageRoot + facilityId + ".jpg";
-        }
-
-        private static string GetBuildingImageFileName(string facilityId)
-        {
-            switch (facilityId)
-            {
-                case "building_001": return "building_001_城邦行政区_r01c01.jpg";
-                case "building_002": return "building_002_城邦行政区_r01c02.jpg";
-                case "building_003": return "building_003_城邦行政区_r01c03.jpg";
-                case "building_004": return "building_004_附属能源设施_r01c04.jpg";
-                case "building_005": return "building_005_附属能源设施_r01c05.jpg";
-                case "building_006": return "building_006_附属能源设施_r01c06.jpg";
-                case "building_007": return "building_007_联邦理事处_r01c07.jpg";
-                case "building_008": return "building_008_联邦理事处_r01c08.jpg";
-                case "building_009": return "building_009_联邦理事处_r01c09.jpg";
-                case "building_010": return "building_010_简陋工程营_r02c01.jpg";
-                case "building_011": return "building_011_简陋工程营_r02c02.jpg";
-                case "building_012": return "building_012_物流枢纽_r02c03.jpg";
-                case "building_013": return "building_013_物流枢纽_r02c04.jpg";
-                case "building_014": return "building_014_源石精炼厂_r02c05.jpg";
-                case "building_015": return "building_015_城市化区域_r02c06.jpg";
-                case "building_016": return "building_016_城市化区域_r02c07.jpg";
-                case "building_017": return "building_017_城市化区域_r02c08.jpg";
-                case "building_018": return "building_018_异铁冶炼厂_r02c09.jpg";
-                case "building_019": return "building_019_贸易街区_r03c01.jpg";
-                case "building_020": return "building_020_贸易街区_r03c02.jpg";
-                case "building_021": return "building_021_贸易街区_r03c03.jpg";
-                case "building_022": return "building_022_城邦工业区_r03c05.jpg";
-                case "building_023": return "building_023_城邦工业区_r03c06.jpg";
-                case "building_024": return "building_024_城邦工业区_r03c07.jpg";
-                case "building_025": return "building_025_高性能动力设施_r03c08.jpg";
-                case "building_026": return "building_026_高性能动力设施_r03c09.jpg";
-                case "building_027": return "building_027_固源岩提纯厂_r04c01.jpg";
-                case "building_028": return "building_028_源石精炼厂_r04c02.jpg";
-                case "building_029": return "building_029_开采电铲_r04c03.jpg";
-                case "building_030": return "building_030_开采电铲_r04c04.jpg";
-                case "building_031": return "building_031_开采电铲_r04c05.jpg";
-                case "building_032": return "building_032_异铁冶炼厂_r04c07.jpg";
-                case "building_033": return "building_033_固源岩提纯厂_r04c08.jpg";
-                case "building_034": return "building_034_佣兵指挥部_r04c09.jpg";
-                case "building_035": return "building_035_佣兵指挥部_r05c01.jpg";
-                case "building_036": return "building_036_佣兵指挥部_r05c02.jpg";
-                case "building_037": return "building_037_护航调度中心_r05c03.jpg";
-                case "building_038": return "building_038_护航调度中心_r05c04.jpg";
-                case "building_039": return "building_039_载具仓库_r05c05.jpg";
-                case "building_040": return "building_040_载具仓库_r05c06.jpg";
-                case "building_041": return "building_041_载具仓库_r05c07.jpg";
-                default: return string.Empty;
-            }
         }
 
         public static readonly List<string> DefaultSupplyIds = new List<string>

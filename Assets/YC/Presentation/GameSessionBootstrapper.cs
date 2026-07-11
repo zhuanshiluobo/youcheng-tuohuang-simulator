@@ -24,11 +24,12 @@ namespace YC.Presentation
             public MapQueryService MapQuery;
             public InfluenceService InfluenceService;
             public ExplorationService ExplorationService;
+            public ResourceCollectionService ResourceCollectionService;
             public EventDeckService EventDeckService;
             public int LocalPlayerId;
         }
 
-        public static Result Build(GameLaunchContext launchContext)
+        public static Result Build(GameLaunchContext launchContext, bool useRightCardSmokeState = false)
         {
             var mapQuery = new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap());
             var launchMode = launchContext == null ? LaunchMode.Local : launchContext.Mode;
@@ -36,12 +37,24 @@ namespace YC.Presentation
             var eventDeckService = new EventDeckService(eventDeckSeed);
             var localPlayerId = ResolveLocalPlayerId(launchContext);
 
-            var state = GameLaunchStateFactory.CreateInitialState(
-                launchMode,
-                localPlayerId,
-                launchContext == null ? null : launchContext.Players,
-                mapQuery.Map.MapId,
-                eventDeckSeed);
+            var players = launchContext == null ? null : launchContext.Players;
+            var state = useRightCardSmokeState
+                ? RightCardSmokeStateFactory.CreateInitialState(
+                    launchMode,
+                    localPlayerId,
+                    players,
+                    mapQuery.Map.MapId,
+                    eventDeckSeed)
+                : GameLaunchStateFactory.CreateInitialState(
+                    launchMode,
+                    localPlayerId,
+                    players,
+                    mapQuery.Map.MapId,
+                    eventDeckSeed);
+            if (useRightCardSmokeState)
+            {
+                localPlayerId = state.CurrentPlayerId;
+            }
 
             eventDeckService.InitializeDecks(
                 state.Decks,
@@ -80,7 +93,8 @@ namespace YC.Presentation
             session.RegisterHandler(new ExploreLocationCommandHandler(explorationService));
             session.RegisterHandler(new BuildFacilityCommandHandler(new BuildFacilityService(), new RoundAdvanceService()));
             session.RegisterHandler(new DeclareCityStyleCommandHandler(new DeclareCityStyleService()));
-            session.RegisterHandler(new CollectResourceCommandHandler(new ResourceCollectionService(mapQuery)));
+            var resourceCollectionService = new ResourceCollectionService(mapQuery);
+            session.RegisterHandler(new CollectResourceCommandHandler(resourceCollectionService));
 
             return new Result
             {
@@ -88,6 +102,7 @@ namespace YC.Presentation
                 MapQuery = mapQuery,
                 InfluenceService = influenceService,
                 ExplorationService = explorationService,
+                ResourceCollectionService = resourceCollectionService,
                 EventDeckService = eventDeckService,
                 LocalPlayerId = localPlayerId
             };
