@@ -115,7 +115,7 @@ namespace YC.Infrastructure.Multiplayer
             if (isConnectionActive == null) return true;
             for (var i = 0; i < room.Seats.Count; i++)
             {
-                var connectionId = checked((int)room.Seats[i].NetworkClientId);
+                var connectionId = (int)room.Seats[i].NetworkClientId;
                 if (isConnectionActive(connectionId)) continue;
                 reason = "存在正在断开或已经失效的 Mirror 连接。";
                 return false;
@@ -196,6 +196,11 @@ namespace YC.Infrastructure.Multiplayer
                 if (!connectionIds.Add(seat.NetworkClientId))
                 {
                     reason = "检测到重复的 Mirror 连接映射。";
+                    return false;
+                }
+                if (seat.NetworkClientId > int.MaxValue)
+                {
+                    reason = "检测到无效的 Mirror 连接编号。";
                     return false;
                 }
             }

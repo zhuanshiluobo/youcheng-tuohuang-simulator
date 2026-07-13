@@ -193,9 +193,11 @@ namespace YC.Infrastructure.Multiplayer
             return GetCurrentRoom();
         }
 
-        public void StartGame()
+        public void StartGame() => TryStartGame(out _);
+
+        public bool TryStartGame(out string error)
         {
-            string error = null;
+            error = null;
             RoomState roomToStart = null;
             long generation = 0;
             lock (syncRoot)
@@ -222,11 +224,12 @@ namespace YC.Infrastructure.Multiplayer
             if (error != null)
             {
                 RaiseError(error);
-                throw new InvalidOperationException(error);
+                return false;
             }
 
             Broadcast("START|" + SerializeRoom(roomToStart));
             if (IsCurrentGeneration(generation)) RaiseGameStarted();
+            return true;
         }
 
         public void Shutdown()
@@ -893,7 +896,7 @@ namespace YC.Infrastructure.Multiplayer
                     }
 
                     var legacyReady = seatParts[3] == "1";
-                    var lobbyMemberPresent = seatParts.Length >= 9 ? legacyReady : legacyReady;
+                    var lobbyMemberPresent = legacyReady;
                     var transportConnected = seatParts.Length >= 9 && seatParts[4] == "1";
                     var identityVerified = seatParts.Length >= 9 && seatParts[5] == "1";
                     var networkClientId = seatParts.Length >= 9 ? ParseUlong(seatParts[6], 0UL) : 0UL;

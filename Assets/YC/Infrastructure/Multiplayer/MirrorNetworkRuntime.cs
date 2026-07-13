@@ -32,6 +32,8 @@ namespace YC.Infrastructure.Multiplayer
         private readonly HashSet<int> publishedServerConnections = new HashSet<int>();
         private readonly HashSet<int> disconnectingServerConnections = new HashSet<int>();
         private bool mirrorCallbacksSubscribed;
+        private bool localClientConnectedPublished;
+        private bool localClientDisconnectedPublished;
         private int localClientPlayerId = -1;
 
         public event Action ClientDisconnected;
@@ -109,6 +111,7 @@ namespace YC.Infrastructure.Multiplayer
             if (!SteamBootstrap.IsInitialized) throw new InvalidOperationException("Steam 尚未初始化。");
             if (!NetworkServer.active && !NetworkClient.active)
             {
+                PrepareForNetworkStart();
                 Manager.StartHost();
                 SubscribeMirrorCallbacks();
                 PublishExistingConnections();
@@ -120,6 +123,7 @@ namespace YC.Infrastructure.Multiplayer
             if (!IsLocalTestMode) throw new InvalidOperationException("当前未启用 Mirror 本地测试模式。");
             if (!NetworkServer.active && !NetworkClient.active)
             {
+                PrepareForNetworkStart();
                 Manager.StartHost();
                 SubscribeMirrorCallbacks();
                 NetworkServer.RegisterHandler<WaitingRoomLocalIdentityMessage>(OnWaitingRoomLocalIdentity, false);
@@ -135,6 +139,7 @@ namespace YC.Infrastructure.Multiplayer
             Manager.networkAddress = hostSteamId.ToString();
             if (!NetworkClient.active && !NetworkServer.active)
             {
+                PrepareForNetworkStart();
                 Manager.StartClient();
                 SubscribeMirrorCallbacks();
                 PublishCurrentClientState();
@@ -148,6 +153,7 @@ namespace YC.Infrastructure.Multiplayer
             Manager.networkAddress = host.Trim();
             if (!NetworkClient.active && !NetworkServer.active)
             {
+                PrepareForNetworkStart();
                 Manager.StartClient();
                 SubscribeMirrorCallbacks();
                 PublishCurrentClientState();
@@ -183,6 +189,8 @@ namespace YC.Infrastructure.Multiplayer
             else if (NetworkServer.active) Manager.StopServer();
             publishedServerConnections.Clear();
             disconnectingServerConnections.Clear();
+            localClientConnectedPublished = false;
+            localClientDisconnectedPublished = false;
             localClientPlayerId = -1;
             lock (disconnectQueueLock) pendingServerDisconnects.Clear();
         }
@@ -239,14 +247,29 @@ namespace YC.Infrastructure.Multiplayer
 
         private void OnLocalNetworkConnected()
         {
+            if (localClientConnectedPublished) return;
+            localClientConnectedPublished = true;
+            localClientDisconnectedPublished = false;
             LocalClientConnected?.Invoke();
             SendWaitingRoomLocalIdentity();
         }
 
         private void OnLocalNetworkDisconnected()
         {
+            if (localClientDisconnectedPublished) return;
+            localClientDisconnectedPublished = true;
+            localClientConnectedPublished = false;
             LocalClientDisconnected?.Invoke();
             ClientDisconnected?.Invoke();
+        }
+
+        private void PrepareForNetworkStart()
+        {
+            publishedServerConnections.Clear();
+            disconnectingServerConnections.Clear();
+            localClientConnectedPublished = false;
+            localClientDisconnectedPublished = false;
+            lock (disconnectQueueLock) pendingServerDisconnects.Clear();
         }
 
         private void OnWaitingRoomLocalIdentity(

@@ -65,6 +65,9 @@ namespace YC.Infrastructure.Multiplayer
             {
                 roomService.JoinRoom(roomId, playerName);
                 SubscribeToRuntime(MirrorNetworkRuntime.Ensure());
+                var joinedRoom = roomService.GetCurrentRoom();
+                if (joinedRoom != null && joinedRoom.LocalPlayerId > 0)
+                    subscribedRuntime.SetLocalClientPlayerId(joinedRoom.LocalPlayerId);
                 subscribedRuntime.StartLocalClient(LocalMirrorTestMode.GetMirrorHost(roomId));
                 return pendingJoin.Task;
             }
@@ -78,8 +81,9 @@ namespace YC.Infrastructure.Multiplayer
         public Task StartGameAsync()
         {
             ThrowIfDisposed();
-            roomService.StartGame();
-            return Task.CompletedTask;
+            return roomService.TryStartGame(out var reason)
+                ? Task.CompletedTask
+                : Task.FromException(new InvalidOperationException(reason));
         }
 
         public void InviteFriends() => ErrorOccurred?.Invoke("本地测试模式不使用 Steam 好友邀请，请复制并发送本地房间号。");
