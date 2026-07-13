@@ -219,6 +219,14 @@ namespace YC.Tests.EditMode
             var serviceSource = File.ReadAllText(servicePath);
             StringAssert.Contains("if (pendingCreate == null)", serviceSource);
             StringAssert.Contains("if (pendingCreate == null && pendingJoin == null)", serviceSource);
+            var createdCallback = ExtractMethod(serviceSource, "private void OnLobbyCreated", "private void OnLobbyEntered");
+            var enteredCallback = ExtractMethod(serviceSource, "private void OnLobbyEntered", "private void OnLobbyJoinRequested");
+            Assert.That(
+                createdCallback.IndexOf("pendingCreate == null", System.StringComparison.Ordinal),
+                Is.LessThan(createdCallback.IndexOf("StartHost", System.StringComparison.Ordinal)));
+            Assert.That(
+                enteredCallback.IndexOf("pendingCreate == null && pendingJoin == null", System.StringComparison.Ordinal),
+                Is.LessThan(enteredCallback.IndexOf("StartClient", System.StringComparison.Ordinal)));
         }
 
         [TestCase("Host")]
@@ -317,6 +325,21 @@ namespace YC.Tests.EditMode
             StringAssert.DoesNotContain("MirrorNetworkRuntime", callback);
             StringAssert.DoesNotContain("OnlineRoomServiceProvider", callback);
             StringAssert.DoesNotContain("GameLaunchContext", callback);
+            StringAssert.DoesNotContain("Debug.LogError", callback);
+            StringAssert.DoesNotContain("Debug.LogException", callback);
+        }
+
+        [Test]
+        public void SteamRoomShutdown_PreservesDeferredInviteUntilServiceDispose()
+        {
+            var source = ReadSource("YC/Infrastructure/Multiplayer/SteamRoomService.cs");
+            var shutdown = ExtractMethod(source, "public void Shutdown()", "public void Dispose()");
+            var dispose = ExtractMethod(source, "public void Dispose()", "private void OnLobbyCreated");
+            var sessionShutdown = ExtractMethod(source, "private void ShutdownNetworkAndLobby", "private void CancelPending");
+
+            StringAssert.DoesNotContain("lobbyJoinRequests.Clear", shutdown);
+            StringAssert.DoesNotContain("lobbyJoinRequests.Clear", sessionShutdown);
+            StringAssert.Contains("lobbyJoinRequests.Clear", dispose);
         }
 
         [Test]
