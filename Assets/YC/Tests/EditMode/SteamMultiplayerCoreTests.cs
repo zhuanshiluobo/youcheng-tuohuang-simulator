@@ -373,10 +373,13 @@ namespace YC.Tests.EditMode
             StringAssert.Contains("TelepathyTransport", runtimeSource);
             StringAssert.Contains("StartLocalHost", runtimeSource);
             StringAssert.Contains("StartLocalClient", runtimeSource);
+            StringAssert.Contains("WaitingRoomLocalIdentityMessage", runtimeSource);
+            StringAssert.Contains("SetLocalClientPlayerId", runtimeSource);
 
             var transportSource = ReadSource("YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs");
-            StringAssert.Contains("LocalPlayerIdentityMessage", transportSource);
-            StringAssert.Contains("LocalMirrorIdentity.ForPlayer", transportSource);
+            StringAssert.Contains("TryGetExpectedIdentity", transportSource);
+            var localRoomSource = ReadSource("YC/Infrastructure/Multiplayer/LocalMirrorRoomService.cs");
+            StringAssert.Contains("LocalMirrorIdentity.ForPlayer", localRoomSource);
         }
 
         [Test]
