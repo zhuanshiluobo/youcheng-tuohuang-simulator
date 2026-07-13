@@ -397,12 +397,14 @@ namespace YC.Tests.EditMode
             StringAssert.Contains("StartLocalHost", runtimeSource);
             StringAssert.Contains("StartLocalClient", runtimeSource);
             StringAssert.Contains("WaitingRoomLocalIdentityMessage", runtimeSource);
-            StringAssert.Contains("SetLocalClientPlayerId", runtimeSource);
+            StringAssert.Contains("SetLocalClientIdentityTicket", runtimeSource);
+            StringAssert.Contains("public string Ticket", runtimeSource);
 
             var transportSource = ReadSource("YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs");
             StringAssert.Contains("TryGetExpectedIdentity", transportSource);
             var localRoomSource = ReadSource("YC/Infrastructure/Multiplayer/LocalMirrorRoomService.cs");
             StringAssert.Contains("LocalMirrorIdentity.ForPlayer", localRoomSource);
+            StringAssert.Contains("TryResolveIdentityTicket", localRoomSource);
         }
 
         [Test]

@@ -124,6 +124,36 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void LocalMirrorIdentityTicket_IsHostIssuedAndRevokedWithSignalingConnection()
+        {
+            using (var service = CreateHost(3))
+            {
+                var first = new NetworkRoomService.ClientConnection(
+                    new StringReader(string.Empty),
+                    new RecordingWriter());
+                Assert.AreEqual(2, service.AssignSeat("Client 2", first));
+                var firstTicket = first.IdentityTicket;
+
+                Assert.IsNotEmpty(firstTicket);
+                Assert.IsTrue(service.TryResolveIdentityTicket(firstTicket, out var playerId));
+                Assert.AreEqual(2, playerId);
+                Assert.IsFalse(service.TryResolveIdentityTicket("2", out _));
+                Assert.IsFalse(service.TryResolveIdentityTicket(System.Guid.NewGuid().ToString("N"), out _));
+
+                service.RemoveClientConnection(first);
+                Assert.IsFalse(service.TryResolveIdentityTicket(firstTicket, out _));
+
+                var reconnected = new NetworkRoomService.ClientConnection(
+                    new StringReader(string.Empty),
+                    new RecordingWriter());
+                Assert.AreEqual(2, service.AssignSeat("Client 2 Reconnected", reconnected));
+                Assert.AreNotEqual(firstTicket, reconnected.IdentityTicket);
+                Assert.IsTrue(service.TryResolveIdentityTicket(reconnected.IdentityTicket, out playerId));
+                Assert.AreEqual(2, playerId);
+            }
+        }
+
+        [Test]
         public void Shutdown_ClosesConnectionsWithoutDisconnectEventsOrThreads()
         {
             var service = CreateHost(4);

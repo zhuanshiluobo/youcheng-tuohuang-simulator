@@ -57,7 +57,7 @@
 ### 3.3 模拟身份握手
 
 - `LocalMirrorIdentity` 为 Player 1-4 生成稳定且互不重复的开发身份。
-- Client 进入对局后发送 `LocalPlayerIdentityMessage`；Host 根据本地房间分配的 PlayerId 绑定模拟身份和 connectionId。
+- 当时 Client 进入对局后发送 `LocalPlayerIdentityMessage` 并上报 PlayerId；该设计已被 2026-07-13 的 Host 信令凭据握手取代，当前实现不再信任 Client 自报 PlayerId。
 - 身份未绑定前 Host 不接受命令；身份消息和初始状态请求按秒重试，处理场景加载先后顺序差异。
 - 完成身份绑定后，本地路径与 Steam 路径共用同一个 `MirrorCommandTransport`、权威命令、快照和重同步实现。
 

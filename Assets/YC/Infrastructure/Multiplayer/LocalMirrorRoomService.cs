@@ -42,7 +42,6 @@ namespace YC.Infrastructure.Multiplayer
             var room = roomService.CreateRoom(hostPlayerName, playerCount);
             SynchronizeAuthorityRoster(room);
             SubscribeToRuntime(MirrorNetworkRuntime.Ensure());
-            subscribedRuntime.SetLocalClientPlayerId(1);
             subscribedRuntime.StartLocalHost();
             return Task.FromResult(GetCurrentRoom());
         }
@@ -67,7 +66,7 @@ namespace YC.Infrastructure.Multiplayer
                 SubscribeToRuntime(MirrorNetworkRuntime.Ensure());
                 var joinedRoom = roomService.GetCurrentRoom();
                 if (joinedRoom != null && joinedRoom.LocalPlayerId > 0)
-                    subscribedRuntime.SetLocalClientPlayerId(joinedRoom.LocalPlayerId);
+                    subscribedRuntime.SetLocalClientIdentityTicket(roomService.LocalIdentityTicket);
                 subscribedRuntime.StartLocalClient(LocalMirrorTestMode.GetMirrorHost(roomId));
                 return pendingJoin.Task;
             }
@@ -128,7 +127,8 @@ namespace YC.Infrastructure.Multiplayer
         {
             if (!acceptNetworkEvents || room == null) return;
             if (isHost) SynchronizeAuthorityRoster(room);
-            else if (room.LocalPlayerId > 0) subscribedRuntime?.SetLocalClientPlayerId(room.LocalPlayerId);
+            else if (room.LocalPlayerId > 0)
+                subscribedRuntime?.SetLocalClientIdentityTicket(roomService.LocalIdentityTicket);
             RoomUpdated?.Invoke(room);
         }
         private void OnGameStarted(RoomState room) => GameStarted?.Invoke(room);
@@ -143,7 +143,7 @@ namespace YC.Infrastructure.Multiplayer
             if (runtime == null) return;
             runtime.ServerClientConnected += OnServerClientConnected;
             runtime.ServerClientDisconnected += OnServerClientDisconnected;
-            runtime.ServerLocalIdentityClaimed += OnServerLocalIdentityClaimed;
+            runtime.ServerLocalIdentityPresented += OnServerLocalIdentityPresented;
             runtime.LocalClientDisconnected += OnLocalClientDisconnected;
         }
 
@@ -151,7 +151,7 @@ namespace YC.Infrastructure.Multiplayer
         {
             runtime.ServerClientConnected -= OnServerClientConnected;
             runtime.ServerClientDisconnected -= OnServerClientDisconnected;
-            runtime.ServerLocalIdentityClaimed -= OnServerLocalIdentityClaimed;
+            runtime.ServerLocalIdentityPresented -= OnServerLocalIdentityPresented;
             runtime.LocalClientDisconnected -= OnLocalClientDisconnected;
         }
 
@@ -190,9 +190,10 @@ namespace YC.Infrastructure.Multiplayer
             roomService.SetTransportReadiness(playerId, true, true, (ulong)connection.ConnectionId);
         }
 
-        private void OnServerLocalIdentityClaimed(int connectionId, int claimedPlayerId)
+        private void OnServerLocalIdentityPresented(int connectionId, string ticket)
         {
-            if (!acceptNetworkEvents || !isHost || claimedPlayerId < 1 || claimedPlayerId > 4)
+            if (!acceptNetworkEvents || !isHost ||
+                !roomService.TryResolveIdentityTicket(ticket, out var claimedPlayerId))
             {
                 RejectServerConnection(connectionId);
                 return;

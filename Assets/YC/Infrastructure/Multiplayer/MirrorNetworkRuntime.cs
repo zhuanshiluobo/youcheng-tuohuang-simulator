@@ -22,26 +22,28 @@ namespace YC.Infrastructure.Multiplayer
 
     public struct WaitingRoomLocalIdentityMessage : NetworkMessage
     {
-        public int PlayerId;
+        public string Ticket;
     }
 
     public sealed class MirrorNetworkRuntime : MonoBehaviour
     {
         private readonly object disconnectQueueLock = new object();
+        private readonly object localIdentityLock = new object();
         private readonly Queue<int> pendingServerDisconnects = new Queue<int>();
         private readonly HashSet<int> publishedServerConnections = new HashSet<int>();
         private readonly HashSet<int> disconnectingServerConnections = new HashSet<int>();
         private bool mirrorCallbacksSubscribed;
         private bool localClientConnectedPublished;
         private bool localClientDisconnectedPublished;
-        private int localClientPlayerId = -1;
+        private string localClientIdentityTicket = string.Empty;
+        private bool localIdentitySendPending;
 
         public event Action ClientDisconnected;
         public event Action<MirrorServerConnectionInfo> ServerClientConnected;
         public event Action<int> ServerClientDisconnected;
         public event Action LocalClientConnected;
         public event Action LocalClientDisconnected;
-        public event Action<int, int> ServerLocalIdentityClaimed;
+        public event Action<int, string> ServerLocalIdentityPresented;
         public static MirrorNetworkRuntime Instance { get; private set; }
         public NetworkManager Manager { get; private set; }
         public FizzySteamworks Transport { get; private set; }
@@ -103,6 +105,7 @@ namespace YC.Infrastructure.Multiplayer
                 }
                 DisconnectServerClientNow(connectionId);
             }
+            SendWaitingRoomLocalIdentity();
         }
 
         public void StartHost()
@@ -160,10 +163,13 @@ namespace YC.Infrastructure.Multiplayer
             }
         }
 
-        public void SetLocalClientPlayerId(int playerId)
+        public void SetLocalClientIdentityTicket(string ticket)
         {
-            localClientPlayerId = playerId;
-            SendWaitingRoomLocalIdentity();
+            lock (localIdentityLock)
+            {
+                localClientIdentityTicket = ticket ?? string.Empty;
+                localIdentitySendPending = !string.IsNullOrEmpty(localClientIdentityTicket);
+            }
         }
 
         public void RequestServerDisconnect(int connectionId)
@@ -191,7 +197,11 @@ namespace YC.Infrastructure.Multiplayer
             disconnectingServerConnections.Clear();
             localClientConnectedPublished = false;
             localClientDisconnectedPublished = false;
-            localClientPlayerId = -1;
+            lock (localIdentityLock)
+            {
+                localClientIdentityTicket = string.Empty;
+                localIdentitySendPending = false;
+            }
             lock (disconnectQueueLock) pendingServerDisconnects.Clear();
         }
 
@@ -251,6 +261,8 @@ namespace YC.Infrastructure.Multiplayer
             localClientConnectedPublished = true;
             localClientDisconnectedPublished = false;
             LocalClientConnected?.Invoke();
+            lock (localIdentityLock)
+                localIdentitySendPending = !string.IsNullOrEmpty(localClientIdentityTicket);
             SendWaitingRoomLocalIdentity();
         }
 
@@ -277,13 +289,20 @@ namespace YC.Infrastructure.Multiplayer
             WaitingRoomLocalIdentityMessage message)
         {
             if (!IsLocalTestMode || connection == null) return;
-            ServerLocalIdentityClaimed?.Invoke(connection.connectionId, message.PlayerId);
+            ServerLocalIdentityPresented?.Invoke(connection.connectionId, message.Ticket);
         }
 
         private void SendWaitingRoomLocalIdentity()
         {
-            if (!IsLocalTestMode || !NetworkClient.isConnected || localClientPlayerId < 1) return;
-            NetworkClient.Send(new WaitingRoomLocalIdentityMessage { PlayerId = localClientPlayerId });
+            if (!IsLocalTestMode || !NetworkClient.isConnected) return;
+            string ticket;
+            lock (localIdentityLock)
+            {
+                if (!localIdentitySendPending || string.IsNullOrEmpty(localClientIdentityTicket)) return;
+                ticket = localClientIdentityTicket;
+                localIdentitySendPending = false;
+            }
+            NetworkClient.Send(new WaitingRoomLocalIdentityMessage { Ticket = ticket });
         }
 
         private void DisconnectServerClientNow(int connectionId)

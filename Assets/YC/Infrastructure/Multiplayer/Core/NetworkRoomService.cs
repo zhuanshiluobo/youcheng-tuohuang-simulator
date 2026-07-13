@@ -26,6 +26,8 @@ namespace YC.Infrastructure.Multiplayer
         private readonly object syncRoot = new object();
         private readonly List<ClientConnection> hostClients = new List<ClientConnection>();
         private readonly Dictionary<int, ClientConnection> seatOwners = new Dictionary<int, ClientConnection>();
+        private readonly Dictionary<string, int> playerByIdentityTicket =
+            new Dictionary<string, int>(StringComparer.Ordinal);
         private readonly List<Thread> hostClientThreads = new List<Thread>();
         private readonly bool enableNetworking;
 
@@ -39,6 +41,7 @@ namespace YC.Infrastructure.Multiplayer
         private volatile bool suppressDisconnectNotice;
         private long roomGeneration;
         private RoomState currentRoom;
+        private string localIdentityTicket = string.Empty;
 
         public event Action<RoomState> RoomUpdated;
         public event Action<RoomState> GameStarted;
@@ -81,6 +84,14 @@ namespace YC.Infrastructure.Multiplayer
 
                     return false;
                 }
+            }
+        }
+
+        public string LocalIdentityTicket
+        {
+            get
+            {
+                lock (syncRoot) return localIdentityTicket;
             }
         }
 
@@ -191,6 +202,21 @@ namespace YC.Infrastructure.Multiplayer
 
             if (generation != 0) PublishRoomUpdate(generation);
             return GetCurrentRoom();
+        }
+
+        public bool TryResolveIdentityTicket(string ticket, out int playerId)
+        {
+            lock (syncRoot)
+            {
+                playerId = -1;
+                if (!isHost || suppressDisconnectNotice || string.IsNullOrEmpty(ticket) ||
+                    !playerByIdentityTicket.TryGetValue(ticket, out var resolvedPlayerId) ||
+                    !seatOwners.TryGetValue(resolvedPlayerId, out var owner) || owner.IsDisposed ||
+                    !string.Equals(owner.IdentityTicket, ticket, StringComparison.Ordinal))
+                    return false;
+                playerId = resolvedPlayerId;
+                return true;
+            }
         }
 
         public void StartGame() => TryStartGame(out _);
@@ -307,8 +333,10 @@ namespace YC.Infrastructure.Multiplayer
             {
                 hostClients.Clear();
                 seatOwners.Clear();
+                playerByIdentityTicket.Clear();
                 hostClientThreads.RemoveAll(thread => !thread.IsAlive);
                 currentRoom = null;
+                localIdentityTicket = string.Empty;
                 isHost = false;
             }
         }
@@ -403,7 +431,7 @@ namespace YC.Infrastructure.Multiplayer
                     return;
                 }
 
-                connection.WriteLine("WELCOME|" + assignedPlayerId);
+                connection.WriteLine("WELCOME|" + assignedPlayerId + "|" + connection.IdentityTicket);
                 connection.WriteLine("ROOM|" + SerializeRoom(GetCurrentRoom()));
                 Broadcast("ROOM|" + SerializeRoom(GetCurrentRoom()));
                 if (IsSeatOwner(connection)) RaiseRoomUpdated();
@@ -441,6 +469,8 @@ namespace YC.Infrastructure.Multiplayer
                     ReferenceEquals(owner, connection))
                 {
                     seatOwners.Remove(connection.PlayerId);
+                    if (!string.IsNullOrEmpty(connection.IdentityTicket))
+                        playerByIdentityTicket.Remove(connection.IdentityTicket);
                     if (currentRoom != null && !currentRoom.HasStarted)
                     {
                         for (var i = 0; i < currentRoom.Seats.Count; i++)
@@ -505,7 +535,9 @@ namespace YC.Infrastructure.Multiplayer
                     seat.GameStateSynchronized = false;
                     seat.IsReady = false;
                     connection.PlayerId = seat.PlayerId;
+                    connection.IdentityTicket = Guid.NewGuid().ToString("N");
                     seatOwners[seat.PlayerId] = connection;
+                    playerByIdentityTicket[connection.IdentityTicket] = seat.PlayerId;
                     return seat.PlayerId;
                 }
             }
@@ -559,14 +591,16 @@ namespace YC.Infrastructure.Multiplayer
         {
             if (line.StartsWith("WELCOME|", StringComparison.Ordinal))
             {
-                int playerId;
-                if (int.TryParse(line.Substring("WELCOME|".Length), out playerId))
+                var welcomeParts = line.Substring("WELCOME|".Length).Split('|');
+                if (welcomeParts.Length == 2 && int.TryParse(welcomeParts[0], out var playerId) &&
+                    !string.IsNullOrEmpty(welcomeParts[1]))
                 {
                     lock (syncRoot)
                     {
                         if (currentRoom != null)
                         {
                             currentRoom.LocalPlayerId = playerId;
+                            localIdentityTicket = welcomeParts[1];
                         }
                     }
                 }
@@ -960,6 +994,7 @@ namespace YC.Infrastructure.Multiplayer
             private int disposeState;
 
             internal int PlayerId = -1;
+            internal string IdentityTicket = string.Empty;
             internal Thread ReadThread;
             internal bool IsDisposed => Volatile.Read(ref disposeState) != 0;
 
