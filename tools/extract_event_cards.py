@@ -43,8 +43,14 @@ CARDS = [
 
 
 TERM_GLOSSARY = {
+    "分数（VP）": "六边形 VP 图标表示对应数量的分数；牌面文字会明确说明是获得或失去分数，游戏结束时按分数结算胜负。",
     "企业升级": "选择一家本局参与的合作企业，将自己在该企业板上的影响力标记提升 1 级。抵达普通奖励格时立即结算；抵达企业特效格时只解锁该特效，不立即发动。",
     "企业特效": "从自己已解锁的企业特效中选择一项发动。企业特效的发动独立于企业升级，不能选择尚未解锁的特效。",
+}
+
+
+CARD_NOTES = {
+    "采集平台残骸（企业选项版）": "首项效果为失去 1 分数（VP），随后选择 1 家企业并按牌面图标执行企业升级与企业特效；不包含失去企业等级的效果。",
 }
 
 
@@ -78,6 +84,7 @@ def main() -> None:
                     "image": str(output_path.relative_to(ROOT)).replace("\\", "/"),
                     "eventCardDatabaseId": database_id,
                     "recordedInEventCardDatabase": database_id is not None,
+                    "note": CARD_NOTES.get(name),
                 }
             )
     finally:
@@ -105,7 +112,10 @@ def main() -> None:
 
     lines = ["# 事件牌拆分清单", "", f"- 已拆分：{len(entries)} 张有效牌面。", "- 未导出：黄色 r06c01 占位符。", "", "## 未录入 EventCardDatabase", ""]
     for entry in manifest["unrecordedCards"]:
-        lines.append(f"- {entry['name']}（{entry['sourceImage']} r{entry['row']:02d}c{entry['column']:02d}）")
+        line = f"- {entry['name']}（{entry['sourceImage']} r{entry['row']:02d}c{entry['column']:02d}）"
+        if entry["note"]:
+            line += f"：{entry['note']}"
+        lines.append(line)
     lines.extend(["", "## 词语解释", ""])
     for term, explanation in TERM_GLOSSARY.items():
         lines.append(f"- **{term}**：{explanation}")

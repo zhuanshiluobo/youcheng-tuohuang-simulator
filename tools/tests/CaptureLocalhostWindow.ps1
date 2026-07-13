@@ -56,8 +56,15 @@ public static class CaptureLocalhostWindowNative
 
     [DllImport("user32.dll")]
     public static extern bool PrintWindow(IntPtr hwnd, IntPtr hdcBlt, uint nFlags);
+
+    [DllImport("user32.dll")]
+    public static extern bool SetProcessDpiAwarenessContext(IntPtr dpiContext);
 }
 '@
+
+# Per-monitor-v2 DPI awareness keeps window rectangles and PrintWindow bitmaps in
+# the same physical-pixel coordinate space on displays using 125%/150% scaling.
+[CaptureLocalhostWindowNative]::SetProcessDpiAwarenessContext([IntPtr](-4)) | Out-Null
 
 function Find-WindowForProcess {
     param([int]$TargetProcessId)

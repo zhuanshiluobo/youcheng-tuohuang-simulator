@@ -3,7 +3,7 @@ param(
     [string]$ProjectPath = "",
     [string]$ExePath = "",
     [string]$OutputPath = "",
-    [ValidateSet("Build", "Declare", "None")]
+    [ValidateSet("Build", "BuildFocus", "BuildSummary", "BuildResult", "Declare", "None")]
     [string]$Dialog = "Build",
     [int]$Width = 1200,
     [int]$Height = 675,
@@ -64,6 +64,9 @@ if (-not (Test-Path -LiteralPath $resolvedExe -PathType Leaf)) {
 }
 
 $smokeDialogArg = switch ($Dialog) {
+    "BuildFocus" { "--yc-dev-right-card-smoke-build-focus" }
+    "BuildSummary" { "--yc-dev-right-card-smoke-build-summary" }
+    "BuildResult" { "--yc-dev-right-card-smoke-build-result" }
     "Declare" { "--yc-dev-right-card-smoke-declare" }
     "None" { "--yc-dev-right-card-smoke-no-dialog" }
     default { "--yc-dev-right-card-smoke-build" }
