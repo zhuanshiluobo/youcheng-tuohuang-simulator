@@ -385,7 +385,7 @@ namespace YC.Infrastructure.Multiplayer
             }
         }
 
-        private void HostClientLoop(ClientConnection connection)
+        internal void HostClientLoop(ClientConnection connection)
         {
             try
             {

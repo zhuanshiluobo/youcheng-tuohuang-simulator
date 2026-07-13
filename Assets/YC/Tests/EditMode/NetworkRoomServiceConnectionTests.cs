@@ -17,11 +17,16 @@ namespace YC.Tests.EditMode
         {
             using (var service = CreateHost(3))
             {
-                var connection = AddClient(service, "Client 2");
+                var reader = new ControlledDisconnectReader("JOIN|Client 2");
+                var connection = new NetworkRoomService.ClientConnection(reader, new RecordingWriter());
+                var clientLoop = Task.Run(() => service.HostClientLoop(connection));
+                Assert.IsTrue(reader.WaitingForDisconnect.Wait(2000), "客户端读取循环没有进入等待断线状态。");
+                service.SetTransportReadiness(connection.PlayerId, true, true, (ulong)connection.PlayerId);
                 var updateCount = 0;
                 service.RoomUpdated += _ => updateCount++;
 
-                service.RemoveClientConnection(connection);
+                reader.AllowDisconnect.Set();
+                Assert.IsTrue(clientLoop.Wait(3000), "客户端读取循环未在断线后退出。");
                 service.RemoveClientConnection(connection);
 
                 Assert.AreEqual(0, service.HostClientCount);
@@ -48,8 +53,12 @@ namespace YC.Tests.EditMode
         {
             using (var service = CreateHost(3))
             {
+                var reader = new ControlledDisconnectReader("JOIN|Client 2");
                 var writer = new BlockingThrowWriter(new IOException("simulated concurrent failure"));
-                var connection = AddClient(service, "Client 2", writer);
+                var connection = new NetworkRoomService.ClientConnection(reader, writer);
+                var clientLoop = Task.Run(() => service.HostClientLoop(connection));
+                Assert.IsTrue(reader.WaitingForDisconnect.Wait(2000), "客户端读取循环没有进入等待断线状态。");
+                service.SetTransportReadiness(connection.PlayerId, true, true, (ulong)connection.PlayerId);
                 var otherConnection = AddClient(service, "Client 3");
                 var updateCount = 0;
                 service.RoomUpdated += room =>
@@ -61,10 +70,10 @@ namespace YC.Tests.EditMode
                 writer.BlockWrites = true;
                 var broadcastTask = Task.Run(() => service.Broadcast("ROOM|stale"));
                 Assert.IsTrue(writer.WriteEntered.Wait(2000), "广播没有进入模拟写入点。");
-                var readLoopCleanupTask = Task.Run(() => service.RemoveClientConnection(connection));
+                reader.AllowDisconnect.Set();
                 writer.AllowFailure.Set();
 
-                Assert.IsTrue(Task.WaitAll(new[] { broadcastTask, readLoopCleanupTask }, 3000), "并发清理未在超时内结束。");
+                Assert.IsTrue(Task.WaitAll(new[] { broadcastTask, clientLoop }, 3000), "并发清理未在超时内结束。");
                 Assert.AreEqual(1, service.HostClientCount);
                 AssertSeat(service, 2, "Player 2", false);
                 AssertSeat(service, 3, "Client 3", true);
@@ -268,6 +277,30 @@ namespace YC.Tests.EditMode
                 WriteEntered.Set();
                 if (!AllowFailure.Wait(2000)) throw new TimeoutException("测试未释放模拟写入。");
                 throw exception;
+            }
+        }
+
+        private sealed class ControlledDisconnectReader : TextReader
+        {
+            private readonly string joinMessage;
+            private int readCount;
+            public readonly ManualResetEventSlim WaitingForDisconnect = new ManualResetEventSlim(false);
+            public readonly ManualResetEventSlim AllowDisconnect = new ManualResetEventSlim(false);
+
+            public ControlledDisconnectReader(string joinMessage) => this.joinMessage = joinMessage;
+
+            public override string ReadLine()
+            {
+                if (Interlocked.Increment(ref readCount) == 1) return joinMessage;
+                WaitingForDisconnect.Set();
+                if (!AllowDisconnect.Wait(3000)) throw new TimeoutException("测试未释放模拟断线。");
+                return null;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                AllowDisconnect.Set();
+                base.Dispose(disposing);
             }
         }
     }
