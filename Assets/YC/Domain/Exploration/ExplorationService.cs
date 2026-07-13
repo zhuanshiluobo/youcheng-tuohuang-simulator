@@ -52,7 +52,8 @@ namespace YC.Domain.Exploration
             string influenceSlotId,
             IDictionary<string, int> paymentRecipientsByRouteId,
             IReadOnlyList<string> eventInfluenceSlotIds = null,
-            bool validateEventOption = true)
+            bool validateEventOption = true,
+            bool allowFacilityEntry = false)
         {
             if (state == null)
             {
@@ -76,12 +77,12 @@ namespace YC.Domain.Exploration
                 return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "当前不是该玩家的行动回合。");
             }
 
-            if (state.HasPendingChoice())
+            if (state.HasPendingChoice() && !allowFacilityEntry)
             {
                 return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择项再探索。");
             }
 
-            if (player.ActedMainActionThisTurn)
+            if (player.ActedMainActionThisTurn && !allowFacilityEntry)
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该玩家本行动轮已执行过主要行动。");
             }
@@ -242,7 +243,8 @@ namespace YC.Domain.Exploration
             MapPath path,
             string influenceSlotId,
             IDictionary<string, int> paymentRecipientsByRouteId,
-            string sourceCommandId = null)
+            string sourceCommandId = null,
+            bool allowFacilityEntry = false)
         {
             var validation = CanExplore(
                 state,
@@ -253,11 +255,21 @@ namespace YC.Domain.Exploration
                 influenceSlotId,
                 paymentRecipientsByRouteId,
                 null,
-                false);
+                false,
+                allowFacilityEntry);
             if (!validation.IsValid)
             {
                 return ExplorationResult.Failure(validation);
             }
+            var arguments = BuildCardFlowArguments(path, influenceSlotId, paymentRecipientsByRouteId, null);
+            if (allowFacilityEntry)
+            {
+                CardFlowArgumentUtility.SetValue(
+                    arguments,
+                    ExploreEventCardScenario.AllowFacilityEntryArgument,
+                    bool.TrueString);
+            }
+
             var flowResult = cardFlowService.StartPendingChoice(
                 state,
                 new CardFlowStartRequest
@@ -265,7 +277,7 @@ namespace YC.Domain.Exploration
                     PlayerId = playerId,
                     TargetId = targetLocationId,
                     SourceCommandId = sourceCommandId,
-                    Arguments = BuildCardFlowArguments(path, influenceSlotId, paymentRecipientsByRouteId, null)
+                    Arguments = arguments
                 },
                 new ExploreEventCardScenario(this));
             if (!flowResult.Succeeded)

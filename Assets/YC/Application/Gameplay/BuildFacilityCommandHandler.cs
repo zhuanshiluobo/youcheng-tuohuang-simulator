@@ -43,10 +43,17 @@ namespace YC.Application.Gameplay
 
             var facilityId = GetFacilityId(command);
             int cityBoardSlotIndex;
-            var slotValidation = ResolveCityBoardSlotIndex(state, command, out cityBoardSlotIndex);
+            var slotValidation = ResolveCityBoardSlotIndex(command, out cityBoardSlotIndex);
             if (!slotValidation.IsValid)
             {
                 return CommandResult.Invalid(slotValidation);
+            }
+
+            string paymentMode;
+            var paymentModeValidation = ResolvePaymentMode(command, out paymentMode);
+            if (!paymentModeValidation.IsValid)
+            {
+                return CommandResult.Invalid(paymentModeValidation);
             }
 
             var result = buildFacilityService.Build(
@@ -54,7 +61,7 @@ namespace YC.Application.Gameplay
                 command.PlayerId,
                 facilityId,
                 cityBoardSlotIndex,
-                GetParameter(command, PaymentModeParameter));
+                paymentMode);
             if (!result.Succeeded)
             {
                 return CommandResult.Invalid(result.Validation);
@@ -97,24 +104,32 @@ namespace YC.Application.Gameplay
             }, message);
         }
 
-        private static ValidationResult ResolveCityBoardSlotIndex(
-            GameState state,
-            GameCommand command,
-            out int cityBoardSlotIndex)
+        private static ValidationResult ResolveCityBoardSlotIndex(GameCommand command, out int cityBoardSlotIndex)
         {
             cityBoardSlotIndex = -1;
             var encoded = GetParameter(command, CityBoardSlotIndexParameter);
             if (string.IsNullOrEmpty(encoded))
             {
-                cityBoardSlotIndex = BuildFacilityService.FindFirstEmptyCityBoardSlot(state, command.PlayerId);
-                return cityBoardSlotIndex >= 0
-                    ? ValidationResult.Success
-                    : ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板没有空槽位。");
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "正式建设命令必须指定城市面板槽位。");
             }
 
             if (!int.TryParse(encoded, out cityBoardSlotIndex))
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "城市面板槽位必须是数字。");
+            }
+
+            return ValidationResult.Success;
+        }
+
+        private static ValidationResult ResolvePaymentMode(GameCommand command, out string paymentMode)
+        {
+            paymentMode = GetParameter(command, PaymentModeParameter).Trim().ToLowerInvariant();
+            if (paymentMode != BuildFacilityService.PaymentModeResources &&
+                paymentMode != BuildFacilityService.PaymentModeGold)
+            {
+                return ValidationResult.Failure(
+                    CommandErrorCode.InvalidTarget,
+                    "正式建设命令必须指定资源或金券支付方式。");
             }
 
             return ValidationResult.Success;

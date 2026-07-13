@@ -18,6 +18,8 @@ namespace YC.Tests.EditMode
             Assert.That(result.FinalState.Players, Has.Count.EqualTo(4));
             Assert.That(result.FinalState.Round, Is.EqualTo(8));
             Assert.That(result.FinalState.Phase, Is.EqualTo(GamePhase.FinalScoring));
+            Assert.That(result.FinalState.PendingChoice, Is.Null, result.Snapshot);
+            Assert.That(result.FinalState.PendingCardSession, Is.Null, result.Snapshot);
             Assert.That(result.FinalState.FinalScoring, Is.Not.Null);
             Assert.That(result.FinalState.FinalScoring.IsResolved, Is.True);
             Assert.That(result.FinalState.FinalScoring.PlayerScores, Has.Count.EqualTo(4));
@@ -87,6 +89,8 @@ namespace YC.Tests.EditMode
             Assert.That(result.FinalState.Logs.Exists(log => log.Message.Contains("moved city")), Is.True, result.Snapshot);
             Assert.That(result.FinalState.Logs.Exists(log => log.Message.Contains("dispatched influence")), Is.True, result.Snapshot);
             Assert.That(result.FinalState.Logs.Exists(log => log.Message.Contains("built")), Is.True, result.Snapshot);
+            Assert.That(result.FinalState.Logs.Exists(
+                log => log.CommandId.StartsWith("autoplay-resolve-facility-")), Is.True, result.Snapshot);
             Assert.That(result.FinalState.Logs.Exists(log => log.Message.Contains("deployed influence")), Is.True, result.Snapshot);
             Assert.That(result.FinalState.Logs.Exists(log => log.Message.Contains("collected resources")), Is.True, result.Snapshot);
             Assert.That(HasAnyCollectedResource(result.FinalState), Is.True, result.Snapshot);

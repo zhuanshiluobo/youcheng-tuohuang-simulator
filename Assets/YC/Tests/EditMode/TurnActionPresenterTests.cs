@@ -1,13 +1,16 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using YC.Application.Gameplay;
 using YC.Domain.Commands;
 using YC.Domain.Events;
 using YC.Domain.Exploration;
+using YC.Domain.Facilities;
 using YC.Domain.Harvest;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Presentation;
 using YC.Presentation.Workflows;
 
 namespace YC.Tests.EditMode
@@ -29,6 +32,21 @@ namespace YC.Tests.EditMode
             Assert.That(after.CanMoveCity, Is.False);
             Assert.That(after.CanBuild, Is.False);
             Assert.That(after.CanEndAction, Is.True);
+        }
+
+        [Test]
+        public void CharacterAction_RequiresCoveredUnusedCard()
+        {
+            var fixture = CreateFixture();
+            var player = fixture.Context.State.FindPlayer(1);
+
+            Assert.That(fixture.Presenter.BuildActionPanelViewModel().CanUseCharacter, Is.False);
+
+            player.CoveredCharacterCardId = "character-red-texas";
+            Assert.That(fixture.Presenter.BuildActionPanelViewModel().CanUseCharacter, Is.True);
+
+            player.UsedCharacterThisRound = true;
+            Assert.That(fixture.Presenter.BuildActionPanelViewModel().CanUseCharacter, Is.False);
         }
 
         [Test]
@@ -105,15 +123,35 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void BuildAndDeclare_CreateCommandsAndKeepNetworkingWaitSemantics()
+        public void Build_DraftsLocallyAndSubmitsOnlyAfterFinalConfirmation()
+        {
+            var fixture = CreateFixture();
+            fixture.Presenter.BeginBuildAction();
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Selecting));
+            Assert.That(fixture.Commands.LastCommand, Is.Null);
+
+            fixture.Presenter.BeginBuildFacilityDrag(FacilityCardDatabase.TradeDistrict);
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Dragging));
+            fixture.Presenter.DropBuildFacility(3);
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Focused));
+            fixture.Presenter.SelectBuildFacilityPayment(BuildFacilityService.PaymentModeGold);
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Confirming));
+            Assert.That(fixture.Commands.LastCommand, Is.Null, "支付预选不得提交命令。");
+
+            fixture.Commands.NextResult = Success(false);
+            fixture.Presenter.ConfirmBuildFacility();
+            Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.BuildFacility));
+            Assert.That(fixture.Commands.LastCommand.TargetId, Is.EqualTo(FacilityCardDatabase.TradeDistrict));
+            Assert.That(fixture.Commands.LastCommand.Parameters[BuildFacilityCommandHandler.CityBoardSlotIndexParameter], Is.EqualTo("3"));
+            Assert.That(fixture.Commands.LastCommand.Parameters[BuildFacilityCommandHandler.PaymentModeParameter], Is.EqualTo(BuildFacilityService.PaymentModeGold));
+            Assert.That(fixture.View.Prompt, Does.Contain("等待确认"));
+        }
+
+        [Test]
+        public void Declare_CreatesCommandAndKeepsNetworkingWaitSemantics()
         {
             var fixture = CreateFixture();
             fixture.Commands.NextResult = Success(false);
-
-            fixture.Presenter.SubmitBuildFacility("facility-test", "auto");
-            Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.BuildFacility));
-            Assert.That(fixture.View.Prompt, Does.Contain("等待确认"));
-
             fixture.Presenter.SubmitDeclareCityStyle("style-test");
             Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.DeclareCityStyle));
             Assert.That(fixture.Commands.LastCommand.TargetId, Is.EqualTo("style-test"));
@@ -182,8 +220,18 @@ namespace YC.Tests.EditMode
                     CurrentPlayerId = 1,
                     Players =
                     {
-                        new PlayerState { PlayerId = 1, CityLocationId = "A", Color = PlayerColor.Red },
+                        new PlayerState
+                        {
+                            PlayerId = 1,
+                            CityLocationId = "A",
+                            Color = PlayerColor.Red,
+                            Resources = new ResourceSet { GoldVoucher = 100 }
+                        },
                         new PlayerState { PlayerId = 2, CityLocationId = string.Empty, Color = PlayerColor.Blue }
+                    },
+                    Decks =
+                    {
+                        FacilitySupply = { FacilityCardDatabase.TradeDistrict }
                     }
                 }
             };
@@ -262,6 +310,7 @@ namespace YC.Tests.EditMode
             public string Prompt = string.Empty;
             public string CompletedAction = string.Empty;
             public int RefreshFromStateCount;
+            public BuildFacilityDraftViewModel BuildDraft;
 
             public void ShowPrompt(string message) { Prompt = message; }
             public void SetHighlights(IReadOnlyList<WorkflowHighlight> highlights)
@@ -275,7 +324,8 @@ namespace YC.Tests.EditMode
             public void RefreshActionPanel() { }
             public void ShowPendingChoice() { }
             public void CompleteMainActionPresentation(string actionName) { CompletedAction = actionName; }
-            public void ShowBuildFacilityOptions(BuildFacilityOptionsViewModel viewModel) { }
+            public void ShowBuildFacilityDraft(BuildFacilityDraftViewModel viewModel) { BuildDraft = viewModel; }
+            public void HideBuildFacilityDraft() { BuildDraft = null; }
             public void ShowCityStyleOptions(CityStyleOptionsViewModel viewModel) { }
             public void ShowRoutePaymentOptions(string routeId, int cost, IReadOnlyList<int> recipients) { }
             public string GetPlayerDisplayName(int playerId) { return "Player " + playerId; }

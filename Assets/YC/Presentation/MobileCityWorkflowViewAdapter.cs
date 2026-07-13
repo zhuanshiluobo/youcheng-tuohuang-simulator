@@ -183,11 +183,28 @@ namespace YC.Presentation
         void ITurnActionView.RefreshInformation() => refreshInformation();
         void ITurnActionView.ShowPendingChoice() => explorationEventPresenter.ShowPendingChoice();
         void ITurnActionView.CompleteMainActionPresentation(string actionName) => completeActionPresentation(actionName);
-        public void ShowBuildFacilityOptions(BuildFacilityOptionsViewModel model)
+        public void ShowBuildFacilityDraft(BuildFacilityDraftViewModel model)
         {
-            if (model != null) eventChoiceDialog.ShowBuildFacilityOptions(
-                getCanvas(), model.FacilityIds, model.Player, model.CityBoardSlotIndex, model.Select, model.Cancel);
+            if (model == null)
+            {
+                eventChoiceDialog.Hide();
+                return;
+            }
+
+            if (model.Phase == BuildFacilityDraftPhase.Focused)
+            {
+                eventChoiceDialog.ShowBuildFacilityFocus(getCanvas(), model);
+            }
+            else if (model.Phase == BuildFacilityDraftPhase.Confirming)
+            {
+                eventChoiceDialog.ShowBuildFacilityConfirmation(getCanvas(), model);
+            }
+            else
+            {
+                eventChoiceDialog.Hide();
+            }
         }
+        public void HideBuildFacilityDraft() => eventChoiceDialog.Hide();
         public void ShowCityStyleOptions(CityStyleOptionsViewModel model)
         {
             if (model != null) eventChoiceDialog.ShowCityStyleOptions(getCanvas(), model.Options, model.Select, model.Cancel);

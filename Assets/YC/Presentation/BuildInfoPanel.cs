@@ -40,24 +40,64 @@ namespace YC.Presentation
         }
     }
 
+    internal sealed class ExternalFacilityDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    {
+        private Func<bool> canBeginDrag;
+        private Action<PointerEventData> beginDrag;
+        private Action<PointerEventData> drag;
+        private Action<PointerEventData> endDrag;
+        private bool dragging;
+
+        public void Configure(
+            Func<bool> configuredCanBeginDrag,
+            Action<PointerEventData> configuredBeginDrag,
+            Action<PointerEventData> configuredDrag,
+            Action<PointerEventData> configuredEndDrag)
+        {
+            canBeginDrag = configuredCanBeginDrag;
+            beginDrag = configuredBeginDrag;
+            drag = configuredDrag;
+            endDrag = configuredEndDrag;
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            dragging = eventData != null && canBeginDrag != null && canBeginDrag();
+            if (dragging)
+            {
+                beginDrag?.Invoke(eventData);
+            }
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (dragging && eventData != null)
+            {
+                drag?.Invoke(eventData);
+            }
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (!dragging)
+            {
+                return;
+            }
+
+            dragging = false;
+            endDrag?.Invoke(eventData);
+        }
+    }
+
     public sealed class BuildInfoPanel : MonoBehaviour
     {
-        private const float ExpandedWidth = 520f;
-        private const float CollapsedWidth = 47f;
-        private const float ContentLeftInset = 65f;
-        private const float ExpandedHeight = 520f;
-        private const float CollapsedHeight = 90f;
-        private const float ToggleButtonWidth = 47f;
+        private const float PanelWidth = 365f;
         private const float SectionTitleHeight = 26f;
-        private const float ContentWidth = 432f;
+        private const float ContentWidth = 331f;
         private const float RowSpacing = 6f;
         private const int ScrollContentHorizontalPadding = 6;
-        private const float StatusRowHeight = 62f;
         private const float TextBoxHorizontalPadding = 15f;
         private const float TextBoxVerticalPadding = 4f;
-        private const float ScrollSensitivity = 15f;
-        private const float CityBoardSourceWidth = 2059f;
-        private const float CityBoardSourceHeight = 3801f;
         private const float CityBoardSlotWidthRatio = 0.292f;
         private const float CityBoardSlotHeightRatio = 0.205f;
         private const string CityBoardImageRelativePath = "Assets/YC/Presentation/Resources/CardImages/Boards/city_board.png";
@@ -80,16 +120,19 @@ namespace YC.Presentation
         private const float ExternalCityStyleCardHorizontalSpacing = 40f;
         private const float ExternalCityStyleCardVerticalSpacing = 20f;/*样式卡部分*/
         private const int ExternalCityStyleColumnCount = 2;
+        private const float BuildPanelLeft = ExternalCardAreaLeft;
+        private const float BuildPanelTop = ExternalCityStyleAreaTop + ExternalCityStyleAreaHeight;
         private static readonly Color UsedCityBoardSlotBackground = new Color(0.42f, 0.12f, 0.055f, 0.98f);
         private static readonly Color UsedCityBoardSlotOutline = new Color(1f, 0.55f, 0.16f, 0.95f);
         private static readonly Color UsedCityBoardSlotBadgeBackground = new Color(0.62f, 0.08f, 0.05f, 0.96f);
         private static readonly Color OccupiedCityBoardSlotBackground = new Color(0.18f, 0.105f, 0.055f, 0.82f);
         private static readonly Color InvisibleCityBoardSlotColor = new Color(1f, 1f, 1f, 0f);
-        private static readonly Color ExternalCardFrameBackground = new Color(0.08f, 0.06f, 0.035f, 0.42f);
-        private static readonly Color ExternalCardFrameOutline = new Color(0.78f, 0.63f, 0.38f, 0.72f);
+        private static readonly Color ExternalCardFrameBackground = UiTheme.PanelBackground;
         private static readonly Color ExternalCardBackground = new Color(0.09f, 0.07f, 0.045f, 0.72f);
         private static readonly Color ExternalCardNormalOutline = new Color(0.78f, 0.63f, 0.38f, 0.72f);
         private static readonly Color ExternalCardSelectedOutline = new Color(1f, 0.82f, 0.22f, 1f);
+        private static readonly Color LegalCityBoardSlotBackground = new Color(0.18f, 0.68f, 0.28f, 0.34f);
+        private static readonly Color LegalCityBoardSlotOutline = new Color(0.45f, 1f, 0.42f, 0.98f);
         private static readonly Vector2[] CityBoardSlotCenters =
         {
             new Vector2(0.176f, 0.162f),
@@ -109,27 +152,34 @@ namespace YC.Presentation
         private readonly List<RectTransform> dynamicItems = new List<RectTransform>();
         private readonly List<ExternalCardBinding> facilityCardBindings = new List<ExternalCardBinding>();
         private readonly List<ExternalCardBinding> cityStyleCardBindings = new List<ExternalCardBinding>();
+        private readonly List<CityBoardSlotBinding> cityBoardSlotBindings = new List<CityBoardSlotBinding>();
+        private readonly HashSet<string> draggableFacilityIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<int> legalCityBoardSlotIndexes = new HashSet<int>();
         private static readonly Dictionary<string, Texture2D> FacilityCardTextures = new Dictionary<string, Texture2D>();
         private static readonly Dictionary<string, Texture2D> CityStyleCardTextures = new Dictionary<string, Texture2D>();
         private static readonly Dictionary<string, Texture2D> TexturePathCache = new Dictionary<string, Texture2D>();
         private RectTransform panelTransform;
         private RectTransform contentArea;
-        private RectTransform scrollContent;
+        private RectTransform contentRoot;
         private RectTransform externalFacilityArea;
         private RectTransform externalCityStyleArea;
-        private Text toggleButtonText;
         private bool initialized;
-        private bool isExpanded;
         private GameState currentState;
         private int currentPlayerId;
         private string selectedFacilityId = string.Empty;
         private string selectedCityStyleId = string.Empty;
-        private Text statusText;
         private ZoomableImageViewerController cardImageViewer;
+        private bool buildInteractionActive;
+        private RectTransform facilityDragGhost;
+        private RectTransform pendingBuildGhost;
+        private string pendingBuildGhostFacilityId = string.Empty;
+        private int pendingBuildGhostSlotIndex = -1;
 
         public event Action<string> FacilityClicked;
         public event Action<string> CityStyleClicked;
         public event Action<int> CityBoardSlotClicked;
+        public event Action<string> FacilityDragStarted;
+        public event Action<string, int> FacilityDropped;
 
         private sealed class ExternalCardBinding
         {
@@ -139,6 +189,18 @@ namespace YC.Presentation
             public Outline Outline;
             public RawImage CardImage;
             public Text FallbackText;
+        }
+
+        private sealed class CityBoardSlotBinding
+        {
+            public int SlotIndex;
+            public bool IsEmpty;
+            public RectTransform Rect;
+            public Image Image;
+            public Outline Outline;
+            public Color DefaultBackground;
+            public Color DefaultOutline;
+            public Vector2 DefaultOutlineDistance;
         }
 
         private void Awake()
@@ -156,7 +218,6 @@ namespace YC.Presentation
             initialized = true;
             var canvas = UguiUtility.CreateCanvas("Build Info Panel Canvas", 99);
             BuildPanel(canvas.transform);
-            SetExpandedImmediate(false);
         }
 
         public void Refresh(GameState state, int playerId)
@@ -171,46 +232,167 @@ namespace YC.Presentation
             RebuildContent();
         }
 
-        public void SetExpanded(bool expand)
+        public void SetBuildInteraction(
+            bool active,
+            IEnumerable<string> draggableIds,
+            IEnumerable<int> legalSlotIndexes,
+            string pendingFacilityId)
         {
-            if (!initialized)
+            buildInteractionActive = active;
+            draggableFacilityIds.Clear();
+            legalCityBoardSlotIndexes.Clear();
+
+            if (active && draggableIds != null)
             {
-                Initialize(transform);
+                foreach (var facilityId in draggableIds)
+                {
+                    if (!string.IsNullOrEmpty(facilityId))
+                    {
+                        draggableFacilityIds.Add(facilityId);
+                    }
+                }
             }
 
-            SetExpandedImmediate(expand);
+            if (active && legalSlotIndexes != null)
+            {
+                foreach (var slotIndex in legalSlotIndexes)
+                {
+                    if (slotIndex >= 0 && slotIndex < BuildFacilityService.CityBoardSlotCount)
+                    {
+                        legalCityBoardSlotIndexes.Add(slotIndex);
+                    }
+                }
+            }
+
+            selectedFacilityId = active ? pendingFacilityId ?? string.Empty : string.Empty;
+            if (!active)
+            {
+                DestroyFacilityDragGhost();
+            }
+
+            UpdateExternalCardHighlights();
+            UpdateExternalFacilityAvailability();
+            UpdateCityBoardSlotHighlights();
         }
 
-        private void Toggle()
+        public void SetPendingBuildGhost(
+            bool visible,
+            string facilityId,
+            int cityBoardSlotIndex,
+            Action beginDrag,
+            Action<int> drop,
+            Action cancel)
         {
-            SetExpandedImmediate(!isExpanded);
-        }
+            if (!visible || string.IsNullOrEmpty(facilityId) || cityBoardSlotIndex < 0)
+            {
+                DestroyPendingBuildGhost();
+                return;
+            }
 
-        private void SetExpandedImmediate(bool expand)
-        {
-            isExpanded = expand;
-            panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, expand ? ExpandedWidth : CollapsedWidth);
-            panelTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, expand ? ExpandedHeight : CollapsedHeight);
-            contentArea.gameObject.SetActive(expand);
-            toggleButtonText.text = expand ? "▶" : "◀";
-            RebuildLayout();
+            if (pendingBuildGhost != null &&
+                pendingBuildGhostFacilityId == facilityId &&
+                pendingBuildGhostSlotIndex == cityBoardSlotIndex)
+            {
+                return;
+            }
+
+            DestroyPendingBuildGhost();
+            CityBoardSlotBinding slot = null;
+            for (var i = 0; i < cityBoardSlotBindings.Count; i++)
+            {
+                if (cityBoardSlotBindings[i].SlotIndex == cityBoardSlotIndex)
+                {
+                    slot = cityBoardSlotBindings[i];
+                    break;
+                }
+            }
+
+            if (slot == null || slot.Rect == null)
+            {
+                return;
+            }
+
+            pendingBuildGhostFacilityId = facilityId;
+            pendingBuildGhostSlotIndex = cityBoardSlotIndex;
+            var ghostObject = new GameObject(
+                "本地建设虚影",
+                typeof(RectTransform),
+                typeof(RawImage),
+                typeof(Button),
+                typeof(CanvasGroup));
+            ghostObject.transform.SetParent(slot.Rect, false);
+            pendingBuildGhost = ghostObject.GetComponent<RectTransform>();
+            pendingBuildGhost.anchorMin = new Vector2(0.08f, 0.08f);
+            pendingBuildGhost.anchorMax = new Vector2(0.92f, 0.92f);
+            pendingBuildGhost.offsetMin = Vector2.zero;
+            pendingBuildGhost.offsetMax = Vector2.zero;
+
+            var rawImage = ghostObject.GetComponent<RawImage>();
+            rawImage.texture = TryLoadFacilityCardTexture(facilityId);
+            rawImage.color = rawImage.texture == null ? ExternalCardBackground : Color.white;
+            rawImage.raycastTarget = true;
+            var canvasGroup = ghostObject.GetComponent<CanvasGroup>();
+            canvasGroup.alpha = 0.78f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+
+            var ghostBinding = new ExternalCardBinding
+            {
+                Id = facilityId,
+                Label = FacilityCardDatabase.Get(facilityId)?.Name ?? facilityId,
+                Button = ghostObject.GetComponent<Button>(),
+                CardImage = rawImage
+            };
+            ghostObject.AddComponent<ExternalFacilityDragHandler>().Configure(
+                () => buildInteractionActive,
+                eventData =>
+                {
+                    DestroyFacilityDragGhost();
+                    facilityDragGhost = CreateFacilityDragGhost(ghostBinding);
+                    MoveExternalFacilityDrag(eventData);
+                    beginDrag?.Invoke();
+                },
+                MoveExternalFacilityDrag,
+                eventData =>
+                {
+                    var targetSlotIndex = ResolveDropCityBoardSlotIndex(eventData);
+                    DestroyFacilityDragGhost();
+                    drop?.Invoke(targetSlotIndex);
+                });
+
+            var cancelObject = new GameObject("取消建设", typeof(RectTransform), typeof(Image), typeof(Button));
+            cancelObject.transform.SetParent(pendingBuildGhost, false);
+            var cancelRect = cancelObject.GetComponent<RectTransform>();
+            cancelRect.anchorMin = new Vector2(0f, 0f);
+            cancelRect.anchorMax = new Vector2(1f, 0f);
+            cancelRect.pivot = new Vector2(0.5f, 1f);
+            cancelRect.sizeDelta = new Vector2(24f, 24f);
+            cancelRect.anchoredPosition = new Vector2(0f, -3f);
+            cancelObject.GetComponent<Image>().color = new Color(0.28f, 0.08f, 0.055f, 0.96f);
+            var cancelButton = cancelObject.GetComponent<Button>();
+            cancelButton.onClick.AddListener(() => cancel?.Invoke());
+            var cancelText = CreateText(
+                cancelRect,
+                "× 取消建设",
+                11,
+                FontStyle.Bold,
+                UiTheme.ValueText,
+                TextAnchor.MiddleCenter);
+            cancelText.raycastTarget = false;
         }
 
         private void BuildPanel(Transform parent)
         {
-            var panelObject = new GameObject("Build Sidebar Panel", typeof(RectTransform), typeof(Image));
+            var panelObject = new GameObject("Build Sidebar Panel", typeof(RectTransform));
             panelObject.transform.SetParent(parent, false);
 
             panelTransform = panelObject.GetComponent<RectTransform>();
-            panelTransform.anchorMin = new Vector2(1f, 0.5f);
-            panelTransform.anchorMax = new Vector2(1f, 0.5f);
-            panelTransform.pivot = new Vector2(1f, 0.5f);
-            panelTransform.sizeDelta = new Vector2(CollapsedWidth, CollapsedHeight);
-            panelTransform.anchoredPosition = Vector2.zero;
+            panelTransform.anchorMin = new Vector2(0f, 0f);
+            panelTransform.anchorMax = new Vector2(0f, 1f);
+            panelTransform.pivot = new Vector2(0f, 1f);
+            panelTransform.sizeDelta = new Vector2(PanelWidth, -BuildPanelTop);
+            panelTransform.anchoredPosition = new Vector2(BuildPanelLeft, -BuildPanelTop);
 
-            panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
-
-            BuildToggleButton(panelTransform);
             BuildContentArea(panelTransform);
             BuildExternalCardAreas(parent);
         }
@@ -258,7 +440,7 @@ namespace YC.Presentation
             float width,
             float height)
         {
-            var area = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Outline)).GetComponent<RectTransform>();
+            var area = new GameObject(name, typeof(RectTransform), typeof(Image)).GetComponent<RectTransform>();
             area.SetParent(parent, false);
             area.anchorMin = new Vector2(0f, 1f);
             area.anchorMax = new Vector2(0f, 1f);
@@ -270,42 +452,7 @@ namespace YC.Presentation
             image.color = ExternalCardFrameBackground;
             image.raycastTarget = false;
 
-            var outline = area.GetComponent<Outline>();
-            outline.effectColor = ExternalCardFrameOutline;
-            outline.effectDistance = new Vector2(1f, -1f);
             return area;
-        }
-
-        private void BuildToggleButton(RectTransform parent)
-        {
-            var buttonObject = new GameObject("Toggle Button", typeof(RectTransform), typeof(Image), typeof(Button));
-            buttonObject.transform.SetParent(parent, false);
-
-            var buttonTransform = buttonObject.GetComponent<RectTransform>();
-            buttonTransform.anchorMin = new Vector2(0f, 0.5f);
-            buttonTransform.anchorMax = new Vector2(0f, 0.5f);
-            buttonTransform.pivot = new Vector2(0f, 0.5f);
-            buttonTransform.sizeDelta = new Vector2(ToggleButtonWidth, CollapsedHeight);
-            buttonTransform.anchoredPosition = Vector2.zero;
-
-            buttonObject.GetComponent<Image>().color = UiTheme.PanelBackgroundLighter;
-            buttonObject.GetComponent<Button>().onClick.AddListener(Toggle);
-
-            var textObject = new GameObject("Label", typeof(RectTransform), typeof(Text));
-            textObject.transform.SetParent(buttonTransform, false);
-            var textTransform = textObject.GetComponent<RectTransform>();
-            textTransform.anchorMin = Vector2.zero;
-            textTransform.anchorMax = Vector2.one;
-            textTransform.offsetMin = Vector2.zero;
-            textTransform.offsetMax = Vector2.zero;
-
-            toggleButtonText = textObject.GetComponent<Text>();
-            toggleButtonText.text = "◀";
-            toggleButtonText.alignment = TextAnchor.MiddleCenter;
-            toggleButtonText.color = UiTheme.GoldText;
-            toggleButtonText.fontSize = 22;
-            toggleButtonText.fontStyle = FontStyle.Bold;
-            toggleButtonText.font = FontUtility.GetLatinFont(22);
         }
 
         private void BuildContentArea(RectTransform parent)
@@ -314,79 +461,29 @@ namespace YC.Presentation
             contentArea.SetParent(parent, false);
             contentArea.anchorMin = Vector2.zero;
             contentArea.anchorMax = Vector2.one;
-            contentArea.offsetMin = new Vector2(ContentLeftInset, 11f);
-            contentArea.offsetMax = new Vector2(-11f, -11f);
+            contentArea.offsetMin = Vector2.zero;
+            contentArea.offsetMax = Vector2.zero;
 
-            var titleObject = new GameObject("Header", typeof(RectTransform), typeof(Text), typeof(Outline));
-            titleObject.transform.SetParent(contentArea, false);
-            var titleTransform = titleObject.GetComponent<RectTransform>();
-            titleTransform.anchorMin = new Vector2(0f, 1f);
-            titleTransform.anchorMax = new Vector2(1f, 1f);
-            titleTransform.pivot = new Vector2(0.5f, 1f);
-            titleTransform.sizeDelta = new Vector2(0f, 48f);
-            titleTransform.anchoredPosition = Vector2.zero;
+            contentRoot = new GameObject("Content", typeof(RectTransform)).GetComponent<RectTransform>();
+            contentRoot.SetParent(contentArea, false);
+            contentRoot.anchorMin = Vector2.zero;
+            contentRoot.anchorMax = Vector2.one;
+            contentRoot.offsetMin = Vector2.zero;
+            contentRoot.offsetMax = Vector2.zero;
 
-            var titleText = titleObject.GetComponent<Text>();
-            titleText.text = "建设面板";
-            titleText.alignment = TextAnchor.MiddleCenter;
-            titleText.color = UiTheme.GoldText;
-            titleText.fontSize = 30;
-            titleText.fontStyle = FontStyle.Bold;
-            titleText.font = FontUtility.GetCjkFont(30);
-
-            var scrollObject = new GameObject("Scroll View", typeof(RectTransform), typeof(ScrollRect), typeof(Image));
-            scrollObject.transform.SetParent(contentArea, false);
-            var scrollTransform = scrollObject.GetComponent<RectTransform>();
-            scrollTransform.anchorMin = Vector2.zero;
-            scrollTransform.anchorMax = Vector2.one;
-            scrollTransform.offsetMin = Vector2.zero;
-            scrollTransform.offsetMax = new Vector2(0f, -48f);
-            scrollObject.GetComponent<Image>().color = UiTheme.ScrollBackground;
-
-            var viewport = new GameObject("Viewport", typeof(RectTransform), typeof(Mask), typeof(Image)).GetComponent<RectTransform>();
-            viewport.SetParent(scrollTransform, false);
-            viewport.anchorMin = Vector2.zero;
-            viewport.anchorMax = Vector2.one;
-            viewport.offsetMin = Vector2.zero;
-            viewport.offsetMax = Vector2.zero;
-            viewport.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.02f);
-            viewport.GetComponent<Mask>().showMaskGraphic = false;
-
-            scrollContent = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter))
-                .GetComponent<RectTransform>();
-            scrollContent.SetParent(viewport, false);
-            scrollContent.anchorMin = new Vector2(0f, 1f);
-            scrollContent.anchorMax = new Vector2(1f, 1f);
-            scrollContent.pivot = new Vector2(0.5f, 1f);
-            scrollContent.anchoredPosition = Vector2.zero;
-
-            var layout = scrollContent.GetComponent<VerticalLayoutGroup>();
-            layout.childAlignment = TextAnchor.UpperLeft;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-            layout.spacing = RowSpacing;
-            layout.padding = new RectOffset(ScrollContentHorizontalPadding, 6, 6, 6);
-
-            scrollContent.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            var scrollRect = scrollObject.GetComponent<ScrollRect>();
-            scrollRect.viewport = viewport;
-            scrollRect.content = scrollContent;
-            scrollRect.horizontal = false;
-            scrollRect.vertical = true;
-            scrollRect.movementType = ScrollRect.MovementType.Clamped;
-            scrollRect.scrollSensitivity = ScrollSensitivity;
         }
 
         private void RebuildContent()
         {
+            Canvas.ForceUpdateCanvases();
+            panelTransform.ForceUpdateRectTransforms();
+            contentArea.ForceUpdateRectTransforms();
+            contentRoot.ForceUpdateRectTransforms();
             ClearDynamicItems();
             ClearExternalCityStyleCards();
-            AddStatusRow();
             AddCityBoardSection();
             RebuildExternalFacilityCards();
             RebuildExternalCityStyleCards();
-            AddPlayerDeclarationsSection();
             RebuildLayout();
         }
 
@@ -472,10 +569,15 @@ namespace YC.Presentation
                 facilityCardBindings.Add(binding);
                 binding.Button.gameObject.AddComponent<ExternalCardClickHandler>().Configure(
                     binding.Button,
-                    () => OnExternalFacilitySlotClicked(binding),
                     () => OpenCardImage(
                         binding.Label,
-                        binding.CardImage == null ? null : binding.CardImage.texture as Texture2D));
+                        binding.CardImage == null ? null : binding.CardImage.texture as Texture2D),
+                    null);
+                binding.Button.gameObject.AddComponent<ExternalFacilityDragHandler>().Configure(
+                    () => CanDragExternalFacility(binding),
+                    eventData => BeginExternalFacilityDrag(binding, eventData),
+                    MoveExternalFacilityDrag,
+                    eventData => EndExternalFacilityDrag(binding, eventData));
                 BindExternalFacilitySlot(binding, string.Empty, string.Empty, null);
             }
         }
@@ -553,16 +655,246 @@ namespace YC.Presentation
             SetExternalCardOutline(
                 binding.Outline,
                 !string.IsNullOrEmpty(facilityId) && facilityId == selectedFacilityId);
+            UpdateExternalFacilityAvailability(binding);
         }
 
-        private void OnExternalFacilitySlotClicked(ExternalCardBinding binding)
+        private void UpdateExternalFacilityAvailability()
         {
-            if (binding == null || string.IsNullOrEmpty(binding.Id))
+            for (var i = 0; i < facilityCardBindings.Count; i++)
+            {
+                UpdateExternalFacilityAvailability(facilityCardBindings[i]);
+            }
+        }
+
+        private void UpdateExternalFacilityAvailability(ExternalCardBinding binding)
+        {
+            if (binding == null)
             {
                 return;
             }
 
-            ToggleFacilitySelection(binding.Id, binding.Label);
+            var dimmed = buildInteractionActive &&
+                         !string.IsNullOrEmpty(binding.Id) &&
+                         !draggableFacilityIds.Contains(binding.Id);
+            if (binding.CardImage != null)
+            {
+                binding.CardImage.color = dimmed
+                    ? new Color(1f, 1f, 1f, 0.42f)
+                    : Color.white;
+            }
+
+            if (binding.FallbackText != null)
+            {
+                var color = UiTheme.ValueText;
+                color.a = dimmed ? 0.42f : 1f;
+                binding.FallbackText.color = color;
+            }
+        }
+
+        private bool CanDragExternalFacility(ExternalCardBinding binding)
+        {
+            return buildInteractionActive &&
+                   binding != null &&
+                   !string.IsNullOrEmpty(binding.Id) &&
+                   draggableFacilityIds.Contains(binding.Id);
+        }
+
+        private void BeginExternalFacilityDrag(ExternalCardBinding binding, PointerEventData eventData)
+        {
+            if (!CanDragExternalFacility(binding))
+            {
+                return;
+            }
+
+            DestroyFacilityDragGhost();
+            facilityDragGhost = CreateFacilityDragGhost(binding);
+            MoveExternalFacilityDrag(eventData);
+            FacilityDragStarted?.Invoke(binding.Id);
+        }
+
+        private RectTransform CreateFacilityDragGhost(ExternalCardBinding binding)
+        {
+            var canvas = externalFacilityArea == null ? null : externalFacilityArea.GetComponentInParent<Canvas>();
+            if (canvas == null || binding == null || binding.Button == null)
+            {
+                return null;
+            }
+
+            var ghostObject = new GameObject(
+                "建设卡拖动虚影",
+                typeof(RectTransform),
+                typeof(RawImage),
+                typeof(CanvasGroup));
+            ghostObject.transform.SetParent(canvas.transform, false);
+            ghostObject.transform.SetAsLastSibling();
+
+            var rect = ghostObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = binding.Button.GetComponent<RectTransform>().rect.size;
+
+            var image = ghostObject.GetComponent<RawImage>();
+            image.texture = binding.CardImage == null ? null : binding.CardImage.texture;
+            image.color = image.texture == null ? ExternalCardBackground : Color.white;
+            image.raycastTarget = false;
+
+            var canvasGroup = ghostObject.GetComponent<CanvasGroup>();
+            canvasGroup.alpha = 0.82f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+
+            if (image.texture == null)
+            {
+                var fallback = CreateText(
+                    rect,
+                    binding.Label,
+                    12,
+                    FontStyle.Bold,
+                    UiTheme.ValueText,
+                    TextAnchor.MiddleCenter);
+                fallback.raycastTarget = false;
+            }
+
+            return rect;
+        }
+
+        private void MoveExternalFacilityDrag(PointerEventData eventData)
+        {
+            if (facilityDragGhost == null || eventData == null)
+            {
+                return;
+            }
+
+            var canvasRect = facilityDragGhost.parent as RectTransform;
+            if (canvasRect == null)
+            {
+                return;
+            }
+
+            Vector2 localPoint;
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    canvasRect,
+                    eventData.position,
+                    eventData.pressEventCamera,
+                    out localPoint))
+            {
+                facilityDragGhost.anchoredPosition = localPoint;
+            }
+        }
+
+        private void EndExternalFacilityDrag(ExternalCardBinding binding, PointerEventData eventData)
+        {
+            var facilityId = binding == null ? string.Empty : binding.Id;
+            var slotIndex = ResolveDropCityBoardSlotIndex(eventData);
+            DestroyFacilityDragGhost();
+
+            if (!string.IsNullOrEmpty(facilityId))
+            {
+                FacilityDropped?.Invoke(facilityId, slotIndex);
+            }
+        }
+
+        private int ResolveDropCityBoardSlotIndex(PointerEventData eventData)
+        {
+            if (eventData == null)
+            {
+                return -1;
+            }
+
+            var raycastObject = eventData.pointerCurrentRaycast.gameObject;
+            if (raycastObject != null)
+            {
+                var current = raycastObject.transform;
+                while (current != null)
+                {
+                    for (var i = 0; i < cityBoardSlotBindings.Count; i++)
+                    {
+                        var binding = cityBoardSlotBindings[i];
+                        if (binding != null && binding.Rect != null && binding.Rect.transform == current)
+                        {
+                            return binding.SlotIndex;
+                        }
+                    }
+
+                    current = current.parent;
+                }
+            }
+
+            for (var i = 0; i < cityBoardSlotBindings.Count; i++)
+            {
+                var binding = cityBoardSlotBindings[i];
+                if (binding != null && binding.Rect != null &&
+                    RectTransformUtility.RectangleContainsScreenPoint(
+                        binding.Rect,
+                        eventData.position,
+                        eventData.pressEventCamera))
+                {
+                    return binding.SlotIndex;
+                }
+            }
+
+            return -1;
+        }
+
+        private void DestroyFacilityDragGhost()
+        {
+            if (facilityDragGhost == null)
+            {
+                return;
+            }
+
+            var ghostObject = facilityDragGhost.gameObject;
+            facilityDragGhost = null;
+            if (UnityEngine.Application.isPlaying)
+            {
+                UnityEngine.Object.Destroy(ghostObject);
+            }
+            else
+            {
+                UnityEngine.Object.DestroyImmediate(ghostObject);
+            }
+        }
+
+        private void DestroyPendingBuildGhost()
+        {
+            if (pendingBuildGhost != null)
+            {
+                var ghostObject = pendingBuildGhost.gameObject;
+                pendingBuildGhost = null;
+                if (UnityEngine.Application.isPlaying)
+                {
+                    UnityEngine.Object.Destroy(ghostObject);
+                }
+                else
+                {
+                    UnityEngine.Object.DestroyImmediate(ghostObject);
+                }
+            }
+
+            pendingBuildGhostFacilityId = string.Empty;
+            pendingBuildGhostSlotIndex = -1;
+        }
+
+        private void UpdateCityBoardSlotHighlights()
+        {
+            for (var i = 0; i < cityBoardSlotBindings.Count; i++)
+            {
+                var binding = cityBoardSlotBindings[i];
+                if (binding == null || binding.Image == null || binding.Outline == null)
+                {
+                    continue;
+                }
+
+                var highlighted = buildInteractionActive &&
+                                  binding.IsEmpty &&
+                                  legalCityBoardSlotIndexes.Contains(binding.SlotIndex);
+                binding.Image.color = highlighted ? LegalCityBoardSlotBackground : binding.DefaultBackground;
+                binding.Outline.effectColor = highlighted ? LegalCityBoardSlotOutline : binding.DefaultOutline;
+                binding.Outline.effectDistance = highlighted
+                    ? new Vector2(2f, -2f)
+                    : binding.DefaultOutlineDistance;
+            }
         }
 
         private void RebuildExternalCityStyleCards()
@@ -722,7 +1054,6 @@ namespace YC.Presentation
             if (selectedFacilityId == facilityId)
             {
                 selectedFacilityId = string.Empty;
-                SetStatus("已取消设施选择。");
                 UpdateExternalCardHighlights();
                 if (FacilityClicked != null)
                 {
@@ -733,7 +1064,6 @@ namespace YC.Presentation
             }
 
             selectedFacilityId = facilityId;
-            SetStatus("已选择设施：" + label);
             UpdateExternalCardHighlights();
             if (FacilityClicked != null)
             {
@@ -746,7 +1076,6 @@ namespace YC.Presentation
             if (selectedCityStyleId == cityStyleId)
             {
                 selectedCityStyleId = string.Empty;
-                SetStatus("已取消城市样式选择。");
                 UpdateExternalCardHighlights();
                 if (CityStyleClicked != null)
                 {
@@ -757,7 +1086,6 @@ namespace YC.Presentation
             }
 
             selectedCityStyleId = cityStyleId;
-            SetStatus("已选择城市样式：" + label);
             UpdateExternalCardHighlights();
             if (CityStyleClicked != null)
             {
@@ -787,32 +1115,32 @@ namespace YC.Presentation
             outline.effectDistance = selected ? new Vector2(3f, -3f) : new Vector2(1f, -1f);
         }
 
-        private void AddStatusRow()
-        {
-            statusText = AddTextBox(
-                "当前选择",
-                "当前选择：点击设施、槽位或城市样式方框进行测试。",
-                StatusRowHeight,
-                FontStyle.Bold);
-        }
-
         private void AddCityBoardSection()
         {
-            AddSectionTitle("城市面板");
+            cityBoardSlotBindings.Clear();
             var boardImage = TryLoadCityBoardTexture();
-            var boardSize = CalculateCityBoardDisplaySize(boardImage);
-            var board = AddPanelItem("City Board", boardSize.y);
+            var board = new GameObject("City Board", typeof(RectTransform)).GetComponent<RectTransform>();
+            board.SetParent(contentRoot, false);
+            board.anchorMin = Vector2.zero;
+            board.anchorMax = Vector2.one;
+            board.offsetMin = Vector2.zero;
+            board.offsetMax = Vector2.zero;
+            dynamicItems.Add(board);
+
             RectTransform slotRoot = board;
             if (boardImage != null)
             {
-                var imageObject = new GameObject("城市面板底图", typeof(RectTransform), typeof(RawImage));
+                var imageObject = new GameObject("城市面板底图", typeof(RectTransform), typeof(RawImage), typeof(AspectRatioFitter));
                 imageObject.transform.SetParent(board, false);
                 var rect = imageObject.GetComponent<RectTransform>();
                 rect.anchorMin = new Vector2(0.5f, 0.5f);
                 rect.anchorMax = new Vector2(0.5f, 0.5f);
                 rect.pivot = new Vector2(0.5f, 0.5f);
-                rect.sizeDelta = boardSize;
                 rect.anchoredPosition = Vector2.zero;
+
+                var aspectRatio = imageObject.GetComponent<AspectRatioFitter>();
+                aspectRatio.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+                aspectRatio.aspectRatio = (float)boardImage.width / boardImage.height;
 
                 var rawImage = imageObject.GetComponent<RawImage>();
                 rawImage.texture = boardImage;
@@ -828,22 +1156,36 @@ namespace YC.Presentation
                 var facilityId = GetCityBoardSlotFacilityId(i);
                 var label = GetCityBoardSlotLabel(i);
                 var isEmpty = string.IsNullOrEmpty(facilityId);
-                var button = CreateCityBoardSlotButton(slotRoot, slotIndex, facilityId, label, isEmpty, isUsedForDeclaration, boardSize);
+                var button = CreateCityBoardSlotButton(slotRoot, slotIndex, facilityId, label, isEmpty, isUsedForDeclaration);
                 var rect = button.GetComponent<RectTransform>();
                 if (isUsedForDeclaration)
                 {
-                    AddUsedCityBoardSlotBadge(slotRoot, slotIndex, rect.anchoredPosition, boardSize);
+                    AddUsedCityBoardSlotBadge(slotRoot, slotIndex);
                 }
 
-                button.onClick.AddListener(() =>
+                var image = button.GetComponent<Image>();
+                var outline = button.GetComponent<Outline>();
+                cityBoardSlotBindings.Add(new CityBoardSlotBinding
                 {
-                    SetStatus("已选择城市面板槽位：" + (slotIndex + 1));
-                    if (CityBoardSlotClicked != null)
-                    {
-                        CityBoardSlotClicked(slotIndex);
-                    }
+                    SlotIndex = slotIndex,
+                    IsEmpty = isEmpty,
+                    Rect = rect,
+                    Image = image,
+                    Outline = outline,
+                    DefaultBackground = image.color,
+                    DefaultOutline = outline.effectColor,
+                    DefaultOutlineDistance = outline.effectDistance
                 });
+
+                button.gameObject.AddComponent<ExternalCardClickHandler>().Configure(
+                    button,
+                    null,
+                    isEmpty
+                        ? (Action)null
+                        : () => OpenCardImage(label, TryLoadFacilityCardTexture(facilityId)));
             }
+
+            UpdateCityBoardSlotHighlights();
         }
 
         private void AddFacilitySupplySection()
@@ -889,26 +1231,6 @@ namespace YC.Presentation
                 {
                     ToggleCityStyleSelection(cityStyleId, label);
                 });
-            }
-        }
-
-        private void AddPlayerDeclarationsSection()
-        {
-            AddSectionTitle("玩家宣告");
-            if (currentState == null || currentState.Players.Count <= 0)
-            {
-                AddTextBox("玩家宣告", "暂无玩家数据。", 36f, FontStyle.Bold);
-                return;
-            }
-
-            for (var i = 0; i < currentState.Players.Count; i++)
-            {
-                var player = currentState.Players[i];
-                AddTextBox(
-                    "玩家 " + player.PlayerId,
-                    player.Name + "：" + FormatDeclaredCityStyles(player),
-                    36f,
-                    FontStyle.Bold);
             }
         }
 
@@ -991,20 +1313,23 @@ namespace YC.Presentation
             string facilityId,
             string label,
             bool isEmpty,
-            bool isUsedForDeclaration,
-            Vector2 boardSize)
+            bool isUsedForDeclaration)
         {
             var buttonObject = new GameObject("槽位 " + (slotIndex + 1), typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
             buttonObject.transform.SetParent(parent, false);
 
             var rect = buttonObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            var center = CityBoardSlotCenters[Mathf.Clamp(slotIndex, 0, CityBoardSlotCenters.Length - 1)];
+            var centerY = 1f - center.y;
+            rect.anchorMin = new Vector2(
+                center.x - CityBoardSlotWidthRatio * 0.5f,
+                centerY - CityBoardSlotHeightRatio * 0.5f);
+            rect.anchorMax = new Vector2(
+                center.x + CityBoardSlotWidthRatio * 0.5f,
+                centerY + CityBoardSlotHeightRatio * 0.5f);
             rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = new Vector2(
-                boardSize.x * CityBoardSlotWidthRatio,
-                boardSize.y * CityBoardSlotHeightRatio);
-            rect.anchoredPosition = GetCityBoardSlotAnchoredPosition(slotIndex, boardSize);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
 
             var image = buttonObject.GetComponent<Image>();
             image.color = isEmpty
@@ -1023,26 +1348,26 @@ namespace YC.Presentation
 
             if (!isEmpty)
             {
-                AddFacilityCardImage(rect, facilityId);
+                if (!AddFacilityCardImage(rect, facilityId))
+                {
+                    var fallbackText = CreateText(rect, label, 14, FontStyle.Bold, UiTheme.ValueText, TextAnchor.MiddleCenter);
+                    fallbackText.resizeTextForBestFit = true;
+                    fallbackText.resizeTextMinSize = 10;
+                    fallbackText.resizeTextMaxSize = 14;
+                    fallbackText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    fallbackText.raycastTarget = false;
+                }
             }
-
-            var text = CreateText(rect, isEmpty ? string.Empty : label, 14, FontStyle.Bold, UiTheme.ValueText, TextAnchor.MiddleCenter);
-            text.resizeTextForBestFit = true;
-            text.resizeTextMinSize = 10;
-            text.resizeTextMaxSize = 14;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
-            text.raycastTarget = false;
-            text.gameObject.SetActive(!isEmpty);
 
             return buttonObject.GetComponent<Button>();
         }
 
-        private static void AddFacilityCardImage(RectTransform parent, string facilityId)
+        private static bool AddFacilityCardImage(RectTransform parent, string facilityId)
         {
             var texture = TryLoadFacilityCardTexture(facilityId);
             if (texture == null)
             {
-                return;
+                return false;
             }
 
             var imageObject = new GameObject("设施卡图", typeof(RectTransform), typeof(RawImage));
@@ -1050,29 +1375,14 @@ namespace YC.Presentation
             var rect = imageObject.GetComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
-            rect.offsetMin = new Vector2(4f, 4f);
-            rect.offsetMax = new Vector2(-4f, -4f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
 
             var rawImage = imageObject.GetComponent<RawImage>();
             rawImage.texture = texture;
             rawImage.color = Color.white;
             rawImage.raycastTarget = false;
-        }
-
-        private static Vector2 GetCityBoardSlotAnchoredPosition(int slotIndex, Vector2 boardSize)
-        {
-            var center = CityBoardSlotCenters[Mathf.Clamp(slotIndex, 0, CityBoardSlotCenters.Length - 1)];
-            return new Vector2(
-                (center.x - 0.5f) * boardSize.x,
-                (0.5f - center.y) * boardSize.y);
-        }
-
-        private static Vector2 CalculateCityBoardDisplaySize(Texture2D texture)
-        {
-            var sourceWidth = texture == null ? CityBoardSourceWidth : texture.width;
-            var sourceHeight = texture == null ? CityBoardSourceHeight : texture.height;
-            var height = ContentWidth * sourceHeight / sourceWidth;
-            return new Vector2(ContentWidth, height);
+            return true;
         }
 
         private static Texture2D TryLoadFacilityCardTexture(string facilityId)
@@ -1206,16 +1516,18 @@ namespace YC.Presentation
                 : resourcePath.Substring(0, resourcePath.Length - extension.Length);
         }
 
-        private static void AddUsedCityBoardSlotBadge(RectTransform parent, int slotIndex, Vector2 slotCenterPosition, Vector2 boardSize)
+        private static void AddUsedCityBoardSlotBadge(RectTransform parent, int slotIndex)
         {
             var badgeObject = new GameObject("槽位 " + (slotIndex + 1) + " 已使用标记", typeof(RectTransform), typeof(Image), typeof(Outline));
             badgeObject.transform.SetParent(parent, false);
             var rect = badgeObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            var center = CityBoardSlotCenters[Mathf.Clamp(slotIndex, 0, CityBoardSlotCenters.Length - 1)];
+            var badgeMax = new Vector2(center.x + 0.136f, 1f - center.y + 0.082f);
+            rect.anchorMin = badgeMax - new Vector2(0.125f, 0.022f);
+            rect.anchorMax = badgeMax;
             rect.pivot = new Vector2(1f, 1f);
-            rect.sizeDelta = new Vector2(boardSize.x * 0.125f, boardSize.y * 0.022f);
-            rect.anchoredPosition = slotCenterPosition + new Vector2(boardSize.x * 0.136f, boardSize.y * 0.082f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
 
             var image = badgeObject.GetComponent<Image>();
             image.color = UsedCityBoardSlotBadgeBackground;
@@ -1232,23 +1544,6 @@ namespace YC.Presentation
         private int GetFacilityDeckCount()
         {
             return currentState == null || currentState.Decks == null ? 0 : currentState.Decks.FacilityDeck.Count;
-        }
-
-        private static string FormatDeclaredCityStyles(PlayerState player)
-        {
-            if (player == null || player.DeclaredCityStyleIds.Count <= 0)
-            {
-                return "暂无宣告";
-            }
-
-            var names = new List<string>();
-            for (var i = 0; i < player.DeclaredCityStyleIds.Count; i++)
-            {
-                var style = CityStyleDatabase.Get(player.DeclaredCityStyleIds[i]);
-                names.Add(style == null ? player.DeclaredCityStyleIds[i] : style.Name);
-            }
-
-            return string.Join("、", names.ToArray());
         }
 
         private void AddSectionTitle(string title)
@@ -1280,19 +1575,15 @@ namespace YC.Presentation
 
         private RectTransform AddPanelItem(string name, float height)
         {
-            var item = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Outline), typeof(LayoutElement))
+            var item = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(LayoutElement))
                 .GetComponent<RectTransform>();
-            item.SetParent(scrollContent, false);
+            item.SetParent(contentRoot, false);
             item.sizeDelta = new Vector2(ContentWidth, height);
             dynamicItems.Add(item);
 
             var image = item.GetComponent<Image>();
             image.color = UiTheme.ScrollBackground;
             image.raycastTarget = false;
-
-            var outline = item.GetComponent<Outline>();
-            outline.effectColor = UiTheme.GoldOutlineThin;
-            outline.effectDistance = new Vector2(1f, -1f);
 
             var element = item.GetComponent<LayoutElement>();
             element.minWidth = ContentWidth;
@@ -1360,24 +1651,15 @@ namespace YC.Presentation
             return text;
         }
 
-        private void SetStatus(string value)
-        {
-            if (statusText != null)
-            {
-                statusText.text = value;
-                statusText.SetAllDirty();
-            }
-        }
-
         private void RebuildLayout()
         {
-            if (scrollContent == null || panelTransform == null)
+            if (contentRoot == null || panelTransform == null)
             {
                 return;
             }
 
             Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate(scrollContent);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRoot);
             LayoutRebuilder.ForceRebuildLayoutImmediate(panelTransform);
         }
 

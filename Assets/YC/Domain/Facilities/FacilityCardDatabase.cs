@@ -224,8 +224,9 @@ namespace YC.Domain.Facilities
 
             var root = JObject.Parse(File.ReadAllText(manifestPath));
             var result = new Dictionary<string, FacilityCardDefinition>();
-            AddManifestCards(result, root["buildingCards"], false);
-            AddManifestCards(result, root["reserveCards"], true);
+            var effectContracts = root["effectContracts"];
+            AddManifestCards(result, root["buildingCards"], effectContracts, false);
+            AddManifestCards(result, root["reserveCards"], effectContracts, true);
             return result;
         }
 
@@ -268,6 +269,7 @@ namespace YC.Domain.Facilities
         private static void AddManifestCards(
             Dictionary<string, FacilityCardDefinition> result,
             JToken cards,
+            JToken effectContracts,
             bool reserveOnly)
         {
             if (cards == null)
@@ -285,7 +287,26 @@ namespace YC.Domain.Facilities
 
                 var name = ReadString(card, "name");
                 var effect = ReadString(card, "effect");
-                var unique = effect.Contains("唯一");
+                var effectContract = effectContracts == null ? null : effectContracts[name];
+                var keywords = ReadStringList(effectContract, "keywords");
+                var unique = keywords == null
+                    ? effect.Contains("唯一")
+                    : keywords.Contains(FacilityCardKeywords.Unique);
+                var hasEntryEffect = ReadBool(
+                    effectContract,
+                    "hasEntryEffect",
+                    ResolveHasEntryEffect(name));
+                if (keywords == null)
+                {
+                    keywords = ResolveKeywords(name, unique, hasEntryEffect);
+                }
+
+                var effectId = ReadString(effectContract, "effectId");
+                if (string.IsNullOrEmpty(effectId))
+                {
+                    effectId = ResolveEffectId(name);
+                }
+
                 result[id] = new FacilityCardDefinition
                 {
                     FacilityId = id,
@@ -297,6 +318,9 @@ namespace YC.Domain.Facilities
                     GoldVoucherCost = ReadInt(card, "goldVoucherCost"),
                     Unique = unique,
                     UniqueGroupId = unique ? name : string.Empty,
+                    HasEntryEffect = hasEntryEffect,
+                    Keywords = keywords,
+                    EffectId = effectId,
                     EffectType = ResolveEffectType(name),
                     Description = ReadString(card, "description"),
                     EffectText = effect,
@@ -357,7 +381,7 @@ namespace YC.Domain.Facilities
                     return "discount";
                 case "佣兵指挥部":
                 case "护航调度中心":
-                    return "enterprise";
+                    return "entry";
                 case "开采电铲":
                     return "entry_choice";
                 case "核心指挥塔":
@@ -366,6 +390,89 @@ namespace YC.Domain.Facilities
                     return "reserve";
                 default:
                     return "entry";
+            }
+        }
+
+        private static bool ResolveHasEntryEffect(string name)
+        {
+            switch (name)
+            {
+                case "城邦行政区":
+                case "城邦工业区":
+                case "核心指挥塔":
+                case "延伸枢纽":
+                case "企业办事处":
+                    return false;
+                default:
+                    return true;
+            }
+        }
+
+        private static List<string> ResolveKeywords(string name, bool unique, bool hasEntryEffect)
+        {
+            var keywords = new List<string>();
+            if (hasEntryEffect)
+            {
+                keywords.Add(FacilityCardKeywords.Entry);
+            }
+
+            if (unique)
+            {
+                keywords.Add(FacilityCardKeywords.Unique);
+            }
+
+            if (name == "高性能动力设施")
+            {
+                keywords.Add(FacilityCardKeywords.Free);
+            }
+
+            return keywords;
+        }
+
+        private static string ResolveEffectId(string name)
+        {
+            switch (name)
+            {
+                case "城邦行政区":
+                    return FacilityCardEffectIds.UniqueOnly;
+                case "附属能源设施":
+                    return FacilityCardEffectIds.CopyAdjacentEntryEffect;
+                case "联邦理事处":
+                    return FacilityCardEffectIds.ClaimStartMarkerAtCleanup;
+                case "简陋工程营":
+                    return FacilityCardEffectIds.BuildAdditionalFacility;
+                case "物流枢纽":
+                    return FacilityCardEffectIds.BuildExtensionHub;
+                case "源石精炼厂":
+                    return FacilityCardEffectIds.GainOriginiumShardSix;
+                case "城市化区域":
+                    return FacilityCardEffectIds.GainGoldPerCoreAdjacentFacility;
+                case "异铁冶炼厂":
+                    return FacilityCardEffectIds.GainIronFour;
+                case "贸易街区":
+                    return FacilityCardEffectIds.SellResources;
+                case "城邦工业区":
+                    return FacilityCardEffectIds.DiscountOriginiumByFacilityColor;
+                case "高性能动力设施":
+                    return FacilityCardEffectIds.FreeCityMoveAndDeployRouteInfluence;
+                case "固源岩提纯厂":
+                    return FacilityCardEffectIds.GainOriginiumSeven;
+                case "开采电铲":
+                    return FacilityCardEffectIds.ChooseFiveBasicResources;
+                case "佣兵指挥部":
+                    return FacilityCardEffectIds.ReplaceOneInfluence;
+                case "护航调度中心":
+                    return FacilityCardEffectIds.DeployTwoInfluences;
+                case "载具仓库":
+                    return FacilityCardEffectIds.RemoveThenDispatchOrExplore;
+                case "核心指挥塔":
+                    return FacilityCardEffectIds.SetupCoreCommandTower;
+                case "延伸枢纽":
+                    return FacilityCardEffectIds.ReserveExtensionHub;
+                case "企业办事处":
+                    return FacilityCardEffectIds.EnterpriseOffice;
+                default:
+                    return string.Empty;
             }
         }
 
@@ -379,6 +486,33 @@ namespace YC.Domain.Facilities
         {
             var value = token == null ? null : token[propertyName];
             return value == null || value.Type == JTokenType.Null ? 0 : value.Value<int>();
+        }
+
+        private static bool ReadBool(JToken token, string propertyName, bool fallback)
+        {
+            var value = token == null ? null : token[propertyName];
+            return value == null || value.Type == JTokenType.Null ? fallback : value.Value<bool>();
+        }
+
+        private static List<string> ReadStringList(JToken token, string propertyName)
+        {
+            var value = token == null ? null : token[propertyName];
+            if (value == null || value.Type != JTokenType.Array)
+            {
+                return null;
+            }
+
+            var result = new List<string>();
+            foreach (var item in value)
+            {
+                var text = item.Value<string>();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    result.Add(text);
+                }
+            }
+
+            return result;
         }
 
         private static Dictionary<string, FacilityCardDefinition> BuildDefinitionsFallback()
@@ -401,8 +535,8 @@ namespace YC.Domain.Facilities
             AddCopies(result, New(MiningPowerShovel, "开采电铲", "yellow", 0, new ResourceSet { OriginiumShard = 2, Iron = 1 }, 10, false, "entry_choice"), "yellow", "building_029", "building_030", "building_031");
             AddCopies(result, LegacyDefinitions[IronRefinery], "red", "building_032");
             AddCopies(result, LegacyDefinitions[OriginiumPurificationPlant], "red", "building_033");
-            AddCopies(result, New(MercenaryCommand, "佣兵指挥部", "red", 1, new ResourceSet { Originium = 2, Iron = 2, GoldVoucher = 4 }, 18, false, "enterprise"), "red", "building_034", "building_035", "building_036");
-            AddCopies(result, New(EscortDispatchCenter, "护航调度中心", "red", 0, new ResourceSet { Originium = 2, OriginiumShard = 2, Iron = 2 }, 18, false, "enterprise"), "red", "building_037", "building_038");
+            AddCopies(result, New(MercenaryCommand, "佣兵指挥部", "red", 1, new ResourceSet { Originium = 2, Iron = 2, GoldVoucher = 4 }, 18, false, "entry"), "red", "building_034", "building_035", "building_036");
+            AddCopies(result, New(EscortDispatchCenter, "护航调度中心", "red", 0, new ResourceSet { Originium = 2, OriginiumShard = 2, Iron = 2 }, 18, false, "entry"), "red", "building_037", "building_038");
             AddCopies(result, LegacyDefinitions[EquipmentWarehouse], "red", "building_039", "building_040", "building_041");
 
             result[CoreCommandTower] = Clone(LegacyDefinitions[CoreCommandTower], CoreCommandTower, "rainbow", true);
@@ -442,6 +576,9 @@ namespace YC.Domain.Facilities
                 GoldVoucherCost = template.GoldVoucherCost,
                 Unique = template.Unique,
                 UniqueGroupId = string.IsNullOrEmpty(template.UniqueGroupId) ? template.FacilityId : template.UniqueGroupId,
+                HasEntryEffect = ResolveHasEntryEffect(template.Name),
+                Keywords = ResolveKeywords(template.Name, template.Unique, ResolveHasEntryEffect(template.Name)),
+                EffectId = ResolveEffectId(template.Name),
                 EffectType = template.EffectType,
                 Description = template.Description,
                 EffectText = template.EffectText,
@@ -472,6 +609,9 @@ namespace YC.Domain.Facilities
                 GoldVoucherCost = goldVoucherCost,
                 Unique = unique,
                 UniqueGroupId = facilityId,
+                HasEntryEffect = ResolveHasEntryEffect(name),
+                Keywords = ResolveKeywords(name, unique, ResolveHasEntryEffect(name)),
+                EffectId = ResolveEffectId(name),
                 EffectType = effectType,
                 ManifestId = facilityId,
                 ReserveOnly = reserveOnly

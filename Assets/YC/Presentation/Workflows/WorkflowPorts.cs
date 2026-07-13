@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using YC.Application.Gameplay;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
+using YC.Domain.Facilities;
 using YC.Domain.State;
 
 namespace YC.Presentation.Workflows
@@ -116,35 +118,69 @@ namespace YC.Presentation.Workflows
 
         void CompleteMainActionPresentation(string actionName);
 
-        void ShowBuildFacilityOptions(BuildFacilityOptionsViewModel viewModel);
+        void ShowBuildFacilityDraft(BuildFacilityDraftViewModel viewModel);
+
+        void HideBuildFacilityDraft();
 
         void ShowCityStyleOptions(CityStyleOptionsViewModel viewModel);
     }
 
-    public sealed class BuildFacilityOptionsViewModel
+    public sealed class BuildFacilityDraftViewModel
     {
-        public BuildFacilityOptionsViewModel(
-            IReadOnlyList<string> facilityIds,
-            PlayerState player,
+        public BuildFacilityDraftViewModel(
+            BuildFacilityDraftPhase phase,
+            IReadOnlyList<BuildFacilityOptionQueryResult> options,
+            BuildFacilityOptionQueryResult selectedOption,
+            FacilityCardDefinition facility,
             int cityBoardSlotIndex,
-            Action<string, string> select,
+            string paymentMode,
+            string errorMessage,
+            IReadOnlyList<int> legalSlotIndexes,
+            Action<string> beginDrag,
+            Action beginGhostDrag,
+            Action<int> drop,
+            Action rejectDrop,
+            Action escape,
+            Action<string> selectPayment,
+            Action back,
+            Action confirm,
             Action cancel)
         {
-            FacilityIds = facilityIds ?? new List<string>().AsReadOnly();
-            Player = player;
+            Phase = phase;
+            Options = options ?? new List<BuildFacilityOptionQueryResult>().AsReadOnly();
+            SelectedOption = selectedOption;
+            Facility = facility;
             CityBoardSlotIndex = cityBoardSlotIndex;
-            Select = select;
+            PaymentMode = paymentMode ?? string.Empty;
+            ErrorMessage = errorMessage ?? string.Empty;
+            LegalSlotIndexes = legalSlotIndexes ?? new List<int>().AsReadOnly();
+            BeginDrag = beginDrag;
+            BeginGhostDrag = beginGhostDrag;
+            Drop = drop;
+            RejectDrop = rejectDrop;
+            Escape = escape;
+            SelectPayment = selectPayment;
+            Back = back;
+            Confirm = confirm;
             Cancel = cancel;
         }
 
-        public IReadOnlyList<string> FacilityIds { get; private set; }
-
-        public PlayerState Player { get; private set; }
-
+        public BuildFacilityDraftPhase Phase { get; private set; }
+        public IReadOnlyList<BuildFacilityOptionQueryResult> Options { get; private set; }
+        public BuildFacilityOptionQueryResult SelectedOption { get; private set; }
+        public FacilityCardDefinition Facility { get; private set; }
         public int CityBoardSlotIndex { get; private set; }
-
-        public Action<string, string> Select { get; private set; }
-
+        public string PaymentMode { get; private set; }
+        public string ErrorMessage { get; private set; }
+        public IReadOnlyList<int> LegalSlotIndexes { get; private set; }
+        public Action<string> BeginDrag { get; private set; }
+        public Action BeginGhostDrag { get; private set; }
+        public Action<int> Drop { get; private set; }
+        public Action RejectDrop { get; private set; }
+        public Action Escape { get; private set; }
+        public Action<string> SelectPayment { get; private set; }
+        public Action Back { get; private set; }
+        public Action Confirm { get; private set; }
         public Action Cancel { get; private set; }
     }
 

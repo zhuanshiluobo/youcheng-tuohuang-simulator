@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -98,6 +99,7 @@ namespace YC.Tests.EditMode
             Assert.That(HasModuleTitle(modules, "提示卡"), Is.False);
             Assert.That(HasModuleTitle(modules, "玩家概览"), Is.False);
             Assert.That(HasModuleTitle(modules, "城市与行动"), Is.False);
+            Assert.That(HasModuleTitle(modules, "玩家宣告"), Is.True);
 
             var panel = FindTransform("Sidebar Panel");
             Assert.That(panel, Is.Not.Null);
@@ -106,7 +108,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void BuildInfoPanel_StartsAsSmallButtonAndExpandsToSquarePanel()
+        public void BuildInfoPanel_StretchesFromCityStyleAreaToMapBottomWithoutOuterOutline()
         {
             var type = Type.GetType("YC.Presentation.BuildInfoPanel, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.BuildInfoPanel.");
@@ -117,31 +119,71 @@ namespace YC.Tests.EditMode
 
             var panel = FindTransform("Build Sidebar Panel");
             var content = FindTransform("Content Area");
+            var header = FindTransform("Header");
             var toggle = FindTransform("Toggle Button");
+            var scrollView = FindTransform("Scroll View");
+            var viewport = FindTransform("Viewport");
+            var contentRoot = FindTransform("Content");
+            var facilityArea = FindTransform("External Facility Supply Area");
+            var cityStyleArea = FindTransform("External City Style Area");
 
             Assert.That(panel, Is.Not.Null);
-            Assert.That(panel.anchorMin, Is.EqualTo(new Vector2(1f, 0.5f)));
-            Assert.That(panel.anchorMax, Is.EqualTo(new Vector2(1f, 0.5f)));
-            Assert.That(panel.pivot, Is.EqualTo(new Vector2(1f, 0.5f)));
-            Assert.That(panel.sizeDelta.x, Is.EqualTo(47f).Within(0.01f));
-            Assert.That(panel.sizeDelta.y, Is.EqualTo(90f).Within(0.01f));
+            Assert.That(panel.anchorMin, Is.EqualTo(new Vector2(0f, 0f)));
+            Assert.That(panel.anchorMax, Is.EqualTo(new Vector2(0f, 1f)));
+            Assert.That(panel.pivot, Is.EqualTo(new Vector2(0f, 1f)));
+            Assert.That(panel.sizeDelta, Is.EqualTo(new Vector2(365f, -670f)));
+            Assert.That(panel.anchoredPosition, Is.EqualTo(new Vector2(72f, -670f)));
+            Assert.That(panel.offsetMin.y, Is.EqualTo(0f).Within(0.01f));
+            Assert.That(panel.offsetMax.y, Is.EqualTo(-670f).Within(0.01f));
             Assert.That(panel.GetComponent<Outline>(), Is.Null);
+            Assert.That(panel.GetComponent<Image>(), Is.Null);
             Assert.That(content, Is.Not.Null);
-            Assert.That(content.gameObject.activeSelf, Is.False);
-            Assert.That(toggle, Is.Not.Null);
-            Assert.That(toggle.sizeDelta.x, Is.EqualTo(47f).Within(0.01f));
-            Assert.That(toggle.anchoredPosition, Is.EqualTo(Vector2.zero));
-            AssertColor(toggle.GetComponent<Image>().color, new Color(0.14f, 0.1f, 0.06f, 0.96f));
-            Assert.That(toggle.GetComponent<Outline>(), Is.Null);
-            Assert.That(AllTextRenderersAreMaskable(panel), Is.True);
-
-            var collapsedToggleX = toggle.position.x;
-            toggle.GetComponent<Button>().onClick.Invoke();
-
-            Assert.That(panel.sizeDelta.x, Is.EqualTo(520f).Within(0.01f));
-            Assert.That(panel.sizeDelta.y, Is.EqualTo(520f).Within(0.01f));
             Assert.That(content.gameObject.activeSelf, Is.True);
-            Assert.That(toggle.position.x, Is.LessThan(collapsedToggleX));
+            Assert.That(header, Is.Null);
+            Assert.That(toggle, Is.Null);
+            Assert.That(scrollView, Is.Null);
+            Assert.That(viewport, Is.Null);
+            Assert.That(contentRoot, Is.Not.Null);
+            Assert.That(contentRoot.GetComponent<ScrollRect>(), Is.Null);
+            Assert.That(contentRoot.GetComponent<Mask>(), Is.Null);
+            Assert.That(contentRoot.GetComponent<VerticalLayoutGroup>(), Is.Null);
+            Assert.That(AllTextRenderersAreMaskable(panel), Is.True);
+            Assert.That(facilityArea, Is.Not.Null);
+            Assert.That(cityStyleArea, Is.Not.Null);
+            Assert.That(facilityArea.GetComponent<Outline>(), Is.Null);
+            Assert.That(cityStyleArea.GetComponent<Outline>(), Is.Null);
+            var expectedCardAreaBackground = new Color(0.08f, 0.07f, 0.055f, 0.94f);
+            AssertColor(facilityArea.GetComponent<Image>().color, expectedCardAreaBackground);
+            AssertColor(cityStyleArea.GetComponent<Image>().color, expectedCardAreaBackground);
+            Assert.That(facilityArea.anchorMin, Is.EqualTo(new Vector2(0f, 1f)));
+            Assert.That(facilityArea.anchorMax, Is.EqualTo(new Vector2(0f, 1f)));
+            Assert.That(facilityArea.anchoredPosition, Is.EqualTo(new Vector2(72f, -17f)));
+            Assert.That(facilityArea.sizeDelta, Is.EqualTo(new Vector2(365f, 323f)));
+            Assert.That(cityStyleArea.anchoredPosition, Is.EqualTo(new Vector2(72f, -340f)));
+
+            var state = RightCardSmokeStateFactory.CreateInitialState(
+                LaunchMode.Local,
+                1,
+                new List<PlayerSeat>
+                {
+                    new PlayerSeat { PlayerId = 1, PlayerName = "测试玩家" }
+                },
+                "test",
+                12345);
+            InvokePublic(controller, "Refresh", state, 1);
+            Canvas.ForceUpdateCanvases();
+
+            var cityBoard = FindTransform("City Board");
+            Assert.That(cityBoard, Is.Not.Null);
+            Assert.That(FindTransform("Section 城市面板"), Is.Null);
+            Assert.That(cityBoard.GetComponent<Outline>(), Is.Null);
+            Assert.That(cityBoard.GetComponent<Image>(), Is.Null);
+            Assert.That(cityBoard.anchorMin, Is.EqualTo(Vector2.zero));
+            Assert.That(cityBoard.anchorMax, Is.EqualTo(Vector2.one));
+            var boardImage = FindTransform("城市面板底图");
+            Assert.That(boardImage, Is.Not.Null);
+            Assert.That(boardImage.GetComponent<AspectRatioFitter>().aspectMode,
+                Is.EqualTo(AspectRatioFitter.AspectMode.FitInParent));
         }
 
         [Test]
@@ -237,6 +279,19 @@ namespace YC.Tests.EditMode
             InvokePublic(controller, "SetZoom", 2f);
             var zoomProperty = type.GetProperty("Zoom", BindingFlags.Instance | BindingFlags.Public);
             Assert.That((float)zoomProperty.GetValue(controller, null), Is.EqualTo(2f).Within(0.001f));
+
+            InvokePublic(controller, "ConfigureReferenceCollapse", "测试图片 · 参考中");
+            InvokePublic(controller, "SetCollapsed", true);
+            var collapsedProperty = type.GetProperty("IsCollapsed", BindingFlags.Instance | BindingFlags.Public);
+            Assert.That((bool)collapsedProperty.GetValue(controller, null), Is.True);
+            Assert.That(FindTransform("Test Image Expanded Content").gameObject.activeSelf, Is.False);
+            Assert.That(FindTransform("Test Image Collapsed Summary").GetComponent<Text>().text, Does.Contain("参考中"));
+            Assert.That(FindTransform("Test Image Viewer").GetComponent<Image>().raycastTarget, Is.False);
+            Assert.That(FindTransform("Test Image Panel").GetComponent<RectTransform>().sizeDelta.y, Is.EqualTo(58f));
+
+            InvokePublic(controller, "SetCollapsed", false);
+            Assert.That((bool)collapsedProperty.GetValue(controller, null), Is.False);
+            Assert.That(FindTransform("Test Image Expanded Content").gameObject.activeSelf, Is.True);
 
             InvokePublic(controller, "Close");
             var openProperty = type.GetProperty("IsOpen", BindingFlags.Instance | BindingFlags.Public);

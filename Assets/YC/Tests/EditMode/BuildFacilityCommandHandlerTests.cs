@@ -61,6 +61,7 @@ namespace YC.Tests.EditMode
                 TargetId = FacilityCardDatabase.TradeDistrict,
                 Parameters =
                 {
+                    { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, "0" },
                     { BuildFacilityCommandHandler.PaymentModeParameter, BuildFacilityService.PaymentModeGold }
                 }
             });
@@ -85,6 +86,7 @@ namespace YC.Tests.EditMode
                 TargetId = FacilityCardDatabase.SourceStoneRefinery,
                 Parameters =
                 {
+                    { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, "0" },
                     { BuildFacilityCommandHandler.PaymentModeParameter, BuildFacilityService.PaymentModeGold }
                 }
             });
@@ -94,6 +96,66 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(6));
             Assert.That(state.Map.Facilities[0].CityBoardSlotIndex, Is.EqualTo(0));
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.True);
+        }
+
+        [Test]
+        public void BuildFacility_ResolvesEntryEffectAfterPlacementAndScoreBeforeSupplyRefill()
+        {
+            var state = CreateActionState();
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.SourceStoneRefinery);
+            state.Decks.FacilityDeck.Add(FacilityCardDatabase.TradeDistrict);
+            state.FindPlayer(1).Resources.GoldVoucher = 10;
+            var resolver = new OrderAssertingEntryEffectResolver(state);
+            var service = new BuildFacilityService(resolver);
+
+            var result = service.Build(
+                state,
+                1,
+                FacilityCardDatabase.SourceStoneRefinery,
+                2,
+                BuildFacilityService.PaymentModeGold);
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(resolver.WasCalled, Is.True);
+            Assert.That(state.Decks.FacilitySupply, Is.EqualTo(new[] { FacilityCardDatabase.TradeDistrict }));
+            Assert.That(state.Decks.FacilityDeck, Is.Empty);
+        }
+
+        [Test]
+        public void BuildFacility_ReplacesBuiltCardAtItsOriginalSupplySlotWithoutShiftingOtherCards()
+        {
+            var state = CreateActionState();
+            var originalSupply = new[]
+            {
+                FacilityCardDatabase.TradeDistrict,
+                FacilityCardDatabase.SourceStoneRefinery,
+                FacilityCardDatabase.UrbanizedArea,
+                FacilityCardDatabase.SimpleEngineeringCamp,
+                FacilityCardDatabase.FederalOffice,
+                "building_008"
+            };
+            state.Decks.FacilitySupply.AddRange(originalSupply);
+            state.Decks.FacilityDeck.Add(FacilityCardDatabase.EquipmentWarehouse);
+            state.FindPlayer(1).Resources.GoldVoucher = 100;
+
+            var result = new BuildFacilityService().Build(
+                state,
+                1,
+                FacilityCardDatabase.UrbanizedArea,
+                4,
+                BuildFacilityService.PaymentModeGold);
+
+            Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
+            Assert.That(state.Decks.FacilitySupply, Is.EqualTo(new[]
+            {
+                originalSupply[0],
+                originalSupply[1],
+                FacilityCardDatabase.EquipmentWarehouse,
+                originalSupply[3],
+                originalSupply[4],
+                originalSupply[5]
+            }));
+            Assert.That(state.Decks.FacilityDeck, Is.Empty);
         }
 
         [Test]
@@ -112,6 +174,7 @@ namespace YC.Tests.EditMode
                 TargetId = FacilityCardDatabase.UrbanizedArea,
                 Parameters =
                 {
+                    { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, "0" },
                     { BuildFacilityCommandHandler.PaymentModeParameter, BuildFacilityService.PaymentModeResources }
                 }
             });
@@ -172,6 +235,7 @@ namespace YC.Tests.EditMode
                 TargetId = "building_008",
                 Parameters =
                 {
+                    { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, "0" },
                     { BuildFacilityCommandHandler.PaymentModeParameter, BuildFacilityService.PaymentModeGold }
                 }
             });
@@ -180,6 +244,180 @@ namespace YC.Tests.EditMode
             Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(17));
             Assert.That(state.Map.Facilities, Is.Empty);
+        }
+
+        [Test]
+        public void BuildFacility_WhenSlotIsMissing_FailsWithoutMutating()
+        {
+            var state = CreateActionState();
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.TradeDistrict);
+            state.FindPlayer(1).Resources.GoldVoucher = 6;
+            var handler = new BuildFacilityCommandHandler();
+
+            var result = handler.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.BuildFacility,
+                PlayerId = 1,
+                TargetId = FacilityCardDatabase.TradeDistrict,
+                Parameters =
+                {
+                    { BuildFacilityCommandHandler.PaymentModeParameter, BuildFacilityService.PaymentModeGold }
+                }
+            });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(6));
+            Assert.That(state.Map.Facilities, Is.Empty);
+            Assert.That(state.Decks.FacilitySupply, Does.Contain(FacilityCardDatabase.TradeDistrict));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+        }
+
+        [Test]
+        public void BuildFacility_WhenPaymentModeIsMissing_FailsWithoutMutating()
+        {
+            var state = CreateActionState();
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.TradeDistrict);
+            state.FindPlayer(1).Resources.GoldVoucher = 6;
+            var handler = new BuildFacilityCommandHandler();
+
+            var result = handler.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.BuildFacility,
+                PlayerId = 1,
+                TargetId = FacilityCardDatabase.TradeDistrict,
+                Parameters =
+                {
+                    { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, "4" }
+                }
+            });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(6));
+            Assert.That(state.Map.Facilities, Is.Empty);
+            Assert.That(state.Decks.FacilitySupply, Does.Contain(FacilityCardDatabase.TradeDistrict));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+        }
+
+        [TestCase(BuildFacilityService.PaymentModeAuto)]
+        [TestCase("unknown")]
+        public void BuildFacility_WhenPaymentModeIsNotExplicit_FailsWithoutMutating(string paymentMode)
+        {
+            var state = CreateActionState();
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.TradeDistrict);
+            state.FindPlayer(1).Resources.GoldVoucher = 6;
+            var handler = new BuildFacilityCommandHandler();
+
+            var result = handler.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.BuildFacility,
+                PlayerId = 1,
+                TargetId = FacilityCardDatabase.TradeDistrict,
+                Parameters =
+                {
+                    { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, "4" },
+                    { BuildFacilityCommandHandler.PaymentModeParameter, paymentMode }
+                }
+            });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(6));
+            Assert.That(state.Map.Facilities, Is.Empty);
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+        }
+
+        [Test]
+        public void QueryBuildFacilityOptions_ReturnsAllSupplyOptionsAndDoesNotMutateState()
+        {
+            var state = CreateActionState();
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.TradeDistrict);
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.SourceStoneRefinery);
+            state.Decks.FacilityDeck.Add(FacilityCardDatabase.UrbanizedArea);
+            state.FindPlayer(1).Resources.Originium = 1;
+            state.FindPlayer(1).Resources.Iron = 1;
+            state.FindPlayer(1).Resources.GoldVoucher = 0;
+            state.Map.Facilities.Add(new FacilityPlacement
+            {
+                PlayerId = 1,
+                FacilityCardId = FacilityCardDatabase.CoreCommandTower,
+                CityBoardSlotIndex = 0
+            });
+            var service = new BuildFacilityOptionQueryService();
+
+            var options = service.Query(state, 1);
+
+            Assert.That(options, Has.Count.EqualTo(2));
+            Assert.That(options[0].FacilityId, Is.EqualTo(FacilityCardDatabase.TradeDistrict));
+            Assert.That(options[1].FacilityId, Is.EqualTo(FacilityCardDatabase.SourceStoneRefinery));
+            Assert.That(options[0].CanBuild, Is.True, options[0].Reason);
+            Assert.That(options[0].SlotOptions, Has.Count.EqualTo(BuildFacilityService.CityBoardSlotCount));
+            Assert.That(options[0].SlotOptions[0].IsLegal, Is.False);
+            Assert.That(options[0].SlotOptions[0].Validation.ErrorCode, Is.EqualTo(CommandErrorCode.OccupiedSlot));
+            Assert.That(options[0].SlotOptions[1].IsLegal, Is.True, options[0].SlotOptions[1].Reason);
+            Assert.That(options[0].PaymentOptions, Has.Count.EqualTo(2));
+            Assert.That(options[0].ResourcesPayment.IsAvailable, Is.True, options[0].ResourcesPayment.Reason);
+            Assert.That(options[0].GoldPayment.IsAvailable, Is.False);
+            Assert.That(options[0].GoldPayment.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InsufficientResource));
+
+            Assert.That(state.Decks.FacilitySupply, Is.EqualTo(new[]
+            {
+                FacilityCardDatabase.TradeDistrict,
+                FacilityCardDatabase.SourceStoneRefinery
+            }));
+            Assert.That(state.Decks.FacilityDeck, Is.EqualTo(new[] { FacilityCardDatabase.UrbanizedArea }));
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(0));
+            Assert.That(state.FindPlayer(1).Score, Is.EqualTo(0));
+            Assert.That(state.FindPlayer(1).BuiltFacilityIds, Is.Empty);
+            Assert.That(state.Map.Facilities, Has.Count.EqualTo(1));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+        }
+
+        [Test]
+        public void QueryBuildFacilityOption_WhenUniqueAlreadyBuilt_ReturnsReasonsForFacilitySlotsAndPayments()
+        {
+            var state = CreateActionState();
+            state.Decks.FacilitySupply.Add("building_008");
+            state.FindPlayer(1).BuiltFacilityIds.Add(FacilityCardDatabase.FederalOffice);
+            state.FindPlayer(1).Resources.Originium = 100;
+            state.FindPlayer(1).Resources.OriginiumShard = 100;
+            state.FindPlayer(1).Resources.GoldVoucher = 100;
+            var service = new BuildFacilityOptionQueryService();
+
+            var option = service.Query(state, 1, "building_008");
+
+            Assert.That(option.CanBuild, Is.False);
+            Assert.That(option.Reason, Does.Contain("唯一设施"));
+            Assert.That(option.SlotOptions, Has.Count.EqualTo(BuildFacilityService.CityBoardSlotCount));
+            for (var i = 0; i < option.SlotOptions.Count; i++)
+            {
+                Assert.That(option.SlotOptions[i].IsLegal, Is.False);
+            }
+            Assert.That(option.SlotOptions[0].Reason, Does.Contain("唯一设施"));
+            Assert.That(option.ResourcesPayment.IsAvailable, Is.False);
+            Assert.That(option.ResourcesPayment.Reason, Does.Contain("唯一设施"));
+            Assert.That(option.GoldPayment.IsAvailable, Is.False);
+            Assert.That(option.GoldPayment.Reason, Does.Contain("唯一设施"));
+        }
+
+        [Test]
+        public void QueryBuildFacilityOption_WhenBothPaymentModesAreInsufficient_ReturnsOverallAndPerModeReasons()
+        {
+            var state = CreateActionState();
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.TradeDistrict);
+            var service = new BuildFacilityOptionQueryService();
+
+            var option = service.Query(state, 1, FacilityCardDatabase.TradeDistrict);
+
+            Assert.That(option.CanBuild, Is.False);
+            Assert.That(option.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InsufficientResource));
+            Assert.That(option.ResourcesPayment.IsAvailable, Is.False);
+            Assert.That(option.ResourcesPayment.Reason, Does.Contain("资源不足"));
+            Assert.That(option.GoldPayment.IsAvailable, Is.False);
+            Assert.That(option.GoldPayment.Reason, Does.Contain("金券不足"));
         }
 
         [Test]
@@ -361,6 +599,40 @@ namespace YC.Tests.EditMode
             }
 
             return count;
+        }
+
+        private sealed class OrderAssertingEntryEffectResolver : IFacilityEntryEffectResolver
+        {
+            private readonly GameState expectedState;
+
+            public OrderAssertingEntryEffectResolver(GameState expectedState)
+            {
+                this.expectedState = expectedState;
+            }
+
+            public bool WasCalled { get; private set; }
+
+            public void Resolve(
+                GameState state,
+                PlayerState player,
+                FacilityCardDefinition facility,
+                int cityBoardSlotIndex)
+            {
+                Assert.That(state, Is.SameAs(expectedState));
+                Assert.That(player.Resources.GoldVoucher, Is.EqualTo(0), "入场效果前应已支付费用。");
+                Assert.That(player.BuiltFacilityIds, Does.Contain(facility.FacilityId), "入场效果前应已登记设施。");
+                Assert.That(player.Score, Is.EqualTo(facility.Score), "入场效果前应已获得牌面分数。");
+                Assert.That(
+                    state.Map.Facilities.Exists(placement =>
+                        placement.PlayerId == player.PlayerId &&
+                        placement.FacilityCardId == facility.FacilityId &&
+                        placement.CityBoardSlotIndex == cityBoardSlotIndex),
+                    Is.True,
+                    "入场效果前应已将设施放入指定槽位。");
+                Assert.That(state.Decks.FacilitySupply, Does.Contain(facility.FacilityId), "入场效果结算时供应区尚未补牌。");
+                Assert.That(state.Decks.FacilityDeck, Is.EqualTo(new[] { FacilityCardDatabase.TradeDistrict }));
+                WasCalled = true;
+            }
         }
     }
 }

@@ -93,6 +93,13 @@ namespace YC.Presentation.Workflows
             {
                 completedMainActionName = string.Empty;
             }
+
+            if (buildFacilitySelection.IsActive &&
+                (player == null || player.ActedMainActionThisTurn || state.CurrentPlayerId != context.LocalPlayerId))
+            {
+                buildFacilitySelection.Cancel();
+                view.HideBuildFacilityDraft();
+            }
         }
 
         public bool IsLocalPlayersTurn()
@@ -332,16 +339,9 @@ namespace YC.Presentation.Workflows
 
             var state = context.CurrentState;
             var player = state.FindPlayer(context.LocalPlayerId);
-            var cityBoardSlotIndex = BuildFacilityService.FindFirstEmptyCityBoardSlot(state, context.LocalPlayerId);
             if (player == null)
             {
                 view.ShowPrompt("\u5f53\u524d\u73a9\u5bb6\u4e0d\u5b58\u5728\u3002");
-                return;
-            }
-
-            if (cityBoardSlotIndex < 0)
-            {
-                view.ShowPrompt("\u57ce\u5e02\u9762\u677f\u6ca1\u6709\u7a7a\u69fd\u4f4d\u3002");
                 return;
             }
 
@@ -351,29 +351,123 @@ namespace YC.Presentation.Workflows
                 return;
             }
 
-            flowCoordinator.ResetToChooseAction();
+            buildFacilitySelection.Begin(context.LocalPlayerId);
+            flowCoordinator.SetMode(InteractionMode.ResolvingBuildCard);
             view.ClearHighlights();
             view.RefreshActionPanel();
-            view.ShowBuildFacilityOptions(new BuildFacilityOptionsViewModel(
-                state.Decks.FacilitySupply.AsReadOnly(),
-                player,
-                cityBoardSlotIndex,
-                SubmitBuildFacility,
-                () => view.ShowPrompt("\u5df2\u53d6\u6d88\u5efa\u8bbe\u3002")));
-            view.ShowPrompt("\u5efa\u8bbe\uff1a\u9009\u62e9\u8bbe\u65bd\u548c\u652f\u4ed8\u65b9\u5f0f\u3002");
+            PresentBuildFacilityDraft();
+            view.ShowPrompt("建设：拖动公共建设牌到自己面板的合法槽位。");
         }
 
-        public void SubmitBuildFacility(string facilityId, string paymentMode)
+        public void BeginBuildFacilityDrag(string facilityId)
         {
-            var state = context.CurrentState;
-            var submission = commandPort.Submit(buildFacilitySelection.CreateCommand(
-                state,
-                context.LocalPlayerId,
-                facilityId,
-                paymentMode));
+            string reason;
+            if (!buildFacilitySelection.TryBeginDrag(context.CurrentState, facilityId, out reason))
+            {
+                view.ShowPrompt(reason);
+                PresentBuildFacilityDraft();
+                return;
+            }
+
+            flowCoordinator.SetMode(InteractionMode.ResolvingBuildCard);
+            PresentBuildFacilityDraft();
+        }
+
+        public void DropBuildFacility(int cityBoardSlotIndex)
+        {
+            string reason;
+            if (!buildFacilitySelection.TryDrop(context.CurrentState, cityBoardSlotIndex, out reason))
+            {
+                view.ShowPrompt(reason);
+                SynchronizeBuildInteractionMode();
+                PresentBuildFacilityDraft();
+                return;
+            }
+
+            flowCoordinator.SetMode(InteractionMode.ResolvingBuildFocus);
+            PresentBuildFacilityDraft();
+        }
+
+        public void RejectBuildFacilityDrop()
+        {
+            buildFacilitySelection.RejectDrop();
+            SynchronizeBuildInteractionMode();
+            PresentBuildFacilityDraft();
+        }
+
+        public void BeginGhostBuildFacilityDrag()
+        {
+            string reason;
+            if (!buildFacilitySelection.TryBeginGhostDrag(out reason))
+            {
+                view.ShowPrompt(reason);
+                return;
+            }
+
+            flowCoordinator.SetMode(InteractionMode.ResolvingBuildCard);
+            PresentBuildFacilityDraft();
+        }
+
+        public bool HandleBuildFacilityEscape()
+        {
+            if (!buildFacilitySelection.CollapseFocusToGhost())
+            {
+                return false;
+            }
+
+            flowCoordinator.SetMode(InteractionMode.ResolvingBuildCard);
+            PresentBuildFacilityDraft();
+            return true;
+        }
+
+        public void SelectBuildFacilityPayment(string paymentMode)
+        {
+            string reason;
+            if (!buildFacilitySelection.TrySelectPayment(context.CurrentState, paymentMode, out reason))
+            {
+                view.ShowPrompt(reason);
+                PresentBuildFacilityDraft();
+                return;
+            }
+
+            flowCoordinator.SetMode(InteractionMode.ResolvingBuildConfirmation);
+            PresentBuildFacilityDraft();
+        }
+
+        public void BackToBuildFacilityPayment()
+        {
+            if (!buildFacilitySelection.BackToPayment())
+            {
+                return;
+            }
+
+            flowCoordinator.SetMode(InteractionMode.ResolvingBuildFocus);
+            PresentBuildFacilityDraft();
+        }
+
+        public void CancelBuildFacility()
+        {
+            buildFacilitySelection.Cancel();
+            flowCoordinator.ResetToChooseAction();
+            view.HideBuildFacilityDraft();
+            view.RefreshActionPanel();
+            view.ShowPrompt("已取消建设。");
+        }
+
+        public void ConfirmBuildFacility()
+        {
+            if (buildFacilitySelection.Phase != BuildFacilityDraftPhase.Confirming)
+            {
+                return;
+            }
+
+            var submission = commandPort.Submit(buildFacilitySelection.CreateConfirmationCommand());
             if (!submission.CommandResult.Succeeded)
             {
-                view.ShowPrompt(submission.CommandResult.Validation.Reason);
+                var reason = submission.CommandResult.Validation.Reason;
+                buildFacilitySelection.MarkSubmissionFailed(reason);
+                view.ShowPrompt(reason);
+                PresentBuildFacilityDraft();
                 return;
             }
 
@@ -383,8 +477,70 @@ namespace YC.Presentation.Workflows
                 return;
             }
 
+            buildFacilitySelection.MarkSubmissionSucceeded();
+            view.HideBuildFacilityDraft();
             view.RefreshInformation();
             CompleteAction("\u5efa\u8bbe");
+        }
+
+        public BuildFacilityDraftViewModel BuildBuildFacilityDraftViewModel()
+        {
+            if (!buildFacilitySelection.IsActive)
+            {
+                return null;
+            }
+
+            var state = context.CurrentState;
+            var selectedOption = buildFacilitySelection.QuerySelectedOption(state);
+            var facility = string.IsNullOrEmpty(buildFacilitySelection.FacilityId)
+                ? null
+                : FacilityCardDatabase.Get(buildFacilitySelection.FacilityId);
+            return new BuildFacilityDraftViewModel(
+                buildFacilitySelection.Phase,
+                buildFacilitySelection.QueryOptions(state),
+                selectedOption,
+                facility,
+                buildFacilitySelection.CityBoardSlotIndex,
+                buildFacilitySelection.PaymentMode,
+                buildFacilitySelection.ErrorMessage,
+                buildFacilitySelection.QueryLegalSlotIndexes(state),
+                BeginBuildFacilityDrag,
+                BeginGhostBuildFacilityDrag,
+                DropBuildFacility,
+                RejectBuildFacilityDrop,
+                () => HandleBuildFacilityEscape(),
+                SelectBuildFacilityPayment,
+                BackToBuildFacilityPayment,
+                ConfirmBuildFacility,
+                CancelBuildFacility);
+        }
+
+        private void PresentBuildFacilityDraft()
+        {
+            var model = BuildBuildFacilityDraftViewModel();
+            if (model == null)
+            {
+                view.HideBuildFacilityDraft();
+                return;
+            }
+
+            view.ShowBuildFacilityDraft(model);
+        }
+
+        private void SynchronizeBuildInteractionMode()
+        {
+            switch (buildFacilitySelection.Phase)
+            {
+                case BuildFacilityDraftPhase.Focused:
+                    flowCoordinator.SetMode(InteractionMode.ResolvingBuildFocus);
+                    break;
+                case BuildFacilityDraftPhase.Confirming:
+                    flowCoordinator.SetMode(InteractionMode.ResolvingBuildConfirmation);
+                    break;
+                default:
+                    flowCoordinator.SetMode(InteractionMode.ResolvingBuildCard);
+                    break;
+            }
         }
 
         public void BeginDeclareCityStyle()
@@ -446,7 +602,8 @@ namespace YC.Presentation.Workflows
             var isLocalTurn = state.CurrentPlayerId == context.LocalPlayerId;
             var hasPendingChoice = state.HasPendingChoice();
             var mainActionDone = player != null && player.ActedMainActionThisTurn;
-            var canChooseQuickAction = isActionPhase && isLocalTurn && !hasPendingChoice;
+            var hasLocalBuildDraft = buildFacilitySelection.IsActive;
+            var canChooseQuickAction = isActionPhase && isLocalTurn && !hasPendingChoice && !hasLocalBuildDraft;
             var canChooseMainAction = canChooseQuickAction && !mainActionDone;
             var displayedMode = ResolveDisplayedMode(state, player, isActionPhase, isLocalTurn, hasPendingChoice, mainActionDone);
             var waiting = displayedMode == InteractionMode.WaitingForNextPlayer ||
@@ -460,7 +617,10 @@ namespace YC.Presentation.Workflows
                 player != null,
                 player == null ? PlayerColor.Red : player.Color,
                 player == null ? 0 : player.InfluenceSupply,
-                canChooseQuickAction && player != null && !player.UsedCharacterThisRound,
+                canChooseQuickAction &&
+                player != null &&
+                !player.UsedCharacterThisRound &&
+                !string.IsNullOrEmpty(player.CoveredCharacterCardId),
                 canChooseQuickAction,
                 canChooseMainAction,
                 canChooseMainAction,
@@ -490,6 +650,12 @@ namespace YC.Presentation.Workflows
             if (player == null)
             {
                 view.ShowPrompt("\u5f53\u524d\u73a9\u5bb6\u4e0d\u5b58\u5728\u3002");
+                return false;
+            }
+
+            if (buildFacilitySelection.IsActive)
+            {
+                view.ShowPrompt("请先完成或取消当前建设草稿。");
                 return false;
             }
 
@@ -706,6 +872,9 @@ namespace YC.Presentation.Workflows
                 case InteractionMode.ResolvingDispatchSource: return "\u8c03\u5ea6\uff1a\u9009\u62e9\u6765\u6e90\u5f71\u54cd\u529b";
                 case InteractionMode.ResolvingDispatchTarget: return "\u8c03\u5ea6\uff1a\u9009\u62e9\u76ee\u6807\u8d44\u6e90\u70b9";
                 case InteractionMode.ResolvingDispatchDecision: return "\u8c03\u5ea6\uff1a\u9009\u62e9\u7ee7\u7eed\u8c03\u5ea6\u6216\u5b8c\u6210";
+                case InteractionMode.ResolvingBuildCard: return "建设：拖动公共建设牌到合法槽位";
+                case InteractionMode.ResolvingBuildFocus: return "建设：选择支付方式，Esc 可缩回虚影";
+                case InteractionMode.ResolvingBuildConfirmation: return "建设：确认摘要或返回修改";
                 default: return player == null ? "\u672a\u77e5\u73a9\u5bb6" : "\u5c1a\u672a\u6267\u884c\u4e3b\u8981\u884c\u52a8";
             }
         }

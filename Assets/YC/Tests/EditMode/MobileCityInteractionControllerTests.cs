@@ -220,7 +220,8 @@ namespace YC.Tests.EditMode
             public void RefreshActionPanel() { }
             public void ShowPendingChoice() { }
             public void CompleteMainActionPresentation(string actionName) { }
-            public void ShowBuildFacilityOptions(BuildFacilityOptionsViewModel viewModel) { }
+            public void ShowBuildFacilityDraft(BuildFacilityDraftViewModel viewModel) { }
+            public void HideBuildFacilityDraft() { }
             public void ShowCityStyleOptions(CityStyleOptionsViewModel viewModel) { }
             public void ShowRoutePaymentOptions(
                 string routeId,

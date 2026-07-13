@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using YC.Domain.Cards;
 using YC.Domain.Facilities;
 using YC.Domain.State;
+using YC.Presentation.Workflows;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -379,125 +380,130 @@ namespace YC.Presentation
             }
         }
 
-        public void ShowBuildFacilityOptions(
-            RectTransform canvasTransform,
-            IReadOnlyList<string> facilitySupplyIds,
-            PlayerState player,
-            int cityBoardSlotIndex,
-            Action<string, string> onFacilitySelected,
-            Action onCancel)
+        public void ShowBuildFacilityFocus(RectTransform canvasTransform, BuildFacilityDraftViewModel model)
         {
-            if (canvasTransform == null)
+            if (canvasTransform == null || model == null || model.Facility == null)
             {
                 return;
             }
 
             DestroyOverlay();
-            overlay = CreateOverlay(canvasTransform, "Build Facility Overlay");
-
-            var facilityIds = BuildDistinctFacilityIds(facilitySupplyIds);
-            var rowCount = Math.Max(1, facilityIds.Count);
+            overlay = CreateOverlay(canvasTransform, "Build Facility Focus Overlay");
             var panelRect = CreatePanel(
                 overlay.GetComponent<RectTransform>(),
-                "Build Facility Panel",
-                new Vector2(860f, 132f + rowCount * 58f),
-                new Vector2(0f, -30f));
+                "Build Facility Focus Panel",
+                new Vector2(900f, 590f),
+                new Vector2(0f, -20f));
 
-            CreateText(panelRect, "Title", "建设设施", 22, FontStyle.Bold, UiTheme.GoldText,
-                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 44f), new Vector2(0f, -30f),
-                TextAnchor.MiddleCenter, 18, 22);
+            var facility = model.Facility;
+            var effectiveResourceCost = model.SelectedOption == null
+                ? facility.ResourceCost
+                : model.SelectedOption.EffectiveResourceCost;
+            CreateText(panelRect, "Title", facility.Name, 28, FontStyle.Bold, UiTheme.GoldText,
+                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 54f), new Vector2(0f, -36f),
+                TextAnchor.MiddleCenter, 20, 28);
+            CreateFacilityCardPreview(panelRect, facility.FacilityId);
 
-            CreateText(panelRect, "Slot", "城市面板槽位：" + (cityBoardSlotIndex + 1), 14, FontStyle.Bold, UiTheme.ValueText,
-                new Vector2(0.08f, 1f), new Vector2(0.82f, 1f), new Vector2(0f, 30f), new Vector2(0f, -66f),
-                TextAnchor.MiddleLeft, 12, 14);
+            CreateText(panelRect, "Build Details",
+                "建设位置：第 " + (model.CityBoardSlotIndex + 1) + " 格\n" +
+                "资源费用：" + FormatResourceCost(effectiveResourceCost) + "\n" +
+                "金券费用：" + facility.GoldVoucherCost + "\n" +
+                "获得分数：" + facility.Score + "\n" +
+                "建成效果：" + FormatFacilityEffect(facility),
+                18, FontStyle.Bold, UiTheme.ValueText,
+                new Vector2(0.46f, 1f), new Vector2(0.94f, 1f), new Vector2(0f, 218f), new Vector2(0f, -186f),
+                TextAnchor.UpperLeft, 14, 20);
 
-            var closeButton = CreateButton(
-                panelRect,
-                "Close Build Facility",
-                "X",
-                new Vector2(1f, 1f),
-                new Vector2(1f, 1f),
-                new Vector2(40f, 34f),
-                new Vector2(-28f, -26f),
-                TextAnchor.MiddleCenter,
-                16,
-                12,
-                16);
-            closeButton.onClick.AddListener(() =>
+            var resources = model.SelectedOption == null ? null : model.SelectedOption.ResourcesPayment;
+            var resourceButton = CreateButton(panelRect, "Choose Resource Payment", "资源支付\n" + FormatResourceCost(effectiveResourceCost),
+                new Vector2(0.48f, 1f), new Vector2(0.70f, 1f), new Vector2(0f, 66f), new Vector2(0f, -350f),
+                TextAnchor.MiddleCenter, 16, 12, 18);
+            SetBuildPaymentButtonState(resourceButton, resources != null && resources.IsAvailable);
+            resourceButton.onClick.AddListener(() => model.SelectPayment?.Invoke(BuildFacilityService.PaymentModeResources));
+            CreateText(panelRect, "Resource Payment Reason", resources == null || resources.IsAvailable ? string.Empty : resources.Reason,
+                13, FontStyle.Normal, UiTheme.LabelText,
+                new Vector2(0.47f, 1f), new Vector2(0.71f, 1f), new Vector2(0f, 42f), new Vector2(0f, -405f),
+                TextAnchor.UpperCenter, 11, 13);
+
+            var gold = model.SelectedOption == null ? null : model.SelectedOption.GoldPayment;
+            var goldButton = CreateButton(panelRect, "Choose Gold Payment", "金券支付\n" + facility.GoldVoucherCost,
+                new Vector2(0.72f, 1f), new Vector2(0.94f, 1f), new Vector2(0f, 66f), new Vector2(0f, -350f),
+                TextAnchor.MiddleCenter, 16, 12, 18);
+            SetBuildPaymentButtonState(goldButton, gold != null && gold.IsAvailable);
+            goldButton.onClick.AddListener(() => model.SelectPayment?.Invoke(BuildFacilityService.PaymentModeGold));
+            CreateText(panelRect, "Gold Payment Reason", gold == null || gold.IsAvailable ? string.Empty : gold.Reason,
+                13, FontStyle.Normal, UiTheme.LabelText,
+                new Vector2(0.71f, 1f), new Vector2(0.95f, 1f), new Vector2(0f, 42f), new Vector2(0f, -405f),
+                TextAnchor.UpperCenter, 11, 13);
+
+            var cancelButton = CreateButton(panelRect, "Cancel Build Facility", "× 取消建设",
+                new Vector2(0.62f, 0f), new Vector2(0.84f, 0f), new Vector2(0f, 48f), new Vector2(0f, 38f),
+                TextAnchor.MiddleCenter, 16, 12, 18);
+            cancelButton.onClick.AddListener(() => model.Cancel?.Invoke());
+
+            if (!string.IsNullOrEmpty(model.ErrorMessage))
             {
-                Hide();
-                if (onCancel != null)
-                {
-                    onCancel();
-                }
-            });
+                CreateText(panelRect, "Build Error", model.ErrorMessage, 15, FontStyle.Bold, new Color(1f, 0.45f, 0.32f),
+                    new Vector2(0.46f, 0f), new Vector2(0.96f, 0f), new Vector2(0f, 44f), new Vector2(0f, 92f),
+                    TextAnchor.MiddleCenter, 12, 15);
+            }
+        }
 
-            if (facilityIds.Count <= 0)
+        public void ShowBuildFacilityConfirmation(RectTransform canvasTransform, BuildFacilityDraftViewModel model)
+        {
+            if (canvasTransform == null || model == null || model.Facility == null)
             {
-                CreateText(panelRect, "Empty", "设施供应区为空。", 16, FontStyle.Bold, UiTheme.ValueText,
-                    new Vector2(0.08f, 1f), new Vector2(0.92f, 1f), new Vector2(0f, 42f), new Vector2(0f, -112f),
-                    TextAnchor.MiddleCenter, 12, 16);
                 return;
             }
 
-            for (var i = 0; i < facilityIds.Count; i++)
+            DestroyOverlay();
+            overlay = CreateOverlay(canvasTransform, "Build Facility Confirmation Overlay");
+            var panelRect = CreatePanel(
+                overlay.GetComponent<RectTransform>(),
+                "Build Facility Confirmation Panel",
+                new Vector2(720f, 500f),
+                new Vector2(0f, -20f));
+            var facility = model.Facility;
+            var effectiveResourceCost = model.SelectedOption == null
+                ? facility.ResourceCost
+                : model.SelectedOption.EffectiveResourceCost;
+            var resourcePayment = model.PaymentMode == BuildFacilityService.PaymentModeResources;
+            var paymentLabel = resourcePayment ? "资源" : "金券";
+            var paymentContent = resourcePayment ? FormatResourceCost(effectiveResourceCost) : facility.GoldVoucherCost + " 金券";
+
+            CreateText(panelRect, "Title", "最终确认建设", 26, FontStyle.Bold, UiTheme.GoldText,
+                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, 56f), new Vector2(0f, -38f),
+                TextAnchor.MiddleCenter, 20, 26);
+            CreateText(panelRect, "Summary",
+                "设施：" + facility.Name + "\n" +
+                "建设位置：第 " + (model.CityBoardSlotIndex + 1) + " 格\n" +
+                "支付方式：" + paymentLabel + "\n" +
+                "支付内容：" + paymentContent + "\n" +
+                "获得分数：" + facility.Score + "\n" +
+                "建成效果：" + FormatFacilityEffect(facility),
+                20, FontStyle.Bold, UiTheme.ValueText,
+                new Vector2(0.10f, 1f), new Vector2(0.90f, 1f), new Vector2(0f, 270f), new Vector2(0f, -205f),
+                TextAnchor.UpperLeft, 15, 21);
+
+            if (!string.IsNullOrEmpty(model.ErrorMessage))
             {
-                var facility = FacilityCardDatabase.Get(facilityIds[i]);
-                if (facility == null)
-                {
-                    continue;
-                }
-
-                var rowY = -108f - i * 58f;
-                CreateText(panelRect, "Facility " + i, BuildFacilityLabel(facility), 14, FontStyle.Bold, UiTheme.ValueText,
-                    new Vector2(0.06f, 1f), new Vector2(0.48f, 1f), new Vector2(0f, 44f), new Vector2(0f, rowY),
-                    TextAnchor.MiddleLeft, 11, 14);
-
-                var facilityId = facility.FacilityId;
-                var resourcesButton = CreateButton(
-                    panelRect,
-                    "Pay Resources " + i,
-                    "资源：" + FormatResourceCost(facility.ResourceCost),
-                    new Vector2(0.50f, 1f),
-                    new Vector2(0.72f, 1f),
-                    new Vector2(0f, 38f),
-                    new Vector2(0f, rowY),
-                    TextAnchor.MiddleCenter,
-                    13,
-                    10,
-                    13);
-                SetBuildPaymentButtonState(resourcesButton, player != null && player.Resources.CanPay(facility.ResourceCost));
-                resourcesButton.onClick.AddListener(() =>
-                {
-                    Hide();
-                    if (onFacilitySelected != null)
-                    {
-                        onFacilitySelected(facilityId, BuildFacilityService.PaymentModeResources);
-                    }
-                });
-
-                var goldButton = CreateButton(
-                    panelRect,
-                    "Pay Gold " + i,
-                    "金券：" + facility.GoldVoucherCost,
-                    new Vector2(0.74f, 1f),
-                    new Vector2(0.94f, 1f),
-                    new Vector2(0f, 38f),
-                    new Vector2(0f, rowY),
-                    TextAnchor.MiddleCenter,
-                    13,
-                    10,
-                    13);
-                SetBuildPaymentButtonState(goldButton, player != null && player.Resources.GoldVoucher >= facility.GoldVoucherCost);
-                goldButton.onClick.AddListener(() =>
-                {
-                    Hide();
-                    if (onFacilitySelected != null)
-                    {
-                        onFacilitySelected(facilityId, BuildFacilityService.PaymentModeGold);
-                    }
-                });
+                CreateText(panelRect, "Build Error", model.ErrorMessage, 16, FontStyle.Bold, new Color(1f, 0.45f, 0.32f),
+                    new Vector2(0.10f, 0f), new Vector2(0.90f, 0f), new Vector2(0f, 54f), new Vector2(0f, 128f),
+                    TextAnchor.MiddleCenter, 12, 16);
             }
+
+            var backButton = CreateButton(panelRect, "Back To Build Payment", "返回修改",
+                new Vector2(0.12f, 0f), new Vector2(0.42f, 0f), new Vector2(0f, 54f), new Vector2(0f, 54f),
+                TextAnchor.MiddleCenter, 18, 14, 20);
+            backButton.onClick.AddListener(() => model.Back?.Invoke());
+            var confirmButton = CreateButton(panelRect, "Confirm Build Facility", "确认建设",
+                new Vector2(0.58f, 0f), new Vector2(0.88f, 0f), new Vector2(0f, 54f), new Vector2(0f, 54f),
+                TextAnchor.MiddleCenter, 18, 14, 20);
+            confirmButton.onClick.AddListener(() => model.Confirm?.Invoke());
+            var cancelButton = CreateButton(panelRect, "Cancel Build Facility", "× 取消建设",
+                new Vector2(0.38f, 0f), new Vector2(0.62f, 0f), new Vector2(0f, 40f), new Vector2(0f, 14f),
+                TextAnchor.MiddleCenter, 14, 12, 16);
+            cancelButton.onClick.AddListener(() => model.Cancel?.Invoke());
         }
 
         public void ShowCityStyleOptions(
@@ -603,6 +609,89 @@ namespace YC.Presentation
             }
         }
 
+        public void ShowCharacterSecondEffectDecision(
+            RectTransform canvasTransform,
+            string cardName,
+            string remainingEffectName,
+            Action onContinue,
+            Action onFinish)
+        {
+            if (canvasTransform == null)
+            {
+                return;
+            }
+
+            DestroyOverlay();
+            overlay = CreateOverlay(canvasTransform, "Character Second Effect Overlay");
+            var panel = CreatePanel(
+                overlay.GetComponent<RectTransform>(),
+                "Character Second Effect Dialog",
+                new Vector2(620f, 290f),
+                Vector2.zero);
+            CreateText(
+                panel,
+                "Character Second Effect Title",
+                "是否发动第二个效果？",
+                30,
+                FontStyle.Bold,
+                UiTheme.GoldText,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(540f, 56f),
+                new Vector2(0f, 82f),
+                TextAnchor.MiddleCenter,
+                20,
+                30);
+            CreateText(
+                panel,
+                "Character Second Effect Description",
+                (cardName ?? "角色牌") + "的第一个效果已结算。剩余：" + (remainingEffectName ?? string.Empty),
+                20,
+                FontStyle.Normal,
+                UiTheme.GoldText,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(530f, 70f),
+                new Vector2(0f, 22f),
+                TextAnchor.MiddleCenter,
+                15,
+                20);
+            var continueButton = CreateButton(
+                panel,
+                "Continue Character Second Effect",
+                "发动" + (remainingEffectName ?? "第二效果"),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(230f, 58f),
+                new Vector2(-132f, -78f),
+                TextAnchor.MiddleCenter,
+                20,
+                14,
+                20);
+            continueButton.onClick.AddListener(() =>
+            {
+                Hide();
+                onContinue?.Invoke();
+            });
+            var finishButton = CreateButton(
+                panel,
+                "Finish Character Use",
+                "不发动，结束使用",
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(230f, 58f),
+                new Vector2(132f, -78f),
+                TextAnchor.MiddleCenter,
+                20,
+                14,
+                20);
+            finishButton.onClick.AddListener(() =>
+            {
+                Hide();
+                onFinish?.Invoke();
+            });
+        }
+
         public void Hide()
         {
             DestroyOverlay();
@@ -634,34 +723,66 @@ namespace YC.Presentation
             return overlayObject;
         }
 
-        private static List<string> BuildDistinctFacilityIds(IReadOnlyList<string> facilitySupplyIds)
+        private static void CreateFacilityCardPreview(RectTransform panelRect, string facilityId)
         {
-            var result = new List<string>();
-            if (facilitySupplyIds == null)
+            string relativePath;
+            if (!CardImagePathCatalog.TryGetFacilityImageRelativePath(facilityId, out relativePath))
             {
-                return result;
+                return;
             }
 
-            for (var i = 0; i < facilitySupplyIds.Count; i++)
+            const string marker = "/Resources/";
+            var markerIndex = relativePath.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (markerIndex < 0)
             {
-                var facilityId = facilitySupplyIds[i];
-                if (FacilityCardDatabase.Get(facilityId) != null && !result.Contains(facilityId))
-                {
-                    result.Add(facilityId);
-                }
+                return;
             }
 
-            return result;
+            var resourcePath = relativePath.Substring(markerIndex + marker.Length);
+            var extensionIndex = resourcePath.LastIndexOf('.');
+            if (extensionIndex >= 0)
+            {
+                resourcePath = resourcePath.Substring(0, extensionIndex);
+            }
+
+            var texture = Resources.Load<Texture2D>(resourcePath);
+            if (texture == null)
+            {
+                return;
+            }
+
+            var container = new GameObject("Facility Card Preview", typeof(RectTransform), typeof(Image));
+            container.transform.SetParent(panelRect, false);
+            var containerRect = container.GetComponent<RectTransform>();
+            containerRect.anchorMin = new Vector2(0.05f, 0.08f);
+            containerRect.anchorMax = new Vector2(0.43f, 0.88f);
+            containerRect.offsetMin = Vector2.zero;
+            containerRect.offsetMax = Vector2.zero;
+            container.GetComponent<Image>().color = new Color(0.03f, 0.025f, 0.02f, 0.96f);
+
+            var imageObject = new GameObject("Facility Card Image", typeof(RectTransform), typeof(RawImage), typeof(AspectRatioFitter));
+            imageObject.transform.SetParent(containerRect, false);
+            var imageRect = imageObject.GetComponent<RectTransform>();
+            imageRect.anchorMin = Vector2.zero;
+            imageRect.anchorMax = Vector2.one;
+            imageRect.offsetMin = Vector2.zero;
+            imageRect.offsetMax = Vector2.zero;
+            var rawImage = imageObject.GetComponent<RawImage>();
+            rawImage.texture = texture;
+            rawImage.raycastTarget = false;
+            var fitter = imageObject.GetComponent<AspectRatioFitter>();
+            fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+            fitter.aspectRatio = (float)texture.width / texture.height;
         }
 
-        private static string BuildFacilityLabel(FacilityCardDefinition facility)
+        private static string FormatFacilityEffect(FacilityCardDefinition facility)
         {
             if (facility == null)
             {
-                return string.Empty;
+                return "无";
             }
 
-            return facility.Name + "  分数 " + facility.Score + (facility.Unique ? "  唯一" : string.Empty);
+            return string.IsNullOrEmpty(facility.EffectType) ? "无" : facility.EffectType;
         }
 
         private static string FormatResourceCost(ResourceSet cost)

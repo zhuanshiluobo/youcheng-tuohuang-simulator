@@ -261,6 +261,80 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void BuildFacilitySelection_KeepsDraftLocalAcrossDragEscapeModifyFailureAndCancel()
+        {
+            var state = new GameState
+            {
+                Phase = GamePhase.ActionRound1,
+                CurrentPlayerId = 1,
+                Players =
+                {
+                    new PlayerState
+                    {
+                        PlayerId = 1,
+                        Resources = new ResourceSet { GoldVoucher = 100 }
+                    }
+                },
+                Decks =
+                {
+                    FacilitySupply = { FacilityCardDatabase.TradeDistrict }
+                },
+                Map =
+                {
+                    Facilities =
+                    {
+                        new FacilityPlacement
+                        {
+                            PlayerId = 1,
+                            FacilityCardId = FacilityCardDatabase.CoreCommandTower,
+                            CityBoardSlotIndex = 0
+                        }
+                    }
+                }
+            };
+            var controller = new BuildFacilitySelectionController();
+            controller.Begin(1);
+            Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Selecting));
+
+            string reason;
+            Assert.That(controller.TryBeginDrag(state, FacilityCardDatabase.TradeDistrict, out reason), Is.True, reason);
+            Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Dragging));
+            Assert.That(controller.QueryLegalSlotIndexes(state), Has.None.EqualTo(0));
+            Assert.That(controller.TryDrop(state, 0, out reason), Is.False);
+            Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Selecting));
+            Assert.That(controller.FacilityId, Is.Empty);
+
+            Assert.That(controller.TryBeginDrag(state, FacilityCardDatabase.TradeDistrict, out reason), Is.True, reason);
+            Assert.That(controller.TryDrop(state, 3, out reason), Is.True, reason);
+            Assert.That(controller.CollapseFocusToGhost(), Is.True);
+            Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Ghosted));
+            Assert.That(controller.CityBoardSlotIndex, Is.EqualTo(3));
+
+            Assert.That(controller.TryBeginGhostDrag(out reason), Is.True, reason);
+            Assert.That(controller.TryDrop(state, 0, out reason), Is.False);
+            Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Ghosted));
+            Assert.That(controller.CityBoardSlotIndex, Is.EqualTo(3), "非法重拖应保留旧虚影槽位。");
+            Assert.That(controller.TryBeginGhostDrag(out reason), Is.True, reason);
+            Assert.That(controller.TryDrop(state, 4, out reason), Is.True, reason);
+
+            Assert.That(controller.TrySelectPayment(state, BuildFacilityService.PaymentModeGold, out reason), Is.True, reason);
+            Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Confirming));
+            var command = controller.CreateConfirmationCommand();
+            Assert.That(command.Parameters[BuildFacilityCommandHandler.CityBoardSlotIndexParameter], Is.EqualTo("4"));
+            controller.MarkSubmissionFailed("最终校验失败");
+            Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Confirming));
+            Assert.That(controller.ErrorMessage, Is.EqualTo("最终校验失败"));
+            Assert.That(controller.BackToPayment(), Is.True);
+            Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Focused));
+            Assert.That(controller.PaymentMode, Is.Empty);
+
+            controller.Cancel();
+            Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Inactive));
+            Assert.That(controller.FacilityId, Is.Empty);
+            Assert.That(controller.CityBoardSlotIndex, Is.EqualTo(-1));
+        }
+
+        [Test]
         public void CityStyleSelection_ReportsAvailabilityAndCreatesDeclareCommand()
         {
             var controller = new CityStyleSelectionController();
@@ -353,55 +427,103 @@ namespace YC.Tests.EditMode
                 Assert.That(CountButtonsByNamePrefix(buttons, "BuildSlot_"), Is.EqualTo(6));
                 Assert.That(CountButtonsByNamePrefix(buttons, "城市样式 "), Is.EqualTo(CityStyleDatabase.PresentationSupplyIds.Count));
 
+                Assert.That(FindRectTransformByName(canvasObject, "Build Sidebar Panel"), Is.Not.Null);
                 var boardImage = FindRectTransformByName(canvasObject, "城市面板底图");
                 Assert.That(boardImage, Is.Not.Null);
                 Assert.That(boardImage.rect.height / boardImage.rect.width, Is.EqualTo(3801f / 2059f).Within(0.01f));
                 Assert.That(HasTextContaining(canvasObject, "空位 "), Is.False);
-                Assert.That(GetButtonLabel(FindButtonByName(buttons, "槽位 4")), Is.EqualTo("源石精炼厂"));
+                Assert.That(GetButtonLabel(FindButtonByName(buttons, "槽位 4")), Is.Empty);
                 var coreTowerSlot = FindButtonByName(buttons, "槽位 8");
-                Assert.That(GetButtonLabel(coreTowerSlot), Is.EqualTo("核心指挥塔"));
+                Assert.That(GetButtonLabel(coreTowerSlot), Is.Empty);
                 Assert.That(HasChildRectTransform(coreTowerSlot.gameObject, "设施卡图"), Is.True);
                 AssertCityBoardSlotIsCenteredOnBoard(FindButtonByName(buttons, "槽位 2"), boardImage, 0.502f, 0.162f);
+                AssertFacilityCardImageIsCenteredInSlot(coreTowerSlot);
                 AssertExternalCardRect(FindButtonByName(buttons, "BuildSlot_1"), new Vector2(99f, 141f), new Vector2(6f, -6f));
                 AssertExternalCardRect(FindButtonByName(buttons, "BuildSlot_6"), new Vector2(99f, 141f), new Vector2(254f, -169f));
                 AssertExternalCardRect(FindButtonByName(buttons, "城市样式 1"), new Vector2(143f, 91f), new Vector2(20f, -6f));
                 AssertExternalCardRect(FindButtonByName(buttons, "城市样式 6"), new Vector2(143f, 91f), new Vector2(203f, -228f));
 
                 Assert.That(HasText(canvasObject, "剩余牌堆：1"), Is.False);
-                Assert.That(HasTextContaining(canvasObject, "玩家一：源石工业中枢"), Is.True);
-                Assert.That(HasTextContaining(canvasObject, "玩家二：暂无宣告"), Is.True);
+                Assert.That(HasTextContaining(canvasObject, "玩家一：源石工业中枢"), Is.False);
+                Assert.That(HasTextContaining(canvasObject, "玩家二：暂无宣告"), Is.False);
+                Assert.That(HasTextContaining(canvasObject, "当前选择"), Is.False);
                 Assert.That(AllTextRenderersAreMaskable(canvasObject), Is.True);
 
-                InvokeButtonByName(buttons, "Toggle Button");
-                InvokeButtonByName(buttons, "槽位 12");
-                InvokeButtonByName(buttons, "BuildSlot_1");
+                var buildPanelScroll = canvasObject.GetComponentInChildren<ScrollRect>(true);
+                Assert.That(buildPanelScroll, Is.Null);
+
+                var cancelBuildCount = 0;
+                type.GetMethod("SetBuildInteraction").Invoke(panel, new object[]
+                {
+                    true,
+                    new[] { FacilityCardDatabase.TradeDistrict },
+                    new[] { 11 },
+                    FacilityCardDatabase.TradeDistrict
+                });
+                type.GetMethod("SetPendingBuildGhost").Invoke(panel, new object[]
+                {
+                    true,
+                    FacilityCardDatabase.TradeDistrict,
+                    11,
+                    new Action(() => { }),
+                    new Action<int>(_ => { }),
+                    new Action(() => cancelBuildCount++)
+                });
+                Assert.That(FindRectTransformByName(canvasObject, "本地建设虚影"), Is.Not.Null);
+                var cancelBuildButton = FindButtonByName(canvasObject.GetComponentsInChildren<Button>(true), "取消建设");
+                Assert.That(cancelBuildButton, Is.Not.Null);
+                cancelBuildButton.onClick.Invoke();
+                Assert.That(cancelBuildCount, Is.EqualTo(1));
+                Assert.That(FindButtonByName(buttons, "槽位 12").GetComponent<Image>().color.a, Is.GreaterThan(0f));
+                Assert.That(
+                    FindButtonByName(buttons, "BuildSlot_2").GetComponentInChildren<RawImage>(true).color.a,
+                    Is.LessThan(1f),
+                    "建设模式中不可建设的公共牌应置灰但仍可单击预览。");
+                type.GetMethod("SetPendingBuildGhost").Invoke(panel, new object[]
+                {
+                    false, string.Empty, -1, null, null, null
+                });
+                type.GetMethod("SetBuildInteraction").Invoke(panel, new object[]
+                {
+                    false, null, null, string.Empty
+                });
+
+                InvokeButtonByName(buttons, "槽位 8");
+                Assert.That(clickedSlotIndex, Is.EqualTo(-1), "已建造槽位不应触发槽位选择。");
                 AssertCardImageViewerIsClosed();
-                DoubleClickButtonByName(buttons, "BuildSlot_1");
+                DoubleClickButtonByName(buttons, "槽位 8");
                 AssertCardImageViewerIsOpen();
                 CloseCardImageViewer();
+                InvokeButtonByName(buttons, "槽位 12");
+                Assert.That(clickedSlotIndex, Is.EqualTo(-1), "普通空槽单击不应触发建设选择。");
+                InvokeButtonByName(buttons, "BuildSlot_1");
+                AssertCardImageViewerIsOpen();
+                CloseCardImageViewer();
+                DoubleClickButtonByName(buttons, "BuildSlot_1");
+                AssertCardImageViewerIsClosed();
                 InvokeButtonByName(buttons, "城市样式 1");
                 AssertCardImageViewerIsClosed();
                 DoubleClickButtonByName(buttons, "城市样式 1");
                 AssertCardImageViewerIsOpen();
                 CloseCardImageViewer();
-                AssertExternalCardSelected(FindButtonByName(buttons, "BuildSlot_1"));
+                AssertExternalCardNotSelected(FindButtonByName(buttons, "BuildSlot_1"));
                 AssertExternalCardNotSelected(FindButtonByName(buttons, "BuildSlot_2"));
                 AssertExternalCardSelected(FindButtonByName(buttons, "城市样式 1"));
                 AssertExternalCardNotSelected(FindButtonByName(buttons, "城市样式 2"));
 
-                Assert.That(clickedSlotIndex, Is.EqualTo(11));
-                Assert.That(clickedFacilityId, Is.EqualTo(FacilityCardDatabase.TradeDistrict));
+                Assert.That(clickedSlotIndex, Is.EqualTo(-1));
+                Assert.That(clickedFacilityId, Is.Empty);
                 Assert.That(clickedCityStyleId, Is.EqualTo(CityStyleDatabase.MilitaryIndustrialArea));
 
                 InvokeButtonByName(buttons, "BuildSlot_1");
                 AssertExternalCardNotSelected(FindButtonByName(buttons, "BuildSlot_1"));
                 Assert.That(clickedFacilityId, Is.Empty);
-                Assert.That(HasText(canvasObject, "已取消设施选择。"), Is.True);
+                AssertCardImageViewerIsOpen();
+                CloseCardImageViewer();
 
                 InvokeButtonByName(buttons, "城市样式 1");
                 AssertExternalCardNotSelected(FindButtonByName(buttons, "城市样式 1"));
                 Assert.That(clickedCityStyleId, Is.Empty);
-                Assert.That(HasText(canvasObject, "已取消城市样式选择。"), Is.True);
 
                 var firstBuildSlot = FindButtonByName(buttons, "BuildSlot_1");
                 state.Decks.FacilitySupply.RemoveAt(state.Decks.FacilitySupply.Count - 1);
@@ -411,6 +533,107 @@ namespace YC.Tests.EditMode
                 Assert.That(FindButtonByName(refreshedButtons, "BuildSlot_1"), Is.SameAs(firstBuildSlot));
                 Assert.That(FindButtonByName(refreshedButtons, "BuildSlot_6").interactable, Is.False);
                 Assert.That(GetButtonLabel(FindButtonByName(refreshedButtons, "BuildSlot_6")), Is.EqualTo("空卡位"));
+            }
+            finally
+            {
+                if (canvasObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(canvasObject);
+                }
+
+                UnityEngine.Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void BuildInfoPanel_BuildInteractionDragsPublicCardHighlightsLegalEmptySlotsAndKeepsSharedState()
+        {
+            var owner = new GameObject("Build Info Panel Drag Test");
+            GameObject canvasObject = null;
+            try
+            {
+                var type = Type.GetType("YC.Presentation.BuildInfoPanel, Assembly-CSharp", false);
+                Assert.That(type, Is.Not.Null);
+                var panel = owner.AddComponent(type);
+                var state = CreateBuildInfoPanelState();
+                var originalSupply = state.Decks.FacilitySupply.ToArray();
+                var originalPlacements = state.Map.Facilities.Count;
+                var originalScore = state.FindPlayer(1).Score;
+                var startedFacilityId = string.Empty;
+                var droppedFacilityId = string.Empty;
+                var droppedSlotIndex = int.MinValue;
+
+                type.GetEvent("FacilityDragStarted").AddEventHandler(
+                    panel,
+                    new Action<string>(id => startedFacilityId = id));
+                type.GetEvent("FacilityDropped").AddEventHandler(
+                    panel,
+                    new Action<string, int>((id, slotIndex) =>
+                    {
+                        droppedFacilityId = id;
+                        droppedSlotIndex = slotIndex;
+                    }));
+                type.GetMethod("Initialize").Invoke(panel, new object[] { owner.transform });
+                type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
+
+                canvasObject = GameObject.Find("Build Info Panel Canvas");
+                Assert.That(canvasObject, Is.Not.Null);
+                var buttons = canvasObject.GetComponentsInChildren<Button>(true);
+                var sourceButton = FindButtonByName(buttons, "BuildSlot_1");
+                var nonDraggableButton = FindButtonByName(buttons, "BuildSlot_2");
+                var legalEmptySlot = FindButtonByName(buttons, "槽位 12");
+                var illegalEmptySlot = FindButtonByName(buttons, "槽位 11");
+                var occupiedSlot = FindButtonByName(buttons, "槽位 8");
+
+                ExecuteDrag(sourceButton, null);
+                Assert.That(startedFacilityId, Is.Empty, "未激活建设交互时不得开始拖动。");
+                Assert.That(droppedSlotIndex, Is.EqualTo(int.MinValue));
+
+                type.GetMethod("SetBuildInteraction").Invoke(
+                    panel,
+                    new object[]
+                    {
+                        true,
+                        new[] { FacilityCardDatabase.TradeDistrict },
+                        new[] { 11, 7 },
+                        FacilityCardDatabase.TradeDistrict
+                    });
+
+                AssertExternalCardSelected(sourceButton);
+                Assert.That(legalEmptySlot.GetComponent<Image>().color.a, Is.GreaterThan(0f));
+                Assert.That(illegalEmptySlot.GetComponent<Image>().color.a, Is.EqualTo(0f).Within(0.001f));
+                Assert.That(
+                    occupiedSlot.GetComponent<Outline>().effectColor,
+                    Is.Not.EqualTo(legalEmptySlot.GetComponent<Outline>().effectColor),
+                    "已占用槽即使出现在合法索引集合中也不应高亮。");
+
+                ExecuteDrag(nonDraggableButton, legalEmptySlot.gameObject);
+                Assert.That(startedFacilityId, Is.Empty, "不在可拖设施集合中的公共牌不得开始拖动。");
+                Assert.That(droppedSlotIndex, Is.EqualTo(int.MinValue));
+
+                ExecuteDrag(sourceButton, legalEmptySlot.gameObject);
+                Assert.That(startedFacilityId, Is.EqualTo(FacilityCardDatabase.TradeDistrict));
+                Assert.That(droppedFacilityId, Is.EqualTo(FacilityCardDatabase.TradeDistrict));
+                Assert.That(droppedSlotIndex, Is.EqualTo(11));
+                Assert.That(GameObject.Find("建设卡拖动虚影"), Is.Null);
+                Assert.That(FindButtonByName(canvasObject.GetComponentsInChildren<Button>(true), "BuildSlot_1"), Is.SameAs(sourceButton));
+
+                droppedSlotIndex = int.MinValue;
+                ExecuteDrag(sourceButton, null);
+                Assert.That(droppedSlotIndex, Is.EqualTo(-1));
+
+                Assert.That(state.Decks.FacilitySupply, Is.EqualTo(originalSupply));
+                Assert.That(state.Map.Facilities, Has.Count.EqualTo(originalPlacements));
+                Assert.That(state.FindPlayer(1).Score, Is.EqualTo(originalScore));
+                Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+
+                type.GetMethod("SetBuildInteraction").Invoke(
+                    panel,
+                    new object[] { false, null, null, string.Empty });
+                Assert.That(legalEmptySlot.GetComponent<Image>().color.a, Is.EqualTo(0f).Within(0.001f));
+                startedFacilityId = string.Empty;
+                ExecuteDrag(sourceButton, legalEmptySlot.gameObject);
+                Assert.That(startedFacilityId, Is.Empty);
             }
             finally
             {
@@ -692,6 +915,37 @@ namespace YC.Tests.EditMode
                 "Missing double-click handler: " + name);
         }
 
+        private static void ExecuteDrag(Button sourceButton, GameObject dropTarget)
+        {
+            Assert.That(sourceButton, Is.Not.Null);
+            var pointerPosition = dropTarget == null
+                ? new Vector2(-10000f, -10000f)
+                : RectTransformUtility.WorldToScreenPoint(null, dropTarget.transform.position);
+            var pointer = new PointerEventData(EventSystem.current)
+            {
+                position = pointerPosition,
+                pointerCurrentRaycast = new RaycastResult { gameObject = dropTarget }
+            };
+
+            Assert.That(
+                ExecuteEvents.Execute(sourceButton.gameObject, pointer, ExecuteEvents.beginDragHandler),
+                Is.True,
+                "Missing begin-drag handler: " + sourceButton.name);
+            ExecuteEvents.Execute(sourceButton.gameObject, pointer, ExecuteEvents.dragHandler);
+
+            var ghost = GameObject.Find("建设卡拖动虚影");
+            if (ghost != null)
+            {
+                Assert.That(ghost.GetComponent<RawImage>().raycastTarget, Is.False);
+                Assert.That(ghost.GetComponent<CanvasGroup>().blocksRaycasts, Is.False);
+            }
+
+            Assert.That(
+                ExecuteEvents.Execute(sourceButton.gameObject, pointer, ExecuteEvents.endDragHandler),
+                Is.True,
+                "Missing end-drag handler: " + sourceButton.name);
+        }
+
         private static Button FindButtonByName(Button[] buttons, string name)
         {
             for (var i = 0; i < buttons.Length; i++)
@@ -719,8 +973,23 @@ namespace YC.Tests.EditMode
             Assert.That(boardImage, Is.Not.Null);
             var rect = button.GetComponent<RectTransform>();
             Assert.That(rect.parent, Is.EqualTo(boardImage));
-            Assert.That(rect.anchoredPosition.x, Is.EqualTo((normalizedX - 0.5f) * boardImage.rect.width).Within(0.5f));
-            Assert.That(rect.anchoredPosition.y, Is.EqualTo((0.5f - normalizedY) * boardImage.rect.height).Within(0.5f));
+            var anchorCenter = (rect.anchorMin + rect.anchorMax) * 0.5f;
+            Assert.That(anchorCenter.x, Is.EqualTo(normalizedX).Within(0.001f));
+            Assert.That(anchorCenter.y, Is.EqualTo(1f - normalizedY).Within(0.001f));
+            Assert.That(rect.offsetMin, Is.EqualTo(Vector2.zero));
+            Assert.That(rect.offsetMax, Is.EqualTo(Vector2.zero));
+        }
+
+        private static void AssertFacilityCardImageIsCenteredInSlot(Button button)
+        {
+            Assert.That(button, Is.Not.Null);
+            var imageRect = FindRectTransformByName(button.gameObject, "设施卡图");
+            Assert.That(imageRect, Is.Not.Null);
+            Assert.That(imageRect.anchorMin, Is.EqualTo(Vector2.zero));
+            Assert.That(imageRect.anchorMax, Is.EqualTo(Vector2.one));
+            Assert.That(imageRect.offsetMin, Is.EqualTo(Vector2.zero));
+            Assert.That(imageRect.offsetMax, Is.EqualTo(Vector2.zero));
+            Assert.That(imageRect.GetComponent<AspectRatioFitter>(), Is.Null);
         }
 
         private static string GetButtonLabel(Button button)

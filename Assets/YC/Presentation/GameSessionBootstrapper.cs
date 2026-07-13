@@ -62,11 +62,12 @@ namespace YC.Presentation
                 EventCardDatabase.YellowCardIds,
                 EventCardDatabase.RedCardIds);
 
+            var resourceTokenService = new ResourceTokenService();
             var session = new GameSession(state);
             session.RegisterHandler(new SetupCommandHandler(
                 mapQuery,
                 eventDeckService,
-                new ResourceTokenService(),
+                resourceTokenService,
                 new TurnOrderService()));
             session.RegisterHandler(new EndActionCommandHandler(
                 new RoundAdvanceService(),
@@ -82,17 +83,34 @@ namespace YC.Presentation
                 influenceService,
                 travelCostService,
                 eventDeckService,
-                new ResourceTokenService());
+                resourceTokenService);
             session.RegisterHandler(new MoveCityCommandHandler(movementService));
 
             var explorationService = new ExplorationService(
                 mapQuery,
                 influenceService,
                 eventDeckService,
-                new ResourceTokenService());
+                resourceTokenService);
             session.RegisterHandler(new ExploreLocationCommandHandler(explorationService));
-            session.RegisterHandler(new BuildFacilityCommandHandler(new BuildFacilityService(), new RoundAdvanceService()));
+            var availabilityService = new FacilityEntryEffectAvailabilityService(
+                mapQuery,
+                influenceService,
+                movementService,
+                explorationService);
+            var entryEffectService = new FacilityEntryEffectService(availabilityService);
+            var buildFacilityService = new BuildFacilityService(
+                new FacilityEntryEffectResolver(entryEffectService));
+            session.RegisterHandler(new BuildFacilityCommandHandler(buildFacilityService, new RoundAdvanceService()));
+            session.RegisterHandler(new ResolveFacilityEffectCommandHandler(
+                buildFacilityService,
+                entryEffectService,
+                influenceService,
+                movementService,
+                explorationService,
+                mapQuery));
             session.RegisterHandler(new DeclareCityStyleCommandHandler(new DeclareCityStyleService()));
+            session.RegisterHandler(new CoverCharacterCardCommandHandler());
+            session.RegisterHandler(new UseCharacterCardCommandHandler());
             var resourceCollectionService = new ResourceCollectionService(mapQuery);
             session.RegisterHandler(new CollectResourceCommandHandler(resourceCollectionService));
 

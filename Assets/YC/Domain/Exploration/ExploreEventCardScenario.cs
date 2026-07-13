@@ -14,6 +14,7 @@ namespace YC.Domain.Exploration
         public const string InfluenceSlotIdArgument = "influenceSlotId";
         public const string EventInfluenceSlotIdsArgument = "eventInfluenceSlotIds";
         public const string PaymentRecipientsArgument = "paymentRecipients";
+        public const string AllowFacilityEntryArgument = "allowFacilityEntry";
 
         private readonly ExplorationService explorationService;
 
@@ -49,7 +50,11 @@ namespace YC.Domain.Exploration
                 CardFlowArgumentUtility.GetValue(request.Arguments, InfluenceSlotIdArgument),
                 DecodePaymentRecipients(request.Arguments),
                 null,
-                false);
+                false,
+                string.Equals(
+                    CardFlowArgumentUtility.GetValue(request.Arguments, AllowFacilityEntryArgument),
+                    bool.TrueString,
+                    System.StringComparison.OrdinalIgnoreCase));
         }
 
         public ValidationResult OnCardRevealed(GameState state, CardFlowContext context, EventCardDefinition card)

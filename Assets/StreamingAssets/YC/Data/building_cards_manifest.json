@@ -13,6 +13,98 @@
     "extensionHubs": 3,
     "skippedEnterpriseOffices": 3
   },
+  "effectContracts": {
+    "城邦行政区": {
+      "effectId": "unique_only",
+      "hasEntryEffect": false,
+      "keywords": ["unique"]
+    },
+    "附属能源设施": {
+      "effectId": "copy_adjacent_entry_effect",
+      "hasEntryEffect": true,
+      "keywords": ["entry", "unique"]
+    },
+    "联邦理事处": {
+      "effectId": "claim_start_marker_at_cleanup",
+      "hasEntryEffect": true,
+      "keywords": ["entry", "unique"]
+    },
+    "简陋工程营": {
+      "effectId": "build_additional_facility",
+      "hasEntryEffect": true,
+      "keywords": ["entry", "unique"]
+    },
+    "物流枢纽": {
+      "effectId": "build_extension_hub",
+      "hasEntryEffect": true,
+      "keywords": ["entry", "unique"]
+    },
+    "源石精炼厂": {
+      "effectId": "gain_originium_shard_6",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "城市化区域": {
+      "effectId": "gain_gold_per_core_adjacent_facility",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "异铁冶炼厂": {
+      "effectId": "gain_iron_4",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "贸易街区": {
+      "effectId": "sell_resources",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "城邦工业区": {
+      "effectId": "discount_originium_by_facility_color",
+      "hasEntryEffect": false,
+      "keywords": []
+    },
+    "高性能动力设施": {
+      "effectId": "free_city_move_and_deploy_route_influence",
+      "hasEntryEffect": true,
+      "keywords": ["entry", "free"]
+    },
+    "固源岩提纯厂": {
+      "effectId": "gain_originium_7",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "开采电铲": {
+      "effectId": "choose_five_basic_resources",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "佣兵指挥部": {
+      "effectId": "replace_one_influence",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "护航调度中心": {
+      "effectId": "deploy_two_influences",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "载具仓库": {
+      "effectId": "remove_then_dispatch_or_explore",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "核心指挥塔": {
+      "effectId": "setup_core_command_tower",
+      "hasEntryEffect": false,
+      "keywords": ["unique"]
+    },
+    "延伸枢纽": {
+      "effectId": "reserve_extension_hub",
+      "hasEntryEffect": false,
+      "keywords": []
+    }
+  },
   "buildingCards": [
     {
       "id": "building_001",
@@ -191,7 +283,7 @@
       },
       "goldVoucherCost": 8,
       "description": "“我们提供高规格的防护，有效的抑制剂，并维护工人的个人利益。”",
-      "effect": "唯一；牌面为吊车/建设类图标效果，待按正式规则术语校准。",
+      "effect": "唯一；入场时，执行 1 次建设（仍需支付建设费用）。",
       "effectRaw": "唯一 + 吊车图标。"
     },
     {
@@ -209,7 +301,7 @@
       },
       "goldVoucherCost": 8,
       "description": "“我们提供高规格的防护，有效的抑制剂，并维护工人的个人利益。”",
-      "effect": "唯一；牌面为吊车/建设类图标效果，待按正式规则术语校准。",
+      "effect": "唯一；入场时，执行 1 次建设（仍需支付建设费用）。",
       "effectRaw": "唯一 + 吊车图标。"
     },
     {
@@ -613,8 +705,8 @@
       },
       "goldVoucherCost": 18,
       "description": "“放心，把活儿交给专业的人。”",
-      "effect": "触发牌面所示二选一企业等级图标效果：红色上升图标或绿色下降图标。",
-      "effectRaw": "红色上升企业图标 或 绿色下降企业图标。"
+      "effect": "入场时，替换 1 个影响力。",
+      "effectRaw": "替换 1 个影响力。"
     },
     {
       "id": "building_035",
@@ -632,8 +724,8 @@
       },
       "goldVoucherCost": 18,
       "description": "“放心，把活儿交给专业的人。”",
-      "effect": "触发牌面所示二选一企业等级图标效果：红色上升图标或绿色下降图标。",
-      "effectRaw": "红色上升企业图标 或 绿色下降企业图标。"
+      "effect": "入场时，替换 1 个影响力。",
+      "effectRaw": "替换 1 个影响力。"
     },
     {
       "id": "building_036",
@@ -651,8 +743,8 @@
       },
       "goldVoucherCost": 18,
       "description": "“放心，把活儿交给专业的人。”",
-      "effect": "触发牌面所示二选一企业等级图标效果：红色上升图标或绿色下降图标。",
-      "effectRaw": "红色上升企业图标 或 绿色下降企业图标。"
+      "effect": "入场时，替换 1 个影响力。",
+      "effectRaw": "替换 1 个影响力。"
     },
     {
       "id": "building_037",
@@ -670,8 +762,8 @@
       },
       "goldVoucherCost": 18,
       "description": "“虽不及高多汀开拓军的前人来得谨慎，但这些新人拓荒者们勇气尚可。”",
-      "effect": "触发牌面所示两个绿色下降企业等级图标效果。",
-      "effectRaw": "绿色下降企业图标 x2。"
+      "effect": "入场时，部署 2 个影响力。",
+      "effectRaw": "部署 2 个影响力。"
     },
     {
       "id": "building_038",
@@ -689,8 +781,8 @@
       },
       "goldVoucherCost": 18,
       "description": "“虽不及高多汀开拓军的前人来得谨慎，但这些新人拓荒者们勇气尚可。”",
-      "effect": "触发牌面所示两个绿色下降企业等级图标效果。",
-      "effectRaw": "绿色下降企业图标 x2。"
+      "effect": "入场时，部署 2 个影响力。",
+      "effectRaw": "部署 2 个影响力。"
     },
     {
       "id": "building_039",
@@ -707,8 +799,8 @@
       },
       "goldVoucherCost": 9,
       "description": "从矿区回收的探索车辆正在进行细致的清洗，等待它的下一任主人。",
-      "effect": "触发红色上升企业图标、蓝色右向企业图标，或执行 1 次探索。",
-      "effectRaw": "红色上升企业图标 + 蓝色右向企业图标，或执行 1 次探索。"
+      "effect": "入场时，移除 1 个影响力，然后调度 1 次；或者执行 1 次探索。",
+      "effectRaw": "移除 1 个影响力 + 调度 1 次，或执行 1 次探索。"
     },
     {
       "id": "building_040",
@@ -725,8 +817,8 @@
       },
       "goldVoucherCost": 9,
       "description": "从矿区回收的探索车辆正在进行细致的清洗，等待它的下一任主人。",
-      "effect": "触发红色上升企业图标、蓝色右向企业图标，或执行 1 次探索。",
-      "effectRaw": "红色上升企业图标 + 蓝色右向企业图标，或执行 1 次探索。"
+      "effect": "入场时，移除 1 个影响力，然后调度 1 次；或者执行 1 次探索。",
+      "effectRaw": "移除 1 个影响力 + 调度 1 次，或执行 1 次探索。"
     },
     {
       "id": "building_041",
@@ -743,8 +835,8 @@
       },
       "goldVoucherCost": 9,
       "description": "从矿区回收的探索车辆正在进行细致的清洗，等待它的下一任主人。",
-      "effect": "触发红色上升企业图标、蓝色右向企业图标，或执行 1 次探索。",
-      "effectRaw": "红色上升企业图标 + 蓝色右向企业图标，或执行 1 次探索。"
+      "effect": "入场时，移除 1 个影响力，然后调度 1 次；或者执行 1 次探索。",
+      "effectRaw": "移除 1 个影响力 + 调度 1 次，或执行 1 次探索。"
     }
   ],
   "reserveCards": [
@@ -827,7 +919,7 @@
   ],
   "notes": [
     "resourceCost 表示牌面 or 上方的资源/混合成本；goldVoucherCost 表示 or 下方的纯金券成本。",
-    "红色设施的企业图标效果按截图可见符号转写，正式术语仍建议结合规则书复核。",
+    "红色设施的影响力图标已按部署、调度、移除术语复核，不属于企业等级效果。",
     "3 张企业办事处按用户要求暂不记录。"
   ]
 }

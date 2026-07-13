@@ -73,8 +73,15 @@ namespace YC.Presentation
 
         public void HandleEscapePressed()
         {
-            if (ZoomableImageViewerController.WasEscapeConsumedThisFrame() ||
+            if (MobileCityInteractionController.WasBuildEscapeConsumedThisFrame() ||
+                ZoomableImageViewerController.WasEscapeConsumedThisFrame() ||
                 ZoomableImageViewerController.HasOpenViewer())
+            {
+                return;
+            }
+
+            var cityController = FindObjectOfType<MobileCityInteractionController>();
+            if (cityController != null && cityController.TryHandleBuildFacilityEscape())
             {
                 return;
             }
@@ -630,6 +637,7 @@ namespace YC.Presentation
 
         private void ReturnToStartScene()
         {
+            GameLaunchContext.ShutdownOnlineSession();
             SceneManager.LoadScene(string.IsNullOrEmpty(startSceneName) ? DefaultStartSceneName : startSceneName);
         }
 
