@@ -4,7 +4,6 @@ using YC.Application.DevTools;
 using YC.Application.Sessions;
 using YC.Domain.Rules;
 using YC.Infrastructure.Multiplayer;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -24,7 +23,8 @@ namespace YC.Presentation
         [SerializeField] private string mapSceneName = "SampleScene";
         [SerializeField] private Texture2D coverTexture;
 
-        private readonly UnityOfficialRoomService roomService = new UnityOfficialRoomService();
+        private IOnlineRoomService roomService;
+        private LobbyJoinRequestFlow lobbyJoinRequestFlow;
         private readonly object networkEventLock = new object();
         private RectTransform coverFrame;
         private GameObject roomPanel;
@@ -34,6 +34,7 @@ namespace YC.Presentation
         private RoomState pendingGameStart;
         private string pendingNetworkError;
         private bool pendingRoomDisbanded;
+        private bool pendingLobbyJoinRequested;
         private int selectedRoomPlayerCount = 4;
         private bool loadingGame;
         private bool joiningRoom;
@@ -41,6 +42,8 @@ namespace YC.Presentation
         private void Awake()
         {
             UnityEngine.Application.runInBackground = true;
+            roomService = OnlineRoomServiceProvider.GetOrCreate();
+            lobbyJoinRequestFlow = new LobbyJoinRequestFlow(roomService);
             if (TryRunDevCommandLineTask())
             {
                 return;
@@ -56,7 +59,10 @@ namespace YC.Presentation
             roomService.GameStarted += QueueGameStart;
             roomService.RoomDisbanded += QueueRoomDisbanded;
             roomService.ErrorOccurred += QueueNetworkError;
+            roomService.LobbyJoinRequested += QueueLobbyJoinRequested;
+            roomService.Shutdown();
             BuildMenu();
+            ProcessPendingLobbyJoinRequest();
         }
 
         private static bool ShouldStartLocalhostFromCommandLine()
@@ -147,6 +153,7 @@ namespace YC.Presentation
             RoomState gameStart = null;
             string networkError = null;
             var roomDisbanded = false;
+            var lobbyJoinRequested = false;
 
             lock (networkEventLock)
             {
@@ -154,10 +161,12 @@ namespace YC.Presentation
                 gameStart = pendingGameStart;
                 networkError = pendingNetworkError;
                 roomDisbanded = pendingRoomDisbanded;
+                lobbyJoinRequested = pendingLobbyJoinRequested;
                 pendingRoomUpdate = null;
                 pendingGameStart = null;
                 pendingNetworkError = null;
                 pendingRoomDisbanded = false;
+                pendingLobbyJoinRequested = false;
             }
 
             if (roomUpdate != null)
@@ -183,19 +192,31 @@ namespace YC.Presentation
             {
                 StartRoomGame(gameStart);
             }
+
+            if (lobbyJoinRequested || roomService.HasPendingLobbyJoinRequest)
+            {
+                ProcessPendingLobbyJoinRequest();
+            }
         }
 
         private void OnDestroy()
         {
+            if (roomService == null) return;
             roomService.RoomUpdated -= QueueRoomUpdate;
             roomService.GameStarted -= QueueGameStart;
             roomService.RoomDisbanded -= QueueRoomDisbanded;
             roomService.ErrorOccurred -= QueueNetworkError;
+            roomService.LobbyJoinRequested -= QueueLobbyJoinRequested;
 
             if (!loadingGame)
             {
-                roomService.Dispose();
+                roomService.Shutdown();
             }
+        }
+
+        private void OnApplicationQuit()
+        {
+            OnlineRoomServiceProvider.DisposeActive();
         }
 
         public void StartGame()
@@ -207,6 +228,10 @@ namespace YC.Presentation
                     PlayerId = 1,
                     PlayerName = "Player 1",
                     Color = PlayerColor.Blue,
+                    LobbyMemberPresent = true,
+                    TransportConnected = true,
+                    IdentityVerified = true,
+                    GameStateSynchronized = true,
                     IsReady = true
                 }
             };
@@ -223,17 +248,20 @@ namespace YC.Presentation
             }
 
             joiningRoom = true;
-            ShowRoomProgressPanel("创建房间", "正在初始化 Unity Lobby / Relay...");
+            ShowRoomProgressPanel(
+                "创建房间",
+                LocalMirrorTestMode.IsEnabled ? "正在创建 Mirror 本地测试房间..." : "正在初始化 Steam Lobby / P2P...");
 
             try
             {
-                var room = await roomService.CreateRoomAsync("Player 1", selectedRoomPlayerCount);
+                var room = await roomService.CreateRoomAsync(
+                    LocalMirrorTestMode.IsEnabled ? LocalMirrorTestMode.PlayerName : "Player 1",
+                    selectedRoomPlayerCount);
                 joiningRoom = false;
                 ShowRoomPanel(room, true);
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogException(ex);
                 joiningRoom = false;
                 SetRoomStatus("创建房间失败：" + ex.Message);
             }
@@ -542,7 +570,12 @@ namespace YC.Presentation
             var rect = roomPanel.GetComponent<RectTransform>();
 
             CreatePanelText(rect, "加入房间", 28, new Vector2(0f, 105f), FontStyle.Bold);
-            CreatePanelText(rect, "输入房主显示的 Lobby 房间码", 18, new Vector2(0f, 62f), FontStyle.Normal);
+            CreatePanelText(
+                rect,
+                LocalMirrorTestMode.IsEnabled ? "输入房主显示的本地地址（IP:端口）" : "输入房主显示的 Lobby 房间码",
+                18,
+                new Vector2(0f, 62f),
+                FontStyle.Normal);
 
             var inputObject = new GameObject("Room Code Input", typeof(RectTransform), typeof(Image), typeof(InputField), typeof(Outline));
             inputObject.transform.SetParent(rect, false);
@@ -579,7 +612,7 @@ namespace YC.Presentation
             placeholderRect.offsetMax = new Vector2(-12f, 0f);
 
             var placeholder = placeholderObject.GetComponent<Text>();
-            placeholder.text = "例如 AB12CD";
+            placeholder.text = LocalMirrorTestMode.IsEnabled ? "例如 127.0.0.1:7780" : "请输入 Steam Lobby ID";
             placeholder.alignment = TextAnchor.MiddleLeft;
             placeholder.color = new Color(0.55f, 0.48f, 0.36f, 0.9f);
             placeholder.fontSize = 20;
@@ -612,20 +645,66 @@ namespace YC.Presentation
 
             var roomCode = joinRoomInput.text.Trim();
             joiningRoom = true;
-            SetRoomStatus("正在通过 Unity Lobby / Relay 加入房间...");
+            SetRoomStatus(LocalMirrorTestMode.IsEnabled
+                ? "正在连接 Mirror 本地测试房间..."
+                : "正在通过 Steam Lobby / P2P 加入房间...");
 
             try
             {
-                var room = await roomService.JoinRoomAsync(roomCode, "Player 2");
+                var room = await roomService.JoinRoomAsync(
+                    roomCode,
+                    LocalMirrorTestMode.IsEnabled ? LocalMirrorTestMode.PlayerName : "Player 2");
                 joiningRoom = false;
                 ShowRoomPanel(room, false);
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogException(ex);
                 joiningRoom = false;
                 SetRoomStatus("加入房间失败：" + ex.Message);
             }
+        }
+
+        private async void ProcessPendingLobbyJoinRequest()
+        {
+            if (roomService == null ||
+                lobbyJoinRequestFlow == null ||
+                !roomService.HasPendingLobbyJoinRequest)
+            {
+                return;
+            }
+
+            var defer = loadingGame || joiningRoom;
+            if (defer)
+            {
+                await lobbyJoinRequestFlow.ProcessPendingAsync(true, "Player 2");
+                return;
+            }
+
+            joiningRoom = true;
+            ShowRoomProgressPanel("加入受邀房间", "正在通过 Steam Lobby / P2P 加入受邀房间...");
+            var result = await lobbyJoinRequestFlow.ProcessPendingAsync(false, "Player 2");
+            if (this == null) return;
+            joiningRoom = false;
+
+            switch (result.Status)
+            {
+                case LobbyJoinRequestStatus.Joined:
+                case LobbyJoinRequestStatus.AlreadyInRoom:
+                    ShowRoomPanel(
+                        result.Room,
+                        result.Room != null && result.Room.LocalPlayerId == result.Room.HostPlayerId);
+                    break;
+                case LobbyJoinRequestStatus.Failed:
+                    SetRoomStatus("加入受邀房间失败：" + result.Message);
+                    break;
+                case LobbyJoinRequestStatus.Canceled:
+                case LobbyJoinRequestStatus.Deferred:
+                case LobbyJoinRequestStatus.None:
+                    break;
+            }
+
+            if (roomService.HasPendingLobbyJoinRequest)
+                QueueLobbyJoinRequested(string.Empty);
         }
 
         private void ShowRoomPanel(RoomState room, bool hostControls)
@@ -651,27 +730,74 @@ namespace YC.Presentation
             for (var i = 0; i < room.Seats.Count; i++)
             {
                 var seat = room.Seats[i];
-                var status = seat.IsReady ? "已加入" : "等待加入";
+                var status = GetSeatReadinessLabel(seat);
                 var marker = seat.PlayerId == room.LocalPlayerId ? "（你）" : string.Empty;
                 var line = string.Format("{0}. {1}{2}  {3}", seat.PlayerId, seat.PlayerName, marker, status);
                 CreatePanelText(rect, line, 20, new Vector2(0f, 110f - i * 38f), FontStyle.Normal);
             }
 
+            var canStart = RoomReadinessPolicy.TryValidateStart(room, out var readinessReason);
             roomStatusText = CreatePanelText(
                 rect,
-                hostControls ? "等待玩家加入，房主可开始游戏。" : "已加入房间，等待房主开始。",
+                hostControls
+                    ? (canStart ? "所有玩家的网络连接和身份均已验证，可以开始游戏。" : readinessReason)
+                    : "等待房主确认所有玩家的网络连接和身份。",
                 16,
                 new Vector2(0f, -66f),
                 FontStyle.Normal);
 
             if (hostControls)
             {
-                CreateSmallButton(rect, "开始", new Vector2(100f, -125f), roomService.StartGame);
-                CreateSmallButton(rect, "返回", new Vector2(220f, -125f), HideRoomPanel);
+                if (roomService.SupportsFriendInvites)
+                {
+                    CreateSmallButton(rect, "邀请好友", new Vector2(-20f, -125f), InviteSteamFriends);
+                    var startButton = CreateSmallButton(rect, "开始", new Vector2(100f, -125f), StartOnlineGame);
+                    startButton.interactable = canStart;
+                    CreateSmallButton(rect, "返回", new Vector2(220f, -125f), HideRoomPanel);
+                }
+                else
+                {
+                    var startButton = CreateSmallButton(rect, "开始", new Vector2(-60f, -125f), StartOnlineGame);
+                    startButton.interactable = canStart;
+                    CreateSmallButton(rect, "返回", new Vector2(60f, -125f), HideRoomPanel);
+                }
             }
             else
             {
-                CreateSmallButton(rect, "返回", new Vector2(0f, -125f), HideRoomPanel);
+                if (roomService.SupportsFriendInvites)
+                {
+                    CreateSmallButton(rect, "邀请好友", new Vector2(-60f, -125f), InviteSteamFriends);
+                    CreateSmallButton(rect, "返回", new Vector2(60f, -125f), HideRoomPanel);
+                }
+                else
+                {
+                    CreateSmallButton(rect, "返回", Vector2.zero, HideRoomPanel);
+                }
+            }
+        }
+
+        private async void StartOnlineGame()
+        {
+            try
+            {
+                await roomService.StartGameAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning("开始联机对局失败：" + ex.Message);
+                SetRoomStatus("开始游戏失败：" + ex.Message);
+            }
+        }
+
+        private void InviteSteamFriends()
+        {
+            try
+            {
+                roomService.InviteFriends();
+            }
+            catch (Exception ex)
+            {
+                SetRoomStatus("无法打开 Steam 好友邀请：" + ex.Message);
             }
         }
 
@@ -718,11 +844,10 @@ namespace YC.Presentation
 
             loadingGame = true;
             var localPlayerId = room.LocalPlayerId;
-            var manager = NetworkManager.Singleton;
             localPlayerId = GameLaunchStateFactory.ResolveHostLocalPlayerId(
                 localPlayerId,
                 room.HostPlayerId,
-                manager != null && manager.IsHost,
+                room.LocalPlayerId == room.HostPlayerId,
                 room.Seats);
 
             if (localPlayerId <= 0 || !RoomContainsPlayer(room, localPlayerId))
@@ -821,7 +946,7 @@ namespace YC.Presentation
             return text;
         }
 
-        private static void CreateSmallButton(RectTransform parent, string label, Vector2 position, UnityEngine.Events.UnityAction action)
+        private static Button CreateSmallButton(RectTransform parent, string label, Vector2 position, UnityEngine.Events.UnityAction action)
         {
             var buttonObject = new GameObject(label + " Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
             buttonObject.transform.SetParent(parent, false);
@@ -833,7 +958,8 @@ namespace YC.Presentation
             rect.anchoredPosition = position;
 
             buttonObject.GetComponent<Image>().color = new Color(0.16f, 0.1f, 0.055f, 0.96f);
-            buttonObject.GetComponent<Button>().onClick.AddListener(action);
+            var button = buttonObject.GetComponent<Button>();
+            button.onClick.AddListener(action);
             buttonObject.GetComponent<Outline>().effectColor = new Color(0.78f, 0.63f, 0.38f, 0.9f);
 
             var textObject = new GameObject("Text", typeof(RectTransform), typeof(Text));
@@ -852,6 +978,16 @@ namespace YC.Presentation
             text.fontSize = 20;
             text.fontStyle = FontStyle.Bold;
             text.font = FontUtility.GetCjkFont(text.fontSize);
+            return button;
+        }
+
+        private static string GetSeatReadinessLabel(PlayerSeat seat)
+        {
+            if (seat == null || !seat.LobbyMemberPresent) return "等待加入 Lobby";
+            if (!seat.TransportConnected) return "已在 Lobby，等待 Mirror 连接";
+            if (!seat.IdentityVerified) return "Mirror 已连接，身份校验中";
+            if (seat.GameStateSynchronized) return "对局状态已同步";
+            return seat.IsReady ? "网络身份已验证" : "等待房主确认";
         }
 
         private void SetRoomStatus(string message)
@@ -922,6 +1058,14 @@ namespace YC.Presentation
             lock (networkEventLock)
             {
                 pendingRoomDisbanded = true;
+            }
+        }
+
+        private void QueueLobbyJoinRequested(string lobbyId)
+        {
+            lock (networkEventLock)
+            {
+                pendingLobbyJoinRequested = true;
             }
         }
 

@@ -87,7 +87,8 @@ namespace YC.Infrastructure.Multiplayer
                 room.Seats.Add(new PlayerSeat
                 {
                     PlayerId = playerId,
-                    NetcodeClientId = 0,
+                    SteamId = 0,
+                    NetworkClientId = 0,
                     PlayerName = "Player " + playerId,
                     Color = SeatColors[i],
                     IsReady = true

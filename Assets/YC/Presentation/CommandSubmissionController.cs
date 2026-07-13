@@ -15,7 +15,8 @@ namespace YC.Presentation
         private readonly UnityEngine.Object logContext;
         private readonly Action refreshFromState;
         private readonly Action<string> setPrompt;
-        private UnityNetcodeCommandTransport commandTransport;
+        private INetworkCommandTransport commandTransport;
+        private bool sessionNoticeSubscribed;
 
         public CommandSubmissionController(
             GameSession session,
@@ -40,9 +41,15 @@ namespace YC.Presentation
                 return;
             }
 
+            launchContext.OnlineSessionNotice -= OnOnlineSessionNotice;
+            launchContext.OnlineSessionNotice += OnOnlineSessionNotice;
+            sessionNoticeSubscribed = true;
+            if (launchContext.TryConsumeOnlineSessionNotice(out var notice))
+                setPrompt(notice);
+
             try
             {
-                commandTransport = UnityNetcodeCommandTransport.Ensure();
+                commandTransport = NetworkCommandTransportProvider.Ensure();
                 commandTransport.InitialStateApplied += OnInitialNetworkStateApplied;
                 commandTransport.ConfirmedCommandApplied += OnConfirmedNetworkCommandApplied;
                 commandTransport.CommandRejected += OnNetworkCommandRejected;
@@ -78,6 +85,12 @@ namespace YC.Presentation
 
         public void Dispose()
         {
+            if (sessionNoticeSubscribed && launchContext != null)
+            {
+                launchContext.OnlineSessionNotice -= OnOnlineSessionNotice;
+                sessionNoticeSubscribed = false;
+            }
+
             if (commandTransport == null)
             {
                 return;
@@ -86,7 +99,14 @@ namespace YC.Presentation
             commandTransport.InitialStateApplied -= OnInitialNetworkStateApplied;
             commandTransport.ConfirmedCommandApplied -= OnConfirmedNetworkCommandApplied;
             commandTransport.CommandRejected -= OnNetworkCommandRejected;
+            commandTransport.Shutdown();
             commandTransport = null;
+        }
+
+        private void OnOnlineSessionNotice(string message)
+        {
+            launchContext?.TryConsumeOnlineSessionNotice(out _);
+            setPrompt(message);
         }
 
         private void OnConfirmedNetworkCommandApplied(ConfirmedGameCommandDto confirmed)

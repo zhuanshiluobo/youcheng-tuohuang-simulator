@@ -1,18 +1,25 @@
 {
+  "scopedRegistries": [
+    {
+      "name": "OpenUPM",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.mirrornetworking"
+      ]
+    }
+  ],
   "dependencies": {
     "com.unity.collab-proxy": "2.12.4",
     "com.unity.feature.2d": "2.0.1",
     "com.unity.ide.rider": "3.0.36",
     "com.unity.ide.visualstudio": "2.0.22",
-    "com.unity.netcode.gameobjects": "1.12.0",
-    "com.unity.services.authentication": "2.7.4",
-    "com.unity.services.core": "1.12.5",
-    "com.unity.services.lobby": "1.2.2",
-    "com.unity.services.relay": "1.1.1",
+    "com.mirrornetworking.mirror": "96.6.4",
+    "com.mirror.steamworks.net": "https://github.com/Chykary/FizzySteamworks.git?path=/com.mirror.steamworks.net#FizzySteamworks-6.0.1",
+    "com.rlabrecque.steamworks.net": "https://github.com/rlabrecque/Steamworks.NET.git?path=/com.rlabrecque.steamworks.net#2025.163.0",
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.test-framework": "1.1.33",
     "com.unity.textmeshpro": "3.0.7",
     "com.unity.timeline": "1.7.7",
-    "com.unity.transport": "2.4.0",
     "com.unity.ugui": "1.0.0",
     "com.unity.visualscripting": "1.9.4",
     "com.unity.modules.ai": "1.0.0",

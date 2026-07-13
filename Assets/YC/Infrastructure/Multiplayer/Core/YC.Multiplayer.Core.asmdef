@@ -1,0 +1,14 @@
+{
+  "name": "YC.Multiplayer.Core",
+  "rootNamespace": "YC.Infrastructure.Multiplayer",
+  "references": ["YC.Application", "YC.Domain"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}
