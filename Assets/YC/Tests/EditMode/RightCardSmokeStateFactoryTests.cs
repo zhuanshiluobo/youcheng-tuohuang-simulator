@@ -51,7 +51,8 @@ namespace YC.Tests.EditMode
             Assert.That(first.Map.OpenLocationIds, Is.Not.SameAs(second.Map.OpenLocationIds));
             Assert.That(first.Decks.CityStyleSupply, Is.Not.SameAs(second.Decks.CityStyleSupply));
             Assert.That(second.Players[0].Name, Is.EqualTo("Player 1"));
-            Assert.That(second.Players[0].HandCardIds, Is.Empty);
+            Assert.That(second.Players[0].HandCardIds, Has.Count.EqualTo(5));
+            Assert.That(second.Players[0].HandCardIds, Does.Not.Contain("test-card"));
             Assert.That(second.Map.OpenLocationIds, Does.Not.Contain("test-location"));
             Assert.That(second.Decks.CityStyleSupply, Is.Not.Empty);
             Assert.That(seats[0].PlayerName, Is.EqualTo("Player 1"));

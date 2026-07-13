@@ -8,6 +8,7 @@ using YC.Domain.Events;
 using YC.Domain.Facilities;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
+using YC.Domain.Scoring;
 using YC.Domain.State;
 
 namespace YC.Application.Setup
@@ -94,6 +95,7 @@ namespace YC.Application.Setup
 
             state.StartPlayerId = command.PlayerId;
             state.CurrentPlayerId = command.PlayerId;
+            ScoreTrackService.InitializePlayerMarkers(state);
             state.Phase = GamePhase.Entrance;
 
             var message = string.Format("Player {0} was chosen as the start player. Entrance phase begins.", command.PlayerId);
@@ -335,8 +337,8 @@ namespace YC.Application.Setup
 
                 GrantInitialGoldVouchers(state);
                 state.CurrentPlayerId = GetFirstTurnPlayerId(state);
-                state.Phase = GamePhase.ActionRound1;
-                state.ActionRound = 1;
+                state.Phase = GamePhase.CharacterCover;
+                state.ActionRound = 0;
                 state.Round = 1;
                 return;
             }

@@ -38,6 +38,7 @@ namespace YC.Tests.EditMode
             Assert.That(player.DeclaredCityStyles, Has.Count.EqualTo(1));
             Assert.That(player.DeclaredCityStyles[0].UsedCityBoardSlotIndexes, Has.Count.EqualTo(expectedUsedSlotCount));
             Assert.That(CityStyleDatabase.Get(cityStyleId).Score, Is.EqualTo(expectedScore));
+            Assert.That(player.Score, Is.EqualTo(expectedScore));
             Assert.That(player.InfluenceSupply, Is.EqualTo(29));
             Assert.That(player.ActedMainActionThisTurn, Is.False);
         }
@@ -57,6 +58,7 @@ namespace YC.Tests.EditMode
             var player = state.FindPlayer(1);
             Assert.That(player.DeclaredCityStyleIds, Is.Empty);
             Assert.That(player.DeclaredCityStyles, Is.Empty);
+            Assert.That(player.Score, Is.Zero);
             Assert.That(player.InfluenceSupply, Is.EqualTo(30));
         }
 

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.CityStyles;
+using YC.Domain.Cards;
 using YC.Domain.Facilities;
 using YC.Domain.Rules;
+using YC.Domain.Scoring;
 using YC.Domain.State;
 
 namespace YC.Application.Sessions
@@ -70,6 +72,11 @@ namespace YC.Application.Sessions
             };
 
             AddPlayers(state, localPlayerId, players);
+            ScoreTrackService.InitializePlayerMarkers(state);
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                CharacterCardDatabase.InitializePlayerHand(state.Players[i]);
+            }
             BuildFacilityService.EnsureInitialCoreCommandTowers(state);
             InitializeFacilityMarket(state, eventDeckSeed);
             state.Decks.CityStyleSupply.AddRange(CityStyleDatabase.DefaultSupplyIds);

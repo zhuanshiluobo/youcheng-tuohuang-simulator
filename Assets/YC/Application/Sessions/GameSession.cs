@@ -105,7 +105,7 @@ namespace YC.Application.Sessions
 
         private void AppendLog(GameCommand command, CommandResult result)
         {
-            if (!result.Succeeded)
+            if (!result.Succeeded || string.IsNullOrWhiteSpace(result.LogMessage))
             {
                 return;
             }

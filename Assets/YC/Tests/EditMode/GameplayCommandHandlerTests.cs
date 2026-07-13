@@ -373,8 +373,8 @@ namespace YC.Tests.EditMode
             EndResourceCollectionAndCleanup(state, service);
 
             Assert.That(state.Round, Is.EqualTo(2));
-            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
-            Assert.That(state.ActionRound, Is.EqualTo(1));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
+            Assert.That(state.ActionRound, Is.Zero);
             Assert.That(state.StartPlayerId, Is.EqualTo(2));
             Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
             Assert.That(state.FindPlayer(1).ResourceCollectionStartGoldVoucher, Is.EqualTo(-1));
@@ -398,8 +398,8 @@ namespace YC.Tests.EditMode
             EndResourceCollectionAndCleanup(state, service);
 
             Assert.That(state.Round, Is.EqualTo(2));
-            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
-            Assert.That(state.ActionRound, Is.EqualTo(1));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
+            Assert.That(state.ActionRound, Is.Zero);
             Assert.That(state.FindPlayer(1).HasMovedCityThisRound, Is.False);
             Assert.That(state.FindPlayer(1).ResourceCollectionStartGoldVoucher, Is.EqualTo(-1));
         }

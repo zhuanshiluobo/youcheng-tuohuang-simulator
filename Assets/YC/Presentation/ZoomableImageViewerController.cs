@@ -12,6 +12,7 @@ namespace YC.Presentation
         private const float PanelScreenFill = 0.92f;
         private const float PanelHorizontalChrome = 192f;
         private const float PanelVerticalChrome = 156f;
+        private const float CollapsedPanelHeight = 58f;
         private static int escapeConsumedFrame = -1;
 
         private Func<int, Texture2D> textureProvider;
@@ -19,20 +20,39 @@ namespace YC.Presentation
         private RectTransform viewportTransform;
         private RectTransform imageTransform;
         private GameObject rootObject;
+        private Image rootBackgroundImage;
+        private GameObject expandedContentObject;
         private RawImage image;
         private Text pageLabel;
         private Text titleText;
         private Button previousButton;
         private Button nextButton;
+        private Button primaryActionButton;
+        private Button secondaryActionButton;
+        private Text primaryActionLabel;
+        private Text secondaryActionLabel;
+        private Text collapsedSummaryText;
+        private RectTransform collapseToggleRect;
+        private Text collapseToggleLabel;
+        private string primaryActionText = string.Empty;
+        private string secondaryActionText = string.Empty;
+        private Action primaryAction;
+        private Action secondaryAction;
         private string viewerName;
         private string title;
         private int pageCount;
         private int pageIndex;
         private float zoom = 1f;
+        private bool collapseEnabled;
+        private bool collapsed;
+        private string collapsedSummary = string.Empty;
+        private Vector2 expandedPanelSize;
+        private Vector2 expandedPanelPosition;
 
         public bool IsOpen => rootObject != null && rootObject.activeSelf;
         public float Zoom => zoom;
         public int PageIndex => pageIndex;
+        public bool IsCollapsed => collapsed;
 
         public static bool WasEscapeConsumedThisFrame()
         {
@@ -61,7 +81,7 @@ namespace YC.Presentation
             }
 
             var wheelDelta = Input.mouseScrollDelta.y;
-            if (Mathf.Abs(wheelDelta) > 0.01f)
+            if (!collapsed && Mathf.Abs(wheelDelta) > 0.01f)
             {
                 SetZoom(zoom + wheelDelta * WheelZoomStep);
             }
@@ -96,6 +116,11 @@ namespace YC.Presentation
             pageCount = Mathf.Max(1, configuredPageCount);
             textureProvider = configuredTextureProvider;
 
+            if (collapsed)
+            {
+                SetCollapsed(false);
+            }
+
             if (rootObject == null)
             {
                 BuildUi();
@@ -115,6 +140,81 @@ namespace YC.Presentation
 
             rootObject.SetActive(true);
             ShowPage(initialPage);
+        }
+
+        public void ConfigureActions(
+            string configuredPrimaryActionText,
+            Action configuredPrimaryAction,
+            string configuredSecondaryActionText = "",
+            Action configuredSecondaryAction = null)
+        {
+            primaryActionText = configuredPrimaryActionText ?? string.Empty;
+            primaryAction = configuredPrimaryAction;
+            secondaryActionText = configuredSecondaryActionText ?? string.Empty;
+            secondaryAction = configuredSecondaryAction;
+            if (rootObject != null)
+            {
+                UpdateActionButtons();
+            }
+        }
+
+        public void ConfigureReferenceCollapse(string summary)
+        {
+            collapseEnabled = true;
+            collapsedSummary = summary ?? string.Empty;
+            if (collapsedSummaryText != null)
+            {
+                collapsedSummaryText.text = collapsedSummary;
+            }
+
+            if (collapseToggleRect != null)
+            {
+                collapseToggleRect.gameObject.SetActive(true);
+            }
+
+            ApplyCollapseState();
+        }
+
+        public void DisableReferenceCollapse()
+        {
+            if (collapsed)
+            {
+                SetCollapsed(false);
+            }
+
+            collapseEnabled = false;
+            collapsedSummary = string.Empty;
+            if (collapseToggleRect != null)
+            {
+                collapseToggleRect.gameObject.SetActive(false);
+            }
+            if (collapsedSummaryText != null)
+            {
+                collapsedSummaryText.gameObject.SetActive(false);
+            }
+        }
+
+        public void SetCollapsed(bool value)
+        {
+            if (!collapseEnabled && value)
+            {
+                return;
+            }
+
+            if (collapsed == value)
+            {
+                ApplyCollapseState();
+                return;
+            }
+
+            if (value && panelTransform != null)
+            {
+                expandedPanelSize = panelTransform.sizeDelta;
+                expandedPanelPosition = panelTransform.anchoredPosition;
+            }
+
+            collapsed = value;
+            ApplyCollapseState();
         }
 
         public void Close()
@@ -150,7 +250,8 @@ namespace YC.Presentation
             rootRect.anchorMax = Vector2.one;
             rootRect.offsetMin = Vector2.zero;
             rootRect.offsetMax = Vector2.zero;
-            rootObject.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.74f);
+            rootBackgroundImage = rootObject.GetComponent<Image>();
+            rootBackgroundImage.color = new Color(0f, 0f, 0f, 0.74f);
 
             CreatePanel(rootRect);
         }
@@ -169,15 +270,51 @@ namespace YC.Presentation
             outline.effectColor = UiTheme.GoldOutline;
             outline.effectDistance = new Vector2(3f, -3f);
 
-            CreateHeader(panelTransform);
-            CreateViewport(panelTransform);
-            CreateFooter(panelTransform);
+            expandedContentObject = new GameObject(viewerName + " Expanded Content", typeof(RectTransform));
+            expandedContentObject.transform.SetParent(panelTransform, false);
+            var expandedRect = expandedContentObject.GetComponent<RectTransform>();
+            expandedRect.anchorMin = Vector2.zero;
+            expandedRect.anchorMax = Vector2.one;
+            expandedRect.offsetMin = Vector2.zero;
+            expandedRect.offsetMax = Vector2.zero;
+
+            CreateHeader(expandedRect);
+            CreateViewport(expandedRect);
+            CreateFooter(expandedRect);
 
             if (pageCount > 1)
             {
-                previousButton = CreateNavButton(panelTransform, "Previous " + viewerName, "<", new Vector2(0f, 0.5f), new Vector2(28f, 0f), () => ShowPage(pageIndex - 1));
-                nextButton = CreateNavButton(panelTransform, "Next " + viewerName, ">", new Vector2(1f, 0.5f), new Vector2(-28f, 0f), () => ShowPage(pageIndex + 1));
+                previousButton = CreateNavButton(expandedRect, "Previous " + viewerName, "<", new Vector2(0f, 0.5f), new Vector2(28f, 0f), () => ShowPage(pageIndex - 1));
+                nextButton = CreateNavButton(expandedRect, "Next " + viewerName, ">", new Vector2(1f, 0.5f), new Vector2(-28f, 0f), () => ShowPage(pageIndex + 1));
             }
+
+            CreateCollapseControls(panelTransform);
+        }
+
+        private void CreateCollapseControls(RectTransform parent)
+        {
+            var summaryObject = new GameObject(viewerName + " Collapsed Summary", typeof(RectTransform), typeof(Text), typeof(Outline));
+            summaryObject.transform.SetParent(parent, false);
+            var summaryRect = summaryObject.GetComponent<RectTransform>();
+            summaryRect.anchorMin = new Vector2(0f, 0.5f);
+            summaryRect.anchorMax = new Vector2(1f, 0.5f);
+            summaryRect.sizeDelta = new Vector2(-160f, 42f);
+            summaryRect.anchoredPosition = new Vector2(-68f, 0f);
+            collapsedSummaryText = summaryObject.GetComponent<Text>();
+            collapsedSummaryText.text = collapsedSummary;
+            collapsedSummaryText.alignment = TextAnchor.MiddleLeft;
+            collapsedSummaryText.color = UiTheme.GoldText;
+            collapsedSummaryText.fontSize = 18;
+            collapsedSummaryText.fontStyle = FontStyle.Bold;
+            collapsedSummaryText.font = FontUtility.GetCjkFont(collapsedSummaryText.fontSize);
+            summaryObject.GetComponent<Outline>().effectColor = UiTheme.DarkShadowLight;
+            summaryObject.SetActive(false);
+
+            var toggleButton = CreateFooterActionButton(parent, viewerName + " Collapse Toggle", new Vector2(0f, 18f));
+            collapseToggleRect = toggleButton.GetComponent<RectTransform>();
+            collapseToggleLabel = toggleButton.GetComponentInChildren<Text>();
+            toggleButton.onClick.AddListener(() => SetCollapsed(!collapsed));
+            toggleButton.gameObject.SetActive(false);
         }
 
         private void CreateHeader(RectTransform parent)
@@ -259,6 +396,50 @@ namespace YC.Presentation
             pageLabel.fontStyle = FontStyle.Bold;
             pageLabel.font = FontUtility.GetCjkFont(pageLabel.fontSize);
             labelObject.SetActive(pageCount > 1);
+
+            primaryActionButton = CreateFooterActionButton(parent, "Primary " + viewerName + " Action", new Vector2(-112f, 18f));
+            secondaryActionButton = CreateFooterActionButton(parent, "Secondary " + viewerName + " Action", new Vector2(112f, 18f));
+            primaryActionLabel = primaryActionButton.GetComponentInChildren<Text>();
+            secondaryActionLabel = secondaryActionButton.GetComponentInChildren<Text>();
+            primaryActionButton.onClick.AddListener(() => primaryAction?.Invoke());
+            secondaryActionButton.onClick.AddListener(() => secondaryAction?.Invoke());
+            UpdateActionButtons();
+        }
+
+        private static Button CreateFooterActionButton(RectTransform parent, string name, Vector2 position)
+        {
+            var buttonObject = new GameObject(name + " Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
+            buttonObject.transform.SetParent(parent, false);
+            var rect = buttonObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.sizeDelta = new Vector2(208f, 48f);
+            rect.anchoredPosition = position;
+            ApplyButtonStyle(buttonObject);
+            CreateButtonText(rect, string.Empty, 20);
+            return buttonObject.GetComponent<Button>();
+        }
+
+        private void UpdateActionButtons()
+        {
+            UpdateActionButton(primaryActionButton, primaryActionLabel, primaryActionText, primaryAction);
+            UpdateActionButton(secondaryActionButton, secondaryActionLabel, secondaryActionText, secondaryAction);
+        }
+
+        private static void UpdateActionButton(Button button, Text label, string text, Action action)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            var visible = action != null && !string.IsNullOrEmpty(text);
+            button.gameObject.SetActive(visible);
+            if (label != null)
+            {
+                label.text = text ?? string.Empty;
+            }
         }
 
         private Button CreateNavButton(RectTransform parent, string name, string label, Vector2 anchor, Vector2 position, UnityEngine.Events.UnityAction action)
@@ -316,7 +497,76 @@ namespace YC.Presentation
             panelTransform.sizeDelta = new Vector2(
                 fittedImageSize.x + PanelHorizontalChrome,
                 fittedImageSize.y + PanelVerticalChrome);
+            if (!collapsed)
+            {
+                expandedPanelSize = panelTransform.sizeDelta;
+                expandedPanelPosition = panelTransform.anchoredPosition;
+            }
             Canvas.ForceUpdateCanvases();
+        }
+
+        private void ApplyCollapseState()
+        {
+            if (panelTransform == null)
+            {
+                return;
+            }
+
+            if (expandedContentObject != null)
+            {
+                expandedContentObject.SetActive(!collapsed);
+            }
+
+            if (collapsedSummaryText != null)
+            {
+                collapsedSummaryText.text = collapsedSummary;
+                collapsedSummaryText.gameObject.SetActive(collapseEnabled && collapsed);
+            }
+
+            if (collapseToggleRect != null)
+            {
+                collapseToggleRect.gameObject.SetActive(collapseEnabled);
+                if (collapseEnabled && collapsed)
+                {
+                    collapseToggleRect.anchorMin = new Vector2(1f, 0.5f);
+                    collapseToggleRect.anchorMax = new Vector2(1f, 0.5f);
+                    collapseToggleRect.pivot = new Vector2(1f, 0.5f);
+                    collapseToggleRect.sizeDelta = new Vector2(142f, 34f);
+                    collapseToggleRect.anchoredPosition = new Vector2(-12f, 0f);
+                }
+                else
+                {
+                    collapseToggleRect.anchorMin = new Vector2(0.5f, 0f);
+                    collapseToggleRect.anchorMax = new Vector2(0.5f, 0f);
+                    collapseToggleRect.pivot = new Vector2(0.5f, 0f);
+                    collapseToggleRect.sizeDelta = new Vector2(208f, 48f);
+                    collapseToggleRect.anchoredPosition = new Vector2(0f, 18f);
+                }
+            }
+
+            if (collapseToggleLabel != null)
+            {
+                collapseToggleLabel.text = collapsed ? "▼ 展开卡牌" : "▲ 收起卡牌";
+            }
+
+            if (collapsed)
+            {
+                var width = Mathf.Max(560f, expandedPanelSize.x);
+                panelTransform.sizeDelta = new Vector2(width, CollapsedPanelHeight);
+                panelTransform.anchoredPosition = expandedPanelPosition +
+                    new Vector2(0f, (expandedPanelSize.y - CollapsedPanelHeight) * 0.5f);
+            }
+            else if (expandedPanelSize.x > 0f && expandedPanelSize.y > 0f)
+            {
+                panelTransform.sizeDelta = expandedPanelSize;
+                panelTransform.anchoredPosition = expandedPanelPosition;
+            }
+
+            if (rootBackgroundImage != null)
+            {
+                rootBackgroundImage.color = collapsed ? new Color(0f, 0f, 0f, 0f) : new Color(0f, 0f, 0f, 0.74f);
+                rootBackgroundImage.raycastTarget = !collapsed;
+            }
         }
 
         private void ApplyImageSize(Texture texture)

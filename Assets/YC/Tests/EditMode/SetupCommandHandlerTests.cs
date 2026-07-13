@@ -27,6 +27,8 @@ namespace YC.Tests.EditMode
             Assert.That(state.StartPlayerId, Is.EqualTo(1));
             Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
             Assert.That(state.Phase, Is.EqualTo(GamePhase.Entrance));
+            Assert.That(state.Players, Has.All.Matches<PlayerState>(player => player.HasScoreTrackMarker));
+            Assert.That(state.Players, Has.All.Matches<PlayerState>(player => player.InfluenceSupply == 29));
             Assert.That(result.Events, Has.Count.GreaterThanOrEqualTo(1));
             Assert.That(result.LogMessage, Does.Contain("start player"));
         }
@@ -168,7 +170,7 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(3).Resources.GoldVoucher, Is.EqualTo(12));
             Assert.That(state.FindPlayer(4).Resources.GoldVoucher, Is.EqualTo(14));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(18));
-            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
             Assert.That(state.Round, Is.EqualTo(1));
         }
 
@@ -212,7 +214,7 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(2).Resources.GoldVoucher, Is.EqualTo(12));
             Assert.That(state.FindPlayer(3).Resources.GoldVoucher, Is.EqualTo(14));
             Assert.That(state.FindPlayer(4).Resources.GoldVoucher, Is.EqualTo(18));
-            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
             Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
         }
 

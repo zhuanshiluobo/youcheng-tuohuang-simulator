@@ -49,7 +49,7 @@ namespace YC.Tests.EditMode
         {
             var state = CreateFinalState();
             var player = state.FindPlayer(1);
-            player.Score = 8;
+            player.Score = 14;
             player.BuiltFacilityIds.Add(FacilityCardDatabase.BoroughAdministrativeDistrict);
             player.BuiltFacilityIds.Add(FacilityCardDatabase.UrbanizedArea);
             player.DeclaredCityStyleIds.Add(CityStyleDatabase.SourceStoneIndustrialHub);
@@ -64,6 +64,20 @@ namespace YC.Tests.EditMode
             Assert.That(GetPlayerScore(state, 1).CityStyleScore, Is.EqualTo(6));
             Assert.That(GetPlayerScore(state, 1).TotalScore, Is.EqualTo(14));
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(14));
+        }
+
+        [Test]
+        public void ScoreTrackInitialization_ReservesExactlyOneInfluenceAndIsIdempotent()
+        {
+            var state = CreateFinalState();
+
+            ScoreTrackService.InitializePlayerMarkers(state);
+            ScoreTrackService.InitializePlayerMarkers(state);
+
+            Assert.That(state.Players, Has.All.Matches<PlayerState>(player => player.HasScoreTrackMarker));
+            Assert.That(state.Players, Has.All.Matches<PlayerState>(player => player.InfluenceSupply == 29));
+            Assert.That(ScoreTrackService.ClampToTrack(-20), Is.EqualTo(-2));
+            Assert.That(ScoreTrackService.ClampToTrack(99), Is.EqualTo(50));
         }
 
         [Test]

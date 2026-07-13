@@ -38,16 +38,20 @@ namespace YC.Tests.EditMode
             Assert.That(state.StartPlayerId, Is.EqualTo(1));
             Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
             Assert.That(GetPlayerIds(state), Is.EqualTo(new[] { 1, 2, 3, 4 }));
+            Assert.That(state.Players, Has.All.Matches<PlayerState>(player => player.HasScoreTrackMarker));
+            Assert.That(state.Players, Has.All.Matches<PlayerState>(player => player.InfluenceSupply == 29));
 
             AssertInitialPlacement(setupHandler, state, 1, "G-01", 2, GamePhase.Entrance);
             AssertInitialPlacement(setupHandler, state, 2, "A-01", 3, GamePhase.Entrance);
             AssertInitialPlacement(setupHandler, state, 3, "A-02", 4, GamePhase.Entrance);
-            AssertInitialPlacement(setupHandler, state, 4, "B-01", 1, GamePhase.ActionRound1);
+            AssertInitialPlacement(setupHandler, state, 4, "B-01", 1, GamePhase.CharacterCover);
+            CoverAllPlayers(state);
 
             Assert.That(state.ActionRound, Is.EqualTo(1));
             AssertActionRoundOrder(state, GamePhase.ActionRound1, GamePhase.ActionRound2, 2);
             AssertActionRoundOrder(state, GamePhase.ActionRound2, GamePhase.ResourceCollection, 0);
             EndResourceCollectionAndCleanup(state);
+            CoverAllPlayers(state);
             Assert.That(state.Round, Is.EqualTo(2));
             Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
             Assert.That(state.ActionRound, Is.EqualTo(1));
@@ -165,7 +169,8 @@ namespace YC.Tests.EditMode
             AssertInitialPlacement(setupHandler, state, 1, "G-01", 2, GamePhase.Entrance);
             AssertInitialPlacement(setupHandler, state, 2, "A-01", 3, GamePhase.Entrance);
             AssertInitialPlacement(setupHandler, state, 3, "A-02", 4, GamePhase.Entrance);
-            AssertInitialPlacement(setupHandler, state, 4, "B-01", 1, GamePhase.ActionRound1);
+            AssertInitialPlacement(setupHandler, state, 4, "B-01", 1, GamePhase.CharacterCover);
+            CoverAllPlayers(state);
             return state;
         }
 
@@ -243,6 +248,29 @@ namespace YC.Tests.EditMode
             AssertActionRoundOrder(state, GamePhase.ActionRound1, GamePhase.ActionRound2, 2);
             AssertActionRoundOrder(state, GamePhase.ActionRound2, GamePhase.ResourceCollection, 0);
             EndResourceCollectionAndCleanup(state);
+            if (state.Phase == GamePhase.CharacterCover)
+            {
+                CoverAllPlayers(state);
+            }
+        }
+
+        private static void CoverAllPlayers(GameState state)
+        {
+            var service = new CharacterCardService();
+            var submitted = 0;
+            while (state.Phase == GamePhase.CharacterCover && submitted < state.Players.Count)
+            {
+                var player = state.FindPlayer(state.CurrentPlayerId);
+                Assert.That(player, Is.Not.Null);
+                var cardId = player.HandCardIds.Count > 0
+                    ? player.HandCardIds[0]
+                    : player.DiscardCardIds[0];
+                var result = service.Cover(state, player.PlayerId, cardId);
+                Assert.That(result.IsValid, Is.True, result.Reason);
+                submitted++;
+            }
+
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
         }
 
         private static void EndResourceCollectionAndCleanup(GameState state)

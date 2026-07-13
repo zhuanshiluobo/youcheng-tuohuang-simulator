@@ -3,6 +3,7 @@ using System.IO;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
+using YC.Domain.Scoring;
 using YC.Domain.State;
 using YC.Presentation.Maps;
 using UnityEngine;
@@ -27,12 +28,15 @@ namespace YC.Presentation
         private readonly Dictionary<string, SpriteRenderer> resourceTokenRenderers = new Dictionary<string, SpriteRenderer>();
         private readonly Dictionary<string, Sprite> resourceTokenSprites = new Dictionary<string, Sprite>();
         private readonly Dictionary<int, GameObject> cityObjectsByPlayerId = new Dictionary<int, GameObject>();
+        private readonly Dictionary<int, SpriteRenderer> scoreMarkerRenderers = new Dictionary<int, SpriteRenderer>();
         private readonly HashSet<string> highlightedLocationIds = new HashSet<string>();
         private readonly HashSet<string> highlightedInfluenceSlotIds = new HashSet<string>();
 
         private Sprite emptyInfluenceSlotSprite;
         private Sprite occupiedInfluenceSlotSprite;
         private Sprite movableInfluenceBorderSprite;
+        private Sprite scoreMarkerSprite;
+        private Sprite scoreMarkerBorderSprite;
 
         public MapViewPresenter(
             MobileCityInteractionController controller,
@@ -223,6 +227,86 @@ namespace YC.Presentation
                 hasPendingDispatchFirstMove,
                 pendingDispatchFirstSourceSlotId,
                 pendingDispatchFirstTargetSlotId);
+        }
+
+        public void RefreshScoreTrackDisplay(GameState state)
+        {
+            foreach (var pair in scoreMarkerRenderers)
+            {
+                pair.Value.gameObject.SetActive(false);
+            }
+
+            if (state == null)
+            {
+                return;
+            }
+
+            var markerCountsByScore = new Dictionary<int, int>();
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                var player = state.Players[i];
+                if (player == null || !player.HasScoreTrackMarker)
+                {
+                    continue;
+                }
+
+                var trackScore = ScoreTrackService.ClampToTrack(player.Score);
+                int markerCount;
+                markerCountsByScore.TryGetValue(trackScore, out markerCount);
+                markerCountsByScore[trackScore] = markerCount + 1;
+            }
+
+            var markerIndexesByScore = new Dictionary<int, int>();
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                var player = state.Players[i];
+                if (player == null || !player.HasScoreTrackMarker)
+                {
+                    continue;
+                }
+
+                var trackScore = ScoreTrackService.ClampToTrack(player.Score);
+                int markerIndex;
+                markerIndexesByScore.TryGetValue(trackScore, out markerIndex);
+                markerIndexesByScore[trackScore] = markerIndex + 1;
+
+                var normalizedPosition = FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(trackScore) +
+                                         GetScoreMarkerOffset(markerIndex, markerCountsByScore[trackScore]);
+                var renderer = EnsureScoreMarker(player.PlayerId);
+                renderer.transform.position = ToWorldPosition(normalizedPosition, -0.62f);
+                renderer.color = GetPlayerColor(state, player.PlayerId, 1f);
+                renderer.gameObject.SetActive(true);
+            }
+        }
+
+        private static Vector2 GetScoreMarkerOffset(int markerIndex, int markerCount)
+        {
+            if (markerCount <= 1)
+            {
+                return Vector2.zero;
+            }
+
+            if (markerCount == 2)
+            {
+                return new Vector2(markerIndex == 0 ? -0.0055f : 0.0055f, 0f);
+            }
+
+            if (markerCount == 3)
+            {
+                switch (markerIndex)
+                {
+                    case 0:
+                        return new Vector2(-0.0055f, 0.0045f);
+                    case 1:
+                        return new Vector2(0.0055f, 0.0045f);
+                    default:
+                        return new Vector2(0f, -0.005f);
+                }
+            }
+
+            return new Vector2(
+                markerIndex % 2 == 0 ? -0.0055f : 0.0055f,
+                markerIndex < 2 ? 0.005f : -0.005f);
         }
 
         public Vector2 ToNormalizedMapPosition(Vector3 worldPosition)
@@ -486,6 +570,43 @@ namespace YC.Presentation
             {
                 movableInfluenceBorderSprite = UguiUtility.CreateSquareOutlineSprite(32, 24f, 4f);
             }
+        }
+
+        private SpriteRenderer EnsureScoreMarker(int playerId)
+        {
+            SpriteRenderer renderer;
+            if (scoreMarkerRenderers.TryGetValue(playerId, out renderer) && renderer != null)
+            {
+                return renderer;
+            }
+
+            if (scoreMarkerSprite == null)
+            {
+                scoreMarkerSprite = UguiUtility.CreateFilledSquareSprite(32, 24f);
+            }
+
+            if (scoreMarkerBorderSprite == null)
+            {
+                scoreMarkerBorderSprite = UguiUtility.CreateSquareOutlineSprite(32, 29f, 4f);
+            }
+
+            var markerObject = new GameObject("ScoreMarker P" + playerId, typeof(SpriteRenderer));
+            markerObject.transform.SetParent(parent, false);
+            markerObject.transform.localScale = Vector3.one * 0.42f;
+
+            renderer = markerObject.GetComponent<SpriteRenderer>();
+            renderer.sprite = scoreMarkerSprite;
+            renderer.sortingOrder = 31;
+
+            var borderObject = new GameObject("ScoreMarker Border", typeof(SpriteRenderer));
+            borderObject.transform.SetParent(markerObject.transform, false);
+            var borderRenderer = borderObject.GetComponent<SpriteRenderer>();
+            borderRenderer.sprite = scoreMarkerBorderSprite;
+            borderRenderer.color = new Color(0.04f, 0.025f, 0.015f, 0.95f);
+            borderRenderer.sortingOrder = 30;
+
+            scoreMarkerRenderers[playerId] = renderer;
+            return renderer;
         }
 
         private GameObject EnsureCityObject(int playerId, GameState state, int localPlayerId)

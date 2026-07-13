@@ -36,6 +36,7 @@ namespace YC.Domain.CityStyles
             }
 
             player.InfluenceSupply -= 1;
+            player.Score += cityStyle.Score;
             player.DeclaredCityStyleIds.Add(cityStyle.CityStyleId);
             player.DeclaredCityStyles.Add(new CityStyleDeclarationState
             {

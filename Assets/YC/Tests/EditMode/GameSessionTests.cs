@@ -28,6 +28,22 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void Submit_WithEmptySuccessfulMessage_DoesNotAppendPrematureLog()
+        {
+            var session = new GameSession(new GameState());
+            session.RegisterHandler(new EmptyLogHandler());
+
+            var result = session.Submit(new GameCommand
+            {
+                Kind = GameCommandKind.EndAction,
+                PlayerId = 0
+            });
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(session.State.Logs, Is.Empty);
+        }
+
+        [Test]
         public void Submit_WithoutHandler_ReturnsUnknownCommandWithoutMutatingLog()
         {
             var session = new GameSession(new GameState());
@@ -143,6 +159,19 @@ namespace YC.Tests.EditMode
                 return CommandResult.Invalid(ValidationResult.Failure(
                     CommandErrorCode.PendingChoiceRequired,
                     "not this pending choice"));
+            }
+        }
+
+        private sealed class EmptyLogHandler : IGameCommandHandler
+        {
+            public bool CanHandle(GameCommand command)
+            {
+                return command.Kind == GameCommandKind.EndAction;
+            }
+
+            public CommandResult Handle(GameState state, GameCommand command)
+            {
+                return CommandResult.SuccessResult(new List<GameEvent>(), string.Empty);
             }
         }
 

@@ -36,6 +36,19 @@ namespace YC.Domain.Movement
 
         public ValidationResult ValidateStart(GameState state, CardFlowStartRequest request, EventCardDefinition previewCard)
         {
+            if (string.Equals(
+                    CardFlowArgumentUtility.GetValue(request.Arguments, CityMovementService.WaiveBaseCostArgument),
+                    bool.TrueString,
+                    System.StringComparison.OrdinalIgnoreCase))
+            {
+                return cityMovementService.CanMoveCityForFacility(
+                    state,
+                    request.PlayerId,
+                    request.TargetId,
+                    -1,
+                    null);
+            }
+
             return cityMovementService.CanMoveCity(state, request.PlayerId, request.TargetId, -1, null);
         }
 

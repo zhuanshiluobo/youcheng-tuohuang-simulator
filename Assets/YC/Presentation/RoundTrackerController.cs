@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -66,6 +67,7 @@ namespace YC.Presentation
 
         public void ReturnToStartScene()
         {
+            GameLaunchContext.ShutdownOnlineSession();
             SceneManager.LoadScene(startSceneName);
         }
 
@@ -278,7 +280,7 @@ namespace YC.Presentation
             dialogTransform.anchorMin = new Vector2(0.5f, 0.5f);
             dialogTransform.anchorMax = new Vector2(0.5f, 0.5f);
             dialogTransform.pivot = new Vector2(0.5f, 0.5f);
-            dialogTransform.sizeDelta = new Vector2(760f, 460f);
+            dialogTransform.sizeDelta = new Vector2(900f, 650f);
             dialogTransform.anchoredPosition = Vector2.zero;
 
             var dialogImage = dialogObject.GetComponent<Image>();
@@ -290,7 +292,7 @@ namespace YC.Presentation
 
             var titleTransform = new GameObject("Game Over Text", typeof(RectTransform), typeof(Text), typeof(Outline)).GetComponent<RectTransform>();
             titleTransform.SetParent(dialogTransform, false);
-            titleTransform.anchorMin = new Vector2(0f, 0.72f);
+            titleTransform.anchorMin = new Vector2(0f, 0.84f);
             titleTransform.anchorMax = new Vector2(1f, 1f);
             titleTransform.offsetMin = new Vector2(28f, 0f);
             titleTransform.offsetMax = new Vector2(-28f, -18f);
@@ -299,7 +301,7 @@ namespace YC.Presentation
             titleText.text = "游戏结束";
             titleText.alignment = TextAnchor.MiddleCenter;
             titleText.color = new Color(0.86f, 0.75f, 0.55f, 1f);
-            titleText.fontSize = 58;
+            titleText.fontSize = 52;
             titleText.fontStyle = FontStyle.Bold;
             titleText.font = FontUtility.GetCjkFont(titleText.fontSize);
 
@@ -307,21 +309,7 @@ namespace YC.Presentation
             titleOutline.effectColor = new Color(0.06f, 0.04f, 0.025f, 0.98f);
             titleOutline.effectDistance = new Vector2(3f, -3f);
 
-            var summaryTransform = new GameObject("Final Score Summary", typeof(RectTransform), typeof(Text)).GetComponent<RectTransform>();
-            summaryTransform.SetParent(dialogTransform, false);
-            summaryTransform.anchorMin = new Vector2(0f, 0.26f);
-            summaryTransform.anchorMax = new Vector2(1f, 0.73f);
-            summaryTransform.offsetMin = new Vector2(46f, 0f);
-            summaryTransform.offsetMax = new Vector2(-46f, -8f);
-
-            var summaryText = summaryTransform.GetComponent<Text>();
-            summaryText.text = BuildFinalScoreSummary(state);
-            summaryText.alignment = TextAnchor.UpperCenter;
-            summaryText.color = new Color(0.93f, 0.86f, 0.7f, 1f);
-            summaryText.fontSize = 24;
-            summaryText.font = FontUtility.GetCjkFont(summaryText.fontSize);
-            summaryText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            summaryText.verticalOverflow = VerticalWrapMode.Truncate;
+            CreateFinalScoreboard(dialogTransform, state);
 
             var returnButtonObject = new GameObject("Return Start Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
             returnButtonObject.transform.SetParent(dialogTransform, false);
@@ -330,43 +318,221 @@ namespace YC.Presentation
             returnButtonTransform.anchorMin = new Vector2(0.5f, 0f);
             returnButtonTransform.anchorMax = new Vector2(0.5f, 0f);
             returnButtonTransform.pivot = new Vector2(0.5f, 0f);
-            returnButtonTransform.sizeDelta = new Vector2(430f, 86f);
-            returnButtonTransform.anchoredPosition = new Vector2(0f, 38f);
+            returnButtonTransform.sizeDelta = new Vector2(390f, 68f);
+            returnButtonTransform.anchoredPosition = new Vector2(0f, 24f);
 
             ApplyButtonStyle(returnButtonObject);
             returnButtonObject.GetComponent<Button>().onClick.AddListener(ReturnToStartScene);
-            CreateButtonText(returnButtonTransform, "点击返回开始页面", 34);
+            CreateButtonText(returnButtonTransform, "返回开始页面", 30);
         }
 
-        private static string BuildFinalScoreSummary(GameState state)
+        private static void CreateFinalScoreboard(RectTransform parent, GameState state)
         {
             if (state == null || state.FinalScoring == null || !state.FinalScoring.IsResolved)
             {
-                return "最终计分尚未生成。";
+                CreateScoreboardMessage(parent, "最终计分尚未生成。");
+                return;
             }
 
-            var summary = "胜者：" + FormatWinnerIds(state.FinalScoring.WinnerPlayerIds) + "\n";
-            if (!string.IsNullOrEmpty(state.FinalScoring.TiebreakSummary))
+            var winnerTransform = CreateScoreboardText(
+                parent,
+                "Final Score Winner",
+                "胜者：" + FormatWinnerIds(state.FinalScoring.WinnerPlayerIds),
+                30,
+                FontStyle.Bold,
+                TextAnchor.MiddleCenter);
+            winnerTransform.anchorMin = new Vector2(0f, 0.765f);
+            winnerTransform.anchorMax = new Vector2(1f, 0.85f);
+            winnerTransform.offsetMin = new Vector2(40f, 0f);
+            winnerTransform.offsetMax = new Vector2(-40f, 0f);
+
+            var boardObject = new GameObject("Final Score Board", typeof(RectTransform), typeof(Image));
+            boardObject.transform.SetParent(parent, false);
+            var boardTransform = boardObject.GetComponent<RectTransform>();
+            boardTransform.anchorMin = new Vector2(0f, 0.265f);
+            boardTransform.anchorMax = new Vector2(1f, 0.765f);
+            boardTransform.offsetMin = new Vector2(44f, 0f);
+            boardTransform.offsetMax = new Vector2(-44f, 0f);
+            boardObject.GetComponent<Image>().color = new Color(0.07f, 0.045f, 0.025f, 0.72f);
+
+            CreateScoreboardHeader(boardTransform);
+            var orderedScores = BuildOrderedFinalScores(state.FinalScoring.PlayerScores);
+            var rowHeight = 0.8f / Mathf.Max(4, orderedScores.Count);
+            for (var i = 0; i < orderedScores.Count; i++)
             {
-                summary += state.FinalScoring.TiebreakSummary + "\n";
+                CreateScoreboardRow(boardTransform, state, orderedScores[i], i, rowHeight);
             }
 
-            for (var i = 0; i < state.FinalScoring.PlayerScores.Count; i++)
+            var tiebreak = string.IsNullOrEmpty(state.FinalScoring.TiebreakSummary)
+                ? "同分时依次比较剩余金券、至纯源石。"
+                : state.FinalScoring.TiebreakSummary;
+            var tiebreakTransform = CreateScoreboardText(
+                parent,
+                "Final Score Tiebreak",
+                tiebreak,
+                19,
+                FontStyle.Normal,
+                TextAnchor.MiddleCenter);
+            tiebreakTransform.anchorMin = new Vector2(0f, 0.145f);
+            tiebreakTransform.anchorMax = new Vector2(1f, 0.26f);
+            tiebreakTransform.offsetMin = new Vector2(46f, 0f);
+            tiebreakTransform.offsetMax = new Vector2(-46f, 0f);
+        }
+
+        private static void CreateScoreboardHeader(RectTransform parent)
+        {
+            var header = new GameObject("Final Score Header", typeof(RectTransform), typeof(Image));
+            header.transform.SetParent(parent, false);
+            var headerTransform = header.GetComponent<RectTransform>();
+            headerTransform.anchorMin = new Vector2(0f, 0.8f);
+            headerTransform.anchorMax = Vector2.one;
+            headerTransform.offsetMin = Vector2.zero;
+            headerTransform.offsetMax = Vector2.zero;
+            header.GetComponent<Image>().color = new Color(0.34f, 0.22f, 0.1f, 0.9f);
+
+            CreateScoreboardCell(headerTransform, "玩家", 0f, 0.36f, TextAnchor.MiddleLeft, true);
+            CreateScoreboardCell(headerTransform, "实时分", 0.36f, 0.53f, TextAnchor.MiddleCenter, true);
+            CreateScoreboardCell(headerTransform, "区控", 0.53f, 0.68f, TextAnchor.MiddleCenter, true);
+            CreateScoreboardCell(headerTransform, "资源", 0.68f, 0.83f, TextAnchor.MiddleCenter, true);
+            CreateScoreboardCell(headerTransform, "总分", 0.83f, 1f, TextAnchor.MiddleCenter, true);
+        }
+
+        private static void CreateScoreboardRow(
+            RectTransform parent,
+            GameState state,
+            FinalPlayerScoreState score,
+            int rowIndex,
+            float rowHeight)
+        {
+            var isWinner = state.FinalScoring.WinnerPlayerIds.Contains(score.PlayerId);
+            var row = new GameObject("Final Score Row P" + score.PlayerId, typeof(RectTransform), typeof(Image));
+            row.transform.SetParent(parent, false);
+            var rowTransform = row.GetComponent<RectTransform>();
+            var rowTop = 0.8f - rowIndex * rowHeight;
+            rowTransform.anchorMin = new Vector2(0f, rowTop - rowHeight);
+            rowTransform.anchorMax = new Vector2(1f, rowTop);
+            rowTransform.offsetMin = Vector2.zero;
+            rowTransform.offsetMax = Vector2.zero;
+            row.GetComponent<Image>().color = isWinner
+                ? new Color(0.48f, 0.36f, 0.13f, 0.72f)
+                : rowIndex % 2 == 0
+                    ? new Color(0.15f, 0.09f, 0.045f, 0.7f)
+                    : new Color(0.1f, 0.065f, 0.035f, 0.7f);
+
+            var player = state.FindPlayer(score.PlayerId);
+            var playerName = player == null || string.IsNullOrEmpty(player.Name)
+                ? "P" + score.PlayerId
+                : player.Name;
+            if (isWinner)
             {
-                var score = state.FinalScoring.PlayerScores[i];
-                summary += "P" + score.PlayerId + " 总分 " + score.TotalScore +
-                           "（基础 " + score.BaseScore +
-                           " / 区控 " + score.RegionScore +
-                           " / 资源 " + score.ResourceScore +
-                           " / 设施 " + score.FacilityScore +
-                           " / 样式 " + score.CityStyleScore + "）";
-                if (i < state.FinalScoring.PlayerScores.Count - 1)
+                playerName = "★ " + playerName;
+            }
+
+            var badgeObject = new GameObject("Player Color", typeof(RectTransform), typeof(Image));
+            badgeObject.transform.SetParent(rowTransform, false);
+            var badge = badgeObject.GetComponent<RectTransform>();
+            badge.anchorMin = new Vector2(0.018f, 0.5f);
+            badge.anchorMax = new Vector2(0.018f, 0.5f);
+            badge.pivot = new Vector2(0f, 0.5f);
+            badge.sizeDelta = new Vector2(28f, 28f);
+            badgeObject.GetComponent<Image>().color = player == null
+                ? Color.white
+                : UiTheme.GetPlayerColor(player.Color, 1f);
+
+            CreateScoreboardCell(rowTransform, playerName, 0.065f, 0.36f, TextAnchor.MiddleLeft, isWinner);
+            CreateScoreboardCell(
+                rowTransform,
+                (score.BaseScore + score.FacilityScore + score.CityStyleScore).ToString(),
+                0.36f,
+                0.53f,
+                TextAnchor.MiddleCenter,
+                false);
+            CreateScoreboardCell(rowTransform, score.RegionScore.ToString(), 0.53f, 0.68f, TextAnchor.MiddleCenter, false);
+            CreateScoreboardCell(rowTransform, score.ResourceScore.ToString(), 0.68f, 0.83f, TextAnchor.MiddleCenter, false);
+            CreateScoreboardCell(rowTransform, score.TotalScore.ToString(), 0.83f, 1f, TextAnchor.MiddleCenter, true);
+        }
+
+        private static void CreateScoreboardCell(
+            RectTransform parent,
+            string content,
+            float minX,
+            float maxX,
+            TextAnchor alignment,
+            bool bold)
+        {
+            var cell = CreateScoreboardText(
+                parent,
+                "Cell " + content,
+                content,
+                23,
+                bold ? FontStyle.Bold : FontStyle.Normal,
+                alignment);
+            cell.anchorMin = new Vector2(minX, 0f);
+            cell.anchorMax = new Vector2(maxX, 1f);
+            cell.offsetMin = new Vector2(alignment == TextAnchor.MiddleLeft ? 10f : 0f, 0f);
+            cell.offsetMax = new Vector2(-4f, 0f);
+        }
+
+        private static RectTransform CreateScoreboardText(
+            RectTransform parent,
+            string objectName,
+            string content,
+            int fontSize,
+            FontStyle fontStyle,
+            TextAnchor alignment)
+        {
+            var transform = new GameObject(objectName, typeof(RectTransform), typeof(Text)).GetComponent<RectTransform>();
+            transform.SetParent(parent, false);
+            var text = transform.GetComponent<Text>();
+            text.text = content;
+            text.alignment = alignment;
+            text.color = new Color(0.94f, 0.87f, 0.72f, 1f);
+            text.fontSize = fontSize;
+            text.fontStyle = fontStyle;
+            text.font = FontUtility.GetCjkFont(fontSize);
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Truncate;
+            return transform;
+        }
+
+        private static void CreateScoreboardMessage(RectTransform parent, string message)
+        {
+            var transform = CreateScoreboardText(
+                parent,
+                "Final Score Message",
+                message,
+                28,
+                FontStyle.Normal,
+                TextAnchor.MiddleCenter);
+            transform.anchorMin = new Vector2(0f, 0.3f);
+            transform.anchorMax = new Vector2(1f, 0.75f);
+            transform.offsetMin = new Vector2(40f, 0f);
+            transform.offsetMax = new Vector2(-40f, 0f);
+        }
+
+        private static List<FinalPlayerScoreState> BuildOrderedFinalScores(List<FinalPlayerScoreState> scores)
+        {
+            var ordered = scores == null
+                ? new List<FinalPlayerScoreState>()
+                : new List<FinalPlayerScoreState>(scores);
+            ordered.Sort((left, right) =>
+            {
+                var comparison = right.TotalScore.CompareTo(left.TotalScore);
+                if (comparison != 0)
                 {
-                    summary += "\n";
+                    return comparison;
                 }
-            }
 
-            return summary;
+                comparison = right.GoldVoucherTiebreaker.CompareTo(left.GoldVoucherTiebreaker);
+                if (comparison != 0)
+                {
+                    return comparison;
+                }
+
+                comparison = right.PureOriginiumTiebreaker.CompareTo(left.PureOriginiumTiebreaker);
+                return comparison != 0 ? comparison : left.PlayerId.CompareTo(right.PlayerId);
+            });
+            return ordered;
         }
 
         private static string FormatWinnerIds(System.Collections.Generic.List<int> winnerPlayerIds)

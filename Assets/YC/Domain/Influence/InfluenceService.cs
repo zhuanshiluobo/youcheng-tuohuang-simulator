@@ -162,6 +162,55 @@ namespace YC.Domain.Influence
                 true);
         }
 
+        public InfluenceOperationResult PlaceAtomically(
+            GameState state,
+            int playerId,
+            IReadOnlyList<string> slotIds)
+        {
+            ValidateState(state);
+            if (slotIds == null || slotIds.Count == 0)
+            {
+                return Failure(InfluenceFailureCode.InvalidState, "At least one influence placement is required.", playerId, string.Empty, false);
+            }
+
+            var player = state.FindPlayer(playerId);
+            if (player == null)
+            {
+                return Failure(InfluenceFailureCode.InvalidPlayer, "Player must exist.", playerId, string.Empty, false);
+            }
+
+            if (player.InfluenceSupply < slotIds.Count)
+            {
+                return Failure(InfluenceFailureCode.InsufficientSupply, "Not enough influence markers in supply.", playerId, string.Empty, false);
+            }
+
+            var uniqueSlots = new HashSet<string>();
+            for (var i = 0; i < slotIds.Count; i++)
+            {
+                if (string.IsNullOrEmpty(slotIds[i]) || !uniqueSlots.Add(slotIds[i]))
+                {
+                    return Failure(InfluenceFailureCode.InvalidSlot, "Influence placement slots must be non-empty and distinct.", playerId, slotIds[i], false);
+                }
+
+                var validation = placementRule.Validate(state, playerId, slotIds[i], true);
+                if (!validation.Succeeded)
+                {
+                    return validation;
+                }
+            }
+
+            for (var i = 0; i < slotIds.Count; i++)
+            {
+                var placement = PlaceCore(state, playerId, slotIds[i]);
+                if (!placement.Succeeded)
+                {
+                    return placement;
+                }
+            }
+
+            return InfluenceOperationResult.Success(playerId, slotIds[slotIds.Count - 1], true);
+        }
+
         public ValidationResult CanMoveAtomically(
             GameState state,
             int playerId,

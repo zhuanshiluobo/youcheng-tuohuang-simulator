@@ -56,7 +56,7 @@ namespace YC.Domain.Scoring
                 var playerScore = new FinalPlayerScoreState
                 {
                     PlayerId = player.PlayerId,
-                    BaseScore = player.Score - facilityScore,
+                    BaseScore = player.Score - facilityScore - cityStyleScore,
                     ResourceScore = CalculateResourceScore(player.Resources),
                     FacilityScore = facilityScore,
                     CityStyleScore = cityStyleScore,

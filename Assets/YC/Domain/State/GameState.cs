@@ -12,6 +12,7 @@ namespace YC.Domain.State
         public int Round = 0;
         public int MaxRounds = 8;
         public int StartPlayerId = -1;
+        public int LastFederalCouncilBuilderThisRoundPlayerId = -1;
         public int CurrentPlayerId = -1;
         public int ActionRound = 0;
         public bool UseSeatTurnOrder;
@@ -22,6 +23,8 @@ namespace YC.Domain.State
         public DeckRuntimeState Decks = new DeckRuntimeState();
         public PendingChoiceState PendingChoice;
         public PendingCardSessionState PendingCardSession;
+        public PendingCharacterEffectState PendingCharacterEffect;
+        public List<DelayedCharacterEffectState> DelayedCharacterEffects = new List<DelayedCharacterEffectState>();
         public FinalScoringState FinalScoring;
         public List<GameLogEntry> Logs = new List<GameLogEntry>();
 
@@ -33,8 +36,45 @@ namespace YC.Domain.State
         public bool HasPendingChoice()
         {
             return (PendingChoice != null && PendingChoice.IsValid()) ||
-                   (PendingCardSession != null && PendingCardSession.IsValid());
+                   (PendingCardSession != null && PendingCardSession.IsValid()) ||
+                   (PendingCharacterEffect != null && PendingCharacterEffect.IsValid());
         }
+    }
+
+    [Serializable]
+    public sealed class PendingCharacterEffectState
+    {
+        public string ChoiceType = string.Empty;
+        public int PlayerId;
+        public string CardId = string.Empty;
+        public string SourceCommandId = string.Empty;
+        public List<string> RemainingCardIds = new List<string>();
+        public List<string> ResolvedCardIds = new List<string>();
+        public List<string> OptionIds = new List<string>();
+        public bool ResolveTinManStrategyAfterRecall;
+        public bool TinManPurchasePureOriginium12;
+        public bool TinManPurchasePureOriginium15;
+        public string RemainingEffectMode = string.Empty;
+        public bool IsSecondEffect;
+
+        public bool IsValid()
+        {
+            return PlayerId > 0 &&
+                   !string.IsNullOrEmpty(ChoiceType) &&
+                   !string.IsNullOrEmpty(CardId) &&
+                   OptionIds != null &&
+                   OptionIds.Count > 0 &&
+                   (ChoiceType != YC.Domain.Cards.CharacterPendingChoiceTypes.TinManDiscard ||
+                    (RemainingCardIds != null && RemainingCardIds.Count > 0));
+        }
+    }
+
+    [Serializable]
+    public sealed class DelayedCharacterEffectState
+    {
+        public string EffectType = string.Empty;
+        public int PlayerId;
+        public string CardId = string.Empty;
     }
 
     [Serializable]
@@ -45,6 +85,7 @@ namespace YC.Domain.State
         public PlayerColor Color;
         public int Score;
         public int InfluenceSupply = 30;
+        public bool HasScoreTrackMarker;
         public string CityLocationId = string.Empty;
         public bool HasMovedCityThisRound;
         public bool HasCollectedResourcesThisRound;

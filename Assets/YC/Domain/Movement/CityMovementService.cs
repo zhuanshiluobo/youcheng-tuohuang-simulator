@@ -12,6 +12,7 @@ namespace YC.Domain.Movement
 {
     public sealed class CityMovementService
     {
+        internal const string WaiveBaseCostArgument = "waiveBaseCost";
         private readonly IMapQueryService mapQuery;
         private readonly InfluenceService influenceService;
         private readonly TravelCostService travelCostService;
@@ -210,6 +211,234 @@ namespace YC.Domain.Movement
                 null);
         }
 
+        public ValidationResult CanMoveCityForFacility(
+            GameState state,
+            int playerId,
+            string targetLocationId,
+            int selectedOptionIndex = -1,
+            IReadOnlyList<string> eventInfluenceSlotIds = null)
+        {
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            var player = state.FindPlayer(playerId);
+            if (player == null)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "未知玩家。");
+            }
+
+            if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
+            {
+                return ValidationResult.Failure(CommandErrorCode.WrongPhase, "设施入场的免费城市移动只能在行动轮结算。");
+            }
+
+            if (state.CurrentPlayerId != playerId)
+            {
+                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "当前不是该玩家的行动回合。");
+            }
+
+            if (string.IsNullOrEmpty(player.CityLocationId))
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidSource, "玩家城市不在场上。");
+            }
+
+            try
+            {
+                mapQuery.GetLocation(targetLocationId);
+            }
+            catch (ArgumentException)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "免费城市移动目标不存在。");
+            }
+
+            if (FindAdjacentRoute(mapQuery, player.CityLocationId, targetLocationId) == null)
+            {
+                return ValidationResult.Failure(CommandErrorCode.NoRoute, "目标地点与当前城市位置不相邻。");
+            }
+
+            if (HasOpponentCityAtLocation(state, playerId, targetLocationId))
+            {
+                return ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "目标地点有其他玩家的城市。");
+            }
+
+            if (IsRedZoneClosed(state, targetLocationId))
+            {
+                return ValidationResult.Failure(CommandErrorCode.ClosedLocation, "红色区域在第4回合前不可进入。");
+            }
+
+            var sourceSlotId = FindFirstAvailableLocationSlot(state, playerId, player.CityLocationId);
+            return ValidateUnrevealedTargetEvent(
+                state,
+                playerId,
+                targetLocationId,
+                selectedOptionIndex,
+                eventInfluenceSlotIds,
+                sourceSlotId,
+                new ResourceSet());
+        }
+
+        public CityMovementResult MoveCityForFacility(
+            GameState state,
+            int playerId,
+            string targetLocationId,
+            int selectedOptionIndex = -1,
+            IReadOnlyList<string> eventInfluenceSlotIds = null,
+            string sourceCommandId = null)
+        {
+            var validation = CanMoveCityForFacility(
+                state,
+                playerId,
+                targetLocationId,
+                selectedOptionIndex,
+                eventInfluenceSlotIds);
+            if (!validation.IsValid)
+            {
+                return CityMovementResult.Failure(validation);
+            }
+
+            if (resourceTokenService.HasResourceToken(state.Map, targetLocationId))
+            {
+                var baseMove = PerformBaseMove(state, playerId, targetLocationId, false);
+                return CityMovementResult.Success(
+                    baseMove.SourceLocationId,
+                    targetLocationId,
+                    baseMove.RouteId,
+                    baseMove.RemovedInfluenceCount,
+                    baseMove.SourceInfluencePlacement);
+            }
+
+            var arguments = BuildCardFlowArguments(eventInfluenceSlotIds);
+            CardFlowArgumentUtility.SetValue(arguments, WaiveBaseCostArgument, bool.TrueString);
+            if (selectedOptionIndex >= 0)
+            {
+                var flowResult = cardFlowService.ExecuteImmediate(
+                    state,
+                    new CardFlowExecuteRequest
+                    {
+                        PlayerId = playerId,
+                        TargetId = targetLocationId,
+                        SourceCommandId = sourceCommandId,
+                        OptionIndex = selectedOptionIndex,
+                        Arguments = arguments
+                    },
+                    new MoveCityEventCardScenario(this));
+                if (!flowResult.Succeeded)
+                {
+                    return CityMovementResult.Failure(flowResult.Validation);
+                }
+
+                return CityMovementResult.Success(
+                    GetContextValue(flowResult.Context, "sourceLocationId"),
+                    targetLocationId,
+                    GetContextValue(flowResult.Context, "routeId"),
+                    GetContextIntValue(flowResult.Context, "removedInfluenceCount"),
+                    null,
+                    true,
+                    flowResult.Card.CardId,
+                    flowResult.Card.Color,
+                    selectedOptionIndex,
+                    flowResult.Reward);
+            }
+
+            var pendingResult = cardFlowService.StartPendingChoice(
+                state,
+                new CardFlowStartRequest
+                {
+                    PlayerId = playerId,
+                    TargetId = targetLocationId,
+                    SourceCommandId = sourceCommandId,
+                    Arguments = arguments
+                },
+                new MoveCityEventCardScenario(this));
+            if (!pendingResult.Succeeded)
+            {
+                return CityMovementResult.Failure(pendingResult.Validation);
+            }
+
+            return CityMovementResult.Success(
+                GetContextValue(pendingResult.Context, "sourceLocationId"),
+                targetLocationId,
+                GetContextValue(pendingResult.Context, "routeId"),
+                GetContextIntValue(pendingResult.Context, "removedInfluenceCount"),
+                null,
+                true,
+                pendingResult.Card.CardId,
+                pendingResult.Card.Color,
+                -1,
+                null);
+        }
+
+        public ValidationResult CanRaidCityForCharacter(GameState state, int playerId, string targetLocationId)
+        {
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            var player = state.FindPlayer(playerId);
+            if (player == null)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "玩家不存在。");
+            }
+
+            if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
+            {
+                return ValidationResult.Failure(CommandErrorCode.WrongPhase, "免费突袭只能在行动轮发动。");
+            }
+
+            if (state.CurrentPlayerId != playerId)
+            {
+                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "只能在自己的行动窗口免费突袭。");
+            }
+
+            if (string.IsNullOrEmpty(player.CityLocationId))
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidSource, "玩家的移动城市不在场上。");
+            }
+
+            mapQuery.GetLocation(targetLocationId);
+            if (FindAdjacentRoute(mapQuery, player.CityLocationId, targetLocationId) == null)
+            {
+                return ValidationResult.Failure(CommandErrorCode.NoRoute, "免费突袭目标必须与移动城市相邻。");
+            }
+
+            if (HasOpponentCityAtLocation(state, playerId, targetLocationId))
+            {
+                return ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "目标资源点有其他玩家的移动城市。");
+            }
+
+            if (IsRedZoneClosed(state, targetLocationId))
+            {
+                return ValidationResult.Failure(CommandErrorCode.ClosedLocation, "红色区域尚未开放。");
+            }
+
+            if (!resourceTokenService.HasResourceToken(state.Map, targetLocationId))
+            {
+                return ValidationResult.Failure(CommandErrorCode.ClosedLocation, "免费突袭目标必须是已有资源的资源点。");
+            }
+
+            return ValidationResult.Success;
+        }
+
+        public CityMovementResult RaidCityForCharacter(GameState state, int playerId, string targetLocationId)
+        {
+            var validation = CanRaidCityForCharacter(state, playerId, targetLocationId);
+            if (!validation.IsValid)
+            {
+                return CityMovementResult.Failure(validation);
+            }
+
+            var move = PerformBaseMove(state, playerId, targetLocationId, false);
+            return CityMovementResult.Success(
+                move.SourceLocationId,
+                targetLocationId,
+                move.RouteId,
+                move.RemovedInfluenceCount,
+                move.SourceInfluencePlacement);
+        }
+
         public CityMovementResult ResolveMoveCityEvent(
             GameState state,
             int playerId,
@@ -263,7 +492,11 @@ namespace YC.Domain.Movement
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "Move city event card does not exist.");
             }
 
-            var moveResult = PerformBaseMove(state, context.PlayerId, context.TargetId);
+            var waiveBaseCost = string.Equals(
+                CardFlowArgumentUtility.GetValue(context.ContextData, WaiveBaseCostArgument),
+                bool.TrueString,
+                StringComparison.OrdinalIgnoreCase);
+            var moveResult = PerformBaseMove(state, context.PlayerId, context.TargetId, !waiveBaseCost);
             CardFlowArgumentUtility.SetValue(context.ContextData, "sourceLocationId", moveResult.SourceLocationId);
             CardFlowArgumentUtility.SetValue(context.ContextData, "routeId", moveResult.RouteId);
             CardFlowArgumentUtility.SetValue(context.ContextData, "removedInfluenceCount", moveResult.RemovedInfluenceCount.ToString());
@@ -334,14 +567,17 @@ namespace YC.Domain.Movement
             return ApplyEventOption(state, playerId, originLocationId, card, selectedOptionIndex, eventInfluenceSlotIds, out reward);
         }
 
-        private BaseMoveResult PerformBaseMove(GameState state, int playerId, string targetLocationId)
+        private BaseMoveResult PerformBaseMove(GameState state, int playerId, string targetLocationId, bool payBaseCost = true)
         {
             var player = state.FindPlayer(playerId);
             var sourceLocationId = player.CityLocationId;
             var route = mapQuery.FindRoute(sourceLocationId, targetLocationId);
             var cost = travelCostService.GetCityMoveBaseCost();
 
-            player.Resources.TryPay(cost);
+            if (payBaseCost)
+            {
+                player.Resources.TryPay(cost);
+            }
             player.CityLocationId = targetLocationId;
             player.HasMovedCityThisRound = true;
 

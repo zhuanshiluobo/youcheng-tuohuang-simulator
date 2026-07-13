@@ -1,5 +1,7 @@
 using System;
 using YC.Domain.Commands;
+using YC.Domain.Cards;
+using YC.Domain.Facilities;
 using YC.Domain.State;
 
 namespace YC.Domain.Rules
@@ -7,15 +9,22 @@ namespace YC.Domain.Rules
     public sealed class RoundAdvanceService
     {
         private readonly TurnOrderService turnOrderService;
+        private readonly CharacterCardService characterCardService;
 
         public RoundAdvanceService()
-            : this(new TurnOrderService())
+            : this(new TurnOrderService(), new CharacterCardService())
         {
         }
 
         public RoundAdvanceService(TurnOrderService turnOrderService)
+            : this(turnOrderService, new CharacterCardService(turnOrderService))
+        {
+        }
+
+        public RoundAdvanceService(TurnOrderService turnOrderService, CharacterCardService characterCardService)
         {
             this.turnOrderService = turnOrderService ?? throw new ArgumentNullException(nameof(turnOrderService));
+            this.characterCardService = characterCardService ?? throw new ArgumentNullException(nameof(characterCardService));
         }
 
         public void CompleteMainAction(GameState state, int playerId)
@@ -179,6 +188,21 @@ namespace YC.Domain.Rules
                 return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "Only the start player can end cleanup.");
             }
 
+            var delayedEffect = characterCardService.BeginCleanupEffects(state);
+            if (!delayedEffect.IsValid)
+            {
+                return delayedEffect;
+            }
+
+            if (state.HasPendingChoice())
+            {
+                return ValidationResult.Success;
+            }
+
+            characterCardService.CleanupRound(state);
+
+            var federalCouncilStartPlayerId = FederalCouncilEffectService.ConsumeLatestBuilder(state);
+
             if (state.Round >= state.MaxRounds)
             {
                 state.Phase = GamePhase.FinalScoring;
@@ -186,11 +210,13 @@ namespace YC.Domain.Rules
                 return ValidationResult.Success;
             }
 
-            state.StartPlayerId = GetNextStartPlayerId(state);
-            state.CurrentPlayerId = GetFirstTurnPlayerId(state);
+            state.StartPlayerId = federalCouncilStartPlayerId > 0
+                ? federalCouncilStartPlayerId
+                : GetNextStartPlayerId(state);
+            state.CurrentPlayerId = state.StartPlayerId;
             state.Round += 1;
-            state.Phase = GamePhase.ActionRound1;
-            state.ActionRound = 1;
+            state.Phase = GamePhase.CharacterCover;
+            state.ActionRound = 0;
 
             for (var i = 0; i < state.Players.Count; i++)
             {

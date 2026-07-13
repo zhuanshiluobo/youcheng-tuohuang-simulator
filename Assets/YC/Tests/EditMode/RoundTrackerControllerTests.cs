@@ -4,6 +4,8 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using YC.Domain.Rules;
+using YC.Domain.State;
 
 namespace YC.Tests.EditMode
 {
@@ -93,6 +95,56 @@ namespace YC.Tests.EditMode
 
             Assert.That(panel.rect.height, Is.EqualTo(initialHeight).Within(0.01f));
             Assert.That(content.gameObject.activeSelf, Is.True);
+        }
+
+        [Test]
+        public void RefreshFromState_WhenFinalScoringResolved_CreatesStructuredScoreboard()
+        {
+            controller = CreateController();
+            var state = new GameState
+            {
+                Phase = GamePhase.FinalScoring,
+                Players =
+                {
+                    new PlayerState { PlayerId = 1, Name = "甲", Color = PlayerColor.Red },
+                    new PlayerState { PlayerId = 2, Name = "乙", Color = PlayerColor.Blue }
+                },
+                FinalScoring = new FinalScoringState
+                {
+                    IsResolved = true,
+                    WinnerPlayerIds = { 1 },
+                    TiebreakSummary = "总分最高。",
+                    PlayerScores =
+                    {
+                        new FinalPlayerScoreState
+                        {
+                            PlayerId = 1,
+                            BaseScore = 3,
+                            FacilityScore = 4,
+                            CityStyleScore = 2,
+                            RegionScore = 3,
+                            ResourceScore = 1,
+                            TotalScore = 13
+                        },
+                        new FinalPlayerScoreState
+                        {
+                            PlayerId = 2,
+                            BaseScore = 5,
+                            RegionScore = 3,
+                            ResourceScore = 2,
+                            TotalScore = 10
+                        }
+                    }
+                }
+            };
+
+            InvokePublic("RefreshFromState", state);
+
+            Assert.That(FindChild(owner.transform, "Game Over Dialog"), Is.Not.Null);
+            Assert.That(FindChild(owner.transform, "Final Score Header"), Is.Not.Null);
+            Assert.That(FindChild(owner.transform, "Final Score Row P1"), Is.Not.Null);
+            Assert.That(FindChild(owner.transform, "Final Score Row P2"), Is.Not.Null);
+            Assert.That(FindChild(owner.transform, "Final Score Winner").GetComponent<Text>().text, Does.Contain("P1"));
         }
 
         private Component CreateController()

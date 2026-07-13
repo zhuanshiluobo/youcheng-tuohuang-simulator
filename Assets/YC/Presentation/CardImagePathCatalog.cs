@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using YC.Domain.CityStyles;
 using YC.Domain.Facilities;
+using YC.Domain.Rules;
+using YC.Presentation.Workflows;
 
 namespace YC.Presentation
 {
@@ -58,6 +60,16 @@ namespace YC.Presentation
 
             relativePath = CityStyleImageRoot + imageFileName;
             return true;
+        }
+
+        public static bool TryGetCharacterFrontImageRelativePath(string cardId, out string relativePath)
+        {
+            return CharacterCardImagePathCatalog.TryGetFrontImageRelativePath(cardId, out relativePath);
+        }
+
+        public static bool TryGetCharacterBackImageRelativePath(PlayerColor color, out string relativePath)
+        {
+            return CharacterCardImagePathCatalog.TryGetBackImageRelativePath(color, out relativePath);
         }
     }
 }

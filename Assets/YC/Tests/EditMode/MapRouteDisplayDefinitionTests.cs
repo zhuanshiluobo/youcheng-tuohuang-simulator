@@ -12,6 +12,25 @@ namespace YC.Tests.EditMode
     public sealed class MapRouteDisplayDefinitionTests
     {
         [Test]
+        public void ScoreTrackPositions_FollowBottomThenRightEdgeAndClampToPrintedTrack()
+        {
+            var minusTwo = FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(-2);
+            var zero = FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(0);
+            var twentyThree = FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(23);
+            var twentyFour = FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(24);
+            var fifty = FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(50);
+
+            Assert.That(minusTwo.x, Is.EqualTo(0.1013f).Within(0.0001f));
+            Assert.That(zero.x, Is.GreaterThan(minusTwo.x));
+            Assert.That(twentyThree.y, Is.EqualTo(minusTwo.y).Within(0.0001f));
+            Assert.That(twentyFour.x, Is.EqualTo(twentyThree.x).Within(0.0001f));
+            Assert.That(twentyFour.y, Is.LessThan(twentyThree.y));
+            Assert.That(fifty.y, Is.EqualTo(0.02535f).Within(0.0001f));
+            Assert.That(FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(-99), Is.EqualTo(minusTwo));
+            Assert.That(FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(99), Is.EqualTo(fifty));
+        }
+
+        [Test]
         public void FourPlayerRouteDisplayDefinitions_AlignWithRuleRouteIds()
         {
             var map = StaticMapDefinitions.CreateFourPlayerMap();
