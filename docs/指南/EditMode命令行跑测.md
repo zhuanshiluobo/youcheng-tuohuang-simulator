@@ -61,7 +61,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\Run-EditModeTests.ps1 `
   -ResultsFile ".\Logs\EditModeTests\explore.xml"
 ```
 
-## 今天新增测试的跑法
+## 常用过滤示例
 
 探索相关：
 

@@ -78,15 +78,11 @@ YC / Dev / UI Diagnostics / Open Log Folder
 - `Data` 中的关键状态是否和截图一致。
 - UI 裁剪类问题重点看 `rect`、`anchoredPosition`、`CanvasRenderer.cull`、`maskable`、父级 `Mask/RectMask2D` 状态。
 
-## 4. 信息面板问题当前结论
+## 4. 已知案例：信息面板正文不显示
 
-当前信息面板正文不显示问题已有一次人工诊断结果：
+2026-06-29 的排查最终确认：正文 `Text` 数据、字体、颜色与 `CanvasRenderer` 均正常，但正文行高 `18` 小于当前 CJK 字体约 `19.87` 的 `preferredHeight`；配合 `verticalOverflow=Truncate`，UGUI 没有生成文字顶点。
 
-- 行容器存在且可见。
-- `Label` 与 `Value` 的 `RectTransform`、文本内容、颜色和字体正常。
-- 子文本 `CanvasRenderer.cull=True`。
-
-因此后续修改应围绕 `RectMask2D` 裁剪、`MaskableGraphic.maskable`、文本层级和 Canvas 重建顺序验证，不应再优先怀疑数据刷新或字体资源缺失。
+修复方式是把正文行高调整为 `22`，并将垂直溢出改为 `Overflow`。完整证据和验证结果见 `docs/工作记录/已完成模块工作记录/2026-06-29_信息面板正文渲染修复记录.md`。该案例说明诊断时应同时记录 `preferredHeight`、实际高度、溢出模式和 `cachedTextGenerator.vertexCount`，不能仅凭 `cull` 状态判断。
 
 ## 5. 后续修改前检查清单
 
