@@ -9,6 +9,14 @@ namespace YC.Domain.CityStyles
 {
     public sealed class CityStylePatternMatcher
     {
+        private static readonly int[] SupportedRotationDegrees = { 0, 90, 180, 270 };
+
+        private sealed class MatchingCombination
+        {
+            public List<CityStyleFacilityCandidate> Facilities;
+            public int RotationDegrees;
+        }
+
         public CityStyleMatchResult Match(GameState state, int playerId, CityStyleDefinition cityStyle)
         {
             if (state == null)
@@ -32,9 +40,7 @@ namespace YC.Domain.CityStyles
             }
 
             var requirement = cityStyle.DeclarationRequirement ?? new CityStyleRequirement();
-            var requiredCount = requirement.RequiredPatternCells != null && requirement.RequiredPatternCells.Count > 0
-                ? requirement.RequiredPatternCells.Count
-                : Math.Max(1, requirement.RequiredFacilityCount);
+            var requiredCount = GetRequiredFacilityCount(requirement);
             var candidates = BuildCandidates(state, player, requirement);
             if (candidates.Count < requiredCount)
             {
@@ -51,7 +57,104 @@ namespace YC.Domain.CityStyles
                     "已建设施的类型或城市面板位置不满足该样式。"));
             }
 
-            return CityStyleMatchResult.Success(selected);
+            return CityStyleMatchResult.Success(selected.Facilities, selected.RotationDegrees);
+        }
+
+        public CityStyleMatchResult MatchSelected(
+            GameState state,
+            int playerId,
+            CityStyleDefinition cityStyle,
+            IEnumerable<int> selectedSlotIndexes)
+        {
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            if (cityStyle == null)
+            {
+                return CityStyleMatchResult.Failure(ValidationResult.Failure(
+                    CommandErrorCode.InvalidTarget,
+                    "未知城市样式。"));
+            }
+
+            var player = state.FindPlayer(playerId);
+            if (player == null)
+            {
+                return CityStyleMatchResult.Failure(ValidationResult.Failure(
+                    CommandErrorCode.InvalidPlayer,
+                    "宣告玩家不存在。"));
+            }
+
+            if (selectedSlotIndexes == null)
+            {
+                return InvalidSelectedSlots("必须明确选择用于宣告的建设槽位。");
+            }
+
+            var requirement = cityStyle.DeclarationRequirement ?? new CityStyleRequirement();
+            var requiredCount = GetRequiredFacilityCount(requirement);
+            var selectedSlots = new List<int>(selectedSlotIndexes);
+            if (selectedSlots.Count != requiredCount)
+            {
+                return InvalidSelectedSlots("所选建设槽位数量不满足该样式要求。");
+            }
+
+            var uniqueSlots = new HashSet<int>();
+            var candidates = BuildCandidates(state, player, requirement);
+            var selectedFacilities = new List<CityStyleFacilityCandidate>();
+            for (var slotIndex = 0; slotIndex < selectedSlots.Count; slotIndex++)
+            {
+                var selectedSlot = selectedSlots[slotIndex];
+                if (!uniqueSlots.Add(selectedSlot))
+                {
+                    return InvalidSelectedSlots("用于宣告的建设槽位不能重复。");
+                }
+
+                var candidate = FindCandidateAtSlot(candidates, selectedSlot);
+                if (candidate == null)
+                {
+                    return InvalidSelectedSlots("所选槽位不是该玩家可用于宣告的已建设施。");
+                }
+
+                selectedFacilities.Add(candidate);
+            }
+
+            int rotationDegrees;
+            if (!TryGetCombinationRotation(selectedFacilities, requirement, out rotationDegrees))
+            {
+                return InvalidSelectedSlots("所选设施的颜色或城市面板位置不满足该样式。");
+            }
+
+            return CityStyleMatchResult.Success(selectedFacilities, rotationDegrees);
+        }
+
+        private static int GetRequiredFacilityCount(CityStyleRequirement requirement)
+        {
+            return requirement.RequiredPatternCells != null && requirement.RequiredPatternCells.Count > 0
+                ? requirement.RequiredPatternCells.Count
+                : Math.Max(1, requirement.RequiredFacilityCount);
+        }
+
+        private static CityStyleMatchResult InvalidSelectedSlots(string reason)
+        {
+            return CityStyleMatchResult.Failure(ValidationResult.Failure(
+                CommandErrorCode.InvalidTarget,
+                reason));
+        }
+
+        private static CityStyleFacilityCandidate FindCandidateAtSlot(
+            List<CityStyleFacilityCandidate> candidates,
+            int slotIndex)
+        {
+            for (var i = 0; i < candidates.Count; i++)
+            {
+                if (candidates[i].CityBoardSlotIndex == slotIndex)
+                {
+                    return candidates[i];
+                }
+            }
+
+            return null;
         }
 
         private static List<CityStyleFacilityCandidate> BuildCandidates(
@@ -66,6 +169,7 @@ namespace YC.Domain.CityStyles
                 var placement = state.Map.Facilities[i];
                 if (placement.PlayerId != player.PlayerId ||
                     placement.CityBoardSlotIndex < 0 ||
+                    placement.CityBoardSlotIndex >= BuildFacilityService.CityBoardSlotCount ||
                     usedSlots.Contains(placement.CityBoardSlotIndex))
                 {
                     continue;
@@ -123,7 +227,7 @@ namespace YC.Domain.CityStyles
             return result;
         }
 
-        private static List<CityStyleFacilityCandidate> FindMatchingCombination(
+        private static MatchingCombination FindMatchingCombination(
             List<CityStyleFacilityCandidate> candidates,
             CityStyleRequirement requirement,
             int requiredCount)
@@ -132,7 +236,7 @@ namespace YC.Domain.CityStyles
             return Search(candidates, requirement, requiredCount, 0, selected);
         }
 
-        private static List<CityStyleFacilityCandidate> Search(
+        private static MatchingCombination Search(
             List<CityStyleFacilityCandidate> candidates,
             CityStyleRequirement requirement,
             int requiredCount,
@@ -141,8 +245,13 @@ namespace YC.Domain.CityStyles
         {
             if (selected.Count == requiredCount)
             {
-                return SatisfiesCombination(selected, requirement)
-                    ? new List<CityStyleFacilityCandidate>(selected)
+                int rotationDegrees;
+                return TryGetCombinationRotation(selected, requirement, out rotationDegrees)
+                    ? new MatchingCombination
+                    {
+                        Facilities = new List<CityStyleFacilityCandidate>(selected),
+                        RotationDegrees = rotationDegrees
+                    }
                     : null;
             }
 
@@ -161,20 +270,28 @@ namespace YC.Domain.CityStyles
             return null;
         }
 
-        private static bool SatisfiesCombination(
+        private static bool TryGetCombinationRotation(
             List<CityStyleFacilityCandidate> facilities,
-            CityStyleRequirement requirement)
+            CityStyleRequirement requirement,
+            out int rotationDegrees)
         {
-            return SatisfiesEffectTypes(facilities, requirement.RequiredEffectTypes) &&
-                   SatisfiesRequiredSlotCoverage(facilities, requirement.RequiredCityBoardSlotIndexes) &&
-                   SatisfiesColorPattern(facilities, requirement.RequiredPatternCells) &&
-                   SatisfiesSameRow(facilities, requirement.RequireSameCityBoardRow);
+            rotationDegrees = 0;
+            if (!SatisfiesEffectTypes(facilities, requirement.RequiredEffectTypes) ||
+                !SatisfiesRequiredSlotCoverage(facilities, requirement.RequiredCityBoardSlotIndexes) ||
+                !SatisfiesSameRow(facilities, requirement.RequireSameCityBoardRow))
+            {
+                return false;
+            }
+
+            return TryGetColorPatternRotation(facilities, requirement.RequiredPatternCells, out rotationDegrees);
         }
 
-        private static bool SatisfiesColorPattern(
+        private static bool TryGetColorPatternRotation(
             List<CityStyleFacilityCandidate> facilities,
-            List<CityStylePatternCell> patternCells)
+            List<CityStylePatternCell> patternCells,
+            out int rotationDegrees)
         {
+            rotationDegrees = 0;
             if (patternCells == null || patternCells.Count == 0)
             {
                 return true;
@@ -186,13 +303,24 @@ namespace YC.Domain.CityStyles
             }
 
             var rowCount = BuildFacilityService.CityBoardSlotCount / BuildFacilityService.CityBoardSlotCountPerRow;
-            for (var anchorRow = 0; anchorRow < rowCount; anchorRow++)
+            for (var rotationIndex = 0; rotationIndex < SupportedRotationDegrees.Length; rotationIndex++)
             {
-                for (var anchorColumn = 0; anchorColumn < BuildFacilityService.CityBoardSlotCountPerRow; anchorColumn++)
+                var candidateRotation = SupportedRotationDegrees[rotationIndex];
+                for (var anchorRow = 0; anchorRow < rowCount; anchorRow++)
                 {
-                    if (SatisfiesColorPatternAtAnchor(facilities, patternCells, anchorRow, anchorColumn, rowCount))
+                    for (var anchorColumn = 0; anchorColumn < BuildFacilityService.CityBoardSlotCountPerRow; anchorColumn++)
                     {
-                        return true;
+                        if (SatisfiesColorPatternAtAnchor(
+                                facilities,
+                                patternCells,
+                                anchorRow,
+                                anchorColumn,
+                                rowCount,
+                                candidateRotation))
+                        {
+                            rotationDegrees = candidateRotation;
+                            return true;
+                        }
                     }
                 }
             }
@@ -205,14 +333,23 @@ namespace YC.Domain.CityStyles
             List<CityStylePatternCell> patternCells,
             int anchorRow,
             int anchorColumn,
-            int rowCount)
+            int rowCount,
+            int rotationDegrees)
         {
             var usedFacilityIndexes = new HashSet<int>();
             for (var cellIndex = 0; cellIndex < patternCells.Count; cellIndex++)
             {
                 var cell = patternCells[cellIndex];
-                var row = anchorRow + cell.RowOffset;
-                var column = anchorColumn + cell.ColumnOffset;
+                int rotatedRowOffset;
+                int rotatedColumnOffset;
+                RotateOffsets(
+                    cell.RowOffset,
+                    cell.ColumnOffset,
+                    rotationDegrees,
+                    out rotatedRowOffset,
+                    out rotatedColumnOffset);
+                var row = anchorRow + rotatedRowOffset;
+                var column = anchorColumn + rotatedColumnOffset;
                 if (row < 0 ||
                     row >= rowCount ||
                     column < 0 ||
@@ -232,6 +369,34 @@ namespace YC.Domain.CityStyles
             }
 
             return true;
+        }
+
+        private static void RotateOffsets(
+            int rowOffset,
+            int columnOffset,
+            int rotationDegrees,
+            out int rotatedRowOffset,
+            out int rotatedColumnOffset)
+        {
+            switch (rotationDegrees)
+            {
+                case 90:
+                    rotatedRowOffset = columnOffset;
+                    rotatedColumnOffset = -rowOffset;
+                    return;
+                case 180:
+                    rotatedRowOffset = -rowOffset;
+                    rotatedColumnOffset = -columnOffset;
+                    return;
+                case 270:
+                    rotatedRowOffset = -columnOffset;
+                    rotatedColumnOffset = rowOffset;
+                    return;
+                default:
+                    rotatedRowOffset = rowOffset;
+                    rotatedColumnOffset = columnOffset;
+                    return;
+            }
         }
 
         private static int FindMatchingFacilityAtSlot(
@@ -355,6 +520,11 @@ namespace YC.Domain.CityStyles
             for (var facilityColorIndex = 0; facilityColorIndex < facilityColors.Length; facilityColorIndex++)
             {
                 var facilityColor = Normalize(facilityColors[facilityColorIndex]);
+                if (facilityColor == "rainbow")
+                {
+                    return true;
+                }
+
                 for (var allowedColorIndex = 0; allowedColorIndex < allowedColors.Count; allowedColorIndex++)
                 {
                     if (facilityColor == Normalize(allowedColors[allowedColorIndex]))

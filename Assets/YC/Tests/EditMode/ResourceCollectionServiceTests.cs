@@ -207,6 +207,84 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void CollectResource_FromF02ToD03_OwnInfluenceOnD1DoesNotExemptD2Toll()
+        {
+            var state = CreateCollectionStateOnFourPlayerMap();
+            var player = state.FindPlayer(1);
+            player.CityLocationId = "F-02";
+            player.Resources.GoldVoucher = 2;
+            state.Players.Add(new PlayerState { PlayerId = 2, Color = PlayerColor.Blue });
+            state.Map.ResourceTokens.Add(new ResourceTokenState
+            {
+                LocationId = "D-03",
+                ResourceType = ResourceType.Iron,
+                Amount = 1
+            });
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = InfluenceService.GetLocationSlotId("D-03", 0),
+                LocationId = "D-03"
+            });
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = InfluenceService.GetRouteSlotId("D1", 0),
+                RouteId = "D1"
+            });
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 2,
+                SlotId = InfluenceService.GetRouteSlotId("D1", 1),
+                RouteId = "D1"
+            });
+            var service = new ResourceCollectionService(
+                new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
+
+            var initial = service.QuerySelection(state, 1, null);
+
+            Assert.That(initial.IsValid, Is.True, initial.Validation.Reason);
+            Assert.That(initial.CandidateLocationIds, Does.Contain("D-03"));
+            Assert.That(initial.PathsByLocationId.ContainsKey("D-03"), Is.False);
+            ResourceCollectionRouteOption d2Toll;
+            Assert.That(initial.TryGetRouteOption("D2", out d2Toll), Is.True);
+            Assert.That(d2Toll.PaymentKey, Is.EqualTo("D"));
+            Assert.That(d2Toll.CanAfford, Is.True);
+            Assert.That(d2Toll.OpponentOwnerPlayerIds, Is.Empty);
+
+            var afterConfirmation = service.QuerySelection(state, 1, new[] { "D2" });
+
+            Assert.That(afterConfirmation.PathsByLocationId["D-03"].RouteIds, Is.EqualTo(new[] { "D2" }));
+            Assert.That(afterConfirmation.ConfirmedTollCost, Is.EqualTo(2));
+
+            var invalidRecipient = service.CanCollect(
+                state,
+                1,
+                new List<string> { "D-03" },
+                new List<string> { "D2" },
+                new Dictionary<string, int> { { "D2", 2 } });
+
+            Assert.That(invalidRecipient.IsValid, Is.False);
+            Assert.That(invalidRecipient.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(invalidRecipient.Reason, Does.Contain("没有对手影响力"));
+
+            var result = service.Collect(
+                state,
+                1,
+                new List<string> { "D-03" },
+                new List<string> { "D2" },
+                null);
+
+            Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(0));
+            Assert.That(player.Resources.Iron, Is.EqualTo(1));
+            Assert.That(result.Payments, Has.Count.EqualTo(1));
+            Assert.That(result.Payments[0].RouteId, Is.EqualTo("D2"));
+            Assert.That(result.Payments[0].PaidToSupply, Is.True);
+            Assert.That(state.FindPlayer(2).Resources.GoldVoucher, Is.EqualTo(0));
+        }
+
+        [Test]
         public void CollectResource_WithInvalidPaymentRecipient_FailsWithoutChangingResources()
         {
             var state = CreateCollectionStateOnFourPlayerMap();

@@ -17,10 +17,14 @@ namespace YC.Domain.CityStyles
         public ValidationResult Validation { get; private set; }
         public List<string> UsedFacilityIds { get; private set; }
         public List<int> UsedCityBoardSlotIndexes { get; private set; }
+        public int RotationDegrees { get; private set; }
 
-        public static CityStyleMatchResult Success(IEnumerable<CityStyleFacilityCandidate> facilities)
+        public static CityStyleMatchResult Success(
+            IEnumerable<CityStyleFacilityCandidate> facilities,
+            int rotationDegrees = 0)
         {
             var result = new CityStyleMatchResult(true, ValidationResult.Success);
+            result.RotationDegrees = rotationDegrees;
             if (facilities == null)
             {
                 return result;

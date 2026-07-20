@@ -71,6 +71,31 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void SellResources_NegativeAmount_FailsWithoutChangingResourcesOrPendingChoice()
+        {
+            var fixture = CreateFixture();
+            var player = fixture.State.FindPlayer(1);
+            player.Resources.Originium = 1;
+            player.Resources.GoldVoucher = 7;
+            OpenEffect(fixture.State, "building_019");
+            var pending = fixture.State.PendingCardSession;
+
+            var result = fixture.Handler.Handle(fixture.State, ResolveCommand(fixture.State,
+                FacilityPendingChoiceTypes.ConfirmOption,
+                new Dictionary<string, string>
+                {
+                    { ResolveFacilityEffectCommandHandler.OriginiumAmountParameter, "-1" }
+                }));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(result.Validation.Reason, Is.EqualTo("出售数量必须是非负整数。"));
+            Assert.That(player.Resources.Originium, Is.EqualTo(1));
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(7));
+            Assert.That(fixture.State.PendingCardSession, Is.SameAs(pending));
+        }
+
+        [Test]
         public void MiningPowerShovel_DistributionMustTotalExactlyFive()
         {
             var fixture = CreateFixture();
@@ -239,6 +264,38 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void HighPerformancePower_EventMoveReusesNormalEventsWithoutConsumingMainAction()
+        {
+            var fixture = CreateFixture();
+            fixture.State.Decks.EventDeckGreen.Add("event_green_01");
+            OpenEffect(fixture.State, "building_025");
+
+            var begin = fixture.Handler.Handle(fixture.State, ResolveCommand(
+                fixture.State,
+                FacilityPendingChoiceTypes.ConfirmOption,
+                new Dictionary<string, string>
+                {
+                    { ResolveFacilityEffectCommandHandler.TargetLocationIdParameter, "A-02" }
+                }));
+
+            Assert.That(begin.Succeeded, Is.True, begin.Validation.Reason);
+            Assert.That(begin.Events.Exists(item => item.Kind == GameEventKind.CityMoved), Is.True);
+            Assert.That(begin.Events.Exists(item => item.Kind == GameEventKind.CardMoved), Is.True);
+            Assert.That(begin.Events.Exists(item => item.Kind == GameEventKind.ChoiceOpened), Is.True);
+            Assert.That(fixture.State.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+
+            var resolved = fixture.MoveHandler.Handle(fixture.State, new GameCommand
+            {
+                Kind = GameCommandKind.ResolvePendingChoice,
+                PlayerId = 1,
+                OptionIds = { "0" }
+            });
+
+            Assert.That(resolved.Succeeded, Is.True, resolved.Validation.Reason);
+            Assert.That(fixture.State.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+        }
+
+        [Test]
         public void VehicleWarehouse_ExploreBranchUsesNormalExploreCostAndOpensEventChoice()
         {
             var fixture = CreateFixture();
@@ -270,12 +327,25 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.State.PendingCardSession.ScenarioId,
                 Is.Not.EqualTo(FacilityPendingChoiceTypes.ScenarioId));
             Assert.That(fixture.State.PendingCardSession.CardId, Is.EqualTo("event_green_01"));
+            Assert.That(result.Events.Exists(item => item.Kind == GameEventKind.CardMoved), Is.True);
+            Assert.That(result.Events.Exists(item => item.Kind == GameEventKind.ResourceChanged), Is.True);
+            Assert.That(result.Events.Exists(item => item.Kind == GameEventKind.ChoiceOpened), Is.True);
             Assert.That(player.ActedMainActionThisTurn, Is.False,
                 "设施入场提供的探索不应额外消耗一次主要行动。");
+
+            var resolved = fixture.ExploreHandler.Handle(fixture.State, new GameCommand
+            {
+                Kind = GameCommandKind.ResolvePendingChoice,
+                PlayerId = 1,
+                OptionIds = { "0" }
+            });
+            Assert.That(resolved.Succeeded, Is.True, resolved.Validation.Reason);
+            Assert.That(player.ActedMainActionThisTurn, Is.False,
+                "赠送探索在事件选择结算后也不应额外消耗主要行动。");
         }
 
         [Test]
-        public void EscortDispatchCenter_WhenOnlyOneRequestedSlotIsLegal_DeploysOneAndCompletes()
+        public void EscortDispatchCenter_WhenOneOfTwoRequestedSlotsIsIllegal_FailsAtomically()
         {
             var fixture = CreateFixture();
             var legalSlotId = InfluenceService.GetRouteSlotId("A1", 0);
@@ -291,10 +361,85 @@ namespace YC.Tests.EditMode
                     }
                 }));
 
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, legalSlotId), Is.Null);
+            Assert.That(fixture.State.FindPlayer(1).InfluenceSupply, Is.EqualTo(30));
+            Assert.That(fixture.State.PendingCardSession, Is.Not.Null);
+        }
+
+        [Test]
+        public void VehicleWarehouse_RemoveThenDispatch_UsesOneAtomicInfluenceTransaction()
+        {
+            var fixture = CreateFixture();
+            var removeSlot = InfluenceService.GetRouteSlotId("A1", 0);
+            var sourceSlot = InfluenceService.GetRouteSlotId("B1", 0);
+            var targetSlot = InfluenceService.GetRouteSlotId("B2", 0);
+            fixture.State.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 2,
+                SlotId = removeSlot,
+                RouteId = "A1"
+            });
+            fixture.State.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = sourceSlot,
+                RouteId = "B1"
+            });
+            OpenEffect(fixture.State, "building_039");
+
+            var result = fixture.Handler.Handle(fixture.State, ResolveCommand(
+                fixture.State,
+                FacilityPendingChoiceTypes.RemoveDispatchOption,
+                new Dictionary<string, string>
+                {
+                    { ResolveFacilityEffectCommandHandler.RemoveInfluenceSlotIdParameter, removeSlot },
+                    { ResolveFacilityEffectCommandHandler.SourceInfluenceSlotIdParameter, sourceSlot },
+                    { ResolveFacilityEffectCommandHandler.TargetInfluenceSlotIdParameter, targetSlot }
+                }));
+
             Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
-            Assert.That(fixture.Influence.FindInfluence(fixture.State, legalSlotId), Is.Not.Null);
-            Assert.That(fixture.State.FindPlayer(1).InfluenceSupply, Is.EqualTo(29));
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, removeSlot), Is.Null);
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, sourceSlot), Is.Null);
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, targetSlot), Is.Not.Null);
             Assert.That(fixture.State.PendingCardSession, Is.Null);
+        }
+
+        [Test]
+        public void VehicleWarehouse_WhenDispatchIsIllegal_DoesNotKeepTheRemoval()
+        {
+            var fixture = CreateFixture();
+            var removeSlot = InfluenceService.GetRouteSlotId("A1", 0);
+            var sourceSlot = InfluenceService.GetRouteSlotId("B1", 0);
+            fixture.State.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 2,
+                SlotId = removeSlot,
+                RouteId = "A1"
+            });
+            fixture.State.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = sourceSlot,
+                RouteId = "B1"
+            });
+            OpenEffect(fixture.State, "building_039");
+            var pending = fixture.State.PendingCardSession;
+
+            var result = fixture.Handler.Handle(fixture.State, ResolveCommand(
+                fixture.State,
+                FacilityPendingChoiceTypes.RemoveDispatchOption,
+                new Dictionary<string, string>
+                {
+                    { ResolveFacilityEffectCommandHandler.RemoveInfluenceSlotIdParameter, removeSlot },
+                    { ResolveFacilityEffectCommandHandler.SourceInfluenceSlotIdParameter, sourceSlot },
+                    { ResolveFacilityEffectCommandHandler.TargetInfluenceSlotIdParameter, "not-a-slot" }
+                }));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, removeSlot), Is.Not.Null);
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, sourceSlot), Is.Not.Null);
+            Assert.That(fixture.State.PendingCardSession, Is.SameAs(pending));
         }
 
         [Test]
@@ -378,6 +523,8 @@ namespace YC.Tests.EditMode
                 eventDeck,
                 resourceTokens);
             var exploration = new ExplorationService(mapQuery, influence, eventDeck, resourceTokens);
+            var exploreHandler = new ExploreLocationCommandHandler(exploration);
+            var moveHandler = new MoveCityCommandHandler(movement);
             var build = new BuildFacilityService();
             var state = new GameState
             {
@@ -391,13 +538,16 @@ namespace YC.Tests.EditMode
             {
                 State = state,
                 Influence = influence,
+                MoveHandler = moveHandler,
+                ExploreHandler = exploreHandler,
                 Handler = new ResolveFacilityEffectCommandHandler(
                     build,
                     new FacilityEntryEffectService(),
                     influence,
-                    movement,
-                    exploration,
-                    mapQuery)
+                    moveHandler,
+                    exploreHandler,
+                    mapQuery,
+                    new YC.Domain.Economy.ResourceSaleService())
             };
         }
 
@@ -439,6 +589,8 @@ namespace YC.Tests.EditMode
         {
             public GameState State;
             public InfluenceService Influence;
+            public MoveCityCommandHandler MoveHandler;
+            public ExploreLocationCommandHandler ExploreHandler;
             public ResolveFacilityEffectCommandHandler Handler;
         }
     }

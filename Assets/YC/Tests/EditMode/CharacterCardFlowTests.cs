@@ -235,6 +235,49 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void Use_StartPlayerSequentialFlow_ThroughGameSession_AllowsOnlyConfirmedSecondEffect()
+        {
+            var state = CreateActionStateWithCoveredCannot();
+            var player = state.FindPlayer(1);
+            var cardId = player.CoveredCharacterCardId;
+            state.FindPlayer(2).Resources.Iron = 3;
+            var session = new GameSession(state);
+            session.RegisterHandler(new UseCharacterCardCommandHandler());
+
+            var first = new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = 1, TargetId = cardId };
+            first.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = cardId;
+            first.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] = CharacterEffectModes.Strategy;
+            first.Parameters[CharacterEffectParameterKeys.OfferSecondEffect] = "true";
+            Assert.That(session.Submit(first).Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect.ChoiceType, Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectDecision));
+
+            var continueCommand = new GameCommand { Kind = GameCommandKind.ResolvePendingChoice, PlayerId = 1 };
+            continueCommand.Parameters[CharacterEffectParameterKeys.Choice] = CharacterEffectChoiceIds.ContinueSecondEffect;
+            Assert.That(session.Submit(continueCommand).Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect.ChoiceType, Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectExecution));
+
+            var wrongSide = new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = 1, TargetId = cardId };
+            wrongSide.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = cardId;
+            wrongSide.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] = CharacterEffectModes.Strategy;
+            var wrongResult = session.Submit(wrongSide);
+            Assert.That(wrongResult.Succeeded, Is.False);
+            Assert.That(wrongResult.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.PendingChoiceRequired));
+
+            var second = new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = 1, TargetId = cardId };
+            second.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = cardId;
+            second.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] = CharacterEffectModes.Tactic;
+            second.Parameters[CharacterEffectParameterKeys.ResourceType] = "iron";
+            second.Parameters[CharacterEffectParameterKeys.OfferSecondEffect] = "true";
+            var secondResult = session.Submit(second);
+
+            Assert.That(secondResult.Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect, Is.Null);
+            Assert.That(player.CoveredCharacterCardId, Is.Empty);
+            Assert.That(player.UsedCharacterThisRound, Is.True);
+            Assert.That(state.FindPlayer(2).Resources.Iron, Is.Zero);
+        }
+
+        [Test]
         public void Use_StartPlayerSequentialFlow_CanDeclineSecondEffect()
         {
             var state = CreateActionStateWithCoveredCannot();
@@ -275,6 +318,73 @@ namespace YC.Tests.EditMode
             Assert.That(player.Resources.GoldVoucher, Is.EqualTo(7));
             Assert.That(player.DiscardCardIds, Does.Contain(cardId));
             Assert.That(player.UsedCharacterThisRound, Is.True);
+        }
+
+        [Test]
+        public void Use_CannotStrategy_SellsEveryResourceAtSharedRates()
+        {
+            var state = CreateActionStateWithCoveredCannot();
+            var player = state.FindPlayer(1);
+            player.Resources = new ResourceSet
+            {
+                Originium = 1,
+                OriginiumShard = 1,
+                Iron = 1,
+                PureOriginium = 1,
+                GoldVoucher = 7
+            };
+            var cardId = player.CoveredCharacterCardId;
+            var command = new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = 1, TargetId = cardId };
+            command.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = cardId;
+            command.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] = UseCharacterCardCommandHandler.Strategy;
+            command.Parameters[CharacterEffectParameterKeys.SaleOriginium] = "1";
+            command.Parameters[CharacterEffectParameterKeys.SaleOriginiumShard] = "1";
+            command.Parameters[CharacterEffectParameterKeys.SaleIron] = "1";
+            command.Parameters[CharacterEffectParameterKeys.SalePureOriginium] = "1";
+
+            var result = new UseCharacterCardCommandHandler().Handle(state, command);
+
+            Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
+            Assert.That(player.Resources.Originium, Is.Zero);
+            Assert.That(player.Resources.OriginiumShard, Is.Zero);
+            Assert.That(player.Resources.Iron, Is.Zero);
+            Assert.That(player.Resources.PureOriginium, Is.Zero);
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(32));
+        }
+
+        [Test]
+        public void Use_CannotStrategy_OverSellingFailsAtomically()
+        {
+            var state = CreateActionStateWithCoveredCannot();
+            var player = state.FindPlayer(1);
+            player.Resources = new ResourceSet
+            {
+                Originium = 1,
+                OriginiumShard = 2,
+                Iron = 3,
+                PureOriginium = 1,
+                GoldVoucher = 7
+            };
+            var before = player.Resources.Clone();
+            var cardId = player.CoveredCharacterCardId;
+            var command = new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = 1, TargetId = cardId };
+            command.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = cardId;
+            command.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] = UseCharacterCardCommandHandler.Strategy;
+            command.Parameters[CharacterEffectParameterKeys.SaleOriginium] = "1";
+            command.Parameters[CharacterEffectParameterKeys.SalePureOriginium] = "2";
+
+            var result = new UseCharacterCardCommandHandler().Handle(state, command);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InsufficientResource));
+            Assert.That(result.Validation.Reason, Is.EqualTo("贸易渠道出售的资源数量超过持有量。"));
+            Assert.That(player.Resources.Originium, Is.EqualTo(before.Originium));
+            Assert.That(player.Resources.OriginiumShard, Is.EqualTo(before.OriginiumShard));
+            Assert.That(player.Resources.Iron, Is.EqualTo(before.Iron));
+            Assert.That(player.Resources.PureOriginium, Is.EqualTo(before.PureOriginium));
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(before.GoldVoucher));
+            Assert.That(player.CoveredCharacterCardId, Is.EqualTo(cardId));
+            Assert.That(player.UsedCharacterThisRound, Is.False);
         }
 
         [Test]

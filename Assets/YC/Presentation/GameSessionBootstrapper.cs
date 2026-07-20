@@ -3,6 +3,7 @@ using YC.Application.Sessions;
 using YC.Application.Setup;
 using YC.Domain.Cards;
 using YC.Domain.CityStyles;
+using YC.Domain.Economy;
 using YC.Domain.Exploration;
 using YC.Domain.Facilities;
 using YC.Domain.Harvest;
@@ -23,6 +24,7 @@ namespace YC.Presentation
             public GameSession Session;
             public MapQueryService MapQuery;
             public InfluenceService InfluenceService;
+            public CityMovementService MovementService;
             public ExplorationService ExplorationService;
             public ResourceCollectionService ResourceCollectionService;
             public EventDeckService EventDeckService;
@@ -69,10 +71,6 @@ namespace YC.Presentation
                 eventDeckService,
                 resourceTokenService,
                 new TurnOrderService()));
-            session.RegisterHandler(new EndActionCommandHandler(
-                new RoundAdvanceService(),
-                new FinalScoringService(mapQuery)));
-
             var influenceService = new InfluenceService(mapQuery);
             session.RegisterHandler(new DeployInfluenceCommandHandler(influenceService));
             session.RegisterHandler(new DispatchInfluenceCommandHandler(influenceService));
@@ -84,14 +82,16 @@ namespace YC.Presentation
                 travelCostService,
                 eventDeckService,
                 resourceTokenService);
-            session.RegisterHandler(new MoveCityCommandHandler(movementService));
+            var moveCityCommandHandler = new MoveCityCommandHandler(movementService);
+            session.RegisterHandler(moveCityCommandHandler);
 
             var explorationService = new ExplorationService(
                 mapQuery,
                 influenceService,
                 eventDeckService,
                 resourceTokenService);
-            session.RegisterHandler(new ExploreLocationCommandHandler(explorationService));
+            var exploreLocationCommandHandler = new ExploreLocationCommandHandler(explorationService);
+            session.RegisterHandler(exploreLocationCommandHandler);
             var availabilityService = new FacilityEntryEffectAvailabilityService(
                 mapQuery,
                 influenceService,
@@ -100,17 +100,29 @@ namespace YC.Presentation
             var entryEffectService = new FacilityEntryEffectService(availabilityService);
             var buildFacilityService = new BuildFacilityService(
                 new FacilityEntryEffectResolver(entryEffectService));
+            var resourceSaleService = new ResourceSaleService();
             session.RegisterHandler(new BuildFacilityCommandHandler(buildFacilityService, new RoundAdvanceService()));
             session.RegisterHandler(new ResolveFacilityEffectCommandHandler(
                 buildFacilityService,
                 entryEffectService,
                 influenceService,
-                movementService,
-                explorationService,
-                mapQuery));
+                moveCityCommandHandler,
+                exploreLocationCommandHandler,
+                mapQuery,
+                resourceSaleService));
             session.RegisterHandler(new DeclareCityStyleCommandHandler(new DeclareCityStyleService()));
-            session.RegisterHandler(new CoverCharacterCardCommandHandler());
-            session.RegisterHandler(new UseCharacterCardCommandHandler());
+            var turnOrderService = new TurnOrderService();
+            var characterCardService = new CharacterCardService(
+                turnOrderService,
+                resourceSaleService,
+                mapQuery,
+                influenceService,
+                movementService);
+            session.RegisterHandler(new CoverCharacterCardCommandHandler(characterCardService));
+            session.RegisterHandler(new UseCharacterCardCommandHandler(characterCardService));
+            session.RegisterHandler(new EndActionCommandHandler(
+                new RoundAdvanceService(turnOrderService, characterCardService),
+                new FinalScoringService(mapQuery)));
             var resourceCollectionService = new ResourceCollectionService(mapQuery);
             session.RegisterHandler(new CollectResourceCommandHandler(resourceCollectionService));
 
@@ -119,6 +131,7 @@ namespace YC.Presentation
                 Session = session,
                 MapQuery = mapQuery,
                 InfluenceService = influenceService,
+                MovementService = movementService,
                 ExplorationService = explorationService,
                 ResourceCollectionService = resourceCollectionService,
                 EventDeckService = eventDeckService,

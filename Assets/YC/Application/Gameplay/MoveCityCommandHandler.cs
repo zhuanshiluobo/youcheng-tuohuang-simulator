@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
@@ -45,20 +46,57 @@ namespace YC.Application.Gameplay
                 return HandleResolveMoveCityEvent(state, command);
             }
 
-            var selectedOptionIndex = HasExplicitEventOption(command) ? ResolveSelectedOptionIndex(command) : -1;
+            CityMovementResult ignored;
+            return HandleMove(state, command, command.TargetId, false, out ignored);
+        }
+
+        public CommandResult HandleGrantedMove(
+            GameState state,
+            GameCommand sourceCommand,
+            string targetLocationId,
+            out CityMovementResult movementResult)
+        {
+            if (sourceCommand == null)
+            {
+                throw new ArgumentNullException(nameof(sourceCommand));
+            }
+
+            return HandleMove(state, sourceCommand, targetLocationId, true, out movementResult);
+        }
+
+        private CommandResult HandleMove(
+            GameState state,
+            GameCommand command,
+            string targetLocationId,
+            bool grantedByEffect,
+            out CityMovementResult movementResult)
+        {
+            var selectedOptionIndex = grantedByEffect
+                ? ResolveGrantedEventOptionIndex(command)
+                : HasExplicitEventOption(command) ? ResolveSelectedOptionIndex(command) : -1;
             if (selectedOptionIndex < -1)
             {
+                movementResult = null;
                 return Invalid(CommandErrorCode.InvalidTarget, "Move city event option must be a valid number.");
             }
 
             var eventInfluenceSlotIds = ResolveEventInfluenceSlotIds(command);
-            var result = cityMovementService.MoveCity(
-                state,
-                command.PlayerId,
-                command.TargetId,
-                selectedOptionIndex,
-                eventInfluenceSlotIds,
-                command.CommandId);
+            var result = grantedByEffect
+                ? cityMovementService.MoveCityForFacility(
+                    state,
+                    command.PlayerId,
+                    targetLocationId,
+                    selectedOptionIndex,
+                    eventInfluenceSlotIds,
+                    command.CommandId)
+                : cityMovementService.MoveCity(
+                    state,
+                    command.PlayerId,
+                    targetLocationId,
+                    selectedOptionIndex,
+                    eventInfluenceSlotIds,
+                    command.CommandId);
+            movementResult = result;
             if (!result.Succeeded)
             {
                 return CommandResult.Invalid(result.Validation);
@@ -70,7 +108,7 @@ namespace YC.Application.Gameplay
                 AddMoveCityEventEvents(state, command, result, events);
             }
 
-            if (!result.HasEventCard || result.SelectedOptionIndex >= 0)
+            if (!grantedByEffect && (!result.HasEventCard || result.SelectedOptionIndex >= 0))
             {
                 roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
             }
@@ -103,6 +141,7 @@ namespace YC.Application.Gameplay
                 return Invalid(CommandErrorCode.InvalidTarget, "Move city event option must be a valid number.");
             }
 
+            var consumeMainAction = CityMovementService.PendingMoveConsumesMainAction(state);
             var result = cityMovementService.ResolveMoveCityEvent(
                 state,
                 command.PlayerId,
@@ -115,7 +154,10 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(result.Validation);
             }
 
-            roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
+            if (consumeMainAction)
+            {
+                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
+            }
 
             var card = EventCardDatabase.Get(result.EventCardId);
             var message = "Player " + command.PlayerId + " resolved move city event " + card.Name + ".";
@@ -288,6 +330,18 @@ namespace YC.Application.Gameplay
         {
             int selectedOptionIndex;
             return int.TryParse(GetSelectedOptionId(command), out selectedOptionIndex) ? selectedOptionIndex : -2;
+        }
+
+        private static int ResolveGrantedEventOptionIndex(GameCommand command)
+        {
+            var optionId = GetParameter(command, EventOptionIdParameter);
+            if (string.IsNullOrEmpty(optionId))
+            {
+                return -1;
+            }
+
+            int selectedOptionIndex;
+            return int.TryParse(optionId, out selectedOptionIndex) ? selectedOptionIndex : -2;
         }
 
         private static string GetParameter(GameCommand command, string key)

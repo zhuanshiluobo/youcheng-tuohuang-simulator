@@ -32,8 +32,17 @@ namespace YC.Presentation
         private RectTransform trackSlotsTransform;
         private int currentIndex = FirstRoundIndex;
         private bool gameOverDialogShown;
+        private GameObject finalScoreSummaryView;
+        private GameObject finalScoreDetailsView;
+        private Text finalScoreDetailsButtonLabel;
+        private readonly Dictionary<int, GameObject> finalScoreDetailCharts =
+            new Dictionary<int, GameObject>();
+        private readonly Dictionary<int, Image> finalScoreDetailSelectorBackgrounds =
+            new Dictionary<int, Image>();
 
         public bool IsExpanded => true;
+        public bool IsFinalScoreDetailsOpen { get; private set; }
+        public int SelectedFinalScorePlayerId { get; private set; } = -1;
 
         private void Awake()
         {
@@ -326,7 +335,7 @@ namespace YC.Presentation
             CreateButtonText(returnButtonTransform, "返回开始页面", 30);
         }
 
-        private static void CreateFinalScoreboard(RectTransform parent, GameState state)
+        private void CreateFinalScoreboard(RectTransform parent, GameState state)
         {
             if (state == null || state.FinalScoring == null || !state.FinalScoring.IsResolved)
             {
@@ -334,20 +343,44 @@ namespace YC.Presentation
                 return;
             }
 
+            var orderedScores = BuildOrderedFinalScores(state.FinalScoring.PlayerScores);
+            SelectedFinalScorePlayerId = ResolveDefaultDetailsPlayerId(state.FinalScoring, orderedScores);
+            IsFinalScoreDetailsOpen = false;
+            finalScoreDetailCharts.Clear();
+            finalScoreDetailSelectorBackgrounds.Clear();
+
+            var winnerBar = new GameObject("Final Score Winner Bar", typeof(RectTransform));
+            winnerBar.transform.SetParent(parent, false);
+            var winnerBarTransform = winnerBar.GetComponent<RectTransform>();
+            winnerBarTransform.anchorMin = new Vector2(0f, 0.765f);
+            winnerBarTransform.anchorMax = new Vector2(1f, 0.85f);
+            winnerBarTransform.offsetMin = new Vector2(40f, 0f);
+            winnerBarTransform.offsetMax = new Vector2(-40f, 0f);
+
             var winnerTransform = CreateScoreboardText(
-                parent,
+                winnerBarTransform,
                 "Final Score Winner",
                 "胜者：" + FormatWinnerIds(state.FinalScoring.WinnerPlayerIds),
                 30,
                 FontStyle.Bold,
                 TextAnchor.MiddleCenter);
-            winnerTransform.anchorMin = new Vector2(0f, 0.765f);
-            winnerTransform.anchorMax = new Vector2(1f, 0.85f);
-            winnerTransform.offsetMin = new Vector2(40f, 0f);
-            winnerTransform.offsetMax = new Vector2(-40f, 0f);
+            winnerTransform.anchorMin = Vector2.zero;
+            winnerTransform.anchorMax = Vector2.one;
+            winnerTransform.offsetMin = Vector2.zero;
+            winnerTransform.offsetMax = new Vector2(-170f, 0f);
+
+            CreateFinalScoreDetailsEntry(winnerBarTransform, SelectedFinalScorePlayerId >= 0);
+
+            finalScoreSummaryView = new GameObject("Final Score Summary View", typeof(RectTransform));
+            finalScoreSummaryView.transform.SetParent(parent, false);
+            var summaryTransform = finalScoreSummaryView.GetComponent<RectTransform>();
+            summaryTransform.anchorMin = Vector2.zero;
+            summaryTransform.anchorMax = Vector2.one;
+            summaryTransform.offsetMin = Vector2.zero;
+            summaryTransform.offsetMax = Vector2.zero;
 
             var boardObject = new GameObject("Final Score Board", typeof(RectTransform), typeof(Image));
-            boardObject.transform.SetParent(parent, false);
+            boardObject.transform.SetParent(summaryTransform, false);
             var boardTransform = boardObject.GetComponent<RectTransform>();
             boardTransform.anchorMin = new Vector2(0f, 0.265f);
             boardTransform.anchorMax = new Vector2(1f, 0.765f);
@@ -356,7 +389,6 @@ namespace YC.Presentation
             boardObject.GetComponent<Image>().color = new Color(0.07f, 0.045f, 0.025f, 0.72f);
 
             CreateScoreboardHeader(boardTransform);
-            var orderedScores = BuildOrderedFinalScores(state.FinalScoring.PlayerScores);
             var rowHeight = 0.8f / Mathf.Max(4, orderedScores.Count);
             for (var i = 0; i < orderedScores.Count; i++)
             {
@@ -367,7 +399,7 @@ namespace YC.Presentation
                 ? "同分时依次比较剩余金券、至纯源石。"
                 : state.FinalScoring.TiebreakSummary;
             var tiebreakTransform = CreateScoreboardText(
-                parent,
+                summaryTransform,
                 "Final Score Tiebreak",
                 tiebreak,
                 19,
@@ -377,6 +409,8 @@ namespace YC.Presentation
             tiebreakTransform.anchorMax = new Vector2(1f, 0.26f);
             tiebreakTransform.offsetMin = new Vector2(46f, 0f);
             tiebreakTransform.offsetMax = new Vector2(-46f, 0f);
+
+            CreateFinalScoreDetailsView(parent, state, orderedScores);
         }
 
         private static void CreateScoreboardHeader(RectTransform parent)
@@ -390,14 +424,15 @@ namespace YC.Presentation
             headerTransform.offsetMax = Vector2.zero;
             header.GetComponent<Image>().color = new Color(0.34f, 0.22f, 0.1f, 0.9f);
 
-            CreateScoreboardCell(headerTransform, "玩家", 0f, 0.36f, TextAnchor.MiddleLeft, true);
-            CreateScoreboardCell(headerTransform, "实时分", 0.36f, 0.53f, TextAnchor.MiddleCenter, true);
-            CreateScoreboardCell(headerTransform, "区控", 0.53f, 0.68f, TextAnchor.MiddleCenter, true);
-            CreateScoreboardCell(headerTransform, "资源", 0.68f, 0.83f, TextAnchor.MiddleCenter, true);
-            CreateScoreboardCell(headerTransform, "总分", 0.83f, 1f, TextAnchor.MiddleCenter, true);
+            CreateScoreboardCell(headerTransform, "玩家", 0f, 0.31f, TextAnchor.MiddleLeft, true);
+            CreateScoreboardCell(headerTransform, "实时分", 0.31f, 0.46f, TextAnchor.MiddleCenter, true);
+            CreateScoreboardCell(headerTransform, "区控", 0.46f, 0.59f, TextAnchor.MiddleCenter, true);
+            CreateScoreboardCell(headerTransform, "资源", 0.59f, 0.72f, TextAnchor.MiddleCenter, true);
+            CreateScoreboardCell(headerTransform, "总分", 0.72f, 0.85f, TextAnchor.MiddleCenter, true);
+            CreateScoreboardCell(headerTransform, "详情", 0.85f, 1f, TextAnchor.MiddleCenter, true);
         }
 
-        private static void CreateScoreboardRow(
+        private void CreateScoreboardRow(
             RectTransform parent,
             GameState state,
             FinalPlayerScoreState score,
@@ -439,17 +474,585 @@ namespace YC.Presentation
                 ? Color.white
                 : UiTheme.GetPlayerColor(player.Color, 1f);
 
-            CreateScoreboardCell(rowTransform, playerName, 0.065f, 0.36f, TextAnchor.MiddleLeft, isWinner);
+            CreateScoreboardCell(rowTransform, playerName, 0.065f, 0.31f, TextAnchor.MiddleLeft, isWinner);
             CreateScoreboardCell(
                 rowTransform,
                 (score.BaseScore + score.FacilityScore + score.CityStyleScore).ToString(),
-                0.36f,
-                0.53f,
+                0.31f,
+                0.46f,
                 TextAnchor.MiddleCenter,
                 false);
-            CreateScoreboardCell(rowTransform, score.RegionScore.ToString(), 0.53f, 0.68f, TextAnchor.MiddleCenter, false);
-            CreateScoreboardCell(rowTransform, score.ResourceScore.ToString(), 0.68f, 0.83f, TextAnchor.MiddleCenter, false);
-            CreateScoreboardCell(rowTransform, score.TotalScore.ToString(), 0.83f, 1f, TextAnchor.MiddleCenter, true);
+            CreateScoreboardCell(rowTransform, score.RegionScore.ToString(), 0.46f, 0.59f, TextAnchor.MiddleCenter, false);
+            CreateScoreboardCell(rowTransform, score.ResourceScore.ToString(), 0.59f, 0.72f, TextAnchor.MiddleCenter, false);
+            CreateScoreboardCell(rowTransform, score.TotalScore.ToString(), 0.72f, 0.85f, TextAnchor.MiddleCenter, true);
+            CreateScoreboardPlayerDetailsButton(rowTransform, score.PlayerId);
+        }
+
+        private void CreateFinalScoreDetailsEntry(RectTransform parent, bool interactable)
+        {
+            var buttonObject = new GameObject(
+                "Final Score Details Button",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(Button),
+                typeof(Outline));
+            buttonObject.transform.SetParent(parent, false);
+
+            var buttonTransform = buttonObject.GetComponent<RectTransform>();
+            buttonTransform.anchorMin = new Vector2(1f, 0.5f);
+            buttonTransform.anchorMax = new Vector2(1f, 0.5f);
+            buttonTransform.pivot = new Vector2(1f, 0.5f);
+            buttonTransform.sizeDelta = new Vector2(150f, 46f);
+            buttonTransform.anchoredPosition = Vector2.zero;
+
+            ApplyButtonStyle(buttonObject);
+            var button = buttonObject.GetComponent<Button>();
+            button.interactable = interactable;
+            button.onClick.AddListener(ToggleFinalScoreDetails);
+            finalScoreDetailsButtonLabel = CreateButtonText(buttonTransform, "详情  >", 22);
+        }
+
+        private void CreateScoreboardPlayerDetailsButton(RectTransform parent, int playerId)
+        {
+            var buttonObject = new GameObject(
+                "Final Score Player Details Button P" + playerId,
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(Button),
+                typeof(Outline));
+            buttonObject.transform.SetParent(parent, false);
+
+            var buttonTransform = buttonObject.GetComponent<RectTransform>();
+            buttonTransform.anchorMin = new Vector2(0.865f, 0.16f);
+            buttonTransform.anchorMax = new Vector2(0.985f, 0.84f);
+            buttonTransform.offsetMin = Vector2.zero;
+            buttonTransform.offsetMax = Vector2.zero;
+
+            ApplyCompactButtonStyle(buttonObject);
+            buttonObject.GetComponent<Button>().onClick.AddListener(
+                () => ShowFinalScoreDetailsForPlayer(playerId));
+            CreateButtonText(buttonTransform, "查看 >", 17);
+        }
+
+        private void CreateFinalScoreDetailsView(
+            RectTransform parent,
+            GameState state,
+            List<FinalPlayerScoreState> orderedScores)
+        {
+            finalScoreDetailsView = new GameObject(
+                "Final Score Details View",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(Outline));
+            finalScoreDetailsView.transform.SetParent(parent, false);
+
+            var detailsTransform = finalScoreDetailsView.GetComponent<RectTransform>();
+            detailsTransform.anchorMin = new Vector2(0f, 0.18f);
+            detailsTransform.anchorMax = new Vector2(1f, 0.765f);
+            detailsTransform.offsetMin = new Vector2(44f, 0f);
+            detailsTransform.offsetMax = new Vector2(-44f, 0f);
+            finalScoreDetailsView.GetComponent<Image>().color = new Color(0.07f, 0.045f, 0.025f, 0.96f);
+            var outline = finalScoreDetailsView.GetComponent<Outline>();
+            outline.effectColor = new Color(0.56f, 0.42f, 0.2f, 0.9f);
+            outline.effectDistance = new Vector2(2f, -2f);
+
+            var backButtonObject = new GameObject(
+                "Final Score Details Back Button",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(Button),
+                typeof(Outline));
+            backButtonObject.transform.SetParent(detailsTransform, false);
+            var backButtonTransform = backButtonObject.GetComponent<RectTransform>();
+            backButtonTransform.anchorMin = new Vector2(0.018f, 0.855f);
+            backButtonTransform.anchorMax = new Vector2(0.17f, 0.975f);
+            backButtonTransform.offsetMin = Vector2.zero;
+            backButtonTransform.offsetMax = Vector2.zero;
+            ApplyCompactButtonStyle(backButtonObject);
+            backButtonObject.GetComponent<Button>().onClick.AddListener(CloseFinalScoreDetails);
+            CreateButtonText(backButtonTransform, "< 返回", 18);
+
+            var detailsTitle = CreateScoreboardText(
+                detailsTransform,
+                "Final Score Details Title",
+                "计分详情  →",
+                25,
+                FontStyle.Bold,
+                TextAnchor.MiddleCenter);
+            detailsTitle.anchorMin = new Vector2(0.19f, 0.855f);
+            detailsTitle.anchorMax = new Vector2(0.98f, 0.985f);
+            detailsTitle.offsetMin = Vector2.zero;
+            detailsTitle.offsetMax = Vector2.zero;
+
+            var selectorObject = new GameObject(
+                "Final Score Details Player List",
+                typeof(RectTransform),
+                typeof(Image));
+            selectorObject.transform.SetParent(detailsTransform, false);
+            var selectorTransform = selectorObject.GetComponent<RectTransform>();
+            selectorTransform.anchorMin = new Vector2(0.018f, 0.035f);
+            selectorTransform.anchorMax = new Vector2(0.31f, 0.835f);
+            selectorTransform.offsetMin = Vector2.zero;
+            selectorTransform.offsetMax = Vector2.zero;
+            selectorObject.GetComponent<Image>().color = new Color(0.13f, 0.08f, 0.04f, 0.92f);
+
+            var selectorHeader = CreateScoreboardText(
+                selectorTransform,
+                "Final Score Details Player Header",
+                "切换玩家",
+                19,
+                FontStyle.Bold,
+                TextAnchor.MiddleCenter);
+            selectorHeader.anchorMin = new Vector2(0f, 0.82f);
+            selectorHeader.anchorMax = Vector2.one;
+            selectorHeader.offsetMin = Vector2.zero;
+            selectorHeader.offsetMax = Vector2.zero;
+
+            var chartHost = new GameObject(
+                "Final Score Detail Chart Host",
+                typeof(RectTransform),
+                typeof(Image));
+            chartHost.transform.SetParent(detailsTransform, false);
+            var chartHostTransform = chartHost.GetComponent<RectTransform>();
+            chartHostTransform.anchorMin = new Vector2(0.33f, 0.035f);
+            chartHostTransform.anchorMax = new Vector2(0.982f, 0.835f);
+            chartHostTransform.offsetMin = Vector2.zero;
+            chartHostTransform.offsetMax = Vector2.zero;
+            chartHost.GetComponent<Image>().color = new Color(0.115f, 0.072f, 0.036f, 0.94f);
+
+            if (orderedScores.Count == 0)
+            {
+                CreateScoreboardMessage(chartHostTransform, "没有可展示的玩家计分。");
+            }
+            else
+            {
+                var rowHeight = 0.8f / Mathf.Max(4, orderedScores.Count);
+                for (var i = 0; i < orderedScores.Count; i++)
+                {
+                    CreateFinalScoreDetailsPlayerRow(
+                        selectorTransform,
+                        state,
+                        orderedScores[i],
+                        i,
+                        rowHeight);
+                    CreateFinalScoreDetailChart(chartHostTransform, state, orderedScores[i]);
+                }
+            }
+
+            ApplyFinalScoreDetailsSelection();
+            finalScoreDetailsView.SetActive(false);
+        }
+
+        private void CreateFinalScoreDetailsPlayerRow(
+            RectTransform parent,
+            GameState state,
+            FinalPlayerScoreState score,
+            int rowIndex,
+            float rowHeight)
+        {
+            var rowObject = new GameObject(
+                "Final Score Detail Player Row P" + score.PlayerId,
+                typeof(RectTransform),
+                typeof(Image));
+            rowObject.transform.SetParent(parent, false);
+            var rowTransform = rowObject.GetComponent<RectTransform>();
+            var rowTop = 0.8f - rowIndex * rowHeight;
+            rowTransform.anchorMin = new Vector2(0.02f, rowTop - rowHeight + 0.01f);
+            rowTransform.anchorMax = new Vector2(0.98f, rowTop - 0.01f);
+            rowTransform.offsetMin = Vector2.zero;
+            rowTransform.offsetMax = Vector2.zero;
+
+            var rowImage = rowObject.GetComponent<Image>();
+            rowImage.color = GetDetailsSelectorColor(false);
+            finalScoreDetailSelectorBackgrounds[score.PlayerId] = rowImage;
+
+            var player = state.FindPlayer(score.PlayerId);
+            var badgeObject = new GameObject(
+                "Final Score Detail Player Color P" + score.PlayerId,
+                typeof(RectTransform),
+                typeof(Image));
+            badgeObject.transform.SetParent(rowTransform, false);
+            var badgeTransform = badgeObject.GetComponent<RectTransform>();
+            badgeTransform.anchorMin = new Vector2(0.04f, 0.5f);
+            badgeTransform.anchorMax = new Vector2(0.04f, 0.5f);
+            badgeTransform.pivot = new Vector2(0f, 0.5f);
+            badgeTransform.sizeDelta = new Vector2(22f, 22f);
+            badgeObject.GetComponent<Image>().color = player == null
+                ? Color.white
+                : UiTheme.GetPlayerColor(player.Color, 1f);
+
+            var playerName = player == null || string.IsNullOrEmpty(player.Name)
+                ? "P" + score.PlayerId
+                : player.Name;
+            var nameTransform = CreateScoreboardText(
+                rowTransform,
+                "Final Score Detail Player Name P" + score.PlayerId,
+                playerName,
+                18,
+                FontStyle.Bold,
+                TextAnchor.MiddleLeft);
+            nameTransform.anchorMin = new Vector2(0.18f, 0f);
+            nameTransform.anchorMax = new Vector2(0.72f, 1f);
+            nameTransform.offsetMin = Vector2.zero;
+            nameTransform.offsetMax = Vector2.zero;
+
+            var switchButtonObject = new GameObject(
+                "Final Score Detail Player Switch P" + score.PlayerId,
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(Button),
+                typeof(Outline));
+            switchButtonObject.transform.SetParent(rowTransform, false);
+            var switchButtonTransform = switchButtonObject.GetComponent<RectTransform>();
+            switchButtonTransform.anchorMin = new Vector2(0.75f, 0.17f);
+            switchButtonTransform.anchorMax = new Vector2(0.96f, 0.83f);
+            switchButtonTransform.offsetMin = Vector2.zero;
+            switchButtonTransform.offsetMax = Vector2.zero;
+            ApplyCompactButtonStyle(switchButtonObject);
+            switchButtonObject.GetComponent<Button>().onClick.AddListener(
+                () => SelectFinalScoreDetailsPlayer(score.PlayerId));
+            CreateButtonText(switchButtonTransform, ">", 20);
+        }
+
+        private void CreateFinalScoreDetailChart(
+            RectTransform parent,
+            GameState state,
+            FinalPlayerScoreState score)
+        {
+            var chartObject = new GameObject(
+                "Final Score Detail Chart P" + score.PlayerId,
+                typeof(RectTransform));
+            chartObject.transform.SetParent(parent, false);
+            var chartTransform = chartObject.GetComponent<RectTransform>();
+            chartTransform.anchorMin = Vector2.zero;
+            chartTransform.anchorMax = Vector2.one;
+            chartTransform.offsetMin = new Vector2(14f, 8f);
+            chartTransform.offsetMax = new Vector2(-14f, -8f);
+            finalScoreDetailCharts[score.PlayerId] = chartObject;
+
+            var player = state.FindPlayer(score.PlayerId);
+            var playerName = player == null || string.IsNullOrEmpty(player.Name)
+                ? "P" + score.PlayerId
+                : player.Name;
+
+            var badgeObject = new GameObject(
+                "Final Score Detail Chart Player Color P" + score.PlayerId,
+                typeof(RectTransform),
+                typeof(Image));
+            badgeObject.transform.SetParent(chartTransform, false);
+            var badgeTransform = badgeObject.GetComponent<RectTransform>();
+            badgeTransform.anchorMin = new Vector2(0.02f, 0.925f);
+            badgeTransform.anchorMax = new Vector2(0.02f, 0.925f);
+            badgeTransform.pivot = new Vector2(0f, 0.5f);
+            badgeTransform.sizeDelta = new Vector2(25f, 25f);
+            badgeObject.GetComponent<Image>().color = player == null
+                ? Color.white
+                : UiTheme.GetPlayerColor(player.Color, 1f);
+
+            var titleTransform = CreateScoreboardText(
+                chartTransform,
+                "Final Score Detail Chart Player Name P" + score.PlayerId,
+                playerName + "（P" + score.PlayerId + "）",
+                22,
+                FontStyle.Bold,
+                TextAnchor.MiddleLeft);
+            titleTransform.anchorMin = new Vector2(0.09f, 0.86f);
+            titleTransform.anchorMax = new Vector2(1f, 1f);
+            titleTransform.offsetMin = Vector2.zero;
+            titleTransform.offsetMax = Vector2.zero;
+
+            var maxMagnitude = Mathf.Max(
+                1,
+                Mathf.Abs(score.BaseScore),
+                Mathf.Abs(score.FacilityScore),
+                Mathf.Abs(score.CityStyleScore),
+                Mathf.Abs(score.RegionScore),
+                Mathf.Abs(score.ResourceScore),
+                Mathf.Abs(score.TotalScore));
+            const float chartTop = 0.84f;
+            const float chartBottom = 0.2f;
+            var rowHeight = (chartTop - chartBottom) / 6f;
+            CreateFinalScoreDetailBar(
+                chartTransform,
+                "Base",
+                "基础分",
+                score.BaseScore,
+                0,
+                rowHeight,
+                chartTop,
+                maxMagnitude,
+                new Color(0.62f, 0.43f, 0.21f, 1f));
+            CreateFinalScoreDetailBar(
+                chartTransform,
+                "Facility",
+                "设施分",
+                score.FacilityScore,
+                1,
+                rowHeight,
+                chartTop,
+                maxMagnitude,
+                new Color(0.28f, 0.58f, 0.66f, 1f));
+            CreateFinalScoreDetailBar(
+                chartTransform,
+                "CityStyle",
+                "城市样式分",
+                score.CityStyleScore,
+                2,
+                rowHeight,
+                chartTop,
+                maxMagnitude,
+                new Color(0.75f, 0.47f, 0.2f, 1f));
+            CreateFinalScoreDetailBar(
+                chartTransform,
+                "Region",
+                "区控分",
+                score.RegionScore,
+                3,
+                rowHeight,
+                chartTop,
+                maxMagnitude,
+                new Color(0.32f, 0.62f, 0.38f, 1f));
+            CreateFinalScoreDetailBar(
+                chartTransform,
+                "Resource",
+                "资源分",
+                score.ResourceScore,
+                4,
+                rowHeight,
+                chartTop,
+                maxMagnitude,
+                new Color(0.55f, 0.43f, 0.72f, 1f));
+            CreateFinalScoreDetailBar(
+                chartTransform,
+                "Total",
+                "总分",
+                score.TotalScore,
+                5,
+                rowHeight,
+                chartTop,
+                maxMagnitude,
+                new Color(0.84f, 0.66f, 0.27f, 1f));
+
+            var formula = "计分公式：基础分 " + score.BaseScore +
+                          " + 设施分 " + score.FacilityScore +
+                          " + 城市样式分 " + score.CityStyleScore +
+                          " + 区控分 " + score.RegionScore +
+                          " + 资源分 " + score.ResourceScore +
+                          " = 总分 " + score.TotalScore;
+            var formulaTransform = CreateScoreboardText(
+                chartTransform,
+                "Final Score Detail Formula P" + score.PlayerId,
+                formula,
+                17,
+                FontStyle.Bold,
+                TextAnchor.MiddleCenter);
+            formulaTransform.anchorMin = new Vector2(0.01f, 0.01f);
+            formulaTransform.anchorMax = new Vector2(0.99f, 0.18f);
+            formulaTransform.offsetMin = Vector2.zero;
+            formulaTransform.offsetMax = Vector2.zero;
+        }
+
+        private static void CreateFinalScoreDetailBar(
+            RectTransform parent,
+            string scoreKey,
+            string label,
+            int value,
+            int rowIndex,
+            float rowHeight,
+            float chartTop,
+            int maxMagnitude,
+            Color fillColor)
+        {
+            var rowObject = new GameObject(
+                "Final Score Detail " + scoreKey + " Row",
+                typeof(RectTransform),
+                typeof(Image));
+            rowObject.transform.SetParent(parent, false);
+            var rowTransform = rowObject.GetComponent<RectTransform>();
+            var rowTop = chartTop - rowIndex * rowHeight;
+            rowTransform.anchorMin = new Vector2(0f, rowTop - rowHeight + 0.006f);
+            rowTransform.anchorMax = new Vector2(1f, rowTop - 0.006f);
+            rowTransform.offsetMin = Vector2.zero;
+            rowTransform.offsetMax = Vector2.zero;
+            rowObject.GetComponent<Image>().color = scoreKey == "Total"
+                ? new Color(0.3f, 0.22f, 0.09f, 0.58f)
+                : new Color(0.04f, 0.025f, 0.015f, 0.34f);
+
+            var labelTransform = CreateScoreboardText(
+                rowTransform,
+                "Final Score Detail " + scoreKey + " Label",
+                label,
+                17,
+                scoreKey == "Total" ? FontStyle.Bold : FontStyle.Normal,
+                TextAnchor.MiddleLeft);
+            labelTransform.anchorMin = new Vector2(0.015f, 0f);
+            labelTransform.anchorMax = new Vector2(0.25f, 1f);
+            labelTransform.offsetMin = Vector2.zero;
+            labelTransform.offsetMax = Vector2.zero;
+
+            var barBackObject = new GameObject(
+                "Final Score Detail " + scoreKey + " Bar Background",
+                typeof(RectTransform),
+                typeof(Image));
+            barBackObject.transform.SetParent(rowTransform, false);
+            var barBackTransform = barBackObject.GetComponent<RectTransform>();
+            barBackTransform.anchorMin = new Vector2(0.255f, 0.24f);
+            barBackTransform.anchorMax = new Vector2(0.84f, 0.76f);
+            barBackTransform.offsetMin = Vector2.zero;
+            barBackTransform.offsetMax = Vector2.zero;
+            barBackObject.GetComponent<Image>().color = new Color(0.03f, 0.02f, 0.012f, 0.86f);
+
+            var fillObject = new GameObject(
+                "Final Score Detail " + scoreKey + " Bar",
+                typeof(RectTransform),
+                typeof(Image));
+            fillObject.transform.SetParent(barBackTransform, false);
+            var fillTransform = fillObject.GetComponent<RectTransform>();
+            fillTransform.anchorMin = Vector2.zero;
+            fillTransform.anchorMax = new Vector2(
+                Mathf.Clamp01(Mathf.Abs(value) / (float)maxMagnitude),
+                1f);
+            fillTransform.offsetMin = Vector2.zero;
+            fillTransform.offsetMax = Vector2.zero;
+            fillObject.GetComponent<Image>().color = value < 0
+                ? new Color(0.72f, 0.25f, 0.19f, 1f)
+                : fillColor;
+
+            var valueTransform = CreateScoreboardText(
+                rowTransform,
+                "Final Score Detail " + scoreKey + " Value",
+                value.ToString(),
+                19,
+                FontStyle.Bold,
+                TextAnchor.MiddleCenter);
+            valueTransform.anchorMin = new Vector2(0.85f, 0f);
+            valueTransform.anchorMax = new Vector2(0.99f, 1f);
+            valueTransform.offsetMin = Vector2.zero;
+            valueTransform.offsetMax = Vector2.zero;
+        }
+
+        public void ToggleFinalScoreDetails()
+        {
+            if (IsFinalScoreDetailsOpen)
+            {
+                CloseFinalScoreDetails();
+                return;
+            }
+
+            OpenFinalScoreDetails();
+        }
+
+        public void OpenFinalScoreDetails()
+        {
+            if (finalScoreSummaryView == null ||
+                finalScoreDetailsView == null ||
+                SelectedFinalScorePlayerId < 0)
+            {
+                return;
+            }
+
+            finalScoreSummaryView.SetActive(false);
+            finalScoreDetailsView.SetActive(true);
+            IsFinalScoreDetailsOpen = true;
+            UpdateFinalScoreDetailsEntryLabel();
+        }
+
+        public void CloseFinalScoreDetails()
+        {
+            if (finalScoreSummaryView == null || finalScoreDetailsView == null)
+            {
+                return;
+            }
+
+            finalScoreDetailsView.SetActive(false);
+            finalScoreSummaryView.SetActive(true);
+            IsFinalScoreDetailsOpen = false;
+            UpdateFinalScoreDetailsEntryLabel();
+        }
+
+        public void ShowFinalScoreDetailsForPlayer(int playerId)
+        {
+            if (!SelectFinalScoreDetailsPlayer(playerId))
+            {
+                return;
+            }
+
+            OpenFinalScoreDetails();
+        }
+
+        public bool SelectFinalScoreDetailsPlayer(int playerId)
+        {
+            if (!finalScoreDetailCharts.ContainsKey(playerId))
+            {
+                return false;
+            }
+
+            SelectedFinalScorePlayerId = playerId;
+            ApplyFinalScoreDetailsSelection();
+            return true;
+        }
+
+        private void ApplyFinalScoreDetailsSelection()
+        {
+            foreach (var pair in finalScoreDetailCharts)
+            {
+                pair.Value.SetActive(pair.Key == SelectedFinalScorePlayerId);
+            }
+
+            foreach (var pair in finalScoreDetailSelectorBackgrounds)
+            {
+                pair.Value.color = GetDetailsSelectorColor(pair.Key == SelectedFinalScorePlayerId);
+            }
+        }
+
+        private void UpdateFinalScoreDetailsEntryLabel()
+        {
+            if (finalScoreDetailsButtonLabel != null)
+            {
+                finalScoreDetailsButtonLabel.text = IsFinalScoreDetailsOpen
+                    ? "<  收起"
+                    : "详情  >";
+            }
+        }
+
+        private static int ResolveDefaultDetailsPlayerId(
+            FinalScoringState scoring,
+            List<FinalPlayerScoreState> orderedScores)
+        {
+            if (orderedScores == null || orderedScores.Count == 0)
+            {
+                return -1;
+            }
+
+            if (scoring != null && scoring.WinnerPlayerIds != null)
+            {
+                for (var i = 0; i < orderedScores.Count; i++)
+                {
+                    if (scoring.WinnerPlayerIds.Contains(orderedScores[i].PlayerId))
+                    {
+                        return orderedScores[i].PlayerId;
+                    }
+                }
+            }
+
+            return orderedScores[0].PlayerId;
+        }
+
+        private static Color GetDetailsSelectorColor(bool selected)
+        {
+            return selected
+                ? new Color(0.48f, 0.36f, 0.13f, 0.9f)
+                : new Color(0.17f, 0.105f, 0.05f, 0.82f);
+        }
+
+        private static void ApplyCompactButtonStyle(GameObject buttonObject)
+        {
+            var image = buttonObject.GetComponent<Image>();
+            image.color = new Color(0.25f, 0.16f, 0.07f, 0.98f);
+
+            var outline = buttonObject.GetComponent<Outline>();
+            outline.effectColor = new Color(0.7f, 0.54f, 0.29f, 0.86f);
+            outline.effectDistance = new Vector2(2f, -2f);
         }
 
         private static void CreateScoreboardCell(

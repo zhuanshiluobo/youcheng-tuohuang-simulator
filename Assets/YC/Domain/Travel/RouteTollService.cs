@@ -41,6 +41,25 @@ namespace YC.Domain.Travel
             RouteTollPaymentKeyMode paymentKeyMode,
             out List<ExplorationTravelPayment> payments)
         {
+            return TryBuildPaymentPlanWithInfluenceKeyMode(
+                state,
+                playerId,
+                routeIds,
+                paymentRecipientsByRouteId,
+                paymentKeyMode,
+                paymentKeyMode,
+                out payments);
+        }
+
+        internal ValidationResult TryBuildPaymentPlanWithInfluenceKeyMode(
+            GameState state,
+            int playerId,
+            IReadOnlyList<string> routeIds,
+            IDictionary<string, int> paymentRecipientsByRouteId,
+            RouteTollPaymentKeyMode paymentKeyMode,
+            RouteTollPaymentKeyMode influenceKeyMode,
+            out List<ExplorationTravelPayment> payments)
+        {
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
@@ -57,6 +76,7 @@ namespace YC.Domain.Travel
                 routeIds,
                 paymentRecipientsByRouteId,
                 paymentKeyMode,
+                influenceKeyMode,
                 requestedRecipientsByPaymentKey);
             if (!requestValidation.IsValid)
             {
@@ -67,18 +87,23 @@ namespace YC.Domain.Travel
             {
                 var routeId = routeIds[i];
                 var paymentKey = GetRoutePaymentKey(routeId, paymentKeyMode);
+                var influenceKey = GetRoutePaymentKey(routeId, influenceKeyMode);
                 if (paidPaymentKeys.Contains(paymentKey) ||
                     IsRouteCoveredByRoad(state, routeId) ||
-                    HasPaymentKeyInfluenceOwnedBy(state, paymentKey, playerId, paymentKeyMode))
+                    HasPaymentKeyInfluenceOwnedBy(
+                        state,
+                        influenceKey,
+                        playerId,
+                        influenceKeyMode))
                 {
                     continue;
                 }
 
                 var opponentOwners = GetOpponentInfluenceOwnersOnPaymentKey(
                     state,
-                    paymentKey,
+                    influenceKey,
                     playerId,
-                    paymentKeyMode);
+                    influenceKeyMode);
                 var receiverPlayerId = -1;
                 if (opponentOwners.Count > 0)
                 {
@@ -249,6 +274,7 @@ namespace YC.Domain.Travel
             IReadOnlyList<string> routeIds,
             IDictionary<string, int> paymentRecipientsByRouteId,
             RouteTollPaymentKeyMode paymentKeyMode,
+            RouteTollPaymentKeyMode influenceKeyMode,
             Dictionary<string, int> requestedRecipientsByPaymentKey)
         {
             if (paymentRecipientsByRouteId == null || paymentRecipientsByRouteId.Count <= 0)
@@ -266,8 +292,13 @@ namespace YC.Domain.Travel
                 }
 
                 var paymentKey = GetRoutePaymentKey(entry.Key, paymentKeyMode);
+                var influenceKey = GetRoutePaymentKey(entry.Key, influenceKeyMode);
                 if (IsRouteCoveredByRoad(state, entry.Key) ||
-                    HasPaymentKeyInfluenceOwnedBy(state, paymentKey, playerId, paymentKeyMode))
+                    HasPaymentKeyInfluenceOwnedBy(
+                        state,
+                        influenceKey,
+                        playerId,
+                        influenceKeyMode))
                 {
                     return ValidationResult.Failure(
                         CommandErrorCode.InvalidTarget,
@@ -276,9 +307,9 @@ namespace YC.Domain.Travel
 
                 var opponentOwners = GetOpponentInfluenceOwnersOnPaymentKey(
                     state,
-                    paymentKey,
+                    influenceKey,
                     playerId,
-                    paymentKeyMode);
+                    influenceKeyMode);
                 if (opponentOwners.Count <= 0)
                 {
                     return ValidationResult.Failure(

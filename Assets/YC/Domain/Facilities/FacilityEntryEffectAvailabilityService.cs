@@ -117,20 +117,66 @@ namespace YC.Domain.Facilities
 
         public bool HasLegalRemoveOrExplore(GameState state, int playerId)
         {
+            return GetRemoveOrExploreOptions(state, playerId).Count > 0;
+        }
+
+        public List<string> GetRemoveOrExploreOptions(GameState state, int playerId)
+        {
             ValidateState(state);
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            var result = new List<string>();
+            if (HasLegalRemoveThenDispatch(state, playerId))
             {
-                if (!string.IsNullOrEmpty(state.Map.Influences[i].SlotId))
+                result.Add(FacilityPendingChoiceTypes.RemoveDispatchOption);
+            }
+
+            if (HasLegalFacilityExplore(state, playerId))
+            {
+                result.Add(FacilityPendingChoiceTypes.ExploreOption);
+            }
+
+            return result;
+        }
+
+        public bool HasLegalRemoveThenDispatch(GameState state, int playerId)
+        {
+            ValidateState(state);
+            var targetSlots = EnumerateInfluenceSlots();
+            for (var removeIndex = 0; removeIndex < state.Map.Influences.Count; removeIndex++)
+            {
+                var removeSlotId = state.Map.Influences[removeIndex].SlotId;
+                if (string.IsNullOrEmpty(removeSlotId))
                 {
-                    return true;
+                    continue;
+                }
+
+                for (var sourceIndex = 0; sourceIndex < state.Map.Influences.Count; sourceIndex++)
+                {
+                    var source = state.Map.Influences[sourceIndex];
+                    if (source.PlayerId != playerId || string.IsNullOrEmpty(source.SlotId))
+                    {
+                        continue;
+                    }
+
+                    for (var targetIndex = 0; targetIndex < targetSlots.Count; targetIndex++)
+                    {
+                        if (influenceService.CanRemoveThenMoveAtomically(
+                                state,
+                                playerId,
+                                removeSlotId,
+                                new InfluenceMoveRequest(source.SlotId, targetSlots[targetIndex])).IsValid)
+                        {
+                            return true;
+                        }
+                    }
                 }
             }
 
-            return HasLegalFacilityExplore(state, playerId);
+            return false;
         }
 
-        private bool HasLegalFacilityExplore(GameState state, int playerId)
+        public bool HasLegalFacilityExplore(GameState state, int playerId)
         {
+            ValidateState(state);
             var paymentRecipients = new Dictionary<string, int>();
             for (var locationIndex = 0; locationIndex < mapQuery.Map.Locations.Count; locationIndex++)
             {
@@ -165,6 +211,30 @@ namespace YC.Domain.Facilities
             }
 
             return false;
+        }
+
+        private List<string> EnumerateInfluenceSlots()
+        {
+            var result = new List<string>();
+            for (var i = 0; i < mapQuery.Map.Locations.Count; i++)
+            {
+                var location = mapQuery.Map.Locations[i];
+                for (var slotIndex = 0; slotIndex < location.InfluenceSlotCount; slotIndex++)
+                {
+                    result.Add(InfluenceService.GetLocationSlotId(location.LocationId, slotIndex));
+                }
+            }
+
+            for (var i = 0; i < mapQuery.Map.Routes.Count; i++)
+            {
+                var route = mapQuery.Map.Routes[i];
+                for (var slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
+                {
+                    result.Add(InfluenceService.GetRouteSlotId(route.RouteId, slotIndex));
+                }
+            }
+
+            return result;
         }
 
         private static void ValidateState(GameState state)

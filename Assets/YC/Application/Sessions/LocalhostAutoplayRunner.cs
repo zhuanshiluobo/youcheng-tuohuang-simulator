@@ -7,6 +7,7 @@ using YC.Domain.Cards;
 using YC.Domain.CardFlows;
 using YC.Domain.CityStyles;
 using YC.Domain.Commands;
+using YC.Domain.Economy;
 using YC.Domain.Exploration;
 using YC.Domain.Facilities;
 using YC.Domain.Harvest;
@@ -93,6 +94,16 @@ namespace YC.Application.DevTools
             var entryEffectService = new FacilityEntryEffectService(availabilityService);
             var buildFacilityService = new BuildFacilityService(
                 new FacilityEntryEffectResolver(entryEffectService));
+            var resourceSaleService = new ResourceSaleService();
+            var turnOrderService = new TurnOrderService();
+            var characterCardService = new CharacterCardService(
+                turnOrderService,
+                resourceSaleService,
+                mapQuery,
+                influenceService,
+                movementService);
+            var moveCityCommandHandler = new MoveCityCommandHandler(movementService);
+            var exploreLocationCommandHandler = new ExploreLocationCommandHandler(explorationService);
             var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Host, 1, seats, map.MapId, eventDeckSeed);
             EnsureAutoplayFormalFacilitySupply(state);
 
@@ -110,21 +121,22 @@ namespace YC.Application.DevTools
                 new TurnOrderService()));
             session.RegisterHandler(new BuildFacilityCommandHandler(buildFacilityService, new RoundAdvanceService()));
             session.RegisterHandler(new DeclareCityStyleCommandHandler());
-            session.RegisterHandler(new CoverCharacterCardCommandHandler());
-            session.RegisterHandler(new UseCharacterCardCommandHandler());
+            session.RegisterHandler(new CoverCharacterCardCommandHandler(characterCardService));
+            session.RegisterHandler(new UseCharacterCardCommandHandler(characterCardService));
             session.RegisterHandler(new DeployInfluenceCommandHandler(influenceService));
             session.RegisterHandler(new DispatchInfluenceCommandHandler(influenceService));
-            session.RegisterHandler(new ExploreLocationCommandHandler(explorationService));
-            session.RegisterHandler(new MoveCityCommandHandler(movementService));
+            session.RegisterHandler(exploreLocationCommandHandler);
+            session.RegisterHandler(moveCityCommandHandler);
             session.RegisterHandler(new ResolveFacilityEffectCommandHandler(
                 buildFacilityService,
                 entryEffectService,
                 influenceService,
-                movementService,
-                explorationService,
-                mapQuery));
+                moveCityCommandHandler,
+                exploreLocationCommandHandler,
+                mapQuery,
+                resourceSaleService));
             session.RegisterHandler(new EndActionCommandHandler(
-                new RoundAdvanceService(),
+                new RoundAdvanceService(turnOrderService, characterCardService),
                 new FinalScoringService(mapQuery)));
             session.RegisterHandler(new CollectResourceCommandHandler(new ResourceCollectionService(mapQuery, resourceTokenService)));
             return session;
@@ -912,7 +924,18 @@ namespace YC.Application.DevTools
                 return true;
             }
 
-            var validation = new DeclareCityStyleService().Validate(state, player.PlayerId, AutoplayCityStyleId);
+            var cityStyle = CityStyleDatabase.Get(AutoplayCityStyleId);
+            var match = new CityStylePatternMatcher().Match(state, player.PlayerId, cityStyle);
+            if (!match.Succeeded)
+            {
+                return true;
+            }
+
+            var validation = new DeclareCityStyleService().Validate(
+                state,
+                player.PlayerId,
+                AutoplayCityStyleId,
+                match.UsedCityBoardSlotIndexes);
             if (!validation.IsValid)
             {
                 return true;
@@ -924,6 +947,8 @@ namespace YC.Application.DevTools
                 player.PlayerId,
                 AutoplayCityStyleId);
             command.Parameters[DeclareCityStyleCommandHandler.CityStyleIdParameter] = AutoplayCityStyleId;
+            command.Parameters[DeclareCityStyleCommandHandler.UsedCityBoardSlotIndexesParameter] =
+                string.Join(",", match.UsedCityBoardSlotIndexes.ToArray());
 
             result.DeclareCityStyleAttempts++;
             var beforeCount = player.DeclaredCityStyles.Count;

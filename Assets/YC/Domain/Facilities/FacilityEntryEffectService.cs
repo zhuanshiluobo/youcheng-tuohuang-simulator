@@ -137,7 +137,10 @@ namespace YC.Domain.Facilities
                     }
                     return;
                 case FacilityCardEffectIds.RemoveThenDispatchOrExplore:
-                    if (GetAvailabilityService(state).HasLegalRemoveOrExplore(state, player.PlayerId))
+                {
+                    var warehouseOptions = GetAvailabilityService(state)
+                        .GetRemoveOrExploreOptions(state, player.PlayerId);
+                    if (warehouseOptions.Count > 0)
                     {
                         OpenChoice(
                             state,
@@ -145,13 +148,10 @@ namespace YC.Domain.Facilities
                             facility,
                             cityBoardSlotIndex,
                             FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore,
-                            new List<string>
-                            {
-                                FacilityPendingChoiceTypes.RemoveDispatchOption,
-                                FacilityPendingChoiceTypes.ExploreOption
-                            });
+                            warehouseOptions);
                     }
                     return;
+                }
             }
         }
 
@@ -223,6 +223,7 @@ namespace YC.Domain.Facilities
 
                 FacilityCardDefinition target;
                 if (!FacilityCardDatabase.TryGet(placement.FacilityCardId, out target) ||
+                    !target.HasEntryEffect ||
                     string.Equals(target.Color, "rainbow", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;

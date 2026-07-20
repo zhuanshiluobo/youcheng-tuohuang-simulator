@@ -21,6 +21,8 @@ namespace YC.Presentation
         private readonly Func<MapViewPresenter> getMapView;
         private readonly IMapQueryService mapQuery;
         private readonly EventChoiceDialog eventChoiceDialog;
+        private readonly CityStyleDeclarationPreviewDialog cityStyleDeclarationDialog =
+            new CityStyleDeclarationPreviewDialog();
         private readonly DispatchDecisionView dispatchDecisionView;
         private readonly Action<string> showPrompt;
         private readonly Action refreshAll;
@@ -207,7 +209,14 @@ namespace YC.Presentation
         public void HideBuildFacilityDraft() => eventChoiceDialog.Hide();
         public void ShowCityStyleOptions(CityStyleOptionsViewModel model)
         {
-            if (model != null) eventChoiceDialog.ShowCityStyleOptions(getCanvas(), model.Options, model.Select, model.Cancel);
+            if (model == null)
+            {
+                cityStyleDeclarationDialog.Hide();
+                return;
+            }
+
+            eventChoiceDialog.Hide();
+            cityStyleDeclarationDialog.Show(getCanvas(), model);
         }
 
         private static Color GetHighlightColor(WorkflowHighlightSemantic semantic)

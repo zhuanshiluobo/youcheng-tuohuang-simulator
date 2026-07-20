@@ -4,6 +4,7 @@ using YC.Application.Gameplay;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Exploration;
+using YC.Domain.Facilities;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -205,6 +206,49 @@ namespace YC.Tests.EditMode
             Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.True);
             Assert.That(result.Events[0].Kind, Is.EqualTo(GameEventKind.ChoiceResolved));
+        }
+
+        [Test]
+        public void GrantedExplore_ReusesNormalWorkflowButDoesNotConsumeAnotherMainAction()
+        {
+            var state = CreateThreePlayerActionState();
+            state.Decks.EventDeckYellow.Add("event_yellow_01");
+            state.PendingCardSession = new PendingCardSessionState
+            {
+                SessionId = "facility-effect",
+                ScenarioId = FacilityPendingChoiceTypes.ScenarioId,
+                ChoiceType = FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore,
+                CardId = "building_039",
+                PlayerId = 1,
+                OptionIds = { FacilityPendingChoiceTypes.ExploreOption }
+            };
+            var handler = CreateThreePlayerHandler();
+
+            var begin = handler.BeginGrantedExplore(state, new GameCommand
+            {
+                Kind = GameCommandKind.ResolvePendingChoice,
+                PlayerId = 1,
+                TargetId = "building_039"
+            }, "mine-b");
+
+            Assert.That(begin.Succeeded, Is.True, begin.Validation.Reason);
+            Assert.That(begin.Events.Exists(item => item.Kind == GameEventKind.CardMoved), Is.True);
+            Assert.That(begin.Events.Exists(item => item.Kind == GameEventKind.ResourceChanged), Is.True);
+            Assert.That(begin.Events.Exists(item => item.Kind == GameEventKind.ChoiceOpened), Is.True);
+            Assert.That(state.PendingCardSession.ChoiceType,
+                Is.EqualTo(ExploreLocationCommandHandler.ExploreEventChoiceType));
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+
+            var resolved = handler.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.ResolvePendingChoice,
+                PlayerId = 1,
+                OptionIds = { "1" }
+            });
+
+            Assert.That(resolved.Succeeded, Is.True, resolved.Validation.Reason);
+            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False,
+                "额外探索结算事件后不应改变它是否消耗主要行动的来源语义。");
         }
 
         [Test]

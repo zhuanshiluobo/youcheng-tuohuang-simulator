@@ -13,6 +13,10 @@ namespace YC.Domain.Harvest
 {
     public sealed class ResourceCollectionService
     {
+        // 同一航道分组只支付一次，但影响力免付与接收方归属只看本次实际经过的航道。
+        private const RouteTollPaymentKeyMode CollectionPaymentKeyMode = RouteTollPaymentKeyMode.SharedRegion;
+        private const RouteTollPaymentKeyMode CollectionInfluenceKeyMode = RouteTollPaymentKeyMode.RouteId;
+
         private readonly IMapQueryService mapQuery;
         private readonly ResourceTokenService resourceTokenService;
         private readonly RouteTollService routeTollService;
@@ -57,12 +61,13 @@ namespace YC.Domain.Harvest
             var uniqueLocationIds = NormalizeLocationIds(locationIds);
             var collectionRouteIds = ResolveCollectionRouteIds(player.CityLocationId, uniqueLocationIds, routeIds);
             List<ExplorationTravelPayment> payments;
-            var paymentValidation = routeTollService.TryBuildPaymentPlan(
+            var paymentValidation = routeTollService.TryBuildPaymentPlanWithInfluenceKeyMode(
                 state,
                 playerId,
                 collectionRouteIds,
                 paymentRecipientsByRouteId,
-                RouteTollPaymentKeyMode.SharedRegion,
+                CollectionPaymentKeyMode,
+                CollectionInfluenceKeyMode,
                 out payments);
             if (!paymentValidation.IsValid)
             {
@@ -169,12 +174,13 @@ namespace YC.Domain.Harvest
             }
 
             List<ExplorationTravelPayment> payments;
-            var paymentValidation = routeTollService.TryBuildPaymentPlan(
+            var paymentValidation = routeTollService.TryBuildPaymentPlanWithInfluenceKeyMode(
                 state,
                 playerId,
                 collectionRouteIds,
                 paymentRecipientsByRouteId,
-                RouteTollPaymentKeyMode.SharedRegion,
+                CollectionPaymentKeyMode,
+                CollectionInfluenceKeyMode,
                 out payments);
             if (!paymentValidation.IsValid)
             {
@@ -265,11 +271,11 @@ namespace YC.Domain.Harvest
                         state,
                         route.RouteId,
                         playerId,
-                        RouteTollPaymentKeyMode.SharedRegion))
+                        CollectionInfluenceKeyMode))
                     {
                         confirmedPaymentKeys.Add(routeTollService.GetRoutePaymentKey(
                             route.RouteId,
-                            RouteTollPaymentKeyMode.SharedRegion));
+                            CollectionPaymentKeyMode));
                     }
                 }
             }
@@ -313,7 +319,7 @@ namespace YC.Domain.Harvest
 
                 var paymentKey = routeTollService.GetRoutePaymentKey(
                     route.RouteId,
-                    RouteTollPaymentKeyMode.SharedRegion);
+                    CollectionPaymentKeyMode);
                 result.AddRouteOption(new ResourceCollectionRouteOption
                 {
                     RouteId = route.RouteId,
@@ -323,9 +329,9 @@ namespace YC.Domain.Harvest
                                 result.AvailableGoldVoucher,
                     OpponentOwnerPlayerIds = routeTollService.GetOpponentInfluenceOwnersOnPaymentKey(
                         state,
-                        paymentKey,
+                        route.RouteId,
                         playerId,
-                        RouteTollPaymentKeyMode.SharedRegion)
+                        CollectionInfluenceKeyMode)
                 });
             }
 
@@ -342,14 +348,14 @@ namespace YC.Domain.Harvest
                 state,
                 routeId,
                 playerId,
-                RouteTollPaymentKeyMode.SharedRegion))
+                CollectionInfluenceKeyMode))
             {
                 return true;
             }
 
             var paymentKey = routeTollService.GetRoutePaymentKey(
                 routeId,
-                RouteTollPaymentKeyMode.SharedRegion);
+                CollectionPaymentKeyMode);
             return confirmedPaymentKeys.Contains(paymentKey);
         }
 

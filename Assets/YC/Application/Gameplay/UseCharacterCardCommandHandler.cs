@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
@@ -62,6 +63,7 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(validation);
             }
 
+            BindTinManPendingContext(state, command);
             var definition = CharacterCardDatabase.Get(cardId);
             if (state.PendingCharacterEffect != null && state.PendingCharacterEffect.IsValid())
             {
@@ -78,6 +80,16 @@ namespace YC.Application.Gameplay
         private CommandResult HandleResolvePendingCharacterEffect(GameState state, GameCommand command)
         {
             var pending = state.PendingCharacterEffect;
+            if (IsTinManPurchasePending(pending) &&
+                !string.IsNullOrEmpty(pending.SourceCommandId) &&
+                GetParameter(command, CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId) !=
+                pending.SourceCommandId)
+            {
+                return CommandResult.Invalid(ValidationResult.Failure(
+                    CommandErrorCode.InvalidTarget,
+                    "该锡人购买命令属于已经结束的结算，不能用于当前发动。"));
+            }
+
             var cardId = pending == null ? string.Empty : pending.CardId;
             var wasDelayedCleanup = pending != null && pending.ChoiceType == CharacterPendingChoiceTypes.LiskarmCleanupRemoval;
             var validation = service.ResolvePendingChoice(
@@ -112,6 +124,37 @@ namespace YC.Application.Gameplay
             return "玩家 " + playerId + " 的角色牌“" +
                    (string.IsNullOrEmpty(cardName) ? "未知角色牌" : cardName) +
                    "”已完成全部结算。";
+        }
+
+        private static void BindTinManPendingContext(GameState state, GameCommand command)
+        {
+            var pending = state == null ? null : state.PendingCharacterEffect;
+            if (!IsTinManPending(pending))
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(command.CommandId))
+            {
+                command.CommandId = Guid.NewGuid().ToString("N");
+            }
+
+            pending.SourceCommandId = command.CommandId;
+        }
+
+        private static bool IsTinManPending(PendingCharacterEffectState pending)
+        {
+            return pending != null &&
+                   pending.IsValid() &&
+                   (pending.ChoiceType == CharacterPendingChoiceTypes.TinManDiscard ||
+                    IsTinManPurchasePending(pending));
+        }
+
+        private static bool IsTinManPurchasePending(PendingCharacterEffectState pending)
+        {
+            return pending != null &&
+                   (pending.ChoiceType == CharacterPendingChoiceTypes.TinManFirstPurchase ||
+                    pending.ChoiceType == CharacterPendingChoiceTypes.TinManSecondPurchase);
         }
 
         private static string GetParameter(GameCommand command, string key)

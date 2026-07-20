@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using YC.Application.Gameplay;
+using YC.Domain.CityStyles;
 using YC.Domain.Commands;
 using YC.Domain.Events;
 using YC.Domain.Exploration;
@@ -47,6 +48,18 @@ namespace YC.Tests.EditMode
 
             player.UsedCharacterThisRound = true;
             Assert.That(fixture.Presenter.BuildActionPanelViewModel().CanUseCharacter, Is.False);
+        }
+
+        [Test]
+        public void CharacterCoverPhase_PromptsCurrentPlayerToCoverFirst()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.State.Phase = GamePhase.CharacterCover;
+            fixture.Context.State.CurrentPlayerId = 1;
+            fixture.Context.State.FindPlayer(1).CoveredCharacterCardId = string.Empty;
+
+            Assert.That(fixture.Presenter.BuildActionPanelViewModel().StatusText,
+                Is.EqualTo("入场阶段：请先盖放角色卡"));
         }
 
         [Test]
@@ -148,14 +161,210 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void BuildEscape_CancelsDraftAndRestoresActionSelection()
+        {
+            var fixture = CreateFixture();
+            fixture.Presenter.BeginBuildFacilityDrag(FacilityCardDatabase.TradeDistrict);
+            fixture.Presenter.DropBuildFacility(3);
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Focused));
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ResolvingBuildFocus));
+
+            Assert.That(fixture.Presenter.HandleBuildFacilityEscape(), Is.True);
+
+            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Null);
+            Assert.That(fixture.View.BuildDraft, Is.Null);
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.View.Prompt, Is.Not.Empty);
+            Assert.That(fixture.Presenter.HandleBuildFacilityEscape(), Is.False);
+        }
+
+        [Test]
+        public void BuildAvailability_SupportsDirectSupplyDragAndShowsExhaustedMessage()
+        {
+            var fixture = CreateFixture();
+
+            var available = fixture.Presenter.BuildBuildFacilityAvailabilityViewModel();
+            Assert.That(available.DraggableFacilityIds, Does.Contain(FacilityCardDatabase.TradeDistrict));
+            Assert.That(available.UnavailableMessage, Is.Empty);
+            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Null);
+
+            fixture.Presenter.BeginBuildFacilityDrag(FacilityCardDatabase.TradeDistrict);
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Dragging));
+
+            fixture.Presenter.RejectBuildFacilityDrop();
+            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Null);
+            Assert.That(fixture.View.BuildDraft, Is.Null);
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
+            fixture.Context.State.FindPlayer(1).ActedMainActionThisTurn = true;
+            var exhausted = fixture.Presenter.BuildBuildFacilityAvailabilityViewModel();
+            Assert.That(exhausted.DraggableFacilityIds, Is.Empty);
+            Assert.That(exhausted.UnavailableMessage, Is.EqualTo("本行动轮行动次数已用尽。"));
+        }
+
+        [Test]
+        public void BuildAvailability_UsesAdditionalBuildWhenMainActionIsSpent()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.State.FindPlayer(1).ActedMainActionThisTurn = true;
+            fixture.Context.State.PendingCardSession = new PendingCardSessionState
+            {
+                SessionId = "additional-build",
+                ScenarioId = FacilityPendingChoiceTypes.ScenarioId,
+                ChoiceType = FacilityPendingChoiceTypes.BuildAdditionalFacility,
+                CardId = FacilityCardDatabase.SimpleEngineeringCamp,
+                PlayerId = 1,
+                OptionIds = { FacilityCardDatabase.TradeDistrict }
+            };
+
+            var availability = fixture.Presenter.BuildBuildFacilityAvailabilityViewModel();
+
+            Assert.That(availability.UsesSpecialBuild, Is.True);
+            Assert.That(availability.DraggableFacilityIds, Does.Contain(FacilityCardDatabase.TradeDistrict));
+            Assert.That(availability.LegalSlotIndexes, Has.Count.EqualTo(BuildFacilityService.CityBoardSlotCount));
+            Assert.That(availability.UnavailableMessage, Is.Empty);
+        }
+
+        [Test]
+        public void BuildAvailability_ExtensionHubUsesSharedLegalSlotsWithoutPublicCardDrag()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.State.PendingCardSession = new PendingCardSessionState
+            {
+                SessionId = "extension-hub-build",
+                ScenarioId = FacilityPendingChoiceTypes.ScenarioId,
+                ChoiceType = FacilityPendingChoiceTypes.BuildExtensionHub,
+                CardId = FacilityCardDatabase.LogisticsHub,
+                PlayerId = 1,
+                OptionIds = { FacilityCardDatabase.ExtensionHubBlue }
+            };
+            fixture.Context.State.Map.Facilities.Add(new FacilityPlacement
+            {
+                PlayerId = 1,
+                FacilityCardId = FacilityCardDatabase.TradeDistrict,
+                CityBoardSlotIndex = 3
+            });
+
+            var availability = fixture.Presenter.BuildBuildFacilityAvailabilityViewModel();
+
+            Assert.That(availability.UsesSpecialBuild, Is.True);
+            Assert.That(availability.DraggableFacilityIds, Is.Empty);
+            Assert.That(availability.LegalSlotIndexes, Has.Count.EqualTo(BuildFacilityService.CityBoardSlotCount - 1));
+            Assert.That(new List<int>(availability.LegalSlotIndexes).Contains(3), Is.False);
+            Assert.That(availability.UnavailableMessage, Is.Empty);
+        }
+
+        [Test]
         public void Declare_CreatesCommandAndKeepsNetworkingWaitSemantics()
         {
             var fixture = CreateFixture();
             fixture.Commands.NextResult = Success(false);
-            fixture.Presenter.SubmitDeclareCityStyle("style-test");
+            fixture.Presenter.SubmitDeclareCityStyle("style-test", new[] { 3, 1 });
             Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.DeclareCityStyle));
             Assert.That(fixture.Commands.LastCommand.TargetId, Is.EqualTo("style-test"));
+            Assert.That(
+                fixture.Commands.LastCommand.Parameters[DeclareCityStyleCommandHandler.UsedCityBoardSlotIndexesParameter],
+                Is.EqualTo("1,3"));
             Assert.That(fixture.View.Prompt, Does.Contain("等待确认"));
+        }
+
+        [Test]
+        public void Declare_LocalSuccessShowsConciseCompletionPrompt()
+        {
+            var fixture = CreateFixture();
+            fixture.Commands.NextResult = Success(true);
+
+            fixture.Presenter.SubmitDeclareCityStyle("style-test", new[] { 1, 3 });
+
+            Assert.That(fixture.View.Prompt, Is.EqualTo("城市样式宣告完成。"));
+        }
+
+        [Test]
+        public void BeginDeclare_ProvidesPreviewModelAndDoesNotInterruptActiveMainAction()
+        {
+            var fixture = CreateFixture();
+
+            fixture.Presenter.BeginDeclareCityStyle(CityStyleDatabase.MaterialRelayStation);
+
+            Assert.That(fixture.View.CityStyleOptions, Is.Not.Null);
+            Assert.That(
+                fixture.View.CityStyleOptions.InitialCityStyleId,
+                Is.EqualTo(CityStyleDatabase.MaterialRelayStation));
+            Assert.That(fixture.View.CityStyleOptions.CityBoardSlots, Has.Count.EqualTo(12));
+            Assert.That(fixture.View.CityStyleOptions.CityStyleMarkers, Is.Not.Null);
+            Assert.That(
+                typeof(CityStyleOptionsViewModel).GetProperty("State"),
+                Is.Null,
+                "城市样式弹窗 ViewModel 不应暴露可变 GameState。");
+            Assert.That(fixture.View.CityStyleOptions.ValidateSelection, Is.Not.Null);
+            Assert.That(fixture.View.CityStyleOptions.ConfirmSelection, Is.Not.Null);
+            Assert.That(fixture.View.Prompt, Is.Empty, "样式预览不应再显示重复的全局操作提示。");
+
+            fixture.View.CityStyleOptions = null;
+            fixture.Presenter.BeginExploreAction();
+            fixture.Presenter.BeginDeclareCityStyle(CityStyleDatabase.MilitaryIndustrialArea);
+
+            Assert.That(fixture.View.CityStyleOptions, Is.Null);
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ResolvingExploreTarget));
+            Assert.That(fixture.View.Prompt, Does.Contain("正在进行的行动"));
+
+            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
+
+            Assert.That(fixture.View.CityStyleOptions, Is.Not.Null);
+            Assert.That(
+                fixture.View.CityStyleOptions.InitialCityStyleId,
+                Is.EqualTo(CityStyleDatabase.MilitaryIndustrialArea));
+            for (var i = 0; i < fixture.View.CityStyleOptions.Options.Count; i++)
+            {
+                Assert.That(fixture.View.CityStyleOptions.Options[i].CanDeclare, Is.False);
+            }
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ResolvingExploreTarget));
+            Assert.That(fixture.View.Prompt, Is.Empty, "不可宣告原因应显示在样式预览内，不应占用全局提示区。");
+        }
+
+        [Test]
+        public void CityStylePreview_ConfirmKeepsDialogOpenWhenSubmissionIsRejected()
+        {
+            var fixture = CreateFixture();
+            fixture.Presenter.BeginDeclareCityStyle(CityStyleDatabase.MilitaryIndustrialArea);
+
+            fixture.Commands.NextResult = Rejected("state changed");
+            var rejected = fixture.View.CityStyleOptions.ConfirmSelection(
+                CityStyleDatabase.MilitaryIndustrialArea,
+                new[] { 0, 1 });
+
+            Assert.That(rejected, Is.False);
+            Assert.That(fixture.View.Prompt, Is.EqualTo("state changed"));
+
+            fixture.Commands.NextResult = Success(false);
+            var sentToHost = fixture.View.CityStyleOptions.ConfirmSelection(
+                CityStyleDatabase.MilitaryIndustrialArea,
+                new[] { 0, 1 });
+
+            Assert.That(sentToHost, Is.True);
+            Assert.That(fixture.View.Prompt, Does.Contain("等待确认"));
+        }
+
+        [Test]
+        public void CityStylePreview_CloseDuringBuildDraft_RestoresBuildDraft()
+        {
+            var fixture = CreateFixture();
+            fixture.Presenter.BeginBuildFacilityDrag(FacilityCardDatabase.TradeDistrict);
+            fixture.Presenter.DropBuildFacility(3);
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Focused));
+
+            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
+            Assert.That(fixture.View.CityStyleOptions, Is.Not.Null);
+            for (var i = 0; i < fixture.View.CityStyleOptions.Options.Count; i++)
+            {
+                Assert.That(fixture.View.CityStyleOptions.Options[i].CanDeclare, Is.False);
+            }
+
+            fixture.View.BuildDraft = null;
+            fixture.View.CityStyleOptions.Cancel();
+
+            Assert.That(fixture.View.BuildDraft, Is.Not.Null);
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Focused));
+            Assert.That(fixture.View.Prompt, Does.Contain("返回当前建设选择"));
         }
 
         [Test]
@@ -185,6 +394,191 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.EndAction));
             Assert.That(fixture.View.RefreshFromStateCount, Is.Zero);
             Assert.That(fixture.View.Prompt, Does.Contain("等待确认"));
+        }
+
+        [Test]
+        public void EndAction_SinglePlayerActionRound1_ContinuesIntoActionRound2WithoutWaiting()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.State.Players.RemoveAt(1);
+            fixture.Context.State.FindPlayer(1).ActedMainActionThisTurn = true;
+            ApplyEndActionCommandsLocally(fixture);
+
+            fixture.Presenter.EndCurrentAction();
+
+            var panel = fixture.Presenter.BuildActionPanelViewModel();
+            Assert.That(fixture.Context.State.Phase, Is.EqualTo(GamePhase.ActionRound2));
+            Assert.That(fixture.Context.State.ActionRound, Is.EqualTo(2));
+            Assert.That(fixture.Context.State.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(panel.Mode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(panel.IsWaitingForOtherPlayers, Is.False);
+            Assert.That(panel.CanMoveCity, Is.True);
+            Assert.That(panel.CanEndAction, Is.False);
+            Assert.That(fixture.View.Prompt, Is.EqualTo(panel.StatusText));
+            Assert.That(fixture.View.Prompt, Does.Not.Contain("等待下一位玩家"));
+        }
+
+        [Test]
+        public void EndAction_SinglePlayerActionRound2_EntersResourceCollectionPrompt()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.State.Players.RemoveAt(1);
+            fixture.Context.State.Phase = GamePhase.ActionRound2;
+            fixture.Context.State.ActionRound = 2;
+            fixture.Context.State.FindPlayer(1).ActedMainActionThisTurn = true;
+            ConfigureCollectionTarget(fixture, 1);
+            fixture.View.RefreshFromStateAction = fixture.Presenter.BeginResourceCollection;
+            ApplyEndActionCommandsLocally(fixture);
+
+            fixture.Presenter.EndCurrentAction();
+
+            var panel = fixture.Presenter.BuildActionPanelViewModel();
+            Assert.That(fixture.Context.State.Phase, Is.EqualTo(GamePhase.ResourceCollection));
+            Assert.That(fixture.Context.State.FindPlayer(1).HasCollectedResourcesThisRound, Is.False);
+            Assert.That(fixture.Resource.CurrentQuery, Is.Not.Null);
+            Assert.That(fixture.Resource.CurrentQuery.IsValid, Is.True);
+            Assert.That(fixture.Resource.SelectedLocationIds, Is.EquivalentTo(new[] { "B" }));
+            Assert.That(
+                fixture.View.Highlights.Exists(highlight =>
+                    highlight.TargetId == "B" &&
+                    highlight.Semantic == WorkflowHighlightSemantic.CollectionSelected),
+                Is.True);
+            Assert.That(panel.Mode, Is.EqualTo(InteractionMode.ResolvingResourceCollection));
+            Assert.That(panel.IsWaitingForOtherPlayers, Is.False);
+            Assert.That(panel.CanEndAction, Is.True);
+            Assert.That(fixture.View.Prompt, Is.EqualTo(panel.StatusText));
+            Assert.That(fixture.View.Prompt, Does.StartWith("采集阶段："));
+            Assert.That(fixture.View.Prompt, Does.Not.Contain("已提交采集"));
+        }
+
+        [Test]
+        public void EndAction_ActionRound2_WithUnpaidToll_ShowsCollectionPaymentPromptAndRouteHighlight()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.State.Phase = GamePhase.ActionRound2;
+            fixture.Context.State.ActionRound = 2;
+            fixture.Context.State.CurrentPlayerId = 2;
+            fixture.Context.LocalPlayerId = 2;
+            fixture.Context.State.FindPlayer(1).ActedMainActionThisTurn = true;
+            fixture.Context.State.FindPlayer(2).ActedMainActionThisTurn = true;
+            ConfigureCollectionTarget(fixture, 2);
+            fixture.View.RefreshFromStateAction = fixture.Presenter.BeginResourceCollection;
+            ApplyEndActionCommandsLocally(fixture);
+
+            fixture.Presenter.EndCurrentAction();
+
+            var panel = fixture.Presenter.BuildActionPanelViewModel();
+            Assert.That(fixture.Context.State.Phase, Is.EqualTo(GamePhase.ResourceCollection));
+            Assert.That(fixture.Context.State.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(fixture.Context.LocalPlayerId, Is.EqualTo(1));
+            Assert.That(fixture.Context.State.FindPlayer(1).HasCollectedResourcesThisRound, Is.False);
+            Assert.That(fixture.Context.State.FindPlayer(2).HasCollectedResourcesThisRound, Is.False);
+            Assert.That(fixture.Resource.CurrentQuery, Is.Not.Null);
+            Assert.That(fixture.Resource.CurrentQuery.IsValid, Is.True);
+            Assert.That(
+                fixture.View.Highlights.Exists(highlight =>
+                    highlight.TargetId == "R1" &&
+                    highlight.Semantic == WorkflowHighlightSemantic.CollectionPaymentRequired),
+                Is.True);
+            Assert.That(panel.StatusText, Does.StartWith("采集阶段："));
+            Assert.That(panel.StatusText, Does.Contain("支付路费"));
+            Assert.That(panel.StatusText, Does.Not.Contain("已提交采集"));
+            Assert.That(fixture.View.Prompt, Is.EqualTo(panel.StatusText));
+        }
+
+        [Test]
+        public void CollectResource_AfterActualMultiplayerSubmission_ShowsSubmittedWaitingStatus()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.ControlsCurrentPlayerLocally = false;
+            fixture.Context.State.Phase = GamePhase.ResourceCollection;
+            fixture.Context.State.ActionRound = 0;
+            fixture.Context.State.FindPlayer(1).HasCollectedResourcesThisRound = false;
+            fixture.Context.State.FindPlayer(2).HasCollectedResourcesThisRound = false;
+            ConfigureCollectionTarget(fixture, 1);
+            fixture.View.RefreshFromStateAction = () =>
+            {
+                fixture.Presenter.SynchronizeFromState();
+                fixture.Presenter.BeginResourceCollection();
+            };
+            ApplyCollectionCommandsLocally(fixture);
+            fixture.Presenter.BeginResourceCollection();
+
+            fixture.Presenter.EndCurrentAction();
+
+            var panel = fixture.Presenter.BuildActionPanelViewModel();
+            Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.CollectResource));
+            Assert.That(fixture.Context.State.FindPlayer(1).HasCollectedResourcesThisRound, Is.True);
+            Assert.That(fixture.Context.State.FindPlayer(2).HasCollectedResourcesThisRound, Is.False);
+            Assert.That(fixture.Context.State.Phase, Is.EqualTo(GamePhase.ResourceCollection));
+            Assert.That(panel.Mode, Is.EqualTo(InteractionMode.WaitingForNextPlayer));
+            Assert.That(panel.IsWaitingForOtherPlayers, Is.True);
+            Assert.That(panel.CanEndAction, Is.False);
+            Assert.That(panel.StatusText, Does.Contain("已提交采集"));
+            Assert.That(panel.StatusText, Does.Contain("等待其他玩家"));
+        }
+
+        [Test]
+        public void EndAction_NetworkMultiplayerStillWaitsForRemoteCurrentPlayer()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.ControlsCurrentPlayerLocally = false;
+            fixture.Context.State.FindPlayer(1).ActedMainActionThisTurn = true;
+            ApplyEndActionCommandsLocally(fixture);
+
+            fixture.Presenter.EndCurrentAction();
+
+            var panel = fixture.Presenter.BuildActionPanelViewModel();
+            Assert.That(fixture.Context.State.CurrentPlayerId, Is.EqualTo(2));
+            Assert.That(fixture.Context.LocalPlayerId, Is.EqualTo(1));
+            Assert.That(panel.Mode, Is.EqualTo(InteractionMode.WaitingForNextPlayer));
+            Assert.That(panel.IsWaitingForOtherPlayers, Is.True);
+            Assert.That(panel.CanMoveCity, Is.False);
+            Assert.That(fixture.View.Prompt, Is.EqualTo(panel.StatusText));
+            Assert.That(fixture.View.Prompt, Does.Contain("等待玩家 2 行动"));
+        }
+
+        private static void ApplyEndActionCommandsLocally(Fixture fixture)
+        {
+            var handler = new EndActionCommandHandler();
+            fixture.Commands.SubmitHandler = command =>
+            {
+                var result = handler.Handle(fixture.Context.State, command);
+                return new WorkflowSubmissionResult(result, result.Succeeded);
+            };
+        }
+
+        private static void ApplyCollectionCommandsLocally(Fixture fixture)
+        {
+            var handler = new CollectResourceCommandHandler(
+                new ResourceCollectionService(fixture.MapQuery));
+            fixture.Commands.SubmitHandler = command =>
+            {
+                var result = handler.Handle(fixture.Context.State, command);
+                return new WorkflowSubmissionResult(result, result.Succeeded);
+            };
+        }
+
+        private static void ConfigureCollectionTarget(Fixture fixture, int routeOwnerPlayerId)
+        {
+            fixture.Context.State.Map.ResourceTokens.Add(new ResourceTokenState
+            {
+                LocationId = "B",
+                ResourceType = ResourceType.Iron,
+                Amount = 1
+            });
+            fixture.Context.State.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = InfluenceService.GetLocationSlotId("B", 0),
+                LocationId = "B"
+            });
+            fixture.Context.State.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = routeOwnerPlayerId,
+                SlotId = InfluenceService.GetRouteSlotId("R1", 0),
+                RouteId = "R1"
+            });
         }
 
         private static Fixture CreateFixture()
@@ -253,6 +647,8 @@ namespace YC.Tests.EditMode
                 Commands = commands,
                 View = view,
                 Flow = flow,
+                MapQuery = mapQuery,
+                Resource = resource,
                 Influence = influence,
                 Exploration = exploration,
                 Presenter = new TurnActionPresenter(
@@ -278,6 +674,8 @@ namespace YC.Tests.EditMode
             public FakeCommandPort Commands;
             public FakeView View;
             public InteractionFlowCoordinator Flow;
+            public MapQueryService MapQuery;
+            public ResourceCollectionPresenter Resource;
             public InfluenceActionPresenter Influence;
             public ExplorationEventPresenter Exploration;
             public TurnActionPresenter Presenter;
@@ -296,10 +694,12 @@ namespace YC.Tests.EditMode
         {
             public GameCommand LastCommand;
             public WorkflowSubmissionResult NextResult;
+            public System.Func<GameCommand, WorkflowSubmissionResult> SubmitHandler;
+
             public WorkflowSubmissionResult Submit(GameCommand command)
             {
                 LastCommand = command;
-                return NextResult;
+                return SubmitHandler == null ? NextResult : SubmitHandler(command);
             }
         }
 
@@ -311,6 +711,8 @@ namespace YC.Tests.EditMode
             public string CompletedAction = string.Empty;
             public int RefreshFromStateCount;
             public BuildFacilityDraftViewModel BuildDraft;
+            public CityStyleOptionsViewModel CityStyleOptions;
+            public System.Action RefreshFromStateAction;
 
             public void ShowPrompt(string message) { Prompt = message; }
             public void SetHighlights(IReadOnlyList<WorkflowHighlight> highlights)
@@ -319,14 +721,18 @@ namespace YC.Tests.EditMode
                 if (highlights != null) Highlights.AddRange(highlights);
             }
             public void ClearHighlights() { Highlights.Clear(); }
-            public void RefreshFromState() { RefreshFromStateCount += 1; }
+            public void RefreshFromState()
+            {
+                RefreshFromStateCount += 1;
+                RefreshFromStateAction?.Invoke();
+            }
             public void RefreshInformation() { }
             public void RefreshActionPanel() { }
             public void ShowPendingChoice() { }
             public void CompleteMainActionPresentation(string actionName) { CompletedAction = actionName; }
             public void ShowBuildFacilityDraft(BuildFacilityDraftViewModel viewModel) { BuildDraft = viewModel; }
             public void HideBuildFacilityDraft() { BuildDraft = null; }
-            public void ShowCityStyleOptions(CityStyleOptionsViewModel viewModel) { }
+            public void ShowCityStyleOptions(CityStyleOptionsViewModel viewModel) { CityStyleOptions = viewModel; }
             public void ShowRoutePaymentOptions(string routeId, int cost, IReadOnlyList<int> recipients) { }
             public string GetPlayerDisplayName(int playerId) { return "Player " + playerId; }
             public void RefreshSelectionView() { }

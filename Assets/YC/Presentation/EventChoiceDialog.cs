@@ -36,6 +36,7 @@ namespace YC.Presentation
         private Text eventCardSummaryText;
         private RectTransform eventCardToggleRect;
         private Text eventCardToggleText;
+        private Image eventCardToggleIcon;
         private Vector2 eventCardExpandedSize;
         private bool eventCardCollapsed;
 
@@ -155,7 +156,7 @@ namespace YC.Presentation
             var toggleButton = CreateButton(
                 panelRect,
                 "Collapse Card",
-                "▲ 收起卡片",
+                "收起卡片",
                 new Vector2(0.5f, 0f),
                 new Vector2(0.5f, 0f),
                 new Vector2(220f, 32f),
@@ -166,6 +167,10 @@ namespace YC.Presentation
                 14);
             eventCardToggleRect = toggleButton.GetComponent<RectTransform>();
             eventCardToggleText = toggleButton.GetComponentInChildren<Text>();
+            eventCardToggleIcon = UguiUtility.CreateTriangleIcon(
+                eventCardToggleRect,
+                "Event Card Collapse Triangle",
+                true);
             toggleButton.onClick.AddListener(ToggleEventCardCollapsed);
             ApplyEventCardCollapseState();
         }
@@ -394,7 +399,6 @@ namespace YC.Presentation
                 "Build Facility Focus Panel",
                 new Vector2(900f, 590f),
                 new Vector2(0f, -20f));
-
             var facility = model.Facility;
             var effectiveResourceCost = model.SelectedOption == null
                 ? facility.ResourceCost
@@ -436,17 +440,18 @@ namespace YC.Presentation
                 new Vector2(0.71f, 1f), new Vector2(0.95f, 1f), new Vector2(0f, 42f), new Vector2(0f, -405f),
                 TextAnchor.UpperCenter, 11, 13);
 
-            var cancelButton = CreateButton(panelRect, "Cancel Build Facility", "× 取消建设",
-                new Vector2(0.62f, 0f), new Vector2(0.84f, 0f), new Vector2(0f, 48f), new Vector2(0f, 38f),
-                TextAnchor.MiddleCenter, 16, 12, 18);
-            cancelButton.onClick.AddListener(() => model.Cancel?.Invoke());
-
             if (!string.IsNullOrEmpty(model.ErrorMessage))
             {
                 CreateText(panelRect, "Build Error", model.ErrorMessage, 15, FontStyle.Bold, new Color(1f, 0.45f, 0.32f),
                     new Vector2(0.46f, 0f), new Vector2(0.96f, 0f), new Vector2(0f, 44f), new Vector2(0f, 92f),
                     TextAnchor.MiddleCenter, 12, 15);
             }
+
+            UguiUtility.CreateWindowCloseControls(
+                overlay,
+                panelRect,
+                "Close Build Facility Focus Button",
+                () => model.Cancel?.Invoke());
         }
 
         public void ShowBuildFacilityConfirmation(RectTransform canvasTransform, BuildFacilityDraftViewModel model)
@@ -500,10 +505,12 @@ namespace YC.Presentation
                 new Vector2(0.58f, 0f), new Vector2(0.88f, 0f), new Vector2(0f, 54f), new Vector2(0f, 54f),
                 TextAnchor.MiddleCenter, 18, 14, 20);
             confirmButton.onClick.AddListener(() => model.Confirm?.Invoke());
-            var cancelButton = CreateButton(panelRect, "Cancel Build Facility", "× 取消建设",
-                new Vector2(0.38f, 0f), new Vector2(0.62f, 0f), new Vector2(0f, 40f), new Vector2(0f, 14f),
-                TextAnchor.MiddleCenter, 14, 12, 16);
-            cancelButton.onClick.AddListener(() => model.Cancel?.Invoke());
+
+            UguiUtility.CreateWindowCloseControls(
+                overlay,
+                panelRect,
+                "Close Build Facility Confirmation Button",
+                () => model.Cancel?.Invoke());
         }
 
         public void ShowCityStyleOptions(
@@ -1016,6 +1023,7 @@ namespace YC.Presentation
             eventCardSummaryText = null;
             eventCardToggleRect = null;
             eventCardToggleText = null;
+            eventCardToggleIcon = null;
             eventCardCollapsed = false;
         }
 
@@ -1049,8 +1057,10 @@ namespace YC.Presentation
 
             if (eventCardToggleText != null)
             {
-                eventCardToggleText.text = eventCardCollapsed ? "▼ 展开卡片" : "▲ 收起卡片";
+                eventCardToggleText.text = eventCardCollapsed ? "展开卡片" : "收起卡片";
             }
+
+            UguiUtility.SetTriangleIconDirection(eventCardToggleIcon, !eventCardCollapsed);
 
             if (eventCardToggleRect != null)
             {

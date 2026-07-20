@@ -64,18 +64,10 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void SetHintCardButtonVisible_WhenFalse_HidesHintCardButton()
+        public void BuildUi_DoesNotCreateHintCardButton()
         {
-            var setVisible = controller.GetType().GetMethod(
-                "SetHintCardButtonVisible",
-                BindingFlags.Instance | BindingFlags.Public);
-            Assert.That(setVisible, Is.Not.Null);
-
-            setVisible.Invoke(controller, new object[] { false });
-
             var hintButton = root.transform.Find("Settings Menu Canvas/Hint Card Button");
-            Assert.That(hintButton, Is.Not.Null);
-            Assert.That(hintButton.gameObject.activeSelf, Is.False);
+            Assert.That(hintButton, Is.Null);
         }
 
         [Test]
@@ -97,6 +89,22 @@ namespace YC.Tests.EditMode
 
             Assert.That(GetPublicProperty<bool>(controller, "IsOpen"), Is.False);
             UnityEngine.Object.DestroyImmediate(texture);
+        }
+
+        [Test]
+        public void HandleEscapePressed_WhileCityStylePreviewIsOpen_DoesNotOpenSettings()
+        {
+            var inputHandlerType = Type.GetType(
+                "YC.Presentation.CityStyleDeclarationPreviewInputHandler, Assembly-CSharp",
+                false);
+            Assert.That(inputHandlerType, Is.Not.Null);
+            var previewObject = new GameObject("Open City Style Preview");
+            previewObject.transform.SetParent(root.transform, false);
+            previewObject.AddComponent(inputHandlerType);
+
+            InvokePublic(controller, "HandleEscapePressed");
+
+            Assert.That(GetPublicProperty<bool>(controller, "IsOpen"), Is.False);
         }
 
         private static void EnsureAwakeRan(Component component, string readyFieldName)

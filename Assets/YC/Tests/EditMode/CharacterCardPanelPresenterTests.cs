@@ -23,6 +23,7 @@ namespace YC.Tests.EditMode
             Assert.That(view.HandCards[0].DisplayName, Is.EqualTo("雷蛇"));
             Assert.That(view.HandCards[1].DisplayName, Is.EqualTo("expansion-card-7"));
             Assert.That(view.HandCards[0].CanCover, Is.True);
+            Assert.That(view.InteractionStatus, Is.EqualTo("拖动到主要行动卡上即可盖放"));
         }
 
         [Test]
@@ -158,6 +159,33 @@ namespace YC.Tests.EditMode
             Assert.That(view.CanUseStrategy, Is.False);
             Assert.That(view.CanUseTactic, Is.True);
             Assert.That(view.IsSecondEffectExecution, Is.True);
+        }
+
+        [Test]
+        public void PendingSecondEffectDecision_ExposesRemainingSideWithoutBlockingCardPanel()
+        {
+            var state = CreateState(GamePhase.ActionRound1);
+            state.FindPlayer(1).CoveredCharacterCardId = "character.red.p1.cannot";
+            state.PendingCharacterEffect = new PendingCharacterEffectState
+            {
+                ChoiceType = CharacterPendingChoiceTypes.SecondEffectDecision,
+                PlayerId = 1,
+                CardId = "character.red.p1.cannot",
+                RemainingEffectMode = CharacterEffectModes.Tactic,
+                OptionIds =
+                {
+                    CharacterEffectChoiceIds.ContinueSecondEffect,
+                    CharacterEffectChoiceIds.FinishCharacterUse
+                }
+            };
+
+            var view = new CharacterCardPanelPresenter().BuildView(state, 1);
+
+            Assert.That(view.CanUse, Is.True);
+            Assert.That(view.CanUseStrategy, Is.False);
+            Assert.That(view.CanUseTactic, Is.True);
+            Assert.That(view.IsSecondEffectDecision, Is.True);
+            Assert.That(view.InteractionStatus, Does.Contain("可继续使用第二个效果").And.Contain("点击翻转"));
         }
 
         [Test]

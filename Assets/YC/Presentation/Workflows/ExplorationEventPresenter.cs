@@ -27,10 +27,13 @@ namespace YC.Presentation.Workflows
         private readonly ExplorePaymentRecipientSelectionController paymentSelection;
         private readonly EventOptionSelectionController optionSelection;
         private readonly EventInfluenceTargetSelectionController influenceTargetSelection;
+        private readonly FacilityEffectPendingChoicePresenter facilityPendingChoicePresenter;
         private readonly HashSet<string> selectableInfluenceSlotIds =
             new HashSet<string>(StringComparer.Ordinal);
 
         private InteractionMode currentMode = InteractionMode.ChooseAction;
+        private PendingCardSessionState additionalExplorePending;
+        private string additionalExploreOptionId = string.Empty;
         private int lastInfluenceInputFrame = -1;
         private int syntheticInputFrame = int.MinValue;
 
@@ -56,6 +59,7 @@ namespace YC.Presentation.Workflows
             paymentSelection = new ExplorePaymentRecipientSelectionController();
             optionSelection = new EventOptionSelectionController();
             influenceTargetSelection = new EventInfluenceTargetSelectionController();
+            facilityPendingChoicePresenter = new FacilityEffectPendingChoicePresenter();
         }
 
         public InteractionMode Mode
@@ -96,6 +100,27 @@ namespace YC.Presentation.Workflows
         public void Activate()
         {
             BeginTargetSelection();
+        }
+
+        public void PrepareNormalExplore()
+        {
+            ClearAdditionalExploreSource();
+        }
+
+        public void PrepareAdditionalExplore(PendingCardSessionState pending, string optionId)
+        {
+            if (pending == null)
+            {
+                throw new ArgumentNullException(nameof(pending));
+            }
+
+            if (string.IsNullOrEmpty(optionId))
+            {
+                throw new ArgumentException("额外探索必须指定待选分支。", nameof(optionId));
+            }
+
+            additionalExplorePending = pending;
+            additionalExploreOptionId = optionId;
         }
 
         public void BeginTargetSelection()
@@ -346,6 +371,7 @@ namespace YC.Presentation.Workflows
         public void Cancel()
         {
             ClearWorkflowState();
+            ClearAdditionalExploreSource();
             view.HideEventOptions();
             view.ClearHighlights();
             SetMode(InteractionMode.ChooseAction);
@@ -524,6 +550,7 @@ namespace YC.Presentation.Workflows
                 return;
             }
 
+            ClearAdditionalExploreSource();
             view.HideEventOptions();
             ClearWorkflowState();
             view.RefreshResourceAndInfluence();
@@ -632,20 +659,39 @@ namespace YC.Presentation.Workflows
 
         private GameCommand BuildExploreCommand()
         {
+            var parameters = new Dictionary<string, string>
+            {
+                [ExploreLocationCommandHandler.PathLocationIdsParameter] =
+                    EncodeIds(pathSelection.SelectedPath.LocationIds),
+                [ExploreLocationCommandHandler.RouteIdsParameter] =
+                    EncodeIds(pathSelection.SelectedPath.RouteIds)
+            };
+            var encodedPayments = paymentSelection.EncodeRecipients();
+            if (!string.IsNullOrEmpty(encodedPayments))
+            {
+                parameters[ExploreLocationCommandHandler.PaymentRecipientsParameter] = encodedPayments;
+            }
+
+            if (additionalExplorePending != null)
+            {
+                parameters[ResolveFacilityEffectCommandHandler.TargetLocationIdParameter] =
+                    pathSelection.TargetLocationId;
+                return facilityPendingChoicePresenter.CreateResolveCommand(
+                    additionalExplorePending,
+                    context.LocalPlayerId,
+                    additionalExploreOptionId,
+                    parameters);
+            }
+
             var command = new GameCommand
             {
                 Kind = GameCommandKind.ExploreLocation,
                 PlayerId = context.LocalPlayerId,
                 TargetId = pathSelection.TargetLocationId
             };
-            command.Parameters[ExploreLocationCommandHandler.PathLocationIdsParameter] =
-                EncodeIds(pathSelection.SelectedPath.LocationIds);
-            command.Parameters[ExploreLocationCommandHandler.RouteIdsParameter] =
-                EncodeIds(pathSelection.SelectedPath.RouteIds);
-            var encodedPayments = paymentSelection.EncodeRecipients();
-            if (!string.IsNullOrEmpty(encodedPayments))
+            foreach (var entry in parameters)
             {
-                command.Parameters[ExploreLocationCommandHandler.PaymentRecipientsParameter] = encodedPayments;
+                command.Parameters[entry.Key] = entry.Value;
             }
 
             return command;
@@ -709,7 +755,8 @@ namespace YC.Presentation.Workflows
                     string.Empty,
                     recipients,
                     null,
-                    false);
+                    false,
+                    additionalExplorePending != null);
                 if (validation.IsValid)
                 {
                     return true;
@@ -1218,6 +1265,12 @@ namespace YC.Presentation.Workflows
             influenceTargetSelection.Clear();
             selectableInfluenceSlotIds.Clear();
             lastInfluenceInputFrame = -1;
+        }
+
+        private void ClearAdditionalExploreSource()
+        {
+            additionalExplorePending = null;
+            additionalExploreOptionId = string.Empty;
         }
 
         private void SetMode(InteractionMode mode)

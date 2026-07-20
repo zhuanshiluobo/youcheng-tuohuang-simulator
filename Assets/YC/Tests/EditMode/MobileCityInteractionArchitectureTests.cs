@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
@@ -33,17 +34,50 @@ namespace YC.Tests.EditMode
         [Test]
         public void SceneController_ContainsOnlyOrchestrationBoundaries()
         {
-            var path = Path.Combine(AssetsPath, "YC/Presentation/MobileCityInteractionController.cs");
-            var source = File.ReadAllText(path);
-            Assert.That(File.ReadAllLines(path).Length, Is.LessThanOrEqualTo(1000));
-            StringAssert.DoesNotContain("new GameCommand", source);
-            StringAssert.DoesNotContain("pendingDispatch", source);
-            StringAssert.DoesNotContain("PendingEvent", source);
-            Assert.That(source, Does.Not.Match(@"private\s+[^\r\n(]*CollectionSelection[^\r\n(]*;"));
-            StringAssert.DoesNotContain(".Resources =", source);
-            StringAssert.DoesNotContain(".Decks =", source);
+            var root = Path.Combine(AssetsPath, "YC/Presentation");
+            var paths = new List<string>(
+                Directory.GetFiles(root, "MobileCityInteractionController*.cs", SearchOption.TopDirectoryOnly));
+            paths.Sort(StringComparer.Ordinal);
+            Assert.That(paths, Is.Not.Empty);
 
-            var refreshBody = ExtractMethodBody(source, "private void RefreshAllFromState()");
+            var productionLineCount = 0;
+            string mainSource = null;
+            for (var i = 0; i < paths.Count; i++)
+            {
+                var path = paths[i];
+                var fileName = Path.GetFileName(path);
+                var source = File.ReadAllText(path);
+                if (fileName != "MobileCityInteractionController.RightCardSmoke.cs")
+                {
+                    productionLineCount += File.ReadAllLines(path).Length;
+                }
+
+                if (fileName == "MobileCityInteractionController.cs")
+                {
+                    mainSource = source;
+                }
+
+                StringAssert.DoesNotContain("new GameCommand", source, fileName);
+                Assert.That(source, Does.Not.Match(@"new\s+\w+Command\s*\("), fileName);
+                StringAssert.DoesNotContain("pendingDispatch", source, fileName);
+                StringAssert.DoesNotContain("PendingEvent", source, fileName);
+                Assert.That(
+                    source,
+                    Does.Not.Match(@"private\s+[^\r\n(]*CollectionSelection[^\r\n(]*;"),
+                    fileName);
+                Assert.That(
+                    source,
+                    Does.Not.Match(@"\.(Resources|Decks|Phase|CurrentPlayerId|ActedMainActionThisTurn|Pending\w*)\s*=(?!=)"),
+                    fileName);
+                StringAssert.DoesNotContain("ShowCharacterSecondEffectDecision", source, fileName);
+            }
+
+            Assert.That(
+                productionLineCount,
+                Is.LessThanOrEqualTo(1200),
+                "生产 controller partial 总行数超限；RightCardSmoke 仅为开发展示适配，不计行数但仍扫描危险模式。");
+            Assert.That(mainSource, Is.Not.Null);
+            var refreshBody = ExtractMethodBody(mainSource, "private void RefreshAllFromState()");
             StringAssert.DoesNotContain("Begin", refreshBody);
             StringAssert.DoesNotContain("Activate", refreshBody);
             StringAssert.DoesNotContain("Reset", refreshBody);
@@ -60,6 +94,17 @@ namespace YC.Tests.EditMode
                 if (Path.GetFileName(path) == "CommandSubmissionController.cs") continue;
                 StringAssert.DoesNotContain("UnityNetcodeCommandTransport", File.ReadAllText(path), path);
             }
+        }
+
+        [Test]
+        public void ActionCompletion_AlwaysSynchronizesFacilityEffectPresentation()
+        {
+            var path = Path.Combine(AssetsPath, "YC/Presentation/MobileCityInteractionController.cs");
+            var source = File.ReadAllText(path);
+            var body = ExtractMethodBody(source, "private void CompleteActionCommandUi(string actionName)");
+
+            StringAssert.Contains("facilityEffectInteraction.Synchronize()", body);
+            StringAssert.DoesNotContain("facilityEffectInteraction.IsActive", body);
         }
 
         private static string ExtractMethodBody(string source, string signature)

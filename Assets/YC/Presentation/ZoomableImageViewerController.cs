@@ -16,6 +16,7 @@ namespace YC.Presentation
         private static int escapeConsumedFrame = -1;
 
         private Func<int, Texture2D> textureProvider;
+        private GameObject viewerCanvasObject;
         private RectTransform panelTransform;
         private RectTransform viewportTransform;
         private RectTransform imageTransform;
@@ -238,7 +239,8 @@ namespace YC.Presentation
         private void BuildUi()
         {
             UguiUtility.EnsureEventSystem();
-            var canvas = UguiUtility.CreateCanvas(viewerName + " Viewer Canvas", 130, transform);
+            var canvas = UguiUtility.CreateCanvas(viewerName + " Viewer Canvas", 130);
+            viewerCanvasObject = canvas.gameObject;
             var canvasTransform = canvas.GetComponent<RectTransform>();
 
             rootObject = new GameObject(viewerName + " Viewer", typeof(RectTransform), typeof(Image));
@@ -254,6 +256,25 @@ namespace YC.Presentation
             rootBackgroundImage.color = new Color(0f, 0f, 0f, 0.74f);
 
             CreatePanel(rootRect);
+        }
+
+        private void OnDestroy()
+        {
+            if (viewerCanvasObject == null)
+            {
+                return;
+            }
+
+            var canvasObject = viewerCanvasObject;
+            viewerCanvasObject = null;
+            if (UnityEngine.Application.isPlaying)
+            {
+                Destroy(canvasObject);
+            }
+            else
+            {
+                DestroyImmediate(canvasObject);
+            }
         }
 
         private void CreatePanel(RectTransform parent)
@@ -336,17 +357,10 @@ namespace YC.Presentation
             titleText.font = FontUtility.GetCjkFont(titleText.fontSize);
             titleObject.GetComponent<Outline>().effectColor = UiTheme.DarkShadowLight;
 
-            var closeButton = new GameObject("Close " + viewerName + " Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
-            closeButton.transform.SetParent(parent, false);
-            var closeRect = closeButton.GetComponent<RectTransform>();
-            closeRect.anchorMin = new Vector2(1f, 1f);
-            closeRect.anchorMax = new Vector2(1f, 1f);
-            closeRect.pivot = new Vector2(1f, 1f);
-            closeRect.sizeDelta = new Vector2(42f, 42f);
-            closeRect.anchoredPosition = new Vector2(-18f, -12f);
-            ApplyButtonStyle(closeButton);
-            closeButton.GetComponent<Button>().onClick.AddListener(Close);
-            CreateButtonText(closeRect, "×", 30);
+            UguiUtility.CreateViewerCloseButton(
+                parent,
+                "Close " + viewerName + " Button",
+                Close);
         }
 
         private void CreateViewport(RectTransform parent)

@@ -11,6 +11,24 @@ namespace YC.Domain.Cards
 {
     public sealed class CharacterCardOptionQueryService
     {
+        private readonly IMapQueryService sharedMapQuery;
+        private readonly InfluenceService sharedInfluenceService;
+        private readonly CityMovementService sharedMovementService;
+
+        public CharacterCardOptionQueryService()
+        {
+        }
+
+        public CharacterCardOptionQueryService(
+            IMapQueryService mapQuery,
+            InfluenceService influenceService,
+            CityMovementService movementService)
+        {
+            sharedMapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
+            sharedInfluenceService = influenceService ?? throw new ArgumentNullException(nameof(influenceService));
+            sharedMovementService = movementService ?? throw new ArgumentNullException(nameof(movementService));
+        }
+
         public CharacterCardOptionQueryResult Query(
             GameState state,
             int playerId,
@@ -45,32 +63,24 @@ namespace YC.Domain.Cards
                     QueryTexasRemoveAndMove(state, playerId, selectedParameters, result);
                     break;
                 case CharacterCardEffectKind.TinManEstablishPrestige:
-                    QueryTinManStrategySummary(selectedParameters, result);
+                    QueryTinManStrategySummary(result);
                     break;
             }
 
             return result;
         }
 
-        private static void QueryTinManStrategySummary(
-            IReadOnlyDictionary<string, string> selectedParameters,
-            CharacterCardOptionQueryResult result)
+        private static void QueryTinManStrategySummary(CharacterCardOptionQueryResult result)
         {
-            var purchase12 = string.Equals(
-                Get(selectedParameters, CharacterEffectParameterKeys.TinManPurchasePureOriginium12),
-                "true",
-                StringComparison.OrdinalIgnoreCase);
-            var purchase15 = string.Equals(
-                Get(selectedParameters, CharacterEffectParameterKeys.TinManPurchasePureOriginium15),
-                "true",
-                StringComparison.OrdinalIgnoreCase);
-            var purchaseCount = (purchase12 ? 1 : 0) + (purchase15 ? 1 : 0);
-            var cost = (purchase12 ? 12 : 0) + (purchase15 ? 15 : 0);
             result.SetSummary(
-                "固定获得 1 分；已选购买 " + purchaseCount + " 个至纯源石，需支付 " + cost + " 金券。",
-                cost,
+                "固定获得 1 分；之后通过待选结算依次决定是否支付 " +
+                CharacterCardService.TinManFirstPureOriginiumCost +
+                " 金券和 " +
+                CharacterCardService.TinManSecondPureOriginiumCost +
+                " 金券购买至纯源石。",
+                0,
                 1,
-                purchaseCount);
+                0);
         }
 
         public CharacterCardOptionQueryResult QueryPending(GameState state, int playerId, IReadOnlyDictionary<string, string> selectedParameters = null)
@@ -90,31 +100,73 @@ namespace YC.Domain.Cards
             else if (pending.ChoiceType == CharacterPendingChoiceTypes.TinManDiscard)
             {
                 result.Add(CharacterEffectParameterKeys.Choice, CharacterEffectChoiceIds.GainGold, "获得 5 金券");
-                var player = state.FindPlayer(playerId);
-                var committedPurchaseCost =
-                    (pending.TinManPurchasePureOriginium12 ? 12 : 0) +
-                    (pending.TinManPurchasePureOriginium15 ? 15 : 0);
-                var maximumGoldAfterMovingThisCard = player == null
-                    ? -1
-                    : player.Resources.GoldVoucher + Math.Max(0, pending.RemainingCardIds.Count - 1) * 5;
-                var canChooseMove = !pending.ResolveTinManStrategyAfterRecall ||
-                                    maximumGoldAfterMovingThisCard >= committedPurchaseCost;
-                if (canChooseMove)
-                {
-                    result.Add(CharacterEffectParameterKeys.Choice, CharacterEffectChoiceIds.MoveInfluence, "移动 1 个影响力");
-                    QuerySingleInfluenceMove(state, playerId, selectedParameters, result);
-                }
+                result.Add(CharacterEffectParameterKeys.Choice, CharacterEffectChoiceIds.MoveInfluence, "移动 1 个影响力");
+                QuerySingleInfluenceMove(state, playerId, selectedParameters, result);
+            }
+            else if (pending.ChoiceType == CharacterPendingChoiceTypes.TinManFirstPurchase)
+            {
+                result.SetSummary(
+                    "已固定获得 1 分。现在可以支付 " +
+                    CharacterCardService.TinManFirstPureOriginiumCost +
+                    " 金券获得第一个至纯源石；取消则立即结束本次策略结算。",
+                    0,
+                    1,
+                    0);
+                AddPendingChoiceIfPresent(
+                    pending,
+                    result,
+                    CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium,
+                    "支付 " + CharacterCardService.TinManFirstPureOriginiumCost + " 金券，获得 1 个至纯源石");
+                AddPendingChoiceIfPresent(
+                    pending,
+                    result,
+                    CharacterEffectChoiceIds.TinManFinishPurchasing,
+                    "取消购买并结算");
+            }
+            else if (pending.ChoiceType == CharacterPendingChoiceTypes.TinManSecondPurchase)
+            {
+                result.SetSummary(
+                    "第一笔 " +
+                    CharacterCardService.TinManFirstPureOriginiumCost +
+                    " 金券已支付并获得 1 个至纯源石。现在可以再支付 " +
+                    CharacterCardService.TinManSecondPureOriginiumCost +
+                    " 金券获得第二个；取消则按当前结果结算。",
+                    CharacterCardService.TinManFirstPureOriginiumCost,
+                    1,
+                    1);
+                AddPendingChoiceIfPresent(
+                    pending,
+                    result,
+                    CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium,
+                    "再支付 " + CharacterCardService.TinManSecondPureOriginiumCost + " 金券，再获得 1 个至纯源石");
+                AddPendingChoiceIfPresent(
+                    pending,
+                    result,
+                    CharacterEffectChoiceIds.TinManFinishPurchasing,
+                    "取消第二笔购买并结算");
             }
 
             return result;
         }
 
-        private static void QueryPlacementSlots(GameState state, int playerId, IReadOnlyDictionary<string, string> selected, CharacterCardOptionQueryResult result)
+        private static void AddPendingChoiceIfPresent(
+            PendingCharacterEffectState pending,
+            CharacterCardOptionQueryResult result,
+            string choiceId,
+            string displayName)
+        {
+            if (pending.OptionIds != null && pending.OptionIds.Contains(choiceId))
+            {
+                result.Add(CharacterEffectParameterKeys.Choice, choiceId, displayName);
+            }
+        }
+
+        private void QueryPlacementSlots(GameState state, int playerId, IReadOnlyDictionary<string, string> selected, CharacterCardOptionQueryResult result)
         {
             var player = state.FindPlayer(playerId);
             if (player == null || player.InfluenceSupply < 2) return;
-            var service = new InfluenceService(CreateMapQuery(state));
-            var allSlots = EnumerateSlots(CreateMapQuery(state).Map);
+            var service = ResolveInfluenceService(state);
+            var allSlots = EnumerateSlots(ResolveMapQuery(state).Map);
             var first = Get(selected, CharacterEffectParameterKeys.PlacementSlotId1);
             for (var i = 0; i < allSlots.Count; i++)
             {
@@ -147,24 +199,22 @@ namespace YC.Domain.Cards
         {
             var player = state.FindPlayer(playerId);
             if (player == null || player.Resources == null) return;
-            var minimum = Math.Min(player.Resources.Originium, Math.Min(player.Resources.OriginiumShard, player.Resources.Iron));
-            if (player.Resources.Originium == minimum) AddResource(result, CharacterEffectParameterKeys.ResourceType, ResourceType.Originium);
-            if (player.Resources.OriginiumShard == minimum) AddResource(result, CharacterEffectParameterKeys.ResourceType, ResourceType.OriginiumShard);
-            if (player.Resources.Iron == minimum) AddResource(result, CharacterEffectParameterKeys.ResourceType, ResourceType.Iron);
+            if (CharacterCardService.IsMinimumBasicResource(player.Resources, ResourceType.Originium))
+                AddResource(result, CharacterEffectParameterKeys.ResourceType, ResourceType.Originium);
+            if (CharacterCardService.IsMinimumBasicResource(player.Resources, ResourceType.OriginiumShard))
+                AddResource(result, CharacterEffectParameterKeys.ResourceType, ResourceType.OriginiumShard);
+            if (CharacterCardService.IsMinimumBasicResource(player.Resources, ResourceType.Iron))
+                AddResource(result, CharacterEffectParameterKeys.ResourceType, ResourceType.Iron);
         }
 
-        private static void QueryRaidLocations(GameState state, int playerId, CharacterCardOptionQueryResult result)
+        private void QueryRaidLocations(GameState state, int playerId, CharacterCardOptionQueryResult result)
         {
-            var mapQuery = CreateMapQuery(state);
-            var influence = new InfluenceService(mapQuery);
-            var movement = new CityMovementService(mapQuery, influence, new TravelCostService(mapQuery), new EventDeckService(), new ResourceTokenService());
+            var mapQuery = ResolveMapQuery(state);
+            var movement = ResolveMovementService(state);
             for (var i = 0; i < mapQuery.Map.Locations.Count; i++)
             {
                 var location = mapQuery.Map.Locations[i];
-                var ownsInfluence = false;
-                for (var j = 0; j < state.Map.Influences.Count; j++)
-                    if (state.Map.Influences[j].PlayerId == playerId && state.Map.Influences[j].LocationId == location.LocationId) ownsInfluence = true;
-                if (ownsInfluence && movement.CanRaidCityForCharacter(state, playerId, location.LocationId).IsValid)
+                if (movement.CanRaidCityForCharacter(state, playerId, location.LocationId).IsValid)
                     result.Add(CharacterEffectParameterKeys.TargetLocationId, location.LocationId, location.LocationId + "（" + ResourceDisplayName(location.ResourceType) + "）");
             }
         }
@@ -179,10 +229,8 @@ namespace YC.Domain.Cards
             }
         }
 
-        private static void QueryTexasRemoveAndMove(GameState state, int playerId, IReadOnlyDictionary<string, string> selected, CharacterCardOptionQueryResult result)
+        private void QueryTexasRemoveAndMove(GameState state, int playerId, IReadOnlyDictionary<string, string> selected, CharacterCardOptionQueryResult result)
         {
-            var mapQuery = CreateMapQuery(state);
-            var influenceService = new InfluenceService(mapQuery);
             for (var i = 0; i < state.Map.Influences.Count; i++)
             {
                 var influence = state.Map.Influences[i];
@@ -194,9 +242,6 @@ namespace YC.Domain.Cards
 
             var removalTarget = Get(selected, CharacterEffectParameterKeys.RemovalTargetInfluenceSlotId);
             if (string.IsNullOrEmpty(removalTarget)) return;
-            var projected = CreateInfluenceProjection(state);
-            var removal = influenceService.Remove(projected, removalTarget);
-            if (!removal.Succeeded) return;
 
             var completed = new List<InfluenceMoveRequest>();
             var step = 1;
@@ -209,18 +254,25 @@ namespace YC.Domain.Cards
             }
 
             if (step > 2) return;
-            QueryMoveStep(projected, playerId, completed, MoveSourceKey(step), MoveTargetKey(step), result);
+            QueryMoveStep(state, playerId, completed, MoveSourceKey(step), MoveTargetKey(step), result, removalTarget);
         }
 
-        private static void QuerySingleInfluenceMove(GameState state, int playerId, IReadOnlyDictionary<string, string> selected, CharacterCardOptionQueryResult result)
+        private void QuerySingleInfluenceMove(GameState state, int playerId, IReadOnlyDictionary<string, string> selected, CharacterCardOptionQueryResult result)
         {
-            QueryMoveStep(state, playerId, new List<InfluenceMoveRequest>(), CharacterEffectParameterKeys.SourceInfluenceSlotId, CharacterEffectParameterKeys.TargetInfluenceSlotId, result);
+            QueryMoveStep(state, playerId, new List<InfluenceMoveRequest>(), CharacterEffectParameterKeys.SourceInfluenceSlotId, CharacterEffectParameterKeys.TargetInfluenceSlotId, result, string.Empty);
         }
 
-        private static void QueryMoveStep(GameState state, int playerId, List<InfluenceMoveRequest> previous, string sourceKey, string targetKey, CharacterCardOptionQueryResult result)
+        private void QueryMoveStep(
+            GameState state,
+            int playerId,
+            List<InfluenceMoveRequest> previous,
+            string sourceKey,
+            string targetKey,
+            CharacterCardOptionQueryResult result,
+            string removalTargetSlotId)
         {
-            var service = new InfluenceService(CreateMapQuery(state));
-            var targets = EnumerateSlots(CreateMapQuery(state).Map);
+            var service = ResolveInfluenceService(state);
+            var targets = EnumerateSlots(ResolveMapQuery(state).Map);
             for (var i = 0; i < state.Map.Influences.Count; i++)
             {
                 var influence = state.Map.Influences[i];
@@ -229,7 +281,10 @@ namespace YC.Domain.Cards
                 for (var j = 0; j < targets.Count; j++)
                 {
                     var plan = new List<InfluenceMoveRequest>(previous) { new InfluenceMoveRequest(influence.SlotId, targets[j]) };
-                    if (!service.CanMoveAtomically(state, playerId, plan).IsValid) continue;
+                    var validation = string.IsNullOrEmpty(removalTargetSlotId)
+                        ? service.CanMoveAtomically(state, playerId, plan)
+                        : service.CanRemoveThenMoveAtomically(state, playerId, removalTargetSlotId, plan);
+                    if (!validation.IsValid) continue;
                     hasTarget = true;
                     result.Add(targetKey, targets[j], DescribeSlot(targets[j]), influence.SlotId);
                 }
@@ -249,6 +304,14 @@ namespace YC.Domain.Cards
             return result;
         }
 
+        private IMapQueryService ResolveMapQuery(GameState state) => sharedMapQuery ?? CreateMapQuery(state);
+        private InfluenceService ResolveInfluenceService(GameState state) => sharedInfluenceService ?? new InfluenceService(ResolveMapQuery(state));
+        private CityMovementService ResolveMovementService(GameState state)
+        {
+            if (sharedMovementService != null) return sharedMovementService;
+            var mapQuery = ResolveMapQuery(state);
+            return new CityMovementService(mapQuery, ResolveInfluenceService(state), new TravelCostService(mapQuery), new EventDeckService(), new ResourceTokenService());
+        }
         private static MapQueryService CreateMapQuery(GameState state) => new MapQueryService(state.MapId == StaticMapDefinitions.ThreePlayerMapId ? StaticMapDefinitions.CreateThreePlayerPlaceholder() : StaticMapDefinitions.CreateFourPlayerMap());
         private static string Get(IReadOnlyDictionary<string, string> values, string key) { string value; return values != null && values.TryGetValue(key, out value) ? value : string.Empty; }
         private static string MoveSourceKey(int step) => step == 1 ? CharacterEffectParameterKeys.MoveSourceSlotId1 : CharacterEffectParameterKeys.MoveSourceSlotId2;
@@ -258,54 +321,6 @@ namespace YC.Domain.Cards
         private static string ResourceDisplayName(ResourceType type) => type == ResourceType.OriginiumShard ? "源石碎片" : type == ResourceType.Iron ? "异铁" : type == ResourceType.PureOriginium ? "至纯源石" : "源岩";
         public static string DescribeSlot(string slotId) => string.IsNullOrEmpty(slotId) ? "未知槽位" : slotId.Replace("location:", "资源点 ").Replace("route:", "路线 ");
 
-        private static GameState CreateInfluenceProjection(GameState state)
-        {
-            var projection = new GameState
-            {
-                GameId = state.GameId,
-                Phase = state.Phase,
-                Round = state.Round,
-                MaxRounds = state.MaxRounds,
-                StartPlayerId = state.StartPlayerId,
-                CurrentPlayerId = state.CurrentPlayerId,
-                ActionRound = state.ActionRound,
-                MapId = state.MapId,
-                Map = new MapRuntimeState
-                {
-                    OpenLocationIds = state.Map.OpenLocationIds,
-                    RoadRouteIds = state.Map.RoadRouteIds,
-                    ResourceTokens = state.Map.ResourceTokens,
-                    Facilities = state.Map.Facilities,
-                    RemovedFromGameCardIds = state.Map.RemovedFromGameCardIds
-                }
-            };
-            for (var i = 0; i < state.Players.Count; i++)
-            {
-                var source = state.Players[i];
-                projection.Players.Add(new PlayerState
-                {
-                    PlayerId = source.PlayerId,
-                    Name = source.Name,
-                    Color = source.Color,
-                    InfluenceSupply = source.InfluenceSupply,
-                    HasScoreTrackMarker = source.HasScoreTrackMarker,
-                    CityLocationId = source.CityLocationId,
-                    Resources = source.Resources
-                });
-            }
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var source = state.Map.Influences[i];
-                projection.Map.Influences.Add(new InfluencePlacement
-                {
-                    PlayerId = source.PlayerId,
-                    SlotId = source.SlotId,
-                    LocationId = source.LocationId,
-                    RouteId = source.RouteId
-                });
-            }
-            return projection;
-        }
     }
 
     public sealed class CharacterCardOptionQueryResult

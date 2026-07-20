@@ -59,12 +59,16 @@ namespace YC.Domain.Cards
         public const string SaleIron = "sale.iron";
         public const string SalePureOriginium = "sale.pure-originium";
         public const string OfferSecondEffect = "character.offer-second-effect";
+        public const string PendingCharacterEffectSourceCommandId = "character.pending-source-command-id";
     }
 
     public static class CharacterEffectChoiceIds
     {
         public const string GainGold = "gain-gold";
         public const string MoveInfluence = "move-influence";
+        public const string TinManPurchaseFirstPureOriginium = "tin-man-purchase-first-pure-originium";
+        public const string TinManPurchaseSecondPureOriginium = "tin-man-purchase-second-pure-originium";
+        public const string TinManFinishPurchasing = "tin-man-finish-purchasing";
         public const string ContinueSecondEffect = "continue-second-effect";
         public const string FinishCharacterUse = "finish-character-use";
     }
@@ -72,6 +76,8 @@ namespace YC.Domain.Cards
     public static class CharacterPendingChoiceTypes
     {
         public const string TinManDiscard = "character.tin-man.discard";
+        public const string TinManFirstPurchase = "character.tin-man.first-purchase";
+        public const string TinManSecondPurchase = "character.tin-man.second-purchase";
         public const string LiskarmCleanupRemoval = "character.liskarm.cleanup-removal";
         public const string SecondEffectDecision = "character.second-effect.decision";
         public const string SecondEffectExecution = "character.second-effect.execution";

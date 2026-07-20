@@ -54,7 +54,7 @@ namespace YC.Application.Gameplay
             }
 
             MapPath path;
-            var pathValidation = ResolvePath(state, command, out path);
+            var pathValidation = ResolvePath(state, command, command.TargetId, out path);
             if (!pathValidation.IsValid)
             {
                 return CommandResult.Invalid(pathValidation);
@@ -62,7 +62,13 @@ namespace YC.Application.Gameplay
 
             if (!HasExplicitEventOption(command))
             {
-                return HandleBeginExploreEvent(state, command, path);
+                return HandleBeginExploreEvent(
+                    state,
+                    command,
+                    command.TargetId,
+                    path,
+                    false,
+                    true);
             }
 
             var selectedOptionIndex = ResolveSelectedOptionIndex(command);
@@ -146,7 +152,43 @@ namespace YC.Application.Gameplay
             return CommandResult.SuccessResult(events, message);
         }
 
-        private CommandResult HandleBeginExploreEvent(GameState state, GameCommand command, MapPath path)
+        /// <summary>
+        /// 由设施、角色牌等额外效果赠送探索时复用正常探索的路径、路费与事件投影，
+        /// 但不额外消耗一次主要行动。
+        /// </summary>
+        public CommandResult BeginGrantedExplore(
+            GameState state,
+            GameCommand sourceCommand,
+            string targetLocationId)
+        {
+            if (sourceCommand == null)
+            {
+                throw new ArgumentNullException(nameof(sourceCommand));
+            }
+
+            MapPath path;
+            var pathValidation = ResolvePath(state, sourceCommand, targetLocationId, out path);
+            if (!pathValidation.IsValid)
+            {
+                return CommandResult.Invalid(pathValidation);
+            }
+
+            return HandleBeginExploreEvent(
+                state,
+                sourceCommand,
+                targetLocationId,
+                path,
+                true,
+                false);
+        }
+
+        private CommandResult HandleBeginExploreEvent(
+            GameState state,
+            GameCommand command,
+            string targetLocationId,
+            MapPath path,
+            bool allowExistingPendingChoice,
+            bool consumeMainAction)
         {
             var influenceSlotId = GetParameter(command, InfluenceSlotIdParameter);
             Dictionary<string, int> paymentRecipients;
@@ -159,11 +201,13 @@ namespace YC.Application.Gameplay
             var result = explorationService.BeginExploreEvent(
                 state,
                 command.PlayerId,
-                command.TargetId,
+                targetLocationId,
                 path,
                 influenceSlotId,
                 paymentRecipients,
-                command.CommandId);
+                command.CommandId,
+                allowExistingPendingChoice,
+                consumeMainAction);
             if (!result.Succeeded)
             {
                 return CommandResult.Invalid(result.Validation);
@@ -235,6 +279,7 @@ namespace YC.Application.Gameplay
                 return Invalid(CommandErrorCode.InvalidTarget, "探索事件选项必须是有效选项编号。");
             }
 
+            var consumeMainAction = ExplorationService.PendingExploreConsumesMainAction(state);
             var influenceSlotId = GetParameter(command, InfluenceSlotIdParameter);
             var eventInfluenceSlotIds = ResolveEventInfluenceSlotIds(command);
             var result = explorationService.ResolveExploreEvent(
@@ -250,7 +295,10 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(result.Validation);
             }
 
-            roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
+            if (consumeMainAction)
+            {
+                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
+            }
 
             var card = EventCardDatabase.Get(result.EventCardId);
             var message = "Player " + command.PlayerId + " resolved exploration event " + card.Name + ".";
@@ -300,7 +348,11 @@ namespace YC.Application.Gameplay
             return CommandResult.SuccessResult(events, message);
         }
 
-        private ValidationResult ResolvePath(GameState state, GameCommand command, out MapPath path)
+        private ValidationResult ResolvePath(
+            GameState state,
+            GameCommand command,
+            string targetLocationId,
+            out MapPath path)
         {
             path = null;
             if (!string.IsNullOrEmpty(GetParameter(command, RouteIdsParameter)))
@@ -315,7 +367,7 @@ namespace YC.Application.Gameplay
 
             try
             {
-                path = explorationService.FindDefaultPath(state, command.PlayerId, command.TargetId);
+                path = explorationService.FindDefaultPath(state, command.PlayerId, targetLocationId);
                 return path == null
                     ? ValidationResult.Failure(CommandErrorCode.NoRoute, "无法为探索目标建立默认路线。")
                     : ValidationResult.Success;

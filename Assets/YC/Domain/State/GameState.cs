@@ -52,6 +52,7 @@ namespace YC.Domain.State
         public List<string> ResolvedCardIds = new List<string>();
         public List<string> OptionIds = new List<string>();
         public bool ResolveTinManStrategyAfterRecall;
+        public bool ResolveTinManTacticAfterStrategy;
         public bool TinManPurchasePureOriginium12;
         public bool TinManPurchasePureOriginium15;
         public string RemainingEffectMode = string.Empty;
@@ -106,7 +107,11 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class CityStyleDeclarationState
     {
+        public string InfluenceMarkerId = string.Empty;
         public string CityStyleId = string.Empty;
+        public string MarkerArea = "declared";
+        public string UnlockedSpecialActionId = string.Empty;
+        public int RemainingSpecialActionUses;
         public List<string> UsedFacilityIds = new List<string>();
         public List<int> UsedCityBoardSlotIndexes = new List<int>();
     }

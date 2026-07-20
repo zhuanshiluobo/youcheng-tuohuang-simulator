@@ -4,6 +4,7 @@ using YC.Application.Gameplay;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Facilities;
+using YC.Domain.Rules;
 using YC.Domain.State;
 
 namespace YC.Presentation.Workflows
@@ -184,23 +185,121 @@ namespace YC.Presentation.Workflows
         public Action Cancel { get; private set; }
     }
 
+    public sealed class BuildFacilityAvailabilityViewModel
+    {
+        public BuildFacilityAvailabilityViewModel(
+            IReadOnlyList<string> draggableFacilityIds,
+            IReadOnlyList<int> legalSlotIndexes,
+            bool usesSpecialBuild,
+            string unavailableMessage)
+        {
+            DraggableFacilityIds = draggableFacilityIds ?? new List<string>().AsReadOnly();
+            LegalSlotIndexes = legalSlotIndexes ?? new List<int>().AsReadOnly();
+            UsesSpecialBuild = usesSpecialBuild;
+            UnavailableMessage = unavailableMessage ?? string.Empty;
+        }
+
+        public IReadOnlyList<string> DraggableFacilityIds { get; private set; }
+
+        public IReadOnlyList<int> LegalSlotIndexes { get; private set; }
+
+        public bool UsesSpecialBuild { get; private set; }
+
+        public string UnavailableMessage { get; private set; }
+    }
+
     public sealed class CityStyleOptionsViewModel
     {
         public CityStyleOptionsViewModel(
             IReadOnlyList<CityStyleOptionViewModel> options,
             Action<string> select,
             Action cancel)
+            : this(
+                options,
+                null,
+                null,
+                string.Empty,
+                null,
+                null,
+                select,
+                cancel)
+        {
+        }
+
+        public CityStyleOptionsViewModel(
+            IReadOnlyList<CityStyleOptionViewModel> options,
+            IReadOnlyList<CityBoardSlotViewModel> cityBoardSlots,
+            IReadOnlyList<CityStyleMarkerViewModel> cityStyleMarkers,
+            string initialCityStyleId,
+            Func<string, IReadOnlyList<int>, CityStyleSelectionValidationViewModel> validateSelection,
+            Func<string, IReadOnlyList<int>, bool> confirmSelection,
+            Action<string> select,
+            Action cancel)
         {
             Options = options ?? new List<CityStyleOptionViewModel>().AsReadOnly();
+            CityBoardSlots = cityBoardSlots ?? new List<CityBoardSlotViewModel>().AsReadOnly();
+            CityStyleMarkers = cityStyleMarkers ?? new List<CityStyleMarkerViewModel>().AsReadOnly();
+            InitialCityStyleId = initialCityStyleId ?? string.Empty;
+            ValidateSelection = validateSelection;
+            ConfirmSelection = confirmSelection;
             Select = select;
             Cancel = cancel;
         }
 
         public IReadOnlyList<CityStyleOptionViewModel> Options { get; private set; }
 
+        public IReadOnlyList<CityBoardSlotViewModel> CityBoardSlots { get; private set; }
+
+        public IReadOnlyList<CityStyleMarkerViewModel> CityStyleMarkers { get; private set; }
+
+        public string InitialCityStyleId { get; private set; }
+
+        public Func<string, IReadOnlyList<int>, CityStyleSelectionValidationViewModel> ValidateSelection { get; private set; }
+
+        public Func<string, IReadOnlyList<int>, bool> ConfirmSelection { get; private set; }
+
         public Action<string> Select { get; private set; }
 
         public Action Cancel { get; private set; }
+    }
+
+    public sealed class CityBoardSlotViewModel
+    {
+        public CityBoardSlotViewModel(int slotIndex, string facilityId, bool used)
+        {
+            SlotIndex = slotIndex;
+            FacilityId = facilityId ?? string.Empty;
+            Used = used;
+        }
+
+        public int SlotIndex { get; private set; }
+
+        public string FacilityId { get; private set; }
+
+        public bool Used { get; private set; }
+    }
+
+    public sealed class CityStyleMarkerViewModel
+    {
+        public CityStyleMarkerViewModel(
+            string cityStyleId,
+            int playerId,
+            PlayerColor playerColor,
+            string markerArea)
+        {
+            CityStyleId = cityStyleId ?? string.Empty;
+            PlayerId = playerId;
+            PlayerColor = playerColor;
+            MarkerArea = markerArea ?? string.Empty;
+        }
+
+        public string CityStyleId { get; private set; }
+
+        public int PlayerId { get; private set; }
+
+        public PlayerColor PlayerColor { get; private set; }
+
+        public string MarkerArea { get; private set; }
     }
 
     public sealed class ExplorePathOptionsViewModel

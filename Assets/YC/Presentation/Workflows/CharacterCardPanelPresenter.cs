@@ -10,6 +10,18 @@ namespace YC.Presentation.Workflows
 {
     public sealed class CharacterCardPanelPresenter
     {
+        private readonly CharacterCardOptionQueryService optionQueryService;
+
+        public CharacterCardPanelPresenter()
+            : this(new CharacterCardOptionQueryService())
+        {
+        }
+
+        public CharacterCardPanelPresenter(CharacterCardOptionQueryService optionQueryService)
+        {
+            this.optionQueryService = optionQueryService ?? throw new ArgumentNullException(nameof(optionQueryService));
+        }
+
         public CharacterCardPanelViewModel BuildView(GameState state, int localPlayerId)
         {
             var player = state == null ? null : state.FindPlayer(localPlayerId);
@@ -27,7 +39,9 @@ namespace YC.Presentation.Workflows
                 : null;
             var isSecondEffectExecution = pendingCharacter != null &&
                                           pendingCharacter.ChoiceType == CharacterPendingChoiceTypes.SecondEffectExecution;
-            var inputBlocked = state.HasPendingChoice() && !isSecondEffectExecution;
+            var isSecondEffectDecision = pendingCharacter != null &&
+                                         pendingCharacter.ChoiceType == CharacterPendingChoiceTypes.SecondEffectDecision;
+            var inputBlocked = state.HasPendingChoice() && !isSecondEffectDecision && !isSecondEffectExecution;
             var canCover = state.Phase == GamePhase.CharacterCover &&
                            isLocalTurn &&
                            !inputBlocked &&
@@ -45,11 +59,13 @@ namespace YC.Presentation.Workflows
             var canUseStrategy = canUse &&
                                  coveredDefinition != null &&
                                  coveredDefinition.StrategyEffect != CharacterCardEffectKind.Unsupported &&
-                                 (!isSecondEffectExecution || pendingCharacter.RemainingEffectMode == CharacterEffectModes.Strategy);
+                                 ((!isSecondEffectDecision && !isSecondEffectExecution) ||
+                                  pendingCharacter.RemainingEffectMode == CharacterEffectModes.Strategy);
             var canUseTactic = canUse &&
                                coveredDefinition != null &&
                                coveredDefinition.TacticEffect != CharacterCardEffectKind.Unsupported &&
-                               (!isSecondEffectExecution || pendingCharacter.RemainingEffectMode == CharacterEffectModes.Tactic);
+                               ((!isSecondEffectDecision && !isSecondEffectExecution) ||
+                                pendingCharacter.RemainingEffectMode == CharacterEffectModes.Tactic);
             var hasImplementedEffect = canUseStrategy || canUseTactic;
 
             var hand = new List<CharacterCardHandItemViewModel>();
@@ -117,11 +133,13 @@ namespace YC.Presentation.Workflows
             }
             else if (state.Phase == GamePhase.CharacterCover)
             {
-                interactionStatus = canCover ? "请选择一张手牌盖放" : coveredStatus;
+                interactionStatus = canCover ? "拖动到主要行动卡上即可盖放" : coveredStatus;
             }
             else if (actionPhase)
             {
-                interactionStatus = canUse && !hasImplementedEffect
+                interactionStatus = isSecondEffectDecision
+                    ? "可继续使用第二个效果；点击翻转则结束角色卡使用"
+                    : canUse && !hasImplementedEffect
                     ? "效果尚未接入"
                     : (canUse ? "可使用本回合盖放的角色牌" : coveredStatus);
             }
@@ -135,10 +153,12 @@ namespace YC.Presentation.Workflows
                 discard.AsReadOnly(),
                 coveredStatus,
                 interactionStatus,
+                canCover,
                 canUse && hasImplementedEffect,
                 canUseStrategy,
                 canUseTactic,
                 false,
+                player.UsedCharacterThisRound,
                 hasCoveredCard ? player.CoveredCharacterCardId : string.Empty,
                 player.Resources == null ? 0 : player.Resources.Originium,
                 player.Resources == null ? 0 : player.Resources.OriginiumShard,
@@ -161,7 +181,7 @@ namespace YC.Presentation.Workflows
             CharacterCardEffectKind effect,
             IReadOnlyDictionary<string, string> selectedParameters)
         {
-            return new CharacterCardOptionQueryService().Query(state, localPlayerId, effect, selectedParameters);
+            return optionQueryService.Query(state, localPlayerId, effect, selectedParameters);
         }
 
         public CharacterCardOptionQueryResult QueryPendingOptions(
@@ -169,7 +189,7 @@ namespace YC.Presentation.Workflows
             int localPlayerId,
             IReadOnlyDictionary<string, string> selectedParameters)
         {
-            return new CharacterCardOptionQueryService().QueryPending(state, localPlayerId, selectedParameters);
+            return optionQueryService.QueryPending(state, localPlayerId, selectedParameters);
         }
 
         public GameCommand CreateResolvePendingCommand(int playerId, IReadOnlyDictionary<string, string> effectParameters)
@@ -277,10 +297,12 @@ namespace YC.Presentation.Workflows
             IReadOnlyList<CharacterCardHandItemViewModel> discardCards,
             string coveredStatus,
             string interactionStatus,
+            bool canCover,
             bool canUse,
             bool canUseStrategy,
             bool canUseTactic,
             bool canUseBoth,
+            bool usedCharacterThisRound,
             string coveredCardId,
             int originium,
             int originiumShard,
@@ -298,10 +320,12 @@ namespace YC.Presentation.Workflows
             DiscardCards = discardCards ?? new List<CharacterCardHandItemViewModel>().AsReadOnly();
             CoveredStatus = coveredStatus ?? string.Empty;
             InteractionStatus = interactionStatus ?? string.Empty;
+            CanCover = canCover;
             CanUse = canUse;
             CanUseStrategy = canUseStrategy;
             CanUseTactic = canUseTactic;
             CanUseBoth = canUseBoth;
+            UsedCharacterThisRound = usedCharacterThisRound;
             CoveredCardId = coveredCardId ?? string.Empty;
             Originium = System.Math.Max(0, originium);
             OriginiumShard = System.Math.Max(0, originiumShard);
@@ -320,10 +344,12 @@ namespace YC.Presentation.Workflows
         public IReadOnlyList<CharacterCardHandItemViewModel> DiscardCards { get; private set; }
         public string CoveredStatus { get; private set; }
         public string InteractionStatus { get; private set; }
+        public bool CanCover { get; private set; }
         public bool CanUse { get; private set; }
         public bool CanUseStrategy { get; private set; }
         public bool CanUseTactic { get; private set; }
         public bool CanUseBoth { get; private set; }
+        public bool UsedCharacterThisRound { get; private set; }
         public string CoveredCardId { get; private set; }
         public int Originium { get; private set; }
         public int OriginiumShard { get; private set; }
@@ -347,6 +373,8 @@ namespace YC.Presentation.Workflows
                 new List<CharacterCardHandItemViewModel>().AsReadOnly(),
                 "尚未盖放",
                 status,
+                false,
+                false,
                 false,
                 false,
                 false,

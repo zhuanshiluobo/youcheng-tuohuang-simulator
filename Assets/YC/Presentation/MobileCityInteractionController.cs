@@ -4,7 +4,6 @@ using YC.Application.Gameplay;
 using YC.Application.Sessions;
 using YC.Domain.CardFlows;
 using YC.Domain.Cards;
-using YC.Domain.CityStyles;
 using YC.Domain.Commands;
 using YC.Domain.Exploration;
 using YC.Domain.Facilities;
@@ -28,6 +27,7 @@ namespace YC.Presentation
         private GameSession session;
         private MapQueryService mapQuery;
         private InfluenceService influenceService;
+        private YC.Domain.Movement.CityMovementService movementService;
         private ExplorationService explorationService;
         private ResourceCollectionService resourceCollectionService;
         private ResourceCollectionPresenter resourceCollectionPresenter;
@@ -46,11 +46,13 @@ namespace YC.Presentation
         private MapViewPresenter mapView;
         private Canvas uiCanvas;
         private ActionPanelController actionPanel;
+        private CharacterMapInteractionCoordinator characterMapInteraction;
         private PromptPresenter promptPresenter;
         private int localPlayerId = 1;
         private int lastDebugCoordinateLogFrame = -1;
         private bool showCharacterUseOptions;
         private bool characterSettlementInProgress;
+        private CharacterCardCoverDragCoordinator characterCardCoverDrag;
         private int lastPresentedGameLogSequence;
         private BuildFacilityInteractionUiCoordinator buildFacilityInteraction;
         private readonly FacilityEffectChoiceDialog facilityEffectChoiceDialog = new FacilityEffectChoiceDialog();
@@ -143,7 +145,11 @@ namespace YC.Presentation
                 resourceCollectionPresenter,
                 influenceActionPresenter,
                 explorationEventPresenter);
-            characterCardPresenter = new CharacterCardPanelPresenter();
+            characterCardPresenter = new CharacterCardPanelPresenter(
+                new CharacterCardOptionQueryService(
+                    mapQuery,
+                    influenceService,
+                    movementService));
             workflowView.Bind(
                 flowCoordinator,
                 resourceCollectionPresenter,
@@ -184,8 +190,24 @@ namespace YC.Presentation
                 facilityEffectChoiceDialog,
                 highlights => workflowView.SetHighlights(highlights),
                 () => workflowView.ClearHighlights(),
+                (pending, optionId) => turnActionPresenter.BeginAdditionalExploreAction(pending, optionId),
+                () => turnActionPresenter.CancelAdditionalExploreAction(),
                 SubmitFacilityEffectCommand,
                 SetPrompt);
+            buildFacilityInteraction?.Dispose();
+            buildFacilityInteraction = new BuildFacilityInteractionUiCoordinator(
+                buildInfoPanel, turnActionPresenter, facilityEffectInteraction);
+            buildFacilityInteraction.Refresh(session.State, localPlayerId);
+            characterMapInteraction = new CharacterMapInteractionCoordinator(
+                () => session == null ? null : session.State,
+                () => localPlayerId,
+                characterCardPresenter,
+                highlights => workflowView.SetHighlights(highlights),
+                () => workflowView.ClearHighlights(),
+                (mode, parameters) => SubmitUseCharacterCard(mode, string.Empty, parameters),
+                SubmitResolvePendingCharacterChoice,
+                SetPrompt);
+            BuildCharacterCardEffectInteraction();
             PrepareRightCardSmokePresentation();
         }
 
@@ -213,6 +235,9 @@ namespace YC.Presentation
 
         private void OnDestroy()
         {
+            DisposeCharacterCardEffectInteraction();
+            characterMapInteraction?.Cancel();
+            characterMapInteraction = null;
             facilityEffectInteraction?.Dispose();
             facilityEffectInteraction = null;
 
@@ -238,6 +263,12 @@ namespace YC.Presentation
 
         public void OnHotspotClicked(string locationId)
         {
+            if (characterMapInteraction != null &&
+                characterMapInteraction.TryHandleLocationClicked(locationId))
+            {
+                return;
+            }
+
             if (facilityEffectInteraction != null &&
                 facilityEffectInteraction.TryHandleLocationClicked(locationId))
             {
@@ -249,6 +280,11 @@ namespace YC.Presentation
 
         public void OnMobileCityClicked()
         {
+            if (characterMapInteraction != null && characterMapInteraction.IsActive)
+            {
+                return;
+            }
+
             if (facilityEffectInteraction != null && facilityEffectInteraction.IsActive)
             {
                 return;
@@ -259,6 +295,12 @@ namespace YC.Presentation
 
         public void OnInfluenceSlotClicked(string slotId)
         {
+            if (characterMapInteraction != null &&
+                characterMapInteraction.TryHandleInfluenceSlotClicked(slotId))
+            {
+                return;
+            }
+
             if (facilityEffectInteraction != null &&
                 facilityEffectInteraction.TryHandleInfluenceSlotClicked(slotId))
             {
@@ -278,9 +320,8 @@ namespace YC.Presentation
             RefreshActionPanel();
             RefreshRoundTrackerFromState();
 
-            if (facilityEffectInteraction != null && facilityEffectInteraction.IsActive)
+            if (facilityEffectInteraction != null && facilityEffectInteraction.Synchronize())
             {
-                facilityEffectInteraction.Synchronize();
                 SetPrompt("请先结算设施入场效果。");
                 return;
             }
@@ -328,7 +369,10 @@ namespace YC.Presentation
             buildInfoPanel.Initialize(buildInfoPanel.transform);
             buildInfoPanel.CityStyleClicked += OnBuildInfoCityStyleClicked;
             buildFacilityInteraction?.Dispose();
-            buildFacilityInteraction = new BuildFacilityInteractionUiCoordinator(buildInfoPanel, turnActionPresenter);
+            buildFacilityInteraction = new BuildFacilityInteractionUiCoordinator(
+                buildInfoPanel,
+                turnActionPresenter,
+                facilityEffectInteraction);
             RefreshBuildInfoPanel();
         }
 
@@ -360,14 +404,25 @@ namespace YC.Presentation
             var characterView = characterCardPresenter == null
                 ? CharacterCardPanelViewModel.Empty("角色牌信息尚未初始化。")
                 : characterCardPresenter.BuildView(session.State, localPlayerId);
+            if (characterView.CanCover && !infoPanel.IsExpanded) infoPanel.SetExpandedState(true);
             if (!characterView.CanUse)
             {
                 showCharacterUseOptions = false;
             }
-            infoPanel.ConfigureCharacterEffectInteraction(
-                (effect, draft) => characterCardPresenter.QueryOptions(session.State, localPlayerId, effect, draft),
-                draft => characterCardPresenter.QueryPendingOptions(session.State, localPlayerId, draft),
-                SubmitResolvePendingCharacterChoice);
+            if (characterCardCoverDrag == null)
+            {
+                characterCardCoverDrag = new CharacterCardCoverDragCoordinator(
+                    () => characterCardPresenter == null || session == null
+                        ? null
+                        : characterCardPresenter.BuildView(session.State, localPlayerId),
+                    () => actionPanel,
+                    SubmitCoverCharacterCard,
+                    SetPrompt);
+            }
+            infoPanel.ConfigureCharacterCardDragInteraction(
+                characterCardCoverDrag.Begin,
+                characterCardCoverDrag.Update,
+                characterCardCoverDrag.End);
             infoPanel.SetCharacterCards(
                 characterView,
                 showCharacterUseOptions,
@@ -401,26 +456,19 @@ namespace YC.Presentation
 
         public bool TryHandleBuildFacilityEscape()
         {
-            return buildFacilityInteraction != null && buildFacilityInteraction.TryHandleEscape();
+            return TryCancelCharacterFacilityEffectSelection() ||
+                   (buildFacilityInteraction != null && buildFacilityInteraction.TryHandleEscape());
         }
 
         public static bool WasBuildEscapeConsumedThisFrame()
         {
-            return BuildFacilityInteractionUiCoordinator.WasEscapeConsumedThisFrame();
+            return characterFacilitySelectionEscapeConsumedFrame == Time.frameCount ||
+                   BuildFacilityInteractionUiCoordinator.WasEscapeConsumedThisFrame();
         }
 
         private void OnBuildInfoCityStyleClicked(string cityStyleId)
         {
-            if (string.IsNullOrEmpty(cityStyleId))
-            {
-                SetPrompt("建设面板：已取消城市样式选择。");
-                return;
-            }
-
-            var cityStyle = CityStyleDatabase.Get(cityStyleId);
-            SetPrompt(cityStyle == null
-                ? "建设面板：已选择城市样式。"
-                : "建设面板：已选择城市样式 " + cityStyle.Name + "。");
+            if (!string.IsNullOrEmpty(cityStyleId)) turnActionPresenter.OpenCityStylePreview(cityStyleId);
         }
 
         private RectTransform GetUiCanvasTransform()
@@ -445,6 +493,7 @@ namespace YC.Presentation
             session = result.Session;
             mapQuery = result.MapQuery;
             influenceService = result.InfluenceService;
+            movementService = result.MovementService;
             explorationService = result.ExplorationService;
             resourceCollectionService = result.ResourceCollectionService;
             localPlayerId = result.LocalPlayerId;
@@ -482,6 +531,7 @@ namespace YC.Presentation
             RefreshPendingChoiceOrHighlights();
             SynchronizeCharacterSettlementPresentation();
             PresentLatestCharacterSettlementBroadcast();
+            TryBeginAutomaticSecondEffect();
         }
 
         private void SynchronizeCharacterSettlementPresentation()
@@ -539,6 +589,16 @@ namespace YC.Presentation
             if (session.State.Phase != GamePhase.ResourceCollection)
             {
                 ClearCollectionSelection();
+            }
+
+            if (characterMapInteraction != null && characterMapInteraction.Synchronize())
+            {
+                return;
+            }
+
+            if (characterCardEffectInteraction != null && characterCardEffectInteraction.SynchronizePending())
+            {
+                return;
             }
 
             if (facilityEffectInteraction != null && facilityEffectInteraction.Synchronize())
@@ -603,6 +663,9 @@ namespace YC.Presentation
                 OnBuildActionClicked,
                 OnSpecialActionClicked,
                 EndCurrentAction);
+            actionPanel?.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
+            actionPanel?.ConfigureCharacterCardViewerAction(() => infoPanel?.OpenCoveredCharacterCardViewer());
+            actionPanel?.ConfigureCharacterFlipAction(FinishCharacterUseOnFlip);
             RefreshActionPanel();
         }
 
@@ -616,25 +679,25 @@ namespace YC.Presentation
             var characterView = characterCardPresenter == null
                 ? null
                 : characterCardPresenter.BuildView(session.State, localPlayerId);
+            actionPanel.Render(turnActionPresenter.BuildActionPanelViewModel());
+            if (actionPanel.CurrentFace == ActionPanelFace.Character && characterView != null) actionPanel.ShowCharacterCard(characterView);
             if (characterView != null && characterView.IsSecondEffectDecision)
             {
                 workflowView.ClearHighlights();
-                var definition = CharacterCardDatabase.Get(characterView.CoveredCardId);
-                var cardName = definition == null ? "角色牌" : definition.Name;
-                var remainingEffectName = characterView.RemainingEffectMode == CharacterEffectModes.Strategy
-                    ? "策略"
-                    : "计谋";
-                eventChoiceDialog.ShowCharacterSecondEffectDecision(
-                    GetUiCanvasTransform(),
-                    cardName,
-                    remainingEffectName,
-                    () => SubmitSecondEffectDecision(true),
-                    () => SubmitSecondEffectDecision(false));
-                SetPrompt("第一个角色牌效果已结算，请选择是否发动第二个效果。");
+                eventChoiceDialog.Hide();
+                actionPanel.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
+                actionPanel.ShowCharacterCard(characterView);
+                SetPrompt("第一个角色牌效果已结算，可继续使用第二个效果；点击翻转则结束角色卡使用。");
                 return;
             }
 
-            actionPanel.Render(turnActionPresenter.BuildActionPanelViewModel());
+            if (characterSettlementInProgress &&
+                characterView != null &&
+                characterView.IsSecondEffectExecution)
+            {
+                actionPanel.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
+                actionPanel.ShowCharacterCard(characterView);
+            }
             var state = session == null ? null : session.State;
             if (state != null && state.HasPendingChoice())
             {
@@ -674,41 +737,6 @@ namespace YC.Presentation
         {
             turnActionPresenter.BeginDispatchAction();
         }
-        private void OnUseCharacterActionClicked()
-        {
-            var view = characterCardPresenter == null
-                ? null
-                : characterCardPresenter.BuildView(session.State, localPlayerId);
-            if (view == null || !view.CanUse)
-            {
-                SetPrompt(view == null ? "角色牌信息尚未初始化。" : view.InteractionStatus);
-                return;
-            }
-
-            showCharacterUseOptions = false;
-            characterSettlementInProgress = true;
-            infoPanel.SetExpandedState(true);
-            RefreshInfoPanel();
-            infoPanel.OpenCoveredCharacterCardViewer();
-            SetPrompt("请在角色牌查看窗口选择要翻面发动的效果。");
-        }
-
-        private void SubmitSecondEffectDecision(bool continueSecondEffect)
-        {
-            showCharacterUseOptions = continueSecondEffect;
-            var parameters = new Dictionary<string, string>
-            {
-                [CharacterEffectParameterKeys.Choice] = continueSecondEffect
-                    ? CharacterEffectChoiceIds.ContinueSecondEffect
-                    : CharacterEffectChoiceIds.FinishCharacterUse
-            };
-            var command = characterCardPresenter.CreateResolvePendingCommand(localPlayerId, parameters);
-            SubmitCharacterCardCommand(
-                command,
-                continueSecondEffect ? "请选择并结算第二个角色牌效果。" : "角色牌使用已结束。",
-                "第二效果选择已发送给主机，等待确认。");
-        }
-
         private void SubmitCoverCharacterCard(string cardId)
         {
             SubmitCharacterCardCommand(characterCardPresenter.CreateCoverCommand(localPlayerId, cardId), "角色牌已盖放。", "盖放角色牌命令已发送给主机，等待确认。");
@@ -771,13 +799,6 @@ namespace YC.Presentation
                 return;
             }
 
-            if (command != null &&
-                (command.Kind == GameCommandKind.UseCharacterCard || command.Kind == GameCommandKind.ResolvePendingChoice) &&
-                infoPanel != null)
-            {
-                infoPanel.ResetCharacterEffectSelectionDraft();
-            }
-
             if (!result.AppliedLocally)
             {
                 SetPrompt(remotePrompt);
@@ -801,7 +822,7 @@ namespace YC.Presentation
 
             if (pending.ChoiceType == CharacterPendingChoiceTypes.SecondEffectDecision)
             {
-                SetPrompt("第一个角色牌效果已完成，请选择是否发动第二个效果。");
+                SetPrompt("第一个角色牌效果已完成，可继续使用第二个效果；点击翻转则结束角色卡使用。");
             }
             else if (pending.ChoiceType == CharacterPendingChoiceTypes.SecondEffectExecution)
             {

@@ -4,6 +4,7 @@ using UnityEngine;
 using YC.Application.Sessions;
 using YC.Application.Setup;
 using YC.Domain.Cards;
+using YC.Domain.CityStyles;
 using YC.Domain.Commands;
 using YC.Domain.Events;
 using YC.Domain.Maps;
@@ -310,6 +311,51 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void StateDtos_JsonRoundTrip_PreservesCompleteCityStyleDeclarationState()
+        {
+            var state = new GameState
+            {
+                Players =
+                {
+                    new PlayerState
+                    {
+                        PlayerId = 1,
+                        DeclaredCityStyleIds = { CityStyleDatabase.CompositePowerSystem },
+                        DeclaredCityStyles =
+                        {
+                            new CityStyleDeclarationState
+                            {
+                                InfluenceMarkerId = "style-marker-1",
+                                CityStyleId = CityStyleDatabase.CompositePowerSystem,
+                                MarkerArea = CityStyleMarkerAreas.UsesOne,
+                                UnlockedSpecialActionId = "special-action-test",
+                                RemainingSpecialActionUses = 1,
+                                UsedFacilityIds = { "building-a", "building-b" },
+                                UsedCityBoardSlotIndexes = { 1, 4 }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var initialState = CloneJson(new InitialGameStateDto
+            {
+                NextConfirmedSequence = 7,
+                State = state
+            });
+            var confirmedState = CloneJson(new ConfirmedGameCommandDto
+            {
+                Sequence = 6,
+                State = state
+            });
+
+            Assert.That(initialState.NextConfirmedSequence, Is.EqualTo(7));
+            AssertCompleteCityStyleDeclaration(initialState.State);
+            Assert.That(confirmedState.Sequence, Is.EqualTo(6));
+            AssertCompleteCityStyleDeclaration(confirmedState.State);
+        }
+
+        [Test]
         public void ApplyConfirmedCommand_WhenInitialStateIsNotSynchronized_RejectsWithoutSubmitting()
         {
             var session = CreateSession();
@@ -366,6 +412,25 @@ namespace YC.Tests.EditMode
         private static T CloneJson<T>(T source)
         {
             return JsonUtility.FromJson<T>(JsonUtility.ToJson(source));
+        }
+
+        private static void AssertCompleteCityStyleDeclaration(GameState state)
+        {
+            var player = state.FindPlayer(1);
+            Assert.That(player, Is.Not.Null);
+            Assert.That(player.DeclaredCityStyleIds, Is.EqualTo(new[]
+            {
+                CityStyleDatabase.CompositePowerSystem
+            }));
+            Assert.That(player.DeclaredCityStyles, Has.Count.EqualTo(1));
+            var declaration = player.DeclaredCityStyles[0];
+            Assert.That(declaration.InfluenceMarkerId, Is.EqualTo("style-marker-1"));
+            Assert.That(declaration.CityStyleId, Is.EqualTo(CityStyleDatabase.CompositePowerSystem));
+            Assert.That(declaration.MarkerArea, Is.EqualTo(CityStyleMarkerAreas.UsesOne));
+            Assert.That(declaration.UnlockedSpecialActionId, Is.EqualTo("special-action-test"));
+            Assert.That(declaration.RemainingSpecialActionUses, Is.EqualTo(1));
+            Assert.That(declaration.UsedFacilityIds, Is.EqualTo(new[] { "building-a", "building-b" }));
+            Assert.That(declaration.UsedCityBoardSlotIndexes, Is.EqualTo(new[] { 1, 4 }));
         }
 
         private static GameSession CreateSession()

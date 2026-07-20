@@ -11,12 +11,19 @@ namespace YC.Presentation
     {
         private readonly BuildInfoPanel panel;
         private readonly TurnActionPresenter presenter;
+        private readonly FacilityEffectInteractionUiCoordinator facilityEffects;
         private static int escapeConsumedFrame = -1;
+        private bool usesAdditionalBuild;
+        private bool additionalBuildDragging;
 
-        public BuildFacilityInteractionUiCoordinator(BuildInfoPanel panel, TurnActionPresenter presenter)
+        internal BuildFacilityInteractionUiCoordinator(
+            BuildInfoPanel panel,
+            TurnActionPresenter presenter,
+            FacilityEffectInteractionUiCoordinator facilityEffects)
         {
             this.panel = panel ?? throw new ArgumentNullException(nameof(panel));
             this.presenter = presenter ?? throw new ArgumentNullException(nameof(presenter));
+            this.facilityEffects = facilityEffects;
             panel.FacilityDragStarted += OnFacilityDragStarted;
             panel.FacilityDropped += OnFacilityDropped;
         }
@@ -32,13 +39,39 @@ namespace YC.Presentation
             var model = presenter.BuildBuildFacilityDraftViewModel();
             if (model == null)
             {
-                panel.SetBuildInteraction(false, null, null, string.Empty);
-                panel.SetPendingBuildGhost(false, string.Empty, -1, null, null, null);
+                var availability = presenter.BuildBuildFacilityAvailabilityViewModel();
+                usesAdditionalBuild = availability.UsesSpecialBuild &&
+                                      facilityEffects != null &&
+                                      facilityEffects.CanDragAdditionalBuild;
+                if (!usesAdditionalBuild)
+                {
+                    additionalBuildDragging = false;
+                }
+
+                var extensionHubDragging = availability.UsesSpecialBuild &&
+                                           facilityEffects != null &&
+                                           facilityEffects.IsExtensionHubDragging;
+                var availableDraggableIds = usesAdditionalBuild
+                    ? availability.DraggableFacilityIds
+                    : availability.UsesSpecialBuild
+                        ? new List<string>().AsReadOnly()
+                        : availability.DraggableFacilityIds;
+                panel.SetBuildInteraction(
+                    true,
+                    availableDraggableIds,
+                    (additionalBuildDragging && usesAdditionalBuild) || extensionHubDragging
+                        ? availability.LegalSlotIndexes
+                        : null,
+                    string.Empty);
+                panel.SetBuildAvailabilityMessage(availability.UnavailableMessage);
+                panel.SetPendingBuildGhost(false, string.Empty, -1, null, null);
                 return;
             }
 
+            usesAdditionalBuild = false;
+            additionalBuildDragging = false;
             var draggableIds = new List<string>();
-            if (model.Phase == BuildFacilityDraftPhase.Selecting)
+            if (model.Phase != BuildFacilityDraftPhase.Dragging)
             {
                 for (var i = 0; i < model.Options.Count; i++)
                 {
@@ -56,13 +89,13 @@ namespace YC.Presentation
                 draggableIds,
                 showLegalSlots ? model.LegalSlotIndexes : null,
                 model.Facility == null ? string.Empty : model.Facility.FacilityId);
+            panel.SetBuildAvailabilityMessage(string.Empty);
             panel.SetPendingBuildGhost(
                 model.Phase == BuildFacilityDraftPhase.Ghosted,
                 model.Facility == null ? string.Empty : model.Facility.FacilityId,
                 model.CityBoardSlotIndex,
                 OnGhostDragStarted,
-                OnGhostDropped,
-                model.Cancel);
+                OnGhostDropped);
         }
 
         public bool TryHandleEscape()
@@ -90,12 +123,29 @@ namespace YC.Presentation
 
         private void OnFacilityDragStarted(string facilityId)
         {
+            if (usesAdditionalBuild && facilityEffects != null &&
+                facilityEffects.TryBeginAdditionalBuildDrag(facilityId))
+            {
+                additionalBuildDragging = true;
+                Synchronize();
+                return;
+            }
+
+            additionalBuildDragging = false;
             presenter.BeginBuildFacilityDrag(facilityId);
             Synchronize();
         }
 
         private void OnFacilityDropped(string facilityId, int slotIndex)
         {
+            if (additionalBuildDragging && facilityEffects != null &&
+                facilityEffects.TryHandleAdditionalBuildDrop(facilityId, slotIndex))
+            {
+                additionalBuildDragging = false;
+                Synchronize();
+                return;
+            }
+
             CompleteDrop(slotIndex);
         }
 

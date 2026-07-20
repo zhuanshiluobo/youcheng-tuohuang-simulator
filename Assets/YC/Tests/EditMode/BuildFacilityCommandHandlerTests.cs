@@ -122,6 +122,35 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void BuildReserveForFree_ReusesPlacementAndScoreWithoutChangingPublicSupply()
+        {
+            var state = CreateActionState();
+            state.FindPlayer(1).Score = 4;
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.TradeDistrict);
+            state.Decks.FacilityDeck.Add(FacilityCardDatabase.EquipmentWarehouse);
+
+            var result = new BuildFacilityService().BuildReserveForFree(
+                state,
+                1,
+                FacilityCardDatabase.ExtensionHubBlue,
+                3);
+
+            Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
+            Assert.That(result.PaymentMode, Is.EqualTo(BuildFacilityService.PaymentModeFree));
+            Assert.That(state.FindPlayer(1).Score, Is.EqualTo(3));
+            Assert.That(state.FindPlayer(1).BuiltFacilityIds,
+                Does.Contain(FacilityCardDatabase.ExtensionHubBlue));
+            Assert.That(state.Map.Facilities.Exists(item =>
+                item.PlayerId == 1 &&
+                item.FacilityCardId == FacilityCardDatabase.ExtensionHubBlue &&
+                item.CityBoardSlotIndex == 3), Is.True);
+            Assert.That(state.Decks.FacilitySupply,
+                Is.EqualTo(new[] { FacilityCardDatabase.TradeDistrict }));
+            Assert.That(state.Decks.FacilityDeck,
+                Is.EqualTo(new[] { FacilityCardDatabase.EquipmentWarehouse }));
+        }
+
+        [Test]
         public void BuildFacility_ReplacesBuiltCardAtItsOriginalSupplySlotWithoutShiftingOtherCards()
         {
             var state = CreateActionState();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using YC.Domain.Commands;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -21,7 +22,34 @@ namespace YC.Domain.CityStyles
 
         public DeclareCityStyleResult Declare(GameState state, int playerId, string cityStyleId)
         {
-            var validation = Validate(state, playerId, cityStyleId);
+            return DeclareInternal(state, playerId, cityStyleId, null, false);
+        }
+
+        public DeclareCityStyleResult Declare(
+            GameState state,
+            int playerId,
+            string cityStyleId,
+            IEnumerable<int> selectedSlotIndexes)
+        {
+            var selectedSlots = selectedSlotIndexes == null
+                ? null
+                : new List<int>(selectedSlotIndexes);
+            return DeclareInternal(state, playerId, cityStyleId, selectedSlots, true);
+        }
+
+        private DeclareCityStyleResult DeclareInternal(
+            GameState state,
+            int playerId,
+            string cityStyleId,
+            List<int> selectedSlotIndexes,
+            bool useExplicitSelection)
+        {
+            var validation = ValidateInternal(
+                state,
+                playerId,
+                cityStyleId,
+                selectedSlotIndexes,
+                useExplicitSelection);
             if (!validation.IsValid)
             {
                 return DeclareCityStyleResult.Failure(validation);
@@ -29,28 +57,95 @@ namespace YC.Domain.CityStyles
 
             var player = state.FindPlayer(playerId);
             var cityStyle = CityStyleDatabase.Get(cityStyleId);
-            var match = patternMatcher.Match(state, playerId, cityStyle);
+            var match = useExplicitSelection
+                ? patternMatcher.MatchSelected(state, playerId, cityStyle, selectedSlotIndexes)
+                : patternMatcher.Match(state, playerId, cityStyle);
             if (!match.Succeeded)
             {
                 return DeclareCityStyleResult.Failure(match.Validation);
             }
 
-            player.InfluenceSupply -= 1;
-            player.Score += cityStyle.Score;
-            player.DeclaredCityStyleIds.Add(cityStyle.CityStyleId);
-            player.DeclaredCityStyles.Add(new CityStyleDeclarationState
-            {
-                CityStyleId = cityStyle.CityStyleId
-            });
-
-            var declaration = player.DeclaredCityStyles[player.DeclaredCityStyles.Count - 1];
+            var previousDeclarationCount = CountDeclarations(player, cityStyle.CityStyleId);
+            var declaration = CreateDeclarationState(
+                cityStyle,
+                playerId,
+                previousDeclarationCount);
             declaration.UsedFacilityIds.AddRange(match.UsedFacilityIds);
             declaration.UsedCityBoardSlotIndexes.AddRange(match.UsedCityBoardSlotIndexes);
+
+            var settledResources = player.Resources == null
+                ? new ResourceSet()
+                : player.Resources.Clone();
+            settledResources.Add(cityStyle.DeclarationReward ?? new ResourceSet());
+            var settledStyleIds = player.DeclaredCityStyleIds == null
+                ? new List<string>()
+                : new List<string>(player.DeclaredCityStyleIds);
+            settledStyleIds.Add(cityStyle.CityStyleId);
+            var settledDeclarations = player.DeclaredCityStyles == null
+                ? new List<CityStyleDeclarationState>()
+                : new List<CityStyleDeclarationState>(player.DeclaredCityStyles);
+            settledDeclarations.Add(declaration);
+
+            player.InfluenceSupply -= 1;
+            player.Score += cityStyle.Score;
+            player.Resources = settledResources;
+            player.DeclaredCityStyleIds = settledStyleIds;
+            player.DeclaredCityStyles = settledDeclarations;
 
             return DeclareCityStyleResult.Success(cityStyle, match);
         }
 
+        private static CityStyleDeclarationState CreateDeclarationState(
+            CityStyleDefinition cityStyle,
+            int playerId,
+            int previousDeclarationCount)
+        {
+            var markerArea = CityStyleMarkerAreas.Declared;
+            var remainingSpecialActionUses = 0;
+            if (previousDeclarationCount == 0 && cityStyle.Level >= 2)
+            {
+                markerArea = CityStyleMarkerAreas.UsesTwo;
+                remainingSpecialActionUses = 2;
+            }
+            else if (previousDeclarationCount == 0 && !string.IsNullOrEmpty(cityStyle.SpecialActionId))
+            {
+                markerArea = CityStyleMarkerAreas.Unused;
+                remainingSpecialActionUses = 1;
+            }
+
+            return new CityStyleDeclarationState
+            {
+                InfluenceMarkerId = cityStyle.CityStyleId + ":" + playerId + ":" + (previousDeclarationCount + 1),
+                CityStyleId = cityStyle.CityStyleId,
+                MarkerArea = markerArea,
+                UnlockedSpecialActionId = cityStyle.SpecialActionId ?? string.Empty,
+                RemainingSpecialActionUses = remainingSpecialActionUses
+            };
+        }
+
         public ValidationResult Validate(GameState state, int playerId, string cityStyleId)
+        {
+            return ValidateInternal(state, playerId, cityStyleId, null, false);
+        }
+
+        public ValidationResult Validate(
+            GameState state,
+            int playerId,
+            string cityStyleId,
+            IEnumerable<int> selectedSlotIndexes)
+        {
+            var selectedSlots = selectedSlotIndexes == null
+                ? null
+                : new List<int>(selectedSlotIndexes);
+            return ValidateInternal(state, playerId, cityStyleId, selectedSlots, true);
+        }
+
+        private ValidationResult ValidateInternal(
+            GameState state,
+            int playerId,
+            string cityStyleId,
+            List<int> selectedSlotIndexes,
+            bool useExplicitSelection)
         {
             if (state == null)
             {
@@ -69,14 +164,7 @@ namespace YC.Domain.CityStyles
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "未知城市样式。");
             }
 
-            var declaredCount = 0;
-            for (var i = 0; i < player.DeclaredCityStyleIds.Count; i++)
-            {
-                if (player.DeclaredCityStyleIds[i] == cityStyle.CityStyleId)
-                {
-                    declaredCount += 1;
-                }
-            }
+            var declaredCount = CountDeclarations(player, cityStyle.CityStyleId);
 
             if (declaredCount >= cityStyle.MaxDeclarationsPerPlayer)
             {
@@ -88,8 +176,45 @@ namespace YC.Domain.CityStyles
                 return ValidationResult.Failure(CommandErrorCode.InsufficientInfluence, "玩家供应堆没有可用影响力。");
             }
 
-            var match = patternMatcher.Match(state, playerId, cityStyle);
+            var match = useExplicitSelection
+                ? patternMatcher.MatchSelected(state, playerId, cityStyle, selectedSlotIndexes)
+                : patternMatcher.Match(state, playerId, cityStyle);
             return match.Succeeded ? ValidationResult.Success : match.Validation;
+        }
+
+        private static int CountDeclarations(PlayerState player, string cityStyleId)
+        {
+            if (player == null)
+            {
+                return 0;
+            }
+
+            var legacyCount = 0;
+            if (player.DeclaredCityStyleIds != null)
+            {
+                for (var i = 0; i < player.DeclaredCityStyleIds.Count; i++)
+                {
+                    if (player.DeclaredCityStyleIds[i] == cityStyleId)
+                    {
+                        legacyCount += 1;
+                    }
+                }
+            }
+
+            var formalCount = 0;
+            if (player.DeclaredCityStyles != null)
+            {
+                for (var i = 0; i < player.DeclaredCityStyles.Count; i++)
+                {
+                    var declaration = player.DeclaredCityStyles[i];
+                    if (declaration != null && declaration.CityStyleId == cityStyleId)
+                    {
+                        formalCount += 1;
+                    }
+                }
+            }
+
+            return Math.Max(legacyCount, formalCount);
         }
     }
 }

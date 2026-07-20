@@ -5,6 +5,7 @@ using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Events;
 using YC.Domain.Exploration;
+using YC.Domain.Facilities;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -31,6 +32,8 @@ namespace YC.Tests.EditMode
                 Is.EqualTo("A,B"));
             Assert.That(fixture.Commands.LastCommand.Parameters[ExploreLocationCommandHandler.RouteIdsParameter],
                 Is.EqualTo("R1"));
+            Assert.That(fixture.Commands.LastCommand.Parameters.ContainsKey(
+                ResolveFacilityEffectCommandHandler.PendingSessionIdParameter), Is.False);
         }
 
         [Test]
@@ -46,6 +49,49 @@ namespace YC.Tests.EditMode
             fixture.View.PaymentOptions.Confirm();
 
             Assert.That(fixture.Commands.LastCommand.Parameters[ExploreLocationCommandHandler.PaymentRecipientsParameter],
+                Is.EqualTo("R1=2"));
+        }
+
+        [Test]
+        public void AdditionalExploreReusesPathAndPaymentFlowAndBuildsFacilityResolveCommand()
+        {
+            var fixture = CreateFixture(true);
+            var pending = new PendingCardSessionState
+            {
+                SessionId = "warehouse-session",
+                ScenarioId = FacilityPendingChoiceTypes.ScenarioId,
+                ChoiceType = FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore,
+                CardId = "building_031",
+                PlayerId = 1,
+                OptionIds = { FacilityPendingChoiceTypes.ExploreOption }
+            };
+            fixture.Context.State.PendingCardSession = pending;
+            fixture.Context.State.FindPlayer(1).ActedMainActionThisTurn = true;
+            fixture.Presenter.PrepareAdditionalExplore(
+                pending,
+                FacilityPendingChoiceTypes.ExploreOption);
+            fixture.Presenter.Activate();
+
+            fixture.Presenter.SelectTarget("B");
+            Assert.That(fixture.View.PaymentOptions, Is.Not.Null);
+            fixture.View.PaymentOptions.SelectRecipient("R1", 2);
+            fixture.View.PaymentOptions.Confirm();
+
+            var command = fixture.Commands.LastCommand;
+            Assert.That(command.Kind, Is.EqualTo(GameCommandKind.ResolvePendingChoice));
+            Assert.That(command.SourceId, Is.EqualTo("building_031"));
+            Assert.That(command.OptionIds, Is.EqualTo(new[] { FacilityPendingChoiceTypes.ExploreOption }));
+            Assert.That(command.Parameters[ResolveFacilityEffectCommandHandler.PendingSessionIdParameter],
+                Is.EqualTo("warehouse-session"));
+            Assert.That(command.Parameters[ResolveFacilityEffectCommandHandler.OptionIdParameter],
+                Is.EqualTo(FacilityPendingChoiceTypes.ExploreOption));
+            Assert.That(command.Parameters[ResolveFacilityEffectCommandHandler.TargetLocationIdParameter],
+                Is.EqualTo("B"));
+            Assert.That(command.Parameters[ExploreLocationCommandHandler.PathLocationIdsParameter],
+                Is.EqualTo("A,B"));
+            Assert.That(command.Parameters[ExploreLocationCommandHandler.RouteIdsParameter],
+                Is.EqualTo("R1"));
+            Assert.That(command.Parameters[ExploreLocationCommandHandler.PaymentRecipientsParameter],
                 Is.EqualTo("R1=2"));
         }
 

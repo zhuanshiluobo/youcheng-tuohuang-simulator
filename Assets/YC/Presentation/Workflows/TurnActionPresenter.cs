@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.CardFlows;
+using YC.Domain.CityStyles;
 using YC.Domain.Commands;
 using YC.Domain.Facilities;
 using YC.Domain.Maps;
@@ -49,11 +50,6 @@ namespace YC.Presentation.Workflows
         public InteractionMode Mode
         {
             get { return mode; }
-        }
-
-        public string CompletedMainActionName
-        {
-            get { return completedMainActionName; }
         }
 
         public bool IsAwaitingInitialPlacement
@@ -290,7 +286,22 @@ namespace YC.Presentation.Workflows
         {
             if (CanStartMainAction())
             {
+                explorationEventPresenter.PrepareNormalExplore();
                 flowCoordinator.Activate(explorationEventPresenter);
+            }
+        }
+
+        public void BeginAdditionalExploreAction(PendingCardSessionState pending, string optionId)
+        {
+            explorationEventPresenter.PrepareAdditionalExplore(pending, optionId);
+            flowCoordinator.Activate(explorationEventPresenter);
+        }
+
+        public void CancelAdditionalExploreAction()
+        {
+            if (flowCoordinator.IsActive(explorationEventPresenter))
+            {
+                flowCoordinator.ResetToChooseAction();
             }
         }
 
@@ -332,9 +343,20 @@ namespace YC.Presentation.Workflows
 
         public void BeginBuildAction()
         {
-            if (!CanStartMainAction())
+            if (!TryOpenBuildDraft())
             {
                 return;
+            }
+
+            PresentBuildFacilityDraft();
+            view.ShowPrompt("建设：拖动公共建设牌到自己面板的合法槽位。");
+        }
+
+        private bool TryOpenBuildDraft()
+        {
+            if (!CanStartMainAction())
+            {
+                return false;
             }
 
             var state = context.CurrentState;
@@ -342,25 +364,29 @@ namespace YC.Presentation.Workflows
             if (player == null)
             {
                 view.ShowPrompt("\u5f53\u524d\u73a9\u5bb6\u4e0d\u5b58\u5728\u3002");
-                return;
+                return false;
             }
 
             if (state.Decks.FacilitySupply.Count == 0)
             {
                 view.ShowPrompt("\u8bbe\u65bd\u4f9b\u5e94\u533a\u4e3a\u7a7a\u3002");
-                return;
+                return false;
             }
 
             buildFacilitySelection.Begin(context.LocalPlayerId);
             flowCoordinator.SetMode(InteractionMode.ResolvingBuildCard);
             view.ClearHighlights();
             view.RefreshActionPanel();
-            PresentBuildFacilityDraft();
-            view.ShowPrompt("建设：拖动公共建设牌到自己面板的合法槽位。");
+            return true;
         }
 
         public void BeginBuildFacilityDrag(string facilityId)
         {
+            if (!buildFacilitySelection.IsActive && !TryOpenBuildDraft())
+            {
+                return;
+            }
+
             string reason;
             if (!buildFacilitySelection.TryBeginDrag(context.CurrentState, facilityId, out reason))
             {
@@ -410,13 +436,12 @@ namespace YC.Presentation.Workflows
 
         public bool HandleBuildFacilityEscape()
         {
-            if (!buildFacilitySelection.CollapseFocusToGhost())
+            if (!buildFacilitySelection.IsActive)
             {
                 return false;
             }
 
-            flowCoordinator.SetMode(InteractionMode.ResolvingBuildCard);
-            PresentBuildFacilityDraft();
+            CancelBuildFacility();
             return true;
         }
 
@@ -515,6 +540,99 @@ namespace YC.Presentation.Workflows
                 CancelBuildFacility);
         }
 
+        public BuildFacilityAvailabilityViewModel BuildBuildFacilityAvailabilityViewModel()
+        {
+            SynchronizeLocalPlayerForHotseat();
+            var state = context.CurrentState;
+            var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
+            var draggableIds = new List<string>();
+            var legalSlotIndexes = new List<int>();
+            if (state == null || player == null)
+            {
+                return new BuildFacilityAvailabilityViewModel(
+                    draggableIds.AsReadOnly(),
+                    legalSlotIndexes.AsReadOnly(),
+                    false,
+                    string.Empty);
+            }
+
+            var pending = state.PendingCardSession;
+            var hasFacilitySpecialBuild = pending != null &&
+                                          pending.IsValid() &&
+                                          pending.PlayerId == context.LocalPlayerId &&
+                                          string.Equals(
+                                              pending.ScenarioId,
+                                              FacilityPendingChoiceTypes.ScenarioId,
+                                              StringComparison.Ordinal) &&
+                                          (pending.ChoiceType == FacilityPendingChoiceTypes.BuildAdditionalFacility ||
+                                           pending.ChoiceType == FacilityPendingChoiceTypes.BuildExtensionHub);
+            var usesAdditionalBuild = hasFacilitySpecialBuild &&
+                                      pending.ChoiceType == FacilityPendingChoiceTypes.BuildAdditionalFacility;
+            if (hasFacilitySpecialBuild)
+            {
+                if (usesAdditionalBuild)
+                {
+                    for (var i = 0; i < pending.OptionIds.Count; i++)
+                    {
+                        if (state.Decks.FacilitySupply.Contains(pending.OptionIds[i]))
+                        {
+                            draggableIds.Add(pending.OptionIds[i]);
+                        }
+                    }
+                }
+
+                AddEmptyCityBoardSlots(state, context.LocalPlayerId, legalSlotIndexes);
+                return new BuildFacilityAvailabilityViewModel(
+                    draggableIds.AsReadOnly(),
+                    legalSlotIndexes.AsReadOnly(),
+                    true,
+                    string.Empty);
+            }
+
+            var isActionPhase = state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2;
+            var canUseMainBuild = isActionPhase &&
+                                  state.CurrentPlayerId == context.LocalPlayerId &&
+                                  !state.HasPendingChoice() &&
+                                  !player.ActedMainActionThisTurn;
+            if (canUseMainBuild)
+            {
+                var options = buildFacilitySelection.QueryOptions(state, context.LocalPlayerId);
+                for (var i = 0; i < options.Count; i++)
+                {
+                    if (options[i].CanBuild)
+                    {
+                        draggableIds.Add(options[i].FacilityId);
+                    }
+                }
+            }
+
+            var exhaustedMessage = isActionPhase &&
+                                   state.CurrentPlayerId == context.LocalPlayerId &&
+                                   player.ActedMainActionThisTurn &&
+                                   !hasFacilitySpecialBuild
+                ? "本行动轮行动次数已用尽。"
+                : string.Empty;
+            return new BuildFacilityAvailabilityViewModel(
+                draggableIds.AsReadOnly(),
+                legalSlotIndexes.AsReadOnly(),
+                false,
+                exhaustedMessage);
+        }
+
+        private static void AddEmptyCityBoardSlots(GameState state, int playerId, List<int> result)
+        {
+            for (var slotIndex = 0; slotIndex < BuildFacilityService.CityBoardSlotCount; slotIndex++)
+            {
+                var occupied = state.Map.Facilities.Exists(placement =>
+                    placement.PlayerId == playerId &&
+                    placement.CityBoardSlotIndex == slotIndex);
+                if (!occupied)
+                {
+                    result.Add(slotIndex);
+                }
+            }
+        }
+
         private void PresentBuildFacilityDraft()
         {
             var model = BuildBuildFacilityDraftViewModel();
@@ -531,6 +649,10 @@ namespace YC.Presentation.Workflows
         {
             switch (buildFacilitySelection.Phase)
             {
+                case BuildFacilityDraftPhase.Inactive:
+                    flowCoordinator.ResetToChooseAction();
+                    view.RefreshActionPanel();
+                    break;
                 case BuildFacilityDraftPhase.Focused:
                     flowCoordinator.SetMode(InteractionMode.ResolvingBuildFocus);
                     break;
@@ -543,7 +665,7 @@ namespace YC.Presentation.Workflows
             }
         }
 
-        public void BeginDeclareCityStyle()
+        public void BeginDeclareCityStyle(string initialCityStyleId = "")
         {
             if (!CanStartQuickAction())
             {
@@ -553,32 +675,217 @@ namespace YC.Presentation.Workflows
             flowCoordinator.ResetToChooseAction();
             view.ClearHighlights();
             view.RefreshActionPanel();
-            var options = cityStyleSelection.BuildOptions(context.CurrentState, context.LocalPlayerId);
-            view.ShowCityStyleOptions(new CityStyleOptionsViewModel(
-                options.AsReadOnly(),
-                SubmitDeclareCityStyle,
-                () => view.ShowPrompt("\u5df2\u53d6\u6d88\u5ba3\u544a\u57ce\u5e02\u6837\u5f0f\u3002")));
-            view.ShowPrompt("\u5ba3\u544a\u57ce\u5e02\u6837\u5f0f\uff1a\u67e5\u770b\u53ef\u5ba3\u544a\u6837\u5f0f\u548c\u4e0d\u53ef\u5ba3\u544a\u539f\u56e0\u3002");
+            ShowCityStylePreview(initialCityStyleId, string.Empty);
         }
 
-        public void SubmitDeclareCityStyle(string cityStyleId)
+        public void OpenCityStylePreview(string initialCityStyleId)
         {
-            var submission = commandPort.Submit(cityStyleSelection.CreateCommand(context.LocalPlayerId, cityStyleId));
+            var unavailableReason = GetQuickActionUnavailableReason();
+            ShowCityStylePreview(initialCityStyleId, unavailableReason);
+        }
+
+        private void ShowCityStylePreview(string initialCityStyleId, string unavailableReason)
+        {
+            var options = cityStyleSelection.BuildOptions(context.CurrentState, context.LocalPlayerId);
+            if (!string.IsNullOrEmpty(unavailableReason))
+            {
+                for (var i = 0; i < options.Count; i++)
+                {
+                    options[i].CanDeclare = false;
+                    options[i].Reason = unavailableReason;
+                }
+            }
+
+            view.ShowCityStyleOptions(new CityStyleOptionsViewModel(
+                options.AsReadOnly(),
+                BuildCityBoardSlots(context.CurrentState, context.LocalPlayerId),
+                BuildCityStyleMarkers(context.CurrentState),
+                initialCityStyleId,
+                (cityStyleId, selectedSlotIndexes) => cityStyleSelection.ValidateSelection(
+                    context.CurrentState,
+                    context.LocalPlayerId,
+                    cityStyleId,
+                    selectedSlotIndexes),
+                TrySubmitDeclareCityStyle,
+                null,
+                OnCityStylePreviewClosed));
+            view.ShowPrompt(string.Empty);
+        }
+
+        private static IReadOnlyList<CityBoardSlotViewModel> BuildCityBoardSlots(GameState state, int playerId)
+        {
+            const int cityBoardSlotCount = 12;
+            var usedSlotIndexes = new HashSet<int>();
+            var player = state == null ? null : state.FindPlayer(playerId);
+            if (player != null && player.DeclaredCityStyles != null)
+            {
+                for (var declarationIndex = 0;
+                     declarationIndex < player.DeclaredCityStyles.Count;
+                     declarationIndex++)
+                {
+                    var declaration = player.DeclaredCityStyles[declarationIndex];
+                    if (declaration == null || declaration.UsedCityBoardSlotIndexes == null)
+                    {
+                        continue;
+                    }
+
+                    for (var slotIndex = 0;
+                         slotIndex < declaration.UsedCityBoardSlotIndexes.Count;
+                         slotIndex++)
+                    {
+                        usedSlotIndexes.Add(declaration.UsedCityBoardSlotIndexes[slotIndex]);
+                    }
+                }
+            }
+
+            var facilityBySlot = new Dictionary<int, string>();
+            if (state != null && state.Map != null && state.Map.Facilities != null)
+            {
+                for (var placementIndex = 0;
+                     placementIndex < state.Map.Facilities.Count;
+                     placementIndex++)
+                {
+                    var placement = state.Map.Facilities[placementIndex];
+                    if (placement.PlayerId == playerId)
+                    {
+                        facilityBySlot[placement.CityBoardSlotIndex] =
+                            placement.FacilityCardId ?? string.Empty;
+                    }
+                }
+            }
+
+            var result = new List<CityBoardSlotViewModel>(cityBoardSlotCount);
+            for (var slotIndex = 0; slotIndex < cityBoardSlotCount; slotIndex++)
+            {
+                string facilityId;
+                facilityBySlot.TryGetValue(slotIndex, out facilityId);
+                result.Add(new CityBoardSlotViewModel(
+                    slotIndex,
+                    facilityId,
+                    usedSlotIndexes.Contains(slotIndex)));
+            }
+
+            return result.AsReadOnly();
+        }
+
+        private static IReadOnlyList<CityStyleMarkerViewModel> BuildCityStyleMarkers(GameState state)
+        {
+            var result = new List<CityStyleMarkerViewModel>();
+            if (state == null || state.Players == null)
+            {
+                return result.AsReadOnly();
+            }
+
+            for (var playerIndex = 0; playerIndex < state.Players.Count; playerIndex++)
+            {
+                var player = state.Players[playerIndex];
+                if (player == null)
+                {
+                    continue;
+                }
+
+                var formalCounts = new Dictionary<string, int>(StringComparer.Ordinal);
+                if (player.DeclaredCityStyles != null)
+                {
+                    for (var declarationIndex = 0;
+                         declarationIndex < player.DeclaredCityStyles.Count;
+                         declarationIndex++)
+                    {
+                        var declaration = player.DeclaredCityStyles[declarationIndex];
+                        if (declaration == null || string.IsNullOrEmpty(declaration.CityStyleId))
+                        {
+                            continue;
+                        }
+
+                        int count;
+                        formalCounts.TryGetValue(declaration.CityStyleId, out count);
+                        formalCounts[declaration.CityStyleId] = count + 1;
+                        result.Add(new CityStyleMarkerViewModel(
+                            declaration.CityStyleId,
+                            player.PlayerId,
+                            player.Color,
+                            string.IsNullOrEmpty(declaration.MarkerArea)
+                                ? CityStyleMarkerAreas.Declared
+                                : declaration.MarkerArea));
+                    }
+                }
+
+                if (player.DeclaredCityStyleIds == null)
+                {
+                    continue;
+                }
+
+                var legacyCounts = new Dictionary<string, int>(StringComparer.Ordinal);
+                for (var declarationIndex = 0;
+                     declarationIndex < player.DeclaredCityStyleIds.Count;
+                     declarationIndex++)
+                {
+                    var cityStyleId = player.DeclaredCityStyleIds[declarationIndex];
+                    if (string.IsNullOrEmpty(cityStyleId))
+                    {
+                        continue;
+                    }
+
+                    int legacyCount;
+                    legacyCounts.TryGetValue(cityStyleId, out legacyCount);
+                    legacyCounts[cityStyleId] = legacyCount + 1;
+                    int formalCount;
+                    formalCounts.TryGetValue(cityStyleId, out formalCount);
+                    if (legacyCount >= formalCount)
+                    {
+                        result.Add(new CityStyleMarkerViewModel(
+                            cityStyleId,
+                            player.PlayerId,
+                            player.Color,
+                            CityStyleMarkerAreas.Declared));
+                    }
+                }
+            }
+
+            return result.AsReadOnly();
+        }
+
+        public void SubmitDeclareCityStyle(string cityStyleId, IReadOnlyList<int> selectedSlotIndexes)
+        {
+            TrySubmitDeclareCityStyle(cityStyleId, selectedSlotIndexes);
+        }
+
+        private bool TrySubmitDeclareCityStyle(string cityStyleId, IReadOnlyList<int> selectedSlotIndexes)
+        {
+            if (selectedSlotIndexes != null && !CanStartQuickAction())
+            {
+                return false;
+            }
+
+            var command = selectedSlotIndexes == null
+                ? cityStyleSelection.CreateCommand(context.LocalPlayerId, cityStyleId)
+                : cityStyleSelection.CreateCommand(context.LocalPlayerId, cityStyleId, selectedSlotIndexes);
+            var submission = commandPort.Submit(command);
             if (!submission.CommandResult.Succeeded)
             {
                 view.ShowPrompt(submission.CommandResult.Validation.Reason);
-                return;
+                return false;
             }
 
             if (!submission.AppliedLocally)
             {
                 view.ShowPrompt("\u5ba3\u544a\u57ce\u5e02\u6837\u5f0f\u547d\u4ee4\u5df2\u53d1\u9001\u7ed9\u4e3b\u673a\uff0c\u7b49\u5f85\u786e\u8ba4\u3002");
-                return;
+                return true;
             }
 
             view.RefreshInformation();
             view.RefreshActionPanel();
-            view.ShowPrompt("\u57ce\u5e02\u6837\u5f0f\u5ba3\u544a\u6210\u529f\uff0c\u6700\u7ec8\u8ba1\u5206\u4f1a\u8ba1\u5165\u8be5\u6837\u5f0f\u5206\u3002");
+            view.ShowPrompt("城市样式宣告完成。");
+            return true;
+        }
+
+        private void OnCityStylePreviewClosed()
+        {
+            if (buildFacilitySelection.IsActive)
+            {
+                PresentBuildFacilityDraft();
+                view.ShowPrompt("已关闭样式卡预览，返回当前建设选择。");
+            }
         }
 
         public void CompleteAction(string actionName)
@@ -659,6 +966,14 @@ namespace YC.Presentation.Workflows
                 return false;
             }
 
+            if (quickAction &&
+                flowCoordinator.CurrentMode != InteractionMode.ChooseAction &&
+                flowCoordinator.CurrentMode != InteractionMode.Hidden)
+            {
+                view.ShowPrompt("请先完成或取消当前正在进行的行动，再执行快速行动。");
+                return false;
+            }
+
             if (state.CurrentPlayerId != context.LocalPlayerId)
             {
                 view.ShowPrompt("\u7b49\u5f85\u73a9\u5bb6 " + state.CurrentPlayerId + " \u884c\u52a8\u3002");
@@ -686,6 +1001,45 @@ namespace YC.Presentation.Workflows
             }
 
             return true;
+        }
+
+        private string GetQuickActionUnavailableReason()
+        {
+            SynchronizeLocalPlayerForHotseat();
+            var state = context.CurrentState;
+            var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
+            if (player == null)
+            {
+                return "当前玩家不存在。";
+            }
+
+            if (buildFacilitySelection.IsActive)
+            {
+                return "请先完成或取消当前建设草稿。";
+            }
+
+            if (state.CurrentPlayerId != context.LocalPlayerId)
+            {
+                return "尚未轮到本机玩家行动。";
+            }
+
+            if (state.HasPendingChoice())
+            {
+                return "请先处理待选择项。";
+            }
+
+            if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
+            {
+                return "当前阶段不能宣告城市样式。";
+            }
+
+            if (flowCoordinator.CurrentMode != InteractionMode.ChooseAction &&
+                flowCoordinator.CurrentMode != InteractionMode.Hidden)
+            {
+                return "请先完成或取消当前正在进行的行动。";
+            }
+
+            return string.Empty;
         }
 
         private void PresentMoveTargets()
@@ -840,6 +1194,12 @@ namespace YC.Presentation.Workflows
             {
                 return "\u5165\u573a\u9636\u6bb5\uff1a\u9009\u62e9\u521d\u59cb\u79fb\u52a8\u57ce\u5e02\u4f4d\u7f6e";
             }
+            if (state.Phase == GamePhase.CharacterCover)
+            {
+                return player != null && state.CurrentPlayerId == context.LocalPlayerId && string.IsNullOrEmpty(player.CoveredCharacterCardId)
+                    ? "入场阶段：请先盖放角色卡"
+                    : "入场阶段：等待当前玩家盖放角色卡";
+            }
             if (state.Phase == GamePhase.ResourceCollection)
             {
                 return player == null
@@ -850,6 +1210,12 @@ namespace YC.Presentation.Workflows
             }
             if (state.Phase == GamePhase.Cleanup)
             {
+                if (state.PendingCharacterEffect != null &&
+                    state.PendingCharacterEffect.IsValid() &&
+                    state.PendingCharacterEffect.ChoiceType == YC.Domain.Cards.CharacterPendingChoiceTypes.LiskarmCleanupRemoval)
+                {
+                    return "结束阶段：雷蛇要求移除 1 个己方影响力。请点击地图上高亮的影响力；选择完成前不能结束本回合";
+                }
                 return CanEndCurrentAction()
                     ? "\u6536\u5c3e\u9636\u6bb5\uff1a\u70b9\u51fb\u7ed3\u675f\u672c\u56de\u5408\u8fdb\u5165\u4e0b\u4e00\u56de\u5408"
                     : "\u6536\u5c3e\u9636\u6bb5\uff1a\u7b49\u5f85\u8d77\u59cb\u73a9\u5bb6\u7ed3\u675f\u672c\u56de\u5408";
@@ -888,12 +1254,11 @@ namespace YC.Presentation.Workflows
             return "\u5b8c\u6210\u4e3b\u8981\u884c\u52a8\u540e\u624d\u80fd\u7ed3\u675f\u672c\u56de\u5408\u3002";
         }
 
-        private static string BuildEndActionPrompt(GameState state)
+        private string BuildEndActionPrompt(GameState state)
         {
-            if (state != null && state.Phase == GamePhase.ResourceCollection) return "\u91c7\u96c6\u5df2\u63d0\u4ea4\uff0c\u7b49\u5f85\u5176\u4ed6\u73a9\u5bb6\u5b8c\u6210\u91c7\u96c6\u3002";
-            if (state != null && state.Phase == GamePhase.Cleanup) return "\u91c7\u96c6\u7ed3\u7b97\u5b8c\u6210\u3002\u8bf7\u7ed3\u675f\u6536\u5c3e\u9636\u6bb5\u8fdb\u5165\u4e0b\u4e00\u56de\u5408\u3002";
-            if (state != null && state.Phase == GamePhase.ActionRound1 && state.ActionRound == 1) return "\u5df2\u8fdb\u5165\u4e0b\u4e00\u56de\u5408\uff0c\u8bf7\u7ee7\u7eed\u884c\u52a8\u3002";
-            return "\u672c\u56de\u5408\u5df2\u7ed3\u675f\uff0c\u7b49\u5f85\u4e0b\u4e00\u4f4d\u73a9\u5bb6\u884c\u52a8\u3002";
+            return state == null
+                ? "\u5f53\u524d\u6ca1\u6709\u53ef\u7ed3\u675f\u7684\u56de\u5408\u3002"
+                : BuildActionPanelViewModel().StatusText;
         }
 
         public static string BuildCompletedMainActionMessage(string actionName)

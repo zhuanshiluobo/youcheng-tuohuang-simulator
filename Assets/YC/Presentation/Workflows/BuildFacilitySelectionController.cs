@@ -49,7 +49,7 @@ namespace YC.Presentation
         public bool TryBeginDrag(GameState state, string facilityId, out string reason)
         {
             reason = string.Empty;
-            if (Phase != BuildFacilityDraftPhase.Selecting)
+            if (Phase == BuildFacilityDraftPhase.Inactive || Phase == BuildFacilityDraftPhase.Dragging)
             {
                 reason = "当前不能从公共建设牌堆开始拖动。";
                 return false;
@@ -194,6 +194,11 @@ namespace YC.Presentation
             return optionQuery.Query(state, PlayerId);
         }
 
+        public IReadOnlyList<BuildFacilityOptionQueryResult> QueryOptions(GameState state, int playerId)
+        {
+            return optionQuery.Query(state, playerId);
+        }
+
         public GameCommand CreateCommand(int playerId, string facilityId, int cityBoardSlotIndex, string paymentMode)
         {
             if (string.IsNullOrEmpty(facilityId))
@@ -243,9 +248,7 @@ namespace YC.Presentation
                 Phase = BuildFacilityDraftPhase.Ghosted;
                 return;
             }
-            FacilityId = string.Empty;
-            CityBoardSlotIndex = -1;
-            Phase = BuildFacilityDraftPhase.Selecting;
+            Reset();
         }
 
         private void Reset()

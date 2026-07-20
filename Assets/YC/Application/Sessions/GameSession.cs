@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Events;
 using YC.Domain.State;
@@ -54,7 +55,9 @@ namespace YC.Application.Sessions
                 throw new ArgumentNullException(nameof(command));
             }
 
-            if (State.HasPendingChoice() && !IsPendingChoiceResolutionCommand(command))
+            if (State.HasPendingChoice() &&
+                !IsPendingChoiceResolutionCommand(command) &&
+                !IsConfirmedSecondCharacterEffectCommand(State, command))
             {
                 return CommandResult.Invalid(ValidationResult.Failure(
                     Domain.Rules.CommandErrorCode.PendingChoiceRequired,
@@ -101,6 +104,40 @@ namespace YC.Application.Sessions
             return command != null &&
                    (command.Kind == Domain.Rules.GameCommandKind.ResolvePendingChoice ||
                     command.Kind == Domain.Rules.GameCommandKind.ResolveEntranceEvent);
+        }
+
+        private static bool IsConfirmedSecondCharacterEffectCommand(GameState state, GameCommand command)
+        {
+            if (state == null || command == null ||
+                command.Kind != Domain.Rules.GameCommandKind.UseCharacterCard ||
+                (state.PendingChoice != null && state.PendingChoice.IsValid()) ||
+                (state.PendingCardSession != null && state.PendingCardSession.IsValid()))
+            {
+                return false;
+            }
+
+            var pending = state.PendingCharacterEffect;
+            if (pending == null || !pending.IsValid() ||
+                pending.ChoiceType != CharacterPendingChoiceTypes.SecondEffectExecution ||
+                pending.PlayerId != command.PlayerId)
+            {
+                return false;
+            }
+
+            string cardId;
+            if (command.Parameters == null || !command.Parameters.TryGetValue("cardId", out cardId) ||
+                string.IsNullOrEmpty(cardId))
+            {
+                cardId = command.TargetId;
+            }
+
+            string effectMode;
+            if (command.Parameters == null || !command.Parameters.TryGetValue("effectMode", out effectMode))
+            {
+                effectMode = string.Empty;
+            }
+
+            return cardId == pending.CardId && effectMode == pending.RemainingEffectMode;
         }
 
         private void AppendLog(GameCommand command, CommandResult result)

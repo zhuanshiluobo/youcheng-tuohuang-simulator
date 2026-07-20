@@ -14,6 +14,7 @@ namespace YC.Domain.Exploration
     public sealed class ExplorationService
     {
         public const int RouteCostGoldVoucher = RouteTollService.RouteCostGoldVoucher;
+        public const string ConsumeMainActionArgument = "consumeMainAction";
 
         private readonly IMapQueryService mapQuery;
         private readonly InfluenceService influenceService;
@@ -244,7 +245,8 @@ namespace YC.Domain.Exploration
             string influenceSlotId,
             IDictionary<string, int> paymentRecipientsByRouteId,
             string sourceCommandId = null,
-            bool allowFacilityEntry = false)
+            bool allowFacilityEntry = false,
+            bool consumeMainAction = true)
         {
             var validation = CanExplore(
                 state,
@@ -270,6 +272,11 @@ namespace YC.Domain.Exploration
                     bool.TrueString);
             }
 
+            CardFlowArgumentUtility.SetValue(
+                arguments,
+                ConsumeMainActionArgument,
+                consumeMainAction.ToString());
+
             var flowResult = cardFlowService.StartPendingChoice(
                 state,
                 new CardFlowStartRequest
@@ -294,6 +301,20 @@ namespace YC.Domain.Exploration
                 null,
                 new List<ExplorationTravelPayment>().AsReadOnly(),
                 null);
+        }
+
+        public static bool PendingExploreConsumesMainAction(GameState state)
+        {
+            var pending = state == null ? null : state.PendingCardSession;
+            if (pending == null)
+            {
+                return true;
+            }
+
+            var encoded = CardFlowArgumentUtility.GetValue(
+                pending.ContextData,
+                ConsumeMainActionArgument);
+            return !string.Equals(encoded, bool.FalseString, StringComparison.OrdinalIgnoreCase);
         }
 
         public ExplorationResult ResolveExploreEvent(

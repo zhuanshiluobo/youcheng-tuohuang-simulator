@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.Rules;
+using YC.Domain.State;
 
 namespace YC.Domain.CityStyles
 {
@@ -13,7 +14,19 @@ namespace YC.Domain.CityStyles
         public int Score;
         public string Description = string.Empty;
         public int MaxDeclarationsPerPlayer = 1;
+        public string SpecialActionId = string.Empty;
+        public ResourceSet DeclarationReward = new ResourceSet();
         public CityStyleRequirement DeclarationRequirement = new CityStyleRequirement();
+    }
+
+    public static class CityStyleMarkerAreas
+    {
+        public const string Declared = "declared";
+        public const string Unused = "unused";
+        public const string Used = "used";
+        public const string UsesTwo = "2";
+        public const string UsesOne = "1";
+        public const string UsesZero = "0";
     }
 
     [Serializable]

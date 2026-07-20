@@ -43,12 +43,13 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void CopyAdjacentEntry_OffersOnlyOrthogonalNonRainbowFacilities()
+        public void CopyAdjacentEntry_OffersOnlyOrthogonalNonRainbowEntryEffects()
         {
             var state = CreateState();
             AddFacility(state, 1, "building_004", 4);
             AddFacility(state, 1, "building_014", 1); // above
             AddFacility(state, 1, "building_001", 3); // left, rainbow
+            AddFacility(state, 1, "building_022", 5); // right, passive effect only
             AddFacility(state, 1, "building_018", 0); // diagonal
 
             new FacilityEntryEffectService().Resolve(
@@ -104,6 +105,12 @@ namespace YC.Tests.EditMode
                 PlayerId = 2,
                 SlotId = "location:A-02:0",
                 LocationId = "A-02"
+            });
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = InfluenceService.GetRouteSlotId("B1", 0),
+                RouteId = "B1"
             });
 
             new FacilityEntryEffectService().Resolve(
@@ -197,19 +204,27 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void VehicleWarehouse_WithRemovableInfluence_OpensPendingSession()
+        public void VehicleWarehouse_WithLegalRemoveThenDispatch_OnlyOffersThatBranch()
         {
             var state = CreateState();
             state.Map.Influences.Add(new InfluencePlacement
             {
                 PlayerId = 2,
-                SlotId = InfluenceService.GetLocationSlotId("A-01", 0),
-                LocationId = "A-01"
+                SlotId = InfluenceService.GetRouteSlotId("A1", 0),
+                RouteId = "A1"
+            });
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = InfluenceService.GetRouteSlotId("B1", 0),
+                RouteId = "B1"
             });
 
             Resolve(state, "building_039");
 
             AssertPendingChoice(state, FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore);
+            Assert.That(state.PendingCardSession.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.RemoveDispatchOption }));
         }
 
         [Test]
@@ -224,6 +239,8 @@ namespace YC.Tests.EditMode
             Resolve(state, "building_039");
 
             AssertPendingChoice(state, FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore);
+            Assert.That(state.PendingCardSession.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.ExploreOption }));
         }
 
         private static GameState CreateState()

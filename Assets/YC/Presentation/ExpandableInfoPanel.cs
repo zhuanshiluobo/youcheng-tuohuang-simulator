@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using YC.Application.Gameplay;
-using YC.Domain.Cards;
 using YC.Domain.CityStyles;
-using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
 
@@ -41,22 +39,13 @@ namespace YC.Presentation
         private bool isAnimating;
         private bool pendingExpandedState;
         private bool pendingTextRefresh;
-        private string characterEffectSelectionCardId = string.Empty;
-        private string selectedCharacterEffectMode = string.Empty;
-        private int saleOriginium;
-        private int saleOriginiumShard;
-        private int saleIron;
-        private int salePureOriginium;
-        private ResourceType requisitionResourceType = ResourceType.Originium;
         private CharacterCardPanelViewModel lastCharacterViewModel;
-        private bool lastShowCharacterUseOptions;
-        private System.Action<string> lastCoverCharacterCard;
-        private System.Action<string, string, IReadOnlyDictionary<string, string>> lastUseCharacterCard;
-        private readonly Dictionary<string, string> characterOptionDraft = new Dictionary<string, string>();
-        private System.Func<CharacterCardEffectKind, IReadOnlyDictionary<string, string>, CharacterCardOptionQueryResult> queryCharacterOptions;
-        private System.Func<IReadOnlyDictionary<string, string>, CharacterCardOptionQueryResult> queryPendingCharacterOptions;
-        private System.Action<IReadOnlyDictionary<string, string>> resolvePendingCharacterChoice;
+        private System.Action<string, Vector2> beginCharacterCardDrag;
+        private System.Action<Vector2> updateCharacterCardDrag;
+        private System.Action<string, Vector2> endCharacterCardDrag;
         private ZoomableImageViewerController characterCardImageViewer;
+        private Canvas characterCardDragCanvas;
+        private RectTransform characterCardDragGhost;
 
         private bool initialized;
         public bool IsExpanded => isExpanded;
@@ -187,9 +176,6 @@ namespace YC.Presentation
             System.Action<string, string, IReadOnlyDictionary<string, string>> useCard)
         {
             lastCharacterViewModel = viewModel;
-            lastShowCharacterUseOptions = showUseOptions;
-            lastCoverCharacterCard = coverCard;
-            lastUseCharacterCard = useCard;
             var characterCards = FindOrAddModule("角色牌");
             characterCards.ClearContent();
             if (viewModel == null)
@@ -199,17 +185,9 @@ namespace YC.Presentation
                 return;
             }
 
-            SynchronizeCharacterEffectSelection(viewModel);
-            AddTextRow(characterCards, "盖放区", viewModel.CoveredStatus);
-            AddTextRow(characterCards, "操作提示", viewModel.InteractionStatus);
-            if (!string.IsNullOrEmpty(viewModel.CoveredBackImageRelativePath))
+            if (viewModel.CanCover && !string.IsNullOrEmpty(viewModel.InteractionStatus))
             {
-                AddCharacterCardThumbnail(
-                    characterCards,
-                    "Covered Character Card Image",
-                    TryLoadCardTexture(viewModel.CoveredBackImageRelativePath),
-                    true,
-                    () => OpenCoveredCharacterCard(viewModel));
+                AddTextRow(characterCards, "盖放提示", viewModel.InteractionStatus);
             }
 
             AddTextRow(characterCards, "手牌区", viewModel.HandCards.Count + " 张");
@@ -232,93 +210,17 @@ namespace YC.Presentation
                 AddCharacterDiscardCardStrip(characterCards, viewModel.DiscardCards);
             }
 
-            if (viewModel.HasPendingCharacterChoice &&
-                !viewModel.IsSecondEffectDecision &&
-                !viewModel.IsSecondEffectExecution)
-            {
-                AddPendingCharacterControls(characterCards, viewModel);
-                RebuildLayout();
-                return;
-            }
-
-            if (viewModel.IsSecondEffectDecision)
-            {
-                RebuildLayout();
-                return;
-            }
-
-            if (showUseOptions && viewModel.CanUse)
-            {
-                var effectMode = viewModel.IsSecondEffectExecution
-                    ? viewModel.RemainingEffectMode
-                    : selectedCharacterEffectMode;
-                if ((string.IsNullOrEmpty(effectMode) || effectMode == UseCharacterCardCommandHandler.Strategy) && viewModel.CanUseStrategy)
-                {
-                    AddCharacterEffectControls(characterCards, viewModel.StrategyEffect, viewModel);
-                    AddActionRow(characterCards, "Use Character Strategy", "确认使用策略",
-                        HasRequiredParameters(viewModel.StrategyEffect),
-                        () => useCard?.Invoke(UseCharacterCardCommandHandler.Strategy, string.Empty,
-                            BuildCharacterEffectParameters(UseCharacterCardCommandHandler.Strategy, viewModel)));
-                }
-
-                if ((string.IsNullOrEmpty(effectMode) || effectMode == UseCharacterCardCommandHandler.Tactic) && viewModel.CanUseTactic)
-                {
-                    AddCharacterEffectControls(characterCards, viewModel.TacticEffect, viewModel);
-                    AddActionRow(characterCards, "Use Character Tactic", "确认使用计谋",
-                        HasRequiredParameters(viewModel.TacticEffect),
-                        () => useCard?.Invoke(UseCharacterCardCommandHandler.Tactic, string.Empty,
-                            BuildCharacterEffectParameters(UseCharacterCardCommandHandler.Tactic, viewModel)));
-                }
-
-            }
-
             RebuildLayout();
         }
 
-        public void ConfigureCharacterEffectInteraction(
-            System.Func<CharacterCardEffectKind, IReadOnlyDictionary<string, string>, CharacterCardOptionQueryResult> queryOptions,
-            System.Func<IReadOnlyDictionary<string, string>, CharacterCardOptionQueryResult> queryPendingOptions,
-            System.Action<IReadOnlyDictionary<string, string>> resolvePending)
+        public void ConfigureCharacterCardDragInteraction(
+            System.Action<string, Vector2> beginDrag,
+            System.Action<Vector2> drag,
+            System.Action<string, Vector2> endDrag)
         {
-            queryCharacterOptions = queryOptions;
-            queryPendingCharacterOptions = queryPendingOptions;
-            resolvePendingCharacterChoice = resolvePending;
-        }
-
-        private void SynchronizeCharacterEffectSelection(CharacterCardPanelViewModel viewModel)
-        {
-            if (!viewModel.CanUse || string.IsNullOrEmpty(viewModel.CoveredCardId))
-            {
-                ResetCharacterEffectSelection(string.Empty);
-                return;
-            }
-
-            if (characterEffectSelectionCardId != viewModel.CoveredCardId)
-            {
-                ResetCharacterEffectSelection(viewModel.CoveredCardId);
-            }
-
-            saleOriginium = Mathf.Clamp(saleOriginium, 0, viewModel.Originium);
-            saleOriginiumShard = Mathf.Clamp(saleOriginiumShard, 0, viewModel.OriginiumShard);
-            saleIron = Mathf.Clamp(saleIron, 0, viewModel.Iron);
-            salePureOriginium = Mathf.Clamp(salePureOriginium, 0, viewModel.PureOriginium);
-        }
-
-        private void ResetCharacterEffectSelection(string cardId)
-        {
-            characterEffectSelectionCardId = cardId ?? string.Empty;
-            selectedCharacterEffectMode = string.Empty;
-            characterOptionDraft.Clear();
-            saleOriginium = 0;
-            saleOriginiumShard = 0;
-            saleIron = 0;
-            salePureOriginium = 0;
-            requisitionResourceType = ResourceType.Originium;
-        }
-
-        public void ResetCharacterEffectSelectionDraft()
-        {
-            ResetCharacterEffectSelection(string.Empty);
+            beginCharacterCardDrag = beginDrag;
+            updateCharacterCardDrag = drag;
+            endCharacterCardDrag = endDrag;
         }
 
         public void OpenCoveredCharacterCardViewer()
@@ -334,325 +236,6 @@ namespace YC.Presentation
             if (characterCardImageViewer != null)
             {
                 characterCardImageViewer.Close();
-            }
-        }
-
-        private void AddCharacterSaleSelector(
-            InfoModule module,
-            string resourceName,
-            string parameterKey,
-            int current,
-            int maximum,
-            System.Action<int> setValue)
-        {
-            AddActionRow(
-                module,
-                "Character Sale Selector: " + parameterKey,
-                "出售" + resourceName + "：" + current + " / " + maximum + "（点击递增）",
-                maximum > 0,
-                () =>
-                {
-                    setValue(current >= maximum ? 0 : current + 1);
-                    RebuildCharacterCardModule();
-                });
-        }
-
-        private void AddRequisitionSelector(InfoModule module, ResourceType resourceType, string resourceName)
-        {
-            AddActionRow(
-                module,
-                "Character Requisition Selector: " + resourceType,
-                (requisitionResourceType == resourceType ? "已选征收：" : "选择征收：") + resourceName,
-                true,
-                () =>
-                {
-                    requisitionResourceType = resourceType;
-                    RebuildCharacterCardModule();
-                });
-        }
-
-        private void RebuildCharacterCardModule()
-        {
-            SetCharacterCards(
-                lastCharacterViewModel,
-                lastShowCharacterUseOptions,
-                lastCoverCharacterCard,
-                lastUseCharacterCard);
-        }
-
-        private IReadOnlyDictionary<string, string> BuildCharacterEffectParameters(
-            string effectMode,
-            CharacterCardPanelViewModel viewModel)
-        {
-            var parameters = new Dictionary<string, string>(characterOptionDraft);
-            parameters[CharacterEffectParameterKeys.OfferSecondEffect] = "true";
-            if ((effectMode == UseCharacterCardCommandHandler.Strategy || effectMode == UseCharacterCardCommandHandler.Both) &&
-                viewModel.StrategyEffect == CharacterCardEffectKind.CannotTradeChannel)
-            {
-                parameters[CharacterEffectParameterKeys.SaleOriginium] = saleOriginium.ToString();
-                parameters[CharacterEffectParameterKeys.SaleOriginiumShard] = saleOriginiumShard.ToString();
-                parameters[CharacterEffectParameterKeys.SaleIron] = saleIron.ToString();
-                parameters[CharacterEffectParameterKeys.SalePureOriginium] = salePureOriginium.ToString();
-            }
-
-            if ((effectMode == UseCharacterCardCommandHandler.Tactic || effectMode == UseCharacterCardCommandHandler.Both) &&
-                viewModel.TacticEffect == CharacterCardEffectKind.CannotRequisition)
-            {
-                parameters[CharacterEffectParameterKeys.ResourceType] = FormatRequisitionResource(requisitionResourceType);
-            }
-
-            if ((effectMode == UseCharacterCardCommandHandler.Strategy || effectMode == UseCharacterCardCommandHandler.Both) &&
-                viewModel.StrategyEffect == CharacterCardEffectKind.TinManEstablishPrestige)
-            {
-                parameters[CharacterEffectParameterKeys.TinManPurchasePureOriginium12] =
-                    GetBooleanDraft(CharacterEffectParameterKeys.TinManPurchasePureOriginium12);
-                parameters[CharacterEffectParameterKeys.TinManPurchasePureOriginium15] =
-                    GetBooleanDraft(CharacterEffectParameterKeys.TinManPurchasePureOriginium15);
-            }
-
-            return parameters;
-        }
-
-        private string GetBooleanDraft(string key)
-        {
-            string value;
-            return characterOptionDraft.TryGetValue(key, out value) && value == "true" ? "true" : "false";
-        }
-
-        private void AddCharacterEffectControls(InfoModule module, CharacterCardEffectKind effect, CharacterCardPanelViewModel viewModel)
-        {
-            switch (effect)
-            {
-                case CharacterCardEffectKind.CannotTradeChannel:
-                    AddCharacterSaleSelector(module, "源岩", CharacterEffectParameterKeys.SaleOriginium, saleOriginium, viewModel.Originium, value => saleOriginium = value);
-                    AddCharacterSaleSelector(module, "源石碎片", CharacterEffectParameterKeys.SaleOriginiumShard, saleOriginiumShard, viewModel.OriginiumShard, value => saleOriginiumShard = value);
-                    AddCharacterSaleSelector(module, "异铁", CharacterEffectParameterKeys.SaleIron, saleIron, viewModel.Iron, value => saleIron = value);
-                    AddCharacterSaleSelector(module, "至纯源石", CharacterEffectParameterKeys.SalePureOriginium, salePureOriginium, viewModel.PureOriginium, value => salePureOriginium = value);
-                    return;
-                case CharacterCardEffectKind.CannotRequisition:
-                    AddRequisitionSelector(module, ResourceType.Originium, "源岩");
-                    AddRequisitionSelector(module, ResourceType.OriginiumShard, "源石碎片");
-                    AddRequisitionSelector(module, ResourceType.Iron, "异铁");
-                    return;
-                case CharacterCardEffectKind.LiskarmSecurityProtocol:
-                    AddOptionSelector(module, effect, CharacterEffectParameterKeys.PlacementSlotId1, "第一个影响力槽位", string.Empty);
-                    AddOptionSelector(module, effect, CharacterEffectParameterKeys.PlacementSlotId2, "第二个影响力槽位", string.Empty);
-                    return;
-                case CharacterCardEffectKind.LiskarmControlPosition:
-                    AddOptionSelector(module, effect, CharacterEffectParameterKeys.TargetInfluenceSlotId, "对手影响力", string.Empty);
-                    return;
-                case CharacterCardEffectKind.ElysiumLogistics:
-                    AddOptionSelector(module, effect, CharacterEffectParameterKeys.ResourceType, "并列最少资源", string.Empty);
-                    return;
-                case CharacterCardEffectKind.ElysiumNavigation:
-                    AddTextRow(module, "计谋费用", "支付 3 源石碎片");
-                    AddOptionSelector(module, effect, CharacterEffectParameterKeys.TargetLocationId, "突袭资源点", string.Empty);
-                    return;
-                case CharacterCardEffectKind.TexasSpecialDelivery:
-                    AddOptionSelector(module, effect, CharacterEffectParameterKeys.FacilityCardId, "设施供应区牌", string.Empty);
-                    return;
-                case CharacterCardEffectKind.TexasRemoveAndDoubleMove:
-                    AddTexasRemoveAndMoveSelectors(module, effect);
-                    return;
-                case CharacterCardEffectKind.TinManEstablishPrestige:
-                    AddTinManStrategyControls(module);
-                    return;
-                case CharacterCardEffectKind.TinManDeepPlanning:
-                    AddTextRow(module, "锡人计谋", "启动后逐张处理弃牌区角色牌");
-                    return;
-            }
-        }
-
-        private void AddTexasRemoveAndMoveSelectors(InfoModule module, CharacterCardEffectKind effect)
-        {
-            AddOptionSelector(module, effect, CharacterEffectParameterKeys.RemovalTargetInfluenceSlotId, "移除影响力", string.Empty);
-            AddMovePair(module, effect, 1, CharacterEffectParameterKeys.MoveSourceSlotId1, CharacterEffectParameterKeys.MoveTargetSlotId1);
-            AddMovePair(module, effect, 2, CharacterEffectParameterKeys.MoveSourceSlotId2, CharacterEffectParameterKeys.MoveTargetSlotId2);
-        }
-
-        private void AddTinManStrategyControls(InfoModule module)
-        {
-            AddBooleanOption(module, CharacterEffectParameterKeys.TinManPurchasePureOriginium12, "支付 12 金券，获得 1 至纯源石");
-            AddBooleanOption(module, CharacterEffectParameterKeys.TinManPurchasePureOriginium15, "支付 15 金券，获得 1 至纯源石");
-            var summary = queryCharacterOptions == null
-                ? null
-                : queryCharacterOptions(CharacterCardEffectKind.TinManEstablishPrestige, characterOptionDraft);
-            AddTextRow(module, "预计结算", summary == null || string.IsNullOrEmpty(summary.SummaryText)
-                ? "等待领域结算预览"
-                : summary.SummaryText);
-        }
-
-        private void AddBooleanOption(InfoModule module, string key, string label)
-        {
-            string value;
-            var selected = characterOptionDraft.TryGetValue(key, out value) && value == "true";
-            AddActionRow(module, "Character Boolean Option: " + key,
-                (selected ? "已选择：" : "未选择：") + label,
-                true,
-                () =>
-                {
-                    characterOptionDraft[key] = selected ? "false" : "true";
-                    RebuildCharacterCardModule();
-                });
-        }
-
-        private void AddMovePair(InfoModule module, CharacterCardEffectKind effect, int index, string sourceKey, string targetKey)
-        {
-            AddOptionSelector(module, effect, sourceKey, "第 " + index + " 次移动来源", string.Empty);
-            string source;
-            characterOptionDraft.TryGetValue(sourceKey, out source);
-            AddOptionSelector(module, effect, targetKey, "第 " + index + " 次移动目标", source);
-        }
-
-        private void AddOptionSelector(InfoModule module, CharacterCardEffectKind effect, string key, string label, string parentId)
-        {
-            var query = queryCharacterOptions == null ? null : queryCharacterOptions(effect, characterOptionDraft);
-            var options = query == null ? new List<CharacterCardOption>().AsReadOnly() : query.Get(key, parentId);
-            string selected;
-            characterOptionDraft.TryGetValue(key, out selected);
-            var selectedIndex = -1;
-            for (var i = 0; i < options.Count; i++) if (options[i].Id == selected) selectedIndex = i;
-            if (selectedIndex < 0 && !string.IsNullOrEmpty(selected))
-            {
-                characterOptionDraft.Remove(key);
-                selected = string.Empty;
-            }
-            var display = "未选择";
-            for (var i = 0; i < options.Count; i++) if (options[i].Id == selected) display = options[i].DisplayName;
-            AddActionRow(module, "Character Option Selector: " + key, label + "：" + display, options.Count > 0,
-                () =>
-                {
-                    var next = selectedIndex + 1;
-                    if (next >= options.Count) next = 0;
-                    characterOptionDraft[key] = options[next].Id;
-                    ClearDependentCharacterSelections(key);
-                    RebuildCharacterCardModule();
-                });
-        }
-
-        private void ClearDependentCharacterSelections(string changedKey)
-        {
-            var order = new[]
-            {
-                CharacterEffectParameterKeys.RemovalTargetInfluenceSlotId,
-                CharacterEffectParameterKeys.MoveSourceSlotId1, CharacterEffectParameterKeys.MoveTargetSlotId1,
-                CharacterEffectParameterKeys.MoveSourceSlotId2, CharacterEffectParameterKeys.MoveTargetSlotId2
-            };
-            for (var i = 0; i < order.Length; i++)
-            {
-                if (order[i] != changedKey) continue;
-                for (var j = i + 1; j < order.Length; j++) characterOptionDraft.Remove(order[j]);
-                return;
-            }
-            if (changedKey == CharacterEffectParameterKeys.PlacementSlotId1)
-                characterOptionDraft.Remove(CharacterEffectParameterKeys.PlacementSlotId2);
-        }
-
-        private bool HasRequiredParameters(CharacterCardEffectKind effect)
-        {
-            switch (effect)
-            {
-                case CharacterCardEffectKind.Unsupported: return false;
-                case CharacterCardEffectKind.CannotTradeChannel:
-                case CharacterCardEffectKind.CannotRequisition:
-                case CharacterCardEffectKind.TinManEstablishPrestige:
-                case CharacterCardEffectKind.TinManDeepPlanning: return true;
-                case CharacterCardEffectKind.LiskarmSecurityProtocol: return Has(CharacterEffectParameterKeys.PlacementSlotId1) && Has(CharacterEffectParameterKeys.PlacementSlotId2);
-                case CharacterCardEffectKind.LiskarmControlPosition: return Has(CharacterEffectParameterKeys.TargetInfluenceSlotId);
-                case CharacterCardEffectKind.ElysiumLogistics: return Has(CharacterEffectParameterKeys.ResourceType);
-                case CharacterCardEffectKind.ElysiumNavigation: return Has(CharacterEffectParameterKeys.TargetLocationId);
-                case CharacterCardEffectKind.TexasSpecialDelivery: return Has(CharacterEffectParameterKeys.FacilityCardId);
-                case CharacterCardEffectKind.TexasRemoveAndDoubleMove:
-                    return Has(CharacterEffectParameterKeys.RemovalTargetInfluenceSlotId) &&
-                           Has(CharacterEffectParameterKeys.MoveSourceSlotId1) && Has(CharacterEffectParameterKeys.MoveTargetSlotId1) &&
-                           Has(CharacterEffectParameterKeys.MoveSourceSlotId2) && Has(CharacterEffectParameterKeys.MoveTargetSlotId2);
-                default: return false;
-            }
-        }
-
-        private bool Has(string key) { string value; return characterOptionDraft.TryGetValue(key, out value) && !string.IsNullOrEmpty(value); }
-
-        private void AddPendingCharacterControls(InfoModule module, CharacterCardPanelViewModel viewModel)
-        {
-            if (viewModel.PendingChoiceType == CharacterPendingChoiceTypes.LiskarmCleanupRemoval)
-            {
-                AddPendingOptionSelector(module, CharacterEffectParameterKeys.TargetInfluenceSlotId, "收尾移除己方影响力", string.Empty);
-                AddActionRow(module, "Resolve Liskarm Cleanup", "确认移除", Has(CharacterEffectParameterKeys.TargetInfluenceSlotId),
-                    () => resolvePendingCharacterChoice?.Invoke(new Dictionary<string, string>(characterOptionDraft)));
-                return;
-            }
-
-            if (viewModel.PendingChoiceType == CharacterPendingChoiceTypes.TinManDiscard)
-            {
-                AddTextRow(module, "当前弃牌", string.IsNullOrEmpty(viewModel.PendingCardDisplayName) ? "未知角色牌" : viewModel.PendingCardDisplayName);
-                var pendingOptions = queryPendingCharacterOptions == null ? null : queryPendingCharacterOptions(characterOptionDraft);
-                var gainGold = FindCharacterOption(pendingOptions, CharacterEffectParameterKeys.Choice, CharacterEffectChoiceIds.GainGold);
-                var moveInfluence = FindCharacterOption(pendingOptions, CharacterEffectParameterKeys.Choice, CharacterEffectChoiceIds.MoveInfluence);
-                if (gainGold != null)
-                {
-                    AddActionRow(module, "Resolve Tin Man Gain Gold", gainGold.DisplayName, true,
-                        () => resolvePendingCharacterChoice?.Invoke(new Dictionary<string, string> { [CharacterEffectParameterKeys.Choice] = CharacterEffectChoiceIds.GainGold }));
-                }
-                if (moveInfluence != null)
-                {
-                    AddActionRow(module, "Select Tin Man Move", moveInfluence.DisplayName, true,
-                        () => { characterOptionDraft[CharacterEffectParameterKeys.Choice] = CharacterEffectChoiceIds.MoveInfluence; RebuildCharacterCardModule(); });
-                }
-                string choice;
-                if (moveInfluence == null)
-                {
-                    characterOptionDraft.Remove(CharacterEffectParameterKeys.Choice);
-                    characterOptionDraft.Remove(CharacterEffectParameterKeys.SourceInfluenceSlotId);
-                    characterOptionDraft.Remove(CharacterEffectParameterKeys.TargetInfluenceSlotId);
-                }
-                else if (characterOptionDraft.TryGetValue(CharacterEffectParameterKeys.Choice, out choice) && choice == CharacterEffectChoiceIds.MoveInfluence)
-                {
-                    AddPendingOptionSelector(module, CharacterEffectParameterKeys.SourceInfluenceSlotId, "移动来源", string.Empty);
-                    string source; characterOptionDraft.TryGetValue(CharacterEffectParameterKeys.SourceInfluenceSlotId, out source);
-                    AddPendingOptionSelector(module, CharacterEffectParameterKeys.TargetInfluenceSlotId, "移动目标", source);
-                    AddActionRow(module, "Resolve Tin Man Move", "确认移动影响力",
-                        Has(CharacterEffectParameterKeys.SourceInfluenceSlotId) && Has(CharacterEffectParameterKeys.TargetInfluenceSlotId),
-                        () => resolvePendingCharacterChoice?.Invoke(new Dictionary<string, string>(characterOptionDraft)));
-                }
-            }
-        }
-
-        private static CharacterCardOption FindCharacterOption(CharacterCardOptionQueryResult result, string key, string id)
-        {
-            if (result == null) return null;
-            var options = result.Get(key);
-            for (var i = 0; i < options.Count; i++) if (options[i].Id == id) return options[i];
-            return null;
-        }
-
-        private void AddPendingOptionSelector(InfoModule module, string key, string label, string parentId)
-        {
-            var query = queryPendingCharacterOptions == null ? null : queryPendingCharacterOptions(characterOptionDraft);
-            var options = query == null ? new List<CharacterCardOption>().AsReadOnly() : query.Get(key, parentId);
-            string selected; characterOptionDraft.TryGetValue(key, out selected);
-            var selectedIndex = -1;
-            var display = "未选择";
-            for (var i = 0; i < options.Count; i++) if (options[i].Id == selected) { selectedIndex = i; display = options[i].DisplayName; }
-            AddActionRow(module, "Character Pending Selector: " + key, label + "：" + display, options.Count > 0,
-                () =>
-                {
-                    var next = selectedIndex + 1; if (next >= options.Count) next = 0;
-                    characterOptionDraft[key] = options[next].Id;
-                    if (key == CharacterEffectParameterKeys.SourceInfluenceSlotId) characterOptionDraft.Remove(CharacterEffectParameterKeys.TargetInfluenceSlotId);
-                    RebuildCharacterCardModule();
-                });
-        }
-
-        private static string FormatRequisitionResource(ResourceType resourceType)
-        {
-            switch (resourceType)
-            {
-                case ResourceType.OriginiumShard:
-                    return "originium-shard";
-                case ResourceType.Iron:
-                    return "iron";
-                default:
-                    return "originium";
             }
         }
 
@@ -1123,13 +706,23 @@ namespace YC.Presentation
             {
                 var item = cards[i];
                 var capturedItem = item;
-                CreateCharacterCardThumbnail(
+                var cardObject = CreateCharacterCardThumbnail(
                     rowRect,
                     "Character Hand Card Image: " + i,
                     TryLoadCardTexture(item.FrontImageRelativePath),
                     new Vector2(startX + i * (cardWidth + gap), -6f),
                     new Vector2(cardWidth, 110f),
                     () => OpenHandCharacterCard(capturedItem));
+                if (item.CanCover && cardObject != null)
+                {
+                    var cardId = item.CardId;
+                    cardObject.GetComponent<CardPointerInteraction>().ConfigureDrag(
+                        () => true,
+                        eventData => BeginCharacterCardDrag(cardObject, cardId, eventData),
+                        UpdateCharacterCardDrag,
+                        eventData => EndCharacterCardDrag(cardId, eventData),
+                        DestroyCharacterCardDragGhost);
+                }
             }
         }
 
@@ -1161,25 +754,7 @@ namespace YC.Presentation
             }
         }
 
-        private void AddCharacterCardThumbnail(
-            InfoModule module,
-            string objectName,
-            Texture2D texture,
-            bool centered,
-            System.Action onClick)
-        {
-            var rowRect = CreateContentItem(
-                module,
-                objectName + " Row",
-                ModuleContentWidth - ModuleContentLeftPadding - ModuleContentRightPadding,
-                132f,
-                new Vector2(ModuleContentLeftPadding, 0f));
-            var size = new Vector2(82f, 120f);
-            var x = centered ? (rowRect.sizeDelta.x - size.x) * 0.5f : 0f;
-            CreateCharacterCardThumbnail(rowRect, objectName, texture, new Vector2(x, -6f), size, onClick);
-        }
-
-        private static void CreateCharacterCardThumbnail(
+        private GameObject CreateCharacterCardThumbnail(
             RectTransform parent,
             string objectName,
             Texture2D texture,
@@ -1204,10 +779,125 @@ namespace YC.Presentation
             outline.effectDistance = new Vector2(2f, -2f);
             var button = cardObject.GetComponent<Button>();
             button.interactable = texture != null;
-            if (onClick != null)
+            cardObject.AddComponent<CardPointerInteraction>().ConfigureClick(button, onClick, null);
+            return cardObject;
+        }
+
+        private void BeginCharacterCardDrag(
+            GameObject sourceCard,
+            string cardId,
+            PointerEventData eventData)
+        {
+            DestroyCharacterCardDragGhost();
+            CreateCharacterCardDragGhost(sourceCard, eventData);
+            if (eventData != null)
             {
-                button.onClick.AddListener(() => onClick());
+                beginCharacterCardDrag?.Invoke(cardId, eventData.position);
             }
+        }
+
+        private void UpdateCharacterCardDrag(PointerEventData eventData)
+        {
+            if (eventData == null)
+            {
+                return;
+            }
+
+            MoveCharacterCardDragGhost(eventData.position, eventData.pressEventCamera);
+            updateCharacterCardDrag?.Invoke(eventData.position);
+        }
+
+        private void EndCharacterCardDrag(string cardId, PointerEventData eventData)
+        {
+            if (eventData != null)
+            {
+                endCharacterCardDrag?.Invoke(cardId, eventData.position);
+            }
+
+            DestroyCharacterCardDragGhost();
+        }
+
+        private void CreateCharacterCardDragGhost(GameObject sourceCard, PointerEventData eventData)
+        {
+            var sourceImage = sourceCard == null ? null : sourceCard.GetComponent<RawImage>();
+            var sourceRect = sourceCard == null ? null : sourceCard.GetComponent<RectTransform>();
+            var sourceCanvas = sourceCard == null ? null : sourceCard.GetComponentInParent<Canvas>();
+            characterCardDragCanvas = sourceCanvas == null ? null : sourceCanvas.rootCanvas;
+            if (characterCardDragCanvas == null || sourceImage == null || sourceRect == null)
+            {
+                return;
+            }
+
+            var ghostObject = new GameObject(
+                "Character Card Drag Ghost",
+                typeof(RectTransform),
+                typeof(RawImage),
+                typeof(CanvasGroup),
+                typeof(Outline));
+            ghostObject.transform.SetParent(characterCardDragCanvas.transform, false);
+            ghostObject.transform.SetAsLastSibling();
+
+            characterCardDragGhost = ghostObject.GetComponent<RectTransform>();
+            characterCardDragGhost.anchorMin = new Vector2(0.5f, 0.5f);
+            characterCardDragGhost.anchorMax = new Vector2(0.5f, 0.5f);
+            characterCardDragGhost.pivot = new Vector2(0.5f, 0.5f);
+            characterCardDragGhost.sizeDelta = sourceRect.rect.size * 1.08f;
+
+            var ghostImage = ghostObject.GetComponent<RawImage>();
+            ghostImage.texture = sourceImage.texture;
+            ghostImage.uvRect = sourceImage.uvRect;
+            ghostImage.color = new Color(1f, 1f, 1f, 0.68f);
+            ghostImage.raycastTarget = false;
+
+            var group = ghostObject.GetComponent<CanvasGroup>();
+            group.alpha = 1f;
+            group.interactable = false;
+            group.blocksRaycasts = false;
+
+            var outline = ghostObject.GetComponent<Outline>();
+            outline.effectColor = new Color(1f, 0.82f, 0.35f, 0.85f);
+            outline.effectDistance = new Vector2(2f, -2f);
+            if (eventData != null)
+            {
+                MoveCharacterCardDragGhost(eventData.position, eventData.pressEventCamera);
+            }
+        }
+
+        private void MoveCharacterCardDragGhost(Vector2 screenPosition, Camera eventCamera)
+        {
+            if (characterCardDragCanvas == null || characterCardDragGhost == null)
+            {
+                return;
+            }
+
+            var canvasRect = characterCardDragCanvas.GetComponent<RectTransform>();
+            var camera = characterCardDragCanvas.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null
+                : (eventCamera == null ? characterCardDragCanvas.worldCamera : eventCamera);
+            Vector2 localPoint;
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenPosition, camera, out localPoint))
+            {
+                characterCardDragGhost.anchoredPosition = localPoint;
+            }
+        }
+
+        private void DestroyCharacterCardDragGhost()
+        {
+            if (characterCardDragGhost != null)
+            {
+                var ghostObject = characterCardDragGhost.gameObject;
+                if (UnityEngine.Application.isPlaying)
+                {
+                    Destroy(ghostObject);
+                }
+                else
+                {
+                    DestroyImmediate(ghostObject);
+                }
+            }
+
+            characterCardDragGhost = null;
+            characterCardDragCanvas = null;
         }
 
         private void OpenHandCharacterCard(CharacterCardHandItemViewModel item)
@@ -1221,12 +911,8 @@ namespace YC.Presentation
             OpenCharacterCardViewer(
                 item.DisplayName,
                 texture,
-                item.CanCover ? "盖放此牌" : string.Empty,
-                item.CanCover ? new System.Action(() =>
-                {
-                    characterCardImageViewer.Close();
-                    lastCoverCharacterCard?.Invoke(item.CardId);
-                }) : null,
+                string.Empty,
+                null,
                 string.Empty,
                 null);
         }
@@ -1249,48 +935,15 @@ namespace YC.Presentation
 
         private void OpenCoveredCharacterCard(CharacterCardPanelViewModel viewModel)
         {
-            var backTexture = TryLoadCardTexture(viewModel.CoveredBackImageRelativePath);
-            var primaryText = viewModel.CanUseStrategy ? "翻面发动策略" : string.Empty;
-            var secondaryText = viewModel.CanUseTactic ? "翻面发动计谋" : string.Empty;
-            OpenCharacterCardViewer(
-                "已盖放角色牌",
-                backTexture,
-                primaryText,
-                viewModel.CanUseStrategy ? new System.Action(() => SelectCharacterEffectMode(UseCharacterCardCommandHandler.Strategy)) : null,
-                secondaryText,
-                viewModel.CanUseTactic ? new System.Action(() => SelectCharacterEffectMode(UseCharacterCardCommandHandler.Tactic)) : null);
-        }
-
-        private void SelectCharacterEffectMode(string effectMode)
-        {
-            selectedCharacterEffectMode = effectMode ?? string.Empty;
-            lastShowCharacterUseOptions = true;
-            RebuildCharacterCardModule();
-            ShowCoveredCharacterCardFront(effectMode);
-        }
-
-        private void ShowCoveredCharacterCardFront(string effectMode)
-        {
-            var viewModel = lastCharacterViewModel;
-            if (viewModel == null)
-            {
-                return;
-            }
-
             var frontTexture = TryLoadCardTexture(viewModel.CoveredFrontImageRelativePath);
-            if (frontTexture == null)
-            {
-                return;
-            }
-
-            var definition = CharacterCardDatabase.Get(viewModel.CoveredCardId);
-            var cardName = definition == null ? "角色牌" : definition.Name;
-            var effectName = effectMode == UseCharacterCardCommandHandler.Strategy ? "策略" : "计谋";
-            EnsureCharacterCardViewer();
-            characterCardImageViewer.Configure("Character Card Image", cardName + " · " + effectName, 1, _ => frontTexture);
-            characterCardImageViewer.ConfigureActions(string.Empty, null, string.Empty, null);
-            characterCardImageViewer.ConfigureReferenceCollapse(cardName + " · 正在选择" + effectName + "效果");
-            characterCardImageViewer.Open();
+            var cardName = CharacterCardPanelPresenter.ResolveCardDisplayName(viewModel.CoveredCardId);
+            OpenCharacterCardViewer(
+                "已盖放角色牌（" + cardName + "）",
+                frontTexture,
+                string.Empty,
+                null,
+                string.Empty,
+                null);
         }
 
         private void OpenCharacterCardViewer(

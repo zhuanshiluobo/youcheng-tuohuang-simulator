@@ -50,10 +50,11 @@ namespace YC.Domain.CityStyles
                     {
                         CityStyleId = MilitaryIndustrialArea,
                         Name = "军工化区域",
-                        Level = 2,
+                        Level = 1,
                         Score = 2,
                         Description = "同一横排相邻布局：蓝/黄设施 + 红色设施。",
                         MaxDeclarationsPerPlayer = int.MaxValue,
+                        SpecialActionId = "special_action.city_style.military_industrial_area",
                         DeclarationRequirement = new CityStyleRequirement
                         {
                             RequiredFacilityCount = 2,
@@ -71,10 +72,11 @@ namespace YC.Domain.CityStyles
                     {
                         CityStyleId = MobilizationSupportSystem,
                         Name = "动员配套体系",
-                        Level = 2,
+                        Level = 1,
                         Score = 3,
                         Description = "同一横排相邻布局：黄色设施 + 黄色设施 + 红色设施。",
                         MaxDeclarationsPerPlayer = int.MaxValue,
+                        SpecialActionId = "special_action.city_style.mobilization_support_system",
                         DeclarationRequirement = new CityStyleRequirement
                         {
                             RequiredFacilityCount = 3,
@@ -93,10 +95,11 @@ namespace YC.Domain.CityStyles
                     {
                         CityStyleId = CompositePowerSystem,
                         Name = "复合动力系统",
-                        Level = 2,
+                        Level = 1,
                         Score = 3,
                         Description = "2x2 局部布局：上方黄色；下方红色 + 黄色。",
                         MaxDeclarationsPerPlayer = int.MaxValue,
+                        SpecialActionId = "special_action.city_style.composite_power_system",
                         DeclarationRequirement = new CityStyleRequirement
                         {
                             RequiredFacilityCount = 3,
@@ -115,10 +118,16 @@ namespace YC.Domain.CityStyles
                     {
                         CityStyleId = MaterialRelayStation,
                         Name = "物资中继站",
-                        Level = 2,
+                        Level = 1,
                         Score = 2,
                         Description = "同一横排相邻布局：蓝/红设施 + 黄色设施。",
                         MaxDeclarationsPerPlayer = 1,
+                        DeclarationReward = new YC.Domain.State.ResourceSet
+                        {
+                            Originium = 1,
+                            OriginiumShard = 1,
+                            Iron = 1
+                        },
                         DeclarationRequirement = new CityStyleRequirement
                         {
                             RequiredFacilityCount = 2,
@@ -140,6 +149,7 @@ namespace YC.Domain.CityStyles
                         Score = 6,
                         Description = "3 行阶梯布局：上方蓝色；中间红色 + 蓝色；下方黄色 + 黄色 + 红色。",
                         MaxDeclarationsPerPlayer = 2,
+                        SpecialActionId = "special_action.city_style.source_stone_industrial_hub",
                         DeclarationRequirement = new CityStyleRequirement
                         {
                             RequiredFacilityCount = 6,
@@ -165,6 +175,7 @@ namespace YC.Domain.CityStyles
                         Score = 7,
                         Description = "3 行阶梯布局：上方黄色；中间红色 + 黄色；下方蓝色 + 蓝色 + 红色。",
                         MaxDeclarationsPerPlayer = 2,
+                        SpecialActionId = "special_action.city_style.efficient_mobile_management_system",
                         DeclarationRequirement = new CityStyleRequirement
                         {
                             RequiredFacilityCount = 6,

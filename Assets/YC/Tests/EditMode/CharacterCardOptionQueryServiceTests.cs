@@ -43,29 +43,28 @@ namespace YC.Tests.EditMode
             Assert.That(options, Has.None.Matches<CharacterCardOption>(item => item.Id == "iron"));
         }
 
-        [TestCase(false, false, 0, 0)]
-        [TestCase(true, false, 12, 1)]
-        [TestCase(true, true, 27, 2)]
-        public void TinManStrategySummary_ReflectsSelectedOptionalPurchases(
-            bool purchase12,
-            bool purchase15,
-            int expectedCost,
-            int expectedPureOriginium)
+        [Test]
+        public void TinManInitialQuery_OnlyDescribesGuaranteedScoreAndExposesNoPurchaseParameters()
         {
             var selected = new Dictionary<string, string>
             {
-                [CharacterEffectParameterKeys.TinManPurchasePureOriginium12] = purchase12 ? "true" : "false",
-                [CharacterEffectParameterKeys.TinManPurchasePureOriginium15] = purchase15 ? "true" : "false"
+                [CharacterEffectParameterKeys.TinManPurchasePureOriginium12] = "true",
+                [CharacterEffectParameterKeys.TinManPurchasePureOriginium15] = "true"
             };
 
             var result = new CharacterCardOptionQueryService()
                 .Query(CreateState(), 1, CharacterCardEffectKind.TinManEstablishPrestige, selected);
 
-            Assert.That(result.GoldVoucherCost, Is.EqualTo(expectedCost));
+            Assert.That(result.GoldVoucherCost, Is.Zero);
             Assert.That(result.ScoreGain, Is.EqualTo(1));
-            Assert.That(result.PureOriginiumGain, Is.EqualTo(expectedPureOriginium));
-            Assert.That(result.SummaryText, Does.Contain(expectedCost + " 金券"));
-            Assert.That(result.SummaryText, Does.Contain(expectedPureOriginium + " 个至纯源石"));
+            Assert.That(result.PureOriginiumGain, Is.Zero);
+            Assert.That(result.SummaryText, Does.Contain("待选结算"));
+            Assert.That(
+                result.Get(CharacterEffectParameterKeys.TinManPurchasePureOriginium12),
+                Is.Empty);
+            Assert.That(
+                result.Get(CharacterEffectParameterKeys.TinManPurchasePureOriginium15),
+                Is.Empty);
         }
 
         [Test]
@@ -134,7 +133,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void TinManPendingQuery_HidesMoveWhenCommittedPurchaseRequiresThisCardsGold()
+        public void TinManPendingQuery_DoesNotTreatLegacyPurchaseFlagsAsCommitment()
         {
             var state = CreateState();
             state.FindPlayer(1).Resources.GoldVoucher = 7;
@@ -153,8 +152,11 @@ namespace YC.Tests.EditMode
                 .QueryPending(state, 1)
                 .Get(CharacterEffectParameterKeys.Choice);
 
-            Assert.That(options, Has.Count.EqualTo(1));
-            Assert.That(options[0].Id, Is.EqualTo(CharacterEffectChoiceIds.GainGold));
+            Assert.That(options, Has.Count.EqualTo(2));
+            Assert.That(options, Has.Some.Matches<CharacterCardOption>(
+                item => item.Id == CharacterEffectChoiceIds.GainGold));
+            Assert.That(options, Has.Some.Matches<CharacterCardOption>(
+                item => item.Id == CharacterEffectChoiceIds.MoveInfluence));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(7));
             Assert.That(state.PendingCharacterEffect.RemainingCardIds, Is.EqualTo(new[] { "discard-a" }));
         }

@@ -146,50 +146,236 @@ namespace YC.Tests.EditMode
             Assert.That(state.PendingCharacterEffect.RemainingCardIds, Is.EqualTo(new[] { "discard-a" }));
         }
 
-        [TestCase(false, false, 0, 0)]
-        [TestCase(true, false, 12, 1)]
-        [TestCase(false, true, 15, 1)]
-        [TestCase(true, true, 27, 2)]
-        public void TinManStrategy_AppliesFixedScoreAndSelectedPurchases(
-            bool purchase12,
-            bool purchase15,
-            int expectedCost,
-            int expectedPureOriginium)
+        [Test]
+        public void TinManStrategy_AwardsFixedScoreThenWaitsForFirstPurchaseDecision()
         {
             var state = CreateActionState(CharacterCardDatabase.TinMan);
             var player = state.FindPlayer(1);
             var cardId = player.CoveredCharacterCardId;
             player.Resources.GoldVoucher = 40;
 
-            var result = Use(state, CharacterEffectModes.Strategy, command =>
-                ConfigureTinManPurchases(command, purchase12, purchase15));
+            var result = Use(state, CharacterEffectModes.Strategy, null);
 
             Assert.That(result.Succeeded, Is.True);
             Assert.That(player.Score, Is.EqualTo(1));
-            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(40 - expectedCost));
-            Assert.That(player.Resources.PureOriginium, Is.EqualTo(expectedPureOriginium));
-            Assert.That(player.CoveredCharacterCardId, Is.Empty);
-            Assert.That(player.DiscardCardIds, Does.Contain(cardId));
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(40));
+            Assert.That(player.Resources.PureOriginium, Is.Zero);
+            Assert.That(player.CoveredCharacterCardId, Is.EqualTo(cardId));
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManFirstPurchase));
+            Assert.That(state.PendingCharacterEffect.OptionIds,
+                Does.Contain(CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium));
         }
 
         [Test]
-        public void TinManStrategy_InsufficientGoldFailsAtomically()
+        public void TinManStrategy_PurchasesProgressivelyAndSettlesAfterSecondDecision()
         {
             var state = CreateActionState(CharacterCardDatabase.TinMan);
             var player = state.FindPlayer(1);
             var cardId = player.CoveredCharacterCardId;
-            player.Resources.GoldVoucher = 26;
+            player.Resources.GoldVoucher = 40;
 
-            var result = Use(state, CharacterEffectModes.Strategy, command =>
-                ConfigureTinManPurchases(command, true, true));
+            Assert.That(Use(state, CharacterEffectModes.Strategy, null).Succeeded, Is.True);
+            var first = Resolve(state, CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium);
 
-            Assert.That(result.Succeeded, Is.False);
-            Assert.That(player.Score, Is.Zero);
-            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(26));
-            Assert.That(player.Resources.PureOriginium, Is.Zero);
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(player.Score, Is.EqualTo(1));
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(28));
+            Assert.That(player.Resources.PureOriginium, Is.EqualTo(1));
             Assert.That(player.CoveredCharacterCardId, Is.EqualTo(cardId));
-            Assert.That(player.DiscardCardIds, Is.Empty);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManSecondPurchase));
+            Assert.That(state.PendingCharacterEffect.OptionIds,
+                Does.Contain(CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium));
+
+            var repeatedFirst = Resolve(
+                state,
+                CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium);
+            Assert.That(repeatedFirst.Succeeded, Is.False);
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(28));
+            Assert.That(player.Resources.PureOriginium, Is.EqualTo(1));
+
+            var second = Resolve(state, CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium);
+
+            Assert.That(second.Succeeded, Is.True);
+            Assert.That(player.Score, Is.EqualTo(1));
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(13));
+            Assert.That(player.Resources.PureOriginium, Is.EqualTo(2));
+            Assert.That(player.CoveredCharacterCardId, Is.Empty);
+            Assert.That(player.DiscardCardIds, Does.Contain(cardId));
             Assert.That(state.PendingCharacterEffect, Is.Null);
+        }
+
+        [Test]
+        public void TinManStrategy_CancelAfterFirstPurchase_SettlesWithOnePureOriginium()
+        {
+            var state = CreateActionState(CharacterCardDatabase.TinMan);
+            var player = state.FindPlayer(1);
+            var cardId = player.CoveredCharacterCardId;
+            player.Resources.GoldVoucher = 20;
+
+            Assert.That(Use(state, CharacterEffectModes.Strategy, null).Succeeded, Is.True);
+            Assert.That(
+                Resolve(state, CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium).Succeeded,
+                Is.True);
+            Assert.That(state.PendingCharacterEffect.OptionIds,
+                Does.Not.Contain(CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium));
+
+            var cancel = Resolve(state, CharacterEffectChoiceIds.TinManFinishPurchasing);
+
+            Assert.That(cancel.Succeeded, Is.True);
+            Assert.That(player.Score, Is.EqualTo(1));
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(8));
+            Assert.That(player.Resources.PureOriginium, Is.EqualTo(1));
+            Assert.That(player.CoveredCharacterCardId, Is.Empty);
+            Assert.That(player.DiscardCardIds, Does.Contain(cardId));
+            Assert.That(state.PendingCharacterEffect, Is.Null);
+        }
+
+        [Test]
+        public void TinManStrategy_StaleOrOutOfOrderPurchaseIsRejectedWithoutMutation()
+        {
+            var state = CreateActionState(CharacterCardDatabase.TinMan);
+            var player = state.FindPlayer(1);
+            player.Resources.GoldVoucher = 12;
+            Assert.That(Use(state, CharacterEffectModes.Strategy, null).Succeeded, Is.True);
+
+            var outOfOrder = Resolve(
+                state,
+                CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium);
+            Assert.That(outOfOrder.Succeeded, Is.False);
+            Assert.That(player.Score, Is.EqualTo(1));
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(12));
+            Assert.That(player.Resources.PureOriginium, Is.Zero);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManFirstPurchase));
+
+            player.Resources.GoldVoucher = 11;
+            var staleBalance = Resolve(
+                state,
+                CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium);
+            Assert.That(staleBalance.Succeeded, Is.False);
+            Assert.That(staleBalance.Validation.Reason, Does.Contain("金券不足"));
+            Assert.That(player.Score, Is.EqualTo(1));
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(11));
+            Assert.That(player.Resources.PureOriginium, Is.Zero);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManFirstPurchase));
+        }
+
+        [Test]
+        public void TinManStrategy_FinalCancelLogsOnceAndReplayCannotAwardAgain()
+        {
+            var state = CreateActionState(CharacterCardDatabase.TinMan);
+            var player = state.FindPlayer(1);
+            var cardId = player.CoveredCharacterCardId;
+            var session = new GameSession(state);
+            session.RegisterHandler(new UseCharacterCardCommandHandler());
+            var command = new GameCommand
+            {
+                Kind = GameCommandKind.UseCharacterCard,
+                PlayerId = 1,
+                TargetId = cardId
+            };
+            command.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = cardId;
+            command.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] = CharacterEffectModes.Strategy;
+
+            var start = session.Submit(command);
+            Assert.That(start.Succeeded, Is.True);
+            Assert.That(state.Logs, Is.Empty);
+
+            var finish = new GameCommand
+            {
+                Kind = GameCommandKind.ResolvePendingChoice,
+                PlayerId = 1
+            };
+            finish.Parameters[UseCharacterCardCommandHandler.ChoiceParameter] =
+                CharacterEffectChoiceIds.TinManFinishPurchasing;
+            finish.Parameters[CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId] =
+                state.PendingCharacterEffect.SourceCommandId;
+            var firstFinish = session.Submit(finish);
+            var replay = session.Submit(finish);
+
+            Assert.That(firstFinish.Succeeded, Is.True);
+            Assert.That(replay.Succeeded, Is.False);
+            Assert.That(player.Score, Is.EqualTo(1));
+            Assert.That(state.Logs, Has.Count.EqualTo(1));
+            Assert.That(state.Logs[0].Message, Does.Contain("锡人").And.Contain("完成全部结算"));
+        }
+
+        [Test]
+        public void TinManStrategy_PurchaseCommandFromCompletedActivationCannotReplayInNextActivation()
+        {
+            var state = CreateActionState(CharacterCardDatabase.TinMan);
+            var player = state.FindPlayer(1);
+            var cardId = player.CoveredCharacterCardId;
+            player.Resources.GoldVoucher = 24;
+            var handler = new UseCharacterCardCommandHandler();
+            var firstUse = new GameCommand
+            {
+                CommandId = "tin-man-use-first",
+                Kind = GameCommandKind.UseCharacterCard,
+                PlayerId = 1,
+                TargetId = cardId
+            };
+            firstUse.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = cardId;
+            firstUse.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] =
+                CharacterEffectModes.Strategy;
+            Assert.That(handler.Handle(state, firstUse).Succeeded, Is.True);
+
+            var oldPurchase = new GameCommand
+            {
+                CommandId = "tin-man-purchase-first",
+                Kind = GameCommandKind.ResolvePendingChoice,
+                PlayerId = 1
+            };
+            oldPurchase.Parameters[UseCharacterCardCommandHandler.ChoiceParameter] =
+                CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium;
+            oldPurchase.Parameters[CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId] =
+                firstUse.CommandId;
+            Assert.That(handler.Handle(state, oldPurchase).Succeeded, Is.True);
+
+            var finishFirstActivation = new GameCommand
+            {
+                Kind = GameCommandKind.ResolvePendingChoice,
+                PlayerId = 1
+            };
+            finishFirstActivation.Parameters[UseCharacterCardCommandHandler.ChoiceParameter] =
+                CharacterEffectChoiceIds.TinManFinishPurchasing;
+            finishFirstActivation.Parameters[CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId] =
+                firstUse.CommandId;
+            Assert.That(handler.Handle(state, finishFirstActivation).Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect, Is.Null);
+
+            player.UsedCharacterThisRound = false;
+            player.DiscardCardIds.Remove(cardId);
+            player.CoveredCharacterCardId = cardId;
+            player.CoveredCharacterCardIds.Add(cardId);
+            var secondUse = new GameCommand
+            {
+                CommandId = "tin-man-use-second",
+                Kind = GameCommandKind.UseCharacterCard,
+                PlayerId = 1,
+                TargetId = cardId
+            };
+            secondUse.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = cardId;
+            secondUse.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] =
+                CharacterEffectModes.Strategy;
+            Assert.That(handler.Handle(state, secondUse).Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect.SourceCommandId, Is.EqualTo(secondUse.CommandId));
+
+            var goldBeforeReplay = player.Resources.GoldVoucher;
+            var pureOriginiumBeforeReplay = player.Resources.PureOriginium;
+            var replay = handler.Handle(state, oldPurchase);
+
+            Assert.That(replay.Succeeded, Is.False);
+            Assert.That(replay.Validation.Reason, Does.Contain("已经结束"));
+            Assert.That(player.Score, Is.EqualTo(2));
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(goldBeforeReplay));
+            Assert.That(player.Resources.PureOriginium, Is.EqualTo(pureOriginiumBeforeReplay));
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManFirstPurchase));
+            Assert.That(state.PendingCharacterEffect.SourceCommandId, Is.EqualTo(secondUse.CommandId));
         }
 
         [Test]
@@ -458,7 +644,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void TinManBoth_StrategyFirstAppliesPurchaseThenResolvesRecall()
+        public void TinManBoth_StrategyFirstUsesPurchaseStepsThenResolvesRecall()
         {
             var state = CreateActionState(CharacterCardDatabase.TinMan);
             var player = state.FindPlayer(1);
@@ -468,18 +654,39 @@ namespace YC.Tests.EditMode
             var use = Use(state, CharacterEffectModes.Both, command =>
             {
                 command.Parameters[UseCharacterCardCommandHandler.EffectOrderParameter] = CharacterEffectOrders.StrategyFirst;
-                ConfigureTinManPurchases(command, true, false);
+                ConfigureLegacyTinManPurchases(command);
             });
 
             Assert.That(use.Succeeded, Is.True);
-            Assert.That(state.HasPendingChoice(), Is.True);
             Assert.That(player.Score, Is.EqualTo(1));
+            Assert.That(player.Resources.PureOriginium, Is.Zero);
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(12));
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManFirstPurchase));
+            Assert.That(state.PendingCharacterEffect.ResolveTinManTacticAfterStrategy, Is.True);
+
+            var firstPurchase = Resolve(
+                state,
+                CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium);
+
+            Assert.That(firstPurchase.Succeeded, Is.True);
             Assert.That(player.Resources.PureOriginium, Is.EqualTo(1));
             Assert.That(player.Resources.GoldVoucher, Is.Zero);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManSecondPurchase));
+            Assert.That(state.PendingCharacterEffect.ResolveTinManTacticAfterStrategy, Is.True);
 
-            var resolve = Resolve(state, CharacterEffectChoiceIds.GainGold);
+            var finishPurchasing = Resolve(
+                state,
+                CharacterEffectChoiceIds.TinManFinishPurchasing);
 
-            Assert.That(resolve.Succeeded, Is.True);
+            Assert.That(finishPurchasing.Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManDiscard));
+
+            var recall = Resolve(state, CharacterEffectChoiceIds.GainGold);
+
+            Assert.That(recall.Succeeded, Is.True);
             Assert.That(player.Resources.GoldVoucher, Is.EqualTo(5));
             Assert.That(player.HandCardIds, Does.Contain("discard-a"));
             Assert.That(player.UsedCharacterThisRound, Is.True);
@@ -497,27 +704,47 @@ namespace YC.Tests.EditMode
             var use = Use(state, CharacterEffectModes.Both, command =>
             {
                 command.Parameters[UseCharacterCardCommandHandler.EffectOrderParameter] = CharacterEffectOrders.TacticFirst;
-                ConfigureTinManPurchases(command, true, false);
+                ConfigureLegacyTinManPurchases(command);
             });
 
             Assert.That(use.Succeeded, Is.True);
             Assert.That(player.Score, Is.Zero);
             Assert.That(player.Resources.PureOriginium, Is.Zero);
-            Assert.That(state.HasPendingChoice(), Is.True);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManDiscard));
 
-            var resolve = Resolve(state, CharacterEffectChoiceIds.GainGold);
+            var recall = Resolve(state, CharacterEffectChoiceIds.GainGold);
 
-            Assert.That(resolve.Succeeded, Is.True);
+            Assert.That(recall.Succeeded, Is.True);
             Assert.That(player.Score, Is.EqualTo(1));
+            Assert.That(player.Resources.PureOriginium, Is.Zero);
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(12));
+            Assert.That(player.HandCardIds, Does.Contain("discard-a"));
+            Assert.That(player.UsedCharacterThisRound, Is.False);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManFirstPurchase));
+
+            var firstPurchase = Resolve(
+                state,
+                CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium);
+
+            Assert.That(firstPurchase.Succeeded, Is.True);
             Assert.That(player.Resources.PureOriginium, Is.EqualTo(1));
             Assert.That(player.Resources.GoldVoucher, Is.Zero);
-            Assert.That(player.HandCardIds, Does.Contain("discard-a"));
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManSecondPurchase));
+
+            var finishPurchasing = Resolve(
+                state,
+                CharacterEffectChoiceIds.TinManFinishPurchasing);
+
+            Assert.That(finishPurchasing.Succeeded, Is.True);
             Assert.That(player.UsedCharacterThisRound, Is.True);
             Assert.That(state.HasPendingChoice(), Is.False);
         }
 
         [Test]
-        public void TinManBoth_TacticFirstRejectsMoveThatWouldMakePurchaseUnaffordableWithoutMutation()
+        public void TinManBoth_TacticFirstMoveRemainsLegalAndFollowingPurchaseCanBeCanceled()
         {
             var state = CreateActionState(CharacterCardDatabase.TinMan);
             var player = state.FindPlayer(1);
@@ -529,7 +756,7 @@ namespace YC.Tests.EditMode
             var use = Use(state, CharacterEffectModes.Both, command =>
             {
                 command.Parameters[UseCharacterCardCommandHandler.EffectOrderParameter] = CharacterEffectOrders.TacticFirst;
-                ConfigureTinManPurchases(command, true, false);
+                ConfigureLegacyTinManPurchases(command);
             });
             Assert.That(use.Succeeded, Is.True);
 
@@ -539,13 +766,24 @@ namespace YC.Tests.EditMode
             resolveCommand.Parameters[UseCharacterCardCommandHandler.TargetInfluenceSlotIdParameter] = target;
             var resolve = new UseCharacterCardCommandHandler().Handle(state, resolveCommand);
 
-            Assert.That(resolve.Succeeded, Is.False);
+            Assert.That(resolve.Succeeded, Is.True);
             Assert.That(player.Resources.GoldVoucher, Is.EqualTo(7));
-            Assert.That(player.Score, Is.Zero);
+            Assert.That(player.Score, Is.EqualTo(1));
             Assert.That(player.Resources.PureOriginium, Is.Zero);
-            Assert.That(state.Map.Influences[0].SlotId, Is.EqualTo(source));
-            Assert.That(player.DiscardCardIds, Is.EqualTo(new[] { "discard-a" }));
-            Assert.That(state.PendingCharacterEffect.RemainingCardIds, Is.EqualTo(new[] { "discard-a" }));
+            Assert.That(state.Map.Influences[0].SlotId, Is.EqualTo(target));
+            Assert.That(player.HandCardIds, Does.Contain("discard-a"));
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.TinManFirstPurchase));
+            Assert.That(state.PendingCharacterEffect.OptionIds,
+                Does.Not.Contain(CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium));
+
+            var finishPurchasing = Resolve(
+                state,
+                CharacterEffectChoiceIds.TinManFinishPurchasing);
+
+            Assert.That(finishPurchasing.Succeeded, Is.True);
+            Assert.That(player.UsedCharacterThisRound, Is.True);
+            Assert.That(state.HasPendingChoice(), Is.False);
         }
 
         [Test]
@@ -640,6 +878,13 @@ namespace YC.Tests.EditMode
         {
             var command = new GameCommand { Kind = GameCommandKind.ResolvePendingChoice, PlayerId = 1 };
             command.Parameters[UseCharacterCardCommandHandler.ChoiceParameter] = choice;
+            if (state.PendingCharacterEffect != null &&
+                !string.IsNullOrEmpty(state.PendingCharacterEffect.SourceCommandId))
+            {
+                command.Parameters[CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId] =
+                    state.PendingCharacterEffect.SourceCommandId;
+            }
+
             return new UseCharacterCardCommandHandler().Handle(state, command);
         }
 
@@ -670,10 +915,10 @@ namespace YC.Tests.EditMode
             command.Parameters[CharacterEffectParameterKeys.MoveTargetSlotId2] = targets[1];
         }
 
-        private static void ConfigureTinManPurchases(GameCommand command, bool purchase12, bool purchase15)
+        private static void ConfigureLegacyTinManPurchases(GameCommand command)
         {
-            command.Parameters[CharacterEffectParameterKeys.TinManPurchasePureOriginium12] = purchase12 ? "true" : "false";
-            command.Parameters[CharacterEffectParameterKeys.TinManPurchasePureOriginium15] = purchase15 ? "true" : "false";
+            command.Parameters[CharacterEffectParameterKeys.TinManPurchasePureOriginium12] = "true";
+            command.Parameters[CharacterEffectParameterKeys.TinManPurchasePureOriginium15] = "true";
         }
 
         private static string CardId(GameState state, string templateId)

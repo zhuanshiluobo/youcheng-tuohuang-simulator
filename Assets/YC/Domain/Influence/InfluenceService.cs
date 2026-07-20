@@ -162,6 +162,83 @@ namespace YC.Domain.Influence
                 true);
         }
 
+        public ValidationResult CanRemoveThenMoveAtomically(
+            GameState state,
+            int playerId,
+            string removeSlotId,
+            InfluenceMoveRequest move)
+        {
+            return CanRemoveThenMoveAtomically(
+                state,
+                playerId,
+                removeSlotId,
+                new[] { move });
+        }
+
+        public ValidationResult CanRemoveThenMoveAtomically(
+            GameState state,
+            int playerId,
+            string removeSlotId,
+            IReadOnlyList<InfluenceMoveRequest> moves)
+        {
+            List<string> canonicalTargetSlotIds;
+            return ToValidationResult(ValidateRemoveThenMove(
+                state,
+                playerId,
+                removeSlotId,
+                moves,
+                out canonicalTargetSlotIds));
+        }
+
+        public InfluenceOperationResult RemoveThenMoveAtomically(
+            GameState state,
+            int playerId,
+            string removeSlotId,
+            InfluenceMoveRequest move)
+        {
+            return RemoveThenMoveAtomically(
+                state,
+                playerId,
+                removeSlotId,
+                new[] { move });
+        }
+
+        public InfluenceOperationResult RemoveThenMoveAtomically(
+            GameState state,
+            int playerId,
+            string removeSlotId,
+            IReadOnlyList<InfluenceMoveRequest> moves)
+        {
+            List<string> canonicalTargetSlotIds;
+            var validation = ValidateRemoveThenMove(
+                state,
+                playerId,
+                removeSlotId,
+                moves,
+                out canonicalTargetSlotIds);
+            if (!validation.Succeeded)
+            {
+                return validation;
+            }
+
+            var removal = removalService.Remove(state, removeSlotId);
+            if (!removal.Succeeded)
+            {
+                return removal;
+            }
+
+            for (var i = 0; i < moves.Count; i++)
+            {
+                var source = FindInfluence(state, moves[i].SourceSlotId);
+                ApplySlotFromId(source, canonicalTargetSlotIds[i]);
+            }
+
+            return InfluenceOperationResult.Success(
+                playerId,
+                canonicalTargetSlotIds[canonicalTargetSlotIds.Count - 1],
+                true);
+        }
+
         public InfluenceOperationResult PlaceAtomically(
             GameState state,
             int playerId,
@@ -392,6 +469,84 @@ namespace YC.Domain.Influence
             player.InfluenceSupply -= 1;
             state.Map.Influences.Add(CreatePlacementFromSlotId(playerId, canonicalSlotId));
             return InfluenceOperationResult.Success(playerId, canonicalSlotId, true);
+        }
+
+        private InfluenceOperationResult ValidateRemoveThenMove(
+            GameState state,
+            int playerId,
+            string removeSlotId,
+            IReadOnlyList<InfluenceMoveRequest> moves,
+            out List<string> canonicalTargetSlotIds)
+        {
+            ValidateState(state);
+            canonicalTargetSlotIds = new List<string>();
+            if (string.IsNullOrEmpty(removeSlotId) || moves == null || moves.Count == 0)
+            {
+                return Failure(
+                    InfluenceFailureCode.InvalidState,
+                    "移除和调度参数都不能为空。",
+                    playerId,
+                    removeSlotId,
+                    false);
+            }
+
+            var projectedState = CreateMoveProjection(state);
+            var removalTarget = FindInfluence(projectedState, removeSlotId);
+            if (removalTarget == null)
+            {
+                return Failure(
+                    InfluenceFailureCode.InfluenceNotFound,
+                    "要移除的影响力不存在。",
+                    playerId,
+                    removeSlotId,
+                    false);
+            }
+
+            projectedState.Map.Influences.Remove(removalTarget);
+            var movedInfluences = new HashSet<InfluencePlacement>();
+            for (var i = 0; i < moves.Count; i++)
+            {
+                var move = moves[i];
+                if (move == null)
+                {
+                    return Failure(
+                        InfluenceFailureCode.InvalidState,
+                        "影响力调度参数不能为空。",
+                        playerId,
+                        string.Empty,
+                        false);
+                }
+
+                var projectedInfluence = FindInfluence(projectedState, move.SourceSlotId);
+                if (projectedInfluence != null && movedInfluences.Contains(projectedInfluence))
+                {
+                    return Failure(
+                        InfluenceFailureCode.InfluenceOwnerMismatch,
+                        "一次效果中不能重复移动同一个影响力。",
+                        playerId,
+                        move.SourceSlotId,
+                        false);
+                }
+
+                var moveValidation = moveRule.Validate(
+                    projectedState,
+                    playerId,
+                    move.SourceSlotId,
+                    move.TargetSlotId);
+                if (!moveValidation.Succeeded)
+                {
+                    return moveValidation;
+                }
+
+                movedInfluences.Add(projectedInfluence);
+                canonicalTargetSlotIds.Add(moveValidation.SlotId);
+                ApplySlotFromId(projectedInfluence, moveValidation.SlotId);
+            }
+
+            return InfluenceOperationResult.Success(
+                playerId,
+                canonicalTargetSlotIds[canonicalTargetSlotIds.Count - 1],
+                false);
         }
 
         private InfluenceOperationResult CanMoveCore(GameState state, int playerId, string sourceInfluenceId, string targetSlotId)

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using YC.Application.Sessions;
+using YC.Domain.CardFlows;
 using YC.Domain.Commands;
+using YC.Domain.Economy;
 using YC.Domain.Events;
 using YC.Domain.Exploration;
 using YC.Domain.Facilities;
@@ -32,9 +34,10 @@ namespace YC.Application.Gameplay
         private readonly FacilityEntryEffectService entryEffectService;
         private readonly InfluenceService influenceService;
         private readonly FacilityInfluenceEffectService facilityInfluenceEffectService;
-        private readonly CityMovementService cityMovementService;
-        private readonly ExplorationService explorationService;
+        private readonly MoveCityCommandHandler moveCityCommandHandler;
+        private readonly ExploreLocationCommandHandler exploreLocationCommandHandler;
         private readonly IMapQueryService mapQuery;
+        private readonly ResourceSaleService resourceSaleService;
 
         public ResolveFacilityEffectCommandHandler(
             BuildFacilityService buildFacilityService,
@@ -43,14 +46,57 @@ namespace YC.Application.Gameplay
             CityMovementService cityMovementService,
             ExplorationService explorationService,
             IMapQueryService mapQuery)
+            : this(
+                buildFacilityService,
+                entryEffectService,
+                influenceService,
+                cityMovementService,
+                explorationService,
+                mapQuery,
+                new ResourceSaleService())
+        {
+        }
+
+        public ResolveFacilityEffectCommandHandler(
+            BuildFacilityService buildFacilityService,
+            FacilityEntryEffectService entryEffectService,
+            InfluenceService influenceService,
+            CityMovementService cityMovementService,
+            ExplorationService explorationService,
+            IMapQueryService mapQuery,
+            ResourceSaleService resourceSaleService)
+            : this(
+                buildFacilityService,
+                entryEffectService,
+                influenceService,
+                new MoveCityCommandHandler(
+                    cityMovementService ?? throw new ArgumentNullException(nameof(cityMovementService))),
+                new ExploreLocationCommandHandler(
+                    explorationService ?? throw new ArgumentNullException(nameof(explorationService))),
+                mapQuery,
+                resourceSaleService)
+        {
+        }
+
+        public ResolveFacilityEffectCommandHandler(
+            BuildFacilityService buildFacilityService,
+            FacilityEntryEffectService entryEffectService,
+            InfluenceService influenceService,
+            MoveCityCommandHandler moveCityCommandHandler,
+            ExploreLocationCommandHandler exploreLocationCommandHandler,
+            IMapQueryService mapQuery,
+            ResourceSaleService resourceSaleService)
         {
             this.buildFacilityService = buildFacilityService ?? throw new ArgumentNullException(nameof(buildFacilityService));
             this.entryEffectService = entryEffectService ?? throw new ArgumentNullException(nameof(entryEffectService));
             this.influenceService = influenceService ?? throw new ArgumentNullException(nameof(influenceService));
             facilityInfluenceEffectService = new FacilityInfluenceEffectService(this.influenceService);
-            this.cityMovementService = cityMovementService ?? throw new ArgumentNullException(nameof(cityMovementService));
-            this.explorationService = explorationService ?? throw new ArgumentNullException(nameof(explorationService));
+            this.moveCityCommandHandler = moveCityCommandHandler ??
+                                          throw new ArgumentNullException(nameof(moveCityCommandHandler));
+            this.exploreLocationCommandHandler = exploreLocationCommandHandler ??
+                                                 throw new ArgumentNullException(nameof(exploreLocationCommandHandler));
             this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
+            this.resourceSaleService = resourceSaleService ?? throw new ArgumentNullException(nameof(resourceSaleService));
         }
 
         public bool CanHandle(GameCommand command)
@@ -137,6 +183,7 @@ namespace YC.Application.Gameplay
             FacilityCardDefinition target;
             if (placement == null ||
                 !FacilityCardDatabase.TryGet(placement.FacilityCardId, out target) ||
+                !target.HasEntryEffect ||
                 string.Equals(target.Color, "rainbow", StringComparison.OrdinalIgnoreCase))
             {
                 return Invalid(CommandErrorCode.InvalidTarget, "只能重放十字相邻的非彩色设施入场效果。");
@@ -182,7 +229,7 @@ namespace YC.Application.Gameplay
             return Success(command.PlayerId, buildResult.Facility.FacilityId, "已执行简陋工程营提供的额外建设。");
         }
 
-        private static CommandResult ResolveExtensionHub(
+        private CommandResult ResolveExtensionHub(
             GameState state,
             GameCommand command,
             PendingCardSessionState pending)
@@ -200,43 +247,26 @@ namespace YC.Application.Gameplay
             }
 
             int slotIndex;
-            if (!int.TryParse(GetParameter(command, BuildFacilityCommandHandler.CityBoardSlotIndexParameter), out slotIndex) ||
-                slotIndex < 0 ||
-                slotIndex >= BuildFacilityService.CityBoardSlotCount)
+            if (!int.TryParse(GetParameter(command, BuildFacilityCommandHandler.CityBoardSlotIndexParameter), out slotIndex))
             {
                 return Invalid(CommandErrorCode.InvalidTarget, "延伸枢纽槽位无效。");
             }
 
-            if (FindFacilityPlacement(state, command.PlayerId, slotIndex) != null)
+            var buildResult = buildFacilityService.BuildReserveForFree(
+                state,
+                command.PlayerId,
+                optionId,
+                slotIndex);
+            if (!buildResult.Succeeded)
             {
-                return Invalid(CommandErrorCode.OccupiedSlot, "延伸枢纽目标槽位已被占用。");
+                return CommandResult.Invalid(buildResult.Validation);
             }
 
-            if (IsFacilityBuilt(state, optionId))
-            {
-                return Invalid(CommandErrorCode.InvalidTarget, "该颜色的延伸枢纽已经被建设。");
-            }
-
-            var extension = FacilityCardDatabase.Get(optionId);
-            if (extension == null || !extension.ReserveOnly)
-            {
-                return Invalid(CommandErrorCode.InvalidTarget, "延伸枢纽储备牌不存在。");
-            }
-
-            var player = state.FindPlayer(command.PlayerId);
-            player.BuiltFacilityIds.Add(optionId);
-            player.Score += extension.Score;
-            state.Map.Facilities.Add(new FacilityPlacement
-            {
-                PlayerId = command.PlayerId,
-                FacilityCardId = optionId,
-                CityBoardSlotIndex = slotIndex
-            });
             ClearFacilityPending(state);
             return Success(command.PlayerId, optionId, "已免费建造延伸枢纽。");
         }
 
-        private static CommandResult ResolveSellResources(
+        private CommandResult ResolveSellResources(
             GameState state,
             GameCommand command,
             PendingCardSessionState pending)
@@ -257,28 +287,28 @@ namespace YC.Application.Gameplay
             int shard;
             int iron;
             int pure;
-            if (!TryReadNonNegative(command, OriginiumAmountParameter, out originium) ||
-                !TryReadNonNegative(command, OriginiumShardAmountParameter, out shard) ||
-                !TryReadNonNegative(command, IronAmountParameter, out iron) ||
-                !TryReadNonNegative(command, PureOriginiumAmountParameter, out pure))
+            if (!TryReadInteger(command, OriginiumAmountParameter, out originium) ||
+                !TryReadInteger(command, OriginiumShardAmountParameter, out shard) ||
+                !TryReadInteger(command, IronAmountParameter, out iron) ||
+                !TryReadInteger(command, PureOriginiumAmountParameter, out pure))
             {
                 return Invalid(CommandErrorCode.InvalidTarget, "出售数量必须是非负整数。");
             }
 
             var player = state.FindPlayer(command.PlayerId);
-            if (originium > player.Resources.Originium ||
-                shard > player.Resources.OriginiumShard ||
-                iron > player.Resources.Iron ||
-                pure > player.Resources.PureOriginium)
+            var sale = resourceSaleService.Sell(
+                player.Resources,
+                new ResourceSaleRequest(originium, shard, iron, pure));
+            if (!sale.Succeeded)
             {
+                if (sale.FailureKind == ResourceSaleFailureKind.InvalidAmount)
+                {
+                    return Invalid(CommandErrorCode.InvalidTarget, "出售数量必须是非负整数。");
+                }
+
                 return Invalid(CommandErrorCode.InsufficientResource, "出售数量超过玩家现有资源。");
             }
 
-            player.Resources.Originium -= originium;
-            player.Resources.OriginiumShard -= shard;
-            player.Resources.Iron -= iron;
-            player.Resources.PureOriginium -= pure;
-            player.Resources.GoldVoucher += originium * 3 + shard * 3 + iron * 4 + pure * 15;
             ClearFacilityPending(state);
             return Success(command.PlayerId, pending.CardId, "贸易街区已完成资源出售。");
         }
@@ -294,27 +324,39 @@ namespace YC.Application.Gameplay
                 targetLocationId = command.TargetId;
             }
 
-            var eventOptionIndex = ReadOptionalInt(command, ExploreLocationCommandHandler.EventOptionIdParameter, -1);
-            var eventInfluenceSlots = SplitIds(GetParameter(command, ExploreLocationCommandHandler.EventInfluenceSlotIdsParameter));
-            var result = cityMovementService.MoveCityForFacility(
+            CityMovementResult movementResult;
+            var result = moveCityCommandHandler.HandleGrantedMove(
                 state,
-                command.PlayerId,
+                command,
                 targetLocationId,
-                eventOptionIndex,
-                eventInfluenceSlots,
-                command.CommandId);
+                out movementResult);
             if (!result.Succeeded)
             {
-                return CommandResult.Invalid(result.Validation);
+                return result;
             }
 
-            TryPlaceRouteInfluence(state, command.PlayerId, result.RouteId, GetParameter(command, RouteInfluenceSlotIdParameter));
+            TryPlaceRouteInfluence(
+                state,
+                command.PlayerId,
+                movementResult.RouteId,
+                GetParameter(command, RouteInfluenceSlotIdParameter));
             if (state.PendingCardSession == pending)
             {
                 ClearFacilityPending(state);
             }
 
-            return Success(command.PlayerId, pending.CardId, "已执行高性能动力设施的免费城市移动。");
+            var events = new List<GameEvent>
+            {
+                new GameEvent
+                {
+                    Kind = GameEventKind.ChoiceResolved,
+                    PlayerId = command.PlayerId,
+                    SubjectId = pending.CardId,
+                    Message = "高性能动力设施已选择免费城市移动。"
+                }
+            };
+            events.AddRange(result.Events);
+            return CommandResult.SuccessResult(events, "已执行高性能动力设施的免费城市移动。");
         }
 
         private static CommandResult ResolveFiveResources(
@@ -376,23 +418,14 @@ namespace YC.Application.Gameplay
                 return Invalid(CommandErrorCode.InvalidTarget, "护航调度中心需要依次指定一至两个部署槽位。");
             }
 
-            var placed = 0;
-            for (var i = 0; i < slots.Count && i < 2; i++)
+            var placement = influenceService.PlaceAtomically(state, command.PlayerId, slots);
+            if (!placement.Succeeded)
             {
-                var result = influenceService.Place(state, command.PlayerId, slots[i]);
-                if (result.Succeeded)
-                {
-                    placed += 1;
-                }
-            }
-
-            if (placed == 0)
-            {
-                return Invalid(CommandErrorCode.InvalidTarget, "所选槽位均不能部署影响力。");
+                return CommandResult.Invalid(placement.Validation);
             }
 
             ClearFacilityPending(state);
-            return Success(command.PlayerId, pending.CardId, "护航调度中心已部署 " + placed + " 个影响力。");
+            return Success(command.PlayerId, pending.CardId, "护航调度中心已部署 " + slots.Count + " 个影响力。");
         }
 
         private CommandResult ResolveWarehouse(
@@ -411,27 +444,28 @@ namespace YC.Application.Gameplay
                 return BeginWarehouseExplore(state, command, pending);
             }
 
-            var succeeded = false;
             var removeSlotId = GetParameter(command, RemoveInfluenceSlotIdParameter);
-            if (!string.IsNullOrEmpty(removeSlotId))
-            {
-                succeeded |= influenceService.Remove(state, removeSlotId).Succeeded;
-            }
-
             var sourceSlotId = GetParameter(command, SourceInfluenceSlotIdParameter);
             var targetSlotId = GetParameter(command, TargetInfluenceSlotIdParameter);
-            if (!string.IsNullOrEmpty(sourceSlotId) && !string.IsNullOrEmpty(targetSlotId))
+            if (string.IsNullOrEmpty(removeSlotId) ||
+                string.IsNullOrEmpty(sourceSlotId) ||
+                string.IsNullOrEmpty(targetSlotId))
             {
-                succeeded |= influenceService.Move(state, command.PlayerId, sourceSlotId, targetSlotId).Succeeded;
+                return Invalid(CommandErrorCode.InvalidTarget, "载具仓库必须同时选择要移除的影响力和一次调度。");
             }
 
-            if (!succeeded)
+            var operation = influenceService.RemoveThenMoveAtomically(
+                state,
+                command.PlayerId,
+                removeSlotId,
+                new InfluenceMoveRequest(sourceSlotId, targetSlotId));
+            if (!operation.Succeeded)
             {
-                return Invalid(CommandErrorCode.InvalidTarget, "移除与调度均无法执行。");
+                return CommandResult.Invalid(operation.Validation);
             }
 
             ClearFacilityPending(state);
-            return Success(command.PlayerId, pending.CardId, "载具仓库已尽可能执行移除与调度。");
+            return Success(command.PlayerId, pending.CardId, "载具仓库已完成移除与调度。");
         }
 
         private CommandResult BeginWarehouseExplore(
@@ -445,56 +479,27 @@ namespace YC.Application.Gameplay
                 targetLocationId = command.TargetId;
             }
 
-            MapPath path;
-            var routeIds = SplitIds(GetParameter(command, ExploreLocationCommandHandler.RouteIdsParameter));
-            if (routeIds.Count > 0)
-            {
-                path = new MapPath
-                {
-                    RouteIds = routeIds,
-                    LocationIds = SplitIds(GetParameter(command, ExploreLocationCommandHandler.PathLocationIdsParameter))
-                };
-            }
-            else
-            {
-                try
-                {
-                    path = explorationService.FindDefaultPath(state, command.PlayerId, targetLocationId);
-                }
-                catch (ArgumentException)
-                {
-                    path = null;
-                }
-            }
-
-            if (path == null)
-            {
-                return Invalid(CommandErrorCode.NoRoute, "无法为载具仓库探索建立路径。");
-            }
-
-            Dictionary<string, int> paymentRecipients;
-            if (!TryParsePaymentRecipients(
-                    GetParameter(command, ExploreLocationCommandHandler.PaymentRecipientsParameter),
-                    out paymentRecipients))
-            {
-                return Invalid(CommandErrorCode.InvalidTarget, "探索路费接收者参数无效。");
-            }
-
-            var result = explorationService.BeginExploreEvent(
+            var result = exploreLocationCommandHandler.BeginGrantedExplore(
                 state,
-                command.PlayerId,
-                targetLocationId,
-                path,
-                GetParameter(command, ExploreLocationCommandHandler.InfluenceSlotIdParameter),
-                paymentRecipients,
-                command.CommandId,
-                true);
+                command,
+                targetLocationId);
             if (!result.Succeeded)
             {
-                return CommandResult.Invalid(result.Validation);
+                return result;
             }
 
-            return Success(command.PlayerId, pending.CardId, "载具仓库已开始一次正常探索。");
+            var events = new List<GameEvent>
+            {
+                new GameEvent
+                {
+                    Kind = GameEventKind.ChoiceResolved,
+                    PlayerId = command.PlayerId,
+                    SubjectId = pending.CardId,
+                    Message = "载具仓库已选择执行探索。"
+                }
+            };
+            events.AddRange(result.Events);
+            return CommandResult.SuccessResult(events, "载具仓库已开始一次正常探索。");
         }
 
         private void TryPlaceRouteInfluence(GameState state, int playerId, string routeId, string requestedSlotId)
@@ -550,19 +555,6 @@ namespace YC.Application.Gameplay
             return null;
         }
 
-        private static bool IsFacilityBuilt(GameState state, string facilityId)
-        {
-            for (var i = 0; i < state.Map.Facilities.Count; i++)
-            {
-                if (state.Map.Facilities[i].FacilityCardId == facilityId)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private static string ResolveOptionId(GameCommand command, PendingCardSessionState pending)
         {
             var optionId = GetParameter(command, OptionIdParameter);
@@ -591,10 +583,16 @@ namespace YC.Application.Gameplay
             return int.TryParse(encoded, out value) && value >= 0;
         }
 
-        private static int ReadOptionalInt(GameCommand command, string parameter, int fallback)
+        private static bool TryReadInteger(GameCommand command, string parameter, out int value)
         {
-            int value;
-            return int.TryParse(GetParameter(command, parameter), out value) ? value : fallback;
+            var encoded = GetParameter(command, parameter);
+            if (string.IsNullOrEmpty(encoded))
+            {
+                value = 0;
+                return true;
+            }
+
+            return int.TryParse(encoded, out value);
         }
 
         private static List<string> SplitIds(string encoded)
@@ -618,34 +616,9 @@ namespace YC.Application.Gameplay
             return result;
         }
 
-        private static bool TryParsePaymentRecipients(string encoded, out Dictionary<string, int> recipients)
-        {
-            recipients = new Dictionary<string, int>();
-            if (string.IsNullOrEmpty(encoded))
-            {
-                return true;
-            }
-
-            var entries = encoded.Split(new[] { ';', '|' }, StringSplitOptions.RemoveEmptyEntries);
-            for (var i = 0; i < entries.Length; i++)
-            {
-                var parts = entries[i].Split(new[] { '=', ':' }, StringSplitOptions.RemoveEmptyEntries);
-                int playerId;
-                if (parts.Length != 2 || !int.TryParse(parts[1].Trim(), out playerId))
-                {
-                    return false;
-                }
-
-                recipients[parts[0].Trim()] = playerId;
-            }
-
-            return true;
-        }
-
         private static void ClearFacilityPending(GameState state)
         {
-            state.PendingCardSession = null;
-            state.PendingChoice = null;
+            CardFlowStateAdapter.ClearPendingSession(state);
         }
 
         private static string GetParameter(GameCommand command, string key)

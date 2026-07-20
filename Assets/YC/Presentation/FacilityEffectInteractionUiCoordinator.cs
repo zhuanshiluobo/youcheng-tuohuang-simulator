@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using YC.Application.Gameplay;
 using YC.Domain.Commands;
+using YC.Domain.Economy;
 using YC.Domain.Facilities;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
@@ -20,10 +21,8 @@ namespace YC.Presentation
         {
             None,
             AdditionalFacility,
-            AdditionalSlot,
             AdditionalPayment,
             ExtensionHub,
-            ExtensionSlot,
             ReplaceInfluence,
             DeployInfluences,
             WarehouseBranch,
@@ -42,8 +41,11 @@ namespace YC.Presentation
         private readonly FacilityEffectPendingChoicePresenter presenter;
         private readonly Action<IReadOnlyList<WorkflowHighlight>> setHighlights;
         private readonly Action clearHighlights;
+        private readonly Action<PendingCardSessionState, string> beginAdditionalExplore;
+        private readonly Action cancelAdditionalExplore;
         private readonly Action<GameCommand> submit;
         private readonly Action<string> setPrompt;
+        private readonly BuildFacilityService buildFacilityService = new BuildFacilityService();
         private string sessionId = string.Empty;
         private SelectionStage stage;
         private string selectedOptionId = string.Empty;
@@ -51,6 +53,7 @@ namespace YC.Presentation
         private string removeInfluenceSlotId = string.Empty;
         private string sourceInfluenceSlotId = string.Empty;
         private readonly List<string> deployInfluenceSlotIds = new List<string>();
+        private bool extensionHubDragging;
 
         public FacilityEffectInteractionUiCoordinator(
             Func<GameState> getState,
@@ -60,6 +63,8 @@ namespace YC.Presentation
             FacilityEffectChoiceDialog dialog,
             Action<IReadOnlyList<WorkflowHighlight>> setHighlights,
             Action clearHighlights,
+            Action<PendingCardSessionState, string> beginAdditionalExplore,
+            Action cancelAdditionalExplore,
             Action<GameCommand> submit,
             Action<string> setPrompt)
         {
@@ -70,6 +75,10 @@ namespace YC.Presentation
             this.dialog = dialog ?? throw new ArgumentNullException(nameof(dialog));
             this.setHighlights = setHighlights ?? throw new ArgumentNullException(nameof(setHighlights));
             this.clearHighlights = clearHighlights ?? throw new ArgumentNullException(nameof(clearHighlights));
+            this.beginAdditionalExplore = beginAdditionalExplore ??
+                                          throw new ArgumentNullException(nameof(beginAdditionalExplore));
+            this.cancelAdditionalExplore = cancelAdditionalExplore ??
+                                           throw new ArgumentNullException(nameof(cancelAdditionalExplore));
             this.submit = submit ?? throw new ArgumentNullException(nameof(submit));
             this.setPrompt = setPrompt ?? throw new ArgumentNullException(nameof(setPrompt));
             presenter = new FacilityEffectPendingChoicePresenter();
@@ -82,6 +91,22 @@ namespace YC.Presentation
                 PendingCardSessionState ignored;
                 return presenter.TryGetPending(getState(), getLocalPlayerId(), out ignored);
             }
+        }
+
+        public bool CanDragAdditionalBuild
+        {
+            get
+            {
+                PendingCardSessionState pending;
+                return stage == SelectionStage.AdditionalFacility &&
+                       presenter.TryGetPending(getState(), getLocalPlayerId(), out pending) &&
+                       pending.ChoiceType == FacilityPendingChoiceTypes.BuildAdditionalFacility;
+            }
+        }
+
+        public bool IsExtensionHubDragging
+        {
+            get { return extensionHubDragging && stage == SelectionStage.ExtensionHub; }
         }
 
         public bool Synchronize()
@@ -173,12 +198,10 @@ namespace YC.Presentation
 
             if (stage == SelectionStage.WarehouseExplore)
             {
-                Submit(
-                    pending,
-                    FacilityPendingChoiceTypes.ExploreOption,
-                    Parameters(ResolveFacilityEffectCommandHandler.TargetLocationIdParameter, locationId));
+                return false;
             }
-            else if (stage == SelectionStage.FreeCityMove)
+
+            if (stage == SelectionStage.FreeCityMove)
             {
                 Submit(
                     pending,
@@ -190,6 +213,58 @@ namespace YC.Presentation
                 setPrompt("当前设施效果不接受地图地点选择。");
             }
 
+            return true;
+        }
+
+        public bool TryBeginAdditionalBuildDrag(string facilityId)
+        {
+            PendingCardSessionState pending;
+            if (!presenter.TryGetPending(getState(), getLocalPlayerId(), out pending) ||
+                pending.ChoiceType != FacilityPendingChoiceTypes.BuildAdditionalFacility ||
+                stage != SelectionStage.AdditionalFacility ||
+                string.IsNullOrEmpty(facilityId) ||
+                !pending.OptionIds.Contains(facilityId))
+            {
+                return false;
+            }
+
+            dialog.Hide();
+            return true;
+        }
+
+        public bool TryHandleAdditionalBuildDrop(string facilityId, int cityBoardSlotIndex)
+        {
+            PendingCardSessionState pending;
+            if (!presenter.TryGetPending(getState(), getLocalPlayerId(), out pending) ||
+                pending.ChoiceType != FacilityPendingChoiceTypes.BuildAdditionalFacility ||
+                stage != SelectionStage.AdditionalFacility ||
+                string.IsNullOrEmpty(facilityId) ||
+                !pending.OptionIds.Contains(facilityId))
+            {
+                return false;
+            }
+
+            if (cityBoardSlotIndex < 0 || cityBoardSlotIndex >= BuildFacilityService.CityBoardSlotCount)
+            {
+                setPrompt("请把建设牌拖到城市面板的空槽位。");
+                Render(pending);
+                return true;
+            }
+
+            var occupied = getState().Map.Facilities.Exists(placement =>
+                placement.PlayerId == getLocalPlayerId() &&
+                placement.CityBoardSlotIndex == cityBoardSlotIndex);
+            if (occupied)
+            {
+                setPrompt("该城市面板槽位已经被占用。");
+                Render(pending);
+                return true;
+            }
+
+            selectedOptionId = facilityId;
+            selectedCityBoardSlotIndex = cityBoardSlotIndex;
+            stage = SelectionStage.AdditionalPayment;
+            Render(pending);
             return true;
         }
 
@@ -206,6 +281,7 @@ namespace YC.Presentation
             removeInfluenceSlotId = string.Empty;
             sourceInfluenceSlotId = string.Empty;
             deployInfluenceSlotIds.Clear();
+            extensionHubDragging = false;
             stage = InitialStage(pending.ChoiceType);
         }
 
@@ -218,6 +294,7 @@ namespace YC.Presentation
             removeInfluenceSlotId = string.Empty;
             sourceInfluenceSlotId = string.Empty;
             deployInfluenceSlotIds.Clear();
+            extensionHubDragging = false;
             dialog.Hide();
         }
 
@@ -266,12 +343,12 @@ namespace YC.Presentation
 
         private void ShowCopyAdjacent(PendingCardSessionState pending)
         {
-            var options = new List<FacilityEffectDialogOption>();
+            var options = new List<EffectDialogOption>();
             for (var i = 0; i < pending.OptionIds.Count; i++)
             {
                 var optionId = pending.OptionIds[i];
                 var captured = optionId;
-                options.Add(new FacilityEffectDialogOption(
+                options.Add(new EffectDialogOption(
                     "城市面板槽位 " + optionId + " · " + GetFacilityNameAtSlot(optionId),
                     () => Submit(pending, captured, null)));
             }
@@ -283,42 +360,20 @@ namespace YC.Presentation
         {
             if (stage == SelectionStage.AdditionalFacility)
             {
-                var facilities = new List<FacilityEffectDialogOption>();
-                for (var i = 0; i < pending.OptionIds.Count; i++)
-                {
-                    var facilityId = pending.OptionIds[i];
-                    var captured = facilityId;
-                    facilities.Add(new FacilityEffectDialogOption(GetFacilityName(facilityId), () =>
-                    {
-                        selectedOptionId = captured;
-                        stage = SelectionStage.AdditionalSlot;
-                        Render(pending);
-                    }));
-                }
-
-                dialog.ShowOptions(getCanvas(), "简陋工程营", "选择要额外建设的供应区设施。费用仍需正常支付。", facilities);
-                return;
-            }
-
-            if (stage == SelectionStage.AdditionalSlot)
-            {
-                dialog.ShowOptions(
+                stage = SelectionStage.AdditionalFacility;
+                dialog.ShowMapPrompt(
                     getCanvas(),
                     "简陋工程营",
-                    "选择城市面板空槽位。",
-                    BuildCityBoardSlotOptions(pending, SelectionStage.AdditionalPayment),
-                    () =>
-                    {
-                        stage = SelectionStage.AdditionalFacility;
-                        Render(pending);
-                    });
+                    "拖动供应区中亮起的建设牌到城市面板空槽位，选择位置后再决定支付方式。",
+                    string.Empty,
+                    null);
                 return;
             }
 
-            var payments = new List<FacilityEffectDialogOption>
+            var payments = new List<EffectDialogOption>
             {
-                new FacilityEffectDialogOption("支付资源", () => SubmitAdditionalBuild(pending, BuildFacilityService.PaymentModeResources)),
-                new FacilityEffectDialogOption("支付金券", () => SubmitAdditionalBuild(pending, BuildFacilityService.PaymentModeGold))
+                new EffectDialogOption("支付资源", () => SubmitAdditionalBuild(pending, BuildFacilityService.PaymentModeResources)),
+                new EffectDialogOption("支付金券", () => SubmitAdditionalBuild(pending, BuildFacilityService.PaymentModeGold))
             };
             dialog.ShowOptions(
                 getCanvas(),
@@ -327,47 +382,72 @@ namespace YC.Presentation
                 payments,
                 () =>
                 {
-                    stage = SelectionStage.AdditionalSlot;
+                    stage = SelectionStage.AdditionalFacility;
                     Render(pending);
                 });
         }
 
         private void ShowExtensionHub(PendingCardSessionState pending)
         {
-            if (stage == SelectionStage.ExtensionHub)
+            var hubIds = new[]
             {
-                var hubs = new List<FacilityEffectDialogOption>();
-                for (var i = 0; i < pending.OptionIds.Count; i++)
-                {
-                    var optionId = pending.OptionIds[i];
-                    if (optionId == FacilityPendingChoiceTypes.SkipOption)
-                    {
-                        hubs.Add(new FacilityEffectDialogOption("跳过，不建造延伸枢纽", () => Submit(pending, optionId, null)));
-                        continue;
-                    }
-
-                    var captured = optionId;
-                    hubs.Add(new FacilityEffectDialogOption(GetFacilityName(optionId), () =>
-                    {
-                        selectedOptionId = captured;
-                        stage = SelectionStage.ExtensionSlot;
-                        Render(pending);
-                    }));
-                }
-
-                dialog.ShowOptions(getCanvas(), "物流枢纽", "选择一个尚未使用的彩色延伸枢纽，或跳过。", hubs);
-                return;
+                FacilityCardDatabase.ExtensionHubBlue,
+                FacilityCardDatabase.ExtensionHubYellow,
+                FacilityCardDatabase.ExtensionHubRed
+            };
+            var hubs = new List<FacilityEffectCardOption>(hubIds.Length);
+            for (var i = 0; i < hubIds.Length; i++)
+            {
+                var hubId = hubIds[i];
+                hubs.Add(new FacilityEffectCardOption(
+                    hubId,
+                    "延伸枢纽",
+                    pending.OptionIds.Contains(hubId)));
             }
 
-            dialog.ShowOptions(
+            dialog.ShowExtensionHubOptions(
                 getCanvas(),
-                "物流枢纽",
-                "选择放置延伸枢纽的城市面板空槽位。",
-                BuildCityBoardSlotOptions(pending, SelectionStage.None, true),
+                hubs,
+                () => extensionHubDragging = true,
+                (facilityId, slotIndex) =>
+                {
+                    extensionHubDragging = false;
+                    if (slotIndex < 0)
+                    {
+                        setPrompt("请把延伸枢纽拖到城市面板的空槽位。");
+                        return;
+                    }
+
+                    var state = getState();
+                    if (state == null)
+                    {
+                        setPrompt("当前游戏状态不可用，请稍后重试。");
+                        return;
+                    }
+
+                    var validation = buildFacilityService.ValidateReserveBuild(
+                        state,
+                        getLocalPlayerId(),
+                        facilityId,
+                        slotIndex);
+                    if (!validation.IsValid)
+                    {
+                        setPrompt(validation.Reason);
+                        return;
+                    }
+
+                    Submit(
+                        pending,
+                        facilityId,
+                        Parameters(
+                            BuildFacilityCommandHandler.CityBoardSlotIndexParameter,
+                            slotIndex.ToString()));
+                },
+                () => extensionHubDragging = false,
                 () =>
                 {
-                    stage = SelectionStage.ExtensionHub;
-                    Render(pending);
+                    extensionHubDragging = false;
+                    Submit(pending, FacilityPendingChoiceTypes.SkipOption, null);
                 });
         }
 
@@ -386,7 +466,10 @@ namespace YC.Presentation
             dialog.ShowResourceAllocation(
                 getCanvas(),
                 "贸易街区",
-                "选择出售数量：源岩/源石碎片每个 3 金券，异铁每个 4 金券，至纯源石每个 15 金券。",
+                "选择出售数量：源岩每个 " + ResourceSaleService.OriginiumUnitPrice +
+                " 金券，源石碎片每个 " + ResourceSaleService.OriginiumShardUnitPrice +
+                " 金券，异铁每个 " + ResourceSaleService.IronUnitPrice +
+                " 金券，至纯源石每个 " + ResourceSaleService.PureOriginiumUnitPrice + " 金券。",
                 new[] { "源岩", "源石碎片", "异铁", "至纯源石" },
                 maximums,
                 -1,
@@ -450,43 +533,65 @@ namespace YC.Presentation
         private void ShowFreeCityMove()
         {
             setHighlights(BuildAllLocationHighlights(WorkflowHighlightSemantic.MoveTarget));
-            dialog.ShowMapPrompt(getCanvas(), "高性能动力设施", "点击地图地点，尝试执行一次免费城市移动。", string.Empty, null);
+            dialog.ShowCollapsibleMapPrompt(
+                getCanvas(),
+                "高性能动力设施",
+                "点击地图地点，尝试执行一次免费城市移动。",
+                "高性能动力设施 · 免费城市移动",
+                string.Empty,
+                null,
+                null,
+                false);
         }
 
         private void ShowWarehouse(PendingCardSessionState pending)
         {
             if (stage == SelectionStage.WarehouseBranch)
             {
-                var options = new List<FacilityEffectDialogOption>
+                var options = new List<EffectDialogOption>();
+                if (pending.OptionIds.Contains(FacilityPendingChoiceTypes.RemoveDispatchOption))
                 {
-                    new FacilityEffectDialogOption("移除一个影响力，然后调度", () =>
+                    options.Add(new EffectDialogOption("移除一个影响力，然后调度", () =>
                     {
                         selectedOptionId = FacilityPendingChoiceTypes.RemoveDispatchOption;
                         stage = SelectionStage.WarehouseRemove;
                         Render(pending);
-                    }),
-                    new FacilityEffectDialogOption("执行一次正常探索", () =>
+                    }));
+                }
+
+                if (pending.OptionIds.Contains(FacilityPendingChoiceTypes.ExploreOption))
+                {
+                    options.Add(new EffectDialogOption("执行一次正常探索", () =>
                     {
                         selectedOptionId = FacilityPendingChoiceTypes.ExploreOption;
                         stage = SelectionStage.WarehouseExplore;
                         Render(pending);
-                    })
-                };
-                dialog.ShowOptions(getCanvas(), "载具仓库", "选择本次入场效果的执行分支。", options);
+                        beginAdditionalExplore(pending, FacilityPendingChoiceTypes.ExploreOption);
+                    }));
+                }
+
+                dialog.ShowCollapsibleOptions(
+                    getCanvas(),
+                    "载具仓库",
+                    "选择本次入场效果的执行分支。",
+                    "载具仓库 · 选择分支",
+                    options);
                 return;
             }
 
             if (stage == SelectionStage.WarehouseExplore)
             {
-                setHighlights(BuildAllLocationHighlights(WorkflowHighlightSemantic.ExploreTarget));
-                dialog.ShowMapPrompt(
+                clearHighlights();
+                dialog.ShowCollapsibleMapPrompt(
                     getCanvas(),
                     "载具仓库 · 探索",
-                    "点击地图地点尝试执行一次正常探索。路径和费用由规则层确认。",
+                    "请按正常探索流程选择目标、同优路线与路费接收者。",
+                    "载具仓库 · 探索",
                     string.Empty,
                     null,
                     () =>
                     {
+                        cancelAdditionalExplore();
                         stage = SelectionStage.WarehouseBranch;
                         Render(pending);
                     });
@@ -496,17 +601,13 @@ namespace YC.Presentation
             if (stage == SelectionStage.WarehouseRemove)
             {
                 setHighlights(BuildPlacedInfluenceHighlights(null, WorkflowHighlightSemantic.EventInfluenceTarget));
-                dialog.ShowMapPrompt(
+                dialog.ShowCollapsibleMapPrompt(
                     getCanvas(),
                     "载具仓库 · 移除",
-                    "点击一个已有影响力；若没有可移除目标，可跳到调度步骤。",
-                    "跳过移除",
-                    () =>
-                    {
-                        removeInfluenceSlotId = string.Empty;
-                        stage = SelectionStage.WarehouseSource;
-                        Render(pending);
-                    },
+                    "点击一个已有影响力。完成移除选择后还必须执行一次调度。",
+                    "载具仓库 · 移除影响力",
+                    string.Empty,
+                    null,
                     () =>
                     {
                         stage = SelectionStage.WarehouseBranch;
@@ -518,13 +619,13 @@ namespace YC.Presentation
             if (stage == SelectionStage.WarehouseSource)
             {
                 setHighlights(BuildPlacedInfluenceHighlights(getLocalPlayerId(), WorkflowHighlightSemantic.DispatchSource));
-                var canFinish = !string.IsNullOrEmpty(removeInfluenceSlotId);
-                dialog.ShowMapPrompt(
+                dialog.ShowCollapsibleMapPrompt(
                     getCanvas(),
                     "载具仓库 · 调度来源",
                     "点击自己的一个影响力作为调度来源。",
-                    "仅结算已选移除",
-                    canFinish ? () => SubmitWarehouseRemoveDispatch(pending, string.Empty) : (Action)null,
+                    "载具仓库 · 选择调度来源",
+                    string.Empty,
+                    null,
                     () =>
                     {
                         stage = SelectionStage.WarehouseRemove;
@@ -534,60 +635,18 @@ namespace YC.Presentation
             }
 
             setHighlights(BuildAllInfluenceSlotHighlights(WorkflowHighlightSemantic.DispatchTarget));
-            dialog.ShowMapPrompt(
+            dialog.ShowCollapsibleMapPrompt(
                 getCanvas(),
                 "载具仓库 · 调度目标",
                 "点击调度目标槽位。",
-                "仅结算已选移除",
-                string.IsNullOrEmpty(removeInfluenceSlotId)
-                    ? (Action)null
-                    : () => SubmitWarehouseRemoveDispatch(pending, string.Empty),
+                "载具仓库 · 选择调度目标",
+                string.Empty,
+                null,
                 () =>
                 {
                     stage = SelectionStage.WarehouseSource;
                     Render(pending);
                 });
-        }
-
-        private List<FacilityEffectDialogOption> BuildCityBoardSlotOptions(
-            PendingCardSessionState pending,
-            SelectionStage nextStage,
-            bool submitImmediately = false)
-        {
-            var result = new List<FacilityEffectDialogOption>();
-            var state = getState();
-            for (var slotIndex = 0; slotIndex < BuildFacilityService.CityBoardSlotCount; slotIndex++)
-            {
-                var occupied = state.Map.Facilities.Exists(placement =>
-                    placement.PlayerId == getLocalPlayerId() &&
-                    placement.CityBoardSlotIndex == slotIndex);
-                if (occupied)
-                {
-                    continue;
-                }
-
-                var captured = slotIndex;
-                result.Add(new FacilityEffectDialogOption("城市面板槽位 " + (slotIndex + 1), () =>
-                {
-                    selectedCityBoardSlotIndex = captured;
-                    if (submitImmediately)
-                    {
-                        Submit(
-                            pending,
-                            selectedOptionId,
-                            Parameters(
-                                BuildFacilityCommandHandler.CityBoardSlotIndexParameter,
-                                selectedCityBoardSlotIndex.ToString()));
-                    }
-                    else
-                    {
-                        stage = nextStage;
-                        Render(pending);
-                    }
-                }));
-            }
-
-            return result;
         }
 
         private void SubmitAdditionalBuild(PendingCardSessionState pending, string paymentMode)

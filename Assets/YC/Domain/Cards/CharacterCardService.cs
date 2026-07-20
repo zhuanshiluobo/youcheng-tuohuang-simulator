@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.Commands;
+using YC.Domain.Economy;
 using YC.Domain.Facilities;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
@@ -12,16 +13,50 @@ namespace YC.Domain.Cards
 {
     public sealed class CharacterCardService
     {
+        public const int TinManFirstPureOriginiumCost = 12;
+        public const int TinManSecondPureOriginiumCost = 15;
+
         private readonly TurnOrderService turnOrderService;
+        private readonly ResourceSaleService resourceSaleService;
+        private readonly IMapQueryService sharedMapQuery;
+        private readonly InfluenceService sharedInfluenceService;
+        private readonly CityMovementService sharedMovementService;
 
         public CharacterCardService()
-            : this(new TurnOrderService())
+            : this(new TurnOrderService(), new ResourceSaleService())
         {
         }
 
         public CharacterCardService(TurnOrderService turnOrderService)
+            : this(turnOrderService, new ResourceSaleService())
+        {
+        }
+
+        public CharacterCardService(
+            TurnOrderService turnOrderService,
+            ResourceSaleService resourceSaleService)
+            : this(turnOrderService, resourceSaleService, null, null, null)
+        {
+        }
+
+        public CharacterCardService(
+            TurnOrderService turnOrderService,
+            ResourceSaleService resourceSaleService,
+            IMapQueryService mapQuery,
+            InfluenceService influenceService,
+            CityMovementService movementService)
         {
             this.turnOrderService = turnOrderService ?? throw new ArgumentNullException(nameof(turnOrderService));
+            this.resourceSaleService = resourceSaleService ?? throw new ArgumentNullException(nameof(resourceSaleService));
+            if ((mapQuery == null) != (influenceService == null) ||
+                (mapQuery == null) != (movementService == null))
+            {
+                throw new ArgumentException("角色牌行动服务必须同时提供，或全部使用默认解析。");
+            }
+
+            sharedMapQuery = mapQuery;
+            sharedInfluenceService = influenceService;
+            sharedMovementService = movementService;
         }
 
         public ValidationResult Cover(GameState state, int playerId, string cardId)
@@ -206,6 +241,12 @@ namespace YC.Domain.Cards
                 return ResolveSecondEffectDecision(state, player, pending, choice);
             }
 
+            if (pending.ChoiceType == CharacterPendingChoiceTypes.TinManFirstPurchase ||
+                pending.ChoiceType == CharacterPendingChoiceTypes.TinManSecondPurchase)
+            {
+                return ResolveTinManStrategyPurchaseChoice(state, playerId, choice);
+            }
+
             if (pending.ChoiceType == CharacterPendingChoiceTypes.LiskarmCleanupRemoval)
             {
                 if (string.IsNullOrEmpty(targetInfluenceSlotId) || !pending.OptionIds.Contains(targetInfluenceSlotId))
@@ -213,7 +254,7 @@ namespace YC.Domain.Cards
                     return Failure(CommandErrorCode.InvalidTarget, "必须选择待选列表中的己方影响力。");
                 }
 
-                var influenceService = new InfluenceService(CreateMapQuery(state));
+                var influenceService = ResolveInfluenceService(state);
                 var influence = influenceService.FindInfluence(state, targetInfluenceSlotId);
                 if (influence == null || influence.PlayerId != playerId)
                 {
@@ -330,7 +371,7 @@ namespace YC.Domain.Cards
                    definition.TacticEffect == CharacterCardEffectKind.TexasRemoveAndDoubleMove;
         }
 
-        private static ValidationResult UseBoardCharacterCard(
+        private ValidationResult UseBoardCharacterCard(
             GameState state,
             int playerId,
             string cardId,
@@ -385,15 +426,14 @@ namespace YC.Domain.Cards
             return ValidationResult.Success;
         }
 
-        private static ValidationResult ApplyBoardEffect(
+        private ValidationResult ApplyBoardEffect(
             GameState state,
             int playerId,
             string cardId,
             CharacterCardEffectKind effect,
             IDictionary<string, string> parameters)
         {
-            var mapQuery = CreateMapQuery(state);
-            var influenceService = new InfluenceService(mapQuery);
+            var influenceService = ResolveInfluenceService(state);
             var player = state.FindPlayer(playerId);
             switch (effect)
             {
@@ -460,17 +500,7 @@ namespace YC.Domain.Cards
                     }
 
                     var targetLocationId = GetParameter(parameters, CharacterEffectParameterKeys.TargetLocationId);
-                    if (!HasPlayerInfluenceAtLocation(state, playerId, targetLocationId))
-                    {
-                        return Failure(CommandErrorCode.InvalidTarget, "极境计谋目标必须已有至少一个己方影响力。");
-                    }
-
-                    var movementService = new CityMovementService(
-                        mapQuery,
-                        influenceService,
-                        new TravelCostService(mapQuery),
-                        new EventDeckService(),
-                        new ResourceTokenService());
+                    var movementService = ResolveMovementService(state);
                     var validation = movementService.CanRaidCityForCharacter(state, playerId, targetLocationId);
                     if (!validation.IsValid)
                     {
@@ -504,20 +534,16 @@ namespace YC.Domain.Cards
                         return Failure(CommandErrorCode.InsufficientResource, "德克萨斯计谋需要支付3金券。");
                     }
 
-                    var removal = influenceService.Remove(
-                        state,
-                        GetParameter(parameters, CharacterEffectParameterKeys.RemovalTargetInfluenceSlotId));
-                    if (!removal.Succeeded)
-                    {
-                        return removal.Validation;
-                    }
-
                     var moves = new[]
                     {
                         new InfluenceMoveRequest(GetParameter(parameters, CharacterEffectParameterKeys.MoveSourceSlotId1), GetParameter(parameters, CharacterEffectParameterKeys.MoveTargetSlotId1)),
                         new InfluenceMoveRequest(GetParameter(parameters, CharacterEffectParameterKeys.MoveSourceSlotId2), GetParameter(parameters, CharacterEffectParameterKeys.MoveTargetSlotId2))
                     };
-                    var move = influenceService.MoveAtomically(state, playerId, moves);
+                    var move = influenceService.RemoveThenMoveAtomically(
+                        state,
+                        playerId,
+                        GetParameter(parameters, CharacterEffectParameterKeys.RemovalTargetInfluenceSlotId),
+                        moves);
                     if (!move.Succeeded)
                     {
                         return move.Validation;
@@ -529,6 +555,32 @@ namespace YC.Domain.Cards
                 default:
                     return Failure(CommandErrorCode.InvalidTarget, "该角色牌效果无法按棋盘效果结算。");
             }
+        }
+
+        private IMapQueryService ResolveMapQuery(GameState state)
+        {
+            return sharedMapQuery ?? CreateMapQuery(state);
+        }
+
+        private InfluenceService ResolveInfluenceService(GameState state)
+        {
+            return sharedInfluenceService ?? new InfluenceService(ResolveMapQuery(state));
+        }
+
+        private CityMovementService ResolveMovementService(GameState state)
+        {
+            if (sharedMovementService != null)
+            {
+                return sharedMovementService;
+            }
+
+            var mapQuery = ResolveMapQuery(state);
+            return new CityMovementService(
+                mapQuery,
+                ResolveInfluenceService(state),
+                new TravelCostService(mapQuery),
+                new EventDeckService(),
+                new ResourceTokenService());
         }
 
         private static IMapQueryService CreateMapQuery(GameState state)
@@ -547,19 +599,6 @@ namespace YC.Domain.Cards
             }
 
             return resources;
-        }
-
-        private static bool HasPlayerInfluenceAtLocation(GameState state, int playerId, string locationId)
-        {
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                if (state.Map.Influences[i].PlayerId == playerId && state.Map.Influences[i].LocationId == locationId)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private static bool HasOpponentCityAt(GameState state, int playerId, string locationId)
@@ -663,7 +702,7 @@ namespace YC.Domain.Cards
             return ValidationResult.Success;
         }
 
-        private static ValidationResult ApplyEffectPlan(
+        private ValidationResult ApplyEffectPlan(
             CharacterCardEffectKind effect,
             GameState state,
             int playerId,
@@ -700,14 +739,29 @@ namespace YC.Domain.Cards
             }
 
             var held = resources[playerId];
-            var minimum = Math.Min(held.Originium, Math.Min(held.OriginiumShard, held.Iron));
-            if (held.Get(selected) != minimum)
+            if (!IsMinimumBasicResource(held, selected))
             {
                 return Failure(CommandErrorCode.InvalidTarget, "极境只能选择当前持有数量并列最少的资源。");
             }
 
             held.Set(selected, held.Get(selected) + 4);
             return ValidationResult.Success;
+        }
+
+        public static bool IsMinimumBasicResource(ResourceSet resources, ResourceType resourceType)
+        {
+            if (resources == null ||
+                (resourceType != ResourceType.Originium &&
+                 resourceType != ResourceType.OriginiumShard &&
+                 resourceType != ResourceType.Iron))
+            {
+                return false;
+            }
+
+            var minimum = Math.Min(
+                resources.Originium,
+                Math.Min(resources.OriginiumShard, resources.Iron));
+            return resources.Get(resourceType) == minimum;
         }
 
         private static ValidationResult PlanTexasSpecialDelivery(
@@ -724,12 +778,10 @@ namespace YC.Domain.Cards
             }
 
             resources[playerId].GoldVoucher += 12;
-            facilitySupply.Remove(facilityCardId);
-            facilityDeck.Add(facilityCardId);
-            var projectedState = new GameState();
-            projectedState.Decks.FacilitySupply = facilitySupply;
-            projectedState.Decks.FacilityDeck = facilityDeck;
-            BuildFacilityService.RefillFacilitySupply(projectedState);
+            FacilitySupplyService.ReturnSupplyCardToDeck(
+                facilitySupply,
+                facilityDeck,
+                facilityCardId);
             return ValidationResult.Success;
         }
 
@@ -743,33 +795,25 @@ namespace YC.Domain.Cards
             bool resolvingSecondEffect,
             bool offerSecondEffect)
         {
-            var purchase12 = false;
-            var purchase15 = false;
-            if (effectMode != CharacterEffectModes.Tactic)
-            {
-                var parse = ParseTinManStrategyChoices(parameters, out purchase12, out purchase15);
-                if (!parse.IsValid)
-                {
-                    return parse;
-                }
-            }
-
             var projected = CloneForCharacterEffect(state);
             ValidationResult result;
             if (effectMode == CharacterEffectModes.Strategy)
             {
-                result = ApplyTinManStrategy(projected.FindPlayer(playerId), purchase12, purchase15);
-                if (result.IsValid)
-                {
-                    CompleteOrOfferSecondEffect(
+                result = BeginTinManStrategy(
+                    projected,
+                    playerId,
+                    cardId,
+                    ShouldOfferSecondEffect(
                         projected,
-                        projected.FindPlayer(playerId),
-                        cardId,
+                        playerId,
                         effectMode,
                         CharacterCardDatabase.Get(cardId),
                         resolvingSecondEffect,
-                        offerSecondEffect);
-                }
+                        offerSecondEffect)
+                        ? CharacterEffectModes.Tactic
+                        : string.Empty,
+                    resolvingSecondEffect,
+                    false);
             }
             else if (effectMode == CharacterEffectModes.Tactic)
             {
@@ -778,8 +822,6 @@ namespace YC.Domain.Cards
                     playerId,
                     cardId,
                     false,
-                    false,
-                    false,
                     ShouldOfferSecondEffect(projected, playerId, effectMode, CharacterCardDatabase.Get(cardId), resolvingSecondEffect, offerSecondEffect)
                         ? CharacterEffectModes.Strategy
                         : string.Empty,
@@ -787,15 +829,23 @@ namespace YC.Domain.Cards
             }
             else if (effectOrder == CharacterEffectOrders.StrategyFirst)
             {
-                result = ApplyTinManStrategy(projected.FindPlayer(playerId), purchase12, purchase15);
-                if (result.IsValid)
-                {
-                    result = BeginTinManDeepPlanning(projected, playerId, cardId, false, false, false, string.Empty, false);
-                }
+                result = BeginTinManStrategy(
+                    projected,
+                    playerId,
+                    cardId,
+                    string.Empty,
+                    false,
+                    true);
             }
             else
             {
-                result = BeginTinManDeepPlanning(projected, playerId, cardId, true, purchase12, purchase15, string.Empty, false);
+                result = BeginTinManDeepPlanning(
+                    projected,
+                    playerId,
+                    cardId,
+                    true,
+                    string.Empty,
+                    false);
             }
 
             if (!result.IsValid)
@@ -807,32 +857,171 @@ namespace YC.Domain.Cards
             return ValidationResult.Success;
         }
 
+        private static ValidationResult BeginTinManStrategy(
+            GameState state,
+            int playerId,
+            string cardId,
+            string remainingEffectMode,
+            bool isSecondEffect,
+            bool resolveTacticAfterStrategy)
+        {
+            var player = state.FindPlayer(playerId);
+            player.Score += 1;
+            state.PendingCharacterEffect = new PendingCharacterEffectState
+            {
+                ChoiceType = CharacterPendingChoiceTypes.TinManFirstPurchase,
+                PlayerId = playerId,
+                CardId = cardId,
+                OptionIds = CreateTinManPurchaseOptions(
+                    CharacterPendingChoiceTypes.TinManFirstPurchase,
+                    player.Resources.GoldVoucher),
+                ResolveTinManTacticAfterStrategy = resolveTacticAfterStrategy,
+                RemainingEffectMode = remainingEffectMode ?? string.Empty,
+                IsSecondEffect = isSecondEffect
+            };
+            return ValidationResult.Success;
+        }
+
+        private static List<string> CreateTinManPurchaseOptions(string choiceType, int goldVoucher)
+        {
+            var options = new List<string>
+            {
+                CharacterEffectChoiceIds.TinManFinishPurchasing
+            };
+            if (choiceType == CharacterPendingChoiceTypes.TinManFirstPurchase &&
+                goldVoucher >= TinManFirstPureOriginiumCost)
+            {
+                options.Add(CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium);
+            }
+            else if (choiceType == CharacterPendingChoiceTypes.TinManSecondPurchase &&
+                     goldVoucher >= TinManSecondPureOriginiumCost)
+            {
+                options.Add(CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium);
+            }
+
+            return options;
+        }
+
+        private static ValidationResult ResolveTinManStrategyPurchaseChoice(
+            GameState state,
+            int playerId,
+            string choice)
+        {
+            var projected = CloneForCharacterEffect(state);
+            var pending = projected.PendingCharacterEffect;
+            var player = projected.FindPlayer(playerId);
+            if (pending.OptionIds == null || !pending.OptionIds.Contains(choice))
+            {
+                return Failure(CommandErrorCode.InvalidTarget, "该选项不属于锡人当前购买步骤。");
+            }
+
+            if (choice == CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium)
+            {
+                if (pending.ChoiceType != CharacterPendingChoiceTypes.TinManFirstPurchase)
+                {
+                    return Failure(CommandErrorCode.InvalidTarget, "锡人第一笔购买已经处理，不能重复支付。");
+                }
+
+                if (player.Resources.GoldVoucher < TinManFirstPureOriginiumCost)
+                {
+                    return Failure(CommandErrorCode.InsufficientResource, "金券不足，无法完成锡人第一笔购买。");
+                }
+
+                player.Resources.GoldVoucher -= TinManFirstPureOriginiumCost;
+                player.Resources.PureOriginium += 1;
+                pending.TinManPurchasePureOriginium12 = true;
+                pending.ChoiceType = CharacterPendingChoiceTypes.TinManSecondPurchase;
+                pending.OptionIds = CreateTinManPurchaseOptions(
+                    CharacterPendingChoiceTypes.TinManSecondPurchase,
+                    player.Resources.GoldVoucher);
+                CommitCharacterEffectProjection(state, projected);
+                return ValidationResult.Success;
+            }
+
+            if (choice == CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium)
+            {
+                if (pending.ChoiceType != CharacterPendingChoiceTypes.TinManSecondPurchase ||
+                    !pending.TinManPurchasePureOriginium12)
+                {
+                    return Failure(CommandErrorCode.InvalidTarget, "必须先完成锡人第一笔购买，才能进行第二笔购买。");
+                }
+
+                if (player.Resources.GoldVoucher < TinManSecondPureOriginiumCost)
+                {
+                    return Failure(CommandErrorCode.InsufficientResource, "金券不足，无法完成锡人第二笔购买。");
+                }
+
+                player.Resources.GoldVoucher -= TinManSecondPureOriginiumCost;
+                player.Resources.PureOriginium += 1;
+                pending.TinManPurchasePureOriginium15 = true;
+            }
+            else if (choice != CharacterEffectChoiceIds.TinManFinishPurchasing)
+            {
+                return Failure(CommandErrorCode.InvalidTarget, "请选择购买当前至纯源石或取消并结算。");
+            }
+
+            var cardId = pending.CardId;
+            var sourceCommandId = pending.SourceCommandId;
+            if (pending.ResolveTinManTacticAfterStrategy)
+            {
+                projected.PendingCharacterEffect = null;
+                var tactic = BeginTinManDeepPlanning(
+                    projected,
+                    playerId,
+                    cardId,
+                    false,
+                    string.Empty,
+                    true);
+                if (!tactic.IsValid)
+                {
+                    return tactic;
+                }
+
+                if (projected.PendingCharacterEffect != null &&
+                    projected.PendingCharacterEffect.IsValid())
+                {
+                    projected.PendingCharacterEffect.SourceCommandId = sourceCommandId;
+                }
+
+                CommitCharacterEffectProjection(state, projected);
+                return ValidationResult.Success;
+            }
+
+            var completedSecondEffect = pending.IsSecondEffect;
+            var offerRemainingEffect = !string.IsNullOrEmpty(pending.RemainingEffectMode);
+            projected.PendingCharacterEffect = null;
+            CompleteOrOfferSecondEffect(
+                projected,
+                player,
+                cardId,
+                CharacterEffectModes.Strategy,
+                CharacterCardDatabase.Get(cardId),
+                completedSecondEffect,
+                offerRemainingEffect);
+            CommitCharacterEffectProjection(state, projected);
+            return ValidationResult.Success;
+        }
+
         private static ValidationResult BeginTinManDeepPlanning(
             GameState state,
             int playerId,
             string cardId,
             bool resolveStrategyAfterRecall,
-            bool purchase12,
-            bool purchase15,
             string remainingEffectMode,
             bool isSecondEffect)
         {
             var player = state.FindPlayer(playerId);
-            if (resolveStrategyAfterRecall &&
-                player.Resources.GoldVoucher + player.DiscardCardIds.Count * 5 < TinManPurchaseCost(purchase12, purchase15))
-            {
-                return Failure(CommandErrorCode.InsufficientResource, "即使所有弃牌都选择获得金券，也不足以支付锡人策略购买费用。");
-            }
-
             if (player.DiscardCardIds.Count == 0)
             {
                 if (resolveStrategyAfterRecall)
                 {
-                    var strategy = ApplyTinManStrategy(player, purchase12, purchase15);
-                    if (!strategy.IsValid)
-                    {
-                        return strategy;
-                    }
+                    return BeginTinManStrategy(
+                        state,
+                        playerId,
+                        cardId,
+                        string.Empty,
+                        false,
+                        false);
                 }
 
                 CompleteOrOfferSecondEffect(
@@ -858,15 +1047,13 @@ namespace YC.Domain.Cards
                     CharacterEffectChoiceIds.MoveInfluence
                 },
                 ResolveTinManStrategyAfterRecall = resolveStrategyAfterRecall,
-                TinManPurchasePureOriginium12 = purchase12,
-                TinManPurchasePureOriginium15 = purchase15,
                 RemainingEffectMode = remainingEffectMode ?? string.Empty,
                 IsSecondEffect = isSecondEffect
             };
             return ValidationResult.Success;
         }
 
-        private static ValidationResult ResolveTinManPendingChoice(
+        private ValidationResult ResolveTinManPendingChoice(
             GameState state,
             int playerId,
             string choice,
@@ -882,7 +1069,7 @@ namespace YC.Domain.Cards
             }
             else if (choice == CharacterEffectChoiceIds.MoveInfluence)
             {
-                var moveResult = new InfluenceService(CreateMapQuery(projected)).Move(
+                var moveResult = ResolveInfluenceService(projected).Move(
                     projected,
                     playerId,
                     sourceInfluenceSlotId,
@@ -900,12 +1087,6 @@ namespace YC.Domain.Cards
             var resolvedCardId = pending.RemainingCardIds[0];
             pending.RemainingCardIds.RemoveAt(0);
             pending.ResolvedCardIds.Add(resolvedCardId);
-            if (pending.ResolveTinManStrategyAfterRecall &&
-                player.Resources.GoldVoucher + pending.RemainingCardIds.Count * 5 <
-                TinManPurchaseCost(pending.TinManPurchasePureOriginium12, pending.TinManPurchasePureOriginium15))
-            {
-                return Failure(CommandErrorCode.InsufficientResource, "该选择会导致剩余可获得金券不足以完成锡人后续策略购买。");
-            }
 
             if (pending.RemainingCardIds.Count > 0)
             {
@@ -925,14 +1106,23 @@ namespace YC.Domain.Cards
 
             if (pending.ResolveTinManStrategyAfterRecall)
             {
-                var strategy = ApplyTinManStrategy(
-                    player,
-                    pending.TinManPurchasePureOriginium12,
-                    pending.TinManPurchasePureOriginium15);
+                var sourceCommandId = pending.SourceCommandId;
+                projected.PendingCharacterEffect = null;
+                var strategy = BeginTinManStrategy(
+                    projected,
+                    playerId,
+                    pending.CardId,
+                    string.Empty,
+                    false,
+                    false);
                 if (!strategy.IsValid)
                 {
                     return strategy;
                 }
+
+                projected.PendingCharacterEffect.SourceCommandId = sourceCommandId;
+                CommitCharacterEffectProjection(state, projected);
+                return ValidationResult.Success;
             }
 
             var tinManCardId = pending.CardId;
@@ -948,67 +1138,6 @@ namespace YC.Domain.Cards
                 !string.IsNullOrEmpty(pending.RemainingEffectMode));
             CommitCharacterEffectProjection(state, projected);
             return ValidationResult.Success;
-        }
-
-        private static ValidationResult ParseTinManStrategyChoices(
-            IDictionary<string, string> parameters,
-            out bool purchase12,
-            out bool purchase15)
-        {
-            var purchase12IsValid = TryParseExplicitBoolean(
-                parameters,
-                CharacterEffectParameterKeys.TinManPurchasePureOriginium12,
-                out purchase12);
-            var purchase15IsValid = TryParseExplicitBoolean(
-                parameters,
-                CharacterEffectParameterKeys.TinManPurchasePureOriginium15,
-                out purchase15);
-            if (!purchase12IsValid || !purchase15IsValid)
-            {
-                return Failure(CommandErrorCode.InvalidTarget, "锡人策略的两个至纯源石购买开关都必须明确填写 true 或 false。");
-            }
-
-            return ValidationResult.Success;
-        }
-
-        private static bool TryParseExplicitBoolean(
-            IDictionary<string, string> parameters,
-            string key,
-            out bool value)
-        {
-            value = false;
-            var raw = GetParameter(parameters, key);
-            if (string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase))
-            {
-                value = true;
-                return true;
-            }
-
-            if (string.Equals(raw, "false", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static ValidationResult ApplyTinManStrategy(PlayerState player, bool purchase12, bool purchase15)
-        {
-            var cost = TinManPurchaseCost(purchase12, purchase15);
-            if (player.Resources.GoldVoucher < cost)
-            {
-                return Failure(CommandErrorCode.InsufficientResource, "锡人策略的金券不足，无法完成已选择的至纯源石购买。");
-            }
-
-            player.Resources.GoldVoucher -= cost;
-            player.Resources.PureOriginium += (purchase12 ? 1 : 0) + (purchase15 ? 1 : 0);
-            player.Score += 1;
-            return ValidationResult.Success;
-        }
-
-        private static int TinManPurchaseCost(bool purchase12, bool purchase15)
-        {
-            return (purchase12 ? 12 : 0) + (purchase15 ? 15 : 0);
         }
 
         private static void CompleteCharacterUse(PlayerState player, string cardId)
@@ -1113,42 +1242,36 @@ namespace YC.Domain.Cards
             return ValidationResult.Success;
         }
 
-        private static ValidationResult PlanCannotTradeChannel(
+        private ValidationResult PlanCannotTradeChannel(
             int playerId,
             IDictionary<string, string> parameters,
             Dictionary<int, ResourceSet> resources)
         {
-            var sales = new[]
+            int originium;
+            int shard;
+            int iron;
+            int pure;
+            if (!TryParseSaleAmount(parameters, CharacterEffectParameterKeys.SaleOriginium, out originium) ||
+                !TryParseSaleAmount(parameters, CharacterEffectParameterKeys.SaleOriginiumShard, out shard) ||
+                !TryParseSaleAmount(parameters, CharacterEffectParameterKeys.SaleIron, out iron) ||
+                !TryParseSaleAmount(parameters, CharacterEffectParameterKeys.SalePureOriginium, out pure))
             {
-                ParseSale(parameters, CharacterEffectParameterKeys.SaleOriginium, ResourceType.Originium, 3),
-                ParseSale(parameters, CharacterEffectParameterKeys.SaleOriginiumShard, ResourceType.OriginiumShard, 3),
-                ParseSale(parameters, CharacterEffectParameterKeys.SaleIron, ResourceType.Iron, 4),
-                ParseSale(parameters, CharacterEffectParameterKeys.SalePureOriginium, ResourceType.PureOriginium, 15)
-            };
+                return Failure(CommandErrorCode.InvalidTarget, "贸易渠道的出售数量必须是非负整数。");
+            }
 
-            var playerResources = resources[playerId];
-            var revenue = 0;
-            for (var i = 0; i < sales.Length; i++)
+            var sale = resourceSaleService.Sell(
+                resources[playerId],
+                new ResourceSaleRequest(originium, shard, iron, pure));
+            if (!sale.Succeeded)
             {
-                if (!sales[i].IsValid)
+                if (sale.FailureKind == ResourceSaleFailureKind.InvalidAmount)
                 {
                     return Failure(CommandErrorCode.InvalidTarget, "贸易渠道的出售数量必须是非负整数。");
                 }
 
-                if (playerResources.Get(sales[i].Type) < sales[i].Amount)
-                {
-                    return Failure(CommandErrorCode.InsufficientResource, "贸易渠道出售的资源数量超过持有量。");
-                }
-
-                revenue += sales[i].Amount * sales[i].UnitPrice;
+                return Failure(CommandErrorCode.InsufficientResource, "贸易渠道出售的资源数量超过持有量。");
             }
 
-            for (var i = 0; i < sales.Length; i++)
-            {
-                playerResources.Set(sales[i].Type, playerResources.Get(sales[i].Type) - sales[i].Amount);
-            }
-
-            playerResources.GoldVoucher += revenue;
             return ValidationResult.Success;
         }
 
@@ -1196,21 +1319,19 @@ namespace YC.Domain.Cards
             }
         }
 
-        private static SalePlan ParseSale(
+        private static bool TryParseSaleAmount(
             IDictionary<string, string> parameters,
             string key,
-            ResourceType type,
-            int unitPrice)
+            out int amount)
         {
             var raw = GetParameter(parameters, key);
-            int amount;
-            return new SalePlan
+            if (string.IsNullOrEmpty(raw))
             {
-                Type = type,
-                UnitPrice = unitPrice,
-                IsValid = string.IsNullOrEmpty(raw) || (int.TryParse(raw, out amount) && amount >= 0),
-                Amount = string.IsNullOrEmpty(raw) || !int.TryParse(raw, out amount) ? 0 : amount
-            };
+                amount = 0;
+                return true;
+            }
+
+            return int.TryParse(raw, out amount);
         }
 
         private static string GetParameter(IDictionary<string, string> parameters, string key)
@@ -1277,6 +1398,7 @@ namespace YC.Domain.Cards
                     DiscardCardIds = new List<string>(player.DiscardCardIds),
                     BuiltFacilityIds = new List<string>(player.BuiltFacilityIds),
                     DeclaredCityStyleIds = new List<string>(player.DeclaredCityStyleIds),
+                    DeclaredCityStyles = CloneCityStyleDeclarations(player.DeclaredCityStyles),
                     UsedSpecialActionIdsThisRound = new List<string>(player.UsedSpecialActionIdsThisRound),
                     CoveredCharacterCardId = player.CoveredCharacterCardId
                 });
@@ -1324,6 +1446,42 @@ namespace YC.Domain.Cards
             clone.PendingCharacterEffect = ClonePendingCharacterEffect(source.PendingCharacterEffect);
 
             return clone;
+        }
+
+        private static List<CityStyleDeclarationState> CloneCityStyleDeclarations(
+            IList<CityStyleDeclarationState> declarations)
+        {
+            var result = new List<CityStyleDeclarationState>();
+            if (declarations == null)
+            {
+                return result;
+            }
+
+            for (var i = 0; i < declarations.Count; i++)
+            {
+                var declaration = declarations[i];
+                if (declaration == null)
+                {
+                    continue;
+                }
+
+                result.Add(new CityStyleDeclarationState
+                {
+                    InfluenceMarkerId = declaration.InfluenceMarkerId,
+                    CityStyleId = declaration.CityStyleId,
+                    MarkerArea = declaration.MarkerArea,
+                    UnlockedSpecialActionId = declaration.UnlockedSpecialActionId,
+                    RemainingSpecialActionUses = declaration.RemainingSpecialActionUses,
+                    UsedFacilityIds = declaration.UsedFacilityIds == null
+                        ? new List<string>()
+                        : new List<string>(declaration.UsedFacilityIds),
+                    UsedCityBoardSlotIndexes = declaration.UsedCityBoardSlotIndexes == null
+                        ? new List<int>()
+                        : new List<int>(declaration.UsedCityBoardSlotIndexes)
+                });
+            }
+
+            return result;
         }
 
         private static void CommitCharacterEffectProjection(GameState target, GameState projection)
@@ -1386,6 +1544,7 @@ namespace YC.Domain.Cards
                 ResolvedCardIds = new List<string>(source.ResolvedCardIds),
                 OptionIds = new List<string>(source.OptionIds),
                 ResolveTinManStrategyAfterRecall = source.ResolveTinManStrategyAfterRecall,
+                ResolveTinManTacticAfterStrategy = source.ResolveTinManTacticAfterStrategy,
                 TinManPurchasePureOriginium12 = source.TinManPurchasePureOriginium12,
                 TinManPurchasePureOriginium15 = source.TinManPurchasePureOriginium15,
                 RemainingEffectMode = source.RemainingEffectMode,
@@ -1447,12 +1606,5 @@ namespace YC.Domain.Cards
             return ValidationResult.Failure(code, reason);
         }
 
-        private struct SalePlan
-        {
-            public ResourceType Type;
-            public int UnitPrice;
-            public int Amount;
-            public bool IsValid;
-        }
     }
 }

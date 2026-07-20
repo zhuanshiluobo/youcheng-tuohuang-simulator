@@ -38,6 +38,7 @@ namespace YC.Domain.Facilities
         public const string PaymentModeAuto = "auto";
         public const string PaymentModeResources = "resources";
         public const string PaymentModeGold = "gold";
+        public const string PaymentModeFree = "free";
 
         private readonly IFacilityEntryEffectResolver entryEffectResolver;
         private readonly FacilityBuildCostService buildCostService;
@@ -83,18 +84,77 @@ namespace YC.Domain.Facilities
 
             // 规则书顺序：支付 -> 放置 -> 得分 -> 入场效果 -> 补充供应区。
             player.Resources.TryPay(cost);
-            player.BuiltFacilityIds.Add(facility.FacilityId);
-            state.Map.Facilities.Add(new FacilityPlacement
-            {
-                PlayerId = playerId,
-                FacilityCardId = facility.FacilityId,
-                CityBoardSlotIndex = cityBoardSlotIndex
-            });
-            player.Score += facility.Score;
+            PlaceAndScore(state, player, facility, cityBoardSlotIndex);
             entryEffectResolver.Resolve(state, player, facility, cityBoardSlotIndex);
             ReplaceBuiltFacilityInSupply(state, facility.FacilityId);
 
             return BuildFacilityResult.Success(facility, cityBoardSlotIndex, resolvedPaymentMode);
+        }
+
+        /// <summary>
+        /// 结算由建设牌效果授予的免费备用设施建设。该入口复用标准建设的槽位、
+        /// 放置与得分规则，但不支付费用、不触发入场效果，也不改动公共供应区。
+        /// </summary>
+        public BuildFacilityResult BuildReserveForFree(
+            GameState state,
+            int playerId,
+            string facilityId,
+            int cityBoardSlotIndex)
+        {
+            var validation = ValidateReserveBuild(state, playerId, facilityId, cityBoardSlotIndex);
+            if (!validation.IsValid)
+            {
+                return BuildFacilityResult.Failure(validation);
+            }
+
+            var player = state.FindPlayer(playerId);
+            var facility = FacilityCardDatabase.Get(facilityId);
+            PlaceAndScore(state, player, facility, cityBoardSlotIndex);
+            return BuildFacilityResult.Success(facility, cityBoardSlotIndex, PaymentModeFree);
+        }
+
+        public ValidationResult ValidateReserveBuild(
+            GameState state,
+            int playerId,
+            string facilityId,
+            int cityBoardSlotIndex)
+        {
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            var player = state.FindPlayer(playerId);
+            if (player == null)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "建设玩家不存在。");
+            }
+
+            var facility = FacilityCardDatabase.Get(facilityId);
+            if (facility == null || !facility.ReserveOnly)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "所选备用设施不存在。");
+            }
+
+            if (cityBoardSlotIndex < 0 || cityBoardSlotIndex >= CityBoardSlotCount)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "城市面板槽位无效。");
+            }
+
+            if (IsCityBoardSlotOccupied(state, playerId, cityBoardSlotIndex))
+            {
+                return ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板槽位已被占用。");
+            }
+
+            for (var i = 0; i < state.Map.Facilities.Count; i++)
+            {
+                if (state.Map.Facilities[i].FacilityCardId == facilityId)
+                {
+                    return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该备用设施已经被建设。");
+                }
+            }
+
+            return ValidationResult.Success;
         }
 
         public static void RefillFacilitySupply(GameState state)
@@ -104,32 +164,31 @@ namespace YC.Domain.Facilities
                 return;
             }
 
-            while (state.Decks.FacilitySupply.Count < 6 && state.Decks.FacilityDeck.Count > 0)
-            {
-                state.Decks.FacilitySupply.Add(state.Decks.FacilityDeck[0]);
-                state.Decks.FacilityDeck.RemoveAt(0);
-            }
+            FacilitySupplyService.Refill(state.Decks.FacilitySupply, state.Decks.FacilityDeck);
         }
 
         private static void ReplaceBuiltFacilityInSupply(GameState state, string facilityId)
         {
-            var supplyIndex = state.Decks.FacilitySupply.IndexOf(facilityId);
-            if (supplyIndex < 0)
-            {
-                return;
-            }
+            FacilitySupplyService.ReplaceBuiltCard(
+                state.Decks.FacilitySupply,
+                state.Decks.FacilityDeck,
+                facilityId);
+        }
 
-            if (state.Decks.FacilityDeck.Count > 0)
+        private static void PlaceAndScore(
+            GameState state,
+            PlayerState player,
+            FacilityCardDefinition facility,
+            int cityBoardSlotIndex)
+        {
+            player.BuiltFacilityIds.Add(facility.FacilityId);
+            state.Map.Facilities.Add(new FacilityPlacement
             {
-                state.Decks.FacilitySupply[supplyIndex] = state.Decks.FacilityDeck[0];
-                state.Decks.FacilityDeck.RemoveAt(0);
-            }
-            else
-            {
-                state.Decks.FacilitySupply.RemoveAt(supplyIndex);
-            }
-
-            RefillFacilitySupply(state);
+                PlayerId = player.PlayerId,
+                FacilityCardId = facility.FacilityId,
+                CityBoardSlotIndex = cityBoardSlotIndex
+            });
+            player.Score += facility.Score;
         }
 
         public static void EnsureInitialCoreCommandTowers(GameState state)
