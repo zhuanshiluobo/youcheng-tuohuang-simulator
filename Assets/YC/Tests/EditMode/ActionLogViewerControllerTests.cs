@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using YC.Application.Sessions;
 using YC.Domain.Rules;
@@ -70,6 +71,61 @@ namespace YC.Tests.EditMode
             Assert.That(entries, Has.Count.EqualTo(1));
             Assert.That(GetProperty(entries[0], "PlayerLabel"), Is.EqualTo("Bob"));
             Assert.That(GetProperty(entries[0], "Message"), Is.EqualTo("host confirmed"));
+        }
+
+        [Test]
+        public void BuildDisplayEntries_HidesVagueLegacyEntriesAndLocalizesPublicActions()
+        {
+            var state = CreateState();
+            state.Logs.Add(new GameLogEntry
+            {
+                Sequence = 1,
+                PlayerId = 1,
+                Message = "Player 1 ended their action."
+            });
+            state.Logs.Add(new GameLogEntry
+            {
+                Sequence = 2,
+                PlayerId = 1,
+                Message = "\u73a9\u5bb6 1 \u5df2\u76d6\u653e\u89d2\u8272\u724c\u3002"
+            });
+            state.Logs.Add(new GameLogEntry
+            {
+                Sequence = 3,
+                PlayerId = 2,
+                Message = "Player 2 built \u62a4\u822a\u8c03\u5ea6\u4e2d\u5fc3."
+            });
+
+            var entries = BuildDisplayEntries(state);
+
+            Assert.That(entries, Has.Count.EqualTo(1));
+            Assert.That(GetProperty(entries[0], "PlayerLabel"), Is.EqualTo("Bob"));
+            Assert.That(GetProperty(entries[0], "Message"), Is.EqualTo("\u5efa\u9020\u4e86\u5efa\u7b51\u201c\u62a4\u822a\u8c03\u5ea6\u4e2d\u5fc3\u201d\u3002"));
+        }
+
+        [Test]
+        public void Open_UsesWideSingleLineRowsAndFastDraggableScrollbar()
+        {
+            var state = CreateState();
+            state.Logs.Add(new GameLogEntry
+            {
+                Sequence = 1,
+                PlayerId = 1,
+                Message = "\u5efa\u9020\u4e86\u5efa\u7b51\u201c\u62a4\u822a\u8c03\u5ea6\u4e2d\u5fc3\u201d\u3002"
+            });
+            var viewer = CreateViewer(new GameSession(state));
+
+            Invoke(viewer, "Open");
+
+            var panel = GameObject.Find("Action Log Panel").GetComponent<RectTransform>();
+            var scroll = GameObject.Find("Action Log Scroll View").GetComponent<ScrollRect>();
+            var rowText = GameObject.Find("Action Log Row Text").GetComponent<Text>();
+            Assert.That(panel.sizeDelta.x, Is.EqualTo(864f).Within(0.01f));
+            Assert.That(scroll.scrollSensitivity, Is.EqualTo(60f).Within(0.01f));
+            Assert.That(scroll.verticalScrollbar, Is.Not.Null);
+            Assert.That(scroll.verticalScrollbar.direction, Is.EqualTo(Scrollbar.Direction.BottomToTop));
+            Assert.That(rowText.text, Is.EqualTo("Alice \u5efa\u9020\u4e86\u5efa\u7b51\u201c\u62a4\u822a\u8c03\u5ea6\u4e2d\u5fc3\u201d\u3002"));
+            Assert.That(rowText.text, Does.Not.Contain("\n"));
         }
 
         private object CreateViewer(GameSession session)

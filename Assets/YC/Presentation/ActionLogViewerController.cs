@@ -8,6 +8,10 @@ namespace YC.Presentation
 {
     public sealed class ActionLogViewerController : MonoBehaviour
     {
+        private const float PanelWidth = 864f;
+        private const float RowHeight = 58f;
+        private const float ScrollSensitivity = 60f;
+
         private Func<GameState> stateProvider;
         private GameObject rootObject;
         private RectTransform contentTransform;
@@ -54,7 +58,7 @@ namespace YC.Presentation
             for (var i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
-                CreateRow(entry.PlayerLabel + "\n" + entry.Message, entry.PlayerColor, 78f);
+                CreateRow(entry.PlayerLabel + " " + entry.Message, entry.PlayerColor, RowHeight);
             }
         }
 
@@ -74,6 +78,12 @@ namespace YC.Presentation
                     continue;
                 }
 
+                string message;
+                if (!TryPrepareDisplayMessage(log.Message, out message))
+                {
+                    continue;
+                }
+
                 var player = state.FindPlayer(log.PlayerId);
                 result.Add(new ActionLogDisplayEntry
                 {
@@ -83,7 +93,7 @@ namespace YC.Presentation
                         ? "\u73a9\u5bb6 " + log.PlayerId
                         : (string.IsNullOrEmpty(player.Name) ? GetColorName(player.Color) : player.Name),
                     PlayerColor = player == null ? UiTheme.ValueText : UiTheme.GetPlayerColor(player.Color, 1f),
-                    Message = log.Message ?? string.Empty
+                    Message = message
                 });
             }
 
@@ -113,7 +123,7 @@ namespace YC.Presentation
             panelObject.transform.SetParent(rootRect, false);
             var panel = panelObject.GetComponent<RectTransform>();
             panel.anchorMin = panel.anchorMax = panel.pivot = new Vector2(0.5f, 0.5f);
-            panel.sizeDelta = new Vector2(720f, 680f);
+            panel.sizeDelta = new Vector2(PanelWidth, 680f);
             panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
             panelObject.GetComponent<Outline>().effectColor = UiTheme.GoldOutline;
 
@@ -141,8 +151,41 @@ namespace YC.Presentation
             viewport.anchorMin = Vector2.zero;
             viewport.anchorMax = Vector2.one;
             viewport.offsetMin = new Vector2(8f, 8f);
-            viewport.offsetMax = new Vector2(-8f, -8f);
+            viewport.offsetMax = new Vector2(-38f, -8f);
             viewportObject.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.01f);
+
+            var scrollbarObject = new GameObject("Action Log Scrollbar", typeof(RectTransform), typeof(Image), typeof(Scrollbar));
+            scrollbarObject.transform.SetParent(scrollRectTransform, false);
+            var scrollbarRect = scrollbarObject.GetComponent<RectTransform>();
+            scrollbarRect.anchorMin = new Vector2(1f, 0f);
+            scrollbarRect.anchorMax = new Vector2(1f, 1f);
+            scrollbarRect.offsetMin = new Vector2(-30f, 8f);
+            scrollbarRect.offsetMax = new Vector2(-8f, -8f);
+            scrollbarObject.GetComponent<Image>().color = new Color(0.08f, 0.07f, 0.04f, 0.9f);
+
+            var slidingAreaObject = new GameObject("Sliding Area", typeof(RectTransform));
+            slidingAreaObject.transform.SetParent(scrollbarRect, false);
+            var slidingArea = slidingAreaObject.GetComponent<RectTransform>();
+            slidingArea.anchorMin = Vector2.zero;
+            slidingArea.anchorMax = Vector2.one;
+            slidingArea.offsetMin = new Vector2(3f, 3f);
+            slidingArea.offsetMax = new Vector2(-3f, -3f);
+
+            var handleObject = new GameObject("Handle", typeof(RectTransform), typeof(Image));
+            handleObject.transform.SetParent(slidingArea, false);
+            var handleRect = handleObject.GetComponent<RectTransform>();
+            handleRect.anchorMin = Vector2.zero;
+            handleRect.anchorMax = Vector2.one;
+            handleRect.offsetMin = Vector2.zero;
+            handleRect.offsetMax = Vector2.zero;
+            var handleImage = handleObject.GetComponent<Image>();
+            handleImage.color = UiTheme.GoldOutline;
+
+            var scrollbar = scrollbarObject.GetComponent<Scrollbar>();
+            scrollbar.handleRect = handleRect;
+            scrollbar.targetGraphic = handleImage;
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+            scrollbar.value = 1f;
 
             var contentObject = new GameObject("Action Log Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
             contentObject.transform.SetParent(viewport, false);
@@ -164,6 +207,10 @@ namespace YC.Presentation
             scroll.horizontal = false;
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = ScrollSensitivity;
+            scroll.verticalScrollbar = scrollbar;
+            scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+            scroll.verticalScrollbarSpacing = 8f;
         }
 
         private void CreateCloseButton(RectTransform panel)
@@ -187,8 +234,159 @@ namespace YC.Presentation
             rowObject.transform.SetParent(contentTransform, false);
             rowObject.GetComponent<Image>().color = new Color(accent.r, accent.g, accent.b, 0.18f);
             rowObject.GetComponent<LayoutElement>().preferredHeight = height;
-            CreateText(rowObject.GetComponent<RectTransform>(), "Action Log Row Text", value, 20, TextAnchor.MiddleLeft,
+            var rowText = CreateText(rowObject.GetComponent<RectTransform>(), "Action Log Row Text", value, 20, TextAnchor.MiddleLeft,
                 Vector2.zero, Vector2.one, new Vector2(16f, 6f), new Vector2(-16f, -6f));
+            rowText.resizeTextForBestFit = true;
+            rowText.resizeTextMinSize = 14;
+            rowText.resizeTextMaxSize = 20;
+            rowText.verticalOverflow = VerticalWrapMode.Truncate;
+        }
+
+        public static bool TryPrepareDisplayMessage(string source, out string message)
+        {
+            message = (source ?? string.Empty).Trim();
+            if (message.Length == 0 ||
+                message.IndexOf("ended their action", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                message.IndexOf("began exploring", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                message.Contains("\u5df2\u76d6\u653e\u89d2\u8272\u724c") ||
+                message.Contains("\u76d6\u653e\u4e86\u89d2\u8272\u724c"))
+            {
+                message = string.Empty;
+                return false;
+            }
+
+            var action = StripEnglishPlayerPrefix(message);
+            if (action != message)
+            {
+                message = LocalizeLegacyEnglishAction(action);
+                return !string.IsNullOrEmpty(message);
+            }
+
+            action = StripChinesePlayerPrefix(message);
+            if (action != message)
+            {
+                const string characterPrefix = "\u7684\u89d2\u8272\u724c";
+                if (action.StartsWith(characterPrefix, StringComparison.Ordinal) &&
+                    action.Contains("\u5b8c\u6210\u5168\u90e8\u7ed3\u7b97"))
+                {
+                    var completedIndex = action.IndexOf("\u5df2\u5b8c\u6210", StringComparison.Ordinal);
+                    var cardText = completedIndex < 0
+                        ? action.Substring(characterPrefix.Length)
+                        : action.Substring(characterPrefix.Length, completedIndex - characterPrefix.Length);
+                    message = "\u53d1\u52a8\u4e86\u89d2\u8272\u724c" + cardText.Trim() + "\uff0c\u5df2\u5b8c\u6210\u5168\u90e8\u7ed3\u7b97\u3002";
+                }
+                else
+                {
+                    message = action;
+                }
+            }
+
+            return true;
+        }
+
+        private static string LocalizeLegacyEnglishAction(string action)
+        {
+            action = action.Trim();
+            if (action.Equals("ended their action.", StringComparison.OrdinalIgnoreCase) ||
+                action.StartsWith("began exploring ", StringComparison.OrdinalIgnoreCase))
+            {
+                return string.Empty;
+            }
+
+            if (action.StartsWith("built ", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\u5efa\u9020\u4e86\u5efa\u7b51\u201c" + TrimPeriod(action.Substring("built ".Length)) + "\u201d\u3002";
+            }
+
+            if (action.StartsWith("deployed influence to ", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\u5728\u4f4d\u7f6e " + TrimPeriod(action.Substring("deployed influence to ".Length)) + " \u90e8\u7f72\u4e86 1 \u4e2a\u5f71\u54cd\u529b\u3002";
+            }
+
+            if (action.StartsWith("dispatched influence ", StringComparison.OrdinalIgnoreCase))
+            {
+                var countText = TrimPeriod(action.Substring("dispatched influence ".Length));
+                countText = countText.Replace(" time(s)", string.Empty);
+                return "\u8c03\u5ea6\u4e86 " + countText + " \u6b21\u5f71\u54cd\u529b\u3002";
+            }
+
+            if (action.StartsWith("explored ", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\u63a2\u7d22\u4e86\u5730\u70b9 " + TrimPeriod(action.Substring("explored ".Length)) + "\u3002";
+            }
+
+            if (action.StartsWith("moved city to ", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\u5c06\u57ce\u5e02\u79fb\u52a8\u81f3\u5730\u70b9 " + TrimPeriod(action.Substring("moved city to ".Length)) + "\u3002";
+            }
+
+            if (action.StartsWith("resolved exploration event ", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\u7ed3\u7b97\u4e86\u63a2\u7d22\u4e8b\u4ef6\u201c" + TrimPeriod(action.Substring("resolved exploration event ".Length)) + "\u201d\u3002";
+            }
+
+            if (action.StartsWith("resolved move city event ", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\u7ed3\u7b97\u4e86\u79fb\u52a8\u4e8b\u4ef6\u201c" + TrimPeriod(action.Substring("resolved move city event ".Length)) + "\u201d\u3002";
+            }
+
+            if (action.Equals("collected resources.", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\u5b8c\u6210\u4e86\u8d44\u6e90\u6536\u96c6\u3002";
+            }
+
+            if (action.StartsWith("was chosen as the start player", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\u88ab\u9009\u4e3a\u8d77\u59cb\u73a9\u5bb6\uff0c\u5165\u573a\u9636\u6bb5\u5f00\u59cb\u3002";
+            }
+
+            if (action.StartsWith("placed their initial city at ", StringComparison.OrdinalIgnoreCase))
+            {
+                return "\u5c06\u521d\u59cb\u57ce\u5e02\u653e\u7f6e\u5728\u5730\u70b9 " + TrimPeriod(action.Substring("placed their initial city at ".Length)) + "\u3002";
+            }
+
+            if (action.StartsWith("resolved entrance event ", StringComparison.OrdinalIgnoreCase))
+            {
+                var eventText = TrimPeriod(action.Substring("resolved entrance event ".Length));
+                var optionIndex = eventText.IndexOf(" with option ", StringComparison.OrdinalIgnoreCase);
+                if (optionIndex >= 0)
+                {
+                    eventText = eventText.Substring(0, optionIndex);
+                }
+
+                return "\u7ed3\u7b97\u4e86\u5165\u573a\u4e8b\u4ef6\u201c" + eventText + "\u201d\u3002";
+            }
+
+            return action;
+        }
+
+        private static string StripEnglishPlayerPrefix(string value)
+        {
+            const string prefix = "Player ";
+            if (!value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return value;
+            }
+
+            var separator = value.IndexOf(' ', prefix.Length);
+            return separator < 0 ? value : value.Substring(separator + 1);
+        }
+
+        private static string StripChinesePlayerPrefix(string value)
+        {
+            const string prefix = "\u73a9\u5bb6 ";
+            if (!value.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                return value;
+            }
+
+            var separator = value.IndexOf(' ', prefix.Length);
+            return separator < 0 ? value : value.Substring(separator + 1);
+        }
+
+        private static string TrimPeriod(string value)
+        {
+            return value.Trim().TrimEnd('.');
         }
 
         private void ClearRows()

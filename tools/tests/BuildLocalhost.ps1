@@ -5,10 +5,39 @@ param(
     [int]$StatusIntervalSeconds = 10,
     [int]$MaxBuildSeconds = 900,
     [int]$NoLogTimeoutSeconds = 90,
+    [switch]$Development,
     [switch]$SkipProjectLockCheck
 )
 
 $ErrorActionPreference = "Stop"
+
+function Normalize-ProcessPathEnvironment {
+    $processPath = [Environment]::GetEnvironmentVariable(
+        "Path",
+        [EnvironmentVariableTarget]::Process)
+    if ([string]::IsNullOrWhiteSpace($processPath)) {
+        return
+    }
+
+    # Codex/CI 可能同时提供 Path 与 PATH；PowerShell 5 构造大小写不敏感
+    # 的进程环境字典时会把它们判为重复键。
+    [Environment]::SetEnvironmentVariable("PATH", $null, [EnvironmentVariableTarget]::Process)
+    [Environment]::SetEnvironmentVariable("Path", $null, [EnvironmentVariableTarget]::Process)
+    [Environment]::SetEnvironmentVariable("Path", $processPath, [EnvironmentVariableTarget]::Process)
+}
+
+function Test-CurrentRunLog {
+    param(
+        [string]$Path,
+        [DateTime]$NotBeforeUtc
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        return $false
+    }
+
+    return (Get-Item -LiteralPath $Path).LastWriteTimeUtc -ge $NotBeforeUtc
+}
 
 if ([string]::IsNullOrWhiteSpace($ProjectPath)) {
     $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -16,7 +45,8 @@ if ([string]::IsNullOrWhiteSpace($ProjectPath)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($LogFile)) {
-    $LogFile = Join-Path $ProjectPath "Logs\localhost-build.log"
+    $defaultLogName = if ($Development) { "localhost-development-build.log" } else { "localhost-build.log" }
+    $LogFile = Join-Path $ProjectPath ("Logs\" + $defaultLogName)
 }
 
 $ProjectPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($ProjectPath)
@@ -85,10 +115,18 @@ if (-not [string]::IsNullOrWhiteSpace($logDirectory) -and -not (Test-Path -Liter
     New-Item -ItemType Directory -Path $logDirectory | Out-Null
 }
 
+$batchBuildArgument = if ($Development) { "-ycBuildLocalhostDevelopment" } else { "-ycBuildLocalhost" }
+$successPattern = if ($Development) {
+    "Localhost development simulator build succeeded"
+}
+else {
+    "Localhost simulator build succeeded"
+}
+
 $unityArgs = @(
     "-batchmode",
     "-projectPath", $ProjectPath,
-    "-ycBuildLocalhost",
+    $batchBuildArgument,
     "-logFile", $LogFile
 )
 
@@ -97,7 +135,9 @@ Write-Host "Unity: $UnityPath"
 Write-Host "Project: $ProjectPath"
 Write-Host "Log: $LogFile"
 
-$process = Start-Process -FilePath $UnityPath -WorkingDirectory $ProjectPath -ArgumentList $unityArgs -PassThru
+Normalize-ProcessPathEnvironment
+$launchStartedAtUtc = [DateTime]::UtcNow.AddSeconds(-1)
+$process = Start-Process -FilePath $UnityPath -WorkingDirectory $ProjectPath -ArgumentList $unityArgs -PassThru -WindowStyle Hidden
 $startedAt = Get-Date
 $lastStatusAt = $startedAt.AddSeconds(-$StatusIntervalSeconds)
 
@@ -114,7 +154,7 @@ while (-not $process.HasExited) {
 
     if ($NoLogTimeoutSeconds -gt 0 -and
         $elapsed -ge $NoLogTimeoutSeconds -and
-        -not (Test-Path -LiteralPath $LogFile)) {
+        -not (Test-CurrentRunLog -Path $LogFile -NotBeforeUtc $launchStartedAtUtc)) {
         Stop-StartedUnityProcess -Process $process
         throw "Unity did not create a build log within ${elapsed}s. Log: $LogFile"
     }
@@ -126,9 +166,14 @@ while (-not $process.HasExited) {
     $lastStatusAt = $now
     Write-Host "Unity build still running... PID=$($process.Id), elapsed=${elapsed}s"
 
-    if (Test-Path -LiteralPath $LogFile) {
+    if (Test-CurrentRunLog -Path $LogFile -NotBeforeUtc $launchStartedAtUtc) {
         $progressLine = Select-String -LiteralPath $LogFile `
-            -Pattern "DisplayProgressbar:|Build Finished, Result|Localhost simulator build succeeded|error CS|BuildFailedException" `
+            -Pattern @(
+                "DisplayProgressbar:",
+                "Build Finished, Result",
+                $successPattern,
+                "error CS",
+                "BuildFailedException") `
             -CaseSensitive:$false |
             Select-Object -Last 1
         if ($null -ne $progressLine) {
@@ -144,12 +189,12 @@ $process.Refresh()
 $exitCode = $process.ExitCode
 Write-Host "Unity exited with code $exitCode"
 
-if (-not (Test-Path -LiteralPath $LogFile)) {
+if (-not (Test-CurrentRunLog -Path $LogFile -NotBeforeUtc $launchStartedAtUtc)) {
     throw "Unity did not create a log file: $LogFile"
 }
 
 $success = Select-String -LiteralPath $LogFile `
-    -Pattern "Localhost simulator build succeeded" `
+    -Pattern $successPattern `
     -CaseSensitive:$false |
     Select-Object -Last 1
 

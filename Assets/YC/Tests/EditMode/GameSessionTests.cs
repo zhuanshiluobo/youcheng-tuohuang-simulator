@@ -44,6 +44,54 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void Submit_PublicActionWithPendingChoice_PublishesChineseLogAfterSettlement()
+        {
+            var state = new GameState();
+            var session = new GameSession(state);
+            session.RegisterHandler(new DeferredBuildHandler());
+            session.RegisterHandler(new ResolvePendingChoiceHandler());
+
+            var build = session.Submit(new GameCommand
+            {
+                CommandId = "build-command",
+                Kind = GameCommandKind.BuildFacility,
+                PlayerId = 1,
+                TargetId = "building-test"
+            });
+
+            Assert.That(build.Succeeded, Is.True);
+            Assert.That(state.Logs, Is.Empty, "\u5efa\u7b51\u6548\u679c\u5c1a\u672a\u7ed3\u7b97\u65f6\u4e0d\u5e94\u63d0\u524d\u53d1\u5e03\u65e5\u5fd7\u3002");
+
+            var resolve = session.Submit(new GameCommand
+            {
+                CommandId = "resolve-command",
+                Kind = GameCommandKind.ResolvePendingChoice,
+                PlayerId = 1
+            });
+
+            Assert.That(resolve.Succeeded, Is.True);
+            Assert.That(state.Logs, Has.Count.EqualTo(1));
+            Assert.That(state.Logs[0].CommandId, Is.EqualTo("resolve-command"));
+            Assert.That(state.Logs[0].Message, Is.EqualTo("\u5efa\u9020\u4e86\u5efa\u7b51\u201c\u6d4b\u8bd5\u5efa\u7b51\u201d\uff08\u57ce\u5e02\u9762\u677f\u7b2c 2 \u683c\uff09\u3002"));
+        }
+
+        [Test]
+        public void Submit_RealEndActionEvent_DoesNotPublishVagueLog()
+        {
+            var session = new GameSession(new GameState());
+            session.RegisterHandler(new PlayerAdvancedHandler());
+
+            var result = session.Submit(new GameCommand
+            {
+                Kind = GameCommandKind.EndAction,
+                PlayerId = 1
+            });
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(session.State.Logs, Is.Empty);
+        }
+
+        [Test]
         public void Submit_WithoutHandler_ReturnsUnknownCommandWithoutMutatingLog()
         {
             var session = new GameSession(new GameState());
@@ -186,6 +234,59 @@ namespace YC.Tests.EditMode
             {
                 state.PendingChoice = null;
                 return CommandResult.SuccessResult(new List<GameEvent>(), "resolved");
+            }
+        }
+
+        private sealed class DeferredBuildHandler : IGameCommandHandler
+        {
+            public bool CanHandle(GameCommand command)
+            {
+                return command.Kind == GameCommandKind.BuildFacility;
+            }
+
+            public CommandResult Handle(GameState state, GameCommand command)
+            {
+                state.PendingChoice = new PendingChoiceState
+                {
+                    ChoiceType = "test_build_effect",
+                    PlayerId = command.PlayerId,
+                    CardId = command.TargetId,
+                    OptionIds = { "confirm" }
+                };
+                return CommandResult.SuccessResult(new List<GameEvent>
+                {
+                    new GameEvent
+                    {
+                        Kind = GameEventKind.FacilityBuilt,
+                        PlayerId = command.PlayerId,
+                        SubjectId = command.TargetId,
+                        Data =
+                        {
+                            { "facilityName", "\u6d4b\u8bd5\u5efa\u7b51" },
+                            { "cityBoardSlotIndex", "1" }
+                        }
+                    }
+                }, "Player 1 built test building.");
+            }
+        }
+
+        private sealed class PlayerAdvancedHandler : IGameCommandHandler
+        {
+            public bool CanHandle(GameCommand command)
+            {
+                return command.Kind == GameCommandKind.EndAction;
+            }
+
+            public CommandResult Handle(GameState state, GameCommand command)
+            {
+                return CommandResult.SuccessResult(new List<GameEvent>
+                {
+                    new GameEvent
+                    {
+                        Kind = GameEventKind.PlayerAdvanced,
+                        PlayerId = command.PlayerId
+                    }
+                }, "Player 1 ended their action.");
             }
         }
     }
