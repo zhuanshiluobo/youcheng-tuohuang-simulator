@@ -9,6 +9,7 @@ using YC.Domain.Facilities;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
+using YC.Domain.SpecialActions;
 using YC.Domain.State;
 using YC.Presentation;
 using YC.Presentation.Workflows;
@@ -120,10 +121,22 @@ namespace YC.Tests.EditMode
 
             fixture.Commands.LastCommand = null;
             SetPending(fixture.Context.State, MoveCityCommandHandler.MoveCityEventChoiceType, "event_green_01");
+            fixture.Context.State.PendingSpecialAction = new PendingSpecialActionState
+            {
+                SessionId = "special-session",
+                PlayerId = 1,
+                SpecialActionId = SpecialActionDatabase.EfficientMobileManagementSystem,
+                DeclarationMarkerId = "marker",
+                Step = SpecialActionPendingSteps.AwaitMoveEvent,
+                RemainingRepetitions = 1
+            };
             fixture.Presenter.ShowPendingChoice();
             fixture.View.EventOptions.SelectChoice(1);
             Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.ResolvePendingChoice));
             Assert.That(fixture.Commands.LastCommand.TargetId, Is.EqualTo("B"));
+            Assert.That(
+                fixture.Commands.LastCommand.Parameters[UseSpecialActionCommandHandler.SessionIdParameter],
+                Is.EqualTo("special-session"));
         }
 
         [Test]

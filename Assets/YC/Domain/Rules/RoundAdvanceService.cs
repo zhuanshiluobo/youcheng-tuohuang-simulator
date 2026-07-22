@@ -2,6 +2,7 @@ using System;
 using YC.Domain.Commands;
 using YC.Domain.Cards;
 using YC.Domain.Facilities;
+using YC.Domain.SpecialActions;
 using YC.Domain.State;
 
 namespace YC.Domain.Rules
@@ -10,21 +11,58 @@ namespace YC.Domain.Rules
     {
         private readonly TurnOrderService turnOrderService;
         private readonly CharacterCardService characterCardService;
+        private readonly MainActionBudgetService mainActionBudgetService;
+        private readonly SpecialActionLifecycleService specialActionLifecycleService;
 
         public RoundAdvanceService()
-            : this(new TurnOrderService(), new CharacterCardService())
+            : this(
+                new TurnOrderService(),
+                new CharacterCardService(),
+                new MainActionBudgetService(),
+                new SpecialActionLifecycleService())
         {
         }
 
         public RoundAdvanceService(TurnOrderService turnOrderService)
-            : this(turnOrderService, new CharacterCardService(turnOrderService))
+            : this(
+                turnOrderService,
+                new CharacterCardService(turnOrderService),
+                new MainActionBudgetService(),
+                new SpecialActionLifecycleService())
         {
         }
 
         public RoundAdvanceService(TurnOrderService turnOrderService, CharacterCardService characterCardService)
+            : this(
+                turnOrderService,
+                characterCardService,
+                new MainActionBudgetService(),
+                new SpecialActionLifecycleService())
+        {
+        }
+
+        public RoundAdvanceService(
+            TurnOrderService turnOrderService,
+            CharacterCardService characterCardService,
+            MainActionBudgetService mainActionBudgetService)
+            : this(
+                turnOrderService,
+                characterCardService,
+                mainActionBudgetService,
+                new SpecialActionLifecycleService())
+        {
+        }
+
+        public RoundAdvanceService(
+            TurnOrderService turnOrderService,
+            CharacterCardService characterCardService,
+            MainActionBudgetService mainActionBudgetService,
+            SpecialActionLifecycleService specialActionLifecycleService)
         {
             this.turnOrderService = turnOrderService ?? throw new ArgumentNullException(nameof(turnOrderService));
             this.characterCardService = characterCardService ?? throw new ArgumentNullException(nameof(characterCardService));
+            this.mainActionBudgetService = mainActionBudgetService ?? throw new ArgumentNullException(nameof(mainActionBudgetService));
+            this.specialActionLifecycleService = specialActionLifecycleService ?? throw new ArgumentNullException(nameof(specialActionLifecycleService));
         }
 
         public void CompleteMainAction(GameState state, int playerId)
@@ -40,13 +78,7 @@ namespace YC.Domain.Rules
                 throw new ArgumentNullException(nameof(state));
             }
 
-            var player = state.FindPlayer(playerId);
-            if (player == null)
-            {
-                return;
-            }
-
-            player.ActedMainActionThisTurn = true;
+            mainActionBudgetService.SpendCompletedMainAction(state, playerId);
         }
 
         public ValidationResult EndCompletedAction(GameState state, int playerId)
@@ -82,10 +114,12 @@ namespace YC.Domain.Rules
                 return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "Resolve the pending choice before ending the action.");
             }
 
-            if (!player.ActedMainActionThisTurn)
+            if (player.CompletedMainActionsThisTurn <= 0 && !player.ActedMainActionThisTurn)
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "Complete a main action before ending the action.");
             }
+
+            mainActionBudgetService.EndActionTurn(state, playerId);
 
             if (AllPlayersActed(state))
             {
@@ -106,7 +140,7 @@ namespace YC.Domain.Rules
 
             for (var i = 0; i < state.Players.Count; i++)
             {
-                state.Players[i].ActedMainActionThisTurn = false;
+                mainActionBudgetService.ResetForNewActionTurn(state, state.Players[i].PlayerId);
             }
         }
 
@@ -200,6 +234,7 @@ namespace YC.Domain.Rules
             }
 
             characterCardService.CleanupRound(state);
+            specialActionLifecycleService.CleanupRound(state);
 
             var federalCouncilStartPlayerId = FederalCouncilEffectService.ConsumeLatestBuilder(state);
 
@@ -220,7 +255,7 @@ namespace YC.Domain.Rules
 
             for (var i = 0; i < state.Players.Count; i++)
             {
-                state.Players[i].ActedMainActionThisTurn = false;
+                mainActionBudgetService.ResetForNewActionTurn(state, state.Players[i].PlayerId);
                 state.Players[i].HasMovedCityThisRound = false;
                 state.Players[i].HasCollectedResourcesThisRound = false;
                 state.Players[i].ResourceCollectionStartGoldVoucher = -1;

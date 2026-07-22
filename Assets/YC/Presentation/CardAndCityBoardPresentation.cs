@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using YC.Domain.CityStyles;
 using YC.Domain.Facilities;
+using YC.Domain.SpecialActions;
 
 namespace YC.Presentation
 {
@@ -303,14 +304,9 @@ namespace YC.Presentation
 
         public static string ResolveDisplayArea(string cityStyleId, string markerArea)
         {
-            var displayArea = string.IsNullOrEmpty(markerArea)
+            return string.IsNullOrEmpty(markerArea)
                 ? CityStyleMarkerAreas.Declared
                 : markerArea;
-            // Repeat and legacy military declarations are still unspent markers on this card.
-            return cityStyleId == CityStyleDatabase.MilitaryIndustrialArea &&
-                   displayArea == CityStyleMarkerAreas.Declared
-                ? CityStyleMarkerAreas.Unused
-                : displayArea;
         }
 
         public static int ResolvePlayerLaneIndex(int playerId)
@@ -353,6 +349,15 @@ namespace YC.Presentation
                     break;
                 case CityStyleMarkerAreas.UsesTwo:
                     baseAnchor = new Vector2(0.69f, 0.82f);
+                    break;
+                case SpecialActionMarkerAreas.UsedFromTwo:
+                    baseAnchor = new Vector2(0.69f, 0.66f);
+                    break;
+                case CityStyleMarkerAreas.UsesOne:
+                    baseAnchor = new Vector2(0.69f, 0.50f);
+                    break;
+                case SpecialActionMarkerAreas.UsedFromOne:
+                    baseAnchor = new Vector2(0.69f, 0.34f);
                     break;
                 case CityStyleMarkerAreas.UsesZero:
                     baseAnchor = new Vector2(0.69f, 0.18f);

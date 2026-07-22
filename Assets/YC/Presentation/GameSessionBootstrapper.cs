@@ -12,6 +12,7 @@ using YC.Domain.Maps;
 using YC.Domain.Movement;
 using YC.Domain.Rules;
 using YC.Domain.Scoring;
+using YC.Domain.SpecialActions;
 using YC.Domain.State;
 using UnityEngine;
 
@@ -82,7 +83,25 @@ namespace YC.Presentation
                 travelCostService,
                 eventDeckService,
                 resourceTokenService);
+            var mainActionBudgetService = new MainActionBudgetService();
+            var specialActionLifecycleService = new SpecialActionLifecycleService();
             var moveCityCommandHandler = new MoveCityCommandHandler(movementService);
+            var specialActionOptionQuery = new SpecialActionOptionQueryService(
+                mapQuery,
+                influenceService,
+                movementService,
+                specialActionLifecycleService,
+                mainActionBudgetService);
+            var specialActionService = new SpecialActionService(
+                specialActionOptionQuery,
+                specialActionLifecycleService,
+                influenceService,
+                new FacilityInfluenceEffectService(influenceService),
+                mainActionBudgetService);
+            session.RegisterHandler(new UseSpecialActionCommandHandler(
+                specialActionService,
+                specialActionOptionQuery,
+                moveCityCommandHandler));
             session.RegisterHandler(moveCityCommandHandler);
 
             var explorationService = new ExplorationService(
@@ -121,7 +140,11 @@ namespace YC.Presentation
             session.RegisterHandler(new CoverCharacterCardCommandHandler(characterCardService));
             session.RegisterHandler(new UseCharacterCardCommandHandler(characterCardService));
             session.RegisterHandler(new EndActionCommandHandler(
-                new RoundAdvanceService(turnOrderService, characterCardService),
+                new RoundAdvanceService(
+                    turnOrderService,
+                    characterCardService,
+                    mainActionBudgetService,
+                    specialActionLifecycleService),
                 new FinalScoringService(mapQuery)));
             var resourceCollectionService = new ResourceCollectionService(mapQuery);
             session.RegisterHandler(new CollectResourceCommandHandler(resourceCollectionService));

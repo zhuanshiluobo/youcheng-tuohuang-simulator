@@ -14,6 +14,7 @@ namespace YC.Domain.Movement
     {
         internal const string WaiveBaseCostArgument = "waiveBaseCost";
         public const string ConsumeMainActionArgument = "consumeMainAction";
+        private static readonly MainActionBudgetService MainActionBudgetService = new MainActionBudgetService();
         private readonly IMapQueryService mapQuery;
         private readonly InfluenceService influenceService;
         private readonly TravelCostService travelCostService;
@@ -153,9 +154,13 @@ namespace YC.Domain.Movement
                 return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择项再移动城市。");
             }
 
-            if (player.ActedMainActionThisTurn && !allowPendingEffect)
+            if (!allowPendingEffect)
             {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "本行动轮已执行过主要行动。");
+                var budgetValidation = MainActionBudgetService.ValidateCanSpend(state, playerId);
+                if (!budgetValidation.IsValid)
+                {
+                    return budgetValidation;
+                }
             }
 
             if (string.IsNullOrEmpty(player.CityLocationId))

@@ -121,7 +121,7 @@ namespace YC.Domain.CityStyles
                         Level = 1,
                         Score = 2,
                         Description = "同一横排相邻布局：蓝/红设施 + 黄色设施。",
-                        MaxDeclarationsPerPlayer = 1,
+                        MaxDeclarationsPerPlayer = int.MaxValue,
                         DeclarationReward = new YC.Domain.State.ResourceSet
                         {
                             Originium = 1,

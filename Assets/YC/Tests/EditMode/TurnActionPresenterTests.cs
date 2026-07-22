@@ -10,6 +10,7 @@ using YC.Domain.Harvest;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
+using YC.Domain.SpecialActions;
 using YC.Domain.State;
 using YC.Presentation;
 using YC.Presentation.Workflows;
@@ -36,6 +37,22 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void ActionPhaseViewModel_WithAdditionalBudget_AllowsAnotherMainActionAndEarlyEnd()
+        {
+            var fixture = CreateFixture();
+            var player = fixture.Context.State.FindPlayer(1);
+            player.RemainingMainActionsThisTurn = 2;
+            player.CompletedMainActionsThisTurn = 1;
+            player.ActedMainActionThisTurn = false;
+
+            var viewModel = fixture.Presenter.BuildActionPanelViewModel();
+
+            Assert.That(viewModel.CanMoveCity, Is.True);
+            Assert.That(viewModel.CanBuild, Is.True);
+            Assert.That(viewModel.CanEndAction, Is.True);
+        }
+
+        [Test]
         public void CharacterAction_RequiresCoveredUnusedCard()
         {
             var fixture = CreateFixture();
@@ -47,6 +64,17 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.Presenter.BuildActionPanelViewModel().CanUseCharacter, Is.True);
 
             player.UsedCharacterThisRound = true;
+            Assert.That(fixture.Presenter.BuildActionPanelViewModel().CanUseCharacter, Is.False);
+        }
+
+        [Test]
+        public void CharacterAction_WhenLockedForCurrentActionTurn_IsUnavailable()
+        {
+            var fixture = CreateFixture();
+            var player = fixture.Context.State.FindPlayer(1);
+            player.CoveredCharacterCardId = "character-red-texas";
+            player.CharacterCardLockedThisTurn = true;
+
             Assert.That(fixture.Presenter.BuildActionPanelViewModel().CanUseCharacter, Is.False);
         }
 
@@ -345,6 +373,217 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void CityStylePreview_ExposesOnlyEligibleOwnedMarkersAndSubmitsSpecialAction()
+        {
+            var fixture = CreateFixture();
+            var player = fixture.Context.State.FindPlayer(1);
+            player.DeclaredCityStyles.Add(new CityStyleDeclarationState
+            {
+                InfluenceMarkerId = "military-marker",
+                CityStyleId = CityStyleDatabase.MilitaryIndustrialArea,
+                MarkerArea = CityStyleMarkerAreas.Unused,
+                UnlockedSpecialActionId = SpecialActionDatabase.MilitaryIndustrialArea,
+                RemainingSpecialActionUses = 1
+            });
+            player.DeclaredCityStyles.Add(new CityStyleDeclarationState
+            {
+                InfluenceMarkerId = "hub-marker",
+                CityStyleId = CityStyleDatabase.SourceStoneIndustrialHub,
+                MarkerArea = CityStyleMarkerAreas.UsesTwo,
+                UnlockedSpecialActionId = SpecialActionDatabase.SourceStoneIndustrialHub,
+                RemainingSpecialActionUses = 2
+            });
+            player.DeclaredCityStyles.Add(new CityStyleDeclarationState
+            {
+                InfluenceMarkerId = "relay-marker",
+                CityStyleId = CityStyleDatabase.MaterialRelayStation,
+                MarkerArea = CityStyleMarkerAreas.Declared,
+                RemainingSpecialActionUses = 0
+            });
+
+            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
+
+            var markers = fixture.View.CityStyleOptions.CityStyleMarkers;
+            var military = FindMarker(markers, "military-marker");
+            var hub = FindMarker(markers, "hub-marker");
+            var relay = FindMarker(markers, "relay-marker");
+            Assert.That(military.CanDragForSpecialAction, Is.True);
+            Assert.That(military.SpecialActionId, Is.EqualTo(SpecialActionDatabase.MilitaryIndustrialArea));
+            Assert.That(military.LegalDropArea, Is.EqualTo(CityStyleMarkerAreas.Used));
+            Assert.That(hub.CanDragForSpecialAction, Is.True);
+            Assert.That(hub.LegalDropArea, Is.EqualTo(SpecialActionMarkerAreas.UsedFromTwo));
+            Assert.That(relay.CanDragForSpecialAction, Is.False, "物资中继站标记不得拖动发动特殊行动。");
+            Assert.That(relay.LegalDropArea, Is.Empty);
+
+            fixture.Commands.NextResult = Rejected("状态已经变化");
+            Assert.That(
+                fixture.View.CityStyleOptions.TryUseSpecialAction(
+                    military.SpecialActionId,
+                    military.MarkerId,
+                    0,
+                    0),
+                Is.False);
+            Assert.That(fixture.View.Prompt, Is.EqualTo("状态已经变化"));
+
+            fixture.Commands.NextResult = Success(true);
+            Assert.That(
+                fixture.View.CityStyleOptions.TryUseSpecialAction(
+                    military.SpecialActionId,
+                    military.MarkerId,
+                    0,
+                    0),
+                Is.True);
+            Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.UseSpecialAction));
+            Assert.That(fixture.Commands.LastCommand.SourceId, Is.EqualTo("military-marker"));
+            Assert.That(fixture.Commands.LastCommand.TargetId, Is.EqualTo(SpecialActionDatabase.MilitaryIndustrialArea));
+            Assert.That(
+                fixture.Commands.LastCommand.Parameters[UseSpecialActionCommandHandler.DeclarationMarkerIdParameter],
+                Is.EqualTo("military-marker"));
+            Assert.That(
+                fixture.Commands.LastCommand.Parameters.ContainsKey(
+                    UseSpecialActionCommandHandler.OriginiumAmountParameter),
+                Is.False,
+                "非复合特殊行动不应携带复合支付参数。");
+            Assert.That(
+                fixture.Commands.LastCommand.Parameters.ContainsKey(
+                    UseSpecialActionCommandHandler.IronAmountParameter),
+                Is.False,
+                "非复合特殊行动不应携带复合支付参数。");
+            Assert.That(fixture.View.RefreshFromStateCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void CompositeSpecialAction_FirstCommandCarriesConfirmedMaterialAllocation()
+        {
+            var fixture = CreateFixture();
+            var player = fixture.Context.State.FindPlayer(1);
+            player.Resources.Originium = 2;
+            player.Resources.OriginiumShard = 1;
+            player.Resources.Iron = 3;
+            player.DeclaredCityStyles.Add(new CityStyleDeclarationState
+            {
+                InfluenceMarkerId = "composite-marker",
+                CityStyleId = CityStyleDatabase.CompositePowerSystem,
+                MarkerArea = CityStyleMarkerAreas.Unused,
+                UnlockedSpecialActionId = SpecialActionDatabase.CompositePowerSystem,
+                RemainingSpecialActionUses = 1
+            });
+            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.CompositePowerSystem);
+            var marker = FindMarker(
+                fixture.View.CityStyleOptions.CityStyleMarkers,
+                "composite-marker");
+            Assert.That(marker.CanDragForSpecialAction, Is.True);
+            Assert.That(marker.MaximumOriginiumPayment, Is.EqualTo(2));
+            Assert.That(marker.MaximumIronPayment, Is.EqualTo(3));
+
+            Assert.That(
+                fixture.View.CityStyleOptions.TryUseSpecialAction(
+                    marker.SpecialActionId,
+                    marker.MarkerId,
+                    2,
+                    0),
+                Is.False);
+            Assert.That(fixture.Commands.LastCommand, Is.Null);
+            Assert.That(fixture.View.Prompt, Does.Contain("合计 3"));
+
+            fixture.Commands.NextResult = Success(true);
+            Assert.That(
+                fixture.View.CityStyleOptions.TryUseSpecialAction(
+                    marker.SpecialActionId,
+                    marker.MarkerId,
+                    2,
+                    1),
+                Is.True);
+            Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.UseSpecialAction));
+            Assert.That(
+                fixture.Commands.LastCommand.Parameters[UseSpecialActionCommandHandler.OriginiumAmountParameter],
+                Is.EqualTo("2"));
+            Assert.That(
+                fixture.Commands.LastCommand.Parameters[UseSpecialActionCommandHandler.IronAmountParameter],
+                Is.EqualTo("1"));
+        }
+
+        [Test]
+        public void ActionPanelStatus_WhenExtraMainActionsRemain_ShowsContinuationAndEarlyEndOptions()
+        {
+            var fixture = CreateFixture();
+            var player = fixture.Context.State.FindPlayer(1);
+            player.CompletedMainActionsThisTurn = 1;
+            player.RemainingMainActionsThisTurn = 2;
+            player.ActedMainActionThisTurn = false;
+
+            var panel = fixture.Presenter.BuildActionPanelViewModel();
+
+            Assert.That(panel.StatusText, Does.Contain("剩余额外主要行动：2"));
+            Assert.That(panel.StatusText, Does.Contain("可继续主要/快速行动或结束行动"));
+            Assert.That(panel.CanExplore, Is.True);
+            Assert.That(panel.CanEndAction, Is.True);
+        }
+
+        [Test]
+        public void ActionPanelSpecialActionAvailability_UsesPerMarkerOptionInsteadOfGlobalUsedCount()
+        {
+            var fixture = CreateFixture();
+            AddMilitarySpecialActionMarker(fixture, "panel-marker");
+            var player = fixture.Context.State.FindPlayer(1);
+            player.UsedSpecialActionIdsThisRound.Add(SpecialActionDatabase.CompositePowerSystem);
+
+            Assert.That(fixture.Presenter.BuildActionPanelViewModel().CanUseSpecialAction, Is.True);
+
+            player.UsedSpecialActionIdsThisRound.Add(SpecialActionDatabase.MilitaryIndustrialArea);
+            Assert.That(fixture.Presenter.BuildActionPanelViewModel().CanUseSpecialAction, Is.False);
+        }
+
+        [Test]
+        public void CityStylePreview_DuringBuildDraft_DisablesMarkerAndRejectsDirectSubmission()
+        {
+            var fixture = CreateFixture();
+            var markerState = AddMilitarySpecialActionMarker(fixture, "draft-marker");
+            fixture.Presenter.BeginBuildFacilityDrag(FacilityCardDatabase.TradeDistrict);
+
+            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
+
+            var marker = FindMarker(fixture.View.CityStyleOptions.CityStyleMarkers, markerState.InfluenceMarkerId);
+            Assert.That(marker.CanDragForSpecialAction, Is.False);
+            Assert.That(marker.SpecialActionDisabledReason, Does.Contain("建设草稿"));
+            Assert.That(
+                fixture.View.CityStyleOptions.TryUseSpecialAction(
+                    marker.SpecialActionId,
+                    marker.MarkerId,
+                    0,
+                    0),
+                Is.False);
+            Assert.That(fixture.Commands.LastCommand, Is.Null);
+            Assert.That(fixture.View.Prompt, Does.Contain("建设草稿"));
+        }
+
+        [Test]
+        public void SpecialActionSubmission_FromPreviousSelectionMode_ClearsModeAndHighlightsAfterSuccess()
+        {
+            var fixture = CreateFixture();
+            var markerState = AddMilitarySpecialActionMarker(fixture, "mode-marker");
+            fixture.Presenter.BeginDeployAction();
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ResolvingDeployTarget));
+            Assert.That(fixture.View.Highlights, Is.Not.Empty);
+            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
+            var marker = FindMarker(fixture.View.CityStyleOptions.CityStyleMarkers, markerState.InfluenceMarkerId);
+            Assert.That(marker.CanDragForSpecialAction, Is.False, "旧选择模式中不应向玩家显示可拖标记。");
+
+            fixture.Commands.NextResult = Success(true);
+            var accepted = fixture.View.CityStyleOptions.TryUseSpecialAction(
+                marker.SpecialActionId,
+                marker.MarkerId,
+                0,
+                0);
+
+            Assert.That(accepted, Is.True);
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.Influence.Mode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.View.Highlights, Is.Empty);
+            Assert.That(fixture.View.RefreshFromStateCount, Is.EqualTo(1));
+        }
+
+        [Test]
         public void CityStylePreview_CloseDuringBuildDraft_RestoresBuildDraft()
         {
             var fixture = CreateFixture();
@@ -546,6 +785,38 @@ namespace YC.Tests.EditMode
                 var result = handler.Handle(fixture.Context.State, command);
                 return new WorkflowSubmissionResult(result, result.Succeeded);
             };
+        }
+
+        private static CityStyleMarkerViewModel FindMarker(
+            IReadOnlyList<CityStyleMarkerViewModel> markers,
+            string markerId)
+        {
+            for (var i = 0; i < markers.Count; i++)
+            {
+                if (markers[i] != null && markers[i].MarkerId == markerId)
+                {
+                    return markers[i];
+                }
+            }
+
+            Assert.Fail("找不到城市样式标记：" + markerId);
+            return null;
+        }
+
+        private static CityStyleDeclarationState AddMilitarySpecialActionMarker(
+            Fixture fixture,
+            string markerId)
+        {
+            var marker = new CityStyleDeclarationState
+            {
+                InfluenceMarkerId = markerId,
+                CityStyleId = CityStyleDatabase.MilitaryIndustrialArea,
+                MarkerArea = CityStyleMarkerAreas.Unused,
+                UnlockedSpecialActionId = SpecialActionDatabase.MilitaryIndustrialArea,
+                RemainingSpecialActionUses = 1
+            };
+            fixture.Context.State.FindPlayer(1).DeclaredCityStyles.Add(marker);
+            return marker;
         }
 
         private static void ApplyCollectionCommandsLocally(Fixture fixture)

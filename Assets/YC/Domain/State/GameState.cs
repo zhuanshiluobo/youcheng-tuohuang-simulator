@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using YC.Domain.CityStyles;
 using YC.Domain.Rules;
+using YC.Domain.SpecialActions;
 
 namespace YC.Domain.State
 {
@@ -24,6 +26,7 @@ namespace YC.Domain.State
         public PendingChoiceState PendingChoice;
         public PendingCardSessionState PendingCardSession;
         public PendingCharacterEffectState PendingCharacterEffect;
+        public PendingSpecialActionState PendingSpecialAction;
         public List<DelayedCharacterEffectState> DelayedCharacterEffects = new List<DelayedCharacterEffectState>();
         public FinalScoringState FinalScoring;
         public List<GameLogEntry> Logs = new List<GameLogEntry>();
@@ -37,7 +40,136 @@ namespace YC.Domain.State
         {
             return (PendingChoice != null && PendingChoice.IsValid()) ||
                    (PendingCardSession != null && PendingCardSession.IsValid()) ||
-                   (PendingCharacterEffect != null && PendingCharacterEffect.IsValid());
+                   (PendingCharacterEffect != null && PendingCharacterEffect.IsValid()) ||
+                   (PendingSpecialAction != null && PendingSpecialAction.IsValid(this));
+        }
+    }
+
+    [Serializable]
+    public sealed class PendingSpecialActionState
+    {
+        public string SessionId = string.Empty;
+        public int PlayerId;
+        public string SpecialActionId = string.Empty;
+        public string DeclarationMarkerId = string.Empty;
+        public string SourceCommandId = string.Empty;
+        public string Step = string.Empty;
+        public int RemainingRepetitions;
+        public string TraversedRouteId = string.Empty;
+        public int PaidOriginium;
+        public int PaidOriginiumShard;
+        public int PaidIron;
+        public int PaidGoldVoucher;
+        public List<string> ResolvedTargetIds = new List<string>();
+
+        public bool IsValid()
+        {
+            var definition = SpecialActionDatabase.Get(SpecialActionId);
+            return !string.IsNullOrEmpty(SessionId) &&
+                   PlayerId > 0 &&
+                   definition != null &&
+                   !string.IsNullOrEmpty(DeclarationMarkerId) &&
+                   SpecialActionPendingSteps.IsCompatible(definition.EffectKind, Step);
+        }
+
+        public bool IsValid(GameState state)
+        {
+            if (!IsValid() || state == null)
+            {
+                return false;
+            }
+
+            var definition = SpecialActionDatabase.Get(SpecialActionId);
+            var player = state.FindPlayer(PlayerId);
+            var declaration = FindDeclaration(player, DeclarationMarkerId);
+            if (definition == null || declaration == null ||
+                declaration.CityStyleId != definition.CityStyleId ||
+                declaration.UnlockedSpecialActionId != definition.SpecialActionId ||
+                !IsActivatedMarkerArea(definition, declaration))
+            {
+                return false;
+            }
+
+            switch (Step)
+            {
+                case SpecialActionPendingSteps.AwaitMilitaryTargets:
+                case SpecialActionPendingSteps.AwaitMobilizationTarget:
+                    return RemainingRepetitions == 0;
+
+                case SpecialActionPendingSteps.AwaitCompositePayment:
+                    return definition.EffectKind == SpecialActionEffectKind.CompositePowerMove &&
+                           RemainingRepetitions >= 0;
+
+                case SpecialActionPendingSteps.AwaitFreeMoveTarget:
+                    return definition.EffectKind == SpecialActionEffectKind.CompositePowerMove
+                        ? RemainingRepetitions == 1 && HasCompositePayment()
+                        : RemainingRepetitions > 0 && RemainingRepetitions <= definition.FreeMoveCount;
+
+                case SpecialActionPendingSteps.AwaitMoveEvent:
+                    return !string.IsNullOrEmpty(TraversedRouteId) &&
+                           (definition.EffectKind == SpecialActionEffectKind.CompositePowerMove
+                               ? RemainingRepetitions == 0 && HasCompositePayment()
+                               : RemainingRepetitions >= 0 && RemainingRepetitions < definition.FreeMoveCount);
+
+                case SpecialActionPendingSteps.AwaitRouteInfluence:
+                    return definition.EffectKind == SpecialActionEffectKind.CompositePowerMove &&
+                           RemainingRepetitions == 0 &&
+                           !string.IsNullOrEmpty(TraversedRouteId) &&
+                           HasCompositePayment();
+
+                default:
+                    return false;
+            }
+        }
+
+        private bool HasCompositePayment()
+        {
+            return PaidOriginium >= 0 &&
+                   PaidIron >= 0 &&
+                   PaidOriginium + PaidIron == 3 &&
+                   PaidOriginiumShard == 1;
+        }
+
+        private static CityStyleDeclarationState FindDeclaration(PlayerState player, string markerId)
+        {
+            if (player == null || player.DeclaredCityStyles == null)
+            {
+                return null;
+            }
+
+            for (var i = 0; i < player.DeclaredCityStyles.Count; i++)
+            {
+                var declaration = player.DeclaredCityStyles[i];
+                if (declaration != null && declaration.InfluenceMarkerId == markerId)
+                {
+                    return declaration;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsActivatedMarkerArea(
+            SpecialActionDefinition definition,
+            CityStyleDeclarationState declaration)
+        {
+            if (definition.Level < 2)
+            {
+                return declaration.MarkerArea == CityStyleMarkerAreas.Used;
+            }
+
+            if (declaration.MarkerArea == SpecialActionMarkerAreas.UsedFromTwo)
+            {
+                return declaration.RemainingSpecialActionUses >= 2;
+            }
+
+            if (declaration.MarkerArea == SpecialActionMarkerAreas.UsedFromOne)
+            {
+                return declaration.RemainingSpecialActionUses == 1;
+            }
+
+            return declaration.MarkerArea == CityStyleMarkerAreas.Used &&
+                   declaration.RemainingSpecialActionUses > 0;
         }
     }
 
@@ -92,7 +224,11 @@ namespace YC.Domain.State
         public bool HasCollectedResourcesThisRound;
         public int ResourceCollectionStartGoldVoucher = -1;
         public bool ActedMainActionThisTurn;
+        public int RemainingMainActionsThisTurn = 1;
+        public int CompletedMainActionsThisTurn;
         public bool UsedCharacterThisRound;
+        public bool UsedCharacterThisTurn;
+        public bool CharacterCardLockedThisTurn;
         public ResourceSet Resources = new ResourceSet();
         public List<string> HandCardIds = new List<string>();
         public List<string> CoveredCharacterCardIds = new List<string>();

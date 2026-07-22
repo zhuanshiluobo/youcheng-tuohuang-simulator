@@ -8,6 +8,7 @@ using YC.Domain.Exploration;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
+using YC.Domain.SpecialActions;
 using YC.Domain.State;
 using YC.Domain.Travel;
 
@@ -581,6 +582,18 @@ namespace YC.Presentation.Workflows
                 OptionIds = new List<string> { choiceIndex.ToString() }
             };
             influenceTargetSelection.AddCommandParameter(command, influenceParameterName);
+            var pendingSpecialAction = context.CurrentState == null
+                ? null
+                : context.CurrentState.PendingSpecialAction;
+            if (pendingSpecialAction != null &&
+                pendingSpecialAction.IsValid() &&
+                pendingSpecialAction.PlayerId == context.LocalPlayerId &&
+                pendingSpecialAction.Step == SpecialActionPendingSteps.AwaitMoveEvent)
+            {
+                command.Parameters[UseSpecialActionCommandHandler.SessionIdParameter] =
+                    pendingSpecialAction.SessionId;
+            }
+
             var submission = commandPort.Submit(command);
             if (!submission.CommandResult.Succeeded)
             {

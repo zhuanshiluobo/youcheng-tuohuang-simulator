@@ -7,6 +7,8 @@ namespace YC.Application.Gameplay
 {
     internal static class MainActionCommandGuard
     {
+        private static readonly MainActionBudgetService MainActionBudgetService = new MainActionBudgetService();
+
         public static ValidationResult Validate(GameState state, GameCommand command)
         {
             if (state == null)
@@ -41,12 +43,7 @@ namespace YC.Application.Gameplay
                 return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择项，再提交其他行动。");
             }
 
-            if (player.ActedMainActionThisTurn)
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该玩家本行动轮已执行过主要行动。");
-            }
-
-            return ValidationResult.Success;
+            return MainActionBudgetService.ValidateCanSpend(state, command.PlayerId);
         }
     }
 }

@@ -256,7 +256,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void DeclareCityStyle_WhenOneTimeStyleAlreadyDeclared_FailsWithoutConsumingInfluence()
+        public void DeclareCityStyle_WhenMaterialRelayStationHasAnotherPattern_SucceedsAndRewardsAgain()
         {
             var state = CreateActionState();
             AddFacility(state, FacilityCardDatabase.IronRefinery, 0);
@@ -273,13 +273,16 @@ namespace YC.Tests.EditMode
                 CreateMatchedCommand(state, CityStyleDatabase.MaterialRelayStation));
 
             Assert.That(first.Succeeded, Is.True);
-            Assert.That(second.Succeeded, Is.False);
-            Assert.That(second.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
-            Assert.That(state.FindPlayer(1).DeclaredCityStyleIds, Has.Count.EqualTo(1));
-            Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(29));
-            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(1));
-            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(1));
-            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+            Assert.That(second.Succeeded, Is.True);
+            Assert.That(state.FindPlayer(1).DeclaredCityStyleIds, Has.Count.EqualTo(2));
+            Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(28));
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(2));
+            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(2));
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(2));
+            Assert.That(state.FindPlayer(1).DeclaredCityStyles[0].MarkerArea, Is.EqualTo(CityStyleMarkerAreas.Declared));
+            Assert.That(state.FindPlayer(1).DeclaredCityStyles[1].MarkerArea, Is.EqualTo(CityStyleMarkerAreas.Declared));
+            Assert.That(state.FindPlayer(1).DeclaredCityStyles[0].UnlockedSpecialActionId, Is.Empty);
+            Assert.That(state.FindPlayer(1).DeclaredCityStyles[1].UnlockedSpecialActionId, Is.Empty);
         }
 
         [Test]

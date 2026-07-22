@@ -1,17 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using YC.Application.Gameplay;
 using YC.Domain.CardFlows;
 using YC.Domain.CityStyles;
 using YC.Domain.Commands;
 using YC.Domain.Facilities;
+using YC.Domain.Influence;
 using YC.Domain.Maps;
+using YC.Domain.Movement;
 using YC.Domain.Rules;
+using YC.Domain.SpecialActions;
 using YC.Domain.State;
 
 namespace YC.Presentation.Workflows
 {
     public sealed class TurnActionPresenter : IInteractionWorkflow
     {
+        private static readonly MainActionBudgetService MainActionBudgetService = new MainActionBudgetService();
         private readonly IWritableGameplayContext context;
         private readonly IGameCommandPort commandPort;
         private readonly ITurnActionView view;
@@ -22,6 +28,7 @@ namespace YC.Presentation.Workflows
         private readonly ExplorationEventPresenter explorationEventPresenter;
         private readonly BuildFacilitySelectionController buildFacilitySelection;
         private readonly CityStyleSelectionController cityStyleSelection;
+        private readonly SpecialActionOptionQueryService specialActionOptionQuery;
         private InteractionMode mode = InteractionMode.ChooseAction;
         private string completedMainActionName = string.Empty;
 
@@ -45,6 +52,15 @@ namespace YC.Presentation.Workflows
             this.explorationEventPresenter = explorationEventPresenter ?? throw new ArgumentNullException(nameof(explorationEventPresenter));
             buildFacilitySelection = new BuildFacilitySelectionController();
             cityStyleSelection = new CityStyleSelectionController();
+            var specialActionInfluenceService = new InfluenceService(this.mapQuery);
+            specialActionOptionQuery = new SpecialActionOptionQueryService(
+                this.mapQuery,
+                specialActionInfluenceService,
+                new CityMovementService(
+                    this.mapQuery,
+                    specialActionInfluenceService,
+                    new TravelCostService(this.mapQuery)),
+                new SpecialActionLifecycleService());
         }
 
         public InteractionMode Mode
@@ -85,13 +101,16 @@ namespace YC.Presentation.Workflows
             SynchronizeLocalPlayerForHotseat();
             var state = context.CurrentState;
             var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
-            if (player == null || !player.ActedMainActionThisTurn)
+            if (player == null ||
+                (player.CompletedMainActionsThisTurn <= 0 && !player.ActedMainActionThisTurn))
             {
                 completedMainActionName = string.Empty;
             }
 
             if (buildFacilitySelection.IsActive &&
-                (player == null || player.ActedMainActionThisTurn || state.CurrentPlayerId != context.LocalPlayerId))
+                (player == null ||
+                 !MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId) ||
+                 state.CurrentPlayerId != context.LocalPlayerId))
             {
                 buildFacilitySelection.Cancel();
                 view.HideBuildFacilityDraft();
@@ -129,7 +148,7 @@ namespace YC.Presentation.Workflows
             return IsLocalPlayersTurn() &&
                    (state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2) &&
                    player != null &&
-                   player.ActedMainActionThisTurn;
+                   (player.CompletedMainActionsThisTurn > 0 || player.ActedMainActionThisTurn);
         }
 
         public void EndCurrentAction()
@@ -593,7 +612,7 @@ namespace YC.Presentation.Workflows
             var canUseMainBuild = isActionPhase &&
                                   state.CurrentPlayerId == context.LocalPlayerId &&
                                   !state.HasPendingChoice() &&
-                                  !player.ActedMainActionThisTurn;
+                                  MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId);
             if (canUseMainBuild)
             {
                 var options = buildFacilitySelection.QueryOptions(state, context.LocalPlayerId);
@@ -608,7 +627,7 @@ namespace YC.Presentation.Workflows
 
             var exhaustedMessage = isActionPhase &&
                                    state.CurrentPlayerId == context.LocalPlayerId &&
-                                   player.ActedMainActionThisTurn &&
+                                   !MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId) &&
                                    !hasFacilitySpecialBuild
                 ? "本行动轮行动次数已用尽。"
                 : string.Empty;
@@ -699,7 +718,10 @@ namespace YC.Presentation.Workflows
             view.ShowCityStyleOptions(new CityStyleOptionsViewModel(
                 options.AsReadOnly(),
                 BuildCityBoardSlots(context.CurrentState, context.LocalPlayerId),
-                BuildCityStyleMarkers(context.CurrentState),
+                BuildCityStyleMarkers(
+                    context.CurrentState,
+                    context.LocalPlayerId,
+                    unavailableReason),
                 initialCityStyleId,
                 (cityStyleId, selectedSlotIndexes) => cityStyleSelection.ValidateSelection(
                     context.CurrentState,
@@ -708,7 +730,8 @@ namespace YC.Presentation.Workflows
                     selectedSlotIndexes),
                 TrySubmitDeclareCityStyle,
                 null,
-                OnCityStylePreviewClosed));
+                OnCityStylePreviewClosed,
+                TrySubmitSpecialAction));
             view.ShowPrompt(string.Empty);
         }
 
@@ -768,7 +791,10 @@ namespace YC.Presentation.Workflows
             return result.AsReadOnly();
         }
 
-        private static IReadOnlyList<CityStyleMarkerViewModel> BuildCityStyleMarkers(GameState state)
+        private IReadOnlyList<CityStyleMarkerViewModel> BuildCityStyleMarkers(
+            GameState state,
+            int localPlayerId,
+            string interactionUnavailableReason)
         {
             var result = new List<CityStyleMarkerViewModel>();
             if (state == null || state.Players == null)
@@ -776,6 +802,7 @@ namespace YC.Presentation.Workflows
                 return result.AsReadOnly();
             }
 
+            var specialActionOptions = specialActionOptionQuery.Query(state, localPlayerId);
             for (var playerIndex = 0; playerIndex < state.Players.Count; playerIndex++)
             {
                 var player = state.Players[playerIndex];
@@ -800,13 +827,39 @@ namespace YC.Presentation.Workflows
                         int count;
                         formalCounts.TryGetValue(declaration.CityStyleId, out count);
                         formalCounts[declaration.CityStyleId] = count + 1;
+                        var specialActionOption = player.PlayerId == localPlayerId
+                            ? specialActionOptions.Find(
+                                declaration.UnlockedSpecialActionId,
+                                declaration.InfluenceMarkerId)
+                            : null;
+                        var specialActionDefinition = SpecialActionDatabase.Get(
+                            declaration.UnlockedSpecialActionId);
                         result.Add(new CityStyleMarkerViewModel(
                             declaration.CityStyleId,
                             player.PlayerId,
                             player.Color,
                             string.IsNullOrEmpty(declaration.MarkerArea)
                                 ? CityStyleMarkerAreas.Declared
-                                : declaration.MarkerArea));
+                                : declaration.MarkerArea,
+                            declaration.InfluenceMarkerId,
+                            declaration.UnlockedSpecialActionId,
+                            specialActionOption != null &&
+                            specialActionOption.CanUse &&
+                            string.IsNullOrEmpty(interactionUnavailableReason),
+                            ResolveSpecialActionDropArea(
+                                specialActionDefinition,
+                                declaration.RemainingSpecialActionUses),
+                            !string.IsNullOrEmpty(interactionUnavailableReason) &&
+                            specialActionOption != null
+                                ? interactionUnavailableReason
+                                : specialActionOption == null
+                                    ? string.Empty
+                                    : specialActionOption.DisabledReason,
+                            specialActionOption == null
+                                ? string.Empty
+                                : specialActionOption.Warning,
+                            GetMaximumCompositePayment(specialActionOption, true),
+                            GetMaximumCompositePayment(specialActionOption, false)));
                     }
                 }
 
@@ -845,6 +898,47 @@ namespace YC.Presentation.Workflows
             return result.AsReadOnly();
         }
 
+        private static string ResolveSpecialActionDropArea(
+            SpecialActionDefinition definition,
+            int remainingUses)
+        {
+            if (definition == null)
+            {
+                return string.Empty;
+            }
+
+            if (definition.Level < 2)
+            {
+                return CityStyleMarkerAreas.Used;
+            }
+
+            return remainingUses >= 2
+                ? SpecialActionMarkerAreas.UsedFromTwo
+                : remainingUses == 1 ? SpecialActionMarkerAreas.UsedFromOne : string.Empty;
+        }
+
+        private static int GetMaximumCompositePayment(
+            SpecialActionOption option,
+            bool originium)
+        {
+            var maximum = 0;
+            if (option == null || option.PaymentOptions == null)
+            {
+                return maximum;
+            }
+
+            for (var i = 0; i < option.PaymentOptions.Count; i++)
+            {
+                var payment = option.PaymentOptions[i];
+                if (payment != null)
+                {
+                    maximum = Math.Max(maximum, originium ? payment.Originium : payment.Iron);
+                }
+            }
+
+            return maximum;
+        }
+
         public void SubmitDeclareCityStyle(string cityStyleId, IReadOnlyList<int> selectedSlotIndexes)
         {
             TrySubmitDeclareCityStyle(cityStyleId, selectedSlotIndexes);
@@ -879,6 +973,67 @@ namespace YC.Presentation.Workflows
             return true;
         }
 
+        private bool TrySubmitSpecialAction(
+            string specialActionId,
+            string declarationMarkerId,
+            int originiumAmount,
+            int ironAmount)
+        {
+            if (!CanStartMainAction())
+            {
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(specialActionId) || string.IsNullOrEmpty(declarationMarkerId))
+            {
+                view.ShowPrompt("所选样式标记没有可发动的特殊行动。");
+                return false;
+            }
+
+            if (specialActionId == SpecialActionDatabase.CompositePowerSystem &&
+                (originiumAmount < 0 || ironAmount < 0 || originiumAmount + ironAmount != 3))
+            {
+                view.ShowPrompt("复合动力系统必须选择合计 3 份源岩或异铁作为支付。");
+                return false;
+            }
+
+            var command = new GameCommand
+            {
+                Kind = GameCommandKind.UseSpecialAction,
+                PlayerId = context.LocalPlayerId,
+                SourceId = declarationMarkerId,
+                TargetId = specialActionId
+            };
+            command.Parameters[UseSpecialActionCommandHandler.SpecialActionIdParameter] = specialActionId;
+            command.Parameters[UseSpecialActionCommandHandler.DeclarationMarkerIdParameter] = declarationMarkerId;
+            if (specialActionId == SpecialActionDatabase.CompositePowerSystem)
+            {
+                command.Parameters[UseSpecialActionCommandHandler.OriginiumAmountParameter] =
+                    originiumAmount.ToString(CultureInfo.InvariantCulture);
+                command.Parameters[UseSpecialActionCommandHandler.IronAmountParameter] =
+                    ironAmount.ToString(CultureInfo.InvariantCulture);
+            }
+            var submission = commandPort.Submit(command);
+            if (!submission.CommandResult.Succeeded)
+            {
+                view.ShowPrompt(submission.CommandResult.Validation.Reason);
+                return false;
+            }
+
+            if (!submission.AppliedLocally)
+            {
+                view.ShowPrompt("特殊行动命令已发送给主机，等待确认。");
+                return true;
+            }
+
+            flowCoordinator.ResetToChooseAction();
+            view.ClearHighlights();
+            view.RefreshFromState();
+            view.RefreshInformation();
+            view.RefreshActionPanel();
+            return true;
+        }
+
         private void OnCityStylePreviewClosed()
         {
             if (buildFacilitySelection.IsActive)
@@ -908,7 +1063,8 @@ namespace YC.Presentation.Workflows
             var isActionPhase = state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2;
             var isLocalTurn = state.CurrentPlayerId == context.LocalPlayerId;
             var hasPendingChoice = state.HasPendingChoice();
-            var mainActionDone = player != null && player.ActedMainActionThisTurn;
+            var mainActionDone = player != null &&
+                                 !MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId);
             var hasLocalBuildDraft = buildFacilitySelection.IsActive;
             var canChooseQuickAction = isActionPhase && isLocalTurn && !hasPendingChoice && !hasLocalBuildDraft;
             var canChooseMainAction = canChooseQuickAction && !mainActionDone;
@@ -927,6 +1083,7 @@ namespace YC.Presentation.Workflows
                 canChooseQuickAction &&
                 player != null &&
                 !player.UsedCharacterThisRound &&
+                !player.CharacterCardLockedThisTurn &&
                 !string.IsNullOrEmpty(player.CoveredCharacterCardId),
                 canChooseQuickAction,
                 canChooseMainAction,
@@ -934,7 +1091,9 @@ namespace YC.Presentation.Workflows
                 canChooseMainAction,
                 canChooseMainAction && player != null,
                 canChooseMainAction,
-                canChooseMainAction && player != null && player.UsedSpecialActionIdsThisRound.Count == 0,
+                canChooseMainAction &&
+                player != null &&
+                specialActionOptionQuery.Query(state, context.LocalPlayerId).HasUsableOption,
                 CanEndCurrentAction() && !RoundTrackRule.IsFinalState(state),
                 waiting);
         }
@@ -986,10 +1145,14 @@ namespace YC.Presentation.Workflows
                 return false;
             }
 
-            if (!quickAction && player.ActedMainActionThisTurn)
+            if (!quickAction)
             {
-                view.ShowPrompt("\u5f53\u524d\u73a9\u5bb6\u5df2\u7ecf\u6267\u884c\u8fc7\u4e3b\u8981\u884c\u52a8\u3002");
-                return false;
+                var budgetValidation = MainActionBudgetService.ValidateCanSpend(state, context.LocalPlayerId);
+                if (!budgetValidation.IsValid)
+                {
+                    view.ShowPrompt(budgetValidation.Reason);
+                    return false;
+                }
             }
 
             if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
@@ -1229,6 +1392,13 @@ namespace YC.Presentation.Workflows
                     : "\u8bf7\u5148\u5904\u7406\u4e8b\u4ef6\u9009\u62e9";
             }
             if (!isLocalTurn) return "\u7b49\u5f85\u73a9\u5bb6 " + state.CurrentPlayerId + " \u884c\u52a8";
+            if (player != null &&
+                player.CompletedMainActionsThisTurn > 0 &&
+                player.RemainingMainActionsThisTurn > 0)
+            {
+                return "剩余额外主要行动：" + player.RemainingMainActionsThisTurn +
+                       "，可继续主要/快速行动或结束行动";
+            }
             if (mainActionDone) return BuildCompletedMainActionMessage(completedMainActionName);
             switch (displayedMode)
             {

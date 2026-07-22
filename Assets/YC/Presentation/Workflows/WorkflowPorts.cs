@@ -234,7 +234,8 @@ namespace YC.Presentation.Workflows
             Func<string, IReadOnlyList<int>, CityStyleSelectionValidationViewModel> validateSelection,
             Func<string, IReadOnlyList<int>, bool> confirmSelection,
             Action<string> select,
-            Action cancel)
+            Action cancel,
+            Func<string, string, int, int, bool> tryUseSpecialAction = null)
         {
             Options = options ?? new List<CityStyleOptionViewModel>().AsReadOnly();
             CityBoardSlots = cityBoardSlots ?? new List<CityBoardSlotViewModel>().AsReadOnly();
@@ -244,6 +245,7 @@ namespace YC.Presentation.Workflows
             ConfirmSelection = confirmSelection;
             Select = select;
             Cancel = cancel;
+            TryUseSpecialAction = tryUseSpecialAction;
         }
 
         public IReadOnlyList<CityStyleOptionViewModel> Options { get; private set; }
@@ -261,6 +263,8 @@ namespace YC.Presentation.Workflows
         public Action<string> Select { get; private set; }
 
         public Action Cancel { get; private set; }
+
+        public Func<string, string, int, int, bool> TryUseSpecialAction { get; private set; }
     }
 
     public sealed class CityBoardSlotViewModel
@@ -286,11 +290,45 @@ namespace YC.Presentation.Workflows
             int playerId,
             PlayerColor playerColor,
             string markerArea)
+            : this(
+                cityStyleId,
+                playerId,
+                playerColor,
+                markerArea,
+                string.Empty,
+                string.Empty,
+                false,
+                string.Empty,
+                string.Empty)
+        {
+        }
+
+        public CityStyleMarkerViewModel(
+            string cityStyleId,
+            int playerId,
+            PlayerColor playerColor,
+            string markerArea,
+            string markerId,
+            string specialActionId,
+            bool canDragForSpecialAction,
+            string legalDropArea,
+            string specialActionDisabledReason,
+            string specialActionWarning = "",
+            int maximumOriginiumPayment = 0,
+            int maximumIronPayment = 0)
         {
             CityStyleId = cityStyleId ?? string.Empty;
             PlayerId = playerId;
             PlayerColor = playerColor;
             MarkerArea = markerArea ?? string.Empty;
+            MarkerId = markerId ?? string.Empty;
+            SpecialActionId = specialActionId ?? string.Empty;
+            CanDragForSpecialAction = canDragForSpecialAction;
+            LegalDropArea = legalDropArea ?? string.Empty;
+            SpecialActionDisabledReason = specialActionDisabledReason ?? string.Empty;
+            SpecialActionWarning = specialActionWarning ?? string.Empty;
+            MaximumOriginiumPayment = Math.Max(0, maximumOriginiumPayment);
+            MaximumIronPayment = Math.Max(0, maximumIronPayment);
         }
 
         public string CityStyleId { get; private set; }
@@ -300,6 +338,22 @@ namespace YC.Presentation.Workflows
         public PlayerColor PlayerColor { get; private set; }
 
         public string MarkerArea { get; private set; }
+
+        public string MarkerId { get; private set; }
+
+        public string SpecialActionId { get; private set; }
+
+        public bool CanDragForSpecialAction { get; private set; }
+
+        public string LegalDropArea { get; private set; }
+
+        public string SpecialActionDisabledReason { get; private set; }
+
+        public string SpecialActionWarning { get; private set; }
+
+        public int MaximumOriginiumPayment { get; private set; }
+
+        public int MaximumIronPayment { get; private set; }
     }
 
     public sealed class ExplorePathOptionsViewModel

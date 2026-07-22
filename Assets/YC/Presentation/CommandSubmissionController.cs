@@ -15,6 +15,7 @@ namespace YC.Presentation
         private readonly UnityEngine.Object logContext;
         private readonly Action refreshFromState;
         private readonly Action<string> setPrompt;
+        private readonly Action<string> commandSettled;
         private INetworkCommandTransport commandTransport;
         private bool sessionNoticeSubscribed;
 
@@ -24,7 +25,8 @@ namespace YC.Presentation
             int localPlayerId,
             UnityEngine.Object logContext,
             Action refreshFromState,
-            Action<string> setPrompt)
+            Action<string> setPrompt,
+            Action<string> commandSettled)
         {
             this.session = session;
             this.launchContext = launchContext;
@@ -32,6 +34,7 @@ namespace YC.Presentation
             this.logContext = logContext;
             this.refreshFromState = refreshFromState;
             this.setPrompt = setPrompt;
+            this.commandSettled = commandSettled;
         }
 
         public void Initialize()
@@ -111,16 +114,23 @@ namespace YC.Presentation
 
         private void OnConfirmedNetworkCommandApplied(ConfirmedGameCommandDto confirmed)
         {
+            commandSettled?.Invoke(confirmed == null || confirmed.Command == null
+                ? string.Empty
+                : confirmed.Command.CommandId);
             refreshFromState();
         }
 
         private void OnInitialNetworkStateApplied(InitialGameStateDto snapshot)
         {
+            commandSettled?.Invoke(string.Empty);
             refreshFromState();
         }
 
         private void OnNetworkCommandRejected(RejectedGameCommandDto rejected)
         {
+            commandSettled?.Invoke(rejected == null || rejected.Command == null
+                ? string.Empty
+                : rejected.Command.CommandId);
             setPrompt(NetworkCommandPromptFormatter.BuildRejectedCommandPrompt(rejected));
         }
     }

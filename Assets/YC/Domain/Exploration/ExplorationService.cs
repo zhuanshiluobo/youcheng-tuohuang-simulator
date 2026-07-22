@@ -15,6 +15,7 @@ namespace YC.Domain.Exploration
     {
         public const int RouteCostGoldVoucher = RouteTollService.RouteCostGoldVoucher;
         public const string ConsumeMainActionArgument = "consumeMainAction";
+        private static readonly MainActionBudgetService MainActionBudgetService = new MainActionBudgetService();
 
         private readonly IMapQueryService mapQuery;
         private readonly InfluenceService influenceService;
@@ -83,9 +84,13 @@ namespace YC.Domain.Exploration
                 return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择项再探索。");
             }
 
-            if (player.ActedMainActionThisTurn && !allowFacilityEntry)
+            if (!allowFacilityEntry)
             {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该玩家本行动轮已执行过主要行动。");
+                var budgetValidation = MainActionBudgetService.ValidateCanSpend(state, playerId);
+                if (!budgetValidation.IsValid)
+                {
+                    return budgetValidation;
+                }
             }
 
             if (string.IsNullOrEmpty(player.CityLocationId))

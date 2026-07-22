@@ -118,7 +118,9 @@ namespace YC.Domain.CityStyles
                 InfluenceMarkerId = cityStyle.CityStyleId + ":" + playerId + ":" + (previousDeclarationCount + 1),
                 CityStyleId = cityStyle.CityStyleId,
                 MarkerArea = markerArea,
-                UnlockedSpecialActionId = cityStyle.SpecialActionId ?? string.Empty,
+                UnlockedSpecialActionId = previousDeclarationCount == 0
+                    ? cityStyle.SpecialActionId ?? string.Empty
+                    : string.Empty,
                 RemainingSpecialActionUses = remainingSpecialActionUses
             };
         }

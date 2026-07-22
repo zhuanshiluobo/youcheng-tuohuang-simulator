@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YC.Domain.CityStyles;
+using YC.Domain.SpecialActions;
 using YC.Presentation.Workflows;
 
 namespace YC.Presentation
@@ -266,6 +267,16 @@ namespace YC.Presentation
         }
     }
 
+    internal sealed class CityStyleSpecialActionDropTarget : MonoBehaviour
+    {
+        public string MarkerArea { get; private set; } = string.Empty;
+
+        public void Configure(string markerArea)
+        {
+            MarkerArea = markerArea ?? string.Empty;
+        }
+    }
+
     internal sealed class CityStyleDeclarationPreviewDialog
     {
         private const int PreviewCanvasSortingOrder = 130;
@@ -281,6 +292,10 @@ namespace YC.Presentation
         private readonly List<CityBoardSlotBinding> slotBindings = new List<CityBoardSlotBinding>();
         private readonly List<int> selectedSlotIndexes = new List<int>();
         private readonly List<Image> cityStyleInfluenceMarkers = new List<Image>();
+        private readonly List<SpecialActionDropTargetBinding> specialActionDropTargets =
+            new List<SpecialActionDropTargetBinding>();
+        private readonly SpecialActionChoiceDialog specialActionPaymentDialog =
+            new SpecialActionChoiceDialog();
 
         private CityStyleOptionsViewModel model;
         private GameObject previewCanvasObject;
@@ -290,6 +305,7 @@ namespace YC.Presentation
         private Text cityStyleCardPlaceholder;
         private Text cityStyleTitleText;
         private Text matchStatusText;
+        private Text specialActionHintText;
         private Text boardTitleText;
         private RectTransform cityBoardRect;
         private Button previousButton;
@@ -305,6 +321,10 @@ namespace YC.Presentation
         private string selectionReason = string.Empty;
         private int selectionRequiredFacilityCount;
         private int selectionSelectedFacilityCount;
+        private RectTransform specialActionDragGhost;
+        private CityStyleMarkerViewModel draggedSpecialActionMarker;
+        private GameObject specialActionConfirmationObject;
+        private CityStyleMarkerViewModel pendingSpecialActionConfirmation;
 
         public bool IsShowing
         {
@@ -494,6 +514,18 @@ namespace YC.Presentation
                 new Vector2(0f, -310f));
             confirmDeclarationButton.onClick.AddListener(ConfirmDeclaration);
 
+            specialActionHintText = CreateText(
+                leftPanel,
+                "City Style Special Action Hint",
+                string.Empty,
+                15,
+                FontStyle.Bold,
+                new Color(0.48f, 1f, 0.42f, 1f),
+                TextAnchor.MiddleCenter,
+                new Vector2(820f, 38f),
+                new Vector2(0f, -258f));
+            specialActionHintText.raycastTarget = false;
+
             matchStatusText = CreateText(
                 leftPanel,
                 "City Style Match Status",
@@ -634,6 +666,8 @@ namespace YC.Presentation
             }
 
             RenderCityStyleInfluenceMarkers(option == null ? string.Empty : option.CityStyleId);
+            RenderSpecialActionDropTargets(option == null ? string.Empty : option.CityStyleId);
+            RenderSpecialActionHint(option == null ? string.Empty : option.CityStyleId);
 
             SetButtonState(previousButton, currentCityStyleIndex > 0, false);
             SetButtonState(nextButton, currentCityStyleIndex < optionCount - 1, false);
@@ -690,6 +724,19 @@ namespace YC.Presentation
                 new Vector2(20f, 20f),
                 markerModel.CityStyleId,
                 placement);
+            marker.raycastTarget = markerModel.CanDragForSpecialAction;
+            var markerButton = marker.GetComponent<Button>();
+            markerButton.transition = Selectable.Transition.None;
+            markerButton.interactable = markerModel.CanDragForSpecialAction;
+            marker.GetComponent<CardPointerInteraction>().ConfigureDrag(
+                () => markerModel.CanDragForSpecialAction &&
+                      model != null &&
+                      model.TryUseSpecialAction != null &&
+                      !IsSpecialActionModalOpen(),
+                eventData => BeginSpecialActionDrag(markerModel, marker, eventData),
+                eventData => FacilityCardDragUtility.MoveDragGhost(specialActionDragGhost, eventData),
+                eventData => EndSpecialActionDrag(markerModel, eventData),
+                CancelSpecialActionDrag);
         }
 
         private Image EnsureCityStyleInfluenceMarker(int markerIndex)
@@ -710,7 +757,9 @@ namespace YC.Presentation
                     "样式预览影响力",
                     typeof(RectTransform),
                     typeof(Image),
-                    typeof(Outline));
+                    typeof(Outline),
+                    typeof(Button),
+                    typeof(CardPointerInteraction));
                 markerObject.transform.SetParent(cityStyleInfluenceMarkerRoot, false);
                 var markerRect = markerObject.GetComponent<RectTransform>();
                 markerRect.pivot = new Vector2(0.5f, 0.5f);
@@ -726,6 +775,422 @@ namespace YC.Presentation
             }
 
             return cityStyleInfluenceMarkers[markerIndex];
+        }
+
+        private void RenderSpecialActionDropTargets(string cityStyleId)
+        {
+            var requiredAreas = new List<string>();
+            var markers = model == null ? null : model.CityStyleMarkers;
+            if (!string.IsNullOrEmpty(cityStyleId) && markers != null)
+            {
+                for (var i = 0; i < markers.Count; i++)
+                {
+                    var marker = markers[i];
+                    if (marker != null &&
+                        marker.CityStyleId == cityStyleId &&
+                        marker.CanDragForSpecialAction &&
+                        !string.IsNullOrEmpty(marker.LegalDropArea) &&
+                        !requiredAreas.Contains(marker.LegalDropArea))
+                    {
+                        requiredAreas.Add(marker.LegalDropArea);
+                    }
+                }
+            }
+
+            for (var i = 0; i < requiredAreas.Count; i++)
+            {
+                var binding = EnsureSpecialActionDropTarget(i);
+                var area = requiredAreas[i];
+                binding.MarkerArea = area;
+                binding.Target.Configure(area);
+                binding.Rect.anchorMin = CityStyleMarkerRenderer.ResolveAnchor(
+                    cityStyleId,
+                    area,
+                    0,
+                    0,
+                    0);
+                binding.Rect.anchorMax = binding.Rect.anchorMin;
+                binding.Rect.pivot = new Vector2(0.5f, 0.5f);
+                binding.Rect.sizeDelta = new Vector2(148f, 72f);
+                binding.Rect.anchoredPosition = Vector2.zero;
+                binding.Rect.gameObject.name = "特殊行动合法落区 " + area;
+                binding.Rect.gameObject.SetActive(false);
+            }
+
+            for (var i = requiredAreas.Count; i < specialActionDropTargets.Count; i++)
+            {
+                specialActionDropTargets[i].Rect.gameObject.SetActive(false);
+            }
+        }
+
+        private SpecialActionDropTargetBinding EnsureSpecialActionDropTarget(int index)
+        {
+            while (specialActionDropTargets.Count <= index)
+            {
+                var targetObject = new GameObject(
+                    "特殊行动合法落区",
+                    typeof(RectTransform),
+                    typeof(Image),
+                    typeof(Outline),
+                    typeof(CityStyleSpecialActionDropTarget));
+                targetObject.transform.SetParent(cityStyleInfluenceMarkerRoot, false);
+                var image = targetObject.GetComponent<Image>();
+                image.color = new Color(0.18f, 0.9f, 0.32f, 0.2f);
+                image.raycastTarget = true;
+                var outline = targetObject.GetComponent<Outline>();
+                outline.effectColor = new Color(0.48f, 1f, 0.42f, 1f);
+                outline.effectDistance = new Vector2(4f, -4f);
+                specialActionDropTargets.Add(new SpecialActionDropTargetBinding
+                {
+                    Rect = targetObject.GetComponent<RectTransform>(),
+                    Image = image,
+                    Outline = outline,
+                    Target = targetObject.GetComponent<CityStyleSpecialActionDropTarget>()
+                });
+            }
+
+            return specialActionDropTargets[index];
+        }
+
+        private void RenderSpecialActionHint(string cityStyleId)
+        {
+            if (specialActionHintText == null)
+            {
+                return;
+            }
+
+            specialActionHintText.text = string.Empty;
+            var markers = model == null ? null : model.CityStyleMarkers;
+            if (markers == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < markers.Count; i++)
+            {
+                var marker = markers[i];
+                if (marker == null || marker.CityStyleId != cityStyleId ||
+                    string.IsNullOrEmpty(marker.SpecialActionId))
+                {
+                    continue;
+                }
+
+                if (marker.CanDragForSpecialAction)
+                {
+                    specialActionHintText.text = "拖动本方可用影响力到绿色高亮的已使用区，发动特殊行动。";
+                    specialActionHintText.color = new Color(0.48f, 1f, 0.42f, 1f);
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(marker.SpecialActionDisabledReason))
+                {
+                    specialActionHintText.text = "特殊行动当前不可发动：" + marker.SpecialActionDisabledReason;
+                    specialActionHintText.color = new Color(1f, 0.68f, 0.28f, 1f);
+                    return;
+                }
+            }
+        }
+
+        private void BeginSpecialActionDrag(
+            CityStyleMarkerViewModel markerModel,
+            Image markerImage,
+            PointerEventData eventData)
+        {
+            if (IsSpecialActionModalOpen())
+            {
+                return;
+            }
+
+            CancelSpecialActionDrag();
+            if (markerModel == null || markerImage == null ||
+                !markerModel.CanDragForSpecialAction ||
+                string.IsNullOrEmpty(markerModel.LegalDropArea))
+            {
+                return;
+            }
+
+            draggedSpecialActionMarker = markerModel;
+            var canvasRect = previewCanvasObject == null
+                ? null
+                : previewCanvasObject.GetComponent<RectTransform>();
+            specialActionDragGhost = FacilityCardDragUtility.CreateDragGhost(
+                canvasRect,
+                markerImage.rectTransform,
+                null,
+                string.Empty);
+            if (specialActionDragGhost != null)
+            {
+                specialActionDragGhost.gameObject.name = "特殊行动影响力拖动虚影";
+                var ghostImage = specialActionDragGhost.GetComponent<RawImage>();
+                if (ghostImage != null)
+                {
+                    ghostImage.color = markerImage.color;
+                }
+
+                var fallback = specialActionDragGhost.GetComponentInChildren<Text>();
+                if (fallback != null)
+                {
+                    fallback.gameObject.SetActive(false);
+                }
+
+                FacilityCardDragUtility.MoveDragGhost(specialActionDragGhost, eventData);
+            }
+
+            SetSpecialActionDropTargetsVisible(markerModel.LegalDropArea, true);
+            if (specialActionHintText != null)
+            {
+                specialActionHintText.text = "松开到绿色高亮区即可发动；其他区域不会提交命令。";
+                specialActionHintText.color = new Color(0.48f, 1f, 0.42f, 1f);
+            }
+        }
+
+        private void EndSpecialActionDrag(
+            CityStyleMarkerViewModel markerModel,
+            PointerEventData eventData)
+        {
+            var dropArea = ResolveSpecialActionDropArea(eventData);
+            var legal = markerModel != null &&
+                        markerModel == draggedSpecialActionMarker &&
+                        !string.IsNullOrEmpty(markerModel.LegalDropArea) &&
+                        markerModel.LegalDropArea == dropArea;
+            CancelSpecialActionDrag();
+
+            if (!legal)
+            {
+                if (specialActionHintText != null)
+                {
+                    specialActionHintText.text = "未落在合法高亮区，特殊行动未发动。";
+                    specialActionHintText.color = new Color(1f, 0.48f, 0.32f, 1f);
+                }
+
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(markerModel.SpecialActionWarning))
+            {
+                ShowSpecialActionWarningConfirmation(markerModel);
+                return;
+            }
+
+            ContinueSpecialActionFromMarker(markerModel);
+        }
+
+        private void ShowSpecialActionWarningConfirmation(CityStyleMarkerViewModel markerModel)
+        {
+            HideSpecialActionWarningConfirmation();
+            if (markerModel == null || overlayObject == null)
+            {
+                return;
+            }
+
+            pendingSpecialActionConfirmation = markerModel;
+            specialActionConfirmationObject = new GameObject(
+                "Special Action Warning Confirmation",
+                typeof(RectTransform),
+                typeof(Image));
+            specialActionConfirmationObject.transform.SetParent(overlayObject.transform, false);
+            specialActionConfirmationObject.transform.SetAsLastSibling();
+            var confirmationRect = specialActionConfirmationObject.GetComponent<RectTransform>();
+            Stretch(confirmationRect);
+            specialActionConfirmationObject.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.72f);
+
+            var panel = CreatePanel(
+                confirmationRect,
+                "Special Action Warning Confirmation Panel",
+                new Vector2(620f, 280f),
+                Vector2.zero,
+                UiTheme.PanelBackground);
+            CreateText(
+                panel,
+                "Special Action Warning Confirmation Title",
+                "确认发动特殊行动",
+                24,
+                FontStyle.Bold,
+                UiTheme.GoldText,
+                TextAnchor.MiddleCenter,
+                new Vector2(540f, 44f),
+                new Vector2(0f, 86f));
+            var warning = CreateText(
+                panel,
+                "Special Action Warning Confirmation Message",
+                markerModel.SpecialActionWarning + "\n仍要消耗主要行动与本次样式行动次数吗？",
+                17,
+                FontStyle.Bold,
+                UiTheme.ValueText,
+                TextAnchor.MiddleCenter,
+                new Vector2(540f, 96f),
+                new Vector2(0f, 12f));
+            warning.raycastTarget = false;
+            var cancelButton = CreateButton(
+                panel,
+                "Cancel Special Action Warning",
+                "取消",
+                new Vector2(160f, 46f),
+                new Vector2(-98f, -90f));
+            cancelButton.onClick.AddListener(HideSpecialActionWarningConfirmation);
+            var confirmButton = CreateButton(
+                panel,
+                "Confirm Special Action Warning",
+                "确认发动",
+                new Vector2(160f, 46f),
+                new Vector2(98f, -90f));
+            confirmButton.onClick.AddListener(ConfirmPendingSpecialAction);
+        }
+
+        private void ConfirmPendingSpecialAction()
+        {
+            var marker = pendingSpecialActionConfirmation;
+            HideSpecialActionWarningConfirmation();
+            if (marker != null)
+            {
+                ContinueSpecialActionFromMarker(marker);
+            }
+        }
+
+        private void ContinueSpecialActionFromMarker(CityStyleMarkerViewModel markerModel)
+        {
+            if (markerModel == null)
+            {
+                return;
+            }
+
+            if (markerModel.SpecialActionId == SpecialActionDatabase.CompositePowerSystem)
+            {
+                ShowCompositePowerPayment(markerModel);
+                return;
+            }
+
+            TrySubmitSpecialActionFromMarker(markerModel, 0, 0);
+        }
+
+        private void ShowCompositePowerPayment(CityStyleMarkerViewModel markerModel)
+        {
+            var canvas = previewCanvasObject == null
+                ? null
+                : previewCanvasObject.GetComponent<RectTransform>();
+            specialActionPaymentDialog.ShowCompositePayment(
+                canvas,
+                markerModel.MaximumOriginiumPayment,
+                markerModel.MaximumIronPayment,
+                values =>
+                {
+                    if (values == null || values.Count < 2)
+                    {
+                        return;
+                    }
+
+                    TrySubmitSpecialActionFromMarker(markerModel, values[0], values[1]);
+                },
+                () => CancelCompositePowerPayment(markerModel));
+            if (specialActionHintText != null)
+            {
+                specialActionHintText.text = "请选择源岩与异铁的支付组合；取消会返回样式卡预览。";
+                specialActionHintText.color = UiTheme.GoldText;
+            }
+        }
+
+        private void CancelCompositePowerPayment(CityStyleMarkerViewModel markerModel)
+        {
+            specialActionPaymentDialog.Hide();
+            RenderSpecialActionHint(markerModel == null ? CurrentCityStyleId : markerModel.CityStyleId);
+            if (specialActionHintText != null)
+            {
+                specialActionHintText.text = "已取消材料支付，特殊行动未发动。";
+                specialActionHintText.color = new Color(1f, 0.68f, 0.28f, 1f);
+            }
+        }
+
+        private void TrySubmitSpecialActionFromMarker(
+            CityStyleMarkerViewModel markerModel,
+            int originiumAmount,
+            int ironAmount)
+        {
+            if (model != null &&
+                model.TryUseSpecialAction != null &&
+                markerModel != null &&
+                model.TryUseSpecialAction(
+                    markerModel.SpecialActionId,
+                    markerModel.MarkerId,
+                    originiumAmount,
+                    ironAmount))
+            {
+                HideInternal(false);
+                return;
+            }
+
+            RenderSpecialActionHint(markerModel == null ? CurrentCityStyleId : markerModel.CityStyleId);
+        }
+
+        private void HideSpecialActionWarningConfirmation()
+        {
+            pendingSpecialActionConfirmation = null;
+            if (specialActionConfirmationObject == null)
+            {
+                return;
+            }
+
+            var confirmation = specialActionConfirmationObject;
+            specialActionConfirmationObject = null;
+            if (UnityEngine.Application.isPlaying)
+            {
+                UnityEngine.Object.Destroy(confirmation);
+            }
+            else
+            {
+                UnityEngine.Object.DestroyImmediate(confirmation);
+            }
+        }
+
+        private string ResolveSpecialActionDropArea(PointerEventData eventData)
+        {
+            var hit = eventData == null ? null : eventData.pointerCurrentRaycast.gameObject;
+            var current = hit == null ? null : hit.transform;
+            while (current != null)
+            {
+                var target = current.GetComponent<CityStyleSpecialActionDropTarget>();
+                if (target != null && target.isActiveAndEnabled)
+                {
+                    return target.MarkerArea;
+                }
+
+                current = current.parent;
+            }
+
+            if (eventData == null)
+            {
+                return string.Empty;
+            }
+
+            for (var i = 0; i < specialActionDropTargets.Count; i++)
+            {
+                var binding = specialActionDropTargets[i];
+                if (binding.Rect.gameObject.activeInHierarchy &&
+                    RectTransformUtility.RectangleContainsScreenPoint(
+                        binding.Rect,
+                        eventData.position,
+                        eventData.pressEventCamera))
+                {
+                    return binding.MarkerArea;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private void SetSpecialActionDropTargetsVisible(string legalArea, bool visible)
+        {
+            for (var i = 0; i < specialActionDropTargets.Count; i++)
+            {
+                var binding = specialActionDropTargets[i];
+                binding.Rect.gameObject.SetActive(visible && binding.MarkerArea == legalArea);
+            }
+        }
+
+        private void CancelSpecialActionDrag()
+        {
+            FacilityCardDragUtility.DestroyDragGhost(ref specialActionDragGhost);
+            draggedSpecialActionMarker = null;
+            SetSpecialActionDropTargetsVisible(string.Empty, false);
         }
 
         private void RenderSelectionState()
@@ -836,6 +1301,11 @@ namespace YC.Presentation
 
         private void ChangeCityStyle(int offset)
         {
+            if (specialActionPaymentDialog.IsShowing || specialActionConfirmationObject != null)
+            {
+                return;
+            }
+
             var count = model == null || model.Options == null ? 0 : model.Options.Count;
             if (count <= 0)
             {
@@ -852,6 +1322,7 @@ namespace YC.Presentation
             var option = GetCurrentOption();
             selectingFacilities = option != null && option.CanDeclare;
             ResetValidationState();
+            CancelSpecialActionDrag();
             EndLeftPointerGesture();
             RenderCurrentCityStyle();
             if (option != null)
@@ -862,11 +1333,28 @@ namespace YC.Presentation
 
         private void HandleBackNavigation()
         {
+            if (specialActionPaymentDialog.IsShowing)
+            {
+                CancelCompositePowerPayment(null);
+                return;
+            }
+
+            if (specialActionConfirmationObject != null)
+            {
+                HideSpecialActionWarningConfirmation();
+                return;
+            }
+
             Hide();
         }
 
         private void ClearCurrentSelection()
         {
+            if (IsSpecialActionModalOpen())
+            {
+                return;
+            }
+
             selectedSlotIndexes.Clear();
             EndLeftPointerGesture();
             ValidateCurrentSelection();
@@ -874,7 +1362,7 @@ namespace YC.Presentation
 
         private void OnBoardLeftPointerDown(Vector2 pointerPosition)
         {
-            if (!selectingFacilities)
+            if (!selectingFacilities || IsSpecialActionModalOpen())
             {
                 return;
             }
@@ -886,7 +1374,7 @@ namespace YC.Presentation
 
         private void OnSlotLeftPointerDown(int slotIndex, Vector2 pointerPosition)
         {
-            if (!selectingFacilities)
+            if (!selectingFacilities || IsSpecialActionModalOpen())
             {
                 return;
             }
@@ -1052,6 +1540,12 @@ namespace YC.Presentation
             ValidateCurrentSelection();
         }
 
+        private bool IsSpecialActionModalOpen()
+        {
+            return specialActionPaymentDialog.IsShowing ||
+                   specialActionConfirmationObject != null;
+        }
+
         private void ResetValidationState()
         {
             selectionCanConfirm = false;
@@ -1107,11 +1601,15 @@ namespace YC.Presentation
         private void HideInternal(bool invokeCancel)
         {
             var cancel = invokeCancel && model != null ? model.Cancel : null;
+            CancelSpecialActionDrag();
+            specialActionPaymentDialog.Hide();
+            HideSpecialActionWarningConfirmation();
             model = null;
             selectingFacilities = false;
             selectedSlotIndexes.Clear();
             slotBindings.Clear();
             cityStyleInfluenceMarkers.Clear();
+            specialActionDropTargets.Clear();
             cityStyleInfluenceMarkerRoot = null;
             ResetValidationState();
             EndLeftPointerGesture();
@@ -1417,6 +1915,15 @@ namespace YC.Presentation
             public Button Button;
             public bool Occupied;
             public bool Used;
+        }
+
+        private sealed class SpecialActionDropTargetBinding
+        {
+            public string MarkerArea;
+            public RectTransform Rect;
+            public Image Image;
+            public Outline Outline;
+            public CityStyleSpecialActionDropTarget Target;
         }
     }
 }
