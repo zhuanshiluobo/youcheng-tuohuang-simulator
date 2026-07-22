@@ -56,6 +56,9 @@ namespace YC.Presentation
         private ZoomableImageViewerController hintCardImageViewer;
         private Func<bool> handleCharacterFlip;
         private ActionPanelFace currentFace;
+        private string currentCharacterCardId = string.Empty;
+        private string currentCharacterFrontImageRelativePath = string.Empty;
+        private string revealedCharacterCardId = string.Empty;
 
         private ActionPanelController(
             GameObject panelObject,
@@ -193,10 +196,11 @@ namespace YC.Presentation
             var exploreButton = CreateButton(mainRect, "探索", new Vector2(-86f, -288f), onExplore);
             var moveCityButton = CreateButton(mainRect, "城市移动", new Vector2(86f, -288f), onMoveCity);
             Button buildButton = null;
-            var specialActionButton = CreateButton(mainRect, "特殊行动", new Vector2(0f, -340f), onSpecialAction);
-            var endRoundButton = CreateButton(mainRect, "结束本回合", new Vector2(0f, -392f), onEndRound);
+            // 特殊行动只从已宣告城市样式卡上的影响力标记发动，避免出现第二套入口。
+            Button specialActionButton = null;
+            var endRoundButton = CreateButton(mainRect, "结束本回合", new Vector2(0f, -340f), onEndRound);
 
-            var statusText = CreateText(mainRect, "状态", 15, new Vector2(0f, -454f), FontStyle.Normal);
+            var statusText = CreateText(mainRect, "状态", 15, new Vector2(0f, -424f), FontStyle.Normal);
             statusText.rectTransform.sizeDelta = new Vector2(316f, 56f);
             statusText.resizeTextForBestFit = true;
             statusText.resizeTextMinSize = 11;
@@ -423,6 +427,7 @@ namespace YC.Presentation
             ConfigureCharacterContainerLayout();
             if (viewModel.UsedCharacterThisRound && string.IsNullOrEmpty(viewModel.CoveredCardId))
             {
+                ClearCharacterRevealState();
                 cardImage.texture = null;
                 cardImage.color = Color.clear;
                 cardImageButton.interactable = false;
@@ -445,7 +450,12 @@ namespace YC.Presentation
             }
 
             var cardName = CharacterCardPanelPresenter.ResolveCardDisplayName(viewModel.CoveredCardId);
-            cardImage.texture = LoadTexture(viewModel.CoveredBackImageRelativePath);
+            currentCharacterCardId = viewModel.CoveredCardId;
+            currentCharacterFrontImageRelativePath = viewModel.CoveredFrontImageRelativePath;
+            var isRevealed = revealedCharacterCardId == viewModel.CoveredCardId;
+            cardImage.texture = LoadTexture(isRevealed
+                ? viewModel.CoveredFrontImageRelativePath
+                : viewModel.CoveredBackImageRelativePath);
             cardImage.color = Color.white;
             cardImageButton.interactable = cardImage.texture != null && openCharacterCardAction != null;
             cardPlaceholderText.gameObject.SetActive(false);
@@ -453,8 +463,12 @@ namespace YC.Presentation
             cardFaceOutline.effectColor = UiTheme.GoldOutlineThin;
             cardTitleText.text = "已盖放角色牌（" + cardName + "）";
             cardHintText.text = viewModel.IsSecondEffectDecision
-                ? "可继续使用第二个效果；点击翻转则结束角色卡使用"
-                : "点击卡背查看正面；点击策略或计谋开始结算";
+                ? (viewModel.CanUseStrategy || viewModel.CanUseTactic
+                    ? "可继续使用第二个效果；点击翻转则结束角色卡使用"
+                    : "当前角色牌效果没有合法的地图目标，请点击翻转完成结算。")
+                : (isRevealed
+                    ? "角色牌已翻开；正在结算所选效果"
+                    : "点击卡背查看正面；点击策略或计谋开始结算");
             ConfigureCardAction(cardPrimaryButton, cardPrimaryLabel, "策略", viewModel.CanUseStrategy);
             ConfigureCardAction(cardSecondaryButton, cardSecondaryLabel, "计谋", viewModel.CanUseTactic);
             SetFace(ActionPanelFace.Character);
@@ -474,6 +488,11 @@ namespace YC.Presentation
         public void ConfigureCharacterFlipAction(Func<bool> characterFlipHandler)
         {
             handleCharacterFlip = characterFlipHandler;
+        }
+
+        public void ResetCharacterCardReveal()
+        {
+            ClearCharacterRevealState();
         }
 
         public void ShowCharacterCoverDropZone(string imageRelativePath)
@@ -580,12 +599,41 @@ namespace YC.Presentation
 
         private void InvokeCardPrimaryAction()
         {
+            RevealCharacterCard();
             cardPrimaryAction?.Invoke();
         }
 
         private void InvokeCardSecondaryAction()
         {
+            RevealCharacterCard();
             cardSecondaryAction?.Invoke();
+        }
+
+        private void RevealCharacterCard()
+        {
+            if (currentFace != ActionPanelFace.Character ||
+                string.IsNullOrEmpty(currentCharacterCardId) ||
+                string.IsNullOrEmpty(currentCharacterFrontImageRelativePath))
+            {
+                return;
+            }
+
+            var frontTexture = LoadTexture(currentCharacterFrontImageRelativePath);
+            if (frontTexture == null)
+            {
+                return;
+            }
+
+            revealedCharacterCardId = currentCharacterCardId;
+            cardImage.texture = frontTexture;
+            cardHintText.text = "角色牌已翻开；正在结算所选效果";
+        }
+
+        private void ClearCharacterRevealState()
+        {
+            currentCharacterCardId = string.Empty;
+            currentCharacterFrontImageRelativePath = string.Empty;
+            revealedCharacterCardId = string.Empty;
         }
 
         private void InvokeCardImageAction()

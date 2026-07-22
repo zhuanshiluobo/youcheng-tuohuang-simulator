@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using YC.Domain.CardFlows;
+using YC.Domain.State;
 
 namespace YC.Domain.Facilities
 {
@@ -9,6 +11,23 @@ namespace YC.Domain.Facilities
     public static class FacilitySupplyService
     {
         public const int SupplySize = 6;
+        private static readonly ICardPoolService CardPool = new CardPoolService();
+
+        public static void Initialize(
+            DeckRuntimeState decks,
+            IReadOnlyList<string> facilityCardIds,
+            int seed)
+        {
+            if (decks == null) throw new ArgumentNullException(nameof(decks));
+
+            decks.FacilitySupply.Clear();
+            CardPool.InitializePool(
+                decks,
+                CardPoolService.FacilityPoolId,
+                facilityCardIds,
+                seed);
+            Refill(decks.FacilitySupply, decks.FacilityDeck);
+        }
 
         public static void Refill(List<string> supply, List<string> deck)
         {
@@ -17,8 +36,7 @@ namespace YC.Domain.Facilities
 
             while (supply.Count < SupplySize && deck.Count > 0)
             {
-                supply.Add(deck[0]);
-                deck.RemoveAt(0);
+                supply.Add(Draw(deck));
             }
         }
 
@@ -38,8 +56,7 @@ namespace YC.Domain.Facilities
 
             if (deck.Count > 0)
             {
-                supply[supplyIndex] = deck[0];
-                deck.RemoveAt(0);
+                supply[supplyIndex] = Draw(deck);
             }
             else
             {
@@ -58,14 +75,29 @@ namespace YC.Domain.Facilities
             if (supply == null) throw new ArgumentNullException(nameof(supply));
             if (deck == null) throw new ArgumentNullException(nameof(deck));
 
-            if (string.IsNullOrEmpty(facilityId) || !supply.Remove(facilityId))
+            var supplyIndex = string.IsNullOrEmpty(facilityId)
+                ? -1
+                : supply.IndexOf(facilityId);
+            if (supplyIndex < 0)
             {
                 return false;
             }
 
-            deck.Add(facilityId);
+            // CardPoolService 从列表末尾抽牌，因此退回牌堆的牌放到列表开头（牌堆底）。
+            deck.Insert(0, facilityId);
+            // 与正常建设补牌保持一致：新牌直接写回被选中的原槽位，其他供应牌不位移。
+            supply[supplyIndex] = Draw(deck);
             Refill(supply, deck);
             return true;
+        }
+
+        private static string Draw(List<string> deck)
+        {
+            var decks = new DeckRuntimeState
+            {
+                FacilityDeck = deck
+            };
+            return CardPool.Draw(decks, CardPoolService.FacilityPoolId);
         }
     }
 }

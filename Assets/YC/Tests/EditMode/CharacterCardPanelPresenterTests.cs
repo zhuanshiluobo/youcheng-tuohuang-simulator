@@ -189,6 +189,30 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void PendingSecondEffectDecision_WithoutContinueOption_OnlyAllowsFlipToFinish()
+        {
+            var state = CreateState(GamePhase.ActionRound1);
+            state.FindPlayer(1).CoveredCharacterCardId = "character.red.p1.liskarm";
+            state.PendingCharacterEffect = new PendingCharacterEffectState
+            {
+                ChoiceType = CharacterPendingChoiceTypes.SecondEffectDecision,
+                PlayerId = 1,
+                CardId = "character.red.p1.liskarm",
+                RemainingEffectMode = CharacterEffectModes.Tactic,
+                OptionIds = { CharacterEffectChoiceIds.FinishCharacterUse }
+            };
+
+            var view = new CharacterCardPanelPresenter().BuildView(state, 1);
+
+            Assert.That(view.IsSecondEffectDecision, Is.True);
+            Assert.That(view.CanUse, Is.False);
+            Assert.That(view.CanUseStrategy, Is.False);
+            Assert.That(view.CanUseTactic, Is.False);
+            Assert.That(view.InteractionStatus,
+                Is.EqualTo("当前角色牌效果没有合法的地图目标，请点击翻转完成结算。"));
+        }
+
+        [Test]
         public void CannotUseCommand_CopiesStrategyTacticAndBothEffectParameters()
         {
             var presenter = new CharacterCardPanelPresenter();
@@ -255,6 +279,22 @@ namespace YC.Tests.EditMode
             var pending = new CharacterCardPanelPresenter().BuildView(state, 1);
             Assert.That(pending.CanUse, Is.False);
             Assert.That(pending.InteractionStatus, Is.EqualTo("请先处理待选择项"));
+        }
+
+        [Test]
+        public void CharacterCardLockedThisTurn_DisablesEveryUseEntryAndShowsReason()
+        {
+            var state = CreateState(GamePhase.ActionRound1);
+            var player = state.FindPlayer(1);
+            player.CoveredCharacterCardId = "character.red.p1.cannot";
+            player.CharacterCardLockedThisTurn = true;
+
+            var view = new CharacterCardPanelPresenter().BuildView(state, 1);
+
+            Assert.That(view.CanUse, Is.False);
+            Assert.That(view.CanUseStrategy, Is.False);
+            Assert.That(view.CanUseTactic, Is.False);
+            Assert.That(view.CoveredStatus, Does.Contain("锁定"));
         }
 
         private static GameState CreateState(GamePhase phase)

@@ -315,6 +315,8 @@ namespace YC.Domain.Cards
                 player.CoveredCharacterCardId = string.Empty;
                 player.CoveredCharacterCardIds.Clear();
                 player.UsedCharacterThisRound = false;
+                player.UsedCharacterThisTurn = false;
+                player.CharacterCardLockedThisTurn = false;
             }
         }
 
@@ -646,6 +648,11 @@ namespace YC.Domain.Cards
             if (state.HasPendingChoice() && !resolvingSecondEffect)
             {
                 return Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择效果。");
+            }
+
+            if (player.CharacterCardLockedThisTurn && !resolvingSecondEffect)
+            {
+                return Failure(CommandErrorCode.InvalidTarget, "本玩家行动轮内的角色牌已被特殊行动锁定。");
             }
 
             if (player.UsedCharacterThisRound)
@@ -1142,6 +1149,12 @@ namespace YC.Domain.Cards
 
         private static void CompleteCharacterUse(PlayerState player, string cardId)
         {
+            // 角色牌结算完成后只能存在于一个牌区。
+            // 权威快照或旧存档可能残留手牌镜像；在最终结算点移除，避免已用牌视觉上回到手牌。
+            while (player.HandCardIds.Remove(cardId))
+            {
+            }
+
             player.CoveredCharacterCardId = string.Empty;
             player.CoveredCharacterCardIds.Clear();
             if (!player.DiscardCardIds.Contains(cardId))
@@ -1150,6 +1163,7 @@ namespace YC.Domain.Cards
             }
 
             player.UsedCharacterThisRound = true;
+            player.UsedCharacterThisTurn = true;
         }
 
         private static bool IsResolvingSecondEffect(GameState state, int playerId, string cardId, string effectMode)
@@ -1217,7 +1231,7 @@ namespace YC.Domain.Cards
             CompleteCharacterUse(player, cardId);
         }
 
-        private static ValidationResult ResolveSecondEffectDecision(
+        private ValidationResult ResolveSecondEffectDecision(
             GameState state,
             PlayerState player,
             PendingCharacterEffectState pending,
@@ -1236,10 +1250,41 @@ namespace YC.Domain.Cards
                 return Failure(CommandErrorCode.InvalidTarget, "请选择是否发动角色牌的第二个效果。");
             }
 
+            if (ShouldWaitForManualFinishWithoutLegalMapTarget(state, player.PlayerId, pending))
+            {
+                pending.OptionIds.Clear();
+                pending.OptionIds.Add(CharacterEffectChoiceIds.FinishCharacterUse);
+                return ValidationResult.Success;
+            }
+
             pending.ChoiceType = CharacterPendingChoiceTypes.SecondEffectExecution;
             pending.OptionIds.Clear();
             pending.OptionIds.Add(pending.RemainingEffectMode);
             return ValidationResult.Success;
+        }
+
+        private bool ShouldWaitForManualFinishWithoutLegalMapTarget(
+            GameState state,
+            int playerId,
+            PendingCharacterEffectState pending)
+        {
+            var definition = CharacterCardDatabase.Get(pending.CardId);
+            if (definition == null ||
+                pending.RemainingEffectMode != CharacterEffectModes.Tactic ||
+                definition.TacticEffect != CharacterCardEffectKind.LiskarmControlPosition)
+            {
+                return false;
+            }
+
+            var optionQuery = new CharacterCardOptionQueryService(
+                ResolveMapQuery(state),
+                ResolveInfluenceService(state),
+                ResolveMovementService(state));
+            var options = optionQuery.Query(
+                state,
+                playerId,
+                CharacterCardEffectKind.LiskarmControlPosition);
+            return options.Get(CharacterEffectParameterKeys.TargetInfluenceSlotId).Count == 0;
         }
 
         private ValidationResult PlanCannotTradeChannel(
@@ -1391,7 +1436,11 @@ namespace YC.Domain.Cards
                     HasCollectedResourcesThisRound = player.HasCollectedResourcesThisRound,
                     ResourceCollectionStartGoldVoucher = player.ResourceCollectionStartGoldVoucher,
                     ActedMainActionThisTurn = player.ActedMainActionThisTurn,
+                    RemainingMainActionsThisTurn = player.RemainingMainActionsThisTurn,
+                    CompletedMainActionsThisTurn = player.CompletedMainActionsThisTurn,
                     UsedCharacterThisRound = player.UsedCharacterThisRound,
+                    UsedCharacterThisTurn = player.UsedCharacterThisTurn,
+                    CharacterCardLockedThisTurn = player.CharacterCardLockedThisTurn,
                     Resources = player.Resources.Clone(),
                     HandCardIds = new List<string>(player.HandCardIds),
                     CoveredCharacterCardIds = new List<string>(player.CoveredCharacterCardIds),
@@ -1502,7 +1551,12 @@ namespace YC.Domain.Cards
                 targetPlayer.DiscardCardIds.Clear();
                 targetPlayer.DiscardCardIds.AddRange(sourcePlayer.DiscardCardIds);
                 targetPlayer.CoveredCharacterCardId = sourcePlayer.CoveredCharacterCardId;
+                targetPlayer.ActedMainActionThisTurn = sourcePlayer.ActedMainActionThisTurn;
+                targetPlayer.RemainingMainActionsThisTurn = sourcePlayer.RemainingMainActionsThisTurn;
+                targetPlayer.CompletedMainActionsThisTurn = sourcePlayer.CompletedMainActionsThisTurn;
                 targetPlayer.UsedCharacterThisRound = sourcePlayer.UsedCharacterThisRound;
+                targetPlayer.UsedCharacterThisTurn = sourcePlayer.UsedCharacterThisTurn;
+                targetPlayer.CharacterCardLockedThisTurn = sourcePlayer.CharacterCardLockedThisTurn;
             }
 
             target.Map.Influences.Clear();

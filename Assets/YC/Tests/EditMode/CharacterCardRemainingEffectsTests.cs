@@ -3,6 +3,7 @@ using YC.Application.Gameplay;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
+using YC.Domain.Events;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -50,21 +51,21 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void TexasStrategy_GainsGoldMovesSupplyCardToDeckBottomAndRefills()
+        public void TexasStrategy_GainsGoldReturnsSelectedCardToDeckBottomAndRefillsOriginalSlot()
         {
             var state = CreateActionState(CharacterCardDatabase.Texas);
             state.Decks.FacilitySupply.AddRange(new[] { "f1", "f2", "f3", "f4", "f5", "f6" });
-            state.Decks.FacilityDeck.AddRange(new[] { "deck-top", "deck-bottom" });
+            state.Decks.FacilityDeck.AddRange(new[] { "deck-bottom", "deck-top" });
 
             var result = Use(state, CharacterEffectModes.Strategy, command =>
                 command.Parameters[CharacterEffectParameterKeys.FacilityCardId] = "f3");
 
             Assert.That(result.Succeeded, Is.True);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(12));
-            Assert.That(state.Decks.FacilitySupply, Has.Count.EqualTo(6));
-            Assert.That(state.Decks.FacilitySupply, Does.Contain("deck-top"));
-            Assert.That(state.Decks.FacilitySupply, Does.Not.Contain("f3"));
-            Assert.That(state.Decks.FacilityDeck, Is.EqualTo(new[] { "deck-bottom", "f3" }));
+            Assert.That(state.Decks.FacilitySupply,
+                Is.EqualTo(new[] { "f1", "f2", "deck-top", "f4", "f5", "f6" }),
+                "德克萨斯选中的供应槽位应原位补牌，后续卡牌不能向前移动。");
+            Assert.That(state.Decks.FacilityDeck, Is.EqualTo(new[] { "f3", "deck-bottom" }));
         }
 
         [Test]
@@ -77,8 +78,8 @@ namespace YC.Tests.EditMode
                 command.Parameters[CharacterEffectParameterKeys.FacilityCardId] = "f4");
 
             Assert.That(result.Succeeded, Is.True);
-            Assert.That(state.Decks.FacilitySupply, Has.Count.EqualTo(6));
-            Assert.That(state.Decks.FacilitySupply, Does.Contain("f4"));
+            Assert.That(state.Decks.FacilitySupply,
+                Is.EqualTo(new[] { "f1", "f2", "f3", "f4", "f5", "f6" }));
             Assert.That(state.Decks.FacilityDeck, Is.Empty);
         }
 
@@ -423,6 +424,129 @@ namespace YC.Tests.EditMode
             Assert.That(secondCleanup.Succeeded, Is.True);
             Assert.That(state.Round, Is.EqualTo(2));
             Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
+        }
+
+        [Test]
+        public void LiskarmStrategyThenTactic_WithNoLegalOpponentTarget_WaitsForFlipBeforeCompletingCard()
+        {
+            var state = CreateActionState(CharacterCardDatabase.Liskarm);
+            var player = state.FindPlayer(1);
+            var cardId = player.CoveredCharacterCardId;
+            player.Resources.GoldVoucher = 3;
+            var firstSlot = InfluenceService.GetRouteSlotId("A1", 0);
+            var secondSlot = InfluenceService.GetRouteSlotId("B1", 0);
+
+            var strategy = Use(state, CharacterEffectModes.Strategy, command =>
+            {
+                command.Parameters[CharacterEffectParameterKeys.PlacementSlotId1] = firstSlot;
+                command.Parameters[CharacterEffectParameterKeys.PlacementSlotId2] = secondSlot;
+                command.Parameters[CharacterEffectParameterKeys.OfferSecondEffect] = "true";
+            });
+
+            Assert.That(strategy.Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectDecision));
+
+            var continueTactic = Resolve(state, CharacterEffectChoiceIds.ContinueSecondEffect);
+
+            Assert.That(continueTactic.Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectDecision));
+            Assert.That(state.PendingCharacterEffect.OptionIds,
+                Is.EqualTo(new[] { CharacterEffectChoiceIds.FinishCharacterUse }));
+            Assert.That(player.CoveredCharacterCardId, Is.EqualTo(cardId));
+            Assert.That(player.CoveredCharacterCardIds, Does.Contain(cardId));
+            Assert.That(player.DiscardCardIds, Does.Not.Contain(cardId));
+            Assert.That(player.UsedCharacterThisRound, Is.False);
+            Assert.That(continueTactic.Events, Is.Empty);
+
+            var repeatedContinue = Resolve(state, CharacterEffectChoiceIds.ContinueSecondEffect);
+            Assert.That(repeatedContinue.Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectDecision));
+            Assert.That(state.PendingCharacterEffect.OptionIds,
+                Is.EqualTo(new[] { CharacterEffectChoiceIds.FinishCharacterUse }));
+
+            var flipToFinish = Resolve(state, CharacterEffectChoiceIds.FinishCharacterUse);
+
+            Assert.That(flipToFinish.Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect, Is.Null);
+            Assert.That(player.CoveredCharacterCardId, Is.Empty);
+            Assert.That(player.CoveredCharacterCardIds, Is.Empty);
+            Assert.That(player.DiscardCardIds, Does.Contain(cardId));
+            Assert.That(player.UsedCharacterThisRound, Is.True);
+            Assert.That(flipToFinish.Events, Has.Count.EqualTo(1));
+            Assert.That(flipToFinish.Events[0].Kind, Is.EqualTo(GameEventKind.CardMoved));
+            Assert.That(flipToFinish.LogMessage, Does.Contain("雷蛇").And.Contain("完成全部结算"));
+        }
+
+        [Test]
+        public void LiskarmStrategyThenTactic_WithLegalOpponentTarget_KeepsTargetSelectionFlow()
+        {
+            var state = CreateActionState(CharacterCardDatabase.Liskarm);
+            var player = state.FindPlayer(1);
+            var cardId = player.CoveredCharacterCardId;
+            player.Resources.GoldVoucher = 3;
+            state.Players.Add(new PlayerState
+            {
+                PlayerId = 2,
+                Color = PlayerColor.Blue,
+                InfluenceSupply = 29
+            });
+            var targetSlot = InfluenceService.GetRouteSlotId("C1", 0);
+            state.Map.Influences.Add(InfluenceAt(2, targetSlot, string.Empty, "C1"));
+
+            var strategy = Use(state, CharacterEffectModes.Strategy, command =>
+            {
+                command.Parameters[CharacterEffectParameterKeys.PlacementSlotId1] =
+                    InfluenceService.GetRouteSlotId("A1", 0);
+                command.Parameters[CharacterEffectParameterKeys.PlacementSlotId2] =
+                    InfluenceService.GetRouteSlotId("B1", 0);
+                command.Parameters[CharacterEffectParameterKeys.OfferSecondEffect] = "true";
+            });
+            Assert.That(strategy.Succeeded, Is.True);
+
+            var continueTactic = Resolve(state, CharacterEffectChoiceIds.ContinueSecondEffect);
+
+            Assert.That(continueTactic.Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectExecution));
+            Assert.That(player.CoveredCharacterCardId, Is.EqualTo(cardId));
+            Assert.That(player.UsedCharacterThisRound, Is.False);
+
+            var tactic = Use(state, CharacterEffectModes.Tactic, command =>
+                command.Parameters[CharacterEffectParameterKeys.TargetInfluenceSlotId] = targetSlot);
+
+            Assert.That(tactic.Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect, Is.Null);
+            Assert.That(player.CoveredCharacterCardId, Is.Empty);
+            Assert.That(player.DiscardCardIds, Does.Contain(cardId));
+            Assert.That(player.UsedCharacterThisRound, Is.True);
+            Assert.That(player.Resources.GoldVoucher, Is.Zero);
+            Assert.That(state.Map.Influences.Find(item => item.SlotId == targetSlot).PlayerId, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void LiskarmStrategy_ProjectionRemovesStaleHandMirrorBeforeDiscardingCard()
+        {
+            var state = CreateActionState(CharacterCardDatabase.Liskarm);
+            var player = state.FindPlayer(1);
+            var cardId = player.CoveredCharacterCardId;
+            player.HandCardIds.Add(cardId);
+
+            var result = Use(state, CharacterEffectModes.Strategy, command =>
+            {
+                command.Parameters[CharacterEffectParameterKeys.PlacementSlotId1] =
+                    InfluenceService.GetRouteSlotId("A1", 0);
+                command.Parameters[CharacterEffectParameterKeys.PlacementSlotId2] =
+                    InfluenceService.GetRouteSlotId("B1", 0);
+            });
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(player.HandCardIds, Does.Not.Contain(cardId));
+            Assert.That(player.CoveredCharacterCardId, Is.Empty);
+            Assert.That(player.CoveredCharacterCardIds, Is.Empty);
+            Assert.That(player.DiscardCardIds, Is.EqualTo(new[] { cardId }));
         }
 
         [Test]

@@ -194,6 +194,46 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void Use_CompletedCardRemovesStaleHandMirrorAndStaysOnlyInDiscard()
+        {
+            var state = CreateActionStateWithCoveredCannot();
+            state.StartPlayerId = 2;
+            var player = state.FindPlayer(1);
+            var cardId = player.CoveredCharacterCardId;
+            player.HandCardIds.Add(cardId);
+            player.Resources.Originium = 1;
+            var command = new GameCommand
+            {
+                Kind = GameCommandKind.UseCharacterCard,
+                PlayerId = player.PlayerId,
+                TargetId = cardId
+            };
+            command.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = cardId;
+            command.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] =
+                CharacterEffectModes.Strategy;
+            command.Parameters[CharacterEffectParameterKeys.SaleOriginium] = "1";
+
+            var result = new UseCharacterCardCommandHandler().Handle(state, command);
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(player.HandCardIds, Does.Not.Contain(cardId));
+            Assert.That(player.CoveredCharacterCardId, Is.Empty);
+            Assert.That(player.CoveredCharacterCardIds, Is.Empty);
+            Assert.That(player.DiscardCardIds, Is.EqualTo(new[] { cardId }));
+            Assert.That(player.UsedCharacterThisRound, Is.True);
+
+            state.Phase = GamePhase.Cleanup;
+            state.Round = 1;
+            state.MaxRounds = 8;
+            var cleanup = new RoundAdvanceService().EndCompletedAction(state, state.StartPlayerId);
+
+            Assert.That(cleanup.IsValid, Is.True);
+            Assert.That(player.HandCardIds, Does.Not.Contain(cardId));
+            Assert.That(player.DiscardCardIds, Is.EqualTo(new[] { cardId }));
+            Assert.That(player.UsedCharacterThisRound, Is.False);
+        }
+
+        [Test]
         public void Use_StartPlayerSequentialFlow_AsksAfterFirstThenExecutesOnlyRemainingEffect()
         {
             var state = CreateActionStateWithCoveredCannot();

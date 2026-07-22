@@ -72,8 +72,10 @@ namespace YC.Tests.EditMode
             Assert.That(cardFace.anchorMax, Is.EqualTo(Vector2.one));
             Assert.That(flipButton, Is.Not.Null);
             Assert.That(FindTransform("建设 Button"), Is.Null, "建设入口应改为直接拖动公开建设牌。");
-            Assert.That(specialActionButton, Is.Not.Null);
-            Assert.That(specialActionButton.anchoredPosition.x, Is.EqualTo(0f).Within(0.01f));
+            Assert.That(
+                specialActionButton,
+                Is.Null,
+                "特殊行动必须只从城市样式卡上的影响力标记拖拽发动。");
             flipButton.GetComponent<Button>().onClick.Invoke();
             Assert.That(mainFace.gameObject.activeSelf, Is.False);
             Assert.That(cardFace.gameObject.activeSelf, Is.True);
@@ -149,6 +151,44 @@ namespace YC.Tests.EditMode
                 Is.EqualTo("已盖放角色牌（雷蛇）"));
             image.GetComponent<Button>().onClick.Invoke();
             Assert.That(opened, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ActionPanel_ClickingCharacterEffectRevealsCardFrontAndKeepsItRevealedAfterRefresh()
+        {
+            var canvas = CreateCanvas("Action Panel Test Canvas");
+            var controller = BuildActionPanel(canvas);
+            var state = new GameState
+            {
+                Phase = GamePhase.ActionRound1,
+                CurrentPlayerId = 1,
+                StartPlayerId = 1,
+                Players =
+                {
+                    new PlayerState
+                    {
+                        PlayerId = 1,
+                        Color = PlayerColor.Red,
+                        CoveredCharacterCardId = "character.red.p1.liskarm"
+                    }
+                }
+            };
+            var invoked = 0;
+            var view = new CharacterCardPanelPresenter().BuildView(state, 1);
+            InvokePublic(controller, "ConfigureCharacterActions", new Action(() => invoked += 1), new Action(() => { }));
+            InvokePublic(controller, "ShowCharacterCard", view);
+
+            FindTransform("Character Strategy Button").GetComponent<Button>().onClick.Invoke();
+
+            Assert.That(invoked, Is.EqualTo(1));
+            Assert.That(FindTransform("Action Card Image").GetComponent<RawImage>().texture.name,
+                Does.Contain("liskarm"));
+            Assert.That(FindTransform("Action Card Hint").GetComponent<Text>().text,
+                Does.Contain("已翻开"));
+
+            InvokePublic(controller, "ShowCharacterCard", view);
+            Assert.That(FindTransform("Action Card Image").GetComponent<RawImage>().texture.name,
+                Does.Contain("liskarm"));
         }
 
         [Test]

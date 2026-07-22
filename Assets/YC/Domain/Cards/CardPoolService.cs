@@ -6,6 +6,8 @@ namespace YC.Domain.CardFlows
 {
     public sealed class CardPoolService : ICardPoolService
     {
+        public const string FacilityPoolId = "facility";
+
         public void InitializePool(DeckRuntimeState decks, string poolId, IReadOnlyList<string> cardIds, int seed)
         {
             if (decks == null)
@@ -86,6 +88,8 @@ namespace YC.Domain.CardFlows
         {
             switch (poolId)
             {
+                case FacilityPoolId:
+                    return decks.FacilityDeck;
                 case EventCardPoolIds.EventGreen:
                     return decks.EventDeckGreen;
                 case EventCardPoolIds.EventYellow:

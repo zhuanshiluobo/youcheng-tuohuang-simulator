@@ -85,30 +85,10 @@ namespace YC.Application.Sessions
 
         private static void InitializeFacilityMarket(GameState state, int seed)
         {
-            state.Decks.FacilityDeck.AddRange(FacilityCardDatabase.DefaultSupplyIds);
-            Shuffle(state.Decks.FacilityDeck, seed);
-            while (state.Decks.FacilitySupply.Count < 6 && state.Decks.FacilityDeck.Count > 0)
-            {
-                state.Decks.FacilitySupply.Add(state.Decks.FacilityDeck[0]);
-                state.Decks.FacilityDeck.RemoveAt(0);
-            }
-        }
-
-        private static void Shuffle(List<string> cardIds, int seed)
-        {
-            if (cardIds == null || cardIds.Count <= 1)
-            {
-                return;
-            }
-
-            var random = new Random(seed);
-            for (var i = cardIds.Count - 1; i > 0; i--)
-            {
-                var swapIndex = random.Next(i + 1);
-                var value = cardIds[i];
-                cardIds[i] = cardIds[swapIndex];
-                cardIds[swapIndex] = value;
-            }
+            FacilitySupplyService.Initialize(
+                state.Decks,
+                FacilityCardDatabase.DefaultSupplyIds,
+                seed);
         }
 
         private static int GetStartPlayerId(LaunchMode mode, IList<PlayerSeat> players)

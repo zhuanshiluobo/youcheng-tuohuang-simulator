@@ -64,6 +64,7 @@ namespace YC.Presentation
             characterSettlementInProgress = true;
             characterCardEffectInteraction?.HideDialog();
             characterMapInteraction?.Cancel();
+            actionPanel.ResetCharacterCardReveal();
             actionPanel.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
             actionPanel.ShowCharacterCard(view);
         }
@@ -116,12 +117,24 @@ namespace YC.Presentation
                 : characterCardPresenter.BuildView(session.State, localPlayerId);
             if (view == null || !view.IsSecondEffectExecution)
             {
+                if (view == null || !view.IsSecondEffectDecision || IsSecondEffectUnavailable())
+                {
+                    automaticSecondEffectMode = string.Empty;
+                }
                 return;
             }
 
             var effectMode = automaticSecondEffectMode;
             automaticSecondEffectMode = string.Empty;
             BeginCharacterEffect(effectMode);
+        }
+
+        private bool IsSecondEffectUnavailable()
+        {
+            var pending = session?.State?.PendingCharacterEffect;
+            return pending != null && pending.IsValid() &&
+                   pending.PlayerId == localPlayerId && pending.ChoiceType == CharacterPendingChoiceTypes.SecondEffectDecision &&
+                   !pending.OptionIds.Contains(CharacterEffectChoiceIds.ContinueSecondEffect);
         }
 
         private bool FinishCharacterUseOnFlip()

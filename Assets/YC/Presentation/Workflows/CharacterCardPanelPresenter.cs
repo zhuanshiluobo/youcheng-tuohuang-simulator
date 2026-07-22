@@ -40,7 +40,9 @@ namespace YC.Presentation.Workflows
             var isSecondEffectExecution = pendingCharacter != null &&
                                           pendingCharacter.ChoiceType == CharacterPendingChoiceTypes.SecondEffectExecution;
             var isSecondEffectDecision = pendingCharacter != null &&
-                                         pendingCharacter.ChoiceType == CharacterPendingChoiceTypes.SecondEffectDecision;
+                                          pendingCharacter.ChoiceType == CharacterPendingChoiceTypes.SecondEffectDecision;
+            var canContinueSecondEffect = !isSecondEffectDecision ||
+                                          pendingCharacter.OptionIds.Contains(CharacterEffectChoiceIds.ContinueSecondEffect);
             var inputBlocked = state.HasPendingChoice() && !isSecondEffectDecision && !isSecondEffectExecution;
             var canCover = state.Phase == GamePhase.CharacterCover &&
                            isLocalTurn &&
@@ -52,16 +54,19 @@ namespace YC.Presentation.Workflows
                          isLocalTurn &&
                          !inputBlocked &&
                          hasCoveredCard &&
-                         !player.UsedCharacterThisRound;
+                         !player.UsedCharacterThisRound &&
+                         (!player.CharacterCardLockedThisTurn || isSecondEffectDecision || isSecondEffectExecution);
             var coveredDefinition = hasCoveredCard
                 ? CharacterCardDatabase.Get(player.CoveredCharacterCardId)
                 : null;
             var canUseStrategy = canUse &&
+                                 canContinueSecondEffect &&
                                  coveredDefinition != null &&
                                  coveredDefinition.StrategyEffect != CharacterCardEffectKind.Unsupported &&
                                  ((!isSecondEffectDecision && !isSecondEffectExecution) ||
                                   pendingCharacter.RemainingEffectMode == CharacterEffectModes.Strategy);
             var canUseTactic = canUse &&
+                               canContinueSecondEffect &&
                                coveredDefinition != null &&
                                coveredDefinition.TacticEffect != CharacterCardEffectKind.Unsupported &&
                                ((!isSecondEffectDecision && !isSecondEffectExecution) ||
@@ -117,6 +122,10 @@ namespace YC.Presentation.Workflows
             {
                 coveredStatus = "本回合角色牌已使用";
             }
+            else if (player.CharacterCardLockedThisTurn)
+            {
+                coveredStatus = "本玩家行动轮内角色牌已被特殊行动锁定";
+            }
             else if (hasCoveredCard)
             {
                 coveredStatus = "已盖放（背面）";
@@ -138,7 +147,9 @@ namespace YC.Presentation.Workflows
             else if (actionPhase)
             {
                 interactionStatus = isSecondEffectDecision
-                    ? "可继续使用第二个效果；点击翻转则结束角色卡使用"
+                    ? (canContinueSecondEffect
+                        ? "可继续使用第二个效果；点击翻转则结束角色卡使用"
+                        : "当前角色牌效果没有合法的地图目标，请点击翻转完成结算。")
                     : canUse && !hasImplementedEffect
                     ? "效果尚未接入"
                     : (canUse ? "可使用本回合盖放的角色牌" : coveredStatus);
