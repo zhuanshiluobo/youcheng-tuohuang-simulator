@@ -102,7 +102,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void MercenaryCommand_ReplacesOneInfluenceAndIsNotEnterpriseMetadata()
+        public void MercenaryCommand_OffersReplaceOrDeployInfluenceAndIsNotEnterpriseMetadata()
         {
             AssertCopies(
                 new[] { "building_034", "building_035", "building_036" },
@@ -111,6 +111,8 @@ namespace YC.Tests.EditMode
                     Assert.That(facility.HasEntryEffect, Is.True);
                     Assert.That(facility.EffectId, Is.EqualTo(FacilityCardEffectIds.ReplaceOneInfluence));
                     Assert.That(facility.EffectType, Is.Not.EqualTo("enterprise"));
+                    Assert.That(facility.EffectText,
+                        Does.Contain("替换 1 个影响力或放置 1 个影响力"));
                     Assert.That(facility.EffectText, Does.Not.Contain("企业"));
                 });
         }

@@ -506,6 +506,145 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void CollapsibleEffectDialogs_UseOneSharedPanelController()
+        {
+            var sharedType = Type.GetType(
+                "YC.Presentation.EffectDialogCollapsiblePanel, Assembly-CSharp",
+                false);
+            var facilityDialogType = Type.GetType(
+                "YC.Presentation.FacilityEffectChoiceDialog, Assembly-CSharp",
+                false);
+            var eventDialogType = Type.GetType(
+                "YC.Presentation.EventChoiceDialog, Assembly-CSharp",
+                false);
+
+            Assert.That(sharedType, Is.Not.Null);
+            Assert.That(facilityDialogType, Is.Not.Null);
+            Assert.That(eventDialogType, Is.Not.Null);
+            Assert.That(
+                facilityDialogType.GetField(
+                    "collapsiblePanel",
+                    BindingFlags.Instance | BindingFlags.NonPublic).FieldType,
+                Is.EqualTo(sharedType));
+            Assert.That(
+                eventDialogType.GetField(
+                    "eventCardCollapsiblePanel",
+                    BindingFlags.Instance | BindingFlags.NonPublic).FieldType,
+                Is.EqualTo(sharedType));
+            Assert.That(
+                facilityDialogType.GetNestedType("FacilityCardDragHandle", BindingFlags.NonPublic),
+                Is.Null);
+            Assert.That(
+                eventDialogType.GetNestedType("EventCardDragHandle", BindingFlags.NonPublic),
+                Is.Null);
+        }
+
+        [Test]
+        public void EventChoiceDialog_EventCardSharedPanelMovesCollapsesAndExpandsWithoutDrift()
+        {
+            var root = new GameObject(
+                "Event Card Shared Panel Test Root",
+                typeof(RectTransform),
+                typeof(Canvas),
+                typeof(GraphicRaycaster));
+            var eventSystemObject = new GameObject(
+                "Event Card Shared Panel Test EventSystem",
+                typeof(EventSystem));
+            try
+            {
+                var canvas = root.GetComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.scaleFactor = 2f;
+                var dialogType = Type.GetType(
+                    "YC.Presentation.EventChoiceDialog, Assembly-CSharp",
+                    false);
+                var sharedType = Type.GetType(
+                    "YC.Presentation.EffectDialogCollapsiblePanel, Assembly-CSharp",
+                    false);
+                Assert.That(dialogType, Is.Not.Null);
+                Assert.That(sharedType, Is.Not.Null);
+                var dialog = Activator.CreateInstance(dialogType, true);
+                var card = new EventCardDefinition
+                {
+                    CardId = "event-shared-panel-test",
+                    Name = "共享弹窗测试",
+                    Description = "测试事件卡展开、缩小和移动状态。",
+                    ChoiceDescriptions = { "结算测试选项" },
+                    ChoiceRewards = { new ResourceSet() }
+                };
+
+                dialogType.GetMethod("ShowEventCardOptions").Invoke(
+                    dialog,
+                    new object[]
+                    {
+                        root.GetComponent<RectTransform>(),
+                        card,
+                        "测试资源点",
+                        null,
+                        null,
+                        null,
+                        new Action<int>(_ => { }),
+                        new Action<string, int>((_, __) => { })
+                    });
+
+                var overlay = FindRectTransformByName(root, "Event Choice Overlay");
+                var panel = FindRectTransformByName(root, "Choice Panel");
+                var expandedContent = FindRectTransformByName(root, "Expanded Content");
+                var collapsedSummary = FindRectTransformByName(root, "Collapsed Summary");
+                var collapseButton = FindButtonByName(
+                    root.GetComponentsInChildren<Button>(true),
+                    "Collapse Card");
+                Assert.That(overlay, Is.Not.Null);
+                Assert.That(panel, Is.Not.Null);
+                Assert.That(panel.GetComponent(sharedType), Is.Not.Null);
+                var expandedSize = panel.sizeDelta;
+                var expandedPosition = panel.anchoredPosition;
+
+                dialogType.GetMethod("CollapseForMapInteraction").Invoke(dialog, null);
+
+                Assert.That(panel.sizeDelta.y, Is.EqualTo(58f));
+                Assert.That(expandedContent.gameObject.activeSelf, Is.False);
+                Assert.That(collapsedSummary.gameObject.activeSelf, Is.True);
+                Assert.That(overlay.GetComponent<Image>().color.a, Is.EqualTo(0f));
+                Assert.That(overlay.GetComponent<Image>().raycastTarget, Is.False);
+                Assert.That(GetButtonLabel(collapseButton), Is.EqualTo("展开卡片"));
+                var collapsedPosition = panel.anchoredPosition;
+
+                dialogType.GetMethod("CollapseForMapInteraction").Invoke(dialog, null);
+                Assert.That(panel.anchoredPosition, Is.EqualTo(collapsedPosition), "重复缩小不应造成位置漂移。");
+
+                var pointer = new PointerEventData(eventSystemObject.GetComponent<EventSystem>())
+                {
+                    button = PointerEventData.InputButton.Left,
+                    delta = new Vector2(40f, 20f)
+                };
+                Assert.That(
+                    ExecuteEvents.Execute(panel.gameObject, pointer, ExecuteEvents.beginDragHandler),
+                    Is.True);
+                Assert.That(
+                    ExecuteEvents.Execute(panel.gameObject, pointer, ExecuteEvents.dragHandler),
+                    Is.True);
+                Assert.That(
+                    panel.anchoredPosition,
+                    Is.EqualTo(collapsedPosition + new Vector2(20f, 10f)));
+
+                collapseButton.onClick.Invoke();
+
+                Assert.That(panel.sizeDelta, Is.EqualTo(expandedSize));
+                Assert.That(panel.anchoredPosition, Is.EqualTo(expandedPosition + new Vector2(20f, 10f)));
+                Assert.That(expandedContent.gameObject.activeSelf, Is.True);
+                Assert.That(collapsedSummary.gameObject.activeSelf, Is.False);
+                Assert.That(overlay.GetComponent<Image>().color.a, Is.EqualTo(0.5f).Within(0.001f));
+                Assert.That(GetButtonLabel(collapseButton), Is.EqualTo("收起卡片"));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(eventSystemObject);
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
         public void BuildInfoPanel_RefreshCreatesInteractiveBuildHotspotsWithoutEmptySlotLabels()
         {
             var owner = new GameObject("Build Info Panel Test");

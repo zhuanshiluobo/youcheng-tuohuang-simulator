@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using YC.Application.Gameplay;
 using YC.Domain.Commands;
 using YC.Domain.Facilities;
+using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
@@ -16,6 +17,7 @@ namespace YC.Tests.EditMode
 {
     public sealed class FacilityEffectInteractionUiCoordinatorTests
     {
+        private static readonly Color DisabledOptionColor = new Color(0.09f, 0.075f, 0.06f, 0.72f);
         private GameObject canvasObject;
 
         [TearDown]
@@ -174,6 +176,157 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void MercenaryHeadquarters_ShowsSharedOrBranchOptionsBeforeMapSelection()
+        {
+            string opponentSlot;
+            string ownSlot;
+            string emptySlot;
+            var fixture = CreateMercenaryCoordinator(
+                out opponentSlot,
+                out ownSlot,
+                out emptySlot);
+
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            var overlay = GetOverlay(fixture.Dialog);
+            Assert.That(overlay, Is.Not.Null);
+            Assert.That(overlay.activeInHierarchy, Is.True);
+            Assert.That(GetText(overlay, "Title"), Is.EqualTo("佣兵指挥部"));
+            Assert.That(GetText(overlay, "Description"), Does.Contain("执行分支"));
+            Assert.That(GetButtonLabel(overlay, "Option 0"), Is.EqualTo("替换 1 个影响力"));
+            Assert.That(GetButtonLabel(overlay, "Option 1"), Is.EqualTo("放置 1 个影响力"));
+            Assert.That(FindChild(overlay, "Facility Expanded Content"), Is.Not.Null);
+            Assert.That(GetText(overlay, "Facility Collapsed Summary"), Does.Contain("选择分支"));
+            Assert.That(fixture.Highlights, Is.Empty, "选择一级分支前不应提前高亮地图目标。");
+            Assert.That(fixture.SubmittedCommand, Is.Null);
+        }
+
+        [Test]
+        public void MercenaryHeadquarters_ReplaceBranchHighlightsOnlyOpponentAndSubmitsBranchAndTarget()
+        {
+            string opponentSlot;
+            string ownSlot;
+            string emptySlot;
+            var fixture = CreateMercenaryCoordinator(
+                out opponentSlot,
+                out ownSlot,
+                out emptySlot);
+
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            ClickButton(GetOverlay(fixture.Dialog), "Option 0");
+
+            var overlay = GetOverlay(fixture.Dialog);
+            Assert.That(GetText(overlay, "Title"), Does.Contain("替换"));
+            Assert.That(
+                fixture.Highlights.ConvertAll(item => item.TargetId),
+                Is.EqualTo(new[] { opponentSlot }));
+
+            Assert.That(TryHandleInfluenceSlotClicked(fixture.Coordinator, ownSlot), Is.True);
+            Assert.That(fixture.SubmittedCommand, Is.Null);
+            Assert.That(fixture.LastPrompt, Does.Contain("高亮"));
+
+            Assert.That(TryHandleInfluenceSlotClicked(fixture.Coordinator, opponentSlot), Is.True);
+            Assert.That(fixture.SubmittedCommand, Is.Not.Null);
+            Assert.That(fixture.SubmittedCommand.SourceId, Is.EqualTo(FacilityCardDatabase.MercenaryCommand));
+            Assert.That(
+                fixture.SubmittedCommand.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.ReplaceInfluenceOption }));
+            Assert.That(
+                fixture.SubmittedCommand.Parameters[
+                    ResolveFacilityEffectCommandHandler.TargetInfluenceSlotIdParameter],
+                Is.EqualTo(opponentSlot));
+        }
+
+        [Test]
+        public void MercenaryHeadquarters_DeployBranchHighlightsOnlyLegalEmptySlotAndSubmitsBranchAndTarget()
+        {
+            string opponentSlot;
+            string ownSlot;
+            string emptySlot;
+            var fixture = CreateMercenaryCoordinator(
+                out opponentSlot,
+                out ownSlot,
+                out emptySlot);
+
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            ClickButton(GetOverlay(fixture.Dialog), "Option 1");
+
+            var overlay = GetOverlay(fixture.Dialog);
+            Assert.That(GetText(overlay, "Title"), Does.Contain("放置"));
+            Assert.That(
+                fixture.Highlights.ConvertAll(item => item.TargetId),
+                Is.EqualTo(new[] { emptySlot }));
+
+            Assert.That(TryHandleInfluenceSlotClicked(fixture.Coordinator, opponentSlot), Is.True);
+            Assert.That(fixture.SubmittedCommand, Is.Null);
+            Assert.That(fixture.LastPrompt, Does.Contain("空槽位"));
+
+            Assert.That(TryHandleInfluenceSlotClicked(fixture.Coordinator, emptySlot), Is.True);
+            Assert.That(fixture.SubmittedCommand, Is.Not.Null);
+            Assert.That(fixture.SubmittedCommand.SourceId, Is.EqualTo(FacilityCardDatabase.MercenaryCommand));
+            Assert.That(
+                fixture.SubmittedCommand.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.DeployInfluenceOption }));
+            Assert.That(
+                fixture.SubmittedCommand.Parameters[
+                    ResolveFacilityEffectCommandHandler.TargetInfluenceSlotIdParameter],
+                Is.EqualTo(emptySlot));
+        }
+
+        [Test]
+        public void EscortDispatchCenter_HighlightsOnlyEmptyLegalSlotsAndSubmitsAfterSecondClick()
+        {
+            var state = CreateState(
+                "escort-dispatch-session",
+                FacilityPendingChoiceTypes.ScenarioId,
+                FacilityPendingChoiceTypes.DeployTwoInfluences);
+            var map = new GameMapDefinition { MapId = "escort-dispatch-ui-test" };
+            map.Routes.Add(new MapRouteDefinition
+            {
+                RouteId = "escort-route",
+                InfluenceSlotCount = 3
+            });
+            var occupiedSlot = InfluenceService.GetRouteSlotId("escort-route", 0);
+            var firstSlot = InfluenceService.GetRouteSlotId("escort-route", 1);
+            var secondSlot = InfluenceService.GetRouteSlotId("escort-route", 2);
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 2,
+                SlotId = occupiedSlot,
+                RouteId = "escort-route"
+            });
+            var fixture = CreateCoordinator(state, map);
+
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            var overlay = GetOverlay(fixture.Dialog);
+            var panel = FindChild(overlay, "Facility Effect Choice Panel").GetComponent<RectTransform>();
+            Assert.That(panel.sizeDelta, Is.EqualTo(new Vector2(520f, 140f)));
+            Assert.That(GetText(overlay, "Description"), Does.Not.Contain("已选"));
+            Assert.That(FindChild(overlay, "Primary"), Is.Null);
+            Assert.That(
+                fixture.Highlights.ConvertAll(item => item.TargetId),
+                Is.EquivalentTo(new[] { firstSlot, secondSlot }));
+
+            Assert.That(TryHandleInfluenceSlotClicked(fixture.Coordinator, occupiedSlot), Is.True);
+            Assert.That(fixture.SubmittedCommand, Is.Null);
+            Assert.That(fixture.LastPrompt, Does.Contain("空槽位"));
+
+            Assert.That(TryHandleInfluenceSlotClicked(fixture.Coordinator, firstSlot), Is.True);
+            Assert.That(fixture.SubmittedCommand, Is.Null);
+            overlay = GetOverlay(fixture.Dialog);
+            Assert.That(GetText(overlay, "Description"), Does.Not.Contain("已选"));
+            Assert.That(
+                fixture.Highlights.ConvertAll(item => item.TargetId),
+                Is.EqualTo(new[] { secondSlot }));
+
+            Assert.That(TryHandleInfluenceSlotClicked(fixture.Coordinator, secondSlot), Is.True);
+            Assert.That(fixture.SubmittedCommand, Is.Not.Null);
+            Assert.That(
+                fixture.SubmittedCommand.Parameters[
+                    ResolveFacilityEffectCommandHandler.InfluenceSlotIdsParameter],
+                Is.EqualTo(firstSlot + "," + secondSlot));
+        }
+
+        [Test]
         public void WarehouseExploreStage_DelegatesToSharedExploreWorkflowAndCanReturnToBranch()
         {
             var state = CreateState(
@@ -215,6 +368,84 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void WarehouseBranch_WhenOnlyExploreIsLegal_DisablesRemoveAndStartsSharedExplore()
+        {
+            var state = CreateState(
+                "warehouse-explore-only",
+                FacilityPendingChoiceTypes.ScenarioId,
+                FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore);
+            state.PendingCardSession.OptionIds.Clear();
+            state.PendingCardSession.OptionIds.Add(FacilityPendingChoiceTypes.ExploreOption);
+            var fixture = CreateCoordinator(state);
+
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            var overlay = GetOverlay(fixture.Dialog);
+            var removeButton = FindChild(overlay, "Option 0").GetComponent<Button>();
+            var exploreButton = FindChild(overlay, "Option 1").GetComponent<Button>();
+            Assert.That(removeButton.interactable, Is.False);
+            Assert.That(removeButton.GetComponent<Image>().color, Is.EqualTo(DisabledOptionColor));
+            Assert.That(exploreButton.interactable, Is.True);
+            Assert.That(FindChild(overlay, "Back"), Is.Null);
+
+            ClickButton(overlay, "Option 0");
+            Assert.That(fixture.AdditionalExplorePending, Is.Null);
+            ClickButton(overlay, "Option 1");
+
+            Assert.That(fixture.AdditionalExplorePending, Is.SameAs(state.PendingCardSession));
+            Assert.That(fixture.AdditionalExploreOptionId,
+                Is.EqualTo(FacilityPendingChoiceTypes.ExploreOption));
+        }
+
+        [Test]
+        public void WarehouseBranch_WhenOnlyRemoveDispatchIsLegal_DisablesExploreWithoutClose()
+        {
+            var state = CreateState(
+                "warehouse-remove-only",
+                FacilityPendingChoiceTypes.ScenarioId,
+                FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore);
+            state.PendingCardSession.OptionIds.Clear();
+            state.PendingCardSession.OptionIds.Add(FacilityPendingChoiceTypes.RemoveDispatchOption);
+            var fixture = CreateCoordinator(state);
+
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            var overlay = GetOverlay(fixture.Dialog);
+            Assert.That(FindChild(overlay, "Option 0").GetComponent<Button>().interactable, Is.True);
+            var exploreButton = FindChild(overlay, "Option 1").GetComponent<Button>();
+            Assert.That(exploreButton.interactable, Is.False);
+            Assert.That(exploreButton.GetComponent<Image>().color, Is.EqualTo(DisabledOptionColor));
+            Assert.That(FindChild(overlay, "Back"), Is.Null);
+        }
+
+        [Test]
+        public void WarehouseBranch_WhenNeitherBranchIsLegal_ShowsTwoDisabledOptionsAndClose()
+        {
+            var state = CreateState(
+                "warehouse-close-only",
+                FacilityPendingChoiceTypes.ScenarioId,
+                FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore);
+            state.PendingCardSession.OptionIds.Clear();
+            state.PendingCardSession.OptionIds.Add(FacilityPendingChoiceTypes.SkipOption);
+            var fixture = CreateCoordinator(state);
+
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            var overlay = GetOverlay(fixture.Dialog);
+            var removeButton = FindChild(overlay, "Option 0").GetComponent<Button>();
+            var exploreButton = FindChild(overlay, "Option 1").GetComponent<Button>();
+            Assert.That(removeButton.interactable, Is.False);
+            Assert.That(exploreButton.interactable, Is.False);
+            Assert.That(removeButton.GetComponent<Image>().color, Is.EqualTo(DisabledOptionColor));
+            Assert.That(exploreButton.GetComponent<Image>().color, Is.EqualTo(DisabledOptionColor));
+            Assert.That(GetButtonLabel(overlay, "Back"), Is.EqualTo("关闭"));
+
+            ClickButton(overlay, "Back");
+
+            Assert.That(fixture.SubmittedCommand, Is.Not.Null);
+            Assert.That(fixture.SubmittedCommand.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.SkipOption }));
+            Assert.That(fixture.AdditionalExplorePending, Is.Null);
+        }
+
+        [Test]
         public void Synchronize_ClearedWarehouseSession_HidesExploreOverlay()
         {
             var state = CreateState(
@@ -226,7 +457,7 @@ namespace YC.Tests.EditMode
             var fixture = CreateCoordinator(state);
 
             Assert.That(Synchronize(fixture.Coordinator), Is.True);
-            ClickButton(GetOverlay(fixture.Dialog), "Option 0");
+            ClickButton(GetOverlay(fixture.Dialog), "Option 1");
             Assert.That(GetOverlay(fixture.Dialog), Is.Not.Null);
 
             state.PendingCardSession = null;
@@ -250,6 +481,29 @@ namespace YC.Tests.EditMode
 
             Assert.That(Synchronize(fixture.Coordinator), Is.True);
             var overlay = GetOverlay(fixture.Dialog);
+            var panel = FindChild(overlay, "Facility Effect Choice Panel").GetComponent<RectTransform>();
+            var expandedContent = FindChild(overlay, "Facility Expanded Content");
+            var collapsedSummary = FindChild(overlay, "Facility Collapsed Summary");
+            var sharedPanelType = Type.GetType(
+                "YC.Presentation.EffectDialogCollapsiblePanel, Assembly-CSharp",
+                false);
+            Assert.That(sharedPanelType, Is.Not.Null);
+            Assert.That(panel.GetComponent(sharedPanelType), Is.Not.Null);
+            Assert.That(panel.sizeDelta.y, Is.EqualTo(360f));
+
+            ClickButton(overlay, "Facility Collapse Toggle");
+
+            Assert.That(panel.sizeDelta.y, Is.EqualTo(58f));
+            Assert.That(expandedContent.activeSelf, Is.False);
+            Assert.That(collapsedSummary.activeSelf, Is.True);
+            Assert.That(collapsedSummary.GetComponent<Text>().text, Does.Contain("延伸枢纽"));
+            Assert.That(overlay.GetComponent<Image>().color.a, Is.EqualTo(0f));
+
+            ClickButton(overlay, "Facility Collapse Toggle");
+
+            Assert.That(panel.sizeDelta.y, Is.EqualTo(360f));
+            Assert.That(expandedContent.activeSelf, Is.True);
+            Assert.That(collapsedSummary.activeSelf, Is.False);
             var blue = FindChild(overlay, "Extension Hub Card " + FacilityCardDatabase.ExtensionHubBlue);
             var yellow = FindChild(overlay, "Extension Hub Card " + FacilityCardDatabase.ExtensionHubYellow);
             var red = FindChild(overlay, "Extension Hub Card " + FacilityCardDatabase.ExtensionHubRed);
@@ -385,7 +639,48 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.LastPrompt, Does.Contain("占用"));
         }
 
-        private CoordinatorFixture CreateCoordinator(GameState state)
+        private CoordinatorFixture CreateMercenaryCoordinator(
+            out string opponentSlot,
+            out string ownSlot,
+            out string emptySlot)
+        {
+            const string routeId = "mercenary-route";
+            opponentSlot = InfluenceService.GetRouteSlotId(routeId, 0);
+            ownSlot = InfluenceService.GetRouteSlotId(routeId, 1);
+            emptySlot = InfluenceService.GetRouteSlotId(routeId, 2);
+
+            var state = CreateState(
+                "mercenary-headquarters-session",
+                FacilityPendingChoiceTypes.ScenarioId,
+                FacilityPendingChoiceTypes.ReplaceOneInfluence);
+            state.MapId = "mercenary-headquarters-ui-test";
+            state.PendingCardSession.CardId = FacilityCardDatabase.MercenaryCommand;
+            state.PendingCardSession.OptionIds.Clear();
+            state.PendingCardSession.OptionIds.Add(FacilityPendingChoiceTypes.ReplaceInfluenceOption);
+            state.PendingCardSession.OptionIds.Add(FacilityPendingChoiceTypes.DeployInfluenceOption);
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 2,
+                SlotId = opponentSlot,
+                RouteId = routeId
+            });
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = ownSlot,
+                RouteId = routeId
+            });
+
+            var map = new GameMapDefinition { MapId = state.MapId };
+            map.Routes.Add(new MapRouteDefinition
+            {
+                RouteId = routeId,
+                InfluenceSlotCount = 3
+            });
+            return CreateCoordinator(state, map);
+        }
+
+        private CoordinatorFixture CreateCoordinator(GameState state, GameMapDefinition map = null)
         {
             var coordinatorType = Type.GetType(
                 "YC.Presentation.FacilityEffectInteractionUiCoordinator, Assembly-CSharp",
@@ -407,12 +702,20 @@ namespace YC.Tests.EditMode
             canvas.sortingOrder = 15;
 
             var dialog = Activator.CreateInstance(dialogType, true);
-            var mapQuery = new MapQueryService(new GameMapDefinition { MapId = "facility-ui-test" });
+            var mapQuery = new MapQueryService(map ?? new GameMapDefinition { MapId = "facility-ui-test" });
             Func<GameState> getState = () => state;
             Func<int> getLocalPlayerId = () => 1;
             Func<RectTransform> getCanvas = () => canvasObject.GetComponent<RectTransform>();
-            Action<IReadOnlyList<WorkflowHighlight>> setHighlights = ignored => { };
-            Action clearHighlights = () => { };
+            var highlights = new List<WorkflowHighlight>();
+            Action<IReadOnlyList<WorkflowHighlight>> setHighlights = values =>
+            {
+                highlights.Clear();
+                if (values != null)
+                {
+                    highlights.AddRange(values);
+                }
+            };
+            Action clearHighlights = () => highlights.Clear();
             PendingCardSessionState additionalExplorePending = null;
             string additionalExploreOptionId = null;
             Action<PendingCardSessionState, string> beginAdditionalExplore = (pending, optionId) =>
@@ -452,7 +755,8 @@ namespace YC.Tests.EditMode
                 () => additionalExplorePending,
                 () => additionalExploreOptionId,
                 () => cancelAdditionalExploreCount,
-                () => lastPrompt);
+                () => lastPrompt,
+                () => highlights);
         }
 
         private static void ExecuteDrag(GameObject source, GameObject target)
@@ -671,6 +975,15 @@ namespace YC.Tests.EditMode
             return (bool)method.Invoke(coordinator, new object[] { locationId });
         }
 
+        private static bool TryHandleInfluenceSlotClicked(object coordinator, string slotId)
+        {
+            var method = coordinator.GetType().GetMethod(
+                "TryHandleInfluenceSlotClicked",
+                BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(method, Is.Not.Null);
+            return (bool)method.Invoke(coordinator, new object[] { slotId });
+        }
+
         private static bool GetExtensionHubDragging(object coordinator)
         {
             var property = coordinator.GetType().GetProperty(
@@ -743,6 +1056,7 @@ namespace YC.Tests.EditMode
             private readonly Func<string> getAdditionalExploreOptionId;
             private readonly Func<int> getCancelAdditionalExploreCount;
             private readonly Func<string> getLastPrompt;
+            private readonly Func<List<WorkflowHighlight>> getHighlights;
 
             public CoordinatorFixture(
                 object coordinator,
@@ -751,7 +1065,8 @@ namespace YC.Tests.EditMode
                 Func<PendingCardSessionState> getAdditionalExplorePending,
                 Func<string> getAdditionalExploreOptionId,
                 Func<int> getCancelAdditionalExploreCount,
-                Func<string> getLastPrompt)
+                Func<string> getLastPrompt,
+                Func<List<WorkflowHighlight>> getHighlights)
             {
                 Coordinator = coordinator;
                 Dialog = dialog;
@@ -760,6 +1075,7 @@ namespace YC.Tests.EditMode
                 this.getAdditionalExploreOptionId = getAdditionalExploreOptionId;
                 this.getCancelAdditionalExploreCount = getCancelAdditionalExploreCount;
                 this.getLastPrompt = getLastPrompt;
+                this.getHighlights = getHighlights;
             }
 
             public object Coordinator { get; private set; }
@@ -789,6 +1105,11 @@ namespace YC.Tests.EditMode
             public string LastPrompt
             {
                 get { return getLastPrompt == null ? string.Empty : getLastPrompt(); }
+            }
+
+            public List<WorkflowHighlight> Highlights
+            {
+                get { return getHighlights == null ? new List<WorkflowHighlight>() : getHighlights(); }
             }
         }
     }

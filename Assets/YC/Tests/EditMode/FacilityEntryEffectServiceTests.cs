@@ -125,6 +125,72 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void MercenaryCommand_WithReplaceAndDeployTargets_OffersBothBranchesInOrder()
+        {
+            var state = CreateState();
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 2,
+                SlotId = InfluenceService.GetRouteSlotId("A1", 0),
+                RouteId = "A1"
+            });
+
+            Resolve(state, "building_034");
+
+            AssertPendingChoice(state, FacilityPendingChoiceTypes.ReplaceOneInfluence);
+            Assert.That(state.PendingCardSession.OptionIds, Is.EqualTo(new[]
+            {
+                FacilityPendingChoiceTypes.ReplaceInfluenceOption,
+                FacilityPendingChoiceTypes.DeployInfluenceOption
+            }));
+        }
+
+        [Test]
+        public void MercenaryCommand_WithoutOpponentInfluence_StillOffersDeployBranch()
+        {
+            var state = CreateState();
+
+            Resolve(state, "building_034");
+
+            AssertPendingChoice(state, FacilityPendingChoiceTypes.ReplaceOneInfluence);
+            Assert.That(state.PendingCardSession.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.DeployInfluenceOption }));
+        }
+
+        [Test]
+        public void MercenaryCommand_WithoutSupply_StillOffersReplaceBranch()
+        {
+            var state = CreateState();
+            state.FindPlayer(1).InfluenceSupply = 0;
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 2,
+                SlotId = InfluenceService.GetRouteSlotId("A1", 0),
+                RouteId = "A1"
+            });
+
+            Resolve(state, "building_034");
+
+            AssertPendingChoice(state, FacilityPendingChoiceTypes.ReplaceOneInfluence);
+            Assert.That(state.PendingCardSession.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.ReplaceInfluenceOption }));
+        }
+
+        [Test]
+        public void MercenaryCommand_WithNoLegalBranch_OpensClosablePendingSession()
+        {
+            var state = CreateState();
+            state.FindPlayer(1).InfluenceSupply = 0;
+
+            Resolve(state, "building_034");
+
+            AssertPendingChoice(state, FacilityPendingChoiceTypes.ReplaceOneInfluence);
+            Assert.That(state.PendingCardSession.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.SkipOption }));
+            Assert.That(state.PendingCardSession.IsValid(), Is.True);
+        }
+
+        [Test]
         public void FreeCityMove_WithNoLegalDestination_DoesNotOpenPendingSession()
         {
             var state = CreateState();
@@ -177,6 +243,37 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void Escort_WithOnlyOneLegalInfluenceSlot_DoesNotOpenPendingSession()
+        {
+            var state = CreateState();
+            var map = StaticMapDefinitions.CreateFourPlayerMap();
+            var keptEmptySlot = InfluenceService.GetRouteSlotId(map.Routes[0].RouteId, 0);
+            for (var routeIndex = 0; routeIndex < map.Routes.Count; routeIndex++)
+            {
+                var route = map.Routes[routeIndex];
+                for (var slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
+                {
+                    var slotId = InfluenceService.GetRouteSlotId(route.RouteId, slotIndex);
+                    if (slotId == keptEmptySlot)
+                    {
+                        continue;
+                    }
+
+                    state.Map.Influences.Add(new InfluencePlacement
+                    {
+                        PlayerId = 2,
+                        SlotId = slotId,
+                        RouteId = route.RouteId
+                    });
+                }
+            }
+
+            Resolve(state, "building_037");
+
+            Assert.That(state.PendingCardSession, Is.Null);
+        }
+
+        [Test]
         public void Escort_WithLegalInfluenceSlot_OpensPendingSession()
         {
             var state = CreateState();
@@ -193,14 +290,17 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void VehicleWarehouse_WithNoInfluenceAndNoLegalExplore_DoesNotOpenPendingSession()
+        public void VehicleWarehouse_WithNoInfluenceAndNoLegalExplore_OpensClosablePendingSession()
         {
             var state = CreateState();
             state.FindPlayer(1).CityLocationId = "A-01";
 
             Resolve(state, "building_039");
 
-            Assert.That(state.PendingCardSession, Is.Null);
+            AssertPendingChoice(state, FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore);
+            Assert.That(state.PendingCardSession.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.SkipOption }));
+            Assert.That(state.PendingCardSession.IsValid(), Is.True);
         }
 
         [Test]
@@ -241,6 +341,37 @@ namespace YC.Tests.EditMode
             AssertPendingChoice(state, FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore);
             Assert.That(state.PendingCardSession.OptionIds,
                 Is.EqualTo(new[] { FacilityPendingChoiceTypes.ExploreOption }));
+        }
+
+        [Test]
+        public void VehicleWarehouse_WithBothLegalBranches_OffersRemoveThenExploreInOrder()
+        {
+            var state = CreateState();
+            var player = state.FindPlayer(1);
+            player.CityLocationId = "A-01";
+            player.Resources.GoldVoucher = 2;
+            state.Decks.EventDeckGreen.Add("event_green_01");
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 2,
+                SlotId = InfluenceService.GetRouteSlotId("A1", 0),
+                RouteId = "A1"
+            });
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = InfluenceService.GetRouteSlotId("B1", 0),
+                RouteId = "B1"
+            });
+
+            Resolve(state, "building_039");
+
+            AssertPendingChoice(state, FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore);
+            Assert.That(state.PendingCardSession.OptionIds, Is.EqualTo(new[]
+            {
+                FacilityPendingChoiceTypes.RemoveDispatchOption,
+                FacilityPendingChoiceTypes.ExploreOption
+            }));
         }
 
         private static GameState CreateState()

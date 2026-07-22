@@ -23,7 +23,9 @@ namespace YC.Presentation
             AdditionalFacility,
             AdditionalPayment,
             ExtensionHub,
-            ReplaceInfluence,
+            MercenaryBranch,
+            MercenaryReplace,
+            MercenaryDeploy,
             DeployInfluences,
             WarehouseBranch,
             WarehouseRemove,
@@ -46,6 +48,7 @@ namespace YC.Presentation
         private readonly Action<GameCommand> submit;
         private readonly Action<string> setPrompt;
         private readonly BuildFacilityService buildFacilityService = new BuildFacilityService();
+        private readonly InfluenceService influenceService;
         private string sessionId = string.Empty;
         private SelectionStage stage;
         private string selectedOptionId = string.Empty;
@@ -81,6 +84,7 @@ namespace YC.Presentation
                                            throw new ArgumentNullException(nameof(cancelAdditionalExplore));
             this.submit = submit ?? throw new ArgumentNullException(nameof(submit));
             this.setPrompt = setPrompt ?? throw new ArgumentNullException(nameof(setPrompt));
+            influenceService = new InfluenceService(mapQuery);
             presenter = new FacilityEffectPendingChoicePresenter();
         }
 
@@ -142,30 +146,72 @@ namespace YC.Presentation
 
             switch (stage)
             {
-                case SelectionStage.ReplaceInfluence:
-                    if (pending.OptionIds.Contains(slotId))
+                case SelectionStage.MercenaryReplace:
+                    if (IsOpponentInfluenceSlot(slotId))
                     {
-                        Submit(pending, slotId, null);
+                        Submit(
+                            pending,
+                            FacilityPendingChoiceTypes.ReplaceInfluenceOption,
+                            Parameters(
+                                ResolveFacilityEffectCommandHandler.TargetInfluenceSlotIdParameter,
+                                slotId));
                     }
                     else
                     {
                         setPrompt("请选择高亮的影响力进行替换。");
                     }
                     break;
-                case SelectionStage.DeployInfluences:
-                    if (string.IsNullOrEmpty(slotId) || deployInfluenceSlotIds.Contains(slotId))
+                case SelectionStage.MercenaryDeploy:
+                    if (string.IsNullOrEmpty(slotId) ||
+                        !influenceService.CanPlace(getState(), getLocalPlayerId(), slotId).IsValid)
                     {
-                        setPrompt("该槽位已经选择，请选择另一个槽位或提交当前选择。");
+                        setPrompt("请选择高亮的空槽位放置影响力。");
                         break;
                     }
 
-                    if (deployInfluenceSlotIds.Count >= 2)
+                    Submit(
+                        pending,
+                        FacilityPendingChoiceTypes.DeployInfluenceOption,
+                        Parameters(
+                            ResolveFacilityEffectCommandHandler.TargetInfluenceSlotIdParameter,
+                            slotId));
+                    break;
+                case SelectionStage.DeployInfluences:
+                    if (string.IsNullOrEmpty(slotId))
                     {
-                        deployInfluenceSlotIds.RemoveAt(0);
+                        setPrompt("请选择高亮的空槽位。");
+                        break;
+                    }
+
+                    if (deployInfluenceSlotIds.Contains(slotId))
+                    {
+                        setPrompt("请选择另一个高亮空槽位。");
+                        break;
+                    }
+
+                    var deploymentValidation = influenceService.CanPlace(
+                        getState(),
+                        getLocalPlayerId(),
+                        slotId);
+                    if (!deploymentValidation.IsValid)
+                    {
+                        setPrompt("请选择高亮的空槽位。");
+                        break;
                     }
 
                     deployInfluenceSlotIds.Add(slotId);
-                    Render(pending);
+                    if (deployInfluenceSlotIds.Count < 2)
+                    {
+                        ShowDeployInfluences(pending);
+                        break;
+                    }
+
+                    Submit(
+                        pending,
+                        FacilityPendingChoiceTypes.ConfirmOption,
+                        Parameters(
+                            ResolveFacilityEffectCommandHandler.InfluenceSlotIdsParameter,
+                            string.Join(",", deployInfluenceSlotIds.ToArray())));
                     break;
                 case SelectionStage.WarehouseRemove:
                     removeInfluenceSlotId = slotId ?? string.Empty;
@@ -322,7 +368,7 @@ namespace YC.Presentation
                     ShowFiveResources(pending);
                     return;
                 case FacilityPendingChoiceTypes.ReplaceOneInfluence:
-                    ShowReplaceInfluence(pending);
+                    ShowMercenary(pending);
                     return;
                 case FacilityPendingChoiceTypes.DeployTwoInfluences:
                     ShowDeployInfluences(pending);
@@ -496,38 +542,80 @@ namespace YC.Presentation
                 null);
         }
 
-        private void ShowReplaceInfluence(PendingCardSessionState pending)
+        private void ShowMercenary(PendingCardSessionState pending)
         {
-            var highlights = new List<WorkflowHighlight>();
-            for (var i = 0; i < pending.OptionIds.Count; i++)
+            if (stage == SelectionStage.MercenaryBranch)
             {
-                highlights.Add(new WorkflowHighlight(
-                    WorkflowHighlightTargetKind.InfluenceSlot,
-                    pending.OptionIds[i],
-                    WorkflowHighlightSemantic.EventInfluenceTarget));
+                var canReplace = pending.OptionIds.Contains(FacilityPendingChoiceTypes.ReplaceInfluenceOption);
+                var canDeploy = pending.OptionIds.Contains(FacilityPendingChoiceTypes.DeployInfluenceOption);
+                var canClose = pending.OptionIds.Contains(FacilityPendingChoiceTypes.SkipOption);
+                var options = new List<EffectDialogOption>
+                {
+                    new EffectDialogOption("替换 1 个影响力", () =>
+                    {
+                        selectedOptionId = FacilityPendingChoiceTypes.ReplaceInfluenceOption;
+                        stage = SelectionStage.MercenaryReplace;
+                        Render(pending);
+                    }, canReplace),
+                    new EffectDialogOption("放置 1 个影响力", () =>
+                    {
+                        selectedOptionId = FacilityPendingChoiceTypes.DeployInfluenceOption;
+                        stage = SelectionStage.MercenaryDeploy;
+                        Render(pending);
+                    }, canDeploy)
+                };
+
+                ShowOrBranchOptions(
+                    pending,
+                    "佣兵指挥部",
+                    "佣兵指挥部 · 选择分支",
+                    options,
+                    canClose);
+                return;
             }
 
-            setHighlights(highlights);
-            dialog.ShowMapPrompt(getCanvas(), "佣兵指挥部", "点击地图上的高亮影响力，将它替换为你的影响力。", string.Empty, null);
+            if (stage == SelectionStage.MercenaryReplace)
+            {
+                setHighlights(BuildOpponentInfluenceHighlights());
+                dialog.ShowCollapsibleMapPrompt(
+                    getCanvas(),
+                    "佣兵指挥部 · 替换",
+                    "点击地图上的高亮影响力，将它替换为你的影响力。",
+                    "佣兵指挥部 · 替换影响力",
+                    string.Empty,
+                    null,
+                    () =>
+                    {
+                        selectedOptionId = string.Empty;
+                        stage = SelectionStage.MercenaryBranch;
+                        Render(pending);
+                    });
+                return;
+            }
+
+            setHighlights(BuildDeployInfluenceSlotHighlights());
+            dialog.ShowCollapsibleMapPrompt(
+                getCanvas(),
+                "佣兵指挥部 · 放置",
+                "点击地图上的一个高亮空槽位，放置你的影响力。",
+                "佣兵指挥部 · 放置影响力",
+                string.Empty,
+                null,
+                () =>
+                {
+                    selectedOptionId = string.Empty;
+                    stage = SelectionStage.MercenaryBranch;
+                    Render(pending);
+                });
         }
 
         private void ShowDeployInfluences(PendingCardSessionState pending)
         {
-            setHighlights(BuildAllInfluenceSlotHighlights(WorkflowHighlightSemantic.DeployTarget));
-            var selectedText = deployInfluenceSlotIds.Count == 0
-                ? "尚未选择。请依次点击一至两个影响力槽位。"
-                : "已选：" + string.Join("、", deployInfluenceSlotIds.ToArray());
-            dialog.ShowMapPrompt(
+            setHighlights(BuildDeployInfluenceSlotHighlights());
+            dialog.ShowCompactMapPrompt(
                 getCanvas(),
                 "护航调度中心",
-                selectedText,
-                "提交已选槽位",
-                deployInfluenceSlotIds.Count == 0 ? (Action)null : () => Submit(
-                    pending,
-                    FacilityPendingChoiceTypes.ConfirmOption,
-                    Parameters(
-                        ResolveFacilityEffectCommandHandler.InfluenceSlotIdsParameter,
-                        string.Join(",", deployInfluenceSlotIds.ToArray()))));
+                "请依次点击地图上的两个高亮空槽位。");
         }
 
         private void ShowFreeCityMove()
@@ -548,34 +636,32 @@ namespace YC.Presentation
         {
             if (stage == SelectionStage.WarehouseBranch)
             {
-                var options = new List<EffectDialogOption>();
-                if (pending.OptionIds.Contains(FacilityPendingChoiceTypes.RemoveDispatchOption))
+                var canRemoveDispatch = pending.OptionIds.Contains(FacilityPendingChoiceTypes.RemoveDispatchOption);
+                var canExplore = pending.OptionIds.Contains(FacilityPendingChoiceTypes.ExploreOption);
+                var canClose = pending.OptionIds.Contains(FacilityPendingChoiceTypes.SkipOption);
+                var options = new List<EffectDialogOption>
                 {
-                    options.Add(new EffectDialogOption("移除一个影响力，然后调度", () =>
+                    new EffectDialogOption("移除一个影响力，然后调度", () =>
                     {
                         selectedOptionId = FacilityPendingChoiceTypes.RemoveDispatchOption;
                         stage = SelectionStage.WarehouseRemove;
                         Render(pending);
-                    }));
-                }
-
-                if (pending.OptionIds.Contains(FacilityPendingChoiceTypes.ExploreOption))
-                {
-                    options.Add(new EffectDialogOption("执行一次正常探索", () =>
+                    }, canRemoveDispatch),
+                    new EffectDialogOption("执行一次正常探索", () =>
                     {
                         selectedOptionId = FacilityPendingChoiceTypes.ExploreOption;
                         stage = SelectionStage.WarehouseExplore;
                         Render(pending);
                         beginAdditionalExplore(pending, FacilityPendingChoiceTypes.ExploreOption);
-                    }));
-                }
+                    }, canExplore)
+                };
 
-                dialog.ShowCollapsibleOptions(
-                    getCanvas(),
+                ShowOrBranchOptions(
+                    pending,
                     "载具仓库",
-                    "选择本次入场效果的执行分支。",
                     "载具仓库 · 选择分支",
-                    options);
+                    options,
+                    canClose);
                 return;
             }
 
@@ -647,6 +733,23 @@ namespace YC.Presentation
                     stage = SelectionStage.WarehouseSource;
                     Render(pending);
                 });
+        }
+
+        private void ShowOrBranchOptions(
+            PendingCardSessionState pending,
+            string title,
+            string summary,
+            IReadOnlyList<EffectDialogOption> options,
+            bool canClose)
+        {
+            dialog.ShowCollapsibleOptions(
+                getCanvas(),
+                title,
+                canClose ? "当前没有合法目标，请关闭以完成入场结算。" : "选择本次入场效果的执行分支。",
+                summary,
+                options,
+                canClose ? (Action)(() => Submit(pending, FacilityPendingChoiceTypes.SkipOption, null)) : null,
+                canClose ? "关闭" : null);
         }
 
         private void SubmitAdditionalBuild(PendingCardSessionState pending, string paymentMode)
@@ -735,6 +838,24 @@ namespace YC.Presentation
             return result;
         }
 
+        private List<WorkflowHighlight> BuildDeployInfluenceSlotHighlights()
+        {
+            var result = BuildAllInfluenceSlotHighlights(WorkflowHighlightSemantic.DeployTarget);
+            var state = getState();
+            var playerId = getLocalPlayerId();
+            for (var i = result.Count - 1; i >= 0; i--)
+            {
+                var slotId = result[i].TargetId;
+                if (deployInfluenceSlotIds.Contains(slotId) ||
+                    !influenceService.CanPlace(state, playerId, slotId).IsValid)
+                {
+                    result.RemoveAt(i);
+                }
+            }
+
+            return result;
+        }
+
         private List<WorkflowHighlight> BuildPlacedInfluenceHighlights(
             int? playerId,
             WorkflowHighlightSemantic semantic)
@@ -752,6 +873,48 @@ namespace YC.Presentation
             }
 
             return result;
+        }
+
+        private List<WorkflowHighlight> BuildOpponentInfluenceHighlights()
+        {
+            var result = new List<WorkflowHighlight>();
+            var state = getState();
+            var localPlayerId = getLocalPlayerId();
+            for (var i = 0; i < state.Map.Influences.Count; i++)
+            {
+                var influence = state.Map.Influences[i];
+                if (influence.PlayerId != localPlayerId && !string.IsNullOrEmpty(influence.SlotId))
+                {
+                    result.Add(new WorkflowHighlight(
+                        WorkflowHighlightTargetKind.InfluenceSlot,
+                        influence.SlotId,
+                        WorkflowHighlightSemantic.EventInfluenceTarget));
+                }
+            }
+
+            return result;
+        }
+
+        private bool IsOpponentInfluenceSlot(string slotId)
+        {
+            if (string.IsNullOrEmpty(slotId))
+            {
+                return false;
+            }
+
+            var state = getState();
+            var localPlayerId = getLocalPlayerId();
+            for (var i = 0; i < state.Map.Influences.Count; i++)
+            {
+                var influence = state.Map.Influences[i];
+                if (influence.PlayerId != localPlayerId &&
+                    string.Equals(influence.SlotId, slotId, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private List<WorkflowHighlight> BuildAllLocationHighlights(WorkflowHighlightSemantic semantic)
@@ -805,7 +968,7 @@ namespace YC.Presentation
                 case FacilityPendingChoiceTypes.BuildExtensionHub:
                     return SelectionStage.ExtensionHub;
                 case FacilityPendingChoiceTypes.ReplaceOneInfluence:
-                    return SelectionStage.ReplaceInfluence;
+                    return SelectionStage.MercenaryBranch;
                 case FacilityPendingChoiceTypes.DeployTwoInfluences:
                     return SelectionStage.DeployInfluences;
                 case FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore:

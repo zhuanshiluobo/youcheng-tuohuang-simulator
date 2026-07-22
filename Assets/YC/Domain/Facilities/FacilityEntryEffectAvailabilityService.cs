@@ -83,9 +83,16 @@ namespace YC.Domain.Facilities
             return false;
         }
 
-        public bool HasLegalInfluenceDeployment(GameState state, int playerId)
+        public bool HasLegalInfluenceDeployment(GameState state, int playerId, int requiredCount = 1)
         {
             ValidateState(state);
+            var player = state.FindPlayer(playerId);
+            if (requiredCount <= 0 || player == null || player.InfluenceSupply < requiredCount)
+            {
+                return false;
+            }
+
+            var legalCount = 0;
             for (var i = 0; i < mapQuery.Map.Locations.Count; i++)
             {
                 var location = mapQuery.Map.Locations[i];
@@ -94,7 +101,11 @@ namespace YC.Domain.Facilities
                     var slotId = InfluenceService.GetLocationSlotId(location.LocationId, slotIndex);
                     if (influenceService.CanPlace(state, playerId, slotId).IsValid)
                     {
-                        return true;
+                        legalCount++;
+                        if (legalCount >= requiredCount)
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -107,8 +118,44 @@ namespace YC.Domain.Facilities
                     var slotId = InfluenceService.GetRouteSlotId(route.RouteId, slotIndex);
                     if (influenceService.CanPlace(state, playerId, slotId).IsValid)
                     {
-                        return true;
+                        legalCount++;
+                        if (legalCount >= requiredCount)
+                        {
+                            return true;
+                        }
                     }
+                }
+            }
+
+            return false;
+        }
+
+        public List<string> GetReplaceOrDeployOptions(GameState state, int playerId)
+        {
+            ValidateState(state);
+            var result = new List<string>();
+            if (HasReplaceableOpponentInfluence(state, playerId))
+            {
+                result.Add(FacilityPendingChoiceTypes.ReplaceInfluenceOption);
+            }
+
+            if (HasLegalInfluenceDeployment(state, playerId))
+            {
+                result.Add(FacilityPendingChoiceTypes.DeployInfluenceOption);
+            }
+
+            return result;
+        }
+
+        public bool HasReplaceableOpponentInfluence(GameState state, int playerId)
+        {
+            ValidateState(state);
+            for (var i = 0; i < state.Map.Influences.Count; i++)
+            {
+                var influence = state.Map.Influences[i];
+                if (influence.PlayerId != playerId && !string.IsNullOrEmpty(influence.SlotId))
+                {
+                    return true;
                 }
             }
 

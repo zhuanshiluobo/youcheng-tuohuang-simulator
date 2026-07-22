@@ -5,7 +5,6 @@ using YC.Domain.Facilities;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace YC.Presentation
@@ -30,15 +29,7 @@ namespace YC.Presentation
         private const int EventCardDescriptionFontSize = 23;
 
         private GameObject overlay;
-        private Image overlayImage;
-        private RectTransform eventCardPanel;
-        private GameObject eventCardExpandedContent;
-        private Text eventCardSummaryText;
-        private RectTransform eventCardToggleRect;
-        private Text eventCardToggleText;
-        private Image eventCardToggleIcon;
-        private Vector2 eventCardExpandedSize;
-        private bool eventCardCollapsed;
+        private EffectDialogCollapsiblePanel eventCardCollapsiblePanel;
 
         public bool IsShowing
         {
@@ -64,13 +55,12 @@ namespace YC.Presentation
 
             var paymentChoiceCount = paymentChoices == null ? 0 : paymentChoices.Count;
             overlay = CreateOverlay(canvasTransform, "Event Choice Overlay");
-            overlayImage = overlay.GetComponent<Image>();
+            var overlayImage = overlay.GetComponent<Image>();
             if (overlayImage != null)
             {
                 overlayImage.raycastTarget = false;
             }
 
-            eventCardCollapsed = false;
             var description = string.IsNullOrEmpty(card.Description) ? string.Empty : card.Description;
             var titleTop = EventCardTopPadding;
             var titleCenterY = -(titleTop + EventCardTitleHeight * 0.5f);
@@ -89,21 +79,20 @@ namespace YC.Presentation
                                    (card.ChoiceRewards.Count - 1) * EventCardChoiceStep +
                                    EventCardChoiceHeight * 0.5f;
             var expandedHeight = lastChoiceBottom + EventCardToggleButtonTopGap + EventCardToggleButtonTopInset;
-            eventCardExpandedSize = new Vector2(EventCardWidth, expandedHeight);
+            var eventCardExpandedSize = new Vector2(EventCardWidth, expandedHeight);
             var panelRect = CreatePanel(
                 overlay.GetComponent<RectTransform>(),
                 "Choice Panel",
                 eventCardExpandedSize,
                 new Vector2(0f, -40f));
-            eventCardPanel = panelRect;
-            panelRect.gameObject.AddComponent<EventCardDragHandle>().Initialize(panelRect, canvasTransform.GetComponentInParent<Canvas>());
+            eventCardCollapsiblePanel = panelRect.gameObject.AddComponent<EffectDialogCollapsiblePanel>();
 
-            eventCardSummaryText = CreateText(panelRect, "Collapsed Summary", BuildCardSummary(card, metadataLabel), 18, FontStyle.Bold, UiTheme.GoldText,
+            var eventCardSummaryText = CreateText(panelRect, "Collapsed Summary", BuildCardSummary(card, metadataLabel), 18, FontStyle.Bold, UiTheme.GoldText,
                 new Vector2(0.06f, 1f), new Vector2(0.74f, 1f), new Vector2(0f, 42f), new Vector2(0f, -26f),
                 TextAnchor.MiddleLeft, 12, 18);
             eventCardSummaryText.gameObject.SetActive(false);
 
-            eventCardExpandedContent = new GameObject("Expanded Content", typeof(RectTransform));
+            var eventCardExpandedContent = new GameObject("Expanded Content", typeof(RectTransform));
             eventCardExpandedContent.transform.SetParent(panelRect, false);
             var contentRect = eventCardExpandedContent.GetComponent<RectTransform>();
             contentRect.anchorMin = Vector2.zero;
@@ -165,14 +154,27 @@ namespace YC.Presentation
                 14,
                 12,
                 14);
-            eventCardToggleRect = toggleButton.GetComponent<RectTransform>();
-            eventCardToggleText = toggleButton.GetComponentInChildren<Text>();
-            eventCardToggleIcon = UguiUtility.CreateTriangleIcon(
+            var eventCardToggleRect = toggleButton.GetComponent<RectTransform>();
+            var eventCardToggleText = toggleButton.GetComponentInChildren<Text>();
+            var eventCardToggleIcon = UguiUtility.CreateTriangleIcon(
                 eventCardToggleRect,
                 "Event Card Collapse Triangle",
                 true);
-            toggleButton.onClick.AddListener(ToggleEventCardCollapsed);
-            ApplyEventCardCollapseState();
+            eventCardCollapsiblePanel.Configure(new EffectDialogCollapseSpec
+            {
+                Panel = panelRect,
+                Canvas = canvasTransform.GetComponentInParent<Canvas>(),
+                OverlayImage = overlayImage,
+                ExpandedContent = eventCardExpandedContent,
+                CollapsedSummaryText = eventCardSummaryText,
+                ToggleRect = eventCardToggleRect,
+                ToggleText = eventCardToggleText,
+                ToggleIcon = eventCardToggleIcon,
+                ExpandedSize = eventCardExpandedSize,
+                CollapsedHeight = EventCardCollapsedHeight,
+                StartCollapsed = false
+            });
+            toggleButton.onClick.AddListener(eventCardCollapsiblePanel.Toggle);
         }
 
         public void ShowExplorePathOptions(
@@ -285,7 +287,7 @@ namespace YC.Presentation
 
             DestroyOverlay();
             overlay = CreateOverlay(canvasTransform, "Resource Collection Payment Overlay");
-            overlayImage = overlay.GetComponent<Image>();
+            var overlayImage = overlay.GetComponent<Image>();
             if (overlayImage != null)
             {
                 overlayImage.raycastTarget = false;
@@ -711,8 +713,7 @@ namespace YC.Presentation
                 return;
             }
 
-            eventCardCollapsed = true;
-            ApplyEventCardCollapseState();
+            eventCardCollapsiblePanel?.SetCollapsed(true);
         }
 
         private static GameObject CreateOverlay(RectTransform canvasTransform, string name)
@@ -1017,74 +1018,7 @@ namespace YC.Presentation
                 overlay = null;
             }
 
-            overlayImage = null;
-            eventCardPanel = null;
-            eventCardExpandedContent = null;
-            eventCardSummaryText = null;
-            eventCardToggleRect = null;
-            eventCardToggleText = null;
-            eventCardToggleIcon = null;
-            eventCardCollapsed = false;
-        }
-
-        private void ToggleEventCardCollapsed()
-        {
-            eventCardCollapsed = !eventCardCollapsed;
-            ApplyEventCardCollapseState();
-        }
-
-        private void ApplyEventCardCollapseState()
-        {
-            if (eventCardPanel == null)
-            {
-                return;
-            }
-
-            var previousHeight = eventCardPanel.sizeDelta.y;
-            var targetSize = eventCardCollapsed ? new Vector2(EventCardWidth, EventCardCollapsedHeight) : eventCardExpandedSize;
-            eventCardPanel.sizeDelta = targetSize;
-            eventCardPanel.anchoredPosition += new Vector2(0f, (previousHeight - targetSize.y) * 0.5f);
-
-            if (eventCardExpandedContent != null)
-            {
-                eventCardExpandedContent.SetActive(!eventCardCollapsed);
-            }
-
-            if (eventCardSummaryText != null)
-            {
-                eventCardSummaryText.gameObject.SetActive(eventCardCollapsed);
-            }
-
-            if (eventCardToggleText != null)
-            {
-                eventCardToggleText.text = eventCardCollapsed ? "展开卡片" : "收起卡片";
-            }
-
-            UguiUtility.SetTriangleIconDirection(eventCardToggleIcon, !eventCardCollapsed);
-
-            if (eventCardToggleRect != null)
-            {
-                if (eventCardCollapsed)
-                {
-                    eventCardToggleRect.anchorMin = new Vector2(1f, 0.5f);
-                    eventCardToggleRect.anchorMax = new Vector2(1f, 0.5f);
-                    eventCardToggleRect.sizeDelta = new Vector2(126f, 34f);
-                    eventCardToggleRect.anchoredPosition = new Vector2(-76f, 0f);
-                }
-                else
-                {
-                    eventCardToggleRect.anchorMin = new Vector2(0.5f, 0f);
-                    eventCardToggleRect.anchorMax = new Vector2(0.5f, 0f);
-                    eventCardToggleRect.sizeDelta = new Vector2(220f, 32f);
-                    eventCardToggleRect.anchoredPosition = new Vector2(0f, 22f);
-                }
-            }
-
-            if (overlayImage != null)
-            {
-                overlayImage.color = eventCardCollapsed ? new Color(0f, 0f, 0f, 0f) : new Color(0f, 0f, 0f, 0.5f);
-                overlayImage.raycastTarget = false;
-            }
+            eventCardCollapsiblePanel = null;
         }
 
         private static float CalculateFirstChoiceCenterOffset(float descriptionBottom, int paymentChoiceCount)
@@ -1162,33 +1096,6 @@ namespace YC.Presentation
             return separatorIndex < 0
                 ? metadataLabel.Trim()
                 : metadataLabel.Substring(0, separatorIndex).Trim();
-        }
-
-        private sealed class EventCardDragHandle : MonoBehaviour, IBeginDragHandler, IDragHandler
-        {
-            private RectTransform target;
-            private Canvas canvas;
-
-            public void Initialize(RectTransform targetTransform, Canvas ownerCanvas)
-            {
-                target = targetTransform;
-                canvas = ownerCanvas;
-            }
-
-            public void OnBeginDrag(PointerEventData eventData)
-            {
-            }
-
-            public void OnDrag(PointerEventData eventData)
-            {
-                if (target == null)
-                {
-                    return;
-                }
-
-                var scaleFactor = canvas == null || canvas.scaleFactor <= 0f ? 1f : canvas.scaleFactor;
-                target.anchoredPosition += eventData.delta / scaleFactor;
-            }
         }
 
         private static string GetEventCardDisplayName(EventCardDefinition card)

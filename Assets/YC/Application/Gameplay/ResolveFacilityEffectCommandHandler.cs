@@ -388,23 +388,55 @@ namespace YC.Application.Gameplay
             GameCommand command,
             PendingCardSessionState pending)
         {
-            var targetSlotId = ResolveOptionId(command, pending);
-            if (!pending.OptionIds.Contains(targetSlotId))
+            var optionId = ResolveOptionId(command, pending);
+            if (!pending.OptionIds.Contains(optionId))
             {
-                return Invalid(CommandErrorCode.InvalidTarget, "替换目标已经不可用。");
+                return Invalid(CommandErrorCode.InvalidTarget, "佣兵指挥部分支无效或已经不可用。");
             }
 
-            var result = facilityInfluenceEffectService.ReplaceOnce(state, command.PlayerId, targetSlotId);
-            if (!result.Succeeded)
+            if (optionId == FacilityPendingChoiceTypes.SkipOption)
             {
-                return CommandResult.Invalid(result.Validation);
+                ClearFacilityPending(state);
+                return Success(command.PlayerId, pending.CardId, "佣兵指挥部没有合法目标，已完成入场结算。");
             }
 
-            ClearFacilityPending(state);
-            var message = result.ReplacementPlaced
-                ? "已替换目标影响力。"
-                : "已移除目标影响力；受放置限制影响，未放置自己的影响力。";
-            return Success(command.PlayerId, pending.CardId, message);
+            var targetSlotId = GetParameter(command, TargetInfluenceSlotIdParameter);
+            if (string.IsNullOrEmpty(targetSlotId))
+            {
+                targetSlotId = command.TargetId;
+            }
+
+            if (optionId == FacilityPendingChoiceTypes.ReplaceInfluenceOption)
+            {
+                var replacement = facilityInfluenceEffectService.ReplaceOnce(
+                    state,
+                    command.PlayerId,
+                    targetSlotId);
+                if (!replacement.Succeeded)
+                {
+                    return CommandResult.Invalid(replacement.Validation);
+                }
+
+                ClearFacilityPending(state);
+                var replaceMessage = replacement.ReplacementPlaced
+                    ? "已替换目标影响力。"
+                    : "已移除目标影响力；受放置限制影响，未放置自己的影响力。";
+                return Success(command.PlayerId, pending.CardId, replaceMessage);
+            }
+
+            if (optionId == FacilityPendingChoiceTypes.DeployInfluenceOption)
+            {
+                var placement = influenceService.Place(state, command.PlayerId, targetSlotId);
+                if (!placement.Succeeded)
+                {
+                    return CommandResult.Invalid(placement.Validation);
+                }
+
+                ClearFacilityPending(state);
+                return Success(command.PlayerId, pending.CardId, "佣兵指挥部已放置 1 个影响力。");
+            }
+
+            return Invalid(CommandErrorCode.InvalidTarget, "佣兵指挥部分支无效。");
         }
 
         private CommandResult ResolveDeployInfluences(
@@ -413,9 +445,9 @@ namespace YC.Application.Gameplay
             PendingCardSessionState pending)
         {
             var slots = SplitIds(GetParameter(command, InfluenceSlotIdsParameter));
-            if (slots.Count == 0 || slots.Count > 2)
+            if (slots.Count != 2)
             {
-                return Invalid(CommandErrorCode.InvalidTarget, "护航调度中心需要依次指定一至两个部署槽位。");
+                return Invalid(CommandErrorCode.InvalidTarget, "护航调度中心必须指定两个不同的部署槽位。");
             }
 
             var placement = influenceService.PlaceAtomically(state, command.PlayerId, slots);
@@ -425,7 +457,7 @@ namespace YC.Application.Gameplay
             }
 
             ClearFacilityPending(state);
-            return Success(command.PlayerId, pending.CardId, "护航调度中心已部署 " + slots.Count + " 个影响力。");
+            return Success(command.PlayerId, pending.CardId, "护航调度中心已部署 2 个影响力。");
         }
 
         private CommandResult ResolveWarehouse(
@@ -437,6 +469,12 @@ namespace YC.Application.Gameplay
             if (!pending.OptionIds.Contains(optionId))
             {
                 return Invalid(CommandErrorCode.InvalidTarget, "载具仓库分支无效。");
+            }
+
+            if (optionId == FacilityPendingChoiceTypes.SkipOption)
+            {
+                ClearFacilityPending(state);
+                return Success(command.PlayerId, pending.CardId, "载具仓库没有合法目标，已完成入场结算。");
             }
 
             if (optionId == FacilityPendingChoiceTypes.ExploreOption)

@@ -705,8 +705,8 @@
       },
       "goldVoucherCost": 18,
       "description": "“放心，把活儿交给专业的人。”",
-      "effect": "入场时，替换 1 个影响力。",
-      "effectRaw": "替换 1 个影响力。"
+      "effect": "入场时，替换 1 个影响力或放置 1 个影响力。",
+      "effectRaw": "替换 1 个影响力或放置 1 个影响力。"
     },
     {
       "id": "building_035",
@@ -724,8 +724,8 @@
       },
       "goldVoucherCost": 18,
       "description": "“放心，把活儿交给专业的人。”",
-      "effect": "入场时，替换 1 个影响力。",
-      "effectRaw": "替换 1 个影响力。"
+      "effect": "入场时，替换 1 个影响力或放置 1 个影响力。",
+      "effectRaw": "替换 1 个影响力或放置 1 个影响力。"
     },
     {
       "id": "building_036",
@@ -743,8 +743,8 @@
       },
       "goldVoucherCost": 18,
       "description": "“放心，把活儿交给专业的人。”",
-      "effect": "入场时，替换 1 个影响力。",
-      "effectRaw": "替换 1 个影响力。"
+      "effect": "入场时，替换 1 个影响力或放置 1 个影响力。",
+      "effectRaw": "替换 1 个影响力或放置 1 个影响力。"
     },
     {
       "id": "building_037",

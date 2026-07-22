@@ -25,18 +25,8 @@ namespace YC.Presentation
     /// <summary>设施入场待选专用弹窗；不读取或修改游戏规则状态。</summary>
     internal sealed class FacilityEffectChoiceDialog
     {
-        private const float CollapsedHeight = 58f;
-
         private readonly EffectDialogShell shell = new EffectDialogShell();
-        private Image overlayImage;
-        private RectTransform collapsiblePanel;
-        private GameObject expandedContent;
-        private Text collapsedSummaryText;
-        private RectTransform collapseToggleRect;
-        private Text collapseToggleText;
-        private Image collapseToggleIcon;
-        private Vector2 expandedPanelSize;
-        private bool collapsed;
+        private EffectDialogCollapsiblePanel collapsiblePanel;
         private RectTransform facilityCardDragGhost;
         private ZoomableImageViewerController facilityCardImageViewer;
 
@@ -61,9 +51,10 @@ namespace YC.Presentation
             string description,
             string summary,
             IReadOnlyList<EffectDialogOption> options,
-            Action back = null)
+            Action back = null,
+            string backLabel = null)
         {
-            ShowOptionsCore(canvas, title, description, options, back, summary, false);
+            ShowOptionsCore(canvas, title, description, options, back, summary, false, backLabel);
         }
 
         public void ShowExtensionHubOptions(
@@ -79,7 +70,12 @@ namespace YC.Presentation
                 return;
             }
 
-            var panel = Rebuild(canvas, new Vector2(520f, 360f), Vector2.zero);
+            var panel = Rebuild(
+                canvas,
+                new Vector2(520f, 360f),
+                Vector2.zero,
+                "\u5ef6\u4f38\u67a2\u7ebd\uff1a\u62d6\u52a8\u5361\u7247\u5230\u57ce\u5e02\u9762\u677f\u7a7a\u69fd\u4f4d\u5efa\u8bbe\u3002",
+                false);
             AddHeading(
                 panel,
                 "延伸枢纽",
@@ -195,7 +191,8 @@ namespace YC.Presentation
             IReadOnlyList<EffectDialogOption> options,
             Action back,
             string summary,
-            bool startCollapsed)
+            bool startCollapsed,
+            string backLabel = null)
         {
             var isCollapsible = !string.IsNullOrEmpty(summary);
             var panel = Rebuild(canvas, new Vector2(660f, 600f), Vector2.zero, summary, startCollapsed);
@@ -212,7 +209,11 @@ namespace YC.Presentation
 
             if (back != null)
             {
-                var backButton = CreateButton(panel, "Back", "返回", 17);
+                var backButton = CreateButton(
+                    panel,
+                    "Back",
+                    string.IsNullOrEmpty(backLabel) ? "\u8fd4\u56de" : backLabel,
+                    17);
                 SetRect(backButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(180f, 44f), new Vector2(0f, isCollapsible ? 76f : 28f));
                 backButton.onClick.AddListener(() => back());
             }
@@ -256,6 +257,12 @@ namespace YC.Presentation
             Action back = null)
         {
             ShowMapPromptCore(canvas, title, description, primaryLabel, primary, back, string.Empty, false);
+        }
+
+        public void ShowCompactMapPrompt(RectTransform canvas, string title, string description)
+        {
+            var panel = Rebuild(canvas, new Vector2(520f, 140f), new Vector2(0f, 310f));
+            AddHeading(panel, title, description, 40f);
         }
 
         public void ShowCollapsibleMapPrompt(
@@ -305,7 +312,7 @@ namespace YC.Presentation
             DestroyFacilityCardDragGhost();
             facilityCardImageViewer?.Close();
             shell.Hide();
-            ResetCollapseReferences();
+            collapsiblePanel = null;
         }
 
         private RectTransform Rebuild(
@@ -316,14 +323,13 @@ namespace YC.Presentation
             bool startCollapsed = false)
         {
             facilityCardImageViewer?.Close();
+            collapsiblePanel = null;
             var panel = shell.Rebuild(
                 canvas,
                 "Facility Effect Choice Overlay",
                 "Facility Effect Choice Panel",
                 size,
                 position);
-            overlayImage = panel == null ? null : panel.parent.GetComponent<Image>();
-
             if (panel == null || string.IsNullOrEmpty(collapseSummary))
             {
                 return panel;
@@ -339,14 +345,7 @@ namespace YC.Presentation
             string summary,
             bool startCollapsed)
         {
-            collapsiblePanel = panel;
-            expandedPanelSize = expandedSize;
-            collapsed = startCollapsed;
-            panel.gameObject.AddComponent<FacilityCardDragHandle>().Initialize(
-                panel,
-                canvas == null ? null : canvas.GetComponentInParent<Canvas>());
-
-            collapsedSummaryText = CreateText(panel, "Facility Collapsed Summary", summary, 18, TextAnchor.MiddleLeft);
+            var collapsedSummaryText = CreateText(panel, "Facility Collapsed Summary", summary, 18, TextAnchor.MiddleLeft);
             collapsedSummaryText.fontStyle = FontStyle.Bold;
             collapsedSummaryText.color = UiTheme.GoldText;
             SetRect(
@@ -356,101 +355,34 @@ namespace YC.Presentation
                 new Vector2(0f, 42f),
                 new Vector2(0f, -29f));
 
-            expandedContent = new GameObject("Facility Expanded Content", typeof(RectTransform));
+            var expandedContent = new GameObject("Facility Expanded Content", typeof(RectTransform));
             expandedContent.transform.SetParent(panel, false);
             var contentRect = expandedContent.GetComponent<RectTransform>();
             Stretch(contentRect, 0f);
 
             var toggleButton = CreateButton(panel, "Facility Collapse Toggle", "收起卡片", 14);
-            collapseToggleRect = toggleButton.GetComponent<RectTransform>();
-            collapseToggleText = toggleButton.GetComponentInChildren<Text>();
-            collapseToggleIcon = UguiUtility.CreateTriangleIcon(
+            var collapseToggleRect = toggleButton.GetComponent<RectTransform>();
+            var collapseToggleText = toggleButton.GetComponentInChildren<Text>();
+            var collapseToggleIcon = UguiUtility.CreateTriangleIcon(
                 collapseToggleRect,
                 "Facility Collapse Triangle",
                 true);
-            toggleButton.onClick.AddListener(() =>
+            collapsiblePanel = panel.gameObject.AddComponent<EffectDialogCollapsiblePanel>();
+            collapsiblePanel.Configure(new EffectDialogCollapseSpec
             {
-                collapsed = !collapsed;
-                ApplyCollapseState();
+                Panel = panel,
+                Canvas = canvas == null ? null : canvas.GetComponentInParent<Canvas>(),
+                OverlayImage = panel.parent == null ? null : panel.parent.GetComponent<Image>(),
+                ExpandedContent = expandedContent,
+                CollapsedSummaryText = collapsedSummaryText,
+                ToggleRect = collapseToggleRect,
+                ToggleText = collapseToggleText,
+                ToggleIcon = collapseToggleIcon,
+                ExpandedSize = expandedSize,
+                StartCollapsed = startCollapsed
             });
-
-            ApplyCollapseState();
+            toggleButton.onClick.AddListener(collapsiblePanel.Toggle);
             return contentRect;
-        }
-
-        private void ApplyCollapseState()
-        {
-            if (collapsiblePanel == null)
-            {
-                return;
-            }
-
-            var previousHeight = collapsiblePanel.sizeDelta.y;
-            var targetSize = collapsed
-                ? new Vector2(expandedPanelSize.x, CollapsedHeight)
-                : expandedPanelSize;
-            collapsiblePanel.sizeDelta = targetSize;
-            collapsiblePanel.anchoredPosition += new Vector2(0f, (previousHeight - targetSize.y) * 0.5f);
-
-            if (expandedContent != null)
-            {
-                expandedContent.SetActive(!collapsed);
-            }
-
-            if (collapsedSummaryText != null)
-            {
-                collapsedSummaryText.gameObject.SetActive(collapsed);
-            }
-
-            if (collapseToggleText != null)
-            {
-                collapseToggleText.text = collapsed ? "展开卡片" : "收起卡片";
-            }
-
-            UguiUtility.SetTriangleIconDirection(collapseToggleIcon, !collapsed);
-
-            if (collapseToggleRect != null)
-            {
-                if (collapsed)
-                {
-                    SetRect(
-                        collapseToggleRect,
-                        new Vector2(1f, 0.5f),
-                        new Vector2(1f, 0.5f),
-                        new Vector2(126f, 34f),
-                        new Vector2(-76f, 0f));
-                }
-                else
-                {
-                    SetRect(
-                        collapseToggleRect,
-                        new Vector2(0.5f, 0f),
-                        new Vector2(0.5f, 0f),
-                        new Vector2(220f, 32f),
-                        new Vector2(0f, 22f));
-                }
-            }
-
-            if (overlayImage != null)
-            {
-                overlayImage.color = collapsed
-                    ? new Color(0f, 0f, 0f, 0f)
-                    : new Color(0f, 0f, 0f, 0.22f);
-                overlayImage.raycastTarget = false;
-            }
-        }
-
-        private void ResetCollapseReferences()
-        {
-            overlayImage = null;
-            collapsiblePanel = null;
-            expandedContent = null;
-            collapsedSummaryText = null;
-            collapseToggleRect = null;
-            collapseToggleText = null;
-            collapseToggleIcon = null;
-            expandedPanelSize = Vector2.zero;
-            collapsed = false;
         }
 
         private void BeginFacilityCardDrag(
@@ -481,7 +413,14 @@ namespace YC.Presentation
 
         private static void AddHeading(RectTransform panel, string title, string description, float descriptionHeight = 70f)
         {
-            EffectDialogShell.AddHeading(panel, title, description, descriptionHeight);
+            var addDragHandle = panel == null ||
+                                panel.GetComponentInParent<EffectDialogCollapsiblePanel>() == null;
+            EffectDialogShell.AddHeading(
+                panel,
+                title,
+                description,
+                descriptionHeight,
+                addDragHandle: addDragHandle);
         }
 
         private static Text CreateText(RectTransform parent, string name, string value, int fontSize, TextAnchor alignment)
@@ -504,33 +443,6 @@ namespace YC.Presentation
         private static void SetRect(RectTransform rect, Vector2 anchorMin, Vector2 anchorMax, Vector2 size, Vector2 position)
         {
             EffectDialogShell.SetRect(rect, anchorMin, anchorMax, size, position);
-        }
-
-        private sealed class FacilityCardDragHandle : MonoBehaviour, IBeginDragHandler, IDragHandler
-        {
-            private RectTransform target;
-            private Canvas canvas;
-
-            public void Initialize(RectTransform targetTransform, Canvas ownerCanvas)
-            {
-                target = targetTransform;
-                canvas = ownerCanvas;
-            }
-
-            public void OnBeginDrag(PointerEventData eventData)
-            {
-            }
-
-            public void OnDrag(PointerEventData eventData)
-            {
-                if (target == null)
-                {
-                    return;
-                }
-
-                var scaleFactor = canvas == null || canvas.scaleFactor <= 0f ? 1f : canvas.scaleFactor;
-                target.anchoredPosition += eventData.delta / scaleFactor;
-            }
         }
 
     }

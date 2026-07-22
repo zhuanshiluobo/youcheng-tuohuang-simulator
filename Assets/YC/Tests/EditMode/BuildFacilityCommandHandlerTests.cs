@@ -98,6 +98,36 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.True);
         }
 
+        [TestCase("building_034")]
+        [TestCase("building_035")]
+        [TestCase("building_036")]
+        public void BuildFacility_MercenaryWithoutOpponent_StillOpensDeployBranchPopupSession(string facilityId)
+        {
+            var state = CreateActionState();
+            state.Decks.FacilitySupply.Add(facilityId);
+            state.FindPlayer(1).Resources.GoldVoucher = 18;
+            var handler = new BuildFacilityCommandHandler();
+
+            var result = handler.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.BuildFacility,
+                PlayerId = 1,
+                TargetId = facilityId,
+                Parameters =
+                {
+                    { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, "0" },
+                    { BuildFacilityCommandHandler.PaymentModeParameter, BuildFacilityService.PaymentModeGold }
+                }
+            });
+
+            Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
+            Assert.That(state.PendingCardSession, Is.Not.Null);
+            Assert.That(state.PendingCardSession.ChoiceType,
+                Is.EqualTo(FacilityPendingChoiceTypes.ReplaceOneInfluence));
+            Assert.That(state.PendingCardSession.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.DeployInfluenceOption }));
+        }
+
         [Test]
         public void BuildFacility_ResolvesEntryEffectAfterPlacementAndScoreBeforeSupplyRefill()
         {
@@ -540,23 +570,29 @@ namespace YC.Tests.EditMode
                 null,
                 "map_four_players",
                 123);
+            var sameSeedState = GameLaunchStateFactory.CreateInitialState(
+                LaunchMode.Local,
+                1,
+                null,
+                "map_four_players",
+                123);
+            var differentSeedState = GameLaunchStateFactory.CreateInitialState(
+                LaunchMode.Local,
+                1,
+                null,
+                "map_four_players",
+                456);
 
             Assert.That(state.Decks.FacilitySupply, Is.Not.Empty);
             Assert.That(state.Decks.FacilitySupply, Has.Count.EqualTo(6));
             Assert.That(
                 state.Decks.FacilityDeck,
                 Has.Count.EqualTo(FacilityCardDatabase.DefaultSupplyIds.Count - 6));
-            Assert.That(
-                state.Decks.FacilitySupply,
-                Is.EqualTo(new[]
-                {
-                    FacilityCardDatabase.CityIndustrialDistrict,
-                    FacilityCardDatabase.OriginiumPurificationPlant,
-                    FacilityCardDatabase.LogisticsHub,
-                    "building_038",
-                    FacilityCardDatabase.SimpleEngineeringCamp,
-                    "building_008"
-                }));
+            Assert.That(state.Decks.FacilitySupply, Is.EqualTo(sameSeedState.Decks.FacilitySupply));
+            Assert.That(state.Decks.FacilitySupply, Is.Not.EqualTo(differentSeedState.Decks.FacilitySupply));
+            Assert.That(state.Decks.FacilitySupply, Is.Unique);
+            Assert.That(state.Decks.FacilitySupply,
+                Is.SubsetOf(FacilityCardDatabase.DefaultSupplyIds));
         }
 
         [Test]

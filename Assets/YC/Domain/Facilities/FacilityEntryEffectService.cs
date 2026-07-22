@@ -116,16 +116,25 @@ namespace YC.Domain.Facilities
                         new List<string> { FacilityPendingChoiceTypes.ConfirmOption });
                     return;
                 case FacilityCardEffectIds.ReplaceOneInfluence:
+                {
+                    var mercenaryOptions = GetAvailabilityService(state)
+                        .GetReplaceOrDeployOptions(state, player.PlayerId);
+                    if (mercenaryOptions.Count == 0)
+                    {
+                        mercenaryOptions.Add(FacilityPendingChoiceTypes.SkipOption);
+                    }
+
                     OpenChoice(
                         state,
                         player,
                         facility,
                         cityBoardSlotIndex,
                         FacilityPendingChoiceTypes.ReplaceOneInfluence,
-                        FindOpponentInfluenceSlots(state, player.PlayerId));
+                        mercenaryOptions);
                     return;
+                }
                 case FacilityCardEffectIds.DeployTwoInfluences:
-                    if (GetAvailabilityService(state).HasLegalInfluenceDeployment(state, player.PlayerId))
+                    if (GetAvailabilityService(state).HasLegalInfluenceDeployment(state, player.PlayerId, 2))
                     {
                         OpenChoice(
                             state,
@@ -140,16 +149,18 @@ namespace YC.Domain.Facilities
                 {
                     var warehouseOptions = GetAvailabilityService(state)
                         .GetRemoveOrExploreOptions(state, player.PlayerId);
-                    if (warehouseOptions.Count > 0)
+                    if (warehouseOptions.Count == 0)
                     {
-                        OpenChoice(
-                            state,
-                            player,
-                            facility,
-                            cityBoardSlotIndex,
-                            FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore,
-                            warehouseOptions);
+                        warehouseOptions.Add(FacilityPendingChoiceTypes.SkipOption);
                     }
+
+                    OpenChoice(
+                        state,
+                        player,
+                        facility,
+                        cityBoardSlotIndex,
+                        FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore,
+                        warehouseOptions);
                     return;
                 }
             }
@@ -300,21 +311,6 @@ namespace YC.Domain.Facilities
             }
 
             return false;
-        }
-
-        private static List<string> FindOpponentInfluenceSlots(GameState state, int playerId)
-        {
-            var result = new List<string>();
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var influence = state.Map.Influences[i];
-                if (influence.PlayerId != playerId && !string.IsNullOrEmpty(influence.SlotId))
-                {
-                    result.Add(influence.SlotId);
-                }
-            }
-
-            return result;
         }
 
         private static void OpenChoice(

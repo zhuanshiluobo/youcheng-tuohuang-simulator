@@ -15,6 +15,8 @@ namespace YC.Domain.Facilities
 
         public const string ConfirmOption = "confirm";
         public const string SkipOption = "skip";
+        public const string ReplaceInfluenceOption = "replace_influence";
+        public const string DeployInfluenceOption = "deploy_influence";
         public const string RemoveDispatchOption = "remove_dispatch";
         public const string ExploreOption = "explore";
     }

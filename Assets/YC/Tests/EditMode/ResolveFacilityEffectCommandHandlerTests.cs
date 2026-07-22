@@ -174,7 +174,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void ReplaceInfluence_ResolvesMercenaryCommandPendingChoice()
+        public void MercenaryCommand_ReplaceBranch_ReplacesSelectedOpponentInfluence()
         {
             var fixture = CreateFixture();
             var slotId = InfluenceService.GetRouteSlotId("A1", 0);
@@ -186,12 +186,80 @@ namespace YC.Tests.EditMode
             });
             OpenEffect(fixture.State, "building_034");
 
-            var result = fixture.Handler.Handle(
-                fixture.State,
-                ResolveCommand(fixture.State, slotId, null));
+            var result = fixture.Handler.Handle(fixture.State, ResolveCommand(fixture.State,
+                FacilityPendingChoiceTypes.ReplaceInfluenceOption,
+                new Dictionary<string, string>
+                {
+                    { ResolveFacilityEffectCommandHandler.TargetInfluenceSlotIdParameter, slotId }
+                }));
 
             Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
             Assert.That(fixture.Influence.FindInfluence(fixture.State, slotId).PlayerId, Is.EqualTo(1));
+            Assert.That(fixture.State.PendingCardSession, Is.Null);
+        }
+
+        [Test]
+        public void MercenaryCommand_DeployBranch_PlacesInfluenceIntoSelectedEmptySlot()
+        {
+            var fixture = CreateFixture();
+            var slotId = InfluenceService.GetRouteSlotId("A1", 0);
+            OpenEffect(fixture.State, "building_034");
+            Assert.That(fixture.State.PendingCardSession.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.DeployInfluenceOption }));
+
+            var result = fixture.Handler.Handle(fixture.State, ResolveCommand(fixture.State,
+                FacilityPendingChoiceTypes.DeployInfluenceOption,
+                new Dictionary<string, string>
+                {
+                    { ResolveFacilityEffectCommandHandler.TargetInfluenceSlotIdParameter, slotId }
+                }));
+
+            Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, slotId), Is.Not.Null);
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, slotId).PlayerId, Is.EqualTo(1));
+            Assert.That(fixture.State.FindPlayer(1).InfluenceSupply, Is.EqualTo(29));
+            Assert.That(fixture.State.PendingCardSession, Is.Null);
+        }
+
+        [Test]
+        public void MercenaryCommand_OptionNotOffered_CannotBeForged()
+        {
+            var fixture = CreateFixture();
+            var targetSlotId = InfluenceService.GetRouteSlotId("A1", 0);
+            OpenEffect(fixture.State, "building_034");
+            var pending = fixture.State.PendingCardSession;
+            Assert.That(pending.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.DeployInfluenceOption }));
+
+            var result = fixture.Handler.Handle(fixture.State, ResolveCommand(fixture.State,
+                FacilityPendingChoiceTypes.ReplaceInfluenceOption,
+                new Dictionary<string, string>
+                {
+                    { ResolveFacilityEffectCommandHandler.TargetInfluenceSlotIdParameter, targetSlotId }
+                }));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, targetSlotId), Is.Null);
+            Assert.That(fixture.State.FindPlayer(1).InfluenceSupply, Is.EqualTo(30));
+            Assert.That(fixture.State.PendingCardSession, Is.SameAs(pending));
+        }
+
+        [Test]
+        public void MercenaryCommand_WhenNeitherBranchIsLegal_SkipClearsPendingSession()
+        {
+            var fixture = CreateFixture();
+            fixture.State.FindPlayer(1).InfluenceSupply = 0;
+            OpenEffect(fixture.State, "building_034");
+            Assert.That(fixture.State.PendingCardSession.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.SkipOption }));
+
+            var result = fixture.Handler.Handle(
+                fixture.State,
+                ResolveCommand(fixture.State, FacilityPendingChoiceTypes.SkipOption, null));
+
+            Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
+            Assert.That(fixture.State.PendingCardSession, Is.Null);
         }
 
         [Test]
@@ -345,6 +413,44 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void VehicleWarehouse_WhenNeitherBranchIsLegal_CloseClearsPendingSession()
+        {
+            var fixture = CreateFixture();
+            OpenEffect(fixture.State, "building_039");
+            Assert.That(fixture.State.PendingCardSession.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.SkipOption }));
+
+            var result = fixture.Handler.Handle(
+                fixture.State,
+                ResolveCommand(fixture.State, FacilityPendingChoiceTypes.SkipOption, null));
+
+            Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
+            Assert.That(fixture.State.PendingCardSession, Is.Null);
+            Assert.That(result.LogMessage, Does.Contain("没有合法目标").And.Contain("完成入场结算"));
+        }
+
+        [Test]
+        public void VehicleWarehouse_WhenExploreIsLegal_CannotForgeCloseToSkipEffect()
+        {
+            var fixture = CreateFixture();
+            var player = fixture.State.FindPlayer(1);
+            player.Resources.GoldVoucher = 2;
+            fixture.State.Decks.EventDeckGreen.Add("event_green_01");
+            OpenEffect(fixture.State, "building_039");
+            var pending = fixture.State.PendingCardSession;
+            Assert.That(pending.OptionIds,
+                Is.EqualTo(new[] { FacilityPendingChoiceTypes.ExploreOption }));
+
+            var result = fixture.Handler.Handle(
+                fixture.State,
+                ResolveCommand(fixture.State, FacilityPendingChoiceTypes.SkipOption, null));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(fixture.State.PendingCardSession, Is.SameAs(pending));
+        }
+
+        [Test]
         public void EscortDispatchCenter_WhenOneOfTwoRequestedSlotsIsIllegal_FailsAtomically()
         {
             var fixture = CreateFixture();
@@ -365,6 +471,52 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.Influence.FindInfluence(fixture.State, legalSlotId), Is.Null);
             Assert.That(fixture.State.FindPlayer(1).InfluenceSupply, Is.EqualTo(30));
             Assert.That(fixture.State.PendingCardSession, Is.Not.Null);
+        }
+
+        [Test]
+        public void EscortDispatchCenter_WhenOnlyOneSlotIsRequested_RejectsWithoutPlacingInfluence()
+        {
+            var fixture = CreateFixture();
+            var legalSlotId = InfluenceService.GetRouteSlotId("A1", 0);
+            OpenEffect(fixture.State, "building_037");
+
+            var result = fixture.Handler.Handle(fixture.State, ResolveCommand(fixture.State,
+                FacilityPendingChoiceTypes.ConfirmOption,
+                new Dictionary<string, string>
+                {
+                    { ResolveFacilityEffectCommandHandler.InfluenceSlotIdsParameter, legalSlotId }
+                }));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Validation.Reason, Does.Contain("必须").And.Contain("两个"));
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, legalSlotId), Is.Null);
+            Assert.That(fixture.State.FindPlayer(1).InfluenceSupply, Is.EqualTo(30));
+            Assert.That(fixture.State.PendingCardSession, Is.Not.Null);
+        }
+
+        [Test]
+        public void EscortDispatchCenter_WhenExactlyTwoSlotsAreRequested_PlacesBothInOneResolution()
+        {
+            var fixture = CreateFixture();
+            var firstSlotId = InfluenceService.GetRouteSlotId("A1", 0);
+            var secondSlotId = InfluenceService.GetRouteSlotId("A2", 0);
+            OpenEffect(fixture.State, "building_037");
+
+            var result = fixture.Handler.Handle(fixture.State, ResolveCommand(fixture.State,
+                FacilityPendingChoiceTypes.ConfirmOption,
+                new Dictionary<string, string>
+                {
+                    {
+                        ResolveFacilityEffectCommandHandler.InfluenceSlotIdsParameter,
+                        firstSlotId + "," + secondSlotId
+                    }
+                }));
+
+            Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, firstSlotId), Is.Not.Null);
+            Assert.That(fixture.Influence.FindInfluence(fixture.State, secondSlotId), Is.Not.Null);
+            Assert.That(fixture.State.FindPlayer(1).InfluenceSupply, Is.EqualTo(28));
+            Assert.That(fixture.State.PendingCardSession, Is.Null);
         }
 
         [Test]

@@ -88,17 +88,227 @@ namespace YC.Presentation
         }
     }
 
+    internal struct EffectDialogToggleLayout
+    {
+        public EffectDialogToggleLayout(
+            Vector2 anchorMin,
+            Vector2 anchorMax,
+            Vector2 size,
+            Vector2 position)
+        {
+            AnchorMin = anchorMin;
+            AnchorMax = anchorMax;
+            Size = size;
+            Position = position;
+        }
+
+        public Vector2 AnchorMin;
+        public Vector2 AnchorMax;
+        public Vector2 Size;
+        public Vector2 Position;
+
+        public void Apply(RectTransform target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            target.anchorMin = AnchorMin;
+            target.anchorMax = AnchorMax;
+            target.pivot = new Vector2(0.5f, 0.5f);
+            target.sizeDelta = Size;
+            target.anchoredPosition = Position;
+        }
+    }
+
+    internal sealed class EffectDialogCollapseSpec
+    {
+        public RectTransform Panel;
+        public Canvas Canvas;
+        public Image OverlayImage;
+        public GameObject ExpandedContent;
+        public Text CollapsedSummaryText;
+        public RectTransform ToggleRect;
+        public Text ToggleText;
+        public Image ToggleIcon;
+        public Vector2 ExpandedSize;
+        public float CollapsedHeight = 58f;
+        public string CollapseLabel = "\u6536\u8d77\u5361\u7247";
+        public string ExpandLabel = "\u5c55\u5f00\u5361\u7247";
+        public bool StartCollapsed;
+        public Color CollapsedOverlayColor = Color.clear;
+        public bool CollapsedOverlayRaycastTarget;
+        public EffectDialogToggleLayout CollapsedToggleLayout = new EffectDialogToggleLayout(
+            new Vector2(1f, 0.5f),
+            new Vector2(1f, 0.5f),
+            new Vector2(126f, 34f),
+            new Vector2(-76f, 0f));
+        public EffectDialogToggleLayout ExpandedToggleLayout = new EffectDialogToggleLayout(
+            new Vector2(0.5f, 0f),
+            new Vector2(0.5f, 0f),
+            new Vector2(220f, 32f),
+            new Vector2(0f, 22f));
+    }
+
+    /// <summary>Shared movement and collapse state for effect dialogs that must leave the map visible.</summary>
+    internal sealed class EffectDialogCollapsiblePanel : MonoBehaviour,
+        IBeginDragHandler,
+        IDragHandler
+    {
+        private RectTransform panel;
+        private Canvas canvas;
+        private Image overlayImage;
+        private GameObject expandedContent;
+        private Text collapsedSummaryText;
+        private RectTransform toggleRect;
+        private Text toggleText;
+        private Image toggleIcon;
+        private Vector2 expandedSize;
+        private float collapsedHeight;
+        private string collapseLabel;
+        private string expandLabel;
+        private Color expandedOverlayColor;
+        private Color collapsedOverlayColor;
+        private bool expandedOverlayRaycastTarget;
+        private bool collapsedOverlayRaycastTarget;
+        private EffectDialogToggleLayout collapsedToggleLayout;
+        private EffectDialogToggleLayout expandedToggleLayout;
+        private bool configured;
+        private bool collapsed;
+
+        public bool IsCollapsed
+        {
+            get { return configured && collapsed; }
+        }
+
+        public void Configure(EffectDialogCollapseSpec spec)
+        {
+            if (spec == null)
+            {
+                configured = false;
+                return;
+            }
+
+            panel = spec.Panel == null ? transform as RectTransform : spec.Panel;
+            canvas = spec.Canvas == null && panel != null
+                ? panel.GetComponentInParent<Canvas>()
+                : spec.Canvas;
+            overlayImage = spec.OverlayImage;
+            expandedContent = spec.ExpandedContent;
+            collapsedSummaryText = spec.CollapsedSummaryText;
+            toggleRect = spec.ToggleRect;
+            toggleText = spec.ToggleText;
+            toggleIcon = spec.ToggleIcon;
+            expandedSize = spec.ExpandedSize;
+            collapsedHeight = spec.CollapsedHeight;
+            collapseLabel = spec.CollapseLabel ?? string.Empty;
+            expandLabel = spec.ExpandLabel ?? string.Empty;
+            collapsedOverlayColor = spec.CollapsedOverlayColor;
+            collapsedOverlayRaycastTarget = spec.CollapsedOverlayRaycastTarget;
+            collapsedToggleLayout = spec.CollapsedToggleLayout;
+            expandedToggleLayout = spec.ExpandedToggleLayout;
+            expandedOverlayColor = overlayImage == null ? Color.clear : overlayImage.color;
+            expandedOverlayRaycastTarget = overlayImage != null && overlayImage.raycastTarget;
+            collapsed = spec.StartCollapsed;
+            configured = panel != null;
+            ApplyCollapseState();
+        }
+
+        public void Toggle()
+        {
+            SetCollapsed(!collapsed);
+        }
+
+        public void SetCollapsed(bool value)
+        {
+            if (!configured || collapsed == value)
+            {
+                return;
+            }
+
+            collapsed = value;
+            ApplyCollapseState();
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (!configured || panel == null || eventData == null)
+            {
+                return;
+            }
+
+            var scaleFactor = canvas == null || canvas.scaleFactor <= 0f ? 1f : canvas.scaleFactor;
+            panel.anchoredPosition += eventData.delta / scaleFactor;
+        }
+
+        private void ApplyCollapseState()
+        {
+            if (!configured || panel == null)
+            {
+                return;
+            }
+
+            var previousHeight = panel.sizeDelta.y;
+            var targetSize = collapsed
+                ? new Vector2(expandedSize.x, collapsedHeight)
+                : expandedSize;
+            panel.sizeDelta = targetSize;
+            panel.anchoredPosition += new Vector2(0f, (previousHeight - targetSize.y) * 0.5f);
+
+            if (expandedContent != null)
+            {
+                expandedContent.SetActive(!collapsed);
+            }
+
+            if (collapsedSummaryText != null)
+            {
+                collapsedSummaryText.gameObject.SetActive(collapsed);
+            }
+
+            if (toggleText != null)
+            {
+                toggleText.text = collapsed ? expandLabel : collapseLabel;
+            }
+
+            UguiUtility.SetTriangleIconDirection(toggleIcon, !collapsed);
+            if (collapsed)
+            {
+                collapsedToggleLayout.Apply(toggleRect);
+            }
+            else
+            {
+                expandedToggleLayout.Apply(toggleRect);
+            }
+
+            if (overlayImage != null)
+            {
+                overlayImage.color = collapsed ? collapsedOverlayColor : expandedOverlayColor;
+                overlayImage.raycastTarget = collapsed
+                    ? collapsedOverlayRaycastTarget
+                    : expandedOverlayRaycastTarget;
+            }
+        }
+    }
+
     internal sealed class EffectDialogOption
     {
-        public EffectDialogOption(string label, Action select)
+        public EffectDialogOption(string label, Action select, bool enabled = true)
         {
             Label = label ?? string.Empty;
             Select = select;
+            Enabled = enabled;
         }
 
         public string Label { get; private set; }
 
         public Action Select { get; private set; }
+
+        public bool Enabled { get; private set; }
     }
 
     internal sealed class ResourceAllocationSpec
@@ -149,7 +359,8 @@ namespace YC.Presentation
             string overlayName,
             string panelName,
             Vector2 size,
-            Vector2 position)
+            Vector2 position,
+            bool blockBackgroundInput = false)
         {
             Hide();
             if (canvas == null)
@@ -163,7 +374,7 @@ namespace YC.Presentation
             Stretch(overlayRect, 0f);
             var overlayImage = overlay.GetComponent<Image>();
             overlayImage.color = new Color(0f, 0f, 0f, 0.22f);
-            overlayImage.raycastTarget = false;
+            overlayImage.raycastTarget = blockBackgroundInput;
 
             var panelObject = new GameObject(panelName, typeof(RectTransform), typeof(Image), typeof(Outline));
             panelObject.transform.SetParent(overlayRect, false);
@@ -264,6 +475,15 @@ namespace YC.Presentation
                 var option = options[i];
                 var button = CreateButton(content, buttonNamePrefix + i, option.Label, 18);
                 button.gameObject.AddComponent<LayoutElement>().preferredHeight = 54f;
+                button.interactable = option.Enabled;
+                button.GetComponent<Image>().color = option.Enabled
+                    ? UiTheme.ButtonBackground
+                    : UiTheme.DisabledButtonBackground;
+                if (!option.Enabled)
+                {
+                    continue;
+                }
+
                 var select = option.Select;
                 button.onClick.AddListener(() =>
                 {
@@ -441,7 +661,8 @@ namespace YC.Presentation
             float descriptionHeight = 70f,
             string titleName = "Title",
             string descriptionName = "Description",
-            int titleSize = 27)
+            int titleSize = 27,
+            bool addDragHandle = true)
         {
             if (panel == null)
             {
@@ -451,7 +672,10 @@ namespace YC.Presentation
             var titleText = CreateText(panel, titleName, title, titleSize, TextAnchor.MiddleCenter);
             titleText.fontStyle = FontStyle.Bold;
             titleText.color = UiTheme.GoldText;
-            titleText.gameObject.AddComponent<EffectDialogDragHandle>().Configure(panel);
+            if (addDragHandle)
+            {
+                titleText.gameObject.AddComponent<EffectDialogDragHandle>().Configure(panel);
+            }
             SetRect(titleText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(-40f, 52f), new Vector2(0f, -34f));
 
             var descriptionText = CreateText(panel, descriptionName, description, 16, TextAnchor.UpperLeft);

@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using YC.Domain.CityStyles;
 using YC.Domain.Rules;
+using YC.Domain.SpecialActions;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
 
@@ -37,6 +39,61 @@ namespace YC.Tests.EditMode
                 Is.EqualTo(shell));
             Assert.That(allocation.GetField("UnitPrices"), Is.Not.Null);
             Assert.That(allocation.GetField("FormatSummary"), Is.Not.Null);
+        }
+
+        [Test]
+        public void FacilityOrBranches_KeepSharedCoordinatorHelperAndCollapsibleDialogShell()
+        {
+            var coordinator = Type.GetType(
+                "YC.Presentation.FacilityEffectInteractionUiCoordinator, Assembly-CSharp",
+                false);
+            var dialog = Type.GetType(
+                "YC.Presentation.FacilityEffectChoiceDialog, Assembly-CSharp",
+                false);
+            var option = Type.GetType("YC.Presentation.EffectDialogOption, Assembly-CSharp", false);
+            var shell = Type.GetType("YC.Presentation.EffectDialogShell, Assembly-CSharp", false);
+            Assert.That(coordinator, Is.Not.Null);
+            Assert.That(dialog, Is.Not.Null);
+            Assert.That(option, Is.Not.Null);
+            Assert.That(shell, Is.Not.Null);
+
+            var sharedBranchPresenter = coordinator.GetMethod(
+                "ShowOrBranchOptions",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var showMercenary = coordinator.GetMethod(
+                "ShowMercenary",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var showWarehouse = coordinator.GetMethod(
+                "ShowWarehouse",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var showCollapsibleOptions = dialog.GetMethod(
+                "ShowCollapsibleOptions",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            Assert.That(sharedBranchPresenter, Is.Not.Null,
+                "带“或”的设施分支必须保留统一的 ShowOrBranchOptions 入口。");
+            Assert.That(showMercenary, Is.Not.Null);
+            Assert.That(showWarehouse, Is.Not.Null);
+            Assert.That(showCollapsibleOptions, Is.Not.Null);
+
+            var parameters = sharedBranchPresenter.GetParameters();
+            Assert.That(parameters, Has.Length.EqualTo(5));
+            Assert.That(parameters[0].ParameterType, Is.EqualTo(typeof(PendingCardSessionState)));
+            Assert.That(parameters[3].ParameterType.IsGenericType, Is.True);
+            Assert.That(
+                parameters[3].ParameterType.GetGenericTypeDefinition(),
+                Is.EqualTo(typeof(IReadOnlyList<>)));
+            Assert.That(parameters[3].ParameterType.GetGenericArguments()[0], Is.EqualTo(option));
+            Assert.That(parameters[4].ParameterType, Is.EqualTo(typeof(bool)));
+
+            Assert.That(CallsMethod(showMercenary, sharedBranchPresenter), Is.True,
+                "佣兵指挥部必须通过统一“或”分支入口呈现一级选择。");
+            Assert.That(CallsMethod(showWarehouse, sharedBranchPresenter), Is.True,
+                "载具仓库必须通过统一“或”分支入口呈现一级选择。");
+            Assert.That(CallsMethod(sharedBranchPresenter, showCollapsibleOptions), Is.True,
+                "统一“或”分支入口必须落到共用的可折叠选项弹窗。");
+            Assert.That(
+                dialog.GetField("shell", BindingFlags.Instance | BindingFlags.NonPublic)?.FieldType,
+                Is.EqualTo(shell));
         }
 
         [Test]
@@ -85,8 +142,27 @@ namespace YC.Tests.EditMode
             var secondInArea = (Vector2)resolve.Invoke(
                 null,
                 new object[] { "style.test", CityStyleMarkerAreas.Used, 1, 0, 1 });
+            var usesTwo = (Vector2)resolve.Invoke(
+                null,
+                new object[] { "style.test", CityStyleMarkerAreas.UsesTwo, 0, 0, 0 });
+            var usedFromTwo = (Vector2)resolve.Invoke(
+                null,
+                new object[] { "style.test", SpecialActionMarkerAreas.UsedFromTwo, 0, 0, 0 });
+            var usesOne = (Vector2)resolve.Invoke(
+                null,
+                new object[] { "style.test", CityStyleMarkerAreas.UsesOne, 0, 0, 0 });
+            var usedFromOne = (Vector2)resolve.Invoke(
+                null,
+                new object[] { "style.test", SpecialActionMarkerAreas.UsedFromOne, 0, 0, 0 });
+            var usesZero = (Vector2)resolve.Invoke(
+                null,
+                new object[] { "style.test", CityStyleMarkerAreas.UsesZero, 0, 0, 0 });
             Assert.That(unused.y, Is.GreaterThan(used.y));
             Assert.That(secondInArea.x - used.x, Is.EqualTo(0.055f).Within(0.0001f));
+            Assert.That(usesTwo.y, Is.GreaterThan(usedFromTwo.y));
+            Assert.That(usedFromTwo.y, Is.GreaterThan(usesOne.y));
+            Assert.That(usesOne.y, Is.GreaterThan(usedFromOne.y));
+            Assert.That(usedFromOne.y, Is.GreaterThan(usesZero.y));
         }
 
         [Test]
@@ -227,11 +303,14 @@ namespace YC.Tests.EditMode
 
             Assert.That(
                 GetPublicProperty<string>(playerOneFirst, "MarkerArea"),
-                Is.EqualTo(CityStyleMarkerAreas.Unused));
+                Is.EqualTo(CityStyleMarkerAreas.Declared));
             Assert.That(GetPublicProperty<int>(playerOneFirst, "PlayerLaneIndex"), Is.Zero);
             Assert.That(GetPublicProperty<int>(playerOneFirst, "PlayerMarkerIndex"), Is.Zero);
             Assert.That(GetPublicProperty<int>(playerOneSecond, "PlayerLaneIndex"), Is.Zero);
-            Assert.That(GetPublicProperty<int>(playerOneSecond, "PlayerMarkerIndex"), Is.EqualTo(1));
+            Assert.That(
+                GetPublicProperty<int>(playerOneSecond, "PlayerMarkerIndex"),
+                Is.Zero,
+                "军工化区域的已宣告区与未使用区应分别布局，不再把后续宣告标记重映射到未使用区。");
             Assert.That(GetPublicProperty<int>(playerTwoFirst, "PlayerLaneIndex"), Is.EqualTo(1));
             Assert.That(GetPublicProperty<int>(playerTwoFirst, "PlayerMarkerIndex"), Is.Zero);
 
@@ -265,6 +344,43 @@ namespace YC.Tests.EditMode
             Assert.That(slot.Used, Is.True);
             Assert.That(marker.PlayerId, Is.EqualTo(2));
             Assert.That(marker.PlayerColor, Is.EqualTo(PlayerColor.Blue));
+        }
+
+        private static bool CallsMethod(MethodInfo caller, MethodInfo target)
+        {
+            var body = caller == null ? null : caller.GetMethodBody();
+            var il = body == null ? null : body.GetILAsByteArray();
+            if (il == null || target == null)
+            {
+                return false;
+            }
+
+            for (var index = 0; index <= il.Length - 5; index++)
+            {
+                if (il[index] != 0x28 && il[index] != 0x6f)
+                {
+                    continue;
+                }
+
+                MethodBase resolved;
+                try
+                {
+                    resolved = caller.Module.ResolveMethod(BitConverter.ToInt32(il, index + 1));
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+
+                if (resolved != null &&
+                    resolved.Module == target.Module &&
+                    resolved.MetadataToken == target.MetadataToken)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool HasPrivateMethodParameter(Type ownerType, string methodName, Type parameterType)
