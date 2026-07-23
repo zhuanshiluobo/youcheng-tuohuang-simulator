@@ -256,7 +256,12 @@ namespace YC.Application.Setup
                     Data =
                     {
                         { "cardName", card.Name },
-                        { "cardDescription", card.Description }
+                        { "cardDescription", card.Description },
+                        { "rewardOriginium", resolveResult.Reward.Originium.ToString() },
+                        { "rewardOriginiumShard", resolveResult.Reward.OriginiumShard.ToString() },
+                        { "rewardIron", resolveResult.Reward.Iron.ToString() },
+                        { "rewardPureOriginium", resolveResult.Reward.PureOriginium.ToString() },
+                        { "rewardGoldVoucher", resolveResult.Reward.GoldVoucher.ToString() }
                     }
                 }
             }, message);

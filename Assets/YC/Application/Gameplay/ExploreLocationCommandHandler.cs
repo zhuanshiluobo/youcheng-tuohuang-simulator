@@ -127,7 +127,15 @@ namespace YC.Application.Gameplay
                     Kind = GameEventKind.ResourceChanged,
                     PlayerId = command.PlayerId,
                     SubjectId = result.TargetLocationId,
-                    Message = "Exploration placed resource token and granted event reward."
+                    Message = "Exploration placed resource token and granted event reward.",
+                    Data =
+                    {
+                        { "rewardOriginium", result.Reward.Originium.ToString() },
+                        { "rewardOriginiumShard", result.Reward.OriginiumShard.ToString() },
+                        { "rewardIron", result.Reward.Iron.ToString() },
+                        { "rewardPureOriginium", result.Reward.PureOriginium.ToString() },
+                        { "rewardGoldVoucher", result.Reward.GoldVoucher.ToString() }
+                    }
                 },
                 new GameEvent
                 {
@@ -323,7 +331,15 @@ namespace YC.Application.Gameplay
                     Kind = GameEventKind.ResourceChanged,
                     PlayerId = command.PlayerId,
                     SubjectId = result.TargetLocationId,
-                    Message = "Exploration event granted reward."
+                    Message = "Exploration event granted reward.",
+                    Data =
+                    {
+                        { "rewardOriginium", result.Reward.Originium.ToString() },
+                        { "rewardOriginiumShard", result.Reward.OriginiumShard.ToString() },
+                        { "rewardIron", result.Reward.Iron.ToString() },
+                        { "rewardPureOriginium", result.Reward.PureOriginium.ToString() },
+                        { "rewardGoldVoucher", result.Reward.GoldVoucher.ToString() }
+                    }
                 },
                 new GameEvent
                 {

@@ -26,7 +26,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void BuildDisplayEntries_IncludesAllPlayersAndSortsNewestFirst()
+        public void BuildDisplayEntries_IncludesAllPlayersAndSortsOldestFirst()
         {
             var state = CreateState();
             state.Logs.Add(new GameLogEntry { Sequence = 2, PlayerId = 2, Message = "second" });
@@ -35,9 +35,9 @@ namespace YC.Tests.EditMode
             var entries = BuildDisplayEntries(state);
 
             Assert.That(entries, Has.Count.EqualTo(2));
-            Assert.That(GetProperty(entries[0], "Sequence"), Is.EqualTo(2));
-            Assert.That(GetProperty(entries[0], "PlayerLabel"), Is.EqualTo("Bob"));
-            Assert.That(GetProperty(entries[1], "PlayerLabel"), Is.EqualTo("Alice"));
+            Assert.That(GetProperty(entries[0], "Sequence"), Is.EqualTo(1));
+            Assert.That(GetProperty(entries[0], "PlayerLabel"), Is.EqualTo("Alice"));
+            Assert.That(GetProperty(entries[1], "PlayerLabel"), Is.EqualTo("Bob"));
         }
 
         [Test]

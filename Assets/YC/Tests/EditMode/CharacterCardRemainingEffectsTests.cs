@@ -301,7 +301,11 @@ namespace YC.Tests.EditMode
             Assert.That(replay.Succeeded, Is.False);
             Assert.That(player.Score, Is.EqualTo(1));
             Assert.That(state.Logs, Has.Count.EqualTo(1));
-            Assert.That(state.Logs[0].Message, Does.Contain("锡人").And.Contain("完成全部结算"));
+            Assert.That(
+                state.Logs[0].Message,
+                Does.Contain("\u9521\u4eba")
+                    .And.Contain("\u7b56\u7565\u6548\u679c")
+                    .And.Contain("\u83b7\u5f97\u4e86 1 \u5206"));
         }
 
         [Test]
@@ -963,7 +967,12 @@ namespace YC.Tests.EditMode
 
             Assert.That(resolve.Succeeded, Is.True);
             Assert.That(state.Logs, Has.Count.EqualTo(1));
-            Assert.That(state.Logs[0].Message, Does.Contain("锡人").And.Contain("完成全部结算"));
+            Assert.That(
+                state.Logs[0].Message,
+                Does.Contain("\u9521\u4eba")
+                    .And.Contain("\u8ba1\u8c0b\u6548\u679c")
+                    .And.Contain("\u83b7\u5f97\u4e86\u91d1\u5238\u00d75")
+                    .And.Contain("\u6536\u56de\u4e86\u89d2\u8272\u724c"));
         }
 
         private static GameState CreateActionState(string templateId)

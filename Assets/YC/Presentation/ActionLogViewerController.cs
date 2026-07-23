@@ -97,7 +97,7 @@ namespace YC.Presentation
                 });
             }
 
-            result.Sort((left, right) => right.Sequence.CompareTo(left.Sequence));
+            result.Sort((left, right) => left.Sequence.CompareTo(right.Sequence));
             return result;
         }
 
