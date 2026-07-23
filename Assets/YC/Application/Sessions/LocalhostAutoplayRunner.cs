@@ -695,20 +695,6 @@ namespace YC.Application.DevTools
                     command.Parameters[UseSpecialActionCommandHandler.TargetInfluenceSlotIdParameter] = replaceableSlots[0];
                     return true;
 
-                case SpecialActionPendingSteps.AwaitCompositePayment:
-                    var paymentOptions = optionQuery.GetCompositePaymentOptions(player);
-                    if (paymentOptions.Count <= 0)
-                    {
-                        failureReason = "复合动力系统没有可支付的资源组合。";
-                        return false;
-                    }
-
-                    command.Parameters[UseSpecialActionCommandHandler.OriginiumAmountParameter] =
-                        paymentOptions[0].Originium.ToString();
-                    command.Parameters[UseSpecialActionCommandHandler.IronAmountParameter] =
-                        paymentOptions[0].Iron.ToString();
-                    return true;
-
                 case SpecialActionPendingSteps.AwaitFreeMoveTarget:
                     var moveTargets = optionQuery.GetLegalFreeMoveTargetIds(state, pending.PlayerId);
                     if (moveTargets.Count > 0)

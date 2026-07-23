@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using UnityEngine;
 using YC.Application.Gameplay;
 using YC.Domain.Commands;
@@ -13,7 +12,7 @@ using YC.Presentation.Workflows;
 namespace YC.Presentation
 {
     /// <summary>
-    /// 将已受理的特殊行动会话映射为支付或地图交互。所有合法性仍由特殊行动命令处理器复核。
+    /// 将已受理的特殊行动会话映射为地图交互。所有合法性仍由特殊行动命令处理器复核。
     /// </summary>
     internal sealed class SpecialActionInteractionUiCoordinator : IDisposable
     {
@@ -148,9 +147,6 @@ namespace YC.Presentation
                 case SpecialActionPendingSteps.AwaitRouteInfluence:
                     HandleRouteSlotClicked(pending, slotId);
                     break;
-                case SpecialActionPendingSteps.AwaitCompositePayment:
-                    setPrompt("请先完成复合动力系统的材料支付。");
-                    break;
                 case SpecialActionPendingSteps.AwaitFreeMoveTarget:
                     setPrompt("请点击高亮地点，完成免费城市移动。");
                     break;
@@ -177,9 +173,7 @@ namespace YC.Presentation
 
             if (pending.Step != SpecialActionPendingSteps.AwaitFreeMoveTarget)
             {
-                setPrompt(pending.Step == SpecialActionPendingSteps.AwaitCompositePayment
-                    ? "请先完成复合动力系统的材料支付。"
-                    : "当前特殊行动不接受地点选择。");
+                setPrompt("当前特殊行动不接受地点选择。");
                 return true;
             }
 
@@ -292,9 +286,6 @@ namespace YC.Presentation
                 case SpecialActionPendingSteps.AwaitMobilizationTarget:
                     RenderMobilization(title);
                     break;
-                case SpecialActionPendingSteps.AwaitCompositePayment:
-                    RenderCompositePayment(pending);
-                    break;
                 case SpecialActionPendingSteps.AwaitFreeMoveTarget:
                     RenderFreeMove(pending, title);
                     break;
@@ -334,31 +325,6 @@ namespace YC.Presentation
                 "点击一个高亮的对手影响力；结算会先移除它，再尽量放置己方影响力。",
                 title + "：选择对手影响力");
             setPrompt("动员配套体系：请选择一个高亮的对手影响力。");
-        }
-
-        private void RenderCompositePayment(PendingSpecialActionState pending)
-        {
-            var player = getState().FindPlayer(getLocalPlayerId());
-            var resources = player == null ? null : player.Resources;
-            dialog.ShowCompositePayment(
-                getCanvas(),
-                resources == null ? 0 : resources.Originium,
-                resources == null ? 0 : resources.Iron,
-                values =>
-                {
-                    if (values == null || values.Count < 2)
-                    {
-                        return;
-                    }
-
-                    var command = CreateResolveCommand(pending);
-                    command.Parameters[UseSpecialActionCommandHandler.OriginiumAmountParameter] =
-                        values[0].ToString(CultureInfo.InvariantCulture);
-                    command.Parameters[UseSpecialActionCommandHandler.IronAmountParameter] =
-                        values[1].ToString(CultureInfo.InvariantCulture);
-                    SubmitPendingCommand(pending, command);
-                });
-            setPrompt("复合动力系统：支付 1 份源石碎片，以及合计 3 份源岩或异铁。");
         }
 
         private void RenderFreeMove(PendingSpecialActionState pending, string title)

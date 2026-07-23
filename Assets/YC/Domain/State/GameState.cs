@@ -96,10 +96,6 @@ namespace YC.Domain.State
                 case SpecialActionPendingSteps.AwaitMobilizationTarget:
                     return RemainingRepetitions == 0;
 
-                case SpecialActionPendingSteps.AwaitCompositePayment:
-                    return definition.EffectKind == SpecialActionEffectKind.CompositePowerMove &&
-                           RemainingRepetitions >= 0;
-
                 case SpecialActionPendingSteps.AwaitFreeMoveTarget:
                     return definition.EffectKind == SpecialActionEffectKind.CompositePowerMove
                         ? RemainingRepetitions == 1 && HasCompositePayment()

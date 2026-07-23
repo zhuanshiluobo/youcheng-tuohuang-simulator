@@ -12,8 +12,14 @@ namespace YC.Presentation
 {
     public sealed class MapViewPresenter
     {
+        private const int InfluenceSlotHighlightTextureSize = 32;
+        private const float InfluenceSlotHighlightSideLength = 12f;
+        private const float InfluenceSlotHighlightOutlineThickness = 2f;
+
         private static readonly Vector3 ResourceTokenIconScale = new Vector3(2f, 2f, 1f);
         private static readonly Vector3 MobileCityScale = new Vector3(1.8f, 1.8f, 1f);
+        private static readonly Color InfluenceSlotHighlightColor = new Color(1f, 0.82f, 0.2f, 0.95f);
+        private static readonly Color OccupiedInfluenceHighlightColor = new Color(1f, 0.88f, 0.24f, 1f);
 
         private readonly MobileCityInteractionController controller;
         private readonly Transform parent;
@@ -33,6 +39,7 @@ namespace YC.Presentation
         private readonly HashSet<string> highlightedInfluenceSlotIds = new HashSet<string>();
 
         private Sprite emptyInfluenceSlotSprite;
+        private Sprite highlightedInfluenceSlotSprite;
         private Sprite occupiedInfluenceSlotSprite;
         private Sprite movableInfluenceBorderSprite;
         private Sprite scoreMarkerSprite;
@@ -493,12 +500,12 @@ namespace YC.Presentation
             if (placement != null)
             {
                 renderer.sprite = occupiedInfluenceSlotSprite;
-                renderer.color = GetPlayerColor(state, placement.PlayerId, 0.85f);
+                renderer.color = GetPlayerColor(state, placement.PlayerId, 1f);
             }
             else if (highlightedInfluenceSlotIds.Contains(slotId))
             {
-                renderer.sprite = emptyInfluenceSlotSprite;
-                renderer.color = new Color(1f, 0.82f, 0.2f, 0.95f);
+                renderer.sprite = highlightedInfluenceSlotSprite;
+                renderer.color = InfluenceSlotHighlightColor;
             }
             else
             {
@@ -512,11 +519,11 @@ namespace YC.Presentation
             var borderObject = new GameObject("MovableInfluenceBorder", typeof(SpriteRenderer));
             borderObject.transform.SetParent(parent, false);
             borderObject.transform.localPosition = Vector3.zero;
-            borderObject.transform.localScale = Vector3.one * 1.35f;
+            borderObject.transform.localScale = Vector3.one;
 
             var renderer = borderObject.GetComponent<SpriteRenderer>();
             renderer.sprite = movableInfluenceBorderSprite;
-            renderer.color = new Color(1f, 0.88f, 0.24f, 1f);
+            renderer.color = OccupiedInfluenceHighlightColor;
             renderer.sortingOrder = sortingOrder;
             renderer.enabled = false;
             influenceSlotBorderRenderers[slotId] = renderer;
@@ -566,9 +573,17 @@ namespace YC.Presentation
                 occupiedInfluenceSlotSprite = UguiUtility.CreateFilledSquareSprite(24, 16f);
             }
 
+            if (highlightedInfluenceSlotSprite == null)
+            {
+                highlightedInfluenceSlotSprite = UguiUtility.CreateSquareOutlineSprite(
+                    InfluenceSlotHighlightTextureSize,
+                    InfluenceSlotHighlightSideLength,
+                    InfluenceSlotHighlightOutlineThickness);
+            }
+
             if (movableInfluenceBorderSprite == null)
             {
-                movableInfluenceBorderSprite = UguiUtility.CreateSquareOutlineSprite(32, 24f, 4f);
+                movableInfluenceBorderSprite = highlightedInfluenceSlotSprite;
             }
         }
 
@@ -799,11 +814,14 @@ namespace YC.Presentation
                 {
                     var border = x < 5 || x >= width - 5 || y < 5 || y >= height - 5;
                     var stripe = x > 14 && x < 18 || x > 37 && x < 41 || x > 60 && x < 64;
+                    // Keep the source texture neutral so SpriteRenderer.color preserves the
+                    // exact player hue used by city-style influence markers. A blue source
+                    // texture made yellow and green city tints converge into the same dark green.
                     var color = border
-                        ? new Color(0.72f, 0.9f, 1f, 1f)
+                        ? Color.white
                         : stripe
-                            ? new Color(0.32f, 0.68f, 0.95f, 1f)
-                            : new Color(0.12f, 0.42f, 0.72f, 1f);
+                            ? new Color(0.82f, 0.82f, 0.82f, 1f)
+                            : new Color(0.58f, 0.58f, 0.58f, 1f);
                     texture.SetPixel(x, y, color);
                 }
             }

@@ -166,6 +166,66 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void CityStyleSpecialActionDropAreas_MatchPrintedCardZones()
+        {
+            var renderer = Type.GetType(
+                "YC.Presentation.CityStyleMarkerRenderer, Assembly-CSharp",
+                false);
+            var dialog = Type.GetType(
+                "YC.Presentation.CityStyleDeclarationPreviewDialog, Assembly-CSharp",
+                false);
+            Assert.That(renderer, Is.Not.Null);
+            Assert.That(dialog, Is.Not.Null);
+
+            var resolveBounds = renderer.GetMethod(
+                "ResolveSpecialActionAreaBounds",
+                BindingFlags.Static | BindingFlags.Public);
+            var renderTargets = dialog.GetMethod(
+                "RenderSpecialActionDropTargets",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(resolveBounds, Is.Not.Null);
+            Assert.That(renderTargets, Is.Not.Null);
+            Assert.That(CallsMethod(renderTargets, resolveBounds), Is.True,
+                "特殊行动拖拽命中区必须复用卡面区域边界，不能退回固定尺寸的小矩形。");
+
+            var levelOneUsed = (Rect)resolveBounds.Invoke(
+                null,
+                new object[]
+                {
+                    CityStyleDatabase.MilitaryIndustrialArea,
+                    CityStyleMarkerAreas.Used
+                });
+            Assert.That(levelOneUsed.xMin, Is.EqualTo(0.54f).Within(0.0001f));
+            Assert.That(levelOneUsed.xMax, Is.EqualTo(0.945f).Within(0.0001f));
+            Assert.That(levelOneUsed.yMin, Is.EqualTo(0.08f).Within(0.0001f));
+            Assert.That(levelOneUsed.yMax, Is.EqualTo(0.485f).Within(0.0001f));
+
+            var levelTwoFirstUsed = (Rect)resolveBounds.Invoke(
+                null,
+                new object[]
+                {
+                    CityStyleDatabase.SourceStoneIndustrialHub,
+                    SpecialActionMarkerAreas.UsedFromTwo
+                });
+            Assert.That(levelTwoFirstUsed.xMin, Is.EqualTo(0.54f).Within(0.0001f));
+            Assert.That(levelTwoFirstUsed.xMax, Is.EqualTo(0.945f).Within(0.0001f));
+            Assert.That(levelTwoFirstUsed.yMin, Is.EqualTo(0.60f).Within(0.0001f));
+            Assert.That(levelTwoFirstUsed.yMax, Is.EqualTo(0.75f).Within(0.0001f));
+
+            var levelTwoSecondUsed = (Rect)resolveBounds.Invoke(
+                null,
+                new object[]
+                {
+                    CityStyleDatabase.EfficientMobileManagementSystem,
+                    SpecialActionMarkerAreas.UsedFromOne
+                });
+            Assert.That(levelTwoSecondUsed.xMin, Is.EqualTo(0.54f).Within(0.0001f));
+            Assert.That(levelTwoSecondUsed.xMax, Is.EqualTo(0.945f).Within(0.0001f));
+            Assert.That(levelTwoSecondUsed.yMin, Is.EqualTo(0.23f).Within(0.0001f));
+            Assert.That(levelTwoSecondUsed.yMax, Is.EqualTo(0.38f).Within(0.0001f));
+        }
+
+        [Test]
         public void MilitaryIndustrialMarkers_UseFourVerticalPlayerLanesInsideUnusedArea()
         {
             var type = Type.GetType(

@@ -48,7 +48,6 @@ namespace YC.Presentation
         private readonly Button exploreButton;
         private readonly Button moveCityButton;
         private readonly Button buildButton;
-        private readonly Button specialActionButton;
         private readonly Button endRoundButton;
         private Action cardPrimaryAction;
         private Action cardSecondaryAction;
@@ -90,7 +89,6 @@ namespace YC.Presentation
             Button exploreButton,
             Button moveCityButton,
             Button buildButton,
-            Button specialActionButton,
             Button endRoundButton)
         {
             this.panelObject = panelObject;
@@ -122,7 +120,6 @@ namespace YC.Presentation
             this.exploreButton = exploreButton;
             this.moveCityButton = moveCityButton;
             this.buildButton = buildButton;
-            this.specialActionButton = specialActionButton;
             this.endRoundButton = endRoundButton;
             cardPrimaryButton.onClick.AddListener(InvokeCardPrimaryAction);
             cardSecondaryButton.onClick.AddListener(InvokeCardSecondaryAction);
@@ -150,7 +147,6 @@ namespace YC.Presentation
             Action onExplore,
             Action onMoveCity,
             Action onBuild,
-            Action onSpecialAction,
             Action onEndRound)
         {
             if (uiCanvas == null)
@@ -196,8 +192,6 @@ namespace YC.Presentation
             var exploreButton = CreateButton(mainRect, "探索", new Vector2(-86f, -288f), onExplore);
             var moveCityButton = CreateButton(mainRect, "城市移动", new Vector2(86f, -288f), onMoveCity);
             Button buildButton = null;
-            // 特殊行动只从已宣告城市样式卡上的影响力标记发动，避免出现第二套入口。
-            Button specialActionButton = null;
             var endRoundButton = CreateButton(mainRect, "结束本回合", new Vector2(0f, -340f), onEndRound);
 
             var statusText = CreateText(mainRect, "状态", 15, new Vector2(0f, -424f), FontStyle.Normal);
@@ -316,7 +310,6 @@ namespace YC.Presentation
                 exploreButton,
                 moveCityButton,
                 buildButton,
-                specialActionButton,
                 endRoundButton);
             return controller;
         }
@@ -351,7 +344,6 @@ namespace YC.Presentation
             bool canExplore,
             bool canMoveCity,
             bool canBuild,
-            bool canUseSpecialAction,
             bool canEndRound)
         {
             SetButtonInteractable(useCharacterButton, canUseCharacter);
@@ -361,7 +353,6 @@ namespace YC.Presentation
             SetButtonInteractable(exploreButton, canExplore);
             SetButtonInteractable(moveCityButton, canMoveCity);
             SetButtonInteractable(buildButton, canBuild);
-            SetButtonInteractable(specialActionButton, canUseSpecialAction);
             SetButtonInteractable(endRoundButton, canEndRound);
         }
 
@@ -390,7 +381,6 @@ namespace YC.Presentation
                 viewModel.CanExplore,
                 viewModel.CanMoveCity,
                 viewModel.CanBuild,
-                viewModel.CanUseSpecialAction,
                 viewModel.CanEndAction);
             SetStatus(viewModel.StatusText);
         }

@@ -60,6 +60,33 @@ namespace YC.Tests.EditMode
 
             session.ReplaceState(new GameState
             {
+                Players =
+                {
+                    CreatePlayerWithActivatedDeclaration(
+                        1,
+                        "legacy-payment-marker",
+                        CityStyleDatabase.CompositePowerSystem,
+                        SpecialActionDatabase.CompositePowerSystem,
+                        CityStyleMarkerAreas.Used,
+                        0)
+                },
+                PendingSpecialAction = new PendingSpecialActionState
+                {
+                    SessionId = "legacy-composite-payment",
+                    PlayerId = 1,
+                    SpecialActionId = SpecialActionDatabase.CompositePowerSystem,
+                    DeclarationMarkerId = "legacy-payment-marker",
+                    Step = "await_composite_payment"
+                }
+            });
+
+            Assert.That(
+                session.State.PendingSpecialAction,
+                Is.Null,
+                "旧版延迟支付步骤必须清理，复合动力费用只能随首条命令原子提交。");
+
+            session.ReplaceState(new GameState
+            {
                 PendingSpecialAction = new PendingSpecialActionState
                 {
                     SessionId = "orphan-move-event",

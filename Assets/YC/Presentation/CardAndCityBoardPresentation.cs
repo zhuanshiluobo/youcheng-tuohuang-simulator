@@ -301,6 +301,14 @@ namespace YC.Presentation
         public const float MilitaryUnusedLaneSpacingX = 0.09f;
         public const float MilitaryUnusedFirstMarkerY = 0.84f;
         public const float MilitaryUnusedMarkerSpacingY = 0.14f;
+        private const float SpecialActionAreaMinX = 0.54f;
+        private const float SpecialActionAreaMaxX = 0.945f;
+        private const float LevelOneUsedAreaMinY = 0.08f;
+        private const float LevelOneUsedAreaMaxY = 0.485f;
+        private const float LevelTwoUsedFromTwoAreaMinY = 0.60f;
+        private const float LevelTwoUsedFromTwoAreaMaxY = 0.75f;
+        private const float LevelTwoUsedFromOneAreaMinY = 0.23f;
+        private const float LevelTwoUsedFromOneAreaMaxY = 0.38f;
 
         public static string ResolveDisplayArea(string cityStyleId, string markerArea)
         {
@@ -312,6 +320,47 @@ namespace YC.Presentation
         public static int ResolvePlayerLaneIndex(int playerId)
         {
             return Mathf.Clamp(playerId - 1, 0, MilitaryUnusedPlayerLaneCount - 1);
+        }
+
+        public static Rect ResolveSpecialActionAreaBounds(
+            string cityStyleId,
+            string markerArea)
+        {
+            var definition = CityStyleDatabase.Get(cityStyleId);
+            var isLevelTwo = definition != null && definition.Level >= 2;
+            if (!isLevelTwo && markerArea == CityStyleMarkerAreas.Used)
+            {
+                return Rect.MinMaxRect(
+                    SpecialActionAreaMinX,
+                    LevelOneUsedAreaMinY,
+                    SpecialActionAreaMaxX,
+                    LevelOneUsedAreaMaxY);
+            }
+
+            if (isLevelTwo && markerArea == SpecialActionMarkerAreas.UsedFromTwo)
+            {
+                return Rect.MinMaxRect(
+                    SpecialActionAreaMinX,
+                    LevelTwoUsedFromTwoAreaMinY,
+                    SpecialActionAreaMaxX,
+                    LevelTwoUsedFromTwoAreaMaxY);
+            }
+
+            if (isLevelTwo && markerArea == SpecialActionMarkerAreas.UsedFromOne)
+            {
+                return Rect.MinMaxRect(
+                    SpecialActionAreaMinX,
+                    LevelTwoUsedFromOneAreaMinY,
+                    SpecialActionAreaMaxX,
+                    LevelTwoUsedFromOneAreaMaxY);
+            }
+
+            var anchor = ResolveAnchor(cityStyleId, markerArea, 0, 0, 0);
+            return Rect.MinMaxRect(
+                anchor.x - 0.09f,
+                anchor.y - 0.07f,
+                anchor.x + 0.09f,
+                anchor.y + 0.07f);
         }
 
         public static Vector2 ResolveAnchor(

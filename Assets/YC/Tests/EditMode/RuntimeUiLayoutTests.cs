@@ -55,7 +55,7 @@ namespace YC.Tests.EditMode
             var cardFace = FindTransform("Action Card Face");
             var flipButton = FindTransform("Action Panel Flip Button");
             var influenceText = FindTransform("Remaining Influence Text");
-            var specialActionButton = FindTransform("特殊行动 Button");
+            var removedSpecialActionEntry = FindTransform("特殊行动 Button");
 
             Assert.That(actionPanel, Is.Not.Null);
             Assert.That(actionPanel.anchorMin, Is.EqualTo(new Vector2(1f, 0f)));
@@ -73,9 +73,24 @@ namespace YC.Tests.EditMode
             Assert.That(flipButton, Is.Not.Null);
             Assert.That(FindTransform("建设 Button"), Is.Null, "建设入口应改为直接拖动公开建设牌。");
             Assert.That(
-                specialActionButton,
+                removedSpecialActionEntry,
                 Is.Null,
                 "特殊行动必须只从城市样式卡上的影响力标记拖拽发动。");
+            Assert.That(
+                controller.GetType().GetField("specialActionButton", BindingFlags.Instance | BindingFlags.NonPublic),
+                Is.Null,
+                "行动面板不应继续保存不存在的特殊行动按钮状态。");
+            Assert.That(
+                typeof(ActionPanelViewModel).GetProperty("CanUseSpecialAction", BindingFlags.Instance | BindingFlags.Public),
+                Is.Null,
+                "行动面板 ViewModel 不应继续暴露无消费者的特殊行动按钮状态。");
+            var buildParameters = controller.GetType()
+                .GetMethod("Build", BindingFlags.Static | BindingFlags.Public)
+                .GetParameters();
+            Assert.That(
+                Array.Exists(buildParameters, parameter => parameter.Name == "onSpecialAction"),
+                Is.False,
+                "行动面板构造 API 不应继续要求无消费者的特殊行动回调。");
             flipButton.GetComponent<Button>().onClick.Invoke();
             Assert.That(mainFace.gameObject.activeSelf, Is.False);
             Assert.That(cardFace.gameObject.activeSelf, Is.True);
@@ -514,7 +529,6 @@ namespace YC.Tests.EditMode
                 new object[]
                 {
                     canvas,
-                    noop,
                     noop,
                     noop,
                     noop,

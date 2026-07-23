@@ -19,7 +19,6 @@ namespace YC.Presentation.Workflows
             bool canExplore,
             bool canMoveCity,
             bool canBuild,
-            bool canUseSpecialAction,
             bool canEndAction,
             bool isWaitingForOtherPlayers)
         {
@@ -37,7 +36,6 @@ namespace YC.Presentation.Workflows
             CanExplore = canExplore;
             CanMoveCity = canMoveCity;
             CanBuild = canBuild;
-            CanUseSpecialAction = canUseSpecialAction;
             CanEndAction = canEndAction;
             IsWaitingForOtherPlayers = isWaitingForOtherPlayers;
         }
@@ -56,7 +54,6 @@ namespace YC.Presentation.Workflows
         public bool CanExplore { get; private set; }
         public bool CanMoveCity { get; private set; }
         public bool CanBuild { get; private set; }
-        public bool CanUseSpecialAction { get; private set; }
         public bool CanEndAction { get; private set; }
         public bool IsWaitingForOtherPlayers { get; private set; }
     }

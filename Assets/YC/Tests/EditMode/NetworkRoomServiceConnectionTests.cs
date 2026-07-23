@@ -102,6 +102,27 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void FullyReadyRoom_TryStartGame_BroadcastsStartedRoomAndRaisesEvent()
+        {
+            using (var service = CreateHost(4))
+            {
+                AddClient(service, "Client 2");
+                AddClient(service, "Client 3");
+                AddClient(service, "Client 4");
+                RoomState startedRoom = null;
+                service.GameStarted += room => startedRoom = room;
+
+                var started = service.TryStartGame(out var error);
+
+                Assert.IsTrue(started);
+                Assert.IsTrue(string.IsNullOrEmpty(error));
+                Assert.NotNull(startedRoom);
+                Assert.IsTrue(startedRoom.HasStarted);
+                Assert.IsTrue(service.GetCurrentRoom().HasStarted);
+            }
+        }
+
+        [Test]
         public void RejoinReusesSeat_AndLateOldCleanupDoesNotClearNewOwner()
         {
             using (var service = CreateHost(4))

@@ -247,7 +247,7 @@ namespace YC.Infrastructure.Multiplayer
                 }
             }
 
-            if (error != null)
+            if (!string.IsNullOrEmpty(error))
             {
                 RaiseError(error);
                 return false;

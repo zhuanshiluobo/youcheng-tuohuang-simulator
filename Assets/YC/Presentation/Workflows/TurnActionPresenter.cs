@@ -1091,9 +1091,6 @@ namespace YC.Presentation.Workflows
                 canChooseMainAction,
                 canChooseMainAction && player != null,
                 canChooseMainAction,
-                canChooseMainAction &&
-                player != null &&
-                specialActionOptionQuery.Query(state, context.LocalPlayerId).HasUsableOption,
                 CanEndCurrentAction() && !RoundTrackRule.IsFinalState(state),
                 waiting);
         }
@@ -1411,7 +1408,7 @@ namespace YC.Presentation.Workflows
                 case InteractionMode.ResolvingBuildCard: return "建设：拖动公共建设牌到合法槽位";
                 case InteractionMode.ResolvingBuildFocus: return "建设：选择支付方式，Esc 可缩回虚影";
                 case InteractionMode.ResolvingBuildConfirmation: return "建设：确认摘要或返回修改";
-                default: return player == null ? "\u672a\u77e5\u73a9\u5bb6" : "\u5c1a\u672a\u6267\u884c\u4e3b\u8981\u884c\u52a8";
+                default: return player == null ? "\u672a\u77e5\u73a9\u5bb6" : "\u8bf7\u9009\u62e9\u4e00\u9879\u4e3b\u8981\u884c\u52a8";
             }
         }
 
@@ -1447,7 +1444,7 @@ namespace YC.Presentation.Workflows
         {
             return new ActionPanelViewModel(
                 InteractionMode.Hidden, string.Empty, string.Empty, string.Empty, false, PlayerColor.Red, 0,
-                false, false, false, false, false, false, false, false, false, false);
+                false, false, false, false, false, false, false, false, false);
         }
     }
 }

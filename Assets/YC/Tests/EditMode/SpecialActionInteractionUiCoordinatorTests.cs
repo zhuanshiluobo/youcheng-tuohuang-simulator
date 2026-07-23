@@ -40,42 +40,6 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void CompositePayment_UsesExactAllocationAndHasNoAcceptedSessionCancel()
-        {
-            var state = CreateState(
-                SpecialActionDatabase.CompositePowerSystem,
-                SpecialActionPendingSteps.AwaitCompositePayment);
-            var fixture = CreateCoordinator(state);
-
-            Assert.That(Synchronize(), Is.True);
-            var overlay = FindChild(canvasObject, "Special Action Choice Overlay");
-            Assert.That(overlay, Is.Not.Null);
-            Assert.That(GetText(overlay, "Title"), Does.Contain("复合动力系统"));
-            Assert.That(GetText(overlay, "Description"), Does.Contain("固定支付 1 份源石碎片"));
-            Assert.That(FindChild(overlay, "Confirm Special Action Payment"), Is.Not.Null);
-            Assert.That(FindChild(overlay, "Skip"), Is.Null);
-            Assert.That(FindChild(overlay, "Cancel"), Is.Null);
-            Assert.That(FindChild(overlay, "Back"), Is.Null);
-
-            Assert.That(GetText(overlay, "Value 0"), Is.EqualTo("2"));
-            Assert.That(GetText(overlay, "Value 1"), Is.EqualTo("0"));
-            ClickButton(overlay, "Increase 1");
-            ClickButton(overlay, "Confirm Special Action Payment");
-
-            Assert.That(fixture.SubmittedCommand, Is.Not.Null);
-            Assert.That(
-                fixture.SubmittedCommand.Parameters[UseSpecialActionCommandHandler.SessionIdParameter],
-                Is.EqualTo("special-session"));
-            Assert.That(
-                fixture.SubmittedCommand.Parameters[UseSpecialActionCommandHandler.OriginiumAmountParameter],
-                Is.EqualTo("2"));
-            Assert.That(
-                fixture.SubmittedCommand.Parameters[UseSpecialActionCommandHandler.IronAmountParameter],
-                Is.EqualTo("1"));
-            Assert.That(state.PendingSpecialAction, Is.Not.Null, "UI 不得清空 Host 已接受的会话。");
-        }
-
-        [Test]
         public void FreeMove_RestoresCollapsedPromptAndRerendersSecondSegment()
         {
             var state = CreateState(
@@ -466,8 +430,7 @@ namespace YC.Tests.EditMode
                 pending.TraversedRouteId = "R";
             }
 
-            if (definition.EffectKind == SpecialActionEffectKind.CompositePowerMove &&
-                step != SpecialActionPendingSteps.AwaitCompositePayment)
+            if (definition.EffectKind == SpecialActionEffectKind.CompositePowerMove)
             {
                 pending.PaidOriginium = 2;
                 pending.PaidOriginiumShard = 1;

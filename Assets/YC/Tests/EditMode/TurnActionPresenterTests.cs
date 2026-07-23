@@ -28,6 +28,7 @@ namespace YC.Tests.EditMode
             Assert.That(before.CanMoveCity, Is.True);
             Assert.That(before.CanBuild, Is.True);
             Assert.That(before.CanEndAction, Is.False);
+            Assert.That(before.StatusText, Is.EqualTo("请选择一项主要行动"));
 
             fixture.Context.State.FindPlayer(1).ActedMainActionThisTurn = true;
             var after = fixture.Presenter.BuildActionPanelViewModel();
@@ -518,20 +519,6 @@ namespace YC.Tests.EditMode
             Assert.That(panel.StatusText, Does.Contain("可继续主要/快速行动或结束行动"));
             Assert.That(panel.CanExplore, Is.True);
             Assert.That(panel.CanEndAction, Is.True);
-        }
-
-        [Test]
-        public void ActionPanelSpecialActionAvailability_UsesPerMarkerOptionInsteadOfGlobalUsedCount()
-        {
-            var fixture = CreateFixture();
-            AddMilitarySpecialActionMarker(fixture, "panel-marker");
-            var player = fixture.Context.State.FindPlayer(1);
-            player.UsedSpecialActionIdsThisRound.Add(SpecialActionDatabase.CompositePowerSystem);
-
-            Assert.That(fixture.Presenter.BuildActionPanelViewModel().CanUseSpecialAction, Is.True);
-
-            player.UsedSpecialActionIdsThisRound.Add(SpecialActionDatabase.MilitaryIndustrialArea);
-            Assert.That(fixture.Presenter.BuildActionPanelViewModel().CanUseSpecialAction, Is.False);
         }
 
         [Test]

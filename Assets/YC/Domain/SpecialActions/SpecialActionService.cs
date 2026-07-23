@@ -318,49 +318,6 @@ namespace YC.Domain.SpecialActions
             return CompletePending(state, playerId, summary);
         }
 
-        public SpecialActionOperationResult ResolveCompositePayment(
-            GameState state,
-            int playerId,
-            int originiumAmount,
-            int ironAmount)
-        {
-            var validation = ValidatePending(state, playerId, SpecialActionPendingSteps.AwaitCompositePayment);
-            if (!validation.IsValid)
-            {
-                return SpecialActionOperationResult.Failure(validation);
-            }
-
-            if (originiumAmount < 0 || ironAmount < 0 || originiumAmount + ironAmount != 3)
-            {
-                return Failure(CommandErrorCode.InvalidTarget, "源岩与异铁的支付数量必须均为非负数且合计 3 个。");
-            }
-
-            var cost = new ResourceSet
-            {
-                Originium = originiumAmount,
-                OriginiumShard = 1,
-                Iron = ironAmount
-            };
-            var player = state.FindPlayer(playerId);
-            if (!player.Resources.CanPay(cost))
-            {
-                return Failure(CommandErrorCode.InsufficientResource, "无法支付所选的复合动力系统费用组合。");
-            }
-
-            player.Resources.TryPay(cost);
-            state.PendingSpecialAction.PaidOriginium = originiumAmount;
-            state.PendingSpecialAction.PaidOriginiumShard = 1;
-            state.PendingSpecialAction.PaidIron = ironAmount;
-
-            if (optionQuery.GetLegalFreeMoveTargetIds(state, playerId).Count == 0)
-            {
-                return CompletePending(state, playerId, "费用已支付；当前没有合法移动目标，移动及航道放置步骤已跳过。");
-            }
-
-            state.PendingSpecialAction.Step = SpecialActionPendingSteps.AwaitFreeMoveTarget;
-            return CurrentSuccess(state, false, "费用已支付，请选择免费移动的目标地点。");
-        }
-
         public SpecialActionOperationResult SkipFreeMoveWhenNoTarget(GameState state, int playerId)
         {
             var validation = ValidatePending(state, playerId, SpecialActionPendingSteps.AwaitFreeMoveTarget);

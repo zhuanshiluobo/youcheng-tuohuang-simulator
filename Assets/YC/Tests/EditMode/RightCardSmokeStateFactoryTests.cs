@@ -80,6 +80,43 @@ namespace YC.Tests.EditMode
             Assert.That(ordinary.Map.OpenLocationIds, Does.Not.Contain(RightCardSmokeStateFactory.DefaultCityLocationId));
         }
 
+        [Test]
+        public void CreateInitialState_SharedStyleSmokePreparesFourDistinctPlayerMarkers()
+        {
+            var seats = new List<PlayerSeat>
+            {
+                new PlayerSeat { PlayerId = 1, PlayerName = "Player 1", Color = PlayerColor.Blue },
+                new PlayerSeat { PlayerId = 2, PlayerName = "Player 2", Color = PlayerColor.Red },
+                new PlayerSeat { PlayerId = 3, PlayerName = "Player 3", Color = PlayerColor.Green },
+                new PlayerSeat { PlayerId = 4, PlayerName = "Player 4", Color = PlayerColor.Yellow }
+            };
+
+            var state = RightCardSmokeStateFactory.CreateInitialState(
+                LaunchMode.Host,
+                1,
+                seats,
+                StaticMapDefinitions.FourPlayerMapId,
+                EventDeckService.DefaultSeed,
+                true);
+            var markerIds = new HashSet<string>();
+
+            Assert.That(state.Players, Has.Count.EqualTo(4));
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                var player = state.Players[i];
+                Assert.That(player.DeclaredCityStyleIds,
+                    Does.Contain(RightCardSmokeStateFactory.SharedCityStyleId));
+                Assert.That(player.DeclaredCityStyles, Has.Count.EqualTo(1));
+                Assert.That(
+                    player.DeclaredCityStyles[0].CityStyleId,
+                    Is.EqualTo(RightCardSmokeStateFactory.SharedCityStyleId));
+                Assert.That(player.DeclaredCityStyles[0].MarkerArea, Is.EqualTo(CityStyleMarkerAreas.Unused));
+                Assert.That(markerIds.Add(player.DeclaredCityStyles[0].InfluenceMarkerId), Is.True);
+            }
+
+            Assert.That(markerIds, Has.Count.EqualTo(4));
+        }
+
         private static YC.Domain.State.GameState CreateSmokeState(IList<PlayerSeat> seats)
         {
             return RightCardSmokeStateFactory.CreateInitialState(

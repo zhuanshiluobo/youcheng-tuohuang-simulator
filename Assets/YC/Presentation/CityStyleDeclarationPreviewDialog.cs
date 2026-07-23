@@ -803,16 +803,14 @@ namespace YC.Presentation
                 var area = requiredAreas[i];
                 binding.MarkerArea = area;
                 binding.Target.Configure(area);
-                binding.Rect.anchorMin = CityStyleMarkerRenderer.ResolveAnchor(
+                var bounds = CityStyleMarkerRenderer.ResolveSpecialActionAreaBounds(
                     cityStyleId,
-                    area,
-                    0,
-                    0,
-                    0);
-                binding.Rect.anchorMax = binding.Rect.anchorMin;
+                    area);
+                binding.Rect.anchorMin = new Vector2(bounds.xMin, bounds.yMin);
+                binding.Rect.anchorMax = new Vector2(bounds.xMax, bounds.yMax);
                 binding.Rect.pivot = new Vector2(0.5f, 0.5f);
-                binding.Rect.sizeDelta = new Vector2(148f, 72f);
-                binding.Rect.anchoredPosition = Vector2.zero;
+                binding.Rect.offsetMin = Vector2.zero;
+                binding.Rect.offsetMax = Vector2.zero;
                 binding.Rect.gameObject.name = "特殊行动合法落区 " + area;
                 binding.Rect.gameObject.SetActive(false);
             }

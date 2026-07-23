@@ -32,7 +32,10 @@ namespace YC.Presentation
             public int LocalPlayerId;
         }
 
-        public static Result Build(GameLaunchContext launchContext, bool useRightCardSmokeState = false)
+        public static Result Build(
+            GameLaunchContext launchContext,
+            bool useRightCardSmokeState = false,
+            bool prepareSharedCityStyleSmokeState = false)
         {
             var mapQuery = new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap());
             var launchMode = launchContext == null ? LaunchMode.Local : launchContext.Mode;
@@ -47,7 +50,8 @@ namespace YC.Presentation
                     localPlayerId,
                     players,
                     mapQuery.Map.MapId,
-                    eventDeckSeed)
+                    eventDeckSeed,
+                    prepareSharedCityStyleSmokeState)
                 : GameLaunchStateFactory.CreateInitialState(
                     launchMode,
                     localPlayerId,

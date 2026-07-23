@@ -498,7 +498,10 @@ namespace YC.Presentation
 
         private void BuildSession()
         {
-            var result = GameSessionBootstrapper.Build(GameLaunchContext.Instance, useRightCardSmokeState);
+            var result = GameSessionBootstrapper.Build(
+                GameLaunchContext.Instance,
+                useRightCardSmokeState,
+                prepareSharedCityStyleSmokeState);
             session = result.Session;
             mapQuery = result.MapQuery;
             influenceService = result.InfluenceService;
@@ -541,6 +544,7 @@ namespace YC.Presentation
             SynchronizeCharacterSettlementPresentation();
             PresentLatestCharacterSettlementBroadcast();
             TryBeginAutomaticSecondEffect();
+            ObserveSharedCityStyleMirrorState();
         }
 
         private void SynchronizeCharacterSettlementPresentation()
@@ -672,7 +676,6 @@ namespace YC.Presentation
                 BeginExploreAction,
                 BeginMoveAction,
                 OnBuildActionClicked,
-                OnSpecialActionClicked,
                 EndCurrentAction);
             actionPanel?.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
             actionPanel?.ConfigureCharacterCardViewerAction(() => infoPanel?.OpenCoveredCharacterCardViewer());
@@ -846,10 +849,6 @@ namespace YC.Presentation
         {
             turnActionPresenter.BeginBuildAction();
             buildFacilityInteraction?.Synchronize();
-        }
-        private void OnSpecialActionClicked()
-        {
-            SetPrompt("请点击已宣告的城市样式卡，并拖动本方可用标记到高亮区发动特殊行动。");
         }
 
         private string GetPlayerDisplayName(int playerId)

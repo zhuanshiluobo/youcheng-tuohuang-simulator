@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using YC.Application.DevTools;
 using YC.Application.Sessions;
 using YC.Domain.Rules;
@@ -16,6 +17,10 @@ namespace YC.Presentation
         private static readonly Vector2 CoverReferenceSize = new Vector2(5888f, 3312f);
         private static readonly Rect ButtonImageRect = new Rect(2220f, 2528f, 1460f, 323f);
         private const string DevStartLocalhostArg = "--yc-dev-start-localhost";
+        private const string DevLocalMirrorHostPrefix = "--yc-dev-local-mirror-host=";
+        private const string DevLocalMirrorJoinPrefix = "--yc-dev-local-mirror-join=";
+        private const string DevLocalMirrorRoomFilePrefix = "--yc-dev-local-mirror-room-file=";
+        private const string LocalGameSeedSourcePrefix = "LOCAL_GAME_";
         private const string OfficialSiteUrl = "https://ak.hypergryph.com/boardgame_nomadcity";
         private const string WikiUrl = "https://prts.wiki/w/%E6%B8%B8%E5%9F%8E%E6%8B%93%E8%8D%92%EF%BC%9A%E9%93%B8%E5%9F%BA%E8%80%85";
         private static Sprite bookmarkSprite;
@@ -38,6 +43,10 @@ namespace YC.Presentation
         private int selectedRoomPlayerCount = 4;
         private bool loadingGame;
         private bool joiningRoom;
+        private bool autoStartLocalMirrorGame;
+        private bool autoStartLocalMirrorRequestPending;
+        private float nextAutoStartLocalMirrorAttemptTime;
+        private string devLocalMirrorRoomOutputPath = string.Empty;
 
         private void Awake()
         {
@@ -62,12 +71,50 @@ namespace YC.Presentation
             roomService.LobbyJoinRequested += QueueLobbyJoinRequested;
             roomService.Shutdown();
             BuildMenu();
+            if (TryStartDevLocalMirrorFromCommandLine())
+            {
+                return;
+            }
+
             ProcessPendingLobbyJoinRequest();
         }
 
         private static bool ShouldStartLocalhostFromCommandLine()
         {
             return HasCommandLineArg(Environment.GetCommandLineArgs(), DevStartLocalhostArg);
+        }
+
+        private bool TryStartDevLocalMirrorFromCommandLine()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var args = Environment.GetCommandLineArgs();
+            var hostPlayerCountText = GetCommandLineValue(args, DevLocalMirrorHostPrefix);
+            var joinRoomId = GetCommandLineValue(args, DevLocalMirrorJoinPrefix);
+            devLocalMirrorRoomOutputPath = GetCommandLineValue(args, DevLocalMirrorRoomFilePrefix);
+
+            int hostPlayerCount;
+            if (int.TryParse(hostPlayerCountText, out hostPlayerCount))
+            {
+                selectedRoomPlayerCount = Mathf.Clamp(hostPlayerCount, 3, 4);
+                autoStartLocalMirrorGame = true;
+                Debug.Log(
+                    "[LocalMirrorAutomation] Creating " +
+                    selectedRoomPlayerCount +
+                    "-player room and waiting to auto-start.");
+                CreateRoom();
+                return true;
+            }
+
+            if (!string.IsNullOrEmpty(joinRoomId))
+            {
+                ShowJoinRoomPanel();
+                joinRoomInput.text = joinRoomId;
+                Debug.Log("[LocalMirrorAutomation] Joining room " + joinRoomId + ".");
+                ConnectToRoom();
+                return true;
+            }
+#endif
+            return false;
         }
 
         private static bool TryRunDevCommandLineTask()
@@ -147,6 +194,24 @@ namespace YC.Presentation
             return false;
         }
 
+        private static string GetCommandLineValue(string[] args, string prefix)
+        {
+            if (args == null || string.IsNullOrEmpty(prefix))
+            {
+                return string.Empty;
+            }
+
+            for (var i = 0; i < args.Length; i++)
+            {
+                if (args[i].StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    return args[i].Substring(prefix.Length).Trim();
+                }
+            }
+
+            return string.Empty;
+        }
+
         private void Update()
         {
             RoomState roomUpdate = null;
@@ -197,6 +262,8 @@ namespace YC.Presentation
             {
                 ProcessPendingLobbyJoinRequest();
             }
+
+            TryAutoStartLocalMirrorGame();
         }
 
         private void OnDestroy()
@@ -236,8 +303,13 @@ namespace YC.Presentation
                 }
             };
 
-            GameLaunchContext.Ensure().Configure(LaunchMode.Local, 1, string.Empty, seats);
+            GameLaunchContext.Ensure().Configure(LaunchMode.Local, 1, CreateLocalGameSeedSource(), seats);
             SceneManager.LoadScene(mapSceneName);
+        }
+
+        private static string CreateLocalGameSeedSource()
+        {
+            return LocalGameSeedSourcePrefix + Guid.NewGuid().ToString("N");
         }
 
         public async void CreateRoom()
@@ -723,6 +795,26 @@ namespace YC.Presentation
             var rect = roomPanel.GetComponent<RectTransform>();
             roomStatusText = null;
 
+            if (hostControls && !string.IsNullOrEmpty(devLocalMirrorRoomOutputPath))
+            {
+                try
+                {
+                    var fullPath = Path.GetFullPath(devLocalMirrorRoomOutputPath);
+                    var directory = Path.GetDirectoryName(fullPath);
+                    if (!string.IsNullOrEmpty(directory))
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+
+                    File.WriteAllText(fullPath, room.RoomId);
+                    Debug.Log("[LocalMirrorAutomation] Room id written to " + fullPath + ".");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning("[LocalMirrorAutomation] Could not write room id: " + ex.Message);
+                }
+            }
+
             var roomCodeText = CreatePanelText(rect, "房间号 " + room.RoomId, 28, new Vector2(-58f, 170f), FontStyle.Bold);
             roomCodeText.GetComponent<RectTransform>().sizeDelta = new Vector2(410f, 34f);
             CreateSmallButton(rect, "复制", new Vector2(235f, 170f), () => CopyRoomCodeToClipboard(room.RoomId));
@@ -773,6 +865,51 @@ namespace YC.Presentation
                 {
                     CreateSmallButton(rect, "返回", Vector2.zero, HideRoomPanel);
                 }
+            }
+
+            if (autoStartLocalMirrorGame && hostControls && canStart)
+            {
+                TryAutoStartLocalMirrorGame();
+            }
+        }
+
+        private void TryAutoStartLocalMirrorGame()
+        {
+            if (!autoStartLocalMirrorGame ||
+                autoStartLocalMirrorRequestPending ||
+                loadingGame ||
+                Time.unscaledTime < nextAutoStartLocalMirrorAttemptTime)
+            {
+                return;
+            }
+
+            var room = roomService == null ? null : roomService.GetCurrentRoom();
+            if (room == null ||
+                room.LocalPlayerId != room.HostPlayerId ||
+                !RoomReadinessPolicy.TryValidateStart(room, out _))
+            {
+                return;
+            }
+
+            autoStartLocalMirrorRequestPending = true;
+            Debug.Log("[LocalMirrorAutomation] All seats are ready; requesting game start.");
+            StartAutomatedOnlineGame();
+        }
+
+        private async void StartAutomatedOnlineGame()
+        {
+            try
+            {
+                await roomService.StartGameAsync();
+                autoStartLocalMirrorGame = false;
+            }
+            catch (Exception ex)
+            {
+                autoStartLocalMirrorRequestPending = false;
+                nextAutoStartLocalMirrorAttemptTime = Time.unscaledTime + 1f;
+                Debug.LogWarning(
+                    "[LocalMirrorAutomation] Start request will retry: " +
+                    (string.IsNullOrEmpty(ex.Message) ? ex.GetType().Name : ex.Message));
             }
         }
 

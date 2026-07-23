@@ -152,9 +152,6 @@ namespace YC.Application.Gameplay
                             ResolveSingleId(command, TargetInfluenceSlotIdParameter)),
                         null);
 
-                case SpecialActionPendingSteps.AwaitCompositePayment:
-                    return HandleCompositePayment(state, command, previousStep);
-
                 case SpecialActionPendingSteps.AwaitFreeMoveTarget:
                     return HandleFreeMove(state, command, previousStep);
 
@@ -175,24 +172,6 @@ namespace YC.Application.Gameplay
                 default:
                     return Invalid(CommandErrorCode.InvalidTarget, "未知的特殊行动待处理步骤。");
             }
-        }
-
-        private CommandResult HandleCompositePayment(GameState state, GameCommand command, string previousStep)
-        {
-            int originiumAmount;
-            int ironAmount;
-            if (!TryGetNonNegativeInt(command, OriginiumAmountParameter, out originiumAmount) ||
-                !TryGetNonNegativeInt(command, IronAmountParameter, out ironAmount))
-            {
-                return Invalid(CommandErrorCode.InvalidTarget, "必须明确提交非负的源岩与异铁支付数量。");
-            }
-
-            var result = specialActionService.ResolveCompositePayment(
-                state,
-                command.PlayerId,
-                originiumAmount,
-                ironAmount);
-            return ToCommandResult(state, command.PlayerId, previousStep, result, null);
         }
 
         private CommandResult HandleFreeMove(GameState state, GameCommand command, string previousStep)

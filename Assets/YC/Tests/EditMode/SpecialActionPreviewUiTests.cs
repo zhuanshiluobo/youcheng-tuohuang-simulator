@@ -65,6 +65,7 @@ namespace YC.Tests.EditMode
             {
                 gameObject = FindTransform(canvas, "City Style Declaration Preview Panel").gameObject
             };
+            invalid.position = new Vector2(-1000f, -1000f);
             InvokePointer(pointerInteraction, "OnEndDrag", invalid);
             Assert.That(submissionCount, Is.Zero);
             Assert.That(GetProperty<bool>(dialog, "IsShowing"), Is.True);
@@ -83,6 +84,28 @@ namespace YC.Tests.EditMode
             Assert.That(submittedOriginium, Is.Zero);
             Assert.That(submittedIron, Is.Zero);
             Assert.That(GameObject.Find("City Style Declaration Preview Canvas"), Is.Null);
+        }
+
+        [Test]
+        public void MarkerDrag_MilitaryHighlightCoversThePrintedUsedArea()
+        {
+            ShowDialog(string.Empty, (actionId, markerId, originium, iron) => true);
+            var canvas = GameObject.Find("City Style Declaration Preview Canvas");
+            var marker = FindTransform(canvas, "样式预览影响力 玩家1 标记1");
+            var pointerInteraction = marker.GetComponent(
+                Type.GetType("YC.Presentation.CardPointerInteraction, Assembly-CSharp", true));
+
+            InvokePointer(pointerInteraction, "OnBeginDrag", CreatePointerEvent(canvas));
+
+            var target = GameObject.Find("特殊行动合法落区 used");
+            Assert.That(target, Is.Not.Null);
+            var rect = target.GetComponent<RectTransform>();
+            Assert.That(rect.anchorMin.x, Is.EqualTo(0.54f).Within(0.0001f));
+            Assert.That(rect.anchorMin.y, Is.EqualTo(0.08f).Within(0.0001f));
+            Assert.That(rect.anchorMax.x, Is.EqualTo(0.945f).Within(0.0001f));
+            Assert.That(rect.anchorMax.y, Is.EqualTo(0.485f).Within(0.0001f));
+            Assert.That(rect.offsetMin, Is.EqualTo(Vector2.zero));
+            Assert.That(rect.offsetMax, Is.EqualTo(Vector2.zero));
         }
 
         [Test]

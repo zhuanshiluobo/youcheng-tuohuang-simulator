@@ -10,13 +10,23 @@ namespace YC.Application.Sessions
     public static class RightCardSmokeStateFactory
     {
         public const string DefaultCityLocationId = "G-01";
+        public const string SharedCityStyleId = CityStyleDatabase.MilitaryIndustrialArea;
+
+        private static readonly string[] SharedStyleCityLocationIds =
+        {
+            "G-01",
+            "A-01",
+            "A-02",
+            "B-01"
+        };
 
         public static GameState CreateInitialState(
             LaunchMode mode,
             int localPlayerId,
             IList<PlayerSeat> players,
             string mapId,
-            int eventDeckSeed)
+            int eventDeckSeed,
+            bool prepareSharedCityStyle = false)
         {
             var state = GameLaunchStateFactory.CreateInitialState(
                 mode,
@@ -36,6 +46,10 @@ namespace YC.Application.Sessions
             }
 
             PrepareState(state, player);
+            if (prepareSharedCityStyle)
+            {
+                PrepareSharedCityStyleState(state);
+            }
             return state;
         }
 
@@ -76,6 +90,44 @@ namespace YC.Application.Sessions
             if (state.Decks.CityStyleSupply.Count <= 0)
             {
                 state.Decks.CityStyleSupply.AddRange(CityStyleDatabase.DefaultSupplyIds);
+            }
+        }
+
+        private static void PrepareSharedCityStyleState(GameState state)
+        {
+            var cityStyle = CityStyleDatabase.Get(SharedCityStyleId);
+            if (cityStyle == null)
+            {
+                throw new InvalidOperationException("Shared city style smoke state requires a known city style.");
+            }
+
+            for (var i = 0; i < state.Players.Count; i++)
+            {
+                var player = state.Players[i];
+                if (player == null)
+                {
+                    continue;
+                }
+
+                if (i < SharedStyleCityLocationIds.Length)
+                {
+                    player.CityLocationId = SharedStyleCityLocationIds[i];
+                    if (!state.Map.OpenLocationIds.Contains(player.CityLocationId))
+                    {
+                        state.Map.OpenLocationIds.Add(player.CityLocationId);
+                    }
+                }
+
+                player.InfluenceSupply = Math.Max(0, player.InfluenceSupply - 1);
+                player.DeclaredCityStyleIds.Add(SharedCityStyleId);
+                player.DeclaredCityStyles.Add(new CityStyleDeclarationState
+                {
+                    InfluenceMarkerId = SharedCityStyleId + ":" + player.PlayerId + ":1",
+                    CityStyleId = SharedCityStyleId,
+                    MarkerArea = CityStyleMarkerAreas.Unused,
+                    UnlockedSpecialActionId = cityStyle.SpecialActionId ?? string.Empty,
+                    RemainingSpecialActionUses = 1
+                });
             }
         }
     }

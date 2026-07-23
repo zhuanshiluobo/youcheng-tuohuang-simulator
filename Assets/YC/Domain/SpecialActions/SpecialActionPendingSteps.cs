@@ -4,7 +4,6 @@ namespace YC.Domain.SpecialActions
     {
         public const string AwaitMilitaryTargets = "await_military_targets";
         public const string AwaitMobilizationTarget = "await_mobilization_target";
-        public const string AwaitCompositePayment = "await_composite_payment";
         public const string AwaitFreeMoveTarget = "await_free_move_target";
         public const string AwaitMoveEvent = "await_move_event";
         public const string AwaitRouteInfluence = "await_route_influence";
@@ -18,8 +17,7 @@ namespace YC.Domain.SpecialActions
                 case SpecialActionEffectKind.ReplaceInfluence:
                     return step == AwaitMobilizationTarget;
                 case SpecialActionEffectKind.CompositePowerMove:
-                    return step == AwaitCompositePayment ||
-                           step == AwaitFreeMoveTarget ||
+                    return step == AwaitFreeMoveTarget ||
                            step == AwaitMoveEvent ||
                            step == AwaitRouteInfluence;
                 case SpecialActionEffectKind.ConsecutiveFreeMoves:

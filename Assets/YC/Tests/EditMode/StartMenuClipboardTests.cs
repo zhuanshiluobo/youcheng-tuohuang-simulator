@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using NUnit.Framework;
+using YC.Domain.Cards;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -9,6 +10,28 @@ namespace YC.Tests.EditMode
 {
     public sealed class StartMenuClipboardTests
     {
+        [Test]
+        public void CreateLocalGameSeedSource_CreatesDifferentShuffleSeedForEachGame()
+        {
+            var type = Type.GetType("YC.Presentation.StartMenuController, Assembly-CSharp", false);
+            Assert.That(type, Is.Not.Null, "Missing YC.Presentation.StartMenuController.");
+
+            var method = type.GetMethod(
+                "CreateLocalGameSeedSource",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null, "Missing StartMenuController.CreateLocalGameSeedSource.");
+
+            var firstSource = method.Invoke(null, null) as string;
+            var secondSource = method.Invoke(null, null) as string;
+
+            Assert.That(firstSource, Does.StartWith("LOCAL_GAME_"));
+            Assert.That(secondSource, Does.StartWith("LOCAL_GAME_"));
+            Assert.That(secondSource, Is.Not.EqualTo(firstSource));
+            Assert.That(
+                EventDeckService.CreateSeed(secondSource),
+                Is.Not.EqualTo(EventDeckService.CreateSeed(firstSource)));
+        }
+
         [Test]
         public void CopyRoomCodeToClipboard_WritesRoomId()
         {
