@@ -259,12 +259,6 @@ namespace YC.Presentation
             ShowMapPromptCore(canvas, title, description, primaryLabel, primary, back, string.Empty, false);
         }
 
-        public void ShowCompactMapPrompt(RectTransform canvas, string title, string description)
-        {
-            var panel = Rebuild(canvas, new Vector2(520f, 140f), new Vector2(0f, 310f));
-            AddHeading(panel, title, description, 40f);
-        }
-
         public void ShowCollapsibleMapPrompt(
             RectTransform canvas,
             string title,

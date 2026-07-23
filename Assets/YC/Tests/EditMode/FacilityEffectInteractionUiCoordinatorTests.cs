@@ -299,7 +299,27 @@ namespace YC.Tests.EditMode
             Assert.That(Synchronize(fixture.Coordinator), Is.True);
             var overlay = GetOverlay(fixture.Dialog);
             var panel = FindChild(overlay, "Facility Effect Choice Panel").GetComponent<RectTransform>();
-            Assert.That(panel.sizeDelta, Is.EqualTo(new Vector2(520f, 140f)));
+            var dialogCanvas = overlay.GetComponent<Canvas>();
+            var collapsiblePanelType = Type.GetType(
+                "YC.Presentation.EffectDialogCollapsiblePanel, Assembly-CSharp",
+                false);
+            Assert.That(dialogCanvas, Is.Not.Null);
+            Assert.That(dialogCanvas.overrideSorting, Is.True);
+            Assert.That(dialogCanvas.sortingOrder, Is.EqualTo(119));
+            Assert.That(overlay.GetComponent<GraphicRaycaster>(), Is.Not.Null);
+            Assert.That(collapsiblePanelType, Is.Not.Null);
+            var collapsiblePanel = panel.GetComponent(collapsiblePanelType);
+            Assert.That(collapsiblePanel, Is.Not.Null);
+            Assert.That(
+                (bool)collapsiblePanelType.GetProperty("IsCollapsed").GetValue(collapsiblePanel, null),
+                Is.True);
+            Assert.That(panel.sizeDelta, Is.EqualTo(new Vector2(650f, 58f)));
+            Assert.That(FindChild(overlay, "Facility Expanded Content").activeSelf, Is.False);
+            Assert.That(FindChild(overlay, "Facility Collapsed Summary").activeSelf, Is.True);
+            Assert.That(
+                GetText(overlay, "Facility Collapsed Summary"),
+                Does.Contain("护航调度中心").And.Contain("两个影响力"));
+            Assert.That(GetButtonLabel(overlay, "Facility Collapse Toggle"), Is.EqualTo("展开卡片"));
             Assert.That(GetText(overlay, "Description"), Does.Not.Contain("已选"));
             Assert.That(FindChild(overlay, "Primary"), Is.Null);
             Assert.That(
@@ -313,6 +333,12 @@ namespace YC.Tests.EditMode
             Assert.That(TryHandleInfluenceSlotClicked(fixture.Coordinator, firstSlot), Is.True);
             Assert.That(fixture.SubmittedCommand, Is.Null);
             overlay = GetOverlay(fixture.Dialog);
+            panel = FindChild(overlay, "Facility Effect Choice Panel").GetComponent<RectTransform>();
+            Assert.That(panel.sizeDelta, Is.EqualTo(new Vector2(650f, 58f)));
+            collapsiblePanel = panel.GetComponent(collapsiblePanelType);
+            Assert.That(
+                (bool)collapsiblePanelType.GetProperty("IsCollapsed").GetValue(collapsiblePanel, null),
+                Is.True);
             Assert.That(GetText(overlay, "Description"), Does.Not.Contain("已选"));
             Assert.That(
                 fixture.Highlights.ConvertAll(item => item.TargetId),

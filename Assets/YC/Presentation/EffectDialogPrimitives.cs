@@ -347,6 +347,9 @@ namespace YC.Presentation
     /// <summary>运行时效果弹窗共享的无领域语义 UI 壳层。</summary>
     internal sealed class EffectDialogShell
     {
+        // 游戏内效果弹窗统一位于设置/日志按钮（120）之下、其余常驻游戏 UI 之上。
+        internal const int SortingOrder = 119;
+
         private GameObject overlay;
 
         public bool IsShowing
@@ -368,10 +371,18 @@ namespace YC.Presentation
                 return null;
             }
 
-            overlay = new GameObject(overlayName, typeof(RectTransform), typeof(Image));
+            overlay = new GameObject(
+                overlayName,
+                typeof(RectTransform),
+                typeof(Canvas),
+                typeof(GraphicRaycaster),
+                typeof(Image));
             overlay.transform.SetParent(canvas, false);
             var overlayRect = overlay.GetComponent<RectTransform>();
             Stretch(overlayRect, 0f);
+            var overlayCanvas = overlay.GetComponent<Canvas>();
+            overlayCanvas.overrideSorting = true;
+            overlayCanvas.sortingOrder = SortingOrder;
             var overlayImage = overlay.GetComponent<Image>();
             overlayImage.color = new Color(0f, 0f, 0f, 0.22f);
             overlayImage.raycastTarget = blockBackgroundInput;

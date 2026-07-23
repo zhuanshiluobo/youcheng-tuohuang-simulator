@@ -612,10 +612,15 @@ namespace YC.Presentation
         private void ShowDeployInfluences(PendingCardSessionState pending)
         {
             setHighlights(BuildDeployInfluenceSlotHighlights());
-            dialog.ShowCompactMapPrompt(
+            dialog.ShowCollapsibleMapPrompt(
                 getCanvas(),
                 "护航调度中心",
-                "请依次点击地图上的两个高亮空槽位。");
+                "请依次点击地图上的两个高亮空槽位。",
+                "护航调度中心 · 放置两个影响力",
+                string.Empty,
+                null,
+                null,
+                true);
         }
 
         private void ShowFreeCityMove()
