@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using YC.Application.Gameplay;
+using YC.Domain.Cards;
 using YC.Domain.CityStyles;
 using YC.Domain.Commands;
 using YC.Domain.Events;
@@ -20,6 +22,94 @@ namespace YC.Tests.EditMode
     public sealed class TurnActionPresenterTests
     {
         [Test]
+        public void BuildDraftViewModel_UsesOneClosedIntentDispatchChannel()
+        {
+            var delegateProperties = new List<string>();
+            var properties = typeof(BuildFacilityDraftViewModel).GetProperties();
+            for (var i = 0; i < properties.Length; i++)
+            {
+                if (typeof(Delegate).IsAssignableFrom(properties[i].PropertyType))
+                {
+                    delegateProperties.Add(properties[i].Name);
+                }
+            }
+
+            Assert.That(delegateProperties, Is.EqualTo(new[] { "Dispatch" }));
+            Assert.That(
+                typeof(BuildFacilityDraftViewModel).GetProperty("Dispatch").PropertyType,
+                Is.EqualTo(typeof(Action<BuildFacilityIntent>)));
+            Assert.That(typeof(BuildFacilityIntent).IsAbstract, Is.True);
+            var constructors = typeof(BuildFacilityIntent).GetConstructors(
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic);
+            Assert.That(constructors, Has.Length.EqualTo(1));
+            Assert.That(constructors[0].IsPrivate, Is.True);
+
+            var intentTypes = typeof(BuildFacilityIntent).GetNestedTypes();
+            Assert.That(intentTypes, Has.Length.EqualTo(9));
+            var intentTypeNames = new List<string>();
+            for (var i = 0; i < intentTypes.Length; i++)
+            {
+                Assert.That(intentTypes[i].IsSealed, Is.True, intentTypes[i].Name);
+                intentTypeNames.Add(intentTypes[i].Name);
+            }
+
+            Assert.That(
+                intentTypeNames,
+                Is.EquivalentTo(new[]
+                {
+                    "BeginDrag",
+                    "BeginGhostDrag",
+                    "Drop",
+                    "RejectDrop",
+                    "Escape",
+                    "SelectPayment",
+                    "Back",
+                    "Confirm",
+                    "Cancel"
+                }));
+        }
+
+        [Test]
+        public void BuildInteraction_ImplementsActiveActionContractAndSeparatesLifecycleCancel()
+        {
+            var fixture = CreateFixture();
+            var interaction = fixture.Presenter.BuildInteraction;
+
+            Assert.That(interaction, Is.InstanceOf<InteractionBase>());
+            Assert.That(interaction.Id, Is.EqualTo("build-facility"));
+            Assert.That(interaction.Priority, Is.EqualTo(InteractionPriority.ActiveAction));
+            Assert.That(interaction.IsActive, Is.False);
+            Assert.That(interaction.OnEscape(), Is.SameAs(InteractionResult.Passthrough));
+            Assert.That(interaction.BuildPresentation().IsEmpty, Is.True);
+
+            interaction.Begin();
+
+            Assert.That(interaction.IsActive, Is.True);
+            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Not.Null);
+            var presentation = interaction.BuildPresentation();
+            Assert.That(presentation.IsEmpty, Is.False);
+            Assert.That(presentation.PanelMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(presentation.PromptText, Is.Not.Empty);
+            Assert.That(interaction.OnEscape(), Is.SameAs(InteractionResult.Consumed));
+
+            var promptBeforeLifecycleCancel = fixture.View.Prompt;
+            interaction.Cancel();
+
+            Assert.That(interaction.IsActive, Is.False);
+            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Null);
+            Assert.That(fixture.View.BuildDraft, Is.Null);
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.View.Prompt, Is.EqualTo(promptBeforeLifecycleCancel));
+
+            interaction.Begin();
+            interaction.Dispatch(new BuildFacilityIntent.Cancel());
+
+            Assert.That(interaction.IsActive, Is.False);
+            Assert.That(fixture.View.Prompt, Is.EqualTo("已取消建设。"));
+        }
+
+        [Test]
         public void ActionPhaseViewModel_ReflectsMainActionAndEndAvailability()
         {
             var fixture = CreateFixture();
@@ -38,6 +128,51 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void TurnActionPanelPresenter_DirectApiUsesBuildAndCompletionDependencies()
+        {
+            var fixture = CreateFixture();
+            var panelPresenter = fixture.Presenter.ActionPanelPresenter;
+
+            Assert.That(panelPresenter, Is.Not.Null);
+            var direct = panelPresenter.BuildViewModel();
+            var compatibility = fixture.Presenter.BuildActionPanelViewModel();
+            Assert.That(direct.Mode, Is.EqualTo(compatibility.Mode));
+            Assert.That(direct.StatusText, Is.EqualTo(compatibility.StatusText));
+            Assert.That(direct.CanBuild, Is.EqualTo(compatibility.CanBuild));
+
+            fixture.Presenter.BeginBuildAction();
+
+            Assert.That(panelPresenter.CanStartMainAction(), Is.False);
+            Assert.That(fixture.View.Prompt, Does.Contain("建设草稿"));
+
+            fixture.Presenter.CancelBuildFacility();
+            fixture.Context.State.FindPlayer(1).ActedMainActionThisTurn = true;
+            fixture.Presenter.CompleteAction("测试行动");
+
+            Assert.That(
+                panelPresenter.BuildViewModel().StatusText,
+                Is.EqualTo("测试行动已完成"));
+        }
+
+        [Test]
+        public void ActionPanel_BuildDraftStaysBusyWhenFlowWasResetToChooseAction()
+        {
+            var fixture = CreateFixture();
+            fixture.Presenter.BeginBuildAction();
+
+            fixture.Flow.ResetToChooseAction();
+            var viewModel = fixture.Presenter.BuildActionPanelViewModel();
+
+            Assert.That(fixture.Presenter.BuildInteraction.IsActive, Is.True);
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(viewModel.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(viewModel.CanBuild, Is.False);
+            Assert.That(
+                viewModel.StatusText,
+                Is.EqualTo(fixture.Presenter.BuildInteraction.BuildPresentation().PromptText));
+        }
+
+        [Test]
         public void ActionPhaseViewModel_WithAdditionalBudget_AllowsAnotherMainActionAndEarlyEnd()
         {
             var fixture = CreateFixture();
@@ -51,6 +186,22 @@ namespace YC.Tests.EditMode
             Assert.That(viewModel.CanMoveCity, Is.True);
             Assert.That(viewModel.CanBuild, Is.True);
             Assert.That(viewModel.CanEndAction, Is.True);
+
+            fixture.Presenter.BeginBuildAction();
+            var buildViewModel = fixture.Presenter.BuildActionPanelViewModel();
+
+            Assert.That(
+                buildViewModel.StatusText,
+                Is.EqualTo(fixture.Presenter.BuildInteraction.BuildPresentation().PromptText));
+            Assert.That(buildViewModel.StatusText, Does.Contain("建设"));
+            Assert.That(buildViewModel.StatusText, Does.Not.Contain("剩余额外主要行动"));
+
+            fixture.Presenter.CancelBuildFacility();
+            fixture.Presenter.BeginMoveAction();
+            var moveViewModel = fixture.Presenter.BuildActionPanelViewModel();
+
+            Assert.That(moveViewModel.StatusText, Does.Contain("城市移动"));
+            Assert.That(moveViewModel.StatusText, Does.Not.Contain("剩余额外主要行动"));
         }
 
         [Test]
@@ -80,6 +231,29 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void CharacterAction_WithUnfinishedSecondEffect_RemainsAvailableForReopeningCardFace()
+        {
+            var fixture = CreateFixture();
+            var player = fixture.Context.State.FindPlayer(1);
+            var cardId = "character.red.p1.liskarm";
+            player.CoveredCharacterCardId = cardId;
+            fixture.Context.State.PendingCharacterEffect = new PendingCharacterEffectState
+            {
+                ChoiceType = CharacterPendingChoiceTypes.SecondEffectDecision,
+                PlayerId = 1,
+                CardId = cardId,
+                RemainingEffectMode = CharacterEffectModes.Tactic,
+                OptionIds = { CharacterEffectChoiceIds.FinishCharacterUse }
+            };
+
+            var viewModel = fixture.Presenter.BuildActionPanelViewModel();
+
+            Assert.That(viewModel.CanUseCharacter, Is.True);
+            Assert.That(viewModel.CanMoveCity, Is.False);
+            Assert.That(viewModel.CanBuild, Is.False);
+        }
+
+        [Test]
         public void CharacterCoverPhase_PromptsCurrentPlayerToCoverFirst()
         {
             var fixture = CreateFixture();
@@ -98,7 +272,7 @@ namespace YC.Tests.EditMode
             fixture.Context.State.Phase = GamePhase.ResourceCollection;
             Assert.That(fixture.Presenter.CanEndCurrentAction(), Is.True);
             Assert.That(fixture.Presenter.BuildActionPanelViewModel().Mode,
-                Is.EqualTo(InteractionMode.ResolvingResourceCollection));
+                Is.EqualTo(InteractionMode.Busy));
 
             fixture.Context.State.FindPlayer(1).HasCollectedResourcesThisRound = true;
             fixture.Context.State.FindPlayer(2).HasCollectedResourcesThisRound = true;
@@ -128,6 +302,52 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void MoveInteraction_ImplementsActiveActionContractAndPreservesMapPassthrough()
+        {
+            var fixture = CreateFixture();
+            var interaction = fixture.Presenter.MoveInteraction;
+
+            Assert.That(interaction, Is.InstanceOf<InteractionBase>());
+            Assert.That(interaction.Id, Is.EqualTo("move-city"));
+            Assert.That(interaction.Priority, Is.EqualTo(InteractionPriority.ActiveAction));
+            Assert.That(interaction.IsActive, Is.False);
+            Assert.That(interaction.BuildPresentation().IsEmpty, Is.True);
+
+            interaction.Begin();
+
+            Assert.That(interaction.IsActive, Is.True);
+            Assert.That(fixture.Flow.IsActive(fixture.Presenter), Is.True);
+            Assert.That(fixture.Presenter.IsSelectingMoveTarget, Is.True);
+            Assert.That(fixture.View.Highlights.Count, Is.EqualTo(1));
+            var presentation = interaction.BuildPresentation();
+            Assert.That(presentation.IsEmpty, Is.False);
+            Assert.That(presentation.PanelMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(presentation.PromptText, Is.Not.Empty);
+            Assert.That(
+                interaction.OnLocationClicked("B"),
+                Is.SameAs(InteractionResult.Passthrough));
+            Assert.That(
+                interaction.OnInfluenceSlotClicked("slot"),
+                Is.SameAs(InteractionResult.Passthrough));
+            Assert.That(
+                interaction.OnMobileCityClicked(),
+                Is.SameAs(InteractionResult.Passthrough));
+            Assert.That(
+                interaction.OnEscape(),
+                Is.SameAs(InteractionResult.Passthrough));
+
+            fixture.View.ClearHighlights();
+            interaction.RestorePresentation();
+            Assert.That(fixture.View.Highlights.Count, Is.EqualTo(1));
+
+            interaction.Cancel();
+
+            Assert.That(interaction.IsActive, Is.False);
+            Assert.That(interaction.BuildPresentation().IsEmpty, Is.True);
+            Assert.That(fixture.View.Highlights, Is.Empty);
+        }
+
+        [Test]
         public void InitialPlacement_HighlightsDockAndBuildsCommand()
         {
             var fixture = CreateFixture();
@@ -147,7 +367,9 @@ namespace YC.Tests.EditMode
         {
             var fixture = CreateFixture();
             fixture.Presenter.BeginMoveAction();
-            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ResolvingMoveTarget));
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Flow.IsActive(fixture.Presenter), Is.True);
+            Assert.That(fixture.Presenter.IsSelectingMoveTarget, Is.True);
             Assert.That(fixture.View.Highlights.Count, Is.EqualTo(1));
 
             fixture.Commands.NextResult = Rejected("blocked");
@@ -172,39 +394,118 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Selecting));
             Assert.That(fixture.Commands.LastCommand, Is.Null);
 
-            fixture.Presenter.BeginBuildFacilityDrag(FacilityCardDatabase.TradeDistrict);
+            fixture.View.BuildDraft.Dispatch(
+                new BuildFacilityIntent.BeginDrag(FacilityCardDatabase.TradeDistrict));
             Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Dragging));
-            fixture.Presenter.DropBuildFacility(3);
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Drop(3));
             Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Focused));
-            fixture.Presenter.SelectBuildFacilityPayment(BuildFacilityService.PaymentModeGold);
+            fixture.View.BuildDraft.Dispatch(
+                new BuildFacilityIntent.SelectPayment(
+                    BuildFacilityService.PaymentModeGold));
             Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Confirming));
             Assert.That(fixture.Commands.LastCommand, Is.Null, "支付预选不得提交命令。");
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Back());
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Focused));
+            fixture.View.BuildDraft.Dispatch(
+                new BuildFacilityIntent.SelectPayment(
+                    BuildFacilityService.PaymentModeGold));
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Confirming));
 
             fixture.Commands.NextResult = Success(false);
-            fixture.Presenter.ConfirmBuildFacility();
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Confirm());
             Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.BuildFacility));
             Assert.That(fixture.Commands.LastCommand.TargetId, Is.EqualTo(FacilityCardDatabase.TradeDistrict));
             Assert.That(fixture.Commands.LastCommand.Parameters[BuildFacilityCommandHandler.CityBoardSlotIndexParameter], Is.EqualTo("3"));
             Assert.That(fixture.Commands.LastCommand.Parameters[BuildFacilityCommandHandler.PaymentModeParameter], Is.EqualTo(BuildFacilityService.PaymentModeGold));
             Assert.That(fixture.View.Prompt, Does.Contain("等待确认"));
+            var submittedCommandId = fixture.Commands.LastCommand.CommandId;
+            var submissionCount = fixture.Commands.SubmitCount;
+
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Confirm());
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Cancel());
+
+            Assert.That(fixture.Commands.SubmitCount, Is.EqualTo(submissionCount));
+            Assert.That(fixture.Commands.LastCommand.CommandId, Is.EqualTo(submittedCommandId));
+            Assert.That(fixture.Presenter.BuildInteraction.IsSubmissionInFlight, Is.True);
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Confirming));
+            Assert.That(fixture.View.Prompt, Does.Contain("等待确认"));
+
+            fixture.Presenter.BuildInteraction.NotifyCommandSettled(submittedCommandId);
+            Assert.That(fixture.Presenter.BuildInteraction.IsSubmissionInFlight, Is.False);
+            Assert.That(fixture.Presenter.BuildInteraction.IsActive, Is.True);
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Confirm());
+            var confirmedCommandId = fixture.Commands.LastCommand.CommandId;
+            Assert.That(confirmedCommandId, Is.Not.EqualTo(submittedCommandId));
+            Assert.That(fixture.Commands.SubmitCount, Is.EqualTo(submissionCount + 1));
+
+            fixture.Context.State.Map.Facilities.Add(new FacilityPlacement
+            {
+                PlayerId = 1,
+                FacilityCardId = FacilityCardDatabase.TradeDistrict,
+                CityBoardSlotIndex = 3
+            });
+            fixture.Presenter.BuildInteraction.NotifyCommandSettled(confirmedCommandId);
+
+            Assert.That(fixture.Presenter.BuildInteraction.IsSubmissionInFlight, Is.False);
+            Assert.That(fixture.Presenter.BuildInteraction.IsActive, Is.False);
+            Assert.That(fixture.View.BuildDraft, Is.Null);
         }
 
         [Test]
-        public void BuildEscape_CancelsDraftAndRestoresActionSelection()
+        public void BuildEscape_CollapsesFocusAndConfirmationToGhost_AndCancelExits()
         {
             var fixture = CreateFixture();
             fixture.Presenter.BeginBuildFacilityDrag(FacilityCardDatabase.TradeDistrict);
             fixture.Presenter.DropBuildFacility(3);
             Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Focused));
-            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ResolvingBuildFocus));
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
 
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Escape());
+
+            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Not.Null);
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Ghosted));
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.View.Prompt, Does.Contain("虚影"));
             Assert.That(fixture.Presenter.HandleBuildFacilityEscape(), Is.True);
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Ghosted));
+
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.BeginGhostDrag());
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Drop(3));
+            fixture.View.BuildDraft.Dispatch(
+                new BuildFacilityIntent.SelectPayment(
+                    BuildFacilityService.PaymentModeGold));
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Confirming));
+
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Escape());
+
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Ghosted));
+            Assert.That(fixture.View.BuildDraft.PaymentMode, Is.Empty);
+            Assert.That(fixture.Commands.LastCommand, Is.Null);
+
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Cancel());
 
             Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Null);
             Assert.That(fixture.View.BuildDraft, Is.Null);
             Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
-            Assert.That(fixture.View.Prompt, Is.Not.Empty);
+            Assert.That(fixture.View.Prompt, Is.EqualTo("已取消建设。"));
             Assert.That(fixture.Presenter.HandleBuildFacilityEscape(), Is.False);
+        }
+
+        [Test]
+        public void BuildEscape_SelectingAndDraggingKeepLocalDraft()
+        {
+            var fixture = CreateFixture();
+            fixture.Presenter.BeginBuildAction();
+
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Escape());
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Selecting));
+
+            fixture.View.BuildDraft.Dispatch(
+                new BuildFacilityIntent.BeginDrag(FacilityCardDatabase.TradeDistrict));
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Escape());
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Dragging));
+            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Not.Null);
+            Assert.That(fixture.Commands.LastCommand, Is.Null);
         }
 
         [Test]
@@ -220,10 +521,11 @@ namespace YC.Tests.EditMode
             fixture.Presenter.BeginBuildFacilityDrag(FacilityCardDatabase.TradeDistrict);
             Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Dragging));
 
-            fixture.Presenter.RejectBuildFacilityDrop();
-            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Null);
-            Assert.That(fixture.View.BuildDraft, Is.Null);
-            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.RejectDrop());
+            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Not.Null);
+            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Selecting));
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
+            fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Cancel());
             fixture.Context.State.FindPlayer(1).ActedMainActionThisTurn = true;
             var exhausted = fixture.Presenter.BuildBuildFacilityAvailabilityViewModel();
             Assert.That(exhausted.DraggableFacilityIds, Is.Empty);
@@ -308,6 +610,34 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void CityStyleInteraction_DirectApiBuildsPreviewAndSubmitsDeclaration()
+        {
+            var fixture = CreateFixture();
+            var interaction = fixture.Presenter.CityStyleInteraction;
+
+            Assert.That(interaction, Is.Not.Null);
+            interaction.BeginDeclare(CityStyleDatabase.MaterialRelayStation);
+
+            Assert.That(fixture.View.CityStyleOptions, Is.Not.Null);
+            Assert.That(
+                fixture.View.CityStyleOptions.InitialCityStyleId,
+                Is.EqualTo(CityStyleDatabase.MaterialRelayStation));
+
+            fixture.Commands.NextResult = Success(false);
+            interaction.SubmitDeclare(
+                CityStyleDatabase.MaterialRelayStation,
+                new[] { 0, 1 });
+
+            Assert.That(
+                fixture.Commands.LastCommand.Kind,
+                Is.EqualTo(GameCommandKind.DeclareCityStyle));
+            Assert.That(
+                fixture.Commands.LastCommand.TargetId,
+                Is.EqualTo(CityStyleDatabase.MaterialRelayStation));
+            Assert.That(fixture.View.Prompt, Does.Contain("等待确认"));
+        }
+
+        [Test]
         public void BeginDeclare_ProvidesPreviewModelAndDoesNotInterruptActiveMainAction()
         {
             var fixture = CreateFixture();
@@ -333,7 +663,9 @@ namespace YC.Tests.EditMode
             fixture.Presenter.BeginDeclareCityStyle(CityStyleDatabase.MilitaryIndustrialArea);
 
             Assert.That(fixture.View.CityStyleOptions, Is.Null);
-            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ResolvingExploreTarget));
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Flow.IsActive(fixture.Exploration), Is.True);
+            Assert.That(fixture.Exploration.IsSelectingExploreTarget, Is.True);
             Assert.That(fixture.View.Prompt, Does.Contain("正在进行的行动"));
 
             fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
@@ -346,7 +678,9 @@ namespace YC.Tests.EditMode
             {
                 Assert.That(fixture.View.CityStyleOptions.Options[i].CanDeclare, Is.False);
             }
-            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ResolvingExploreTarget));
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Flow.IsActive(fixture.Exploration), Is.True);
+            Assert.That(fixture.Exploration.IsSelectingExploreTarget, Is.True);
             Assert.That(fixture.View.Prompt, Is.Empty, "不可宣告原因应显示在样式预览内，不应占用全局提示区。");
         }
 
@@ -451,6 +785,7 @@ namespace YC.Tests.EditMode
                 Is.False,
                 "非复合特殊行动不应携带复合支付参数。");
             Assert.That(fixture.View.RefreshFromStateCount, Is.EqualTo(1));
+            Assert.That(fixture.View.CompletedAction, Is.EqualTo("特殊行动"));
         }
 
         [Test]
@@ -550,7 +885,9 @@ namespace YC.Tests.EditMode
             var fixture = CreateFixture();
             var markerState = AddMilitarySpecialActionMarker(fixture, "mode-marker");
             fixture.Presenter.BeginDeployAction();
-            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ResolvingDeployTarget));
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Flow.IsActive(fixture.Influence), Is.True);
+            Assert.That(fixture.Influence.IsSelectingDeployTarget, Is.True);
             Assert.That(fixture.View.Highlights, Is.Not.Empty);
             fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
             var marker = FindMarker(fixture.View.CityStyleOptions.CityStyleMarkers, markerState.InfluenceMarkerId);
@@ -594,17 +931,20 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void SwitchingWorkflow_CancelsPreviousSelectionAndTracksDynamicMode()
+        public void SwitchingWorkflow_CancelsPreviousSelectionAndTracksWorkflowIdentity()
         {
             var fixture = CreateFixture();
             fixture.Presenter.BeginExploreAction();
             Assert.That(fixture.Flow.IsActive(fixture.Exploration), Is.True);
-            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ResolvingExploreTarget));
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Exploration.IsSelectingExploreTarget, Is.True);
 
             fixture.Presenter.BeginDeployAction();
             Assert.That(fixture.Exploration.Mode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.Exploration.IsSelectingExploreTarget, Is.False);
             Assert.That(fixture.Flow.IsActive(fixture.Influence), Is.True);
-            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ResolvingDeployTarget));
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Influence.IsSelectingDeployTarget, Is.True);
         }
 
         [Test]
@@ -669,7 +1009,7 @@ namespace YC.Tests.EditMode
                     highlight.TargetId == "B" &&
                     highlight.Semantic == WorkflowHighlightSemantic.CollectionSelected),
                 Is.True);
-            Assert.That(panel.Mode, Is.EqualTo(InteractionMode.ResolvingResourceCollection));
+            Assert.That(panel.Mode, Is.EqualTo(InteractionMode.Busy));
             Assert.That(panel.IsWaitingForOtherPlayers, Is.False);
             Assert.That(panel.CanEndAction, Is.True);
             Assert.That(fixture.View.Prompt, Is.EqualTo(panel.StatusText));
@@ -953,9 +1293,11 @@ namespace YC.Tests.EditMode
             public GameCommand LastCommand;
             public WorkflowSubmissionResult NextResult;
             public System.Func<GameCommand, WorkflowSubmissionResult> SubmitHandler;
+            public int SubmitCount;
 
             public WorkflowSubmissionResult Submit(GameCommand command)
             {
+                SubmitCount += 1;
                 LastCommand = command;
                 return SubmitHandler == null ? NextResult : SubmitHandler(command);
             }

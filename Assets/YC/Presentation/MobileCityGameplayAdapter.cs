@@ -14,24 +14,47 @@ namespace YC.Presentation
         private readonly Func<bool> controlsCurrentPlayerLocally;
         private readonly Action<int> setLocalPlayerId;
         private readonly Func<CommandSubmissionController> getCommandSubmission;
+        private readonly IGameCommandPort commandPort;
+        private readonly LocalPlayerResolver localPlayerResolver = new LocalPlayerResolver();
 
         public MobileCityGameplayAdapter(
             Func<GameState> getState,
             Func<int> getLocalPlayerId,
             Func<bool> controlsCurrentPlayerLocally,
             Action<int> setLocalPlayerId,
-            Func<CommandSubmissionController> getCommandSubmission)
+            Func<CommandSubmissionController> getCommandSubmission,
+            Action refreshScoreTrack)
         {
             this.getState = getState ?? throw new ArgumentNullException(nameof(getState));
             this.getLocalPlayerId = getLocalPlayerId ?? throw new ArgumentNullException(nameof(getLocalPlayerId));
             this.controlsCurrentPlayerLocally = controlsCurrentPlayerLocally ?? throw new ArgumentNullException(nameof(controlsCurrentPlayerLocally));
             this.setLocalPlayerId = setLocalPlayerId ?? throw new ArgumentNullException(nameof(setLocalPlayerId));
             this.getCommandSubmission = getCommandSubmission ?? throw new ArgumentNullException(nameof(getCommandSubmission));
+            commandPort = new ScoreTrackRefreshingCommandPort(
+                this,
+                new DelegateCommandPort(SubmitToSession),
+                refreshScoreTrack);
         }
 
         public GameState CurrentState => getState();
 
-        public int LocalPlayerId => getLocalPlayerId();
+        public int LocalPlayerId
+        {
+            get
+            {
+                var configuredPlayerId = getLocalPlayerId();
+                var resolvedPlayerId = localPlayerResolver.Resolve(
+                    getState(),
+                    configuredPlayerId,
+                    controlsCurrentPlayerLocally());
+                if (resolvedPlayerId > 0 && resolvedPlayerId != configuredPlayerId)
+                {
+                    setLocalPlayerId(resolvedPlayerId);
+                }
+
+                return resolvedPlayerId;
+            }
+        }
 
         public bool ControlsCurrentPlayerLocally => controlsCurrentPlayerLocally();
 
@@ -44,6 +67,11 @@ namespace YC.Presentation
         }
 
         public WorkflowSubmissionResult Submit(GameCommand command)
+        {
+            return commandPort.Submit(command);
+        }
+
+        private WorkflowSubmissionResult SubmitToSession(GameCommand command)
         {
             var submission = getCommandSubmission();
             if (submission == null)
@@ -58,6 +86,21 @@ namespace YC.Presentation
             bool appliedLocally;
             var result = submission.Submit(command, out appliedLocally);
             return new WorkflowSubmissionResult(result, appliedLocally);
+        }
+
+        private sealed class DelegateCommandPort : IGameCommandPort
+        {
+            private readonly Func<GameCommand, WorkflowSubmissionResult> submit;
+
+            public DelegateCommandPort(Func<GameCommand, WorkflowSubmissionResult> submit)
+            {
+                this.submit = submit ?? throw new ArgumentNullException(nameof(submit));
+            }
+
+            public WorkflowSubmissionResult Submit(GameCommand command)
+            {
+                return submit(command);
+            }
         }
     }
 }

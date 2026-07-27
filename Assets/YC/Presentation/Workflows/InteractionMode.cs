@@ -4,18 +4,7 @@ namespace YC.Presentation.Workflows
     {
         Hidden,
         ChooseAction,
-        ResolvingMoveTarget,
-        ResolvingExploreTarget,
-        ResolvingDeployTarget,
-        ResolvingDispatchSource,
-        ResolvingDispatchTarget,
-        ResolvingDispatchDecision,
-        ResolvingBuildCard,
-        ResolvingBuildFocus,
-        ResolvingBuildConfirmation,
-        ResolvingEventInfluenceTarget,
-        ResolvingResourceCollection,
-        PendingChoice,
+        Busy,
         WaitingForNextPlayer
     }
 }

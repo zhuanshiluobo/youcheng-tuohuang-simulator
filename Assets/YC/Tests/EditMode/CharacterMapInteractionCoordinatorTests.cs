@@ -117,6 +117,7 @@ namespace YC.Tests.EditMode
                 ChoiceType = CharacterPendingChoiceTypes.TinManDiscard,
                 PlayerId = 1,
                 CardId = state.FindPlayer(1).CoveredCharacterCardId,
+                SourceCommandId = "tin-man-source-command",
                 RemainingCardIds = { "discard-a" },
                 OptionIds = { CharacterEffectChoiceIds.GainGold, CharacterEffectChoiceIds.MoveInfluence }
             };
@@ -139,6 +140,9 @@ namespace YC.Tests.EditMode
             Assert.That(submitted[CharacterEffectParameterKeys.Choice], Is.EqualTo(CharacterEffectChoiceIds.MoveInfluence));
             Assert.That(submitted[CharacterEffectParameterKeys.SourceInfluenceSlotId], Is.EqualTo(source));
             Assert.That(submitted[CharacterEffectParameterKeys.TargetInfluenceSlotId], Is.EqualTo(target));
+            Assert.That(
+                submitted[CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId],
+                Is.EqualTo("tin-man-source-command"));
         }
 
         private static CharacterMapInteractionCoordinator CreateCoordinator(

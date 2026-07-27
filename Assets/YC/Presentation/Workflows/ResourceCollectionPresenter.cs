@@ -9,10 +9,10 @@ using YC.Domain.State;
 
 namespace YC.Presentation.Workflows
 {
-    public sealed class ResourceCollectionPresenter : IInteractionWorkflow
+    public sealed class ResourceCollectionPresenter : IInteractionWorkflow, IInteraction
     {
         private readonly IGameplayContext context;
-        private readonly IGameCommandPort commandPort;
+        private readonly CommandGateway commandGateway;
         private readonly IResourceCollectionView view;
         private readonly IMapQueryService mapQuery;
         private readonly ResourceCollectionService resourceCollectionService;
@@ -29,7 +29,8 @@ namespace YC.Presentation.Workflows
             ResourceCollectionService resourceCollectionService)
         {
             this.context = context ?? throw new ArgumentNullException(nameof(context));
-            this.commandPort = commandPort ?? throw new ArgumentNullException(nameof(commandPort));
+            commandGateway = new CommandGateway(
+                commandPort ?? throw new ArgumentNullException(nameof(commandPort)));
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
             this.resourceCollectionService = resourceCollectionService ??
@@ -39,7 +40,30 @@ namespace YC.Presentation.Workflows
 
         public InteractionMode Mode
         {
-            get { return InteractionMode.ResolvingResourceCollection; }
+            get { return InteractionMode.Busy; }
+        }
+
+        public string Id
+        {
+            get { return "active.resource-collection"; }
+        }
+
+        public InteractionPriority Priority
+        {
+            get { return InteractionPriority.ActiveAction; }
+        }
+
+        public bool IsActive
+        {
+            get
+            {
+                var state = context.CurrentState;
+                var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
+                return state != null &&
+                       state.Phase == GamePhase.ResourceCollection &&
+                       player != null &&
+                       !player.HasCollectedResourcesThisRound;
+            }
         }
 
         public ResourceCollectionSelectionQuery CurrentQuery
@@ -91,6 +115,41 @@ namespace YC.Presentation.Workflows
             selectionQuery = null;
             view.ClearHighlights();
             view.RefreshSelectionView();
+        }
+
+        public InteractionResult OnLocationClicked(string locationId)
+        {
+            return InteractionResult.Passthrough;
+        }
+
+        public InteractionResult OnInfluenceSlotClicked(string slotId)
+        {
+            return InteractionResult.Passthrough;
+        }
+
+        public InteractionResult OnMobileCityClicked()
+        {
+            return InteractionResult.Passthrough;
+        }
+
+        public InteractionResult OnEscape()
+        {
+            return InteractionResult.Passthrough;
+        }
+
+        public InteractionPresentation BuildPresentation()
+        {
+            return IsActive
+                ? new InteractionPresentation(
+                    null,
+                    BuildStatus(),
+                    InteractionMode.Busy,
+                    false)
+                : InteractionPresentation.Empty;
+        }
+
+        public void NotifyCommandSettled(string commandId)
+        {
         }
 
         public void SelectLocation(string locationId)
@@ -183,28 +242,20 @@ namespace YC.Presentation.Workflows
                 command.Parameters[CollectResourceCommandHandler.PaymentRecipientsParameter] = paymentRecipients;
             }
 
-            var submission = commandPort.Submit(command);
-            if (submission == null || submission.CommandResult == null)
-            {
-                view.ShowPrompt("\u91c7\u96c6\u547d\u4ee4\u672a\u8fd4\u56de\u7ed3\u679c\u3002");
-                return;
-            }
-
-            var result = submission.CommandResult;
-            if (!result.Succeeded)
-            {
-                view.ShowPrompt(result.Validation.Reason);
-                return;
-            }
-
-            if (!submission.AppliedLocally)
-            {
-                view.ShowPrompt("\u91c7\u96c6\u547d\u4ee4\u5df2\u53d1\u9001\u7ed9\u4e3b\u673a\uff0c\u7b49\u5f85\u786e\u8ba4\u3002");
-                return;
-            }
-
-            view.RefreshFromState();
-            view.ShowPrompt(BuildResultPrompt(result));
+            commandGateway.Submit(
+                command,
+                new SubmitCallbacks(
+                    view.ShowPrompt,
+                    CommandGateway.BuildWaitingForHostPrompt("\u91c7\u96c6\u547d\u4ee4"))
+                {
+                    MissingResultPrompt =
+                        CommandGateway.BuildMissingResultPrompt("\u91c7\u96c6\u547d\u4ee4"),
+                    OnAppliedLocally = result =>
+                    {
+                        view.RefreshFromState();
+                        view.ShowPrompt(BuildResultPrompt(result));
+                    }
+                });
         }
 
         public string BuildStatus()

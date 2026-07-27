@@ -21,7 +21,6 @@ namespace YC.Presentation
         {
             None,
             AdditionalFacility,
-            AdditionalPayment,
             ExtensionHub,
             MercenaryBranch,
             MercenaryReplace,
@@ -48,15 +47,21 @@ namespace YC.Presentation
         private readonly Action<GameCommand> submit;
         private readonly Action<string> setPrompt;
         private readonly BuildFacilityService buildFacilityService = new BuildFacilityService();
+        private readonly BuildFacilitySelectionController additionalBuildSelection =
+            new BuildFacilitySelectionController();
         private readonly InfluenceService influenceService;
+        private Action<BuildFacilityDraftViewModel> showAdditionalBuildDraft;
+        private Action hideAdditionalBuildDraft;
         private string sessionId = string.Empty;
+        private string inFlightCommandId = string.Empty;
+        private string inFlightSessionId = string.Empty;
         private SelectionStage stage;
         private string selectedOptionId = string.Empty;
-        private int selectedCityBoardSlotIndex = -1;
         private string removeInfluenceSlotId = string.Empty;
         private string sourceInfluenceSlotId = string.Empty;
         private readonly List<string> deployInfluenceSlotIds = new List<string>();
         private bool extensionHubDragging;
+        private bool additionalBuildDraftVisible;
 
         public FacilityEffectInteractionUiCoordinator(
             Func<GameState> getState,
@@ -113,6 +118,14 @@ namespace YC.Presentation
             get { return extensionHubDragging && stage == SelectionStage.ExtensionHub; }
         }
 
+        public void ConfigureAdditionalBuildDraftView(
+            Action<BuildFacilityDraftViewModel> show,
+            Action hide)
+        {
+            showAdditionalBuildDraft = show ?? throw new ArgumentNullException(nameof(show));
+            hideAdditionalBuildDraft = hide ?? throw new ArgumentNullException(nameof(hide));
+        }
+
         public bool Synchronize()
         {
             PendingCardSessionState pending;
@@ -122,13 +135,19 @@ namespace YC.Presentation
                 return false;
             }
 
+            if (!string.IsNullOrEmpty(inFlightSessionId) &&
+                !string.Equals(inFlightSessionId, pending.SessionId, StringComparison.Ordinal))
+            {
+                ClearSubmissionInFlight();
+            }
+
             var sessionChanged = !string.Equals(sessionId, pending.SessionId, StringComparison.Ordinal);
             if (sessionChanged)
             {
                 ResetForPending(pending);
             }
 
-            if (sessionChanged || !dialog.IsShowing)
+            if (sessionChanged || (!dialog.IsShowing && !additionalBuildDraftVisible))
             {
                 Render(pending);
             }
@@ -274,7 +293,17 @@ namespace YC.Presentation
                 return false;
             }
 
+            EnsureAdditionalBuildSelection(pending);
+            string reason;
+            if (!additionalBuildSelection.TryBeginDrag(getState(), facilityId, out reason))
+            {
+                setPrompt(reason);
+                Render(pending);
+                return true;
+            }
+
             dialog.Hide();
+            HideAdditionalBuildDraft();
             return true;
         }
 
@@ -285,33 +314,52 @@ namespace YC.Presentation
                 pending.ChoiceType != FacilityPendingChoiceTypes.BuildAdditionalFacility ||
                 stage != SelectionStage.AdditionalFacility ||
                 string.IsNullOrEmpty(facilityId) ||
-                !pending.OptionIds.Contains(facilityId))
+                !pending.OptionIds.Contains(facilityId) ||
+                !string.Equals(
+                    additionalBuildSelection.FacilityId,
+                    facilityId,
+                    StringComparison.Ordinal))
             {
                 return false;
             }
 
-            if (cityBoardSlotIndex < 0 || cityBoardSlotIndex >= BuildFacilityService.CityBoardSlotCount)
+            string reason;
+            if (!additionalBuildSelection.TryDrop(getState(), cityBoardSlotIndex, out reason))
             {
-                setPrompt("请把建设牌拖到城市面板的空槽位。");
+                setPrompt(reason);
+                EnsureAdditionalBuildSelection(pending);
                 Render(pending);
                 return true;
             }
 
-            var occupied = getState().Map.Facilities.Exists(placement =>
-                placement.PlayerId == getLocalPlayerId() &&
-                placement.CityBoardSlotIndex == cityBoardSlotIndex);
-            if (occupied)
-            {
-                setPrompt("该城市面板槽位已经被占用。");
-                Render(pending);
-                return true;
-            }
-
-            selectedOptionId = facilityId;
-            selectedCityBoardSlotIndex = cityBoardSlotIndex;
-            stage = SelectionStage.AdditionalPayment;
             Render(pending);
             return true;
+        }
+
+        public bool TryHandleAdditionalBuildEscape()
+        {
+            PendingCardSessionState pending;
+            if (!presenter.TryGetPending(getState(), getLocalPlayerId(), out pending) ||
+                pending.ChoiceType != FacilityPendingChoiceTypes.BuildAdditionalFacility ||
+                !additionalBuildSelection.IsActive)
+            {
+                return false;
+            }
+
+            CollapseAdditionalBuildToGhost(pending);
+            return true;
+        }
+
+        public void NotifyCommandSettled(string commandId)
+        {
+            if (string.IsNullOrEmpty(inFlightCommandId) ||
+                (!string.IsNullOrEmpty(commandId) &&
+                 !string.Equals(inFlightCommandId, commandId, StringComparison.Ordinal)))
+            {
+                return;
+            }
+
+            ClearSubmissionInFlight();
         }
 
         public void Dispose()
@@ -321,22 +369,30 @@ namespace YC.Presentation
 
         private void ResetForPending(PendingCardSessionState pending)
         {
+            ClearSubmissionInFlight();
+            HideAdditionalBuildDraft();
+            additionalBuildSelection.Cancel();
             sessionId = pending.SessionId;
             selectedOptionId = string.Empty;
-            selectedCityBoardSlotIndex = -1;
             removeInfluenceSlotId = string.Empty;
             sourceInfluenceSlotId = string.Empty;
             deployInfluenceSlotIds.Clear();
             extensionHubDragging = false;
             stage = InitialStage(pending.ChoiceType);
+            if (pending.ChoiceType == FacilityPendingChoiceTypes.BuildAdditionalFacility)
+            {
+                EnsureAdditionalBuildSelection(pending);
+            }
         }
 
         private void ResetAndHide()
         {
+            ClearSubmissionInFlight();
+            HideAdditionalBuildDraft();
+            additionalBuildSelection.Cancel();
             sessionId = string.Empty;
             stage = SelectionStage.None;
             selectedOptionId = string.Empty;
-            selectedCityBoardSlotIndex = -1;
             removeInfluenceSlotId = string.Empty;
             sourceInfluenceSlotId = string.Empty;
             deployInfluenceSlotIds.Clear();
@@ -404,33 +460,205 @@ namespace YC.Presentation
 
         private void ShowAdditionalBuild(PendingCardSessionState pending)
         {
-            if (stage == SelectionStage.AdditionalFacility)
+            EnsureAdditionalBuildSelection(pending);
+            if (additionalBuildSelection.Phase == BuildFacilityDraftPhase.Focused ||
+                additionalBuildSelection.Phase == BuildFacilityDraftPhase.Confirming ||
+                additionalBuildSelection.Phase == BuildFacilityDraftPhase.Ghosted ||
+                additionalBuildSelection.Phase == BuildFacilityDraftPhase.Dragging)
             {
-                stage = SelectionStage.AdditionalFacility;
-                dialog.ShowMapPrompt(
-                    getCanvas(),
-                    "简陋工程营",
-                    "拖动供应区中亮起的建设牌到城市面板空槽位，选择位置后再决定支付方式。",
-                    string.Empty,
-                    null);
+                ShowAdditionalBuildDraft(pending);
                 return;
             }
 
-            var payments = new List<EffectDialogOption>
-            {
-                new EffectDialogOption("支付资源", () => SubmitAdditionalBuild(pending, BuildFacilityService.PaymentModeResources)),
-                new EffectDialogOption("支付金券", () => SubmitAdditionalBuild(pending, BuildFacilityService.PaymentModeGold))
-            };
-            dialog.ShowOptions(
+            HideAdditionalBuildDraft();
+            dialog.ShowMapPrompt(
                 getCanvas(),
                 "简陋工程营",
-                "选择支付方式。实际费用和可支付性由规则层确认。",
-                payments,
-                () =>
+                "拖动供应区中亮起的建设牌到城市面板空槽位，选择位置后进入标准建设确认流程。",
+                string.Empty,
+                null);
+        }
+
+        private void ShowAdditionalBuildDraft(PendingCardSessionState pending)
+        {
+            if (showAdditionalBuildDraft == null)
+            {
+                setPrompt("标准建设界面尚未就绪，请稍后重试。");
+                ReturnToAdditionalBuildSelection(pending);
+                return;
+            }
+
+            dialog.Hide();
+            var state = getState();
+            var facility = FacilityCardDatabase.Get(additionalBuildSelection.FacilityId);
+            additionalBuildDraftVisible = true;
+            showAdditionalBuildDraft(new BuildFacilityDraftViewModel(
+                additionalBuildSelection.Phase,
+                additionalBuildSelection.QueryOptions(state),
+                additionalBuildSelection.QuerySelectedOption(state),
+                facility,
+                additionalBuildSelection.CityBoardSlotIndex,
+                additionalBuildSelection.PaymentMode,
+                additionalBuildSelection.ErrorMessage,
+                additionalBuildSelection.QueryLegalSlotIndexes(state),
+                intent => DispatchAdditionalBuildIntent(pending, intent)));
+        }
+
+        private void DispatchAdditionalBuildIntent(
+            PendingCardSessionState pending,
+            BuildFacilityIntent intent)
+        {
+            if (intent == null)
+            {
+                throw new ArgumentNullException(nameof(intent));
+            }
+
+            var beginDrag = intent as BuildFacilityIntent.BeginDrag;
+            if (beginDrag != null)
+            {
+                TryBeginAdditionalBuildDrag(beginDrag.FacilityId);
+                return;
+            }
+
+            if (intent is BuildFacilityIntent.BeginGhostDrag)
+            {
+                string reason;
+                if (!additionalBuildSelection.TryBeginGhostDrag(out reason))
                 {
-                    stage = SelectionStage.AdditionalFacility;
-                    Render(pending);
-                });
+                    setPrompt(reason);
+                }
+
+                Render(pending);
+                return;
+            }
+
+            var drop = intent as BuildFacilityIntent.Drop;
+            if (drop != null)
+            {
+                string reason;
+                if (!additionalBuildSelection.TryDrop(
+                        getState(),
+                        drop.CityBoardSlotIndex,
+                        out reason))
+                {
+                    setPrompt(reason);
+                }
+
+                Render(pending);
+                return;
+            }
+
+            if (intent is BuildFacilityIntent.RejectDrop)
+            {
+                additionalBuildSelection.RejectDrop();
+                Render(pending);
+                return;
+            }
+
+            if (intent is BuildFacilityIntent.Escape)
+            {
+                CollapseAdditionalBuildToGhost(pending);
+                return;
+            }
+
+            var selectPayment = intent as BuildFacilityIntent.SelectPayment;
+            if (selectPayment != null)
+            {
+                SelectAdditionalBuildPayment(pending, selectPayment.PaymentMode);
+                return;
+            }
+
+            if (intent is BuildFacilityIntent.Back)
+            {
+                BackToAdditionalBuildPayment(pending);
+                return;
+            }
+
+            if (intent is BuildFacilityIntent.Confirm)
+            {
+                ConfirmAdditionalBuild(pending);
+                return;
+            }
+
+            if (intent is BuildFacilityIntent.Cancel)
+            {
+                ReturnToAdditionalBuildSelection(pending);
+                return;
+            }
+
+            throw new ArgumentException("不支持的额外建设交互意图。", nameof(intent));
+        }
+
+        private void CollapseAdditionalBuildToGhost(PendingCardSessionState pending)
+        {
+            if (additionalBuildSelection.Phase == BuildFacilityDraftPhase.Confirming)
+            {
+                additionalBuildSelection.BackToPayment();
+            }
+
+            if (additionalBuildSelection.Phase == BuildFacilityDraftPhase.Focused)
+            {
+                additionalBuildSelection.CollapseFocusToGhost();
+                setPrompt("额外建设草稿已缩回本地虚影；拖动建设牌可继续，点击 × 可取消当前选择。");
+                Render(pending);
+            }
+        }
+
+        private void SelectAdditionalBuildPayment(PendingCardSessionState pending, string paymentMode)
+        {
+            string reason;
+            if (!additionalBuildSelection.TrySelectPayment(getState(), paymentMode, out reason))
+            {
+                setPrompt(reason);
+            }
+
+            Render(pending);
+        }
+
+        private void BackToAdditionalBuildPayment(PendingCardSessionState pending)
+        {
+            additionalBuildSelection.BackToPayment();
+            Render(pending);
+        }
+
+        private void ConfirmAdditionalBuild(PendingCardSessionState pending)
+        {
+            if (additionalBuildSelection.Phase != BuildFacilityDraftPhase.Confirming)
+            {
+                return;
+            }
+
+            SubmitAdditionalBuild(pending, additionalBuildSelection.PaymentMode);
+        }
+
+        private void ReturnToAdditionalBuildSelection(PendingCardSessionState pending)
+        {
+            HideAdditionalBuildDraft();
+            additionalBuildSelection.BeginAdditionalBuild(getLocalPlayerId(), pending.OptionIds);
+            stage = SelectionStage.AdditionalFacility;
+            Render(pending);
+        }
+
+        private void EnsureAdditionalBuildSelection(PendingCardSessionState pending)
+        {
+            if (!additionalBuildSelection.IsActive)
+            {
+                additionalBuildSelection.BeginAdditionalBuild(getLocalPlayerId(), pending.OptionIds);
+            }
+        }
+
+        private void HideAdditionalBuildDraft()
+        {
+            if (!additionalBuildDraftVisible)
+            {
+                return;
+            }
+
+            additionalBuildDraftVisible = false;
+            if (hideAdditionalBuildDraft != null)
+            {
+                hideAdditionalBuildDraft();
+            }
         }
 
         private void ShowExtensionHub(PendingCardSessionState pending)
@@ -761,10 +989,11 @@ namespace YC.Presentation
         {
             var parameters = new Dictionary<string, string>
             {
-                [BuildFacilityCommandHandler.CityBoardSlotIndexParameter] = selectedCityBoardSlotIndex.ToString(),
+                [BuildFacilityCommandHandler.CityBoardSlotIndexParameter] =
+                    additionalBuildSelection.CityBoardSlotIndex.ToString(),
                 [BuildFacilityCommandHandler.PaymentModeParameter] = paymentMode
             };
-            Submit(pending, selectedOptionId, parameters);
+            Submit(pending, additionalBuildSelection.FacilityId, parameters);
         }
 
         private void SubmitWarehouseRemoveDispatch(PendingCardSessionState pending, string targetSlotId)
@@ -789,7 +1018,51 @@ namespace YC.Presentation
             string optionId,
             IReadOnlyDictionary<string, string> parameters)
         {
-            submit(presenter.CreateResolveCommand(pending, getLocalPlayerId(), optionId, parameters));
+            if (pending == null || RejectWhileSubmissionInFlight(pending))
+            {
+                return;
+            }
+
+            var command = presenter.CreateResolveCommand(
+                pending,
+                getLocalPlayerId(),
+                optionId,
+                parameters);
+            inFlightCommandId = command.CommandId;
+            inFlightSessionId = pending.SessionId ?? string.Empty;
+            try
+            {
+                submit(command);
+            }
+            catch
+            {
+                ClearSubmissionInFlight();
+                throw;
+            }
+        }
+
+        private bool RejectWhileSubmissionInFlight(PendingCardSessionState pending)
+        {
+            if (string.IsNullOrEmpty(inFlightCommandId))
+            {
+                return false;
+            }
+
+            if (pending == null ||
+                !string.Equals(inFlightSessionId, pending.SessionId, StringComparison.Ordinal))
+            {
+                ClearSubmissionInFlight();
+                return false;
+            }
+
+            setPrompt("设施待选命令已发送，正在等待结算，请勿重复提交。");
+            return true;
+        }
+
+        private void ClearSubmissionInFlight()
+        {
+            inFlightCommandId = string.Empty;
+            inFlightSessionId = string.Empty;
         }
 
         private IReadOnlyDictionary<string, string> ResourceParameters(IReadOnlyList<int> values, bool includePure)

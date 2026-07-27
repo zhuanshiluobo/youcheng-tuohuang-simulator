@@ -97,6 +97,58 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void UnifiedInteraction_FacilitySelectionIsActiveAndEscapeCancelsIt()
+        {
+            var state = CreateState();
+            var effectFixture = CreateCoordinator(state);
+            var mapCoordinator = new YC.Presentation.CharacterMapInteractionCoordinator(
+                () => state,
+                () => 1,
+                new CharacterCardPanelPresenter(),
+                _ => { },
+                () => { },
+                (_, __) => { },
+                _ => { },
+                _ => { });
+            var facilitySelectionActive = true;
+            var cancellationCount = 0;
+            var interactionType = Type.GetType(
+                "YC.Presentation.CharacterCardInteraction, Assembly-CSharp",
+                false);
+            Assert.That(interactionType, Is.Not.Null);
+            var constructors = interactionType.GetConstructors(
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            Assert.That(constructors, Has.Length.EqualTo(1));
+            var interaction = constructors[0].Invoke(new object[]
+            {
+                effectFixture.Coordinator,
+                mapCoordinator,
+                new Func<bool>(() => false),
+                new Func<bool>(() => facilitySelectionActive),
+                new Func<bool>(() =>
+                {
+                    cancellationCount += 1;
+                    facilitySelectionActive = false;
+                    return true;
+                })
+            });
+
+            Assert.That(
+                (bool)interactionType.GetProperty("IsActive").GetValue(interaction, null),
+                Is.True);
+
+            var result = (InteractionResult)interactionType
+                .GetMethod("OnEscape")
+                .Invoke(interaction, null);
+
+            Assert.That(result, Is.SameAs(InteractionResult.Consumed));
+            Assert.That(cancellationCount, Is.EqualTo(1));
+            Assert.That(
+                (bool)interactionType.GetProperty("IsActive").GetValue(interaction, null),
+                Is.False);
+        }
+
+        [Test]
         public void CannotStrategy_UsesQuantityDialogInsteadOfInfoPanelDraft()
         {
             var state = CreateState();

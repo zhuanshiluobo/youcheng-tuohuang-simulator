@@ -19,6 +19,31 @@ namespace YC.Tests.EditMode
     public sealed class ExplorationEventPresenterTests
     {
         [Test]
+        public void ExploreInteraction_WrapsPresenterWithoutOwningMapInputSideEffects()
+        {
+            var fixture = CreateFixture(false);
+            var interaction = new ExploreInteraction(fixture.Presenter);
+
+            Assert.That(interaction.Id, Is.EqualTo("active.explore"));
+            Assert.That(interaction.Priority, Is.EqualTo(InteractionPriority.ActiveAction));
+            Assert.That(interaction.IsActive, Is.False);
+            Assert.That(interaction.BuildPresentation().IsEmpty, Is.True);
+
+            fixture.Presenter.BeginTargetSelection();
+
+            Assert.That(interaction.IsActive, Is.True);
+            Assert.That(interaction.BuildPresentation().PanelMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(interaction.BuildPresentation().PromptText, Does.Contain("探索"));
+            Assert.That(
+                interaction.OnLocationClicked("B"),
+                Is.SameAs(InteractionResult.Passthrough));
+            interaction.Cancel();
+
+            Assert.That(fixture.Presenter.IsActive, Is.False);
+            Assert.That(interaction.BuildPresentation().IsEmpty, Is.True);
+        }
+
+        [Test]
         public void SinglePathWithoutOpponentChoiceSubmitsEncodedExploreCommand()
         {
             var fixture = CreateFixture(false);
@@ -45,6 +70,11 @@ namespace YC.Tests.EditMode
             fixture.Presenter.SelectTarget("B");
             Assert.That(fixture.Commands.LastCommand, Is.Null);
             Assert.That(fixture.View.PaymentOptions, Is.Not.Null);
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsChoosingPaymentRecipient, Is.True);
+            Assert.That(
+                fixture.Presenter.CurrentPrompt,
+                Is.EqualTo("选择每条路线的过路费接收者，然后确认探索。"));
 
             fixture.View.PaymentOptions.SelectRecipient("R1", 2);
             fixture.View.PaymentOptions.Confirm();
@@ -75,6 +105,7 @@ namespace YC.Tests.EditMode
 
             fixture.Presenter.SelectTarget("B");
             Assert.That(fixture.View.PaymentOptions, Is.Not.Null);
+            Assert.That(fixture.Presenter.IsChoosingPaymentRecipient, Is.True);
             fixture.View.PaymentOptions.SelectRecipient("R1", 2);
             fixture.View.PaymentOptions.Confirm();
 
@@ -105,8 +136,12 @@ namespace YC.Tests.EditMode
 
             Assert.That(fixture.View.PathOptions, Is.Not.Null);
             Assert.That(fixture.View.PathOptions.Choices.Count, Is.EqualTo(2));
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsChoosingPath, Is.True);
             fixture.View.PathOptions.SelectPath(1);
             Assert.That(fixture.View.PaymentOptions, Is.Not.Null);
+            Assert.That(fixture.Presenter.IsChoosingPath, Is.False);
+            Assert.That(fixture.Presenter.IsChoosingPaymentRecipient, Is.True);
         }
 
         [Test]
@@ -115,6 +150,8 @@ namespace YC.Tests.EditMode
             var fixture = CreateFixture(false);
             SetPending(fixture.Context.State, ExploreLocationCommandHandler.ExploreEventChoiceType, "event_green_01");
             fixture.Presenter.ShowPendingChoice();
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsChoosingEventOption, Is.True);
             fixture.View.EventOptions.SelectChoice(0);
             Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.ResolvePendingChoice));
             Assert.That(fixture.Commands.LastCommand.OptionIds, Is.EqualTo(new[] { "0" }));
@@ -145,8 +182,11 @@ namespace YC.Tests.EditMode
             var fixture = CreateFixture(false);
             SetPending(fixture.Context.State, ExploreLocationCommandHandler.ExploreEventChoiceType, "event_red_01");
             fixture.Presenter.ShowPendingChoice();
+            Assert.That(fixture.Presenter.IsChoosingEventOption, Is.True);
 
             fixture.View.EventOptions.SelectChoice(2);
+            Assert.That(fixture.Presenter.IsChoosingEventOption, Is.False);
+            Assert.That(fixture.Presenter.IsSelectingInfluenceTarget, Is.True);
             var slotId = fixture.View.FirstHighlightedSlot();
             Assert.That(slotId, Is.Not.Empty);
             fixture.Presenter.SelectInfluenceSlot(slotId);
@@ -180,7 +220,9 @@ namespace YC.Tests.EditMode
                 RouteIds = { "R1" }
             };
             fixture.Presenter.BeginWithPathAndCard("B", path, card);
+            Assert.That(fixture.Presenter.IsChoosingEventOption, Is.True);
             fixture.Presenter.SelectEventChoice(0);
+            Assert.That(fixture.Presenter.IsSelectingInfluenceTarget, Is.True);
 
             var first = fixture.View.FirstHighlightedSlot();
             Assert.That(first, Is.Not.Empty);
@@ -239,8 +281,12 @@ namespace YC.Tests.EditMode
         {
             var fixture = CreateFixture(false);
             fixture.Commands.NextResult = Success(false);
+            fixture.Presenter.Activate();
+            Assert.That(fixture.Presenter.IsSelectingExploreTarget, Is.True);
             fixture.Presenter.SelectTarget("B");
             Assert.That(fixture.Presenter.SelectedPath, Is.Not.Null);
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsSelectingExploreTarget, Is.True);
             Assert.That(fixture.View.Prompt, Does.Contain("\u7b49\u5f85\u786e\u8ba4"));
 
             fixture.Commands.NextResult = new WorkflowSubmissionResult(
@@ -248,7 +294,26 @@ namespace YC.Tests.EditMode
                 false);
             fixture.Presenter.ConfirmExploreStart();
             Assert.That(fixture.Presenter.SelectedPath, Is.Not.Null);
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsSelectingExploreTarget, Is.True);
             Assert.That(fixture.View.Prompt, Is.EqualTo("rejected"));
+        }
+
+        [Test]
+        public void AppliedLocallyClearsWorkflowStage()
+        {
+            var fixture = CreateFixture(false);
+            fixture.Commands.NextResult = Success(true);
+            fixture.Presenter.Activate();
+
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsSelectingExploreTarget, Is.True);
+
+            fixture.Presenter.SelectTarget("B");
+
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.Presenter.IsSelectingExploreTarget, Is.False);
+            Assert.That(fixture.Presenter.CurrentPrompt, Is.Empty);
         }
 
         [Test]
@@ -263,6 +328,13 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.Presenter.SelectedPath, Is.Null);
             Assert.That(fixture.Presenter.PaymentRecipients, Is.Empty);
             Assert.That(fixture.Presenter.SelectedInfluenceSlotIds, Is.Empty);
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.Presenter.IsSelectingExploreTarget, Is.False);
+            Assert.That(fixture.Presenter.IsChoosingPath, Is.False);
+            Assert.That(fixture.Presenter.IsChoosingPaymentRecipient, Is.False);
+            Assert.That(fixture.Presenter.IsChoosingEventOption, Is.False);
+            Assert.That(fixture.Presenter.IsSelectingInfluenceTarget, Is.False);
+            Assert.That(fixture.Presenter.CurrentPrompt, Is.Empty);
             Assert.That(fixture.View.Highlights, Is.Empty);
             Assert.That(fixture.View.HideCount, Is.GreaterThan(0));
         }
@@ -440,8 +512,9 @@ namespace YC.Tests.EditMode
             public ExplorePaymentOptionsViewModel PaymentOptions;
             public EventCardOptionsViewModel EventOptions;
             public int HideCount;
+            public InteractionMode Mode;
 
-            public void SetInteractionMode(InteractionMode mode) { }
+            public void SetInteractionMode(InteractionMode mode) { Mode = mode; }
             public void ShowPrompt(string message) { Prompt = message; }
             public void SetHighlights(IReadOnlyList<WorkflowHighlight> highlights)
             {

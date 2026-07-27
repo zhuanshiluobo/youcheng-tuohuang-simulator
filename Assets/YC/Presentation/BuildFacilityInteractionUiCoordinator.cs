@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
 
@@ -12,7 +11,6 @@ namespace YC.Presentation
         private readonly BuildInfoPanel panel;
         private readonly TurnActionPresenter presenter;
         private readonly FacilityEffectInteractionUiCoordinator facilityEffects;
-        private static int escapeConsumedFrame = -1;
         private bool usesAdditionalBuild;
         private bool additionalBuildDragging;
 
@@ -98,23 +96,6 @@ namespace YC.Presentation
                 OnGhostDropped);
         }
 
-        public bool TryHandleEscape()
-        {
-            if (!presenter.HandleBuildFacilityEscape())
-            {
-                return false;
-            }
-
-            escapeConsumedFrame = Time.frameCount;
-            Synchronize();
-            return true;
-        }
-
-        public static bool WasEscapeConsumedThisFrame()
-        {
-            return escapeConsumedFrame == Time.frameCount;
-        }
-
         public void Dispose()
         {
             panel.FacilityDragStarted -= OnFacilityDragStarted;
@@ -132,7 +113,16 @@ namespace YC.Presentation
             }
 
             additionalBuildDragging = false;
-            presenter.BeginBuildFacilityDrag(facilityId);
+            var model = presenter.BuildBuildFacilityDraftViewModel();
+            if (model == null)
+            {
+                presenter.BeginBuildFacilityDrag(facilityId);
+            }
+            else
+            {
+                model.Dispatch(new BuildFacilityIntent.BeginDrag(facilityId));
+            }
+
             Synchronize();
         }
 
@@ -151,7 +141,12 @@ namespace YC.Presentation
 
         private void OnGhostDragStarted()
         {
-            presenter.BeginGhostBuildFacilityDrag();
+            var model = presenter.BuildBuildFacilityDraftViewModel();
+            if (model != null)
+            {
+                model.Dispatch(new BuildFacilityIntent.BeginGhostDrag());
+            }
+
             Synchronize();
         }
 
@@ -162,13 +157,25 @@ namespace YC.Presentation
 
         private void CompleteDrop(int slotIndex)
         {
-            if (slotIndex < 0)
+            var model = presenter.BuildBuildFacilityDraftViewModel();
+            if (model == null)
             {
-                presenter.RejectBuildFacilityDrop();
+                if (slotIndex < 0)
+                {
+                    presenter.RejectBuildFacilityDrop();
+                }
+                else
+                {
+                    presenter.DropBuildFacility(slotIndex);
+                }
+            }
+            else if (slotIndex < 0)
+            {
+                model.Dispatch(new BuildFacilityIntent.RejectDrop());
             }
             else
             {
-                presenter.DropBuildFacility(slotIndex);
+                model.Dispatch(new BuildFacilityIntent.Drop(slotIndex));
             }
 
             Synchronize();

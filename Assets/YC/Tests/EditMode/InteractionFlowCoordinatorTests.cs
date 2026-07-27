@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using YC.Presentation.Workflows;
 
@@ -19,13 +20,13 @@ namespace YC.Tests.EditMode
         public void Activate_ActivatesWorkflowAndExposesItsMode()
         {
             var coordinator = new InteractionFlowCoordinator();
-            var workflow = new RecordingWorkflow(InteractionMode.ResolvingExploreTarget);
+            var workflow = new RecordingWorkflow(InteractionMode.Busy);
 
             coordinator.Activate(workflow);
 
             Assert.That(workflow.ActivationCount, Is.EqualTo(1));
             Assert.That(workflow.CancellationCount, Is.EqualTo(0));
-            Assert.That(coordinator.CurrentMode, Is.EqualTo(InteractionMode.ResolvingExploreTarget));
+            Assert.That(coordinator.CurrentMode, Is.EqualTo(InteractionMode.Busy));
             Assert.That(coordinator.IsActive(workflow), Is.True);
         }
 
@@ -33,14 +34,16 @@ namespace YC.Tests.EditMode
         public void Activate_DifferentWorkflowCancelsPreviousWorkflowFirst()
         {
             var coordinator = new InteractionFlowCoordinator();
-            var first = new RecordingWorkflow(InteractionMode.ResolvingMoveTarget);
-            var second = new RecordingWorkflow(InteractionMode.ResolvingDeployTarget);
+            var first = new RecordingWorkflow(InteractionMode.Busy);
+            var second = new RecordingWorkflow(InteractionMode.Busy);
 
             coordinator.Activate(first);
             coordinator.Activate(second);
 
             Assert.That(first.CancellationCount, Is.EqualTo(1));
             Assert.That(second.ActivationCount, Is.EqualTo(1));
+            Assert.That(coordinator.CurrentMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(coordinator.IsActive(first), Is.False);
             Assert.That(coordinator.ActiveWorkflow, Is.SameAs(second));
         }
 
@@ -48,7 +51,7 @@ namespace YC.Tests.EditMode
         public void Activate_SameWorkflowAgainDoesNotCancelOrReactivateIt()
         {
             var coordinator = new InteractionFlowCoordinator();
-            var workflow = new RecordingWorkflow(InteractionMode.ResolvingResourceCollection);
+            var workflow = new RecordingWorkflow(InteractionMode.Busy);
 
             coordinator.Activate(workflow);
             coordinator.Activate(workflow);
@@ -59,23 +62,26 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void CurrentMode_TracksActiveWorkflowModeChanges()
+        public void ActiveWorkflow_IdentifiesWorkflowWhenCoarseModesAreEqual()
         {
             var coordinator = new InteractionFlowCoordinator();
-            var workflow = new RecordingWorkflow(InteractionMode.ResolvingDispatchSource);
+            var first = new RecordingWorkflow(InteractionMode.Busy);
+            var second = new RecordingWorkflow(InteractionMode.Busy);
 
-            coordinator.Activate(workflow);
-            workflow.ChangeMode(InteractionMode.ResolvingDispatchTarget);
+            coordinator.Activate(first);
+            coordinator.Activate(second);
 
-            Assert.That(coordinator.CurrentMode, Is.EqualTo(InteractionMode.ResolvingDispatchTarget));
-            Assert.That(coordinator.IsActive(InteractionMode.ResolvingDispatchTarget), Is.True);
+            Assert.That(coordinator.CurrentMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(coordinator.ActiveWorkflow, Is.SameAs(second));
+            Assert.That(coordinator.IsActive(first), Is.False);
+            Assert.That(coordinator.IsActive(second), Is.True);
         }
 
         [Test]
         public void Reset_CancelsActiveWorkflowAndSelectsRequestedRestingMode()
         {
             var coordinator = new InteractionFlowCoordinator();
-            var workflow = new RecordingWorkflow(InteractionMode.ResolvingDispatchTarget);
+            var workflow = new RecordingWorkflow(InteractionMode.Busy);
 
             coordinator.Activate(workflow);
             coordinator.ResetToChooseAction();
@@ -87,6 +93,34 @@ namespace YC.Tests.EditMode
             coordinator.ResetToHidden();
 
             Assert.That(coordinator.CurrentMode, Is.EqualTo(InteractionMode.Hidden));
+        }
+
+        [Test]
+        public void SetMode_BusyCancelsActiveWorkflowAndLeavesNoWorkflowIdentity()
+        {
+            var coordinator = new InteractionFlowCoordinator();
+            var workflow = new RecordingWorkflow(InteractionMode.Busy);
+            coordinator.Activate(workflow);
+
+            coordinator.SetMode(InteractionMode.Busy);
+
+            Assert.That(workflow.CancellationCount, Is.EqualTo(1));
+            Assert.That(coordinator.ActiveWorkflow, Is.Null);
+            Assert.That(coordinator.CurrentMode, Is.EqualTo(InteractionMode.Busy));
+        }
+
+        [Test]
+        public void InteractionMode_ContainsOnlyPanelLevelStates()
+        {
+            Assert.That(
+                Enum.GetNames(typeof(InteractionMode)),
+                Is.EquivalentTo(new[]
+                {
+                    "Hidden",
+                    "ChooseAction",
+                    "Busy",
+                    "WaitingForNextPlayer"
+                }));
         }
 
         private sealed class RecordingWorkflow : IInteractionWorkflow
@@ -101,11 +135,6 @@ namespace YC.Tests.EditMode
             public int ActivationCount { get; private set; }
 
             public int CancellationCount { get; private set; }
-
-            public void ChangeMode(InteractionMode mode)
-            {
-                Mode = mode;
-            }
 
             public void Activate()
             {

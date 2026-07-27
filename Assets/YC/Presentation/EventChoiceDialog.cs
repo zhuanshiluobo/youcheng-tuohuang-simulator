@@ -425,7 +425,9 @@ namespace YC.Presentation
                 new Vector2(0.48f, 1f), new Vector2(0.70f, 1f), new Vector2(0f, 66f), new Vector2(0f, -350f),
                 TextAnchor.MiddleCenter, 16, 12, 18);
             SetBuildPaymentButtonState(resourceButton, resources != null && resources.IsAvailable);
-            resourceButton.onClick.AddListener(() => model.SelectPayment?.Invoke(BuildFacilityService.PaymentModeResources));
+            resourceButton.onClick.AddListener(() =>
+                model.Dispatch(new BuildFacilityIntent.SelectPayment(
+                    BuildFacilityService.PaymentModeResources)));
             CreateText(panelRect, "Resource Payment Reason", resources == null || resources.IsAvailable ? string.Empty : resources.Reason,
                 13, FontStyle.Normal, UiTheme.LabelText,
                 new Vector2(0.47f, 1f), new Vector2(0.71f, 1f), new Vector2(0f, 42f), new Vector2(0f, -405f),
@@ -436,7 +438,9 @@ namespace YC.Presentation
                 new Vector2(0.72f, 1f), new Vector2(0.94f, 1f), new Vector2(0f, 66f), new Vector2(0f, -350f),
                 TextAnchor.MiddleCenter, 16, 12, 18);
             SetBuildPaymentButtonState(goldButton, gold != null && gold.IsAvailable);
-            goldButton.onClick.AddListener(() => model.SelectPayment?.Invoke(BuildFacilityService.PaymentModeGold));
+            goldButton.onClick.AddListener(() =>
+                model.Dispatch(new BuildFacilityIntent.SelectPayment(
+                    BuildFacilityService.PaymentModeGold)));
             CreateText(panelRect, "Gold Payment Reason", gold == null || gold.IsAvailable ? string.Empty : gold.Reason,
                 13, FontStyle.Normal, UiTheme.LabelText,
                 new Vector2(0.71f, 1f), new Vector2(0.95f, 1f), new Vector2(0f, 42f), new Vector2(0f, -405f),
@@ -453,7 +457,7 @@ namespace YC.Presentation
                 overlay,
                 panelRect,
                 "Close Build Facility Focus Button",
-                () => model.Cancel?.Invoke());
+                () => model.Dispatch(new BuildFacilityIntent.Cancel()));
         }
 
         public void ShowBuildFacilityConfirmation(RectTransform canvasTransform, BuildFacilityDraftViewModel model)
@@ -502,17 +506,19 @@ namespace YC.Presentation
             var backButton = CreateButton(panelRect, "Back To Build Payment", "返回修改",
                 new Vector2(0.12f, 0f), new Vector2(0.42f, 0f), new Vector2(0f, 54f), new Vector2(0f, 54f),
                 TextAnchor.MiddleCenter, 18, 14, 20);
-            backButton.onClick.AddListener(() => model.Back?.Invoke());
+            backButton.onClick.AddListener(() =>
+                model.Dispatch(new BuildFacilityIntent.Back()));
             var confirmButton = CreateButton(panelRect, "Confirm Build Facility", "确认建设",
                 new Vector2(0.58f, 0f), new Vector2(0.88f, 0f), new Vector2(0f, 54f), new Vector2(0f, 54f),
                 TextAnchor.MiddleCenter, 18, 14, 20);
-            confirmButton.onClick.AddListener(() => model.Confirm?.Invoke());
+            confirmButton.onClick.AddListener(() =>
+                model.Dispatch(new BuildFacilityIntent.Confirm()));
 
             UguiUtility.CreateWindowCloseControls(
                 overlay,
                 panelRect,
                 "Close Build Facility Confirmation Button",
-                () => model.Cancel?.Invoke());
+                () => model.Dispatch(new BuildFacilityIntent.Cancel()));
         }
 
         public void ShowCityStyleOptions(

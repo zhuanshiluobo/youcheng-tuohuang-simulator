@@ -13,6 +13,58 @@ namespace YC.Tests.EditMode
     public sealed class InfluenceActionPresenterTests
     {
         [Test]
+        public void DeployAndDispatchInteractions_ExposeMutuallyExclusivePresenterStages()
+        {
+            var fixture = CreateFixture();
+            var deploy = new DeployInteraction(fixture.Presenter);
+            var dispatch = new DispatchInteraction(fixture.Presenter);
+
+            Assert.That(deploy.Id, Is.EqualTo("active.deploy"));
+            Assert.That(dispatch.Id, Is.EqualTo("active.dispatch"));
+            Assert.That(deploy.Priority, Is.EqualTo(InteractionPriority.ActiveAction));
+            Assert.That(dispatch.Priority, Is.EqualTo(InteractionPriority.ActiveAction));
+            Assert.That(deploy.IsActive, Is.False);
+            Assert.That(dispatch.IsActive, Is.False);
+
+            fixture.Presenter.BeginDeploy();
+
+            Assert.That(deploy.IsActive, Is.True);
+            Assert.That(dispatch.IsActive, Is.False);
+            Assert.That(deploy.BuildPresentation().PanelMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(
+                deploy.OnInfluenceSlotClicked(fixture.DeployTarget),
+                Is.SameAs(InteractionResult.Passthrough));
+            deploy.Cancel();
+            Assert.That(fixture.Presenter.IsActive, Is.False);
+
+            fixture.Presenter.BeginDispatch();
+
+            Assert.That(deploy.IsActive, Is.False);
+            Assert.That(dispatch.IsActive, Is.True);
+            Assert.That(dispatch.BuildPresentation().PromptText, Does.Contain("调度"));
+
+            fixture.Presenter.SelectSlot(fixture.FirstSource);
+            Assert.That(fixture.Presenter.IsSelectingDispatchTarget, Is.True);
+            Assert.That(dispatch.IsActive, Is.True);
+            Assert.That(deploy.IsActive, Is.False);
+
+            fixture.Presenter.SelectSlot(fixture.FirstTarget);
+            Assert.That(fixture.Presenter.IsSelectingDispatchTarget, Is.True);
+            Assert.That(dispatch.IsActive, Is.True);
+
+            fixture.Presenter.SelectSlot(fixture.FirstTarget);
+            Assert.That(fixture.Presenter.IsChoosingDispatchContinuation, Is.True);
+            Assert.That(dispatch.IsActive, Is.True);
+            Assert.That(deploy.IsActive, Is.False);
+
+            var router = new InteractionRouter(message => { });
+            router.Register(deploy);
+            router.Register(dispatch);
+            Assert.That(() => router.CancelAll(), Throws.Nothing);
+            Assert.That(fixture.Presenter.IsActive, Is.False);
+        }
+
+        [Test]
         public void Deploy_SecondSelectionSubmitsExpectedCommand()
         {
             var fixture = CreateFixture();
@@ -27,6 +79,8 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.CommandPort.LastCommand.PlayerId, Is.EqualTo(1));
             Assert.That(fixture.CommandPort.LastCommand.TargetId, Is.EqualTo(fixture.DeployTarget));
             Assert.That(fixture.View.CompletedAction, Is.EqualTo("部署"));
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.Presenter.IsSelectingDeployTarget, Is.False);
         }
 
         [Test]
@@ -34,10 +88,15 @@ namespace YC.Tests.EditMode
         {
             var fixture = CreateFixture();
             fixture.Presenter.BeginDispatch();
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsSelectingDispatchSource, Is.True);
 
             fixture.Presenter.SelectSlot(fixture.FirstSource);
 
-            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.ResolvingDispatchTarget));
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsSelectingDispatchSource, Is.False);
+            Assert.That(fixture.Presenter.IsSelectingDispatchTarget, Is.True);
+            Assert.That(fixture.Presenter.CurrentPrompt, Is.EqualTo("请选择调度目标槽位。"));
             Assert.That(fixture.Presenter.DispatchSourceSlotId, Is.EqualTo(fixture.FirstSource));
             Assert.That(fixture.View.HasHighlight(
                 fixture.FirstTarget,
@@ -64,12 +123,15 @@ namespace YC.Tests.EditMode
             SelectFirstMove(fixture);
 
             Assert.That(fixture.Presenter.HasPendingFirstMove, Is.True);
+            Assert.That(fixture.Presenter.IsChoosingDispatchContinuation, Is.True);
             Assert.That(fixture.View.Decision, Is.Not.Null);
             Assert.That(fixture.View.PreviewEnabled, Is.True);
 
             fixture.View.Decision.ContinueAction();
 
-            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.ResolvingDispatchSource));
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsChoosingDispatchContinuation, Is.False);
+            Assert.That(fixture.Presenter.IsSelectingDispatchSource, Is.True);
             Assert.That(fixture.Context.State.Map.Influences[0].SlotId, Is.EqualTo(fixture.FirstSource),
                 "合法性预览不得移动实时状态中的影响力。");
             Assert.That(fixture.View.Decision, Is.Null);
@@ -92,6 +154,8 @@ namespace YC.Tests.EditMode
             Assert.That(command.TargetId, Is.EqualTo(fixture.FirstTarget));
             Assert.That(command.Parameters.ContainsKey("source2"), Is.False);
             Assert.That(fixture.View.CompletedAction, Is.EqualTo("调度"));
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.Presenter.IsChoosingDispatchContinuation, Is.False);
         }
 
         [Test]
@@ -121,6 +185,8 @@ namespace YC.Tests.EditMode
             fixture.View.Decision.FinishAction();
 
             Assert.That(fixture.Presenter.HasPendingFirstMove, Is.True);
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsChoosingDispatchContinuation, Is.True);
             Assert.That(fixture.View.PreviewEnabled, Is.True);
             Assert.That(fixture.View.CompletedAction, Is.Empty);
             Assert.That(fixture.View.Prompt, Does.Contain("等待确认"));
@@ -139,7 +205,8 @@ namespace YC.Tests.EditMode
             fixture.Presenter.SelectSlot(fixture.DeployTarget);
 
             Assert.That(fixture.View.Prompt, Is.EqualTo("rejected"));
-            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.ResolvingDeployTarget));
+            Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsSelectingDeployTarget, Is.True);
             Assert.That(fixture.View.CompletedAction, Is.Empty);
         }
 
@@ -155,6 +222,11 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.Presenter.HasPendingConfirmation, Is.False);
             Assert.That(fixture.Presenter.DispatchSourceSlotId, Is.Empty);
             Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.Presenter.IsSelectingDeployTarget, Is.False);
+            Assert.That(fixture.Presenter.IsSelectingDispatchSource, Is.False);
+            Assert.That(fixture.Presenter.IsSelectingDispatchTarget, Is.False);
+            Assert.That(fixture.Presenter.IsChoosingDispatchContinuation, Is.False);
+            Assert.That(fixture.Presenter.CurrentPrompt, Is.Empty);
             Assert.That(fixture.View.Decision, Is.Null);
             Assert.That(fixture.View.PreviewEnabled, Is.False);
             Assert.That(fixture.View.Highlights, Is.Empty);

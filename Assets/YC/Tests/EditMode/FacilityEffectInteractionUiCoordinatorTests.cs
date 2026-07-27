@@ -10,7 +10,9 @@ using YC.Domain.Commands;
 using YC.Domain.Facilities;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
+using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Presentation;
 using YC.Presentation.Workflows;
 
 namespace YC.Tests.EditMode
@@ -68,6 +70,66 @@ namespace YC.Tests.EditMode
             Assert.That(rebuiltOverlay, Is.Not.Null);
             Assert.That(rebuiltOverlay, Is.Not.SameAs(firstOverlay));
             Assert.That(GetText(rebuiltOverlay, "Value 0"), Is.EqualTo("0"));
+        }
+
+        [Test]
+        public void FreeCityMove_SubmissionInFlight_BlocksDuplicateUntilMatchingCommandSettles()
+        {
+            var state = CreateState(
+                "free-city-move-in-flight",
+                FacilityPendingChoiceTypes.ScenarioId,
+                FacilityPendingChoiceTypes.FreeCityMove);
+            var fixture = CreateCoordinator(state);
+
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            Assert.That(TryHandleLocationClicked(fixture.Coordinator, "location-a"), Is.True);
+            var firstCommand = fixture.SubmittedCommand;
+            Assert.That(firstCommand, Is.Not.Null);
+
+            Assert.That(TryHandleLocationClicked(fixture.Coordinator, "location-b"), Is.True);
+            Assert.That(fixture.SubmittedCommand, Is.SameAs(firstCommand));
+            Assert.That(fixture.LastPrompt, Does.Contain("请勿重复提交"));
+
+            Invoke(fixture.Coordinator, "NotifyCommandSettled", "another-command");
+            Assert.That(TryHandleLocationClicked(fixture.Coordinator, "location-c"), Is.True);
+            Assert.That(fixture.SubmittedCommand, Is.SameAs(firstCommand));
+
+            Invoke(fixture.Coordinator, "NotifyCommandSettled", firstCommand.CommandId);
+            Assert.That(TryHandleLocationClicked(fixture.Coordinator, "location-d"), Is.True);
+            Assert.That(fixture.SubmittedCommand, Is.Not.SameAs(firstCommand));
+            Assert.That(fixture.SubmittedCommand.CommandId, Is.Not.EqualTo(firstCommand.CommandId));
+        }
+
+        [Test]
+        public void FreeCityMove_SubmitThrows_ClearsSubmissionInFlight()
+        {
+            var state = CreateState(
+                "free-city-move-submit-throws",
+                FacilityPendingChoiceTypes.ScenarioId,
+                FacilityPendingChoiceTypes.FreeCityMove);
+            var shouldThrow = true;
+            var fixture = CreateCoordinator(
+                state,
+                null,
+                _ =>
+                {
+                    if (shouldThrow)
+                    {
+                        throw new InvalidOperationException("submit failed");
+                    }
+                });
+
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            var exception = Assert.Throws<TargetInvocationException>(
+                () => TryHandleLocationClicked(fixture.Coordinator, "location-a"));
+            Assert.That(exception.InnerException, Is.TypeOf<InvalidOperationException>());
+
+            shouldThrow = false;
+            Assert.That(TryHandleLocationClicked(fixture.Coordinator, "location-b"), Is.True);
+            Assert.That(
+                fixture.SubmittedCommand.Parameters[
+                    ResolveFacilityEffectCommandHandler.TargetLocationIdParameter],
+                Is.EqualTo("location-b"));
         }
 
         [Test]
@@ -631,6 +693,116 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void SimpleEngineeringCamp_UsesStandardBuildDraftAndConfirmation()
+        {
+            var state = CreateState(
+                "simple-engineering-camp-session",
+                FacilityPendingChoiceTypes.ScenarioId,
+                FacilityPendingChoiceTypes.BuildAdditionalFacility);
+            state.PendingCardSession.CardId = FacilityCardDatabase.SimpleEngineeringCamp;
+            state.PendingCardSession.OptionIds.Clear();
+            state.PendingCardSession.OptionIds.Add(FacilityCardDatabase.TradeDistrict);
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.TradeDistrict);
+            var fixture = CreateCoordinator(state);
+
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            Assert.That(fixture.BuildDraft, Is.Null);
+            Assert.That(
+                InvokeBool(
+                    fixture.Coordinator,
+                    "TryBeginAdditionalBuildDrag",
+                    FacilityCardDatabase.TradeDistrict),
+                Is.True);
+            Assert.That(
+                InvokeBool(
+                    fixture.Coordinator,
+                    "TryHandleAdditionalBuildDrop",
+                    FacilityCardDatabase.TradeDistrict,
+                    3),
+                Is.True);
+
+            Assert.That(fixture.BuildDraft, Is.Not.Null);
+            Assert.That(fixture.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Focused));
+            Assert.That(fixture.BuildDraft.Facility.FacilityId, Is.EqualTo(FacilityCardDatabase.TradeDistrict));
+            Assert.That(fixture.BuildDraft.CityBoardSlotIndex, Is.EqualTo(3));
+            Assert.That(fixture.BuildDraft.SelectedOption.ResourcesPayment.IsAvailable, Is.True);
+            Assert.That(fixture.BuildDraft.SelectedOption.GoldPayment.IsAvailable, Is.False);
+
+            fixture.BuildDraft.Dispatch(
+                new BuildFacilityIntent.SelectPayment(
+                    BuildFacilityService.PaymentModeResources));
+
+            Assert.That(fixture.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Confirming));
+            fixture.BuildDraft.Dispatch(new BuildFacilityIntent.Confirm());
+
+            Assert.That(fixture.SubmittedCommand, Is.Not.Null);
+            Assert.That(fixture.SubmittedCommand.Kind, Is.EqualTo(GameCommandKind.ResolvePendingChoice));
+            Assert.That(fixture.SubmittedCommand.OptionIds, Does.Contain(FacilityCardDatabase.TradeDistrict));
+            Assert.That(
+                fixture.SubmittedCommand.Parameters[BuildFacilityCommandHandler.CityBoardSlotIndexParameter],
+                Is.EqualTo("3"));
+            Assert.That(
+                fixture.SubmittedCommand.Parameters[BuildFacilityCommandHandler.PaymentModeParameter],
+                Is.EqualTo(BuildFacilityService.PaymentModeResources));
+        }
+
+        [Test]
+        public void SimpleEngineeringCamp_EscapeKeepsAdditionalBuildDraftUntilExplicitCancel()
+        {
+            var state = CreateState(
+                "simple-engineering-camp-escape-session",
+                FacilityPendingChoiceTypes.ScenarioId,
+                FacilityPendingChoiceTypes.BuildAdditionalFacility);
+            state.PendingCardSession.CardId = FacilityCardDatabase.SimpleEngineeringCamp;
+            state.PendingCardSession.OptionIds.Clear();
+            state.PendingCardSession.OptionIds.Add(FacilityCardDatabase.TradeDistrict);
+            state.Decks.FacilitySupply.Add(FacilityCardDatabase.TradeDistrict);
+            var fixture = CreateCoordinator(state);
+
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            Assert.That(
+                InvokeBool(
+                    fixture.Coordinator,
+                    "TryBeginAdditionalBuildDrag",
+                    FacilityCardDatabase.TradeDistrict),
+                Is.True);
+            Assert.That(
+                InvokeBool(
+                    fixture.Coordinator,
+                    "TryHandleAdditionalBuildDrop",
+                    FacilityCardDatabase.TradeDistrict,
+                    3),
+                Is.True);
+            Assert.That(fixture.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Focused));
+
+            fixture.BuildDraft.Dispatch(new BuildFacilityIntent.Escape());
+
+            Assert.That(fixture.BuildDraft, Is.Not.Null);
+            Assert.That(fixture.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Ghosted));
+            Assert.That(fixture.LastPrompt, Does.Contain("虚影"));
+            Assert.That(fixture.SubmittedCommand, Is.Null);
+
+            fixture.BuildDraft.Dispatch(new BuildFacilityIntent.BeginGhostDrag());
+            fixture.BuildDraft.Dispatch(new BuildFacilityIntent.Drop(3));
+            fixture.BuildDraft.Dispatch(
+                new BuildFacilityIntent.SelectPayment(
+                    BuildFacilityService.PaymentModeResources));
+            Assert.That(fixture.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Confirming));
+
+            fixture.BuildDraft.Dispatch(new BuildFacilityIntent.Escape());
+
+            Assert.That(fixture.BuildDraft, Is.Not.Null);
+            Assert.That(fixture.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Ghosted));
+            Assert.That(fixture.BuildDraft.PaymentMode, Is.Empty);
+            Assert.That(fixture.SubmittedCommand, Is.Null);
+
+            fixture.BuildDraft.Dispatch(new BuildFacilityIntent.Cancel());
+
+            Assert.That(fixture.BuildDraft, Is.Null);
+            Assert.That(fixture.SubmittedCommand, Is.Null);
+        }
+
+        [Test]
         public void ExtensionHub_InvalidAndOccupiedDropsDoNotSubmit()
         {
             var state = CreateState(
@@ -706,7 +878,10 @@ namespace YC.Tests.EditMode
             return CreateCoordinator(state, map);
         }
 
-        private CoordinatorFixture CreateCoordinator(GameState state, GameMapDefinition map = null)
+        private CoordinatorFixture CreateCoordinator(
+            GameState state,
+            GameMapDefinition map = null,
+            Action<GameCommand> onSubmit = null)
         {
             var coordinatorType = Type.GetType(
                 "YC.Presentation.FacilityEffectInteractionUiCoordinator, Assembly-CSharp",
@@ -752,9 +927,16 @@ namespace YC.Tests.EditMode
             var cancelAdditionalExploreCount = 0;
             Action cancelAdditionalExplore = () => cancelAdditionalExploreCount++;
             GameCommand submittedCommand = null;
-            Action<GameCommand> submit = command => submittedCommand = command;
+            Action<GameCommand> submit = command =>
+            {
+                submittedCommand = command;
+                onSubmit?.Invoke(command);
+            };
             string lastPrompt = null;
             Action<string> setPrompt = value => lastPrompt = value;
+            BuildFacilityDraftViewModel buildDraft = null;
+            Action<BuildFacilityDraftViewModel> showBuildDraft = value => buildDraft = value;
+            Action hideBuildDraft = () => buildDraft = null;
 
             var constructors = coordinatorType.GetConstructors(
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -773,6 +955,11 @@ namespace YC.Tests.EditMode
                 submit,
                 setPrompt
             });
+            var configureBuildDraftView = coordinatorType.GetMethod(
+                "ConfigureAdditionalBuildDraftView",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            Assert.That(configureBuildDraftView, Is.Not.Null);
+            configureBuildDraftView.Invoke(coordinator, new object[] { showBuildDraft, hideBuildDraft });
 
             return new CoordinatorFixture(
                 coordinator,
@@ -782,7 +969,8 @@ namespace YC.Tests.EditMode
                 () => additionalExploreOptionId,
                 () => cancelAdditionalExploreCount,
                 () => lastPrompt,
-                () => highlights);
+                () => highlights,
+                () => buildDraft);
         }
 
         private static void ExecuteDrag(GameObject source, GameObject target)
@@ -1010,6 +1198,24 @@ namespace YC.Tests.EditMode
             return (bool)method.Invoke(coordinator, new object[] { slotId });
         }
 
+        private static bool InvokeBool(object target, string methodName, params object[] arguments)
+        {
+            var method = target.GetType().GetMethod(
+                methodName,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null, "Missing method " + methodName + ".");
+            return (bool)method.Invoke(target, arguments);
+        }
+
+        private static void Invoke(object target, string methodName, params object[] arguments)
+        {
+            var method = target.GetType().GetMethod(
+                methodName,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null, "Missing method " + methodName + ".");
+            method.Invoke(target, arguments);
+        }
+
         private static bool GetExtensionHubDragging(object coordinator)
         {
             var property = coordinator.GetType().GetProperty(
@@ -1083,6 +1289,7 @@ namespace YC.Tests.EditMode
             private readonly Func<int> getCancelAdditionalExploreCount;
             private readonly Func<string> getLastPrompt;
             private readonly Func<List<WorkflowHighlight>> getHighlights;
+            private readonly Func<BuildFacilityDraftViewModel> getBuildDraft;
 
             public CoordinatorFixture(
                 object coordinator,
@@ -1092,7 +1299,8 @@ namespace YC.Tests.EditMode
                 Func<string> getAdditionalExploreOptionId,
                 Func<int> getCancelAdditionalExploreCount,
                 Func<string> getLastPrompt,
-                Func<List<WorkflowHighlight>> getHighlights)
+                Func<List<WorkflowHighlight>> getHighlights,
+                Func<BuildFacilityDraftViewModel> getBuildDraft)
             {
                 Coordinator = coordinator;
                 Dialog = dialog;
@@ -1102,6 +1310,7 @@ namespace YC.Tests.EditMode
                 this.getCancelAdditionalExploreCount = getCancelAdditionalExploreCount;
                 this.getLastPrompt = getLastPrompt;
                 this.getHighlights = getHighlights;
+                this.getBuildDraft = getBuildDraft;
             }
 
             public object Coordinator { get; private set; }
@@ -1136,6 +1345,11 @@ namespace YC.Tests.EditMode
             public List<WorkflowHighlight> Highlights
             {
                 get { return getHighlights == null ? new List<WorkflowHighlight>() : getHighlights(); }
+            }
+
+            public BuildFacilityDraftViewModel BuildDraft
+            {
+                get { return getBuildDraft == null ? null : getBuildDraft(); }
             }
         }
     }

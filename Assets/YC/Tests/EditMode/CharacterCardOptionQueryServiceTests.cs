@@ -105,6 +105,42 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void TexasTactic_LegalResolutionRequiresACompleteTwoMovePath()
+        {
+            var incomplete = CreateState();
+            incomplete.FindPlayer(1).Resources.GoldVoucher = 3;
+            incomplete.Map.Influences.Add(InfluenceAt(
+                InfluenceService.GetRouteSlotId("A1", 0),
+                "A1"));
+            incomplete.Map.Influences.Add(InfluenceAt(
+                InfluenceService.GetRouteSlotId("B1", 0),
+                "B1"));
+
+            var complete = CreateState();
+            complete.FindPlayer(1).Resources.GoldVoucher = 3;
+            complete.Map.Influences.Add(InfluenceAt(
+                InfluenceService.GetRouteSlotId("A1", 0),
+                "A1"));
+            complete.Map.Influences.Add(InfluenceAt(
+                InfluenceService.GetRouteSlotId("B1", 0),
+                "B1"));
+            complete.Map.Influences.Add(InfluenceAt(
+                InfluenceService.GetRouteSlotId("C1", 0),
+                "C1"));
+
+            var service = new CharacterCardOptionQueryService();
+
+            Assert.That(service.HasLegalResolution(
+                incomplete,
+                1,
+                CharacterCardEffectKind.TexasRemoveAndDoubleMove), Is.False);
+            Assert.That(service.HasLegalResolution(
+                complete,
+                1,
+                CharacterCardEffectKind.TexasRemoveAndDoubleMove), Is.True);
+        }
+
+        [Test]
         public void PendingQueries_ExposeTinManChoicesAndLiskarmAuthoritativeOptions()
         {
             var state = CreateState();

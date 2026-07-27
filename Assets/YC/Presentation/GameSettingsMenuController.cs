@@ -71,7 +71,7 @@ namespace YC.Presentation
 
         public void HandleEscapePressed()
         {
-            if (MobileCityInteractionController.WasBuildEscapeConsumedThisFrame() ||
+            if (MobileCityInteractionController.WasInteractionEscapeConsumedThisFrame() ||
                 CityStyleDeclarationPreviewInputHandler.WasEscapeConsumedThisFrame() ||
                 CityStyleDeclarationPreviewInputHandler.HasOpenDialog() ||
                 ZoomableImageViewerController.WasEscapeConsumedThisFrame() ||
@@ -81,7 +81,7 @@ namespace YC.Presentation
             }
 
             var cityController = FindObjectOfType<MobileCityInteractionController>();
-            if (cityController != null && cityController.TryHandleBuildFacilityEscape())
+            if (cityController != null && cityController.TryHandleInteractionEscape())
             {
                 return;
             }

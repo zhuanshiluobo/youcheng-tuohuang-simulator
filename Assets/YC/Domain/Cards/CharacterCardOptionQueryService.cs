@@ -70,6 +70,49 @@ namespace YC.Domain.Cards
             return result;
         }
 
+        public bool HasLegalResolution(
+            GameState state,
+            int playerId,
+            CharacterCardEffectKind effect)
+        {
+            if (state == null) throw new ArgumentNullException(nameof(state));
+            var player = state.FindPlayer(playerId);
+            if (player == null || player.Resources == null)
+            {
+                return false;
+            }
+
+            switch (effect)
+            {
+                case CharacterCardEffectKind.CannotTradeChannel:
+                case CharacterCardEffectKind.CannotRequisition:
+                case CharacterCardEffectKind.TinManEstablishPrestige:
+                case CharacterCardEffectKind.TinManDeepPlanning:
+                    return true;
+                case CharacterCardEffectKind.LiskarmSecurityProtocol:
+                    return HasCompleteLiskarmPlacement(state, playerId);
+                case CharacterCardEffectKind.LiskarmControlPosition:
+                    return player.Resources.GoldVoucher >= 3 &&
+                           Query(state, playerId, effect)
+                               .Get(CharacterEffectParameterKeys.TargetInfluenceSlotId).Count > 0;
+                case CharacterCardEffectKind.ElysiumLogistics:
+                    return Query(state, playerId, effect)
+                        .Get(CharacterEffectParameterKeys.ResourceType).Count > 0;
+                case CharacterCardEffectKind.ElysiumNavigation:
+                    return player.Resources.OriginiumShard >= 3 &&
+                           Query(state, playerId, effect)
+                               .Get(CharacterEffectParameterKeys.TargetLocationId).Count > 0;
+                case CharacterCardEffectKind.TexasSpecialDelivery:
+                    return Query(state, playerId, effect)
+                        .Get(CharacterEffectParameterKeys.FacilityCardId).Count > 0;
+                case CharacterCardEffectKind.TexasRemoveAndDoubleMove:
+                    return player.Resources.GoldVoucher >= 3 &&
+                           HasCompleteTexasRemoveAndDoubleMove(state, playerId);
+                default:
+                    return false;
+            }
+        }
+
         private static void QueryTinManStrategySummary(CharacterCardOptionQueryResult result)
         {
             result.SetSummary(
@@ -159,6 +202,73 @@ namespace YC.Domain.Cards
             {
                 result.Add(CharacterEffectParameterKeys.Choice, choiceId, displayName);
             }
+        }
+
+        private bool HasCompleteLiskarmPlacement(GameState state, int playerId)
+        {
+            var firstOptions = Query(state, playerId, CharacterCardEffectKind.LiskarmSecurityProtocol)
+                .Get(CharacterEffectParameterKeys.PlacementSlotId1);
+            for (var i = 0; i < firstOptions.Count; i++)
+            {
+                var selected = new Dictionary<string, string>
+                {
+                    [CharacterEffectParameterKeys.PlacementSlotId1] = firstOptions[i].Id
+                };
+                if (Query(state, playerId, CharacterCardEffectKind.LiskarmSecurityProtocol, selected)
+                        .Get(CharacterEffectParameterKeys.PlacementSlotId2).Count > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool HasCompleteTexasRemoveAndDoubleMove(GameState state, int playerId)
+        {
+            var initial = Query(state, playerId, CharacterCardEffectKind.TexasRemoveAndDoubleMove);
+            var removals = initial.Get(CharacterEffectParameterKeys.RemovalTargetInfluenceSlotId);
+            for (var removalIndex = 0; removalIndex < removals.Count; removalIndex++)
+            {
+                var selected = new Dictionary<string, string>
+                {
+                    [CharacterEffectParameterKeys.RemovalTargetInfluenceSlotId] = removals[removalIndex].Id
+                };
+                var firstMove = Query(
+                    state,
+                    playerId,
+                    CharacterCardEffectKind.TexasRemoveAndDoubleMove,
+                    selected);
+                var firstSources = firstMove.Get(CharacterEffectParameterKeys.MoveSourceSlotId1);
+                for (var sourceIndex = 0; sourceIndex < firstSources.Count; sourceIndex++)
+                {
+                    var firstTargets = firstMove.Get(
+                        CharacterEffectParameterKeys.MoveTargetSlotId1,
+                        firstSources[sourceIndex].Id);
+                    for (var targetIndex = 0; targetIndex < firstTargets.Count; targetIndex++)
+                    {
+                        selected[CharacterEffectParameterKeys.MoveSourceSlotId1] = firstSources[sourceIndex].Id;
+                        selected[CharacterEffectParameterKeys.MoveTargetSlotId1] = firstTargets[targetIndex].Id;
+                        var secondMove = Query(
+                            state,
+                            playerId,
+                            CharacterCardEffectKind.TexasRemoveAndDoubleMove,
+                            selected);
+                        var secondSources = secondMove.Get(CharacterEffectParameterKeys.MoveSourceSlotId2);
+                        for (var secondSourceIndex = 0; secondSourceIndex < secondSources.Count; secondSourceIndex++)
+                        {
+                            if (secondMove.Get(
+                                    CharacterEffectParameterKeys.MoveTargetSlotId2,
+                                    secondSources[secondSourceIndex].Id).Count > 0)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void QueryPlacementSlots(GameState state, int playerId, IReadOnlyDictionary<string, string> selected, CharacterCardOptionQueryResult result)

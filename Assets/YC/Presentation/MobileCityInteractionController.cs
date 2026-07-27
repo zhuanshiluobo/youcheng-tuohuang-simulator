@@ -37,8 +37,10 @@ namespace YC.Presentation
         private TurnActionPresenter turnActionPresenter;
         private CharacterCardPanelPresenter characterCardPresenter;
         private InteractionFlowCoordinator flowCoordinator;
+        private InteractionRouter interactionRouter;
         private CommandSubmissionController commandSubmission;
         private MobileCityGameplayAdapter gameplayAdapter;
+        private CommandGateway commandGateway;
         private MobileCityWorkflowViewAdapter workflowView;
         private MapInteractionRouter mapInteractionRouter;
         private ExpandableInfoPanel infoPanel;
@@ -48,9 +50,11 @@ namespace YC.Presentation
         private Canvas uiCanvas;
         private ActionPanelController actionPanel;
         private CharacterMapInteractionCoordinator characterMapInteraction;
+        private CharacterCardInteraction characterCardInteraction;
         private PromptPresenter promptPresenter;
         private int localPlayerId = 1;
         private int lastDebugCoordinateLogFrame = -1;
+        private static int interactionEscapeConsumedFrame = -1;
         private bool showCharacterUseOptions;
         private bool characterSettlementInProgress;
         private CharacterCardCoverDragCoordinator characterCardCoverDrag;
@@ -66,13 +70,7 @@ namespace YC.Presentation
         public bool CanEndCurrentAction() =>
             turnActionPresenter != null && turnActionPresenter.CanEndCurrentAction();
 
-        public void EndCurrentAction()
-        {
-            if (turnActionPresenter != null)
-            {
-                turnActionPresenter.EndCurrentAction();
-            }
-        }
+        public void EndCurrentAction() => turnActionPresenter?.EndCurrentAction();
 
         private void Awake()
         {
@@ -94,7 +92,8 @@ namespace YC.Presentation
                 () => localPlayerId,
                 ShouldControlCurrentPlayerLocally,
                 value => localPlayerId = value,
-                () => commandSubmission);
+                () => commandSubmission, () => mapView?.RefreshScoreTrackDisplay(session == null ? null : session.State));
+            commandGateway = new CommandGateway(gameplayAdapter);
             workflowView = new MobileCityWorkflowViewAdapter(
                 () => session == null ? null : session.State,
                 () => localPlayerId,
@@ -174,7 +173,6 @@ namespace YC.Presentation
             EnsureBuildInfoPanel();
             EnsureSettingsMenu();
             ShowInitialPlacementChoices();
-            BuildCommandSubmission(GameLaunchContext.Instance);
             facilityEffectInteraction = new FacilityEffectInteractionUiCoordinator(
                 () => session == null ? null : session.State,
                 () => localPlayerId,
@@ -187,6 +185,7 @@ namespace YC.Presentation
                 () => turnActionPresenter.CancelAdditionalExploreAction(),
                 SubmitPendingEffectCommand,
                 SetPrompt);
+            facilityEffectInteraction.ConfigureAdditionalBuildDraftView(workflowView.ShowBuildFacilityDraft, workflowView.HideBuildFacilityDraft);
             specialActionInteraction = new SpecialActionInteractionUiCoordinator(
                 () => session == null ? null : session.State,
                 () => localPlayerId,
@@ -211,6 +210,8 @@ namespace YC.Presentation
                 SubmitResolvePendingCharacterChoice,
                 SetPrompt);
             BuildCharacterCardEffectInteraction();
+            BuildInteractionRouting();
+            BuildCommandSubmission(GameLaunchContext.Instance);
             RefreshPendingChoiceOrHighlights();
             PrepareRightCardSmokePresentation();
         }
@@ -219,7 +220,7 @@ namespace YC.Presentation
         {
             UpdatePromptAnimation();
             buildFacilityInteraction?.Synchronize();
-            if (Input.GetKeyDown(KeyCode.Escape) && TryHandleBuildFacilityEscape())
+            if (Input.GetKeyDown(KeyCode.Escape) && TryHandleInteractionEscape())
             {
                 return;
             }
@@ -239,12 +240,32 @@ namespace YC.Presentation
 
         private void OnDestroy()
         {
-            DisposeCharacterCardEffectInteraction();
-            characterMapInteraction?.Cancel();
+            if (interactionRouter != null)
+            {
+                try
+                {
+                    interactionRouter.CancelAll();
+                }
+                catch (AggregateException exception)
+                {
+                    Debug.LogException(exception, this);
+                }
+
+                interactionRouter = null;
+            }
+            else
+            {
+                DisposeCharacterCardEffectInteraction();
+                characterMapInteraction?.Cancel();
+                specialActionInteraction?.Dispose();
+                facilityEffectInteraction?.Dispose();
+            }
+
+            flowCoordinator?.ResetToHidden();
+            characterCardInteraction = null;
+            characterCardEffectInteraction = null;
             characterMapInteraction = null;
-            specialActionInteraction?.Dispose();
             specialActionInteraction = null;
-            facilityEffectInteraction?.Dispose();
             facilityEffectInteraction = null;
 
             if (buildInfoPanel != null)
@@ -266,59 +287,17 @@ namespace YC.Presentation
 
         public void OnHotspotClicked(string locationId)
         {
-            if (specialActionInteraction != null &&
-                specialActionInteraction.TryHandleLocationClicked(locationId)) return;
-
-            if (characterMapInteraction != null &&
-                characterMapInteraction.TryHandleLocationClicked(locationId))
-            {
-                return;
-            }
-
-            if (facilityEffectInteraction != null &&
-                facilityEffectInteraction.TryHandleLocationClicked(locationId))
-            {
-                return;
-            }
-
-            mapInteractionRouter.OnLocationClicked(locationId);
+            interactionRouter.OnLocationClicked(locationId);
         }
 
         public void OnMobileCityClicked()
         {
-            if (specialActionInteraction != null && specialActionInteraction.IsBlockingMapInteraction) return;
-
-            if (characterMapInteraction != null && characterMapInteraction.IsActive)
-            {
-                return;
-            }
-
-            if (facilityEffectInteraction != null && facilityEffectInteraction.IsActive)
-            {
-                return;
-            }
-
-            mapInteractionRouter.OnMobileCityClicked();
+            interactionRouter.OnMobileCityClicked();
         }
 
         public void OnInfluenceSlotClicked(string slotId)
         {
-            if (specialActionInteraction != null &&
-                specialActionInteraction.TryHandleInfluenceSlotClicked(slotId)) return;
-
-            if (characterMapInteraction != null &&
-                characterMapInteraction.TryHandleInfluenceSlotClicked(slotId))
-            {
-                return;
-            }
-
-            if (facilityEffectInteraction != null &&
-                facilityEffectInteraction.TryHandleInfluenceSlotClicked(slotId))
-            {
-                return;
-            }
-
-            mapInteractionRouter.OnInfluenceSlotClicked(slotId);
+            interactionRouter.OnInfluenceSlotClicked(slotId);
         }
 
         private void CompleteActionCommandUi(string actionName)
@@ -340,18 +319,10 @@ namespace YC.Presentation
             UpdateEntranceOrActionPrompt(TurnActionPresenter.BuildCompletedMainActionMessage(actionName));
         }
 
-        private void ClearPendingDispatch()
-        {
-            if (influenceActionPresenter != null)
-            {
-                influenceActionPresenter.Clear();
-            }
-        }
+        private void ClearPendingDispatch() => influenceActionPresenter?.Clear();
 
-        private bool HasPendingDispatchFirstMove()
-        {
-            return influenceActionPresenter != null && influenceActionPresenter.HasPendingFirstMove;
-        }
+        private bool HasPendingDispatchFirstMove() =>
+            influenceActionPresenter != null && influenceActionPresenter.HasPendingFirstMove;
 
         private void EnsureInfoPanel()
         {
@@ -379,19 +350,11 @@ namespace YC.Presentation
 
             buildInfoPanel.Initialize(buildInfoPanel.transform);
             buildInfoPanel.CityStyleClicked += OnBuildInfoCityStyleClicked;
-            buildFacilityInteraction?.Dispose();
-            buildFacilityInteraction = new BuildFacilityInteractionUiCoordinator(
-                buildInfoPanel,
-                turnActionPresenter,
-                facilityEffectInteraction);
             RefreshBuildInfoPanel();
         }
 
-        private void EnsureSettingsMenu()
-        {
-            var settingsMenu = GameSettingsMenuController.EnsureInScene(transform);
-            settingsMenu.ConfigureActionLog(session);
-        }
+        private void EnsureSettingsMenu() =>
+            GameSettingsMenuController.EnsureInScene(transform).ConfigureActionLog(session);
 
         private void RefreshInfoPanel()
         {
@@ -465,16 +428,31 @@ namespace YC.Presentation
             }
         }
 
-        public bool TryHandleBuildFacilityEscape()
+        public bool TryHandleInteractionEscape()
         {
-            return TryCancelCharacterFacilityEffectSelection() ||
-                   (buildFacilityInteraction != null && buildFacilityInteraction.TryHandleEscape());
+            if (interactionEscapeConsumedFrame == Time.frameCount)
+            {
+                return true;
+            }
+
+            if (interactionRouter == null)
+            {
+                return false;
+            }
+
+            var result = interactionRouter.OnEscape();
+            if (result.Kind == InteractionResultKind.Passthrough)
+            {
+                return false;
+            }
+
+            interactionEscapeConsumedFrame = Time.frameCount;
+            return true;
         }
 
-        public static bool WasBuildEscapeConsumedThisFrame()
+        public static bool WasInteractionEscapeConsumedThisFrame()
         {
-            return characterFacilitySelectionEscapeConsumedFrame == Time.frameCount ||
-                   BuildFacilityInteractionUiCoordinator.WasEscapeConsumedThisFrame();
+            return interactionEscapeConsumedFrame == Time.frameCount;
         }
 
         private void OnBuildInfoCityStyleClicked(string cityStyleId)
@@ -519,8 +497,37 @@ namespace YC.Presentation
                 localPlayerId,
                 this,
                 SynchronizeInteractionFromState,
-                SetPrompt, commandId => specialActionInteraction?.NotifyCommandSettled(commandId));
+                SetPrompt, commandId => interactionRouter?.NotifyCommandSettled(commandId));
             commandSubmission.Initialize();
+        }
+
+        private void BuildInteractionRouting()
+        {
+            interactionRouter = new InteractionRouter(SetPrompt);
+            interactionRouter.Register(new SpecialActionInteractionAdapter(specialActionInteraction));
+            characterCardInteraction = new CharacterCardInteraction(
+                characterCardEffectInteraction,
+                characterMapInteraction,
+                HasLocalPendingCharacterResolution,
+                () => buildInfoPanel != null && buildInfoPanel.IsFacilityEffectSelectionActive,
+                TryCancelCharacterFacilityEffectSelection);
+            interactionRouter.Register(characterCardInteraction);
+            interactionRouter.Register(new FacilityEffectInteractionAdapter(facilityEffectInteraction));
+            interactionRouter.Register(turnActionPresenter.BuildInteraction);
+            interactionRouter.Register(turnActionPresenter.MoveInteraction);
+            interactionRouter.Register(turnActionPresenter.DeployInteraction);
+            interactionRouter.Register(turnActionPresenter.DispatchInteraction);
+            interactionRouter.Register(turnActionPresenter.ExploreInteraction);
+            interactionRouter.Register(resourceCollectionPresenter);
+            interactionRouter.Register(new LegacyMapInteractionAdapter(mapInteractionRouter));
+        }
+        private bool HasLocalPendingCharacterResolution()
+        {
+            var state = session == null ? null : session.State;
+            var pending = state == null ? null : state.PendingCharacterEffect;
+            return pending != null &&
+                   pending.IsValid() &&
+                   pending.PlayerId == localPlayerId;
         }
 
         private void RefreshAllFromState()
@@ -604,20 +611,22 @@ namespace YC.Presentation
                 ClearCollectionSelection();
             }
 
-            if (characterMapInteraction != null && characterMapInteraction.Synchronize())
+            var interactionPresentation = interactionRouter == null
+                ? InteractionPresentation.Empty
+                : interactionRouter.BuildActivePresentation();
+            if (interactionPresentation.ReplacesHighlights)
             {
-                return;
+                workflowView.SetHighlights(interactionPresentation.Highlights);
             }
 
-            if (specialActionInteraction != null && specialActionInteraction.Synchronize()) return;
-
-            if (characterCardEffectInteraction != null && characterCardEffectInteraction.SynchronizePending())
+            if (!string.IsNullOrEmpty(interactionPresentation.PromptText))
             {
-                return;
+                SetPrompt(interactionPresentation.PromptText);
             }
 
-            if (facilityEffectInteraction != null && facilityEffectInteraction.Synchronize())
+            if (interactionPresentation.PanelMode == InteractionMode.Busy)
             {
+                RefreshActionPanel();
                 return;
             }
 
@@ -662,7 +671,7 @@ namespace YC.Presentation
         private void BuildPromptPresenter()
         {
             promptPresenter = PromptPresenter.Build(transform);
-            uiCanvas = promptPresenter == null ? null : promptPresenter.Canvas;
+            uiCanvas = promptPresenter?.Canvas;
         }
 
         private void BuildActionPanel()
@@ -775,41 +784,51 @@ namespace YC.Presentation
 
         private void SubmitPendingEffectCommand(GameCommand command)
         {
-            var result = gameplayAdapter.Submit(command);
-            if (!result.CommandResult.Succeeded)
+            var commandId = command == null ? string.Empty : command.CommandId;
+            var outcome = commandGateway.Submit(
+                command,
+                new SubmitCallbacks(
+                    SetPrompt,
+                    CommandGateway.BuildWaitingForHostPrompt("待结算选择"))
+                {
+                    BeforeRejectedPrompt = _ => interactionRouter?.NotifyCommandSettled(commandId),
+                    AfterRejectedPrompt = _ =>
+                    {
+                        specialActionInteraction?.Synchronize();
+                        facilityEffectInteraction?.Synchronize();
+                    },
+                    OnAppliedLocally = _ =>
+                    {
+                        interactionRouter?.NotifyCommandSettled(commandId);
+                        SynchronizeInteractionFromState();
+                    }
+                });
+            if (outcome.Kind == SubmitOutcomeKind.NoResult)
             {
-                specialActionInteraction?.NotifyCommandSettled(command == null ? string.Empty : command.CommandId);
-                SetPrompt(result.CommandResult.Validation.Reason);
-                specialActionInteraction?.Synchronize();
-                facilityEffectInteraction?.Synchronize();
-                return;
+                interactionRouter?.NotifyCommandSettled(commandId);
             }
-            if (!result.AppliedLocally)
-            {
-                SetPrompt("待结算选择已发送给主机，等待确认。");
-                return;
-            }
-            specialActionInteraction?.NotifyCommandSettled(command == null ? string.Empty : command.CommandId);
-            SynchronizeInteractionFromState();
         }
 
         private void SubmitCharacterCardCommand(GameCommand command, string localSuccessPrompt, string remotePrompt)
         {
-            var result = gameplayAdapter.Submit(command);
-            if (!result.CommandResult.Succeeded)
-            {
-                SetPrompt(result.CommandResult.Validation.Reason);
-                RefreshInfoPanel();
-                return;
-            }
+            commandGateway.Submit(
+                command,
+                new SubmitCallbacks(
+                    message =>
+                    {
+                        SetPrompt(message);
+                        RefreshInfoPanel();
+                    },
+                    remotePrompt)
+                {
+                    OnAppliedLocally = _ => CompleteLocalCharacterCardCommand(
+                        command,
+                        localSuccessPrompt)
+                });
+        }
 
-            if (!result.AppliedLocally)
-            {
-                SetPrompt(remotePrompt);
-                RefreshInfoPanel();
-                return;
-            }
-
+        private void CompleteLocalCharacterCardCommand(GameCommand command, string localSuccessPrompt)
+        {
             SynchronizeInteractionFromState();
             if (command == null ||
                 (command.Kind != GameCommandKind.UseCharacterCard && command.Kind != GameCommandKind.ResolvePendingChoice))
@@ -840,10 +859,7 @@ namespace YC.Presentation
             }
         }
 
-        private void OnDeclareCityStyleClicked()
-        {
-            turnActionPresenter.BeginDeclareCityStyle();
-        }
+        private void OnDeclareCityStyleClicked() => turnActionPresenter.BeginDeclareCityStyle();
 
         private void OnBuildActionClicked()
         {
@@ -868,15 +884,8 @@ namespace YC.Presentation
             RefreshResourceTokenDisplay();
         }
 
-        private void RefreshResourceTokenDisplay()
-        {
-            if (mapView == null)
-            {
-                return;
-            }
-
-            mapView.RefreshResourceTokenDisplay(session == null ? null : session.State);
-        }
+        private void RefreshResourceTokenDisplay() =>
+            mapView?.RefreshResourceTokenDisplay(session == null ? null : session.State);
 
         private void ShowInitialPlacementChoices()
         {
@@ -894,16 +903,10 @@ namespace YC.Presentation
             ApplyDebugHotspotHighlights();
         }
 
-        private static bool ShouldControlCurrentPlayerLocally()
-        {
-            var launchContext = GameLaunchContext.Instance;
-            return launchContext == null || launchContext.Mode == LaunchMode.Local;
-        }
+        private static bool ShouldControlCurrentPlayerLocally() =>
+            GameLaunchContext.Instance == null || GameLaunchContext.Instance.Mode == LaunchMode.Local;
 
-        private void UpdateEntranceOrActionPrompt()
-        {
-            UpdateEntranceOrActionPrompt(string.Empty);
-        }
+        private void UpdateEntranceOrActionPrompt() => UpdateEntranceOrActionPrompt(string.Empty);
 
         private void UpdateEntranceOrActionPrompt(string actionMessage)
         {
@@ -975,18 +978,10 @@ namespace YC.Presentation
                 normalizedPosition.y));
         }
 
-        private void ApplyDebugHotspotHighlights()
-        {
+        private void ApplyDebugHotspotHighlights() =>
             mapView.ApplyDebugHotspotHighlights(debugClicks);
-        }
 
-        private void SetPrompt(string message)
-        {
-            if (promptPresenter != null)
-            {
-                promptPresenter.SetPrompt(message);
-            }
-        }
+        private void SetPrompt(string message) => promptPresenter?.SetPrompt(message);
 
         private void UpdatePromptAnimation()
         {

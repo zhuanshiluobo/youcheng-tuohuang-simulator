@@ -137,15 +137,7 @@ namespace YC.Presentation.Workflows
             string paymentMode,
             string errorMessage,
             IReadOnlyList<int> legalSlotIndexes,
-            Action<string> beginDrag,
-            Action beginGhostDrag,
-            Action<int> drop,
-            Action rejectDrop,
-            Action escape,
-            Action<string> selectPayment,
-            Action back,
-            Action confirm,
-            Action cancel)
+            Action<BuildFacilityIntent> dispatch)
         {
             Phase = phase;
             Options = options ?? new List<BuildFacilityOptionQueryResult>().AsReadOnly();
@@ -155,15 +147,7 @@ namespace YC.Presentation.Workflows
             PaymentMode = paymentMode ?? string.Empty;
             ErrorMessage = errorMessage ?? string.Empty;
             LegalSlotIndexes = legalSlotIndexes ?? new List<int>().AsReadOnly();
-            BeginDrag = beginDrag;
-            BeginGhostDrag = beginGhostDrag;
-            Drop = drop;
-            RejectDrop = rejectDrop;
-            Escape = escape;
-            SelectPayment = selectPayment;
-            Back = back;
-            Confirm = confirm;
-            Cancel = cancel;
+            Dispatch = dispatch ?? throw new ArgumentNullException(nameof(dispatch));
         }
 
         public BuildFacilityDraftPhase Phase { get; private set; }
@@ -174,15 +158,7 @@ namespace YC.Presentation.Workflows
         public string PaymentMode { get; private set; }
         public string ErrorMessage { get; private set; }
         public IReadOnlyList<int> LegalSlotIndexes { get; private set; }
-        public Action<string> BeginDrag { get; private set; }
-        public Action BeginGhostDrag { get; private set; }
-        public Action<int> Drop { get; private set; }
-        public Action RejectDrop { get; private set; }
-        public Action Escape { get; private set; }
-        public Action<string> SelectPayment { get; private set; }
-        public Action Back { get; private set; }
-        public Action Confirm { get; private set; }
-        public Action Cancel { get; private set; }
+        public Action<BuildFacilityIntent> Dispatch { get; private set; }
     }
 
     public sealed class BuildFacilityAvailabilityViewModel

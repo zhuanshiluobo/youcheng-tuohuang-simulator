@@ -72,6 +72,11 @@ namespace YC.Presentation.Workflows
                                ((!isSecondEffectDecision && !isSecondEffectExecution) ||
                                 pendingCharacter.RemainingEffectMode == CharacterEffectModes.Tactic);
             var hasImplementedEffect = canUseStrategy || canUseTactic;
+            var canOpenUnfinishedCharacterUse = actionPhase &&
+                                                isLocalTurn &&
+                                                hasCoveredCard &&
+                                                !player.UsedCharacterThisRound &&
+                                                (isSecondEffectDecision || isSecondEffectExecution);
 
             var hand = new List<CharacterCardHandItemViewModel>();
             if (player.HandCardIds != null)
@@ -165,7 +170,7 @@ namespace YC.Presentation.Workflows
                 coveredStatus,
                 interactionStatus,
                 canCover,
-                canUse && hasImplementedEffect,
+                (canUse && hasImplementedEffect) || canOpenUnfinishedCharacterUse,
                 canUseStrategy,
                 canUseTactic,
                 false,

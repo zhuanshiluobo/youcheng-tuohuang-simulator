@@ -109,20 +109,42 @@ namespace YC.Application.Gameplay
 
         public BuildFacilityOptionQueryResult Query(GameState state, int playerId, string facilityId)
         {
+            return Query(state, playerId, facilityId, true);
+        }
+
+        public BuildFacilityOptionQueryResult QueryForAdditionalBuild(
+            GameState state,
+            int playerId,
+            string facilityId)
+        {
+            return Query(state, playerId, facilityId, false);
+        }
+
+        private BuildFacilityOptionQueryResult Query(
+            GameState state,
+            int playerId,
+            string facilityId,
+            bool requireMainAction)
+        {
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
             }
 
-            var actionValidation = MainActionCommandGuard.Validate(state, new GameCommand
+            var facilityValidation = buildFacilityService.ValidateFacility(state, playerId, facilityId);
+            if (requireMainAction)
             {
-                Kind = GameCommandKind.BuildFacility,
-                PlayerId = playerId,
-                TargetId = facilityId ?? string.Empty
-            });
-            var facilityValidation = actionValidation.IsValid
-                ? buildFacilityService.ValidateFacility(state, playerId, facilityId)
-                : actionValidation;
+                var actionValidation = MainActionCommandGuard.Validate(state, new GameCommand
+                {
+                    Kind = GameCommandKind.BuildFacility,
+                    PlayerId = playerId,
+                    TargetId = facilityId ?? string.Empty
+                });
+                if (!actionValidation.IsValid)
+                {
+                    facilityValidation = actionValidation;
+                }
+            }
 
             var slotOptions = new List<BuildFacilitySlotOptionResult>(BuildFacilityService.CityBoardSlotCount);
             var hasLegalSlot = false;

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
 
@@ -12,7 +11,6 @@ namespace YC.Presentation
         private CharacterCardEffectInteractionUiCoordinator characterCardEffectInteraction;
         private string automaticSecondEffectMode = string.Empty;
         private bool submittingSecondEffectDecision;
-        private static int characterFacilitySelectionEscapeConsumedFrame = -1;
 
         private void BuildCharacterCardEffectInteraction()
         {
@@ -45,7 +43,6 @@ namespace YC.Presentation
                 return false;
             }
 
-            characterFacilitySelectionEscapeConsumedFrame = Time.frameCount;
             return true;
         }
 

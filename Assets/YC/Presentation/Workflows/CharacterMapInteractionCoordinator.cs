@@ -224,6 +224,16 @@ namespace YC.Presentation
             var completedKind = kind;
             var completedMode = effectMode;
             var completedDraft = new Dictionary<string, string>(draft);
+            if (completedKind != SelectionKind.CharacterEffect)
+            {
+                var pending = CurrentPending();
+                if (pending != null && !string.IsNullOrEmpty(pending.SourceCommandId))
+                {
+                    completedDraft[CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId] =
+                        pending.SourceCommandId;
+                }
+            }
+
             Reset(true);
             if (completedKind == SelectionKind.CharacterEffect)
             {

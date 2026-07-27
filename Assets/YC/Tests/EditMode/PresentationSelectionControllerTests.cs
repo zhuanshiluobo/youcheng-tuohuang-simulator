@@ -302,10 +302,10 @@ namespace YC.Tests.EditMode
             Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Dragging));
             Assert.That(controller.QueryLegalSlotIndexes(state), Has.None.EqualTo(0));
             Assert.That(controller.TryDrop(state, 0, out reason), Is.False);
-            Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Inactive));
+            Assert.That(controller.Phase, Is.EqualTo(BuildFacilityDraftPhase.Selecting));
+            Assert.That(controller.IsActive, Is.True, "非法落点不能隐式取消建设。");
             Assert.That(controller.FacilityId, Is.Empty);
 
-            controller.Begin(1);
             Assert.That(controller.TryBeginDrag(state, FacilityCardDatabase.TradeDistrict, out reason), Is.True, reason);
             Assert.That(controller.TryDrop(state, 3, out reason), Is.True, reason);
             Assert.That(controller.CollapseFocusToGhost(), Is.True);
@@ -416,16 +416,17 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void EventChoiceDialog_BuildFocusUsesSharedCloseButtonAndCancelAction()
+        public void EventChoiceDialog_BuildActionsDispatchExactlyOneIntentPerUiOperation()
         {
             var root = new GameObject("Build Facility Dialog Test Root", typeof(RectTransform));
             GameObject rightClickRoot = null;
+            GameObject confirmationRoot = null;
             try
             {
                 var dialogType = Type.GetType("YC.Presentation.EventChoiceDialog, Assembly-CSharp", false);
                 Assert.That(dialogType, Is.Not.Null);
                 var dialog = Activator.CreateInstance(dialogType, true);
-                var cancelCount = 0;
+                var focusIntents = new List<BuildFacilityIntent>();
                 var model = new BuildFacilityDraftViewModel(
                     BuildFacilityDraftPhase.Focused,
                     new List<BuildFacilityOptionQueryResult>().AsReadOnly(),
@@ -435,24 +436,33 @@ namespace YC.Tests.EditMode
                     string.Empty,
                     string.Empty,
                     new List<int>().AsReadOnly(),
-                    beginDrag: null,
-                    beginGhostDrag: null,
-                    drop: null,
-                    rejectDrop: null,
-                    escape: null,
-                    selectPayment: null,
-                    back: null,
-                    confirm: null,
-                    cancel: () => cancelCount += 1);
+                    dispatch: intent => focusIntents.Add(intent));
 
                 dialogType.GetMethod("ShowBuildFacilityFocus").Invoke(
                     dialog,
                     new object[] { root.GetComponent<RectTransform>(), model });
 
+                var resourceButton = FindButtonByName(
+                    root.GetComponentsInChildren<Button>(true),
+                    "Choose Resource Payment");
+                var goldButton = FindButtonByName(
+                    root.GetComponentsInChildren<Button>(true),
+                    "Choose Gold Payment");
                 var closeButton = FindButtonByName(
                     root.GetComponentsInChildren<Button>(true),
                     "Close Build Facility Focus Button");
                 var panel = FindRectTransformByName(root, "Build Facility Focus Panel");
+                resourceButton.onClick.Invoke();
+                goldButton.onClick.Invoke();
+                Assert.That(focusIntents, Has.Count.EqualTo(2));
+                Assert.That(focusIntents[0], Is.TypeOf<BuildFacilityIntent.SelectPayment>());
+                Assert.That(
+                    ((BuildFacilityIntent.SelectPayment)focusIntents[0]).PaymentMode,
+                    Is.EqualTo(BuildFacilityService.PaymentModeResources));
+                Assert.That(focusIntents[1], Is.TypeOf<BuildFacilityIntent.SelectPayment>());
+                Assert.That(
+                    ((BuildFacilityIntent.SelectPayment)focusIntents[1]).PaymentMode,
+                    Is.EqualTo(BuildFacilityService.PaymentModeGold));
                 Assert.That(closeButton.GetComponent<Outline>(), Is.Not.Null);
                 Assert.That(
                     closeButton.transform.GetSiblingIndex(),
@@ -467,7 +477,8 @@ namespace YC.Tests.EditMode
                         },
                         ExecuteEvents.pointerClickHandler),
                     Is.True);
-                Assert.That(cancelCount, Is.EqualTo(1));
+                Assert.That(focusIntents, Has.Count.EqualTo(3));
+                Assert.That(focusIntents[2], Is.TypeOf<BuildFacilityIntent.Cancel>());
 
                 var inputHandlerType = Type.GetType(
                     "YC.Presentation.WindowCloseInputHandler, Assembly-CSharp",
@@ -477,7 +488,7 @@ namespace YC.Tests.EditMode
                 var inputHandler = overlay.GetComponent(inputHandlerType);
                 Assert.That(inputHandler, Is.Not.Null);
                 inputHandlerType.GetMethod("RequestClose").Invoke(inputHandler, null);
-                Assert.That(cancelCount, Is.EqualTo(1), "同一窗口只能执行一次关闭回调。");
+                Assert.That(focusIntents, Has.Count.EqualTo(3), "同一窗口只能派发一次关闭意图。");
 
                 rightClickRoot = new GameObject(
                     "Build Facility Right Click Dialog Test Root",
@@ -492,10 +503,57 @@ namespace YC.Tests.EditMode
                 var rightClickHandler = rightClickOverlay.GetComponent(inputHandlerType);
                 Assert.That(rightClickHandler, Is.Not.Null);
                 inputHandlerType.GetMethod("RequestClose").Invoke(rightClickHandler, null);
-                Assert.That(cancelCount, Is.EqualTo(2), "右键关闭必须调用与关闭按钮相同的取消入口。");
+                Assert.That(focusIntents, Has.Count.EqualTo(4));
+                Assert.That(
+                    focusIntents[3],
+                    Is.TypeOf<BuildFacilityIntent.Cancel>(),
+                    "右键关闭必须派发与关闭按钮相同的取消意图。");
+
+                confirmationRoot = new GameObject(
+                    "Build Facility Confirmation Dialog Test Root",
+                    typeof(RectTransform));
+                var confirmationDialog = Activator.CreateInstance(dialogType, true);
+                var confirmationIntents = new List<BuildFacilityIntent>();
+                var confirmationModel = new BuildFacilityDraftViewModel(
+                    BuildFacilityDraftPhase.Confirming,
+                    new List<BuildFacilityOptionQueryResult>().AsReadOnly(),
+                    null,
+                    FacilityCardDatabase.Get(FacilityCardDatabase.TradeDistrict),
+                    3,
+                    BuildFacilityService.PaymentModeGold,
+                    string.Empty,
+                    new List<int>().AsReadOnly(),
+                    intent => confirmationIntents.Add(intent));
+                dialogType.GetMethod("ShowBuildFacilityConfirmation").Invoke(
+                    confirmationDialog,
+                    new object[]
+                    {
+                        confirmationRoot.GetComponent<RectTransform>(),
+                        confirmationModel
+                    });
+
+                FindButtonByName(
+                    confirmationRoot.GetComponentsInChildren<Button>(true),
+                    "Back To Build Payment").onClick.Invoke();
+                FindButtonByName(
+                    confirmationRoot.GetComponentsInChildren<Button>(true),
+                    "Confirm Build Facility").onClick.Invoke();
+                FindButtonByName(
+                    confirmationRoot.GetComponentsInChildren<Button>(true),
+                    "Close Build Facility Confirmation Button").onClick.Invoke();
+
+                Assert.That(confirmationIntents, Has.Count.EqualTo(3));
+                Assert.That(confirmationIntents[0], Is.TypeOf<BuildFacilityIntent.Back>());
+                Assert.That(confirmationIntents[1], Is.TypeOf<BuildFacilityIntent.Confirm>());
+                Assert.That(confirmationIntents[2], Is.TypeOf<BuildFacilityIntent.Cancel>());
             }
             finally
             {
+                if (confirmationRoot != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(confirmationRoot);
+                }
+
                 if (rightClickRoot != null)
                 {
                     UnityEngine.Object.DestroyImmediate(rightClickRoot);

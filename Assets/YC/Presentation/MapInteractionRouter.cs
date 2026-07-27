@@ -72,6 +72,11 @@ namespace YC.Presentation
                     view.ShowPrompt("等待玩家 " + getCurrentPlayerId() + " 完成入场。");
                     return;
                 }
+                var initialMapView = getMapView();
+                if (initialMapView != null && initialMapView.ContainsHighlightedLocation(locationId))
+                {
+                    initialMapView.PlayLocationConfirmation(locationId);
+                }
                 turn.PlaceInitialCity(locationId);
                 return;
             }
@@ -85,14 +90,32 @@ namespace YC.Presentation
             }
             if (!mapView.ContainsHighlightedLocation(locationId)) { CancelConfirmation(true); return; }
 
-            switch (coordinator.CurrentMode)
+            if (coordinator.IsActive(collection))
             {
-                case InteractionMode.ResolvingResourceCollection: collection.SelectLocation(locationId); break;
-                case InteractionMode.ResolvingMoveTarget: RequestMove(locationId); break;
-                case InteractionMode.ResolvingExploreTarget: RequestExplore(locationId); break;
-                case InteractionMode.ResolvingDeployTarget:
-                case InteractionMode.ResolvingDispatchSource:
-                case InteractionMode.ResolvingDispatchTarget: influence.SelectLocation(locationId); break;
+                collection.SelectLocation(locationId);
+                return;
+            }
+
+            if (coordinator.IsActive(turn) && turn.IsSelectingMoveTarget)
+            {
+                RequestMove(locationId);
+                return;
+            }
+
+            if (coordinator.IsActive(exploration) && exploration.IsSelectingExploreTarget)
+            {
+                RequestExplore(locationId);
+                return;
+            }
+
+            if (coordinator.IsActive(influence))
+            {
+                var hadPendingConfirmation = influence.HasPendingConfirmation;
+                influence.SelectLocation(locationId);
+                if (hadPendingConfirmation && !influence.HasPendingConfirmation)
+                {
+                    mapView.PlayLocationConfirmation(locationId);
+                }
             }
         }
 
@@ -113,7 +136,7 @@ namespace YC.Presentation
             }
             if (!mapView.ContainsHighlightedInfluenceSlot(slotId)) { CancelConfirmation(true); return; }
 
-            if (coordinator.CurrentMode == InteractionMode.ResolvingResourceCollection)
+            if (coordinator.IsActive(collection))
             {
                 InfluenceSlotReference slot;
                 string reason;
@@ -126,11 +149,15 @@ namespace YC.Presentation
                 collection.SelectRoutePayment(slot.RouteId);
                 return;
             }
-            if (coordinator.CurrentMode == InteractionMode.ResolvingDeployTarget ||
-                coordinator.CurrentMode == InteractionMode.ResolvingDispatchSource ||
-                coordinator.CurrentMode == InteractionMode.ResolvingDispatchTarget)
+
+            if (coordinator.IsActive(influence))
             {
+                var hadPendingConfirmation = influence.HasPendingConfirmation;
                 influence.SelectSlot(slotId);
+                if (hadPendingConfirmation && !influence.HasPendingConfirmation)
+                {
+                    mapView.PlayInfluenceSlotConfirmation(slotId);
+                }
             }
         }
 
@@ -191,6 +218,7 @@ namespace YC.Presentation
             if (confirmation.Request(actionKey, targetId, targetId, string.Empty, action, out callback))
             {
                 view.ClearHighlights();
+                getMapView()?.PlayLocationConfirmation(targetId);
                 callback?.Invoke();
                 return;
             }
@@ -212,29 +240,58 @@ namespace YC.Presentation
         private void RestorePresentation()
         {
             view.ClearHighlights();
-            switch (coordinator.CurrentMode)
+            if (exploration.IsSelectingInfluenceTarget)
             {
-                case InteractionMode.ResolvingMoveTarget: turn.RestoreMovePresentation(); break;
-                case InteractionMode.ResolvingExploreTarget:
-                case InteractionMode.ResolvingEventInfluenceTarget: exploration.RestorePresentation(); break;
-                case InteractionMode.ResolvingDeployTarget:
-                case InteractionMode.ResolvingDispatchSource:
-                case InteractionMode.ResolvingDispatchTarget: influence.RestorePresentation(); break;
+                exploration.RestorePresentation();
+                return;
+            }
+
+            if (coordinator.IsActive(turn) && turn.IsSelectingMoveTarget)
+            {
+                turn.RestoreMovePresentation();
+                return;
+            }
+
+            if (coordinator.IsActive(exploration))
+            {
+                exploration.RestorePresentation();
+                return;
+            }
+
+            if (coordinator.IsActive(influence))
+            {
+                influence.RestorePresentation();
             }
         }
 
         private string GetCurrentPrompt()
         {
-            switch (coordinator.CurrentMode)
+            if (exploration.IsSelectingInfluenceTarget)
             {
-                case InteractionMode.ResolvingMoveTarget: return "城市移动：选择一个高亮资源点。";
-                case InteractionMode.ResolvingExploreTarget:
-                case InteractionMode.ResolvingEventInfluenceTarget: return exploration.GetCurrentPrompt();
-                case InteractionMode.ResolvingDeployTarget: return "选择一个影响力空格放置影响力";
-                case InteractionMode.ResolvingDispatchSource: return "调度：先选择一个自己的影响力。";
-                case InteractionMode.ResolvingDispatchTarget: return "请选择调度目标槽位。";
-                default: return "请从右下角行动面板选择主要行动。";
+                return exploration.CurrentPrompt;
             }
+
+            if (coordinator.IsActive(turn) && turn.IsSelectingMoveTarget)
+            {
+                return "城市移动：选择一个高亮资源点。";
+            }
+
+            if (coordinator.IsActive(exploration))
+            {
+                return exploration.CurrentPrompt;
+            }
+
+            if (coordinator.IsActive(influence))
+            {
+                return influence.CurrentPrompt;
+            }
+
+            if (coordinator.IsActive(collection))
+            {
+                return collection.BuildStatus();
+            }
+
+            return "请从右下角行动面板选择主要行动。";
         }
 
         private void CancelConfirmation(bool restorePresentation) => ClearConfirmation(restorePresentation);

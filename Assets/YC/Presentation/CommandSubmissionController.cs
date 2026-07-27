@@ -131,6 +131,7 @@ namespace YC.Presentation
             commandSettled?.Invoke(rejected == null || rejected.Command == null
                 ? string.Empty
                 : rejected.Command.CommandId);
+            refreshFromState();
             setPrompt(NetworkCommandPromptFormatter.BuildRejectedCommandPrompt(rejected));
         }
     }

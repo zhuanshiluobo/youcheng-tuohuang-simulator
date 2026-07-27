@@ -205,7 +205,7 @@ namespace YC.Tests.EditMode
             var view = new CharacterCardPanelPresenter().BuildView(state, 1);
 
             Assert.That(view.IsSecondEffectDecision, Is.True);
-            Assert.That(view.CanUse, Is.False);
+            Assert.That(view.CanUse, Is.True, "角色牌结算未完成时仍应允许从主界面重新打开角色牌。");
             Assert.That(view.CanUseStrategy, Is.False);
             Assert.That(view.CanUseTactic, Is.False);
             Assert.That(view.InteractionStatus,

@@ -431,6 +431,67 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void ElysiumStrategyThenTactic_WithNoLegalRaidTarget_WaitsForFlipBeforeCompletingCard()
+        {
+            var state = CreateActionState(CharacterCardDatabase.Elysium);
+            var player = state.FindPlayer(1);
+            var cardId = player.CoveredCharacterCardId;
+            player.Resources.Originium = 0;
+            player.Resources.OriginiumShard = 3;
+            player.Resources.Iron = 2;
+
+            var strategy = Use(state, CharacterEffectModes.Strategy, command =>
+            {
+                command.Parameters[CharacterEffectParameterKeys.ResourceType] = "originium";
+                command.Parameters[CharacterEffectParameterKeys.OfferSecondEffect] = "true";
+            });
+
+            Assert.That(strategy.Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectDecision));
+
+            var continueTactic = Resolve(state, CharacterEffectChoiceIds.ContinueSecondEffect);
+
+            Assert.That(continueTactic.Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectDecision));
+            Assert.That(state.PendingCharacterEffect.OptionIds,
+                Is.EqualTo(new[] { CharacterEffectChoiceIds.FinishCharacterUse }));
+            Assert.That(player.CoveredCharacterCardId, Is.EqualTo(cardId));
+            Assert.That(player.UsedCharacterThisRound, Is.False);
+        }
+
+        [Test]
+        public void TexasStrategyThenTactic_WithNoCompleteMovePath_WaitsForFlipBeforeCompletingCard()
+        {
+            var state = CreateActionState(CharacterCardDatabase.Texas);
+            var player = state.FindPlayer(1);
+            var cardId = player.CoveredCharacterCardId;
+            state.Decks.FacilitySupply.Add("f1");
+
+            var strategy = Use(state, CharacterEffectModes.Strategy, command =>
+            {
+                command.Parameters[CharacterEffectParameterKeys.FacilityCardId] = "f1";
+                command.Parameters[CharacterEffectParameterKeys.OfferSecondEffect] = "true";
+            });
+
+            Assert.That(strategy.Succeeded, Is.True);
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(12));
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectDecision));
+
+            var continueTactic = Resolve(state, CharacterEffectChoiceIds.ContinueSecondEffect);
+
+            Assert.That(continueTactic.Succeeded, Is.True);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectDecision));
+            Assert.That(state.PendingCharacterEffect.OptionIds,
+                Is.EqualTo(new[] { CharacterEffectChoiceIds.FinishCharacterUse }));
+            Assert.That(player.CoveredCharacterCardId, Is.EqualTo(cardId));
+            Assert.That(player.UsedCharacterThisRound, Is.False);
+        }
+
+        [Test]
         public void LiskarmStrategyThenTactic_WithNoLegalOpponentTarget_WaitsForFlipBeforeCompletingCard()
         {
             var state = CreateActionState(CharacterCardDatabase.Liskarm);

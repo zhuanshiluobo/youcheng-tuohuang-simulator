@@ -1250,7 +1250,7 @@ namespace YC.Domain.Cards
                 return Failure(CommandErrorCode.InvalidTarget, "请选择是否发动角色牌的第二个效果。");
             }
 
-            if (ShouldWaitForManualFinishWithoutLegalMapTarget(state, player.PlayerId, pending))
+            if (ShouldWaitForManualFinishWithoutLegalResolution(state, player.PlayerId, pending))
             {
                 pending.OptionIds.Clear();
                 pending.OptionIds.Add(CharacterEffectChoiceIds.FinishCharacterUse);
@@ -1263,15 +1263,27 @@ namespace YC.Domain.Cards
             return ValidationResult.Success;
         }
 
-        private bool ShouldWaitForManualFinishWithoutLegalMapTarget(
+        private bool ShouldWaitForManualFinishWithoutLegalResolution(
             GameState state,
             int playerId,
             PendingCharacterEffectState pending)
         {
             var definition = CharacterCardDatabase.Get(pending.CardId);
-            if (definition == null ||
-                pending.RemainingEffectMode != CharacterEffectModes.Tactic ||
-                definition.TacticEffect != CharacterCardEffectKind.LiskarmControlPosition)
+            if (definition == null)
+            {
+                return false;
+            }
+
+            CharacterCardEffectKind remainingEffect;
+            if (pending.RemainingEffectMode == CharacterEffectModes.Strategy)
+            {
+                remainingEffect = definition.StrategyEffect;
+            }
+            else if (pending.RemainingEffectMode == CharacterEffectModes.Tactic)
+            {
+                remainingEffect = definition.TacticEffect;
+            }
+            else
             {
                 return false;
             }
@@ -1280,11 +1292,7 @@ namespace YC.Domain.Cards
                 ResolveMapQuery(state),
                 ResolveInfluenceService(state),
                 ResolveMovementService(state));
-            var options = optionQuery.Query(
-                state,
-                playerId,
-                CharacterCardEffectKind.LiskarmControlPosition);
-            return options.Get(CharacterEffectParameterKeys.TargetInfluenceSlotId).Count == 0;
+            return !optionQuery.HasLegalResolution(state, playerId, remainingEffect);
         }
 
         private ValidationResult PlanCannotTradeChannel(

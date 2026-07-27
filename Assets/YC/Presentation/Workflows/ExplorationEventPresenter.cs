@@ -16,8 +16,18 @@ namespace YC.Presentation.Workflows
 {
     public sealed class ExplorationEventPresenter : IInteractionWorkflow
     {
+        private enum ExplorationStage
+        {
+            Inactive,
+            SelectingTarget,
+            ChoosingPath,
+            ChoosingPaymentRecipient,
+            ChoosingEventOption,
+            SelectingInfluenceTarget
+        }
+
         private readonly IGameplayContext context;
-        private readonly IGameCommandPort commandPort;
+        private readonly CommandGateway commandGateway;
         private readonly IExplorationEventView view;
         private readonly IMapQueryService mapQuery;
         private readonly ExplorationService explorationService;
@@ -32,7 +42,7 @@ namespace YC.Presentation.Workflows
         private readonly HashSet<string> selectableInfluenceSlotIds =
             new HashSet<string>(StringComparer.Ordinal);
 
-        private InteractionMode currentMode = InteractionMode.ChooseAction;
+        private ExplorationStage stage = ExplorationStage.Inactive;
         private PendingCardSessionState additionalExplorePending;
         private string additionalExploreOptionId = string.Empty;
         private int lastInfluenceInputFrame = -1;
@@ -47,7 +57,8 @@ namespace YC.Presentation.Workflows
             InfluenceService influenceService)
         {
             this.context = context ?? throw new ArgumentNullException(nameof(context));
-            this.commandPort = commandPort ?? throw new ArgumentNullException(nameof(commandPort));
+            commandGateway = new CommandGateway(
+                commandPort ?? throw new ArgumentNullException(nameof(commandPort)));
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
             this.explorationService = explorationService ??
@@ -65,12 +76,68 @@ namespace YC.Presentation.Workflows
 
         public InteractionMode Mode
         {
-            get { return currentMode; }
+            get
+            {
+                return stage == ExplorationStage.Inactive
+                    ? InteractionMode.ChooseAction
+                    : InteractionMode.Busy;
+            }
+        }
+
+        public bool IsActive
+        {
+            get { return stage != ExplorationStage.Inactive; }
+        }
+
+        public bool IsSelectingExploreTarget
+        {
+            get { return stage == ExplorationStage.SelectingTarget; }
+        }
+
+        public bool IsChoosingPath
+        {
+            get { return stage == ExplorationStage.ChoosingPath; }
+        }
+
+        public bool IsChoosingPaymentRecipient
+        {
+            get { return stage == ExplorationStage.ChoosingPaymentRecipient; }
+        }
+
+        public bool IsChoosingEventOption
+        {
+            get { return stage == ExplorationStage.ChoosingEventOption; }
         }
 
         public bool IsSelectingInfluenceTarget
         {
-            get { return influenceTargetSelection.IsSelecting; }
+            get
+            {
+                return stage == ExplorationStage.SelectingInfluenceTarget &&
+                       influenceTargetSelection.IsSelecting;
+            }
+        }
+
+        public string CurrentPrompt
+        {
+            get
+            {
+                switch (stage)
+                {
+                    case ExplorationStage.SelectingTarget:
+                        return "\u63a2\u7d22\uff1a\u9009\u62e9\u4e00\u4e2a\u9ad8\u4eae\u8d44\u6e90\u70b9\u3002";
+                    case ExplorationStage.ChoosingPath:
+                        return "\u5b58\u5728\u591a\u6761\u8def\u8d39\u63a5\u6536\u65b9\u4e0d\u540c\u7684\u6700\u4f18\u8def\u7ebf\uff0c\u8bf7\u9009\u62e9\u3002";
+                    case ExplorationStage.ChoosingPaymentRecipient:
+                        return "\u9009\u62e9\u6bcf\u6761\u8def\u7ebf\u7684\u8fc7\u8def\u8d39\u63a5\u6536\u8005\uff0c\u7136\u540e\u786e\u8ba4\u63a2\u7d22\u3002";
+                    case ExplorationStage.ChoosingEventOption:
+                        return "\u8bf7\u9009\u62e9\u4e8b\u4ef6\u724c\u7684\u4e00\u4e2a\u9009\u9879\u3002";
+                    case ExplorationStage.SelectingInfluenceTarget:
+                        return "\u8bf7\u9009\u62e9\u4e8b\u4ef6\u6548\u679c\u8981\u653e\u7f6e\u5f71\u54cd\u529b\u7684\u69fd\u4f4d\u3002";
+                    default:
+                        return string.Empty;
+                }
+            }
         }
 
         public string TargetLocationId
@@ -128,7 +195,7 @@ namespace YC.Presentation.Workflows
         {
             ClearWorkflowState();
             view.HideEventOptions();
-            SetMode(InteractionMode.ResolvingExploreTarget);
+            SetStage(ExplorationStage.SelectingTarget);
 
             var highlights = BuildExplorableLocationHighlights();
             view.SetHighlights(highlights);
@@ -343,30 +410,22 @@ namespace YC.Presentation.Workflows
 
         public void RestorePresentation()
         {
-            switch (currentMode)
+            switch (stage)
             {
-                case InteractionMode.ResolvingExploreTarget:
+                case ExplorationStage.SelectingTarget:
                     view.SetHighlights(BuildExplorableLocationHighlights());
-                    view.ShowPrompt(GetCurrentPrompt());
+                    view.ShowPrompt(CurrentPrompt);
                     break;
-                case InteractionMode.ResolvingEventInfluenceTarget:
+                case ExplorationStage.SelectingInfluenceTarget:
                     PresentInfluenceTargets();
-                    view.ShowPrompt(GetCurrentPrompt());
+                    view.ShowPrompt(CurrentPrompt);
                     break;
             }
         }
 
         public string GetCurrentPrompt()
         {
-            switch (currentMode)
-            {
-                case InteractionMode.ResolvingExploreTarget:
-                    return "\u63a2\u7d22\uff1a\u9009\u62e9\u4e00\u4e2a\u9ad8\u4eae\u8d44\u6e90\u70b9\u3002";
-                case InteractionMode.ResolvingEventInfluenceTarget:
-                    return "\u8bf7\u9009\u62e9\u4e8b\u4ef6\u6548\u679c\u8981\u653e\u7f6e\u5f71\u54cd\u529b\u7684\u69fd\u4f4d\u3002";
-                default:
-                    return string.Empty;
-            }
+            return CurrentPrompt;
         }
 
         public void Cancel()
@@ -375,7 +434,7 @@ namespace YC.Presentation.Workflows
             ClearAdditionalExploreSource();
             view.HideEventOptions();
             view.ClearHighlights();
-            SetMode(InteractionMode.ChooseAction);
+            SetStage(ExplorationStage.Inactive);
             view.RefreshActionPanel();
         }
 
@@ -394,22 +453,22 @@ namespace YC.Presentation.Workflows
 
         private void ShowPathOptions()
         {
-            SetMode(InteractionMode.PendingChoice);
+            SetStage(ExplorationStage.ChoosingPath);
             view.ShowExplorePathOptions(new ExplorePathOptionsViewModel(
                 pathSelection.PathChoices,
                 SelectPathChoice));
-            view.ShowPrompt("\u5b58\u5728\u591a\u6761\u8def\u8d39\u63a5\u6536\u65b9\u4e0d\u540c\u7684\u6700\u4f18\u8def\u7ebf\uff0c\u8bf7\u9009\u62e9\u3002");
+            view.ShowPrompt(CurrentPrompt);
         }
 
         private void ShowPaymentOptions()
         {
-            SetMode(InteractionMode.PendingChoice);
+            SetStage(ExplorationStage.ChoosingPaymentRecipient);
             view.ShowExplorePaymentOptions(new ExplorePaymentOptionsViewModel(
                 paymentSelection.Choices,
                 paymentSelection.RecipientsByRouteId,
                 SelectPaymentRecipient,
                 ConfirmExploreStart));
-            view.ShowPrompt("\u9009\u62e9\u6bcf\u6761\u8def\u7ebf\u7684\u8fc7\u8def\u8d39\u63a5\u6536\u8005\uff0c\u7136\u540e\u786e\u8ba4\u63a2\u7d22\u3002");
+            view.ShowPrompt(CurrentPrompt);
         }
 
         private void ShowEventCard(EventCardDefinition card)
@@ -420,7 +479,7 @@ namespace YC.Presentation.Workflows
             }
 
             optionSelection.Begin(card);
-            SetMode(InteractionMode.PendingChoice);
+            SetStage(ExplorationStage.ChoosingEventOption);
             view.ShowEventCardOptions(new EventCardOptionsViewModel(
                 card,
                 BuildEventCardMetadataLabel(card),
@@ -428,7 +487,7 @@ namespace YC.Presentation.Workflows
                 paymentSelection.RecipientsByRouteId,
                 SelectEventChoice,
                 SelectPaymentRecipient));
-            view.ShowPrompt("\u8bf7\u9009\u62e9\u4e8b\u4ef6\u724c\u7684\u4e00\u4e2a\u9009\u9879\u3002");
+            view.ShowPrompt(CurrentPrompt);
         }
 
         private void BeginInfluenceTargetSelection(EventCardDefinition card, int choiceIndex)
@@ -437,20 +496,20 @@ namespace YC.Presentation.Workflows
             selectableInfluenceSlotIds.Clear();
             lastInfluenceInputFrame = -1;
             view.CollapseEventOptions();
-            SetMode(InteractionMode.ResolvingEventInfluenceTarget);
+            SetStage(ExplorationStage.SelectingInfluenceTarget);
             view.ClearHighlights();
 
             var count = PresentInfluenceTargets();
             view.RefreshActionPanel();
             if (count > 0)
             {
-                view.ShowPrompt(GetCurrentPrompt());
+                view.ShowPrompt(CurrentPrompt);
                 return;
             }
 
             influenceTargetSelection.Clear();
             selectableInfluenceSlotIds.Clear();
-            SetMode(InteractionMode.PendingChoice);
+            SetStage(ExplorationStage.ChoosingEventOption);
             ShowEventCard(card);
             view.ShowPrompt("\u6ca1\u6709\u53ef\u7528\u4e8e\u8be5\u4e8b\u4ef6\u6548\u679c\u7684\u5f71\u54cd\u529b\u69fd\u4f4d\u3002");
         }
@@ -537,34 +596,30 @@ namespace YC.Presentation.Workflows
                 return;
             }
 
-            var command = BuildExploreCommand();
-            var submission = commandPort.Submit(command);
-            if (!submission.CommandResult.Succeeded)
-            {
-                view.ShowPrompt(submission.CommandResult.Validation.Reason);
-                return;
-            }
+            commandGateway.Submit(
+                BuildExploreCommand(),
+                new SubmitCallbacks(
+                    view.ShowPrompt,
+                    CommandGateway.BuildWaitingForHostPrompt("\u63a2\u7d22\u547d\u4ee4"))
+                {
+                    OnAppliedLocally = result =>
+                    {
+                        ClearAdditionalExploreSource();
+                        view.HideEventOptions();
+                        ClearWorkflowState();
+                        view.RefreshResourceAndInfluence();
+                        var pendingChoice = GetPendingChoice();
+                        if (pendingChoice != null && pendingChoice.PlayerId == context.LocalPlayerId)
+                        {
+                            ShowPendingChoice();
+                            return;
+                        }
 
-            if (!submission.AppliedLocally)
-            {
-                view.ShowPrompt("\u63a2\u7d22\u547d\u4ee4\u5df2\u53d1\u9001\u7ed9\u4e3b\u673a\uff0c\u7b49\u5f85\u786e\u8ba4\u3002");
-                return;
-            }
-
-            ClearAdditionalExploreSource();
-            view.HideEventOptions();
-            ClearWorkflowState();
-            view.RefreshResourceAndInfluence();
-            var pendingChoice = GetPendingChoice();
-            if (pendingChoice != null && pendingChoice.PlayerId == context.LocalPlayerId)
-            {
-                ShowPendingChoice();
-                return;
-            }
-
-            SetMode(InteractionMode.ChooseAction);
-            view.RefreshActionPanel();
-            view.ShowPrompt("\u63a2\u7d22\u5df2\u5f00\u59cb\u3002");
+                        SetStage(ExplorationStage.Inactive);
+                        view.RefreshActionPanel();
+                        view.ShowPrompt("\u63a2\u7d22\u5df2\u5f00\u59cb\u3002");
+                    }
+                });
         }
 
         private void SubmitResolvePendingChoice(
@@ -594,20 +649,12 @@ namespace YC.Presentation.Workflows
                     pendingSpecialAction.SessionId;
             }
 
-            var submission = commandPort.Submit(command);
-            if (!submission.CommandResult.Succeeded)
-            {
-                view.ShowPrompt(submission.CommandResult.Validation.Reason);
-                return;
-            }
-
-            if (!submission.AppliedLocally)
-            {
-                view.ShowPrompt(waitingPrompt);
-                return;
-            }
-
-            CompleteAppliedAction(completedActionName);
+            commandGateway.Submit(
+                command,
+                new SubmitCallbacks(view.ShowPrompt, waitingPrompt)
+                {
+                    OnAppliedLocally = result => CompleteAppliedAction(completedActionName)
+                });
         }
 
         private void SubmitExploreChoice(int choiceIndex)
@@ -623,20 +670,14 @@ namespace YC.Presentation.Workflows
             influenceTargetSelection.AddCommandParameter(
                 command,
                 ExploreLocationCommandHandler.EventInfluenceSlotIdsParameter);
-            var submission = commandPort.Submit(command);
-            if (!submission.CommandResult.Succeeded)
-            {
-                view.ShowPrompt(submission.CommandResult.Validation.Reason);
-                return;
-            }
-
-            if (!submission.AppliedLocally)
-            {
-                view.ShowPrompt("\u63a2\u7d22\u547d\u4ee4\u5df2\u53d1\u9001\u7ed9\u4e3b\u673a\uff0c\u7b49\u5f85\u786e\u8ba4\u3002");
-                return;
-            }
-
-            CompleteAppliedAction("\u63a2\u7d22");
+            commandGateway.Submit(
+                command,
+                new SubmitCallbacks(
+                    view.ShowPrompt,
+                    CommandGateway.BuildWaitingForHostPrompt("\u63a2\u7d22\u547d\u4ee4"))
+                {
+                    OnAppliedLocally = result => CompleteAppliedAction("\u63a2\u7d22")
+                });
         }
 
         private void SubmitEntranceEventChoice(int choiceIndex)
@@ -650,24 +691,21 @@ namespace YC.Presentation.Workflows
             influenceTargetSelection.AddCommandParameter(
                 command,
                 ExploreLocationCommandHandler.EventInfluenceSlotIdsParameter);
-            var submission = commandPort.Submit(command);
-            if (!submission.CommandResult.Succeeded)
-            {
-                view.ShowPrompt(submission.CommandResult.Validation.Reason);
-                return;
-            }
-
-            if (!submission.AppliedLocally)
-            {
-                view.ShowPrompt("\u4e8b\u4ef6\u9009\u62e9\u5df2\u53d1\u9001\u7ed9\u4e3b\u673a\uff0c\u7b49\u5f85\u786e\u8ba4\u3002");
-                return;
-            }
-
-            view.HideEventOptions();
-            ClearWorkflowState();
-            view.ClearHighlights();
-            SetMode(InteractionMode.ChooseAction);
-            view.RefreshFromState();
+            commandGateway.Submit(
+                command,
+                new SubmitCallbacks(
+                    view.ShowPrompt,
+                    CommandGateway.BuildWaitingForHostPrompt("\u4e8b\u4ef6\u9009\u62e9"))
+                {
+                    OnAppliedLocally = result =>
+                    {
+                        view.HideEventOptions();
+                        ClearWorkflowState();
+                        view.ClearHighlights();
+                        SetStage(ExplorationStage.Inactive);
+                        view.RefreshFromState();
+                    }
+                });
         }
 
         private GameCommand BuildExploreCommand()
@@ -716,7 +754,7 @@ namespace YC.Presentation.Workflows
             ClearWorkflowState();
             view.ClearHighlights();
             view.RefreshResourceAndInfluence();
-            SetMode(InteractionMode.ChooseAction);
+            SetStage(ExplorationStage.Inactive);
             view.CompleteAction(actionName);
         }
 
@@ -1286,10 +1324,10 @@ namespace YC.Presentation.Workflows
             additionalExploreOptionId = string.Empty;
         }
 
-        private void SetMode(InteractionMode mode)
+        private void SetStage(ExplorationStage value)
         {
-            currentMode = mode;
-            view.SetInteractionMode(mode);
+            stage = value;
+            view.SetInteractionMode(Mode);
         }
 
         private bool TryAcceptInfluenceInputFrame(int inputFrame)

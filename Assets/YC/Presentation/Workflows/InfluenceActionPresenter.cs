@@ -10,11 +10,20 @@ namespace YC.Presentation.Workflows
 {
     public sealed class InfluenceActionPresenter : IInteractionWorkflow
     {
+        private enum InfluenceActionStage
+        {
+            Inactive,
+            SelectingDeployTarget,
+            SelectingDispatchSource,
+            SelectingDispatchTarget,
+            ChoosingDispatchContinuation
+        }
+
         private const string SecondSourceParameter = "source2";
         private const string SecondTargetParameter = "target2";
 
         private readonly IGameplayContext context;
-        private readonly IGameCommandPort commandPort;
+        private readonly CommandGateway commandGateway;
         private readonly IInfluenceActionView view;
         private readonly IMapQueryService mapQuery;
         private readonly InfluenceService influenceService;
@@ -24,7 +33,7 @@ namespace YC.Presentation.Workflows
         private string dispatchSourceSlotId = string.Empty;
         private string firstSourceSlotId = string.Empty;
         private string firstTargetSlotId = string.Empty;
-        private InteractionMode currentMode = InteractionMode.ChooseAction;
+        private InfluenceActionStage stage = InfluenceActionStage.Inactive;
 
         public InfluenceActionPresenter(
             IGameplayContext context,
@@ -34,7 +43,8 @@ namespace YC.Presentation.Workflows
             InfluenceService influenceService)
         {
             this.context = context ?? throw new ArgumentNullException(nameof(context));
-            this.commandPort = commandPort ?? throw new ArgumentNullException(nameof(commandPort));
+            commandGateway = new CommandGateway(
+                commandPort ?? throw new ArgumentNullException(nameof(commandPort)));
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
             this.influenceService = influenceService ?? throw new ArgumentNullException(nameof(influenceService));
@@ -42,7 +52,59 @@ namespace YC.Presentation.Workflows
 
         public InteractionMode Mode
         {
-            get { return currentMode; }
+            get
+            {
+                return stage == InfluenceActionStage.Inactive
+                    ? InteractionMode.ChooseAction
+                    : InteractionMode.Busy;
+            }
+        }
+
+        public bool IsActive
+        {
+            get { return stage != InfluenceActionStage.Inactive; }
+        }
+
+        public bool IsSelectingDeployTarget
+        {
+            get { return stage == InfluenceActionStage.SelectingDeployTarget; }
+        }
+
+        public bool IsSelectingDispatchSource
+        {
+            get { return stage == InfluenceActionStage.SelectingDispatchSource; }
+        }
+
+        public bool IsSelectingDispatchTarget
+        {
+            get { return stage == InfluenceActionStage.SelectingDispatchTarget; }
+        }
+
+        public bool IsChoosingDispatchContinuation
+        {
+            get { return stage == InfluenceActionStage.ChoosingDispatchContinuation; }
+        }
+
+        public string CurrentPrompt
+        {
+            get
+            {
+                switch (stage)
+                {
+                    case InfluenceActionStage.SelectingDeployTarget:
+                        return "选择一个影响力空格放置影响力。";
+                    case InfluenceActionStage.SelectingDispatchSource:
+                        return HasPendingFirstMove
+                            ? "调度：请选择第二个影响力。"
+                            : "调度：先选择一个自己的影响力。";
+                    case InfluenceActionStage.SelectingDispatchTarget:
+                        return "请选择调度目标槽位。";
+                    case InfluenceActionStage.ChoosingDispatchContinuation:
+                        return "已预览本次调度。请选择再次调度，或取消以结束调度。";
+                    default:
+                        return string.Empty;
+                }
+            }
         }
 
         public string DispatchSourceSlotId
@@ -82,36 +144,35 @@ namespace YC.Presentation.Workflows
         public void BeginDeploy()
         {
             ClearState();
-            SetMode(InteractionMode.ResolvingDeployTarget);
+            SetStage(InfluenceActionStage.SelectingDeployTarget);
             PresentDeployTargets();
-            view.ShowPrompt("选择一个影响力空格放置影响力。");
+            view.ShowPrompt(CurrentPrompt);
         }
 
         public void BeginDispatch()
         {
             if (HasPendingFirstMove)
             {
-                SetMode(InteractionMode.ResolvingDispatchDecision);
+                SetStage(InfluenceActionStage.ChoosingDispatchContinuation);
                 ShowDispatchDecision();
                 return;
             }
 
             ClearState();
-            SetMode(InteractionMode.ResolvingDispatchSource);
+            SetStage(InfluenceActionStage.SelectingDispatchSource);
             PresentDispatchSources();
-            view.ShowPrompt("调度：先选择一个自己的影响力。");
+            view.ShowPrompt(CurrentPrompt);
         }
 
         public void Cancel()
         {
             Clear();
-            currentMode = InteractionMode.ChooseAction;
-            view.SetInteractionMode(currentMode);
         }
 
         public void Clear()
         {
             ClearState();
+            SetStage(InfluenceActionStage.Inactive);
         }
 
         public void CancelPendingConfirmation(bool restorePresentation)
@@ -130,23 +191,21 @@ namespace YC.Presentation.Workflows
 
         public void RestorePresentation()
         {
-            switch (currentMode)
+            switch (stage)
             {
-                case InteractionMode.ResolvingDeployTarget:
+                case InfluenceActionStage.SelectingDeployTarget:
                     PresentDeployTargets();
-                    view.ShowPrompt("选择一个影响力空格放置影响力。");
+                    view.ShowPrompt(CurrentPrompt);
                     break;
-                case InteractionMode.ResolvingDispatchSource:
+                case InfluenceActionStage.SelectingDispatchSource:
                     PresentDispatchSources();
-                    view.ShowPrompt(HasPendingFirstMove
-                        ? "调度：请选择第二个影响力。"
-                        : "调度：先选择一个自己的影响力。");
+                    view.ShowPrompt(CurrentPrompt);
                     break;
-                case InteractionMode.ResolvingDispatchTarget:
+                case InfluenceActionStage.SelectingDispatchTarget:
                     PresentDispatchTargets(dispatchSourceSlotId);
-                    view.ShowPrompt("请选择调度目标槽位。");
+                    view.ShowPrompt(CurrentPrompt);
                     break;
-                case InteractionMode.ResolvingDispatchDecision:
+                case InfluenceActionStage.ChoosingDispatchContinuation:
                     view.ClearHighlights();
                     RefreshPreview();
                     ShowDispatchDecision();
@@ -156,15 +215,15 @@ namespace YC.Presentation.Workflows
 
         public void SelectLocation(string locationId)
         {
-            switch (currentMode)
+            switch (stage)
             {
-                case InteractionMode.ResolvingDeployTarget:
+                case InfluenceActionStage.SelectingDeployTarget:
                     SelectDeploySlot(FindFirstLocationSlot(locationId, CanDeployTo));
                     break;
-                case InteractionMode.ResolvingDispatchSource:
+                case InfluenceActionStage.SelectingDispatchSource:
                     SelectDispatchSourceSlot(FindFirstSourceAtLocation(locationId));
                     break;
-                case InteractionMode.ResolvingDispatchTarget:
+                case InfluenceActionStage.SelectingDispatchTarget:
                     SelectDispatchTargetSlot(FindFirstLocationSlot(locationId, CanDispatchTo));
                     break;
             }
@@ -172,15 +231,15 @@ namespace YC.Presentation.Workflows
 
         public void SelectSlot(string slotId)
         {
-            switch (currentMode)
+            switch (stage)
             {
-                case InteractionMode.ResolvingDeployTarget:
+                case InfluenceActionStage.SelectingDeployTarget:
                     SelectDeploySlot(slotId);
                     break;
-                case InteractionMode.ResolvingDispatchSource:
+                case InfluenceActionStage.SelectingDispatchSource:
                     SelectDispatchSourceSlot(slotId);
                     break;
-                case InteractionMode.ResolvingDispatchTarget:
+                case InfluenceActionStage.SelectingDispatchTarget:
                     SelectDispatchTargetSlot(slotId);
                     break;
             }
@@ -197,9 +256,9 @@ namespace YC.Presentation.Workflows
             view.HideDispatchDecision();
             ClearConfirmation();
             dispatchSourceSlotId = string.Empty;
-            SetMode(InteractionMode.ResolvingDispatchSource);
+            SetStage(InfluenceActionStage.SelectingDispatchSource);
             PresentDispatchSources();
-            view.ShowPrompt("调度：请选择第二个影响力。");
+            view.ShowPrompt(CurrentPrompt);
         }
 
         public void FinishDispatch()
@@ -237,19 +296,19 @@ namespace YC.Presentation.Workflows
 
         private void SubmitDeploy(string slotId)
         {
-            var submission = commandPort.Submit(new GameCommand
-            {
-                Kind = GameCommandKind.DeployInfluence,
-                PlayerId = context.LocalPlayerId,
-                TargetId = slotId
-            });
-
-            if (!TryHandleSubmission(submission, "部署命令已发送给主机，等待确认。"))
-            {
-                return;
-            }
-
-            Complete("部署");
+            commandGateway.Submit(
+                new GameCommand
+                {
+                    Kind = GameCommandKind.DeployInfluence,
+                    PlayerId = context.LocalPlayerId,
+                    TargetId = slotId
+                },
+                new SubmitCallbacks(
+                    view.ShowPrompt,
+                    CommandGateway.BuildWaitingForHostPrompt("部署命令"))
+                {
+                    OnAppliedLocally = result => Complete("部署")
+                });
         }
 
         private void SelectDispatchSourceSlot(string slotId)
@@ -272,9 +331,9 @@ namespace YC.Presentation.Workflows
             }
 
             dispatchSourceSlotId = placement.SlotId;
-            SetMode(InteractionMode.ResolvingDispatchTarget);
+            SetStage(InfluenceActionStage.SelectingDispatchTarget);
             PresentDispatchTargets(dispatchSourceSlotId);
-            view.ShowPrompt("请选择调度目标槽位。");
+            view.ShowPrompt(CurrentPrompt);
         }
 
         private void SelectDispatchTargetSlot(string targetSlotId)
@@ -303,11 +362,11 @@ namespace YC.Presentation.Workflows
             firstSourceSlotId = dispatchSourceSlotId;
             firstTargetSlotId = targetSlotId;
             dispatchSourceSlotId = string.Empty;
-            SetMode(InteractionMode.ResolvingDispatchDecision);
+            SetStage(InfluenceActionStage.ChoosingDispatchContinuation);
             view.ClearHighlights();
             RefreshPreview();
             ShowDispatchDecision();
-            view.ShowPrompt("已预览本次调度。请选择再次调度，或取消以结束调度。");
+            view.ShowPrompt(CurrentPrompt);
         }
 
         private void SubmitDispatch(string secondSourceSlotId, string secondTargetSlotId)
@@ -326,43 +385,20 @@ namespace YC.Presentation.Workflows
                 command.Parameters[SecondTargetParameter] = secondTargetSlotId;
             }
 
-            var submission = commandPort.Submit(command);
-            if (!TryHandleSubmission(submission, "调度命令已发送给主机，等待确认。"))
-            {
-                return;
-            }
-
-            Complete("调度");
-        }
-
-        private bool TryHandleSubmission(WorkflowSubmissionResult submission, string waitingPrompt)
-        {
-            if (submission == null || submission.CommandResult == null)
-            {
-                view.ShowPrompt("命令未返回结果。");
-                return false;
-            }
-
-            if (!submission.CommandResult.Succeeded)
-            {
-                view.ShowPrompt(submission.CommandResult.Validation.Reason);
-                return false;
-            }
-
-            if (!submission.AppliedLocally)
-            {
-                view.ShowPrompt(waitingPrompt);
-                return false;
-            }
-
-            return true;
+            commandGateway.Submit(
+                command,
+                new SubmitCallbacks(
+                    view.ShowPrompt,
+                    CommandGateway.BuildWaitingForHostPrompt("调度命令"))
+                {
+                    OnAppliedLocally = result => Complete("调度")
+                });
         }
 
         private void Complete(string actionName)
         {
             ClearState();
-            currentMode = InteractionMode.ChooseAction;
-            view.SetInteractionMode(currentMode);
+            SetStage(InfluenceActionStage.Inactive);
             view.CompleteAction(actionName);
         }
 
@@ -629,10 +665,10 @@ namespace YC.Presentation.Workflows
             return state == null ? null : state.FindPlayer(context.LocalPlayerId);
         }
 
-        private void SetMode(InteractionMode mode)
+        private void SetStage(InfluenceActionStage value)
         {
-            currentMode = mode;
-            view.SetInteractionMode(mode);
+            stage = value;
+            view.SetInteractionMode(Mode);
         }
 
         private void RefreshPreview()

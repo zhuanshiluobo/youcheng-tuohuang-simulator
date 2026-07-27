@@ -21,8 +21,10 @@ namespace YC.Presentation
     public sealed class BuildFacilitySelectionController
     {
         private readonly BuildFacilityOptionQueryService optionQuery;
+        private readonly List<string> additionalBuildFacilityIds = new List<string>();
         private BuildFacilityDraftPhase dragOriginPhase = BuildFacilityDraftPhase.Selecting;
         private int dragOriginSlotIndex = -1;
+        private bool isAdditionalBuild;
 
         public BuildFacilitySelectionController() : this(new BuildFacilityOptionQueryService()) { }
 
@@ -46,6 +48,27 @@ namespace YC.Presentation
             Phase = BuildFacilityDraftPhase.Selecting;
         }
 
+        public void BeginAdditionalBuild(int playerId, IReadOnlyList<string> facilityIds)
+        {
+            Reset();
+            PlayerId = playerId;
+            isAdditionalBuild = true;
+            if (facilityIds != null)
+            {
+                for (var i = 0; i < facilityIds.Count; i++)
+                {
+                    var facilityId = facilityIds[i];
+                    if (!string.IsNullOrEmpty(facilityId) &&
+                        !additionalBuildFacilityIds.Contains(facilityId))
+                    {
+                        additionalBuildFacilityIds.Add(facilityId);
+                    }
+                }
+            }
+
+            Phase = BuildFacilityDraftPhase.Selecting;
+        }
+
         public bool TryBeginDrag(GameState state, string facilityId, out string reason)
         {
             reason = string.Empty;
@@ -55,7 +78,13 @@ namespace YC.Presentation
                 return false;
             }
 
-            var option = optionQuery.Query(state, PlayerId, facilityId);
+            if (isAdditionalBuild && !additionalBuildFacilityIds.Contains(facilityId))
+            {
+                reason = "该设施不在本次额外建设的可选供应中。";
+                return false;
+            }
+
+            var option = QueryOption(state, facilityId);
             if (option == null || !option.CanBuild)
             {
                 reason = option == null ? "设施不在公共建设牌堆中。" : option.Reason;
@@ -98,7 +127,7 @@ namespace YC.Presentation
                 return false;
             }
 
-            var slot = FindSlot(optionQuery.Query(state, PlayerId, FacilityId), cityBoardSlotIndex);
+            var slot = FindSlot(QueryOption(state, FacilityId), cityBoardSlotIndex);
             if (slot == null || !slot.IsLegal)
             {
                 reason = slot == null ? "城市面板槽位无效。" : slot.Reason;
@@ -135,7 +164,7 @@ namespace YC.Presentation
                 return false;
             }
 
-            var payment = FindPayment(optionQuery.Query(state, PlayerId, FacilityId), paymentMode);
+            var payment = FindPayment(QueryOption(state, FacilityId), paymentMode);
             if (payment == null || !payment.IsAvailable)
             {
                 reason = payment == null ? "未知的支付方式。" : payment.Reason;
@@ -177,7 +206,7 @@ namespace YC.Presentation
         public IReadOnlyList<int> QueryLegalSlotIndexes(GameState state)
         {
             var result = new List<int>();
-            var option = optionQuery.Query(state, PlayerId, FacilityId);
+            var option = QueryOption(state, FacilityId);
             if (option == null || option.SlotOptions == null) return result.AsReadOnly();
             for (var i = 0; i < option.SlotOptions.Count; i++)
                 if (option.SlotOptions[i].IsLegal) result.Add(option.SlotOptions[i].CityBoardSlotIndex);
@@ -186,17 +215,38 @@ namespace YC.Presentation
 
         public BuildFacilityOptionQueryResult QuerySelectedOption(GameState state)
         {
-            return string.IsNullOrEmpty(FacilityId) ? null : optionQuery.Query(state, PlayerId, FacilityId);
+            return string.IsNullOrEmpty(FacilityId) ? null : QueryOption(state, FacilityId);
         }
 
         public IReadOnlyList<BuildFacilityOptionQueryResult> QueryOptions(GameState state)
         {
+            if (isAdditionalBuild)
+            {
+                var options = new List<BuildFacilityOptionQueryResult>(additionalBuildFacilityIds.Count);
+                for (var i = 0; i < additionalBuildFacilityIds.Count; i++)
+                {
+                    options.Add(optionQuery.QueryForAdditionalBuild(
+                        state,
+                        PlayerId,
+                        additionalBuildFacilityIds[i]));
+                }
+
+                return options.AsReadOnly();
+            }
+
             return optionQuery.Query(state, PlayerId);
         }
 
         public IReadOnlyList<BuildFacilityOptionQueryResult> QueryOptions(GameState state, int playerId)
         {
             return optionQuery.Query(state, playerId);
+        }
+
+        private BuildFacilityOptionQueryResult QueryOption(GameState state, string facilityId)
+        {
+            return isAdditionalBuild
+                ? optionQuery.QueryForAdditionalBuild(state, PlayerId, facilityId)
+                : optionQuery.Query(state, PlayerId, facilityId);
         }
 
         public GameCommand CreateCommand(int playerId, string facilityId, int cityBoardSlotIndex, string paymentMode)
@@ -248,7 +298,12 @@ namespace YC.Presentation
                 Phase = BuildFacilityDraftPhase.Ghosted;
                 return;
             }
-            Reset();
+
+            FacilityId = string.Empty;
+            CityBoardSlotIndex = -1;
+            dragOriginPhase = BuildFacilityDraftPhase.Selecting;
+            dragOriginSlotIndex = -1;
+            Phase = BuildFacilityDraftPhase.Selecting;
         }
 
         private void Reset()
@@ -261,6 +316,8 @@ namespace YC.Presentation
             ErrorMessage = string.Empty;
             dragOriginPhase = BuildFacilityDraftPhase.Selecting;
             dragOriginSlotIndex = -1;
+            isAdditionalBuild = false;
+            additionalBuildFacilityIds.Clear();
         }
     }
 }
