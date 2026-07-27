@@ -18,9 +18,6 @@ namespace YC.Presentation
 
         private static readonly Vector3 ResourceTokenIconScale = new Vector3(2f, 2f, 1f);
         private static readonly Vector3 MobileCityScale = new Vector3(1.8f, 1.8f, 1f);
-        private static readonly Color InfluenceSlotHighlightColor = new Color(1f, 0.82f, 0.2f, 0.95f);
-        private static readonly Color OccupiedInfluenceHighlightColor = new Color(1f, 0.88f, 0.24f, 1f);
-
         private readonly MobileCityInteractionController controller;
         private readonly Transform parent;
         private readonly SpriteRenderer mapRenderer;
@@ -31,6 +28,8 @@ namespace YC.Presentation
         private readonly Dictionary<string, List<SpriteRenderer>> influenceSlotRenderers = new Dictionary<string, List<SpriteRenderer>>();
         private readonly Dictionary<string, List<SpriteRenderer>> routeInfluenceSlotRenderers = new Dictionary<string, List<SpriteRenderer>>();
         private readonly Dictionary<string, SpriteRenderer> influenceSlotBorderRenderers = new Dictionary<string, SpriteRenderer>();
+        private readonly Dictionary<string, MapPlacementFeedback> influenceSlotPlacementFeedbacks =
+            new Dictionary<string, MapPlacementFeedback>();
         private readonly Dictionary<string, SpriteRenderer> resourceTokenRenderers = new Dictionary<string, SpriteRenderer>();
         private readonly Dictionary<string, Sprite> resourceTokenSprites = new Dictionary<string, Sprite>();
         private readonly Dictionary<int, GameObject> cityObjectsByPlayerId = new Dictionary<int, GameObject>();
@@ -88,13 +87,32 @@ namespace YC.Presentation
             MapHotspot hotspot;
             if (hotspotsById.TryGetValue(locationId, out hotspot))
             {
-                hotspot.SetColor(color);
+                hotspot.SetHighlighted(true);
             }
         }
 
         public void HighlightInfluenceSlot(string slotId)
         {
             highlightedInfluenceSlotIds.Add(slotId);
+            SetInfluenceSlotBorderVisible(slotId, true);
+        }
+
+        public void PlayLocationConfirmation(string locationId)
+        {
+            MapHotspot hotspot;
+            if (hotspotsById.TryGetValue(locationId, out hotspot))
+            {
+                hotspot.PlayPlacementFeedback();
+            }
+        }
+
+        public void PlayInfluenceSlotConfirmation(string slotId)
+        {
+            MapPlacementFeedback feedback;
+            if (influenceSlotPlacementFeedbacks.TryGetValue(slotId, out feedback))
+            {
+                feedback.Play();
+            }
         }
 
         public void ClearHighlights()
@@ -103,7 +121,11 @@ namespace YC.Presentation
             highlightedInfluenceSlotIds.Clear();
             foreach (var pair in hotspotsById)
             {
-                pair.Value.SetColor(new Color(0.25f, 0.95f, 0.45f, 0f));
+                pair.Value.SetHighlighted(false);
+            }
+            foreach (var pair in influenceSlotBorderRenderers)
+            {
+                SetInfluenceSlotBorderVisible(pair.Key, false);
             }
         }
 
@@ -224,7 +246,7 @@ namespace YC.Presentation
                         hasPendingDispatchFirstMove,
                         pendingDispatchFirstSourceSlotId,
                         pendingDispatchFirstTargetSlotId);
-                    SetInfluenceSlotBorderVisible(slotId, placement != null && highlightedInfluenceSlotIds.Contains(slotId));
+                    SetInfluenceSlotBorderVisible(slotId, highlightedInfluenceSlotIds.Contains(slotId));
                     RefreshInfluenceSlotRenderer(state, renderers[i], slotId, placement);
                 }
             }
@@ -410,6 +432,9 @@ namespace YC.Presentation
                     collider.radius = slotDefinition.ColliderRadius;
                     slotObject.AddComponent<InfluenceSlotClickTarget>().Initialize(controller, slotId);
                     CreateInfluenceSlotBorderRenderer(slotObject.transform, slotId, renderer.sortingOrder + 1);
+                    var placementFeedback = slotObject.AddComponent<MapPlacementFeedback>();
+                    placementFeedback.Configure(renderer.sortingOrder + 2);
+                    influenceSlotPlacementFeedbacks[slotId] = placementFeedback;
 
                     slotRenderers.Add(renderer);
                 }
@@ -457,6 +482,9 @@ namespace YC.Presentation
                     collider.radius = slotDefinition.ColliderRadius;
                     slotObject.AddComponent<InfluenceSlotClickTarget>().Initialize(controller, slotId);
                     CreateInfluenceSlotBorderRenderer(slotObject.transform, slotId, renderer.sortingOrder + 1);
+                    var placementFeedback = slotObject.AddComponent<MapPlacementFeedback>();
+                    placementFeedback.Configure(renderer.sortingOrder + 2);
+                    influenceSlotPlacementFeedbacks[slotId] = placementFeedback;
 
                     slotRenderers.Add(renderer);
                 }
@@ -485,7 +513,7 @@ namespace YC.Presentation
                         hasPendingDispatchFirstMove,
                         pendingDispatchFirstSourceSlotId,
                         pendingDispatchFirstTargetSlotId);
-                    SetInfluenceSlotBorderVisible(slotId, placement != null && highlightedInfluenceSlotIds.Contains(slotId));
+                    SetInfluenceSlotBorderVisible(slotId, highlightedInfluenceSlotIds.Contains(slotId));
                     RefreshInfluenceSlotRenderer(state, renderers[i], slotId, placement);
                 }
             }
@@ -501,11 +529,6 @@ namespace YC.Presentation
             {
                 renderer.sprite = occupiedInfluenceSlotSprite;
                 renderer.color = GetPlayerColor(state, placement.PlayerId, 1f);
-            }
-            else if (highlightedInfluenceSlotIds.Contains(slotId))
-            {
-                renderer.sprite = highlightedInfluenceSlotSprite;
-                renderer.color = InfluenceSlotHighlightColor;
             }
             else
             {
@@ -523,9 +546,10 @@ namespace YC.Presentation
 
             var renderer = borderObject.GetComponent<SpriteRenderer>();
             renderer.sprite = movableInfluenceBorderSprite;
-            renderer.color = OccupiedInfluenceHighlightColor;
+            renderer.color = UiTheme.CyanAccent;
             renderer.sortingOrder = sortingOrder;
             renderer.enabled = false;
+            borderObject.AddComponent<MapHighlightPulse>().Configure(renderer);
             influenceSlotBorderRenderers[slotId] = renderer;
         }
 
@@ -557,7 +581,15 @@ namespace YC.Presentation
             SpriteRenderer renderer;
             if (influenceSlotBorderRenderers.TryGetValue(slotId, out renderer) && renderer != null)
             {
-                renderer.enabled = visible;
+                var pulse = renderer.GetComponent<MapHighlightPulse>();
+                if (pulse != null)
+                {
+                    pulse.SetHighlighted(visible);
+                }
+                else
+                {
+                    renderer.enabled = visible;
+                }
             }
         }
 

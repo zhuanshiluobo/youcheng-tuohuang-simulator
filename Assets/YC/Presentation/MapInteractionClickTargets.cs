@@ -6,6 +6,8 @@ namespace YC.Presentation
     {
         private SpriteRenderer spriteRenderer;
         private MobileCityInteractionController controller;
+        private MapHighlightPulse highlightPulse;
+        private MapPlacementFeedback placementFeedback;
 
         public string LocationId { get; private set; }
 
@@ -14,19 +16,46 @@ namespace YC.Presentation
             controller = owner;
             LocationId = locationId;
             spriteRenderer = GetComponent<SpriteRenderer>();
+            highlightPulse = GetComponent<MapHighlightPulse>();
+            if (highlightPulse == null)
+            {
+                highlightPulse = gameObject.AddComponent<MapHighlightPulse>();
+            }
+            highlightPulse.Configure(spriteRenderer);
+            placementFeedback = GetComponent<MapPlacementFeedback>();
+            if (placementFeedback == null)
+            {
+                placementFeedback = gameObject.AddComponent<MapPlacementFeedback>();
+            }
+            placementFeedback.Configure(spriteRenderer == null ? 11 : spriteRenderer.sortingOrder + 1);
         }
 
         public void SetColor(Color color)
         {
             if (spriteRenderer != null)
             {
+                highlightPulse?.SetHighlighted(false);
                 spriteRenderer.color = color;
+                spriteRenderer.enabled = color.a > 0f;
             }
+        }
+
+        public void SetHighlighted(bool highlighted)
+        {
+            highlightPulse?.SetHighlighted(highlighted);
+        }
+
+        public void PlayPlacementFeedback()
+        {
+            placementFeedback?.Play();
         }
 
         private void OnMouseDown()
         {
-            controller.OnHotspotClicked(LocationId);
+            if (controller != null)
+            {
+                controller.OnHotspotClicked(LocationId);
+            }
         }
     }
 

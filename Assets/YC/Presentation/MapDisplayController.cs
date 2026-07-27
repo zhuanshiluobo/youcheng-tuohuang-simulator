@@ -36,6 +36,12 @@ namespace YC.Presentation
                 targetCamera = Camera.main;
             }
 
+            if (targetCamera != null)
+            {
+                targetCamera.clearFlags = CameraClearFlags.SolidColor;
+                targetCamera.backgroundColor = UiTheme.TacticalMapBg;
+            }
+
             if (mapRenderer == null || mapRenderer.sprite == null || targetCamera == null)
             {
                 return;

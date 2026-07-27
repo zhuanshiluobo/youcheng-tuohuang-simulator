@@ -16,6 +16,8 @@ namespace YC.Presentation
         public static readonly Color GoldOutline = new Color(0.78f, 0.63f, 0.38f, 0.85f);
         public static readonly Color GoldOutlineThin = new Color(0.78f, 0.63f, 0.38f, 0.65f);
         public static readonly Color GoldSeparator = new Color(0.78f, 0.63f, 0.38f, 0.7f);
+        public static readonly Color CyanAccent = new Color(0.12f, 0.88f, 1f, 1f);
+        public static readonly Color TacticalMapBg = new Color(0.08f, 0.10f, 0.12f, 1f);
 
         public static readonly Color DarkShadow = new Color(0.06f, 0.04f, 0.025f, 0.9f);
         public static readonly Color DarkShadowLight = new Color(0.06f, 0.04f, 0.025f, 0.95f);

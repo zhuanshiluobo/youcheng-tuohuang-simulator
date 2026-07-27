@@ -777,6 +777,7 @@ namespace YC.Presentation
             {
                 button.onClick.AddListener(() => action());
             }
+            buttonObject.AddComponent<ActionButtonPressFeedback>().Configure(button, outline);
 
             var labelObject = new GameObject("Label", typeof(RectTransform), typeof(Text));
             labelObject.transform.SetParent(buttonObject.transform, false);
