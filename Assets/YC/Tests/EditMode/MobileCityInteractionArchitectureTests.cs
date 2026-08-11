@@ -456,9 +456,8 @@ namespace YC.Tests.EditMode
             Assert.That(
                 source.IndexOf(buildConstruction, StringComparison.Ordinal),
                 Is.GreaterThan(source.IndexOf(facilityConstruction, StringComparison.Ordinal)));
-            StringAssert.DoesNotContain(
-                "BuildFacilityInteractionUiCoordinator",
-                ExtractMethodBody(source, "private void EnsureBuildInfoPanel()"));
+            StringAssert.DoesNotContain("EnsureBuildInfoPanel", source);
+            StringAssert.Contains("[SerializeField] private BuildInfoPanel buildInfoPanel;", source);
         }
 
         [Test]

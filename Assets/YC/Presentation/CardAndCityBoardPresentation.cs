@@ -1,163 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using YC.Domain.CityStyles;
-using YC.Domain.Facilities;
 using YC.Domain.SpecialActions;
 
 namespace YC.Presentation
 {
-    internal static class CardTextureCatalog
-    {
-        internal const string CityBoardImageRelativePath =
-            "Assets/YC/Presentation/Resources/CardImages/Boards/city_board.png";
-
-        private static readonly Dictionary<string, Texture2D> FacilityTextures =
-            new Dictionary<string, Texture2D>(StringComparer.Ordinal);
-        private static readonly Dictionary<string, Texture2D> CityStyleTextures =
-            new Dictionary<string, Texture2D>(StringComparer.Ordinal);
-        private static readonly Dictionary<string, Texture2D> RelativePathTextures =
-            new Dictionary<string, Texture2D>(StringComparer.OrdinalIgnoreCase);
-
-        public static Texture2D LoadFacility(string facilityId)
-        {
-            if (string.IsNullOrEmpty(facilityId))
-            {
-                return null;
-            }
-
-            Texture2D cached;
-            if (FacilityTextures.TryGetValue(facilityId, out cached))
-            {
-                return cached;
-            }
-
-            string relativePath;
-            var definition = FacilityCardDatabase.Get(facilityId);
-            if (definition == null ||
-                !CardImagePathCatalog.TryGetFacilityImageRelativePath(facilityId, out relativePath))
-            {
-                return null;
-            }
-
-            var texture = LoadRelative(relativePath, definition.Name);
-            if (texture != null)
-            {
-                FacilityTextures[facilityId] = texture;
-            }
-
-            return texture;
-        }
-
-        public static Texture2D LoadCityStyle(string cityStyleId, string fallbackName = "")
-        {
-            if (string.IsNullOrEmpty(cityStyleId))
-            {
-                return null;
-            }
-
-            Texture2D cached;
-            if (CityStyleTextures.TryGetValue(cityStyleId, out cached))
-            {
-                return cached;
-            }
-
-            string relativePath;
-            var definition = CityStyleDatabase.Get(cityStyleId);
-            if (!CardImagePathCatalog.TryGetCityStyleImageRelativePath(cityStyleId, out relativePath))
-            {
-                return null;
-            }
-
-            var texture = LoadRelative(
-                relativePath,
-                definition == null ? fallbackName : definition.Name);
-            if (texture != null)
-            {
-                CityStyleTextures[cityStyleId] = texture;
-            }
-
-            return texture;
-        }
-
-        public static Texture2D LoadCityBoard()
-        {
-            return LoadRelative(CityBoardImageRelativePath, "城市面板");
-        }
-
-        public static Texture2D LoadRelative(string relativePath, string textureName)
-        {
-            if (string.IsNullOrEmpty(relativePath))
-            {
-                return null;
-            }
-
-            Texture2D cached;
-            if (RelativePathTextures.TryGetValue(relativePath, out cached))
-            {
-                return cached;
-            }
-
-            var resourcePath = TryGetResourcesPath(relativePath);
-            if (!string.IsNullOrEmpty(resourcePath))
-            {
-                var resourceTexture = Resources.Load<Texture2D>(resourcePath);
-                if (resourceTexture != null)
-                {
-                    RelativePathTextures[relativePath] = resourceTexture;
-                    return resourceTexture;
-                }
-            }
-
-            var candidates = new[]
-            {
-                Path.Combine(UnityEngine.Application.dataPath, "..", relativePath),
-                Path.Combine(UnityEngine.Application.dataPath, "..", "..", "..", relativePath),
-                Path.Combine(Directory.GetCurrentDirectory(), relativePath),
-                Path.Combine(Directory.GetCurrentDirectory(), "..", "..", relativePath)
-            };
-            for (var i = 0; i < candidates.Length; i++)
-            {
-                var fullPath = Path.GetFullPath(candidates[i]);
-                if (!File.Exists(fullPath))
-                {
-                    continue;
-                }
-
-                var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                if (texture.LoadImage(File.ReadAllBytes(fullPath)))
-                {
-                    texture.name = textureName ?? string.Empty;
-                    RelativePathTextures[relativePath] = texture;
-                    return texture;
-                }
-
-                UnityEngine.Object.Destroy(texture);
-            }
-
-            return null;
-        }
-
-        private static string TryGetResourcesPath(string relativePath)
-        {
-            var normalized = relativePath.Replace('\\', '/');
-            const string marker = "/Resources/";
-            var markerIndex = normalized.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-            if (markerIndex < 0)
-            {
-                return string.Empty;
-            }
-
-            var result = normalized.Substring(markerIndex + marker.Length);
-            var extension = Path.GetExtension(result);
-            return string.IsNullOrEmpty(extension)
-                ? result
-                : result.Substring(0, result.Length - extension.Length);
-        }
-    }
-
     /// <summary>建设卡在不同界面共用的单图预览入口。</summary>
     internal static class CardImagePreviewUtility
     {
@@ -176,9 +25,11 @@ namespace YC.Presentation
 
             if (viewer == null)
             {
-                var viewerObject = new GameObject(viewerObjectName);
-                viewerObject.transform.SetParent(owner, false);
-                viewer = viewerObject.AddComponent<ZoomableImageViewerController>();
+                viewer = ZoomableImageViewerController.InstantiateRegistered(owner, viewerObjectName);
+                if (viewer == null)
+                {
+                    return;
+                }
             }
 
             viewer.Configure(viewerName, cardName, 1, _ => texture);
@@ -188,44 +39,47 @@ namespace YC.Presentation
 
     internal static class CityBoardSlotLayout
     {
-        public const int SlotCount = 12;
-        public const float WidthRatio = 0.292f;
-        public const float HeightRatio = 0.224f;
+        public const int SlotCount = CardBoardVisualLayout.ExpectedCityBoardSlotCount;
 
-        private static readonly Vector2[] Centers =
+        public static Vector2 GetCenter(CardBoardVisualLayout layout, int slotIndex)
         {
-            new Vector2(0.176f, 0.152f),
-            new Vector2(0.502f, 0.152f),
-            new Vector2(0.827f, 0.152f),
-            new Vector2(0.176f, 0.383f),
-            new Vector2(0.502f, 0.383f),
-            new Vector2(0.827f, 0.383f),
-            new Vector2(0.176f, 0.615f),
-            new Vector2(0.502f, 0.615f),
-            new Vector2(0.827f, 0.615f),
-            new Vector2(0.176f, 0.846f),
-            new Vector2(0.502f, 0.846f),
-            new Vector2(0.827f, 0.846f)
-        };
-
-        public static Vector2 GetCenter(int slotIndex)
-        {
-            return Centers[Mathf.Clamp(slotIndex, 0, Centers.Length - 1)];
+            RequireLayout(layout);
+            return layout.GetCityBoardSlotCenter(slotIndex);
         }
 
-        public static void Apply(RectTransform rect, int slotIndex)
+        public static void Apply(
+            RectTransform rect,
+            CardBoardVisualLayout layout,
+            int slotIndex)
         {
-            var center = GetCenter(slotIndex);
+            if (rect == null)
+            {
+                throw new ArgumentNullException(nameof(rect));
+            }
+
+            RequireLayout(layout);
+            var center = GetCenter(layout, slotIndex);
             var centerY = 1f - center.y;
             rect.anchorMin = new Vector2(
-                center.x - WidthRatio * 0.5f,
-                centerY - HeightRatio * 0.5f);
+                center.x - layout.CityBoardSlotWidthRatio * 0.5f,
+                centerY - layout.CityBoardSlotHeightRatio * 0.5f);
             rect.anchorMax = new Vector2(
-                center.x + WidthRatio * 0.5f,
-                centerY + HeightRatio * 0.5f);
+                center.x + layout.CityBoardSlotWidthRatio * 0.5f,
+                centerY + layout.CityBoardSlotHeightRatio * 0.5f);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
+        }
+
+        private static void RequireLayout(CardBoardVisualLayout layout)
+        {
+            string reason = null;
+            if (layout == null || !layout.TryValidateConfiguration(out reason))
+            {
+                throw new InvalidOperationException(
+                    "缺少有效 CardBoardVisualLayout：" +
+                    (layout == null ? "引用为空。" : reason));
+            }
         }
     }
 
@@ -254,10 +108,25 @@ namespace YC.Presentation
 
     internal sealed class CityStyleMarkerLayoutTracker
     {
+        private readonly CardBoardVisualLayout layout;
         private readonly Dictionary<string, int> areaCounts =
             new Dictionary<string, int>(StringComparer.Ordinal);
         private readonly Dictionary<int, Dictionary<string, int>> playerAreaCounts =
             new Dictionary<int, Dictionary<string, int>>();
+
+        public CityStyleMarkerLayoutTracker(CardBoardVisualLayout layout)
+        {
+            string reason = null;
+            if (layout == null || !layout.TryValidateConfiguration(out reason))
+            {
+                throw new ArgumentException(
+                    "CityStyleMarkerLayoutTracker 需要有效 CardBoardVisualLayout：" +
+                    (layout == null ? "引用为空。" : reason),
+                    nameof(layout));
+            }
+
+            this.layout = layout;
+        }
 
         public CityStyleMarkerPlacement Next(string cityStyleId, string markerArea, int playerId)
         {
@@ -288,28 +157,13 @@ namespace YC.Presentation
             return new CityStyleMarkerPlacement(
                 displayArea,
                 areaMarkerIndex,
-                CityStyleMarkerRenderer.ResolvePlayerLaneIndex(playerId),
+                CityStyleMarkerRenderer.ResolvePlayerLaneIndex(layout, playerId),
                 playerMarkerIndex);
         }
     }
 
     internal static class CityStyleMarkerRenderer
     {
-        public const int MilitaryUnusedPlayerLaneCount = 4;
-        public const int MilitaryUnusedMarkerRowCount = 3;
-        public const float MilitaryUnusedFirstLaneX = 0.62f;
-        public const float MilitaryUnusedLaneSpacingX = 0.09f;
-        public const float MilitaryUnusedFirstMarkerY = 0.84f;
-        public const float MilitaryUnusedMarkerSpacingY = 0.14f;
-        private const float SpecialActionAreaMinX = 0.54f;
-        private const float SpecialActionAreaMaxX = 0.945f;
-        private const float LevelOneUsedAreaMinY = 0.08f;
-        private const float LevelOneUsedAreaMaxY = 0.485f;
-        private const float LevelTwoUsedFromTwoAreaMinY = 0.60f;
-        private const float LevelTwoUsedFromTwoAreaMaxY = 0.75f;
-        private const float LevelTwoUsedFromOneAreaMinY = 0.23f;
-        private const float LevelTwoUsedFromOneAreaMaxY = 0.38f;
-
         public static string ResolveDisplayArea(string cityStyleId, string markerArea)
         {
             return string.IsNullOrEmpty(markerArea)
@@ -317,59 +171,55 @@ namespace YC.Presentation
                 : markerArea;
         }
 
-        public static int ResolvePlayerLaneIndex(int playerId)
+        public static int ResolvePlayerLaneIndex(
+            CardBoardVisualLayout layout,
+            int playerId)
         {
-            return Mathf.Clamp(playerId - 1, 0, MilitaryUnusedPlayerLaneCount - 1);
+            RequireLayout(layout);
+            return Mathf.Clamp(playerId - 1, 0, layout.MilitaryUnusedPlayerLaneCount - 1);
         }
 
         public static Rect ResolveSpecialActionAreaBounds(
+            CardBoardVisualLayout layout,
             string cityStyleId,
             string markerArea)
         {
+            RequireLayout(layout);
             var definition = CityStyleDatabase.Get(cityStyleId);
             var isLevelTwo = definition != null && definition.Level >= 2;
             if (!isLevelTwo && markerArea == CityStyleMarkerAreas.Used)
             {
-                return Rect.MinMaxRect(
-                    SpecialActionAreaMinX,
-                    LevelOneUsedAreaMinY,
-                    SpecialActionAreaMaxX,
-                    LevelOneUsedAreaMaxY);
+                return layout.LevelOneUsedSpecialActionArea;
             }
 
             if (isLevelTwo && markerArea == SpecialActionMarkerAreas.UsedFromTwo)
             {
-                return Rect.MinMaxRect(
-                    SpecialActionAreaMinX,
-                    LevelTwoUsedFromTwoAreaMinY,
-                    SpecialActionAreaMaxX,
-                    LevelTwoUsedFromTwoAreaMaxY);
+                return layout.LevelTwoUsedFromTwoSpecialActionArea;
             }
 
             if (isLevelTwo && markerArea == SpecialActionMarkerAreas.UsedFromOne)
             {
-                return Rect.MinMaxRect(
-                    SpecialActionAreaMinX,
-                    LevelTwoUsedFromOneAreaMinY,
-                    SpecialActionAreaMaxX,
-                    LevelTwoUsedFromOneAreaMaxY);
+                return layout.LevelTwoUsedFromOneSpecialActionArea;
             }
 
-            var anchor = ResolveAnchor(cityStyleId, markerArea, 0, 0, 0);
+            var anchor = ResolveAnchor(layout, cityStyleId, markerArea, 0, 0, 0);
+            var halfExtents = layout.FallbackSpecialActionAreaHalfExtents;
             return Rect.MinMaxRect(
-                anchor.x - 0.09f,
-                anchor.y - 0.07f,
-                anchor.x + 0.09f,
-                anchor.y + 0.07f);
+                anchor.x - halfExtents.x,
+                anchor.y - halfExtents.y,
+                anchor.x + halfExtents.x,
+                anchor.y + halfExtents.y);
         }
 
         public static Vector2 ResolveAnchor(
+            CardBoardVisualLayout layout,
             string cityStyleId,
             string markerArea,
             int areaMarkerIndex,
             int playerLaneIndex,
             int playerMarkerIndex)
         {
+            RequireLayout(layout);
             if (cityStyleId == CityStyleDatabase.MilitaryIndustrialArea &&
                 markerArea == CityStyleMarkerAreas.Unused)
             {
@@ -377,51 +227,29 @@ namespace YC.Presentation
                 var laneIndex = Mathf.Clamp(
                     playerLaneIndex,
                     0,
-                    MilitaryUnusedPlayerLaneCount - 1);
+                    layout.MilitaryUnusedPlayerLaneCount - 1);
                 var rowIndex = Mathf.Clamp(
                     playerMarkerIndex,
                     0,
-                    MilitaryUnusedMarkerRowCount - 1);
+                    layout.MilitaryUnusedMarkerRowCount - 1);
                 return new Vector2(
-                    MilitaryUnusedFirstLaneX + laneIndex * MilitaryUnusedLaneSpacingX,
-                    MilitaryUnusedFirstMarkerY - rowIndex * MilitaryUnusedMarkerSpacingY);
+                    layout.MilitaryUnusedFirstLaneX + laneIndex * layout.MilitaryUnusedLaneSpacingX,
+                    layout.MilitaryUnusedFirstMarkerY - rowIndex * layout.MilitaryUnusedMarkerSpacingY);
             }
 
-            Vector2 baseAnchor;
-            switch (markerArea)
-            {
-                case CityStyleMarkerAreas.Unused:
-                    baseAnchor = new Vector2(0.69f, 0.73f);
-                    break;
-                case CityStyleMarkerAreas.Used:
-                    baseAnchor = new Vector2(0.69f, 0.28f);
-                    break;
-                case CityStyleMarkerAreas.UsesTwo:
-                    baseAnchor = new Vector2(0.69f, 0.82f);
-                    break;
-                case SpecialActionMarkerAreas.UsedFromTwo:
-                    baseAnchor = new Vector2(0.69f, 0.66f);
-                    break;
-                case CityStyleMarkerAreas.UsesOne:
-                    baseAnchor = new Vector2(0.69f, 0.50f);
-                    break;
-                case SpecialActionMarkerAreas.UsedFromOne:
-                    baseAnchor = new Vector2(0.69f, 0.34f);
-                    break;
-                case CityStyleMarkerAreas.UsesZero:
-                    baseAnchor = new Vector2(0.69f, 0.18f);
-                    break;
-                default:
-                    baseAnchor = new Vector2(0.69f, 0.50f);
-                    break;
-            }
+            var baseAnchor = layout.GetMarkerAreaAnchor(markerArea);
 
             return new Vector2(
-                baseAnchor.x + (areaMarkerIndex % 4) * 0.055f,
-                baseAnchor.y - (areaMarkerIndex / 4) * 0.11f);
+                baseAnchor.x +
+                (areaMarkerIndex % layout.RegularMarkerColumnCount) *
+                layout.RegularMarkerColumnSpacingX,
+                baseAnchor.y -
+                (areaMarkerIndex / layout.RegularMarkerColumnCount) *
+                layout.RegularMarkerRowSpacingY);
         }
 
         public static void Configure(
+            CardBoardVisualLayout layout,
             Image marker,
             string objectName,
             Color color,
@@ -430,8 +258,10 @@ namespace YC.Presentation
             string cityStyleId,
             CityStyleMarkerPlacement placement)
         {
+            RequireLayout(layout);
             var rect = marker.rectTransform;
             var anchor = ResolveAnchor(
+                layout,
                 cityStyleId,
                 placement.MarkerArea,
                 placement.AreaMarkerIndex,
@@ -452,6 +282,17 @@ namespace YC.Presentation
             {
                 outline.effectColor = Color.white;
                 outline.effectDistance = new Vector2(1f, -1f);
+            }
+        }
+
+        private static void RequireLayout(CardBoardVisualLayout layout)
+        {
+            string reason = null;
+            if (layout == null || !layout.TryValidateConfiguration(out reason))
+            {
+                throw new InvalidOperationException(
+                    "缺少有效 CardBoardVisualLayout：" +
+                    (layout == null ? "引用为空。" : reason));
             }
         }
     }

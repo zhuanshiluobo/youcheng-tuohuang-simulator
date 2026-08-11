@@ -6,10 +6,15 @@ param(
     [int]$MaxBuildSeconds = 900,
     [int]$NoLogTimeoutSeconds = 90,
     [switch]$Development,
+    [switch]$Release,
     [switch]$SkipProjectLockCheck
 )
 
 $ErrorActionPreference = "Stop"
+
+if ($Development -and $Release) {
+    throw "-Development and -Release cannot be used together."
+}
 
 function Normalize-ProcessPathEnvironment {
     $processPath = [Environment]::GetEnvironmentVariable(
@@ -45,7 +50,15 @@ if ([string]::IsNullOrWhiteSpace($ProjectPath)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($LogFile)) {
-    $defaultLogName = if ($Development) { "localhost-development-build.log" } else { "localhost-build.log" }
+    $defaultLogName = if ($Release) {
+        "release-build.log"
+    }
+    elseif ($Development) {
+        "localhost-development-build.log"
+    }
+    else {
+        "localhost-build.log"
+    }
     $LogFile = Join-Path $ProjectPath ("Logs\" + $defaultLogName)
 }
 
@@ -115,8 +128,19 @@ if (-not [string]::IsNullOrWhiteSpace($logDirectory) -and -not (Test-Path -Liter
     New-Item -ItemType Directory -Path $logDirectory | Out-Null
 }
 
-$batchBuildArgument = if ($Development) { "-ycBuildLocalhostDevelopment" } else { "-ycBuildLocalhost" }
-$successPattern = if ($Development) {
+$batchBuildArgument = if ($Release) {
+    "-ycBuildRelease"
+}
+elseif ($Development) {
+    "-ycBuildLocalhostDevelopment"
+}
+else {
+    "-ycBuildLocalhost"
+}
+$successPattern = if ($Release) {
+    "Release build succeeded"
+}
+elseif ($Development) {
     "Localhost development simulator build succeeded"
 }
 else {

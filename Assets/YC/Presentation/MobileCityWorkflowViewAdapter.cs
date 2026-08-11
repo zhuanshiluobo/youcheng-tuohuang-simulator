@@ -21,8 +21,7 @@ namespace YC.Presentation
         private readonly Func<MapViewPresenter> getMapView;
         private readonly IMapQueryService mapQuery;
         private readonly EventChoiceDialog eventChoiceDialog;
-        private readonly CityStyleDeclarationPreviewDialog cityStyleDeclarationDialog =
-            new CityStyleDeclarationPreviewDialog();
+        private readonly CityStyleDeclarationPreviewDialog cityStyleDeclarationDialog;
         private readonly DispatchDecisionView dispatchDecisionView;
         private readonly Action<string> showPrompt;
         private readonly Action refreshAll;
@@ -42,6 +41,7 @@ namespace YC.Presentation
             Func<GameState> getState,
             Func<int> getLocalPlayerId,
             Func<RectTransform> getCanvas,
+            GameplayDialogRegistry dialogRegistry,
             Func<MapViewPresenter> getMapView,
             IMapQueryService mapQuery,
             EventChoiceDialog eventChoiceDialog,
@@ -57,10 +57,13 @@ namespace YC.Presentation
             this.getState = getState;
             this.getLocalPlayerId = getLocalPlayerId;
             this.getCanvas = getCanvas;
+            cityStyleDeclarationDialog = new CityStyleDeclarationPreviewDialog(
+                dialogRegistry ?? throw new ArgumentNullException(nameof(dialogRegistry)),
+                getCanvas ?? throw new ArgumentNullException(nameof(getCanvas)));
             this.getMapView = getMapView;
             this.mapQuery = mapQuery;
             this.eventChoiceDialog = eventChoiceDialog;
-            dispatchDecisionView = new DispatchDecisionView(getCanvas);
+            dispatchDecisionView = new DispatchDecisionView(dialogRegistry, getCanvas);
             this.showPrompt = showPrompt;
             this.refreshAll = refreshAll;
             this.refreshInformation = refreshInformation;
@@ -125,16 +128,8 @@ namespace YC.Presentation
 
         public void ShowRoutePaymentOptions(string routeId, int cost, IReadOnlyList<int> recipientPlayerIds)
         {
-            var canvas = getCanvas();
-            if (canvas == null)
-            {
-                resourceCollectionPresenter.ConfirmRoutePayment(
-                    routeId,
-                    recipientPlayerIds != null && recipientPlayerIds.Count > 0 ? recipientPlayerIds[0] : -1);
-                return;
-            }
             eventChoiceDialog.ShowResourceCollectionPaymentOptions(
-                canvas, routeId, cost, recipientPlayerIds, getPlayerDisplayName,
+                routeId, cost, recipientPlayerIds, getPlayerDisplayName,
                 receiver => resourceCollectionPresenter.ConfirmRoutePayment(routeId, receiver),
                 () => resourceCollectionPresenter.ConfirmRoutePayment(routeId, -1),
                 resourceCollectionPresenter.CancelRoutePayment);
@@ -165,17 +160,17 @@ namespace YC.Presentation
 
         public void ShowExplorePathOptions(ExplorePathOptionsViewModel model)
         {
-            if (model != null) eventChoiceDialog.ShowExplorePathOptions(getCanvas(), model.Choices, model.SelectPath);
+            if (model != null) eventChoiceDialog.ShowExplorePathOptions(model.Choices, model.SelectPath);
         }
         public void ShowExplorePaymentOptions(ExplorePaymentOptionsViewModel model)
         {
             if (model != null) eventChoiceDialog.ShowExplorePaymentOptions(
-                getCanvas(), model.Choices, model.RecipientsByRouteId, getPlayerDisplayName, model.SelectRecipient, model.Confirm);
+                model.Choices, model.RecipientsByRouteId, getPlayerDisplayName, model.SelectRecipient, model.Confirm);
         }
         public void ShowEventCardOptions(EventCardOptionsViewModel model)
         {
             if (model != null) eventChoiceDialog.ShowEventCardOptions(
-                getCanvas(), model.Card, model.MetadataLabel, model.PaymentChoices, model.RecipientsByRouteId,
+                model.Card, model.MetadataLabel, model.PaymentChoices, model.RecipientsByRouteId,
                 getPlayerDisplayName, model.SelectChoice, model.SelectRecipient);
         }
         public void CollapseEventOptions() => eventChoiceDialog.CollapseForMapInteraction();
@@ -195,11 +190,11 @@ namespace YC.Presentation
 
             if (model.Phase == BuildFacilityDraftPhase.Focused)
             {
-                eventChoiceDialog.ShowBuildFacilityFocus(getCanvas(), model);
+                eventChoiceDialog.ShowBuildFacilityFocus(model);
             }
             else if (model.Phase == BuildFacilityDraftPhase.Confirming)
             {
-                eventChoiceDialog.ShowBuildFacilityConfirmation(getCanvas(), model);
+                eventChoiceDialog.ShowBuildFacilityConfirmation(model);
             }
             else
             {
@@ -216,7 +211,7 @@ namespace YC.Presentation
             }
 
             eventChoiceDialog.Hide();
-            cityStyleDeclarationDialog.Show(getCanvas(), model);
+            cityStyleDeclarationDialog.Show(model);
         }
 
         private static Color GetHighlightColor(WorkflowHighlightSemantic semantic)

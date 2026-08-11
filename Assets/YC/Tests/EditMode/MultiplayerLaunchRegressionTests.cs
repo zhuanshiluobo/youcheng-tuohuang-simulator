@@ -138,6 +138,34 @@ namespace YC.Tests.EditMode
             Assert.That(RoundTrackRule.GetRoundIndex(state), Is.EqualTo(RoundTrackRule.FinalIndex));
         }
 
+        [Test]
+        public void HostLaunch_TwoPlayerSteamValidation_UsesTwoSeatsAndAdvancesBothActionRounds()
+        {
+            var map = StaticMapDefinitions.CreateFourPlayerMap();
+            var seats = new List<PlayerSeat>
+            {
+                CreateSeat(1, PlayerColor.Blue),
+                CreateSeat(2, PlayerColor.Red)
+            };
+            var state = GameLaunchStateFactory.CreateInitialState(
+                LaunchMode.Host,
+                1,
+                seats,
+                map.MapId,
+                EventDeckService.DefaultSeed);
+            var setupHandler = new SetupCommandHandler(new MapQueryService(map));
+
+            Assert.That(state.MapId, Is.EqualTo(StaticMapDefinitions.FourPlayerMapId));
+            Assert.That(GetPlayerIds(state), Is.EqualTo(new[] { 1, 2 }));
+            Assert.That(state.UseSeatTurnOrder, Is.True);
+
+            AssertInitialPlacement(setupHandler, state, 1, "G-01", 2, GamePhase.Entrance);
+            AssertInitialPlacement(setupHandler, state, 2, "A-01", 1, GamePhase.CharacterCover);
+            CoverAllPlayers(state);
+            AssertActionRoundOrder(state, GamePhase.ActionRound1, GamePhase.ActionRound2, 2);
+            AssertActionRoundOrder(state, GamePhase.ActionRound2, GamePhase.ResourceCollection, 0);
+        }
+
         private static List<PlayerSeat> CreateJoinedSeats()
         {
             return new List<PlayerSeat>

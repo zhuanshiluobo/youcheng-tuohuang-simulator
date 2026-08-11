@@ -1,8 +1,8 @@
 using System;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -12,7 +12,6 @@ namespace YC.Tests.EditMode
     public sealed class RoundTrackerControllerTests
     {
         private GameObject owner;
-        private GameObject createdEventSystem;
         private Component controller;
 
         [TearDown]
@@ -24,11 +23,6 @@ namespace YC.Tests.EditMode
                 owner = null;
             }
 
-            if (createdEventSystem != null)
-            {
-                UnityEngine.Object.DestroyImmediate(createdEventSystem);
-                createdEventSystem = null;
-            }
         }
 
         [Test]
@@ -347,20 +341,17 @@ namespace YC.Tests.EditMode
 
         private Component CreateController()
         {
-            var existingEventSystem = UnityEngine.Object.FindObjectOfType<EventSystem>();
             var type = Type.GetType("YC.Presentation.RoundTrackerController, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.RoundTrackerController.");
 
-            owner = new GameObject("Round Tracker Controller Test");
-            var component = owner.AddComponent(type);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/RoundTracker/RoundTracker.prefab");
+            Assert.That(prefab, Is.Not.Null, "Missing RoundTracker prefab.");
+            owner = UnityEngine.Object.Instantiate(prefab);
+            owner.name = "Round Tracker Controller Test";
+            var component = owner.GetComponent(type);
+            Assert.That(component, Is.Not.Null, "RoundTracker prefab missing controller.");
             EnsureAwakeRan(component);
-
-            if (existingEventSystem == null)
-            {
-                var eventSystem = UnityEngine.Object.FindObjectOfType<EventSystem>();
-                createdEventSystem = eventSystem == null ? null : eventSystem.gameObject;
-            }
-
             return component;
         }
 

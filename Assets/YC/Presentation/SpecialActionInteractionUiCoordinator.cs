@@ -18,7 +18,6 @@ namespace YC.Presentation
     {
         private readonly Func<GameState> getState;
         private readonly Func<int> getLocalPlayerId;
-        private readonly Func<RectTransform> getCanvas;
         private readonly SpecialActionOptionQueryService optionQuery;
         private readonly SpecialActionChoiceDialog dialog;
         private readonly Action<IReadOnlyList<WorkflowHighlight>> setHighlights;
@@ -37,6 +36,7 @@ namespace YC.Presentation
             Func<GameState> getState,
             Func<int> getLocalPlayerId,
             Func<RectTransform> getCanvas,
+            GameplayDialogRegistry dialogRegistry,
             SpecialActionOptionQueryService optionQuery,
             Action<IReadOnlyList<WorkflowHighlight>> setHighlights,
             Action clearHighlights,
@@ -45,13 +45,14 @@ namespace YC.Presentation
         {
             this.getState = getState ?? throw new ArgumentNullException(nameof(getState));
             this.getLocalPlayerId = getLocalPlayerId ?? throw new ArgumentNullException(nameof(getLocalPlayerId));
-            this.getCanvas = getCanvas ?? throw new ArgumentNullException(nameof(getCanvas));
             this.optionQuery = optionQuery ?? throw new ArgumentNullException(nameof(optionQuery));
             this.setHighlights = setHighlights ?? throw new ArgumentNullException(nameof(setHighlights));
             this.clearHighlights = clearHighlights ?? throw new ArgumentNullException(nameof(clearHighlights));
             this.submit = submit ?? throw new ArgumentNullException(nameof(submit));
             this.setPrompt = setPrompt ?? throw new ArgumentNullException(nameof(setPrompt));
-            dialog = new SpecialActionChoiceDialog();
+            dialog = new SpecialActionChoiceDialog(
+                dialogRegistry ?? throw new ArgumentNullException(nameof(dialogRegistry)),
+                getCanvas ?? throw new ArgumentNullException(nameof(getCanvas)));
         }
 
         public bool IsActive
@@ -294,7 +295,6 @@ namespace YC.Presentation
                     break;
                 default:
                     dialog.ShowCollapsibleMapPrompt(
-                        getCanvas(),
                         title,
                         "等待特殊行动的下一步结算。",
                         title + "：等待继续结算");
@@ -308,7 +308,6 @@ namespace YC.Presentation
             setHighlights(BuildInfluenceHighlights(legalSlots, WorkflowHighlightSemantic.DeployTarget));
             var requiredCount = optionQuery.GetRequiredMilitaryPlacementCount(getState(), getLocalPlayerId());
             dialog.ShowCollapsibleMapPrompt(
-                getCanvas(),
                 title,
                 "点击地图上 " + requiredCount + " 个高亮空槽位；再次点击已选槽位可撤回该选择。",
                 title + "：选择 " + requiredCount + " 个影响力槽位");
@@ -320,7 +319,6 @@ namespace YC.Presentation
             var legalSlots = optionQuery.GetReplaceableInfluenceSlotIds(getState(), getLocalPlayerId());
             setHighlights(BuildInfluenceHighlights(legalSlots, WorkflowHighlightSemantic.EventInfluenceTarget));
             dialog.ShowCollapsibleMapPrompt(
-                getCanvas(),
                 title,
                 "点击一个高亮的对手影响力；结算会先移除它，再尽量放置己方影响力。",
                 title + "：选择对手影响力");
@@ -335,7 +333,6 @@ namespace YC.Presentation
                 ? "本次"
                 : pending.RemainingRepetitions > 1 ? "第一段" : "第二段";
             dialog.ShowCollapsibleMapPrompt(
-                getCanvas(),
                 title,
                 "点击一个高亮地点执行" + segment + "免费城市移动；抵达后仍须结算移动事件。",
                 title + "：选择" + segment + "免费移动目标");
@@ -350,7 +347,6 @@ namespace YC.Presentation
                 pending.TraversedRouteId);
             setHighlights(BuildInfluenceHighlights(legalSlots, WorkflowHighlightSemantic.DeployTarget));
             dialog.ShowCollapsibleMapPrompt(
-                getCanvas(),
                 title,
                 "点击刚才经过航道上的一个高亮空槽位，放置 1 个己方影响力。",
                 title + "：在经过航道放置影响力");

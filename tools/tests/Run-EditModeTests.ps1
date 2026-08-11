@@ -3,6 +3,8 @@ param(
     [string]$UnityVersion = "2022.3.62f2c1",
     [string]$ProjectPath,
     [string]$TestFilter,
+    [ValidateSet("EditMode", "PlayMode")]
+    [string]$TestPlatform = "EditMode",
     [string]$OutputDirectory,
     [string]$LogFile,
     [string]$ResultsFile,
@@ -440,7 +442,7 @@ if ([string]::IsNullOrWhiteSpace($ProjectPath)) {
 $ProjectPath = Get-PathForUnityArgument $ProjectPath
 
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
-    $OutputDirectory = Join-Path $ProjectPath "Logs\EditModeTests"
+    $OutputDirectory = Join-Path $ProjectPath "Logs\${TestPlatform}Tests"
 }
 
 if (-not (Test-Path -LiteralPath $OutputDirectory -PathType Container)) {
@@ -451,11 +453,11 @@ $OutputDirectory = (Resolve-Path -LiteralPath $OutputDirectory).Path
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 
 if ([string]::IsNullOrWhiteSpace($LogFile)) {
-    $LogFile = Join-Path $OutputDirectory "editmode-$timestamp.log"
+    $LogFile = Join-Path $OutputDirectory "$($TestPlatform.ToLowerInvariant())-$timestamp.log"
 }
 
 if ([string]::IsNullOrWhiteSpace($ResultsFile)) {
-    $ResultsFile = Join-Path $OutputDirectory "editmode-$timestamp.xml"
+    $ResultsFile = Join-Path $OutputDirectory "$($TestPlatform.ToLowerInvariant())-$timestamp.xml"
 }
 
 $LogFile = Resolve-OutputFilePath $LogFile
@@ -471,7 +473,7 @@ $unityArgs = @(
     "-batchmode",
     "-projectPath", $ProjectPath,
     "-runTests",
-    "-testPlatform", "EditMode",
+    "-testPlatform", $TestPlatform,
     "-testResults", $ResultsFile,
     "-logFile", $LogFile
 )
@@ -490,7 +492,7 @@ if ($ExtraUnityArgs.Count -gt 0) {
 
 Write-Host "Unity Editor: $resolvedUnityPath"
 Write-Host "Project Path: $ProjectPath"
-Write-Host "Test Platform: EditMode"
+Write-Host "Test Platform: $TestPlatform"
 if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
     Write-Host "Test Filter: $TestFilter"
 }

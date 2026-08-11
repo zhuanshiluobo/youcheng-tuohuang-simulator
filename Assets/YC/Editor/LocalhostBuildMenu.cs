@@ -15,13 +15,15 @@ namespace YC.Editor
         private const string OutputFileName = "tuohuang.exe";
         private const string BatchBuildArgument = "-ycBuildLocalhost";
         private const string BatchDevelopmentBuildArgument = "-ycBuildLocalhostDevelopment";
+        private const string BatchReleaseBuildArgument = "-ycBuildRelease";
 
         [InitializeOnLoadMethod]
         private static void RunBatchBuildWhenRequested()
         {
             var arguments = Environment.GetCommandLineArgs();
             var buildDevelopment = arguments.Contains(BatchDevelopmentBuildArgument);
-            if (!buildDevelopment && !arguments.Contains(BatchBuildArgument))
+            var buildRelease = arguments.Contains(BatchReleaseBuildArgument);
+            if (!buildDevelopment && !buildRelease && !arguments.Contains(BatchBuildArgument))
             {
                 return;
             }
@@ -30,7 +32,11 @@ namespace YC.Editor
             {
                 try
                 {
-                    if (buildDevelopment)
+                    if (buildRelease)
+                    {
+                        BuildRelease();
+                    }
+                    else if (buildDevelopment)
                     {
                         BuildLocalhostDevelopment();
                     }
@@ -62,6 +68,21 @@ namespace YC.Editor
                 DevelopmentOutputDirectory,
                 BuildOptions.Development,
                 "Localhost development simulator build succeeded");
+        }
+
+        [MenuItem("YC/Build/Release")]
+        public static void BuildRelease()
+        {
+            var version = PlayerSettings.bundleVersion;
+            if (string.IsNullOrWhiteSpace(version) || version.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                throw new BuildFailedException("PlayerSettings.bundleVersion 不能用于发行目录：" + version);
+            }
+
+            BuildLocalhost(
+                Path.Combine("Builds", "v" + version),
+                BuildOptions.None,
+                "Release build succeeded");
         }
 
         private static void BuildLocalhost(

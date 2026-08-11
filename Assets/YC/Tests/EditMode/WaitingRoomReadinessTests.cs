@@ -47,6 +47,23 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void TwoPlayerSteamValidationRoom_AllVerifiedConnectionsAllowStart()
+        {
+            var room = CreateRoom(2);
+            var authority = Begin(room);
+            var active = new HashSet<int> { 0, 7 };
+            Connect(authority, 0, 101UL, 1);
+            Connect(authority, 7, 102UL, 2);
+
+            Assert.IsTrue(
+                authority.TryValidateStart(room, active.Contains, out var reason),
+                reason);
+            Assert.IsTrue(
+                RoomReadinessPolicy.TryValidateStart(room, out reason),
+                reason);
+        }
+
+        [Test]
         public void NonLobbySteamIdentity_DoesNotReadyAnySeat()
         {
             var room = CreateRoom(3);

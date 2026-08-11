@@ -1,39 +1,25 @@
-using System;
-using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
+using YC.Presentation.Maps;
 
 namespace YC.Tests.EditMode
 {
     public sealed class MobileCityColorTests
     {
         [Test]
-        public void CreateCitySprite_UsesNeutralTextureThatPreservesInfluenceMarkerHue()
+        public void PersistentCitySprite_UsesNeutralTextureThatPreservesInfluenceMarkerHue()
         {
-            var presenterType = Type.GetType(
-                "YC.Presentation.MapViewPresenter, Assembly-CSharp",
-                false);
-            Assert.That(presenterType, Is.Not.Null);
-
-            var createCitySprite = presenterType.GetMethod(
-                "CreateCitySprite",
-                BindingFlags.Static | BindingFlags.NonPublic);
-            Assert.That(createCitySprite, Is.Not.Null);
-
-            var sprite = createCitySprite.Invoke(null, null) as Sprite;
+            var library = AssetDatabase.LoadAssetAtPath<MapVisualSpriteLibrary>(
+                "Assets/YC/Presentation/Sprites/Map/MapVisualSprites.asset");
+            Assert.That(library, Is.Not.Null);
+            var sprite = library.MobileCity;
             Assert.That(sprite, Is.Not.Null);
-            try
-            {
-                AssertNeutral(sprite.texture.GetPixel(2, 2), "border");
-                AssertNeutral(sprite.texture.GetPixel(16, 66), "stripe");
-                AssertNeutral(sprite.texture.GetPixel(28, 66), "body");
-            }
-            finally
-            {
-                Object.DestroyImmediate(sprite.texture);
-                Object.DestroyImmediate(sprite);
-            }
+            Assert.That(AssetDatabase.GetAssetPath(sprite),
+                Is.EqualTo("Assets/YC/Presentation/Sprites/Map/MapVisualSprites.asset"));
+            AssertNeutral(sprite.texture.GetPixel(2, 2), "border");
+            AssertNeutral(sprite.texture.GetPixel(16, 66), "stripe");
+            AssertNeutral(sprite.texture.GetPixel(28, 66), "body");
         }
 
         private static void AssertNeutral(Color color, string area)

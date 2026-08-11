@@ -5,7 +5,6 @@ using YC.Domain.Cards;
 using YC.Domain.Economy;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
-using UnityEngine;
 
 namespace YC.Presentation
 {
@@ -14,7 +13,6 @@ namespace YC.Presentation
     {
         private readonly Func<GameState> getState;
         private readonly Func<int> getLocalPlayerId;
-        private readonly Func<RectTransform> getCanvas;
         private readonly CharacterCardPanelPresenter presenter;
         private readonly CharacterCardEffectChoiceDialog dialog;
         private readonly Func<string, CharacterCardEffectKind, bool> beginMapEffect;
@@ -30,7 +28,6 @@ namespace YC.Presentation
         public CharacterCardEffectInteractionUiCoordinator(
             Func<GameState> getState,
             Func<int> getLocalPlayerId,
-            Func<RectTransform> getCanvas,
             CharacterCardPanelPresenter presenter,
             CharacterCardEffectChoiceDialog dialog,
             Func<string, CharacterCardEffectKind, bool> beginMapEffect,
@@ -43,7 +40,6 @@ namespace YC.Presentation
         {
             this.getState = getState ?? throw new ArgumentNullException(nameof(getState));
             this.getLocalPlayerId = getLocalPlayerId ?? throw new ArgumentNullException(nameof(getLocalPlayerId));
-            this.getCanvas = getCanvas ?? throw new ArgumentNullException(nameof(getCanvas));
             this.presenter = presenter ?? throw new ArgumentNullException(nameof(presenter));
             this.dialog = dialog ?? throw new ArgumentNullException(nameof(dialog));
             this.beginMapEffect = beginMapEffect ?? throw new ArgumentNullException(nameof(beginMapEffect));
@@ -155,7 +151,6 @@ namespace YC.Presentation
             }
 
             dialog.ShowOptions(
-                getCanvas(),
                 "锡人计谋：人员召集",
                 "正在收回「" + CurrentTinManDiscardName(pending) + "」。请选择该牌带来的奖励。",
                 dialogOptions);
@@ -246,7 +241,7 @@ namespace YC.Presentation
                 }));
             }
 
-            dialog.ShowOptions(getCanvas(), title, description, options, CancelInitialSelection);
+            dialog.ShowOptions(title, description, options, CancelInitialSelection);
             setPrompt("请在角色牌结算弹窗中选择效果参数。");
             return true;
         }
@@ -262,7 +257,6 @@ namespace YC.Presentation
             }
 
             dialog.ShowResourceSale(
-                getCanvas(),
                 new[] { "源岩", "源石碎片", "异铁", "至纯源石" },
                 new[]
                 {
@@ -335,7 +329,6 @@ namespace YC.Presentation
             }
 
             dialog.ShowOptions(
-                getCanvas(),
                 firstStep
                     ? "锡人策略：建立威信（第一步）"
                     : "锡人策略：建立威信（第二步）",

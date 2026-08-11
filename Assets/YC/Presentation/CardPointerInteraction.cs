@@ -6,19 +6,6 @@ using UnityEngine.UI;
 namespace YC.Presentation
 {
     /// <summary>
-    /// 城市建设面板槽位的稳定落点标记。拖拽逻辑读取组件数据，避免依赖对象名称或层级结构。
-    /// </summary>
-    internal sealed class CityBoardSlotDropTarget : MonoBehaviour
-    {
-        public int SlotIndex { get; private set; } = -1;
-
-        public void Configure(int configuredSlotIndex)
-        {
-            SlotIndex = configuredSlotIndex;
-        }
-    }
-
-    /// <summary>
     /// 公共建设卡与特殊建设卡共用的尺寸、拖拽虚影移动和城市槽位解析。
     /// </summary>
     internal static class FacilityCardDragUtility
@@ -34,7 +21,8 @@ namespace YC.Presentation
             RectTransform canvas,
             RectTransform source,
             Texture texture,
-            string fallbackLabel)
+            string fallbackLabel,
+            Font fallbackFont)
         {
             if (canvas == null || source == null)
             {
@@ -70,9 +58,9 @@ namespace YC.Presentation
             canvasGroup.interactable = false;
             canvasGroup.blocksRaycasts = false;
 
-            if (texture == null)
+            if (texture == null && !string.IsNullOrEmpty(fallbackLabel))
             {
-                AddFallbackLabel(ghost, fallbackLabel);
+                AddFallbackLabel(ghost, fallbackLabel, fallbackFont);
             }
 
             return ghost;
@@ -159,7 +147,7 @@ namespace YC.Presentation
             }
         }
 
-        private static void AddFallbackLabel(RectTransform parent, string value)
+        private static void AddFallbackLabel(RectTransform parent, string value, Font font)
         {
             var textObject = new GameObject(
                 "Fallback",
@@ -175,7 +163,7 @@ namespace YC.Presentation
 
             var text = textObject.GetComponent<Text>();
             text.text = value ?? string.Empty;
-            text.font = FontUtility.GetCjkFont(12);
+            text.font = font;
             text.fontSize = 12;
             text.fontStyle = FontStyle.Bold;
             text.color = UiTheme.ValueText;
@@ -211,7 +199,7 @@ namespace YC.Presentation
     /// drag lifecycle validation, and suppression of the click emitted after a drag.
     /// Card-specific visuals and gameplay behavior stay in the configured callbacks.
     /// </summary>
-    internal sealed class CardPointerInteraction : MonoBehaviour,
+    public sealed class CardPointerInteraction : MonoBehaviour,
         IPointerDownHandler,
         IPointerClickHandler,
         IBeginDragHandler,

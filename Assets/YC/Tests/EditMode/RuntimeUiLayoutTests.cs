@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -15,6 +16,12 @@ namespace YC.Tests.EditMode
     public sealed class RuntimeUiLayoutTests
     {
         private GameObject owner;
+
+        [SetUp]
+        public void SetUp()
+        {
+            ViewerPrefabTestUtility.RegisterZoomablePrefab();
+        }
 
         [TearDown]
         public void TearDown()
@@ -84,13 +91,17 @@ namespace YC.Tests.EditMode
                 typeof(ActionPanelViewModel).GetProperty("CanUseSpecialAction", BindingFlags.Instance | BindingFlags.Public),
                 Is.Null,
                 "行动面板 ViewModel 不应继续暴露无消费者的特殊行动按钮状态。");
-            var buildParameters = controller.GetType()
-                .GetMethod("Build", BindingFlags.Static | BindingFlags.Public)
+            Assert.That(
+                controller.GetType().GetMethod("Build", BindingFlags.Static | BindingFlags.Public),
+                Is.Null,
+                "行动面板不应保留运行时 UI 构建入口。");
+            var bindParameters = controller.GetType()
+                .GetMethod("Bind", BindingFlags.Static | BindingFlags.Public)
                 .GetParameters();
             Assert.That(
-                Array.Exists(buildParameters, parameter => parameter.Name == "onSpecialAction"),
+                Array.Exists(bindParameters, parameter => parameter.Name == "onSpecialAction"),
                 Is.False,
-                "行动面板构造 API 不应继续要求无消费者的特殊行动回调。");
+                "行动面板绑定 API 不应继续要求无消费者的特殊行动回调。");
             flipButton.GetComponent<Button>().onClick.Invoke();
             Assert.That(mainFace.gameObject.activeSelf, Is.False);
             Assert.That(cardFace.gameObject.activeSelf, Is.True);
@@ -272,10 +283,13 @@ namespace YC.Tests.EditMode
             var type = Type.GetType("YC.Presentation.PromptPresenter, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.PromptPresenter.");
 
-            owner = new GameObject("Prompt Presenter Layout Test");
-            var build = type.GetMethod("Build", BindingFlags.Static | BindingFlags.Public);
-            Assert.That(build, Is.Not.Null, "Missing PromptPresenter.Build.");
-            build.Invoke(null, new object[] { owner.transform });
+            owner = InstantiateGameplayHudPrefab();
+            owner.name = "Prompt Presenter Layout Test";
+            var viewType = Type.GetType("YC.Presentation.GameplayPromptView, Assembly-CSharp", false);
+            var view = owner.GetComponentInChildren(viewType, true);
+            var bind = type.GetMethod("Bind", BindingFlags.Static | BindingFlags.Public);
+            Assert.That(bind, Is.Not.Null, "Missing PromptPresenter.Bind.");
+            bind.Invoke(null, new[] { view });
 
             var promptPanel = FindTransform("Prompt Panel");
             Assert.That(promptPanel, Is.Not.Null);
@@ -298,9 +312,12 @@ namespace YC.Tests.EditMode
             var type = Type.GetType("YC.Presentation.ExpandableInfoPanel, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.ExpandableInfoPanel.");
 
-            owner = new GameObject("Info Panel Layout Test");
-            var controller = owner.AddComponent(type);
-            InvokePublic(controller, "Initialize", owner.transform);
+            owner = InstantiateExpandableInfoPanelPrefab();
+            var controller = owner.GetComponent(type);
+            var viewType = Type.GetType("YC.Presentation.ExpandableInfoPanelView, Assembly-CSharp", false);
+            Assert.That(viewType, Is.Not.Null);
+            var panelView = owner.GetComponent(viewType);
+            Assert.That((bool)type.GetMethod("Bind").Invoke(controller, new[] { panelView }), Is.True);
 
             var modules = GetPublicProperty<System.Collections.IEnumerable>(controller, "Modules");
             Assert.That(HasModuleTitle(modules, "提示卡"), Is.False);
@@ -320,19 +337,23 @@ namespace YC.Tests.EditMode
             var type = Type.GetType("YC.Presentation.BuildInfoPanel, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.BuildInfoPanel.");
 
-            owner = new GameObject("Build Info Panel Layout Test");
-            var controller = owner.AddComponent(type);
-            InvokePublic(controller, "Initialize", owner.transform);
+            owner = InstantiateBuildInfoPanelPrefab();
+            var controller = owner.GetComponent(type);
+            var view = type.GetProperty("View", BindingFlags.Instance | BindingFlags.Public).GetValue(controller, null);
+            Assert.That(
+                (bool)type.GetMethod("Bind", BindingFlags.Instance | BindingFlags.Public)
+                    .Invoke(controller, new[] { view }),
+                Is.True);
 
-            var panel = FindTransform("Build Sidebar Panel");
-            var content = FindTransform("Content Area");
-            var header = FindTransform("Header");
-            var toggle = FindTransform("Toggle Button");
-            var scrollView = FindTransform("Scroll View");
-            var viewport = FindTransform("Viewport");
-            var contentRoot = FindTransform("Content");
-            var facilityArea = FindTransform("External Facility Supply Area");
-            var cityStyleArea = FindTransform("External City Style Area");
+            var panel = FindTransform(owner, "Build Sidebar Panel");
+            var content = FindTransform(owner, "Content Area");
+            var header = FindTransform(owner, "Header");
+            var toggle = FindTransform(owner, "Toggle Button");
+            var scrollView = FindTransform(owner, "Scroll View");
+            var viewport = FindTransform(owner, "Viewport");
+            var contentRoot = FindTransform(owner, "Content");
+            var facilityArea = FindTransform(owner, "External Facility Supply Area");
+            var cityStyleArea = FindTransform(owner, "External City Style Area");
 
             Assert.That(panel, Is.Not.Null);
             Assert.That(panel.anchorMin, Is.EqualTo(new Vector2(0f, 0f)));
@@ -380,14 +401,14 @@ namespace YC.Tests.EditMode
             InvokePublic(controller, "Refresh", state, 1);
             Canvas.ForceUpdateCanvases();
 
-            var cityBoard = FindTransform("City Board");
+            var cityBoard = FindTransform(owner, "City Board");
             Assert.That(cityBoard, Is.Not.Null);
-            Assert.That(FindTransform("Section 城市面板"), Is.Null);
+            Assert.That(FindTransform(owner, "Section 城市面板"), Is.Null);
             Assert.That(cityBoard.GetComponent<Outline>(), Is.Null);
             Assert.That(cityBoard.GetComponent<Image>(), Is.Null);
             Assert.That(cityBoard.anchorMin, Is.EqualTo(Vector2.zero));
             Assert.That(cityBoard.anchorMax, Is.EqualTo(Vector2.one));
-            var boardImage = FindTransform("城市面板底图");
+            var boardImage = FindTransform(owner, "城市面板底图");
             Assert.That(boardImage, Is.Not.Null);
             Assert.That(boardImage.GetComponent<AspectRatioFitter>().aspectMode,
                 Is.EqualTo(AspectRatioFitter.AspectMode.FitInParent));
@@ -399,9 +420,9 @@ namespace YC.Tests.EditMode
             var type = Type.GetType("YC.Presentation.RulebookViewerController, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.RulebookViewerController.");
 
-            owner = new GameObject("Rulebook Viewer Test");
-            var controller = owner.AddComponent(type);
-            EnsureAwakeRan(controller, "rootObject");
+            owner = ViewerPrefabTestUtility.Instantiate(ViewerPrefabTestUtility.RulebookPrefabPath);
+            var controller = owner.GetComponent(type);
+            InvokePublic(controller, "Open");
 
             var closeButton = FindTransform("Close Rulebook Button");
             Assert.That(closeButton, Is.Not.Null);
@@ -421,35 +442,38 @@ namespace YC.Tests.EditMode
             var type = Type.GetType("YC.Presentation.GameSettingsMenuController, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null);
 
-            owner = new GameObject("Settings Menu Layout Test");
-            var controller = owner.AddComponent(type);
-            EnsureAwakeRan(controller, "canvasTransform");
+            owner = InstantiateSettingsPrefab();
+            var controller = owner.GetComponent(type);
+            EnsureAwakeRan(controller, "initialized");
 
-            var gear = FindTransform("Settings Gear Button");
+            var gear = owner.transform.Find("Game Settings Canvas/Settings Gear Button") as RectTransform;
             var configure = type.GetMethod("ConfigureActionLog", BindingFlags.Instance | BindingFlags.Public);
             configure.Invoke(controller, new object[] { new GameSession(new GameState()) });
-            var log = FindTransform("Action Log Button");
-            Assert.That(FindTransform("Hint Card Button"), Is.Null);
+            var log = owner.transform.Find("Game Settings Canvas/Action Log Button") as RectTransform;
+            Assert.That(owner.transform.Find("Game Settings Canvas/Hint Card Button"), Is.Null);
             Assert.That(gear, Is.Not.Null);
             Assert.That(log, Is.Not.Null);
+            Assert.That(log.gameObject.activeSelf, Is.True);
             Assert.That(log.sizeDelta, Is.EqualTo(gear.sizeDelta));
             Assert.That(log.anchoredPosition.y, Is.EqualTo(gear.anchoredPosition.y).Within(0.01f));
             Assert.That(gear.anchoredPosition.x - log.anchoredPosition.x - 64f, Is.EqualTo(12.8f).Within(0.01f));
         }
 
         [Test]
-        public void SettingsMenu_OnStartPageDoesNotCreateActionLogButton()
+        public void SettingsMenu_OnStartPageKeepsAuthoredActionLogButtonInactive()
         {
             var type = Type.GetType("YC.Presentation.GameSettingsMenuController, Assembly-CSharp", false);
-            owner = new GameObject("Start Page Settings Layout Test");
-            var controller = owner.AddComponent(type);
-            EnsureAwakeRan(controller, "canvasTransform");
+            owner = InstantiateSettingsPrefab();
+            var controller = owner.GetComponent(type);
+            EnsureAwakeRan(controller, "initialized");
 
             InvokePublic(controller, "SetReturnToStartButtonVisible", false);
 
-            Assert.That(FindTransform("Action Log Button"), Is.Null);
-            Assert.That(FindTransform("Hint Card Button"), Is.Null);
-            Assert.That(FindTransform("Settings Gear Button"), Is.Not.Null);
+            var actionLog = owner.transform.Find("Game Settings Canvas/Action Log Button");
+            Assert.That(actionLog, Is.Not.Null);
+            Assert.That(actionLog.gameObject.activeSelf, Is.False);
+            Assert.That(owner.transform.Find("Game Settings Canvas/Hint Card Button"), Is.Null);
+            Assert.That(owner.transform.Find("Game Settings Canvas/Settings Gear Button"), Is.Not.Null);
         }
 
         [Test]
@@ -458,8 +482,9 @@ namespace YC.Tests.EditMode
             var type = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null);
 
-            owner = new GameObject("Reusable Image Viewer Test");
-            var controller = owner.AddComponent(type);
+            owner = ViewerPrefabTestUtility.Instantiate(ViewerPrefabTestUtility.ZoomablePrefabPath);
+            owner.name = "Reusable Image Viewer Test";
+            var controller = owner.GetComponent(type);
             var texture = new Texture2D(100, 200);
             var configure = type.GetMethod("Configure", BindingFlags.Instance | BindingFlags.Public);
             Assert.That(configure, Is.Not.Null);
@@ -515,21 +540,69 @@ namespace YC.Tests.EditMode
             return canvas;
         }
 
-        private static object BuildActionPanel(Canvas canvas)
+        private static GameObject InstantiateSettingsPrefab()
+        {
+            const string path = "Assets/YC/Presentation/Prefabs/GameSettings/GameSettingsMenu.prefab";
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            Assert.That(prefab, Is.Not.Null, "Missing editor-authored settings prefab.");
+            var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            Assert.That(instance, Is.Not.Null);
+            return instance;
+        }
+
+        private static GameObject InstantiateGameplayHudPrefab()
+        {
+            const string path = "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab";
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            Assert.That(prefab, Is.Not.Null, "Missing editor-authored GameplayInteractionHud prefab.");
+            var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            Assert.That(instance, Is.Not.Null);
+            return instance;
+        }
+
+        private static GameObject InstantiateExpandableInfoPanelPrefab()
+        {
+            const string path = "Assets/YC/Presentation/Prefabs/Gameplay/ExpandableInfoPanel.prefab";
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            Assert.That(prefab, Is.Not.Null, path);
+            var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            Assert.That(instance, Is.Not.Null);
+            return instance;
+        }
+
+        private static GameObject InstantiateBuildInfoPanelPrefab()
+        {
+            const string path = "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab";
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            Assert.That(prefab, Is.Not.Null, path);
+            var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            Assert.That(instance, Is.Not.Null);
+            return instance;
+        }
+
+        private object BuildActionPanel(Canvas canvas)
         {
             var type = Type.GetType("YC.Presentation.ActionPanelController, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.ActionPanelController.");
 
-            var build = type.GetMethod("Build", BindingFlags.Static | BindingFlags.Public);
-            Assert.That(build, Is.Not.Null, "Missing ActionPanelController.Build.");
+            owner = InstantiateGameplayHudPrefab();
+            owner.name = "Action Panel Controller Test";
+            var viewType = Type.GetType("YC.Presentation.ActionPanelView, Assembly-CSharp", false);
+            var view = owner.GetComponentInChildren(viewType, true);
+            var bind = type.GetMethod("Bind", BindingFlags.Static | BindingFlags.Public);
+            Assert.That(bind, Is.Not.Null, "Missing ActionPanelController.Bind.");
+            const string catalogPath = "Assets/YC/Presentation/Content/CardVisualCatalog.asset";
+            var catalogType = Type.GetType("YC.Presentation.CardVisualCatalog, Assembly-CSharp", true);
+            var catalog = AssetDatabase.LoadAssetAtPath(catalogPath, catalogType);
+            Assert.That(catalog, Is.Not.Null, catalogPath);
 
             Action noop = () => { };
-            return build.Invoke(
+            return bind.Invoke(
                 null,
                 new object[]
                 {
-                    canvas,
-                    noop,
+                    view,
+                    catalog,
                     noop,
                     noop,
                     noop,
@@ -544,7 +617,8 @@ namespace YC.Tests.EditMode
         {
             var field = component.GetType().GetField(readyFieldName, BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(field, Is.Not.Null, "Missing " + component.GetType().Name + "." + readyFieldName + ".");
-            if (field.GetValue(component) != null)
+            var value = field.GetValue(component);
+            if (value is bool boolValue ? boolValue : value != null)
             {
                 return;
             }
@@ -606,7 +680,21 @@ namespace YC.Tests.EditMode
 
         private static RectTransform FindTransform(string name)
         {
-            var transforms = Resources.FindObjectsOfTypeAll<RectTransform>();
+            var transforms = UnityEngine.Object.FindObjectsOfType<RectTransform>(true);
+            for (var i = 0; i < transforms.Length; i++)
+            {
+                if (transforms[i] != null && transforms[i].name == name)
+                {
+                    return transforms[i];
+                }
+            }
+
+            return null;
+        }
+
+        private static RectTransform FindTransform(GameObject root, string name)
+        {
+            var transforms = root.GetComponentsInChildren<RectTransform>(true);
             for (var i = 0; i < transforms.Length; i++)
             {
                 if (transforms[i] != null && transforms[i].name == name)

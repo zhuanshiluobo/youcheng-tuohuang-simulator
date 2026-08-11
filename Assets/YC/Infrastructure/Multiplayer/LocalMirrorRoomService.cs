@@ -29,7 +29,11 @@ namespace YC.Infrastructure.Multiplayer
         public event Action<RoomState> GameStarted;
         public event Action RoomDisbanded;
         public event Action<string> ErrorOccurred;
-        public event Action<string> LobbyJoinRequested;
+        public event Action<string> LobbyJoinRequested
+        {
+            add { }
+            remove { }
+        }
 
         public void Initialize() => ThrowIfDisposed();
 

@@ -15,6 +15,7 @@ using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Presentation;
 using YC.Presentation.Workflows;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -25,6 +26,12 @@ namespace YC.Tests.EditMode
     {
         private const string YellowSourceStoneRefinery = "building_028";
         private const string RedIronRefinery = "building_032";
+
+        [SetUp]
+        public void SetUpViewerPrefab()
+        {
+            ViewerPrefabTestUtility.RegisterZoomablePrefab();
+        }
 
         [Test]
         public void ExplorePaymentRecipientSelection_BuildsDefaultsAllowsValidSelectionAndEncodesRecipients()
@@ -385,34 +392,38 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void CardImagePathCatalog_CoversAllFacilityAndCityStyleDefinitions()
+        public void CardVisualCatalog_CoversAllFacilityAndCityStyleDefinitions()
         {
-            var type = Type.GetType("YC.Presentation.CardImagePathCatalog, Assembly-CSharp", false);
+            const string catalogPath = "Assets/YC/Presentation/Content/CardVisualCatalog.asset";
+            var type = Type.GetType("YC.Presentation.CardVisualCatalog, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null);
+            var catalog = AssetDatabase.LoadAssetAtPath(catalogPath, type);
+            Assert.That(catalog, Is.Not.Null, catalogPath);
 
-            var facilityPathMethod = type.GetMethod("TryGetFacilityImageRelativePath", BindingFlags.Public | BindingFlags.Static);
-            var cityStylePathMethod = type.GetMethod("TryGetCityStyleImageRelativePath", BindingFlags.Public | BindingFlags.Static);
-            Assert.That(facilityPathMethod, Is.Not.Null);
-            Assert.That(cityStylePathMethod, Is.Not.Null);
+            var facilityTextureMethod = type.GetMethod("GetFacility", BindingFlags.Public | BindingFlags.Instance);
+            var cityStyleTextureMethod = type.GetMethod("GetCityStyle", BindingFlags.Public | BindingFlags.Instance);
+            Assert.That(facilityTextureMethod, Is.Not.Null);
+            Assert.That(cityStyleTextureMethod, Is.Not.Null);
 
             var facilityIds = new List<string>(FacilityCardDatabase.DefaultSupplyIds);
             facilityIds.AddRange(FacilityCardDatabase.ReserveIds);
+            facilityIds.Add(FacilityCardDatabase.EnterpriseOffice);
             for (var i = 0; i < facilityIds.Count; i++)
             {
-                AssertImagePathExists(facilityPathMethod, facilityIds[i]);
+                AssertCatalogTexture(catalog, facilityTextureMethod, facilityIds[i]);
             }
 
             for (var i = 0; i < CityStyleDatabase.DefaultSupplyIds.Count; i++)
             {
-                AssertImagePathExists(cityStylePathMethod, CityStyleDatabase.DefaultSupplyIds[i]);
+                AssertCatalogTexture(catalog, cityStyleTextureMethod, CityStyleDatabase.DefaultSupplyIds[i]);
             }
 
             Assert.That(typeof(FacilityCardDefinition).GetField("ImageRelativePath"), Is.Null);
             Assert.That(typeof(CityStyleDefinition).GetField("ImageRelativePath"), Is.Null);
 
-            var unknownArguments = new object[] { "unknown_card", null };
-            Assert.That(facilityPathMethod.Invoke(null, unknownArguments), Is.False);
-            Assert.That(unknownArguments[1], Is.EqualTo(string.Empty));
+            Assert.That(
+                facilityTextureMethod.Invoke(catalog, new object[] { "unknown_card" }),
+                Is.Null);
         }
 
         [Test]
@@ -425,7 +436,7 @@ namespace YC.Tests.EditMode
             {
                 var dialogType = Type.GetType("YC.Presentation.EventChoiceDialog, Assembly-CSharp", false);
                 Assert.That(dialogType, Is.Not.Null);
-                var dialog = Activator.CreateInstance(dialogType, true);
+                var dialog = CreateEventDialog(dialogType, root.GetComponent<RectTransform>());
                 var focusIntents = new List<BuildFacilityIntent>();
                 var model = new BuildFacilityDraftViewModel(
                     BuildFacilityDraftPhase.Focused,
@@ -440,7 +451,7 @@ namespace YC.Tests.EditMode
 
                 dialogType.GetMethod("ShowBuildFacilityFocus").Invoke(
                     dialog,
-                    new object[] { root.GetComponent<RectTransform>(), model });
+                    new object[] { model });
 
                 var resourceButton = FindButtonByName(
                     root.GetComponentsInChildren<Button>(true),
@@ -454,15 +465,28 @@ namespace YC.Tests.EditMode
                 var panel = FindRectTransformByName(root, "Build Facility Focus Panel");
                 resourceButton.onClick.Invoke();
                 goldButton.onClick.Invoke();
-                Assert.That(focusIntents, Has.Count.EqualTo(2));
+                Assert.That(focusIntents, Has.Count.EqualTo(1), "同一 View 实例只允许一次建设意图。");
                 Assert.That(focusIntents[0], Is.TypeOf<BuildFacilityIntent.SelectPayment>());
                 Assert.That(
                     ((BuildFacilityIntent.SelectPayment)focusIntents[0]).PaymentMode,
                     Is.EqualTo(BuildFacilityService.PaymentModeResources));
+
+                dialogType.GetMethod("ShowBuildFacilityFocus").Invoke(dialog, new object[] { model });
+                goldButton = FindButtonByName(
+                    root.GetComponentsInChildren<Button>(true),
+                    "Choose Gold Payment");
+                goldButton.onClick.Invoke();
+                Assert.That(focusIntents, Has.Count.EqualTo(2));
                 Assert.That(focusIntents[1], Is.TypeOf<BuildFacilityIntent.SelectPayment>());
                 Assert.That(
                     ((BuildFacilityIntent.SelectPayment)focusIntents[1]).PaymentMode,
                     Is.EqualTo(BuildFacilityService.PaymentModeGold));
+
+                dialogType.GetMethod("ShowBuildFacilityFocus").Invoke(dialog, new object[] { model });
+                closeButton = FindButtonByName(
+                    root.GetComponentsInChildren<Button>(true),
+                    "Close Build Facility Focus Button");
+                panel = FindRectTransformByName(root, "Build Facility Focus Panel");
                 Assert.That(closeButton.GetComponent<Outline>(), Is.Not.Null);
                 Assert.That(
                     closeButton.transform.GetSiblingIndex(),
@@ -493,10 +517,12 @@ namespace YC.Tests.EditMode
                 rightClickRoot = new GameObject(
                     "Build Facility Right Click Dialog Test Root",
                     typeof(RectTransform));
-                var rightClickDialog = Activator.CreateInstance(dialogType, true);
+                var rightClickDialog = CreateEventDialog(
+                    dialogType,
+                    rightClickRoot.GetComponent<RectTransform>());
                 dialogType.GetMethod("ShowBuildFacilityFocus").Invoke(
                     rightClickDialog,
-                    new object[] { rightClickRoot.GetComponent<RectTransform>(), model });
+                    new object[] { model });
                 var rightClickOverlay = FindRectTransformByName(
                     rightClickRoot,
                     "Build Facility Focus Overlay");
@@ -512,7 +538,9 @@ namespace YC.Tests.EditMode
                 confirmationRoot = new GameObject(
                     "Build Facility Confirmation Dialog Test Root",
                     typeof(RectTransform));
-                var confirmationDialog = Activator.CreateInstance(dialogType, true);
+                var confirmationDialog = CreateEventDialog(
+                    dialogType,
+                    confirmationRoot.GetComponent<RectTransform>());
                 var confirmationIntents = new List<BuildFacilityIntent>();
                 var confirmationModel = new BuildFacilityDraftViewModel(
                     BuildFacilityDraftPhase.Confirming,
@@ -526,18 +554,20 @@ namespace YC.Tests.EditMode
                     intent => confirmationIntents.Add(intent));
                 dialogType.GetMethod("ShowBuildFacilityConfirmation").Invoke(
                     confirmationDialog,
-                    new object[]
-                    {
-                        confirmationRoot.GetComponent<RectTransform>(),
-                        confirmationModel
-                    });
+                    new object[] { confirmationModel });
 
                 FindButtonByName(
                     confirmationRoot.GetComponentsInChildren<Button>(true),
                     "Back To Build Payment").onClick.Invoke();
+                dialogType.GetMethod("ShowBuildFacilityConfirmation").Invoke(
+                    confirmationDialog,
+                    new object[] { confirmationModel });
                 FindButtonByName(
                     confirmationRoot.GetComponentsInChildren<Button>(true),
                     "Confirm Build Facility").onClick.Invoke();
+                dialogType.GetMethod("ShowBuildFacilityConfirmation").Invoke(
+                    confirmationDialog,
+                    new object[] { confirmationModel });
                 FindButtonByName(
                     confirmationRoot.GetComponentsInChildren<Button>(true),
                     "Close Build Facility Confirmation Button").onClick.Invoke();
@@ -584,9 +614,13 @@ namespace YC.Tests.EditMode
                     "collapsiblePanel",
                     BindingFlags.Instance | BindingFlags.NonPublic).FieldType,
                 Is.EqualTo(sharedType));
+            var eventViewType = Type.GetType(
+                "YC.Presentation.EventChoiceDialogView, Assembly-CSharp",
+                false);
+            Assert.That(eventViewType, Is.Not.Null);
             Assert.That(
-                eventDialogType.GetField(
-                    "eventCardCollapsiblePanel",
+                eventViewType.GetField(
+                    "collapsiblePanel",
                     BindingFlags.Instance | BindingFlags.NonPublic).FieldType,
                 Is.EqualTo(sharedType));
             Assert.That(
@@ -621,7 +655,7 @@ namespace YC.Tests.EditMode
                     false);
                 Assert.That(dialogType, Is.Not.Null);
                 Assert.That(sharedType, Is.Not.Null);
-                var dialog = Activator.CreateInstance(dialogType, true);
+                var dialog = CreateEventDialog(dialogType, root.GetComponent<RectTransform>());
                 var card = new EventCardDefinition
                 {
                     CardId = "event-shared-panel-test",
@@ -635,7 +669,6 @@ namespace YC.Tests.EditMode
                     dialog,
                     new object[]
                     {
-                        root.GetComponent<RectTransform>(),
                         card,
                         "测试资源点",
                         null,
@@ -651,7 +684,7 @@ namespace YC.Tests.EditMode
                 var collapsedSummary = FindRectTransformByName(root, "Collapsed Summary");
                 var collapseButton = FindButtonByName(
                     root.GetComponentsInChildren<Button>(true),
-                    "Collapse Card");
+                    "Collapse");
                 Assert.That(overlay, Is.Not.Null);
                 Assert.That(panel, Is.Not.Null);
                 Assert.That(panel.GetComponent(sharedType), Is.Not.Null);
@@ -711,25 +744,21 @@ namespace YC.Tests.EditMode
             {
                 var type = Type.GetType("YC.Presentation.BuildInfoPanel, Assembly-CSharp", false);
                 Assert.That(type, Is.Not.Null);
-                var panel = owner.AddComponent(type);
+                var panel = InstantiateBuildInfoPanel(type, out canvasObject);
                 var state = CreateBuildInfoPanelState();
                 var clickedCityStyleId = string.Empty;
 
                 type.GetEvent("CityStyleClicked").AddEventHandler(panel, new Action<string>(id => clickedCityStyleId = id));
-                type.GetMethod("Initialize").Invoke(panel, new object[] { owner.transform });
                 type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
-
-                canvasObject = GameObject.Find("Build Info Panel Canvas");
-                Assert.That(canvasObject, Is.Not.Null);
 
                 var buttons = canvasObject.GetComponentsInChildren<Button>(true);
                 Assert.That(CountButtonsByNamePrefix(buttons, "槽位 "), Is.EqualTo(12));
                 Assert.That(CountButtonsByNamePrefix(buttons, "BuildSlot_"), Is.EqualTo(6));
                 Assert.That(CountButtonsByNamePrefix(buttons, "城市样式 "), Is.EqualTo(CityStyleDatabase.PresentationSupplyIds.Count));
 
-                Assert.That(FindRectTransformByName(canvasObject, "Build Sidebar Panel"), Is.Not.Null);
+                Assert.That(FindRectTransformByName(canvasObject, "Build Sidebar Panel"), Is.Not.Null, "缺少固定建设侧栏。");
                 var boardImage = FindRectTransformByName(canvasObject, "城市面板底图");
-                Assert.That(boardImage, Is.Not.Null);
+                Assert.That(boardImage, Is.Not.Null, "缺少固定城市底图。");
                 Assert.That(boardImage.rect.height / boardImage.rect.width, Is.EqualTo(3801f / 2059f).Within(0.01f));
                 Assert.That(HasTextContaining(canvasObject, "空位 "), Is.False);
                 Assert.That(GetButtonLabel(FindButtonByName(buttons, "槽位 4")), Is.Empty);
@@ -738,9 +767,9 @@ namespace YC.Tests.EditMode
                 var cardPointerType = Type.GetType("YC.Presentation.CardPointerInteraction, Assembly-CSharp", false);
                 Assert.That(cardPointerType, Is.Not.Null);
                 Assert.That(coreTowerSlot.enabled, Is.True);
-                Assert.That(coreTowerSlot.GetComponent(cardPointerType), Is.Not.Null);
+                Assert.That(coreTowerSlot.GetComponent(cardPointerType), Is.Not.Null, "已占用城市槽缺少指针组件。");
                 Assert.That(emptySlot.enabled, Is.False);
-                Assert.That(emptySlot.GetComponent(cardPointerType), Is.Null);
+                Assert.That(emptySlot.GetComponent(cardPointerType), Is.Not.Null, "空城市槽缺少固定指针组件。");
                 Assert.That(emptySlot.GetComponent<Image>().raycastTarget, Is.True);
                 Assert.That(GetButtonLabel(coreTowerSlot), Is.Empty);
                 Assert.That(HasChildRectTransform(coreTowerSlot.gameObject, "设施卡图"), Is.True);
@@ -787,7 +816,7 @@ namespace YC.Tests.EditMode
                     new Action(() => { }),
                     new Action<int>(_ => { })
                 });
-                Assert.That(FindRectTransformByName(canvasObject, "本地建设虚影"), Is.Not.Null);
+                Assert.That(FindRectTransformByName(canvasObject, "本地建设虚影"), Is.Not.Null, "未生成本地建设虚影模板实例。");
                 Assert.That(
                     Array.Exists(
                         canvasObject.GetComponentsInChildren<Button>(true),
@@ -804,7 +833,7 @@ namespace YC.Tests.EditMode
                     "本行动轮行动次数已用尽。"
                 });
                 var availabilityMessage = FindRectTransformByName(canvasObject, "Build Availability Message");
-                Assert.That(availabilityMessage, Is.Not.Null);
+                Assert.That(availabilityMessage, Is.Not.Null, "缺少固定建设可用性消息。");
                 Assert.That(availabilityMessage.GetComponent<Text>().text, Is.EqualTo("本行动轮行动次数已用尽。"));
                 Assert.That(availabilityMessage.GetComponent<Text>().color.r, Is.GreaterThan(0.9f));
                 type.GetMethod("SetPendingBuildGhost").Invoke(panel, new object[]
@@ -1002,10 +1031,27 @@ namespace YC.Tests.EditMode
                     "YC.Presentation.CityStyleDeclarationPreviewDialog, Assembly-CSharp",
                     false);
                 Assert.That(dialogType, Is.Not.Null);
-                var dialog = Activator.CreateInstance(dialogType, true);
+                var registryType = Type.GetType(
+                    "YC.Presentation.GameplayDialogRegistry, Assembly-CSharp",
+                    true);
+                var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                    "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+                Assert.That(hudPrefab, Is.Not.Null);
+                var registry = hudPrefab.GetComponentInChildren(registryType, true);
+                Assert.That(registry, Is.Not.Null);
+                var dialog = Activator.CreateInstance(
+                    dialogType,
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                    null,
+                    new object[]
+                    {
+                        registry,
+                        new Func<RectTransform>(() => host.GetComponent<RectTransform>())
+                    },
+                    null);
                 dialogType.GetMethod("Show").Invoke(
                     dialog,
-                    new object[] { host.GetComponent<RectTransform>(), model });
+                    new object[] { model });
 
                 previewCanvas = GameObject.Find("City Style Declaration Preview Canvas");
                 Assert.That(previewCanvas, Is.Not.Null);
@@ -1101,7 +1147,7 @@ namespace YC.Tests.EditMode
                 var usedPreviewSlot = FindButtonByName(buttons, "宣告槽位 4");
                 Assert.That(usedPreviewSlot.GetComponent<Outline>().effectColor.a, Is.Zero);
                 Assert.That(usedPreviewSlot.GetComponent<Outline>().effectDistance, Is.EqualTo(Vector2.zero));
-                Assert.That(CountTexts(previewCanvas, "已使用"), Is.EqualTo(1));
+                Assert.That(CountActiveTexts(previewCanvas, "已使用"), Is.EqualTo(1));
                 var confirm = FindButtonByName(buttons, "Confirm City Style Declaration");
                 Assert.That(FindRectTransformByName(previewCanvas, "Begin City Style Declaration"), Is.Null);
                 Assert.That(confirm.GetComponent<RectTransform>().anchoredPosition.x, Is.Zero.Within(0.01f));
@@ -1227,7 +1273,7 @@ namespace YC.Tests.EditMode
 
                 dialogType.GetMethod("Show").Invoke(
                     dialog,
-                    new object[] { host.GetComponent<RectTransform>(), model });
+                    new object[] { model });
                 previewCanvas = GameObject.Find("City Style Declaration Preview Canvas");
                 var overlay = FindRectTransformByName(
                     previewCanvas,
@@ -1261,7 +1307,7 @@ namespace YC.Tests.EditMode
             {
                 var type = Type.GetType("YC.Presentation.BuildInfoPanel, Assembly-CSharp", false);
                 Assert.That(type, Is.Not.Null);
-                var panel = owner.AddComponent(type);
+                var panel = InstantiateBuildInfoPanel(type, out canvasObject);
                 var state = CreateBuildInfoPanelState();
                 var originalSupply = state.Decks.FacilitySupply.ToArray();
                 var originalPlacements = state.Map.Facilities.Count;
@@ -1280,11 +1326,7 @@ namespace YC.Tests.EditMode
                         droppedFacilityId = id;
                         droppedSlotIndex = slotIndex;
                     }));
-                type.GetMethod("Initialize").Invoke(panel, new object[] { owner.transform });
                 type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
-
-                canvasObject = GameObject.Find("Build Info Panel Canvas");
-                Assert.That(canvasObject, Is.Not.Null);
                 var buttons = canvasObject.GetComponentsInChildren<Button>(true);
                 var sourceButton = FindButtonByName(buttons, "BuildSlot_1");
                 var nonDraggableButton = FindButtonByName(buttons, "BuildSlot_2");
@@ -1379,14 +1421,10 @@ namespace YC.Tests.EditMode
             {
                 var type = Type.GetType("YC.Presentation.BuildInfoPanel, Assembly-CSharp", false);
                 Assert.That(type, Is.Not.Null);
-                var panel = owner.AddComponent(type);
+                var panel = InstantiateBuildInfoPanel(type, out canvasObject);
                 var state = CreateBuildInfoPanelUsedSlotState();
 
-                type.GetMethod("Initialize").Invoke(panel, new object[] { owner.transform });
                 type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
-
-                canvasObject = GameObject.Find("Build Info Panel Canvas");
-                Assert.That(canvasObject, Is.Not.Null);
 
                 var buttons = canvasObject.GetComponentsInChildren<Button>(true);
                 AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 1"), 0f);
@@ -1489,12 +1527,8 @@ namespace YC.Tests.EditMode
                 Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(29));
                 var type = Type.GetType("YC.Presentation.BuildInfoPanel, Assembly-CSharp", false);
                 Assert.That(type, Is.Not.Null);
-                var panel = owner.AddComponent(type);
-                type.GetMethod("Initialize").Invoke(panel, new object[] { owner.transform });
+                var panel = InstantiateBuildInfoPanel(type, out canvasObject);
                 type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
-
-                canvasObject = GameObject.Find("Build Info Panel Canvas");
-                Assert.That(canvasObject, Is.Not.Null);
                 var buttons = canvasObject.GetComponentsInChildren<Button>(true);
                 AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 1"), 180f);
                 AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 2"), 180f);
@@ -2033,17 +2067,59 @@ namespace YC.Tests.EditMode
             Assert.That(outline.effectDistance.y, Is.EqualTo(expectedDistance.y).Within(0.01f));
         }
 
-        private static void AssertImagePathExists(MethodInfo pathMethod, string cardId)
+        private static void AssertCatalogTexture(object catalog, MethodInfo textureMethod, string cardId)
         {
-            var arguments = new object[] { cardId, null };
-            Assert.That(pathMethod.Invoke(null, arguments), Is.True, "图片路径映射缺失：" + cardId);
+            var texture = textureMethod.Invoke(catalog, new object[] { cardId }) as Texture2D;
+            Assert.That(texture, Is.Not.Null, "目录贴图映射缺失：" + cardId);
+            Assert.That(AssetDatabase.Contains(texture), Is.True, "目录贴图必须是持久化资产：" + cardId);
+        }
 
-            var relativePath = arguments[1] as string;
-            Assert.That(relativePath, Is.Not.Null.And.Not.Empty, "图片路径为空：" + cardId);
+        private static Component InstantiateBuildInfoPanel(Type type, out GameObject canvasObject)
+        {
+            const string path = "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab";
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            Assert.That(prefab, Is.Not.Null, path);
+            canvasObject = new GameObject(
+                "Build Info Panel Canvas",
+                typeof(RectTransform),
+                typeof(Canvas),
+                typeof(CanvasScaler),
+                typeof(GraphicRaycaster));
+            canvasObject.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            var instance = PrefabUtility.InstantiatePrefab(prefab, canvasObject.transform) as GameObject;
+            Assert.That(instance, Is.Not.Null);
+            var panel = instance.GetComponent(type);
+            Assert.That(panel, Is.Not.Null);
+            const string catalogPath = "Assets/YC/Presentation/Content/CardVisualCatalog.asset";
+            var catalogType = Type.GetType("YC.Presentation.CardVisualCatalog, Assembly-CSharp", true);
+            var catalog = AssetDatabase.LoadAssetAtPath(catalogPath, catalogType);
+            Assert.That(catalog, Is.Not.Null, catalogPath);
+            type.GetMethod("ConfigureCardVisualCatalog", BindingFlags.Instance | BindingFlags.Public)
+                .Invoke(panel, new[] { catalog });
+            var view = type.GetProperty("View", BindingFlags.Instance | BindingFlags.Public).GetValue(panel, null);
             Assert.That(
-                System.IO.File.Exists(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), relativePath)),
-                Is.True,
-                "图片文件不存在：" + relativePath);
+                (bool)type.GetMethod("Bind", BindingFlags.Instance | BindingFlags.Public)
+                    .Invoke(panel, new[] { view }),
+                Is.True);
+            return panel;
+        }
+
+        private static object CreateEventDialog(Type dialogType, RectTransform parent)
+        {
+            var registryType = Type.GetType(
+                "YC.Presentation.GameplayDialogRegistry, Assembly-CSharp",
+                true);
+            var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            Assert.That(hudPrefab, Is.Not.Null);
+            var registry = hudPrefab.GetComponentInChildren(registryType, true);
+            Assert.That(registry, Is.Not.Null);
+            return Activator.CreateInstance(
+                dialogType,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null,
+                new object[] { registry, new Func<RectTransform>(() => parent) },
+                null);
         }
 
         private static void AssertCardImageViewerIsOpen()
@@ -2104,6 +2180,21 @@ namespace YC.Tests.EditMode
             for (var i = 0; i < texts.Length; i++)
             {
                 if (texts[i].text == expected)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static int CountActiveTexts(GameObject root, string expected)
+        {
+            var count = 0;
+            var texts = root.GetComponentsInChildren<Text>(true);
+            for (var i = 0; i < texts.Length; i++)
+            {
+                if (texts[i].gameObject.activeInHierarchy && texts[i].text == expected)
                 {
                     count++;
                 }

@@ -25,8 +25,13 @@ namespace YC.Infrastructure.Multiplayer
         public string Ticket;
     }
 
+    [DefaultExecutionOrder(-24000)]
     public sealed class MirrorNetworkRuntime : MonoBehaviour
     {
+        [SerializeField] private NetworkManager networkManager;
+        [SerializeField] private FizzySteamworks steamTransport;
+        [SerializeField] private TelepathyTransport localTransport;
+
         private readonly object disconnectQueueLock = new object();
         private readonly object localIdentityLock = new object();
         private readonly Queue<int> pendingServerDisconnects = new Queue<int>();
@@ -45,45 +50,95 @@ namespace YC.Infrastructure.Multiplayer
         public event Action LocalClientDisconnected;
         public event Action<int, string> ServerLocalIdentityPresented;
         public static MirrorNetworkRuntime Instance { get; private set; }
-        public NetworkManager Manager { get; private set; }
-        public FizzySteamworks Transport { get; private set; }
-        public TelepathyTransport LocalTransport { get; private set; }
+        public NetworkManager Manager => networkManager;
+        public FizzySteamworks Transport => steamTransport;
+        public TelepathyTransport LocalTransport => localTransport;
         public Mirror.Transport ActiveTransport { get; private set; }
         public bool IsLocalTestMode { get; private set; }
         public bool IsHost => NetworkServer.active && NetworkClient.active;
 
         public static MirrorNetworkRuntime Ensure()
         {
-            if (Instance != null) return Instance;
-            var go = new GameObject("MirrorNetworkRuntime");
-            DontDestroyOnLoad(go);
-            return go.AddComponent<MirrorNetworkRuntime>();
+            if (Instance == null)
+            {
+                throw new InvalidOperationException(
+                    "缺少预接线的 NetworkRuntimeRoot。请重建网络运行时 Prefab 并确认 StartScene 接线完整。");
+            }
+
+            return Instance;
         }
 
         private void Awake()
         {
-            if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+            if (Instance != null && Instance != this)
+            {
+                gameObject.SetActive(false);
+                Destroy(gameObject);
+                return;
+            }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            if (!TryValidatePersistentConfiguration(out var reason))
+            {
+                throw new InvalidOperationException("NetworkRuntimeRoot 接线无效：" + reason);
+            }
+
             IsLocalTestMode = LocalMirrorTestMode.IsEnabled;
+            LocalTransport.enabled = false;
+            Transport.enabled = false;
             if (IsLocalTestMode)
             {
-                LocalTransport = GetComponent<TelepathyTransport>() ?? gameObject.AddComponent<TelepathyTransport>();
                 LocalTransport.port = LocalMirrorTestMode.MirrorPort;
                 ActiveTransport = LocalTransport;
             }
             else
             {
-                Transport = GetComponent<FizzySteamworks>() ?? gameObject.AddComponent<FizzySteamworks>();
                 Transport.AllowSteamRelay = true;
                 Transport.UseNextGenSteamNetworking = true;
                 ActiveTransport = Transport;
             }
-            Manager = GetComponent<NetworkManager>() ?? gameObject.AddComponent<NetworkManager>();
             Manager.transport = ActiveTransport;
             Manager.maxConnections = 4;
             Manager.autoCreatePlayer = false;
             Mirror.Transport.active = ActiveTransport;
+        }
+
+        public bool TryValidatePersistentConfiguration(out string reason)
+        {
+            if (networkManager == null || steamTransport == null || localTransport == null)
+            {
+                reason = "NetworkManager、FizzySteamworks 或 TelepathyTransport 引用为空。";
+                return false;
+            }
+
+            if (networkManager.gameObject != gameObject ||
+                steamTransport.gameObject != gameObject ||
+                localTransport.gameObject != gameObject)
+            {
+                reason = "核心网络组件必须与 MirrorNetworkRuntime 位于同一持久化根对象。";
+                return false;
+            }
+
+            if (networkManager.maxConnections != 4 || networkManager.autoCreatePlayer)
+            {
+                reason = "NetworkManager 必须保持 maxConnections=4 且 autoCreatePlayer=false。";
+                return false;
+            }
+
+            if (localTransport.port != LocalMirrorTestMode.MirrorPort)
+            {
+                reason = "TelepathyTransport 端口必须与 LocalMirrorTestMode.MirrorPort 一致。";
+                return false;
+            }
+
+            if (!steamTransport.AllowSteamRelay || !steamTransport.UseNextGenSteamNetworking)
+            {
+                reason = "FizzySteamworks 必须启用 Steam Relay 与 NextGen Steam Networking。";
+                return false;
+            }
+
+            reason = string.Empty;
+            return true;
         }
 
         private void OnDestroy()
@@ -114,6 +169,7 @@ namespace YC.Infrastructure.Multiplayer
             if (!SteamBootstrap.IsInitialized) throw new InvalidOperationException("Steam 尚未初始化。");
             if (!NetworkServer.active && !NetworkClient.active)
             {
+                ActivateConfiguredTransport();
                 PrepareForNetworkStart();
                 Manager.StartHost();
                 SubscribeMirrorCallbacks();
@@ -126,6 +182,7 @@ namespace YC.Infrastructure.Multiplayer
             if (!IsLocalTestMode) throw new InvalidOperationException("当前未启用 Mirror 本地测试模式。");
             if (!NetworkServer.active && !NetworkClient.active)
             {
+                ActivateConfiguredTransport();
                 PrepareForNetworkStart();
                 Manager.StartHost();
                 SubscribeMirrorCallbacks();
@@ -142,6 +199,7 @@ namespace YC.Infrastructure.Multiplayer
             Manager.networkAddress = hostSteamId.ToString();
             if (!NetworkClient.active && !NetworkServer.active)
             {
+                ActivateConfiguredTransport();
                 PrepareForNetworkStart();
                 Manager.StartClient();
                 SubscribeMirrorCallbacks();
@@ -156,6 +214,7 @@ namespace YC.Infrastructure.Multiplayer
             Manager.networkAddress = host.Trim();
             if (!NetworkClient.active && !NetworkServer.active)
             {
+                ActivateConfiguredTransport();
                 PrepareForNetworkStart();
                 Manager.StartClient();
                 SubscribeMirrorCallbacks();
@@ -282,6 +341,19 @@ namespace YC.Infrastructure.Multiplayer
             localClientConnectedPublished = false;
             localClientDisconnectedPublished = false;
             lock (disconnectQueueLock) pendingServerDisconnects.Clear();
+        }
+
+        private void ActivateConfiguredTransport()
+        {
+            if (ActiveTransport == null)
+            {
+                throw new InvalidOperationException("NetworkRuntimeRoot 尚未选择活动 Transport。");
+            }
+
+            LocalTransport.enabled = ActiveTransport == LocalTransport;
+            Transport.enabled = ActiveTransport == Transport;
+            Manager.transport = ActiveTransport;
+            Mirror.Transport.active = ActiveTransport;
         }
 
         private void OnWaitingRoomLocalIdentity(

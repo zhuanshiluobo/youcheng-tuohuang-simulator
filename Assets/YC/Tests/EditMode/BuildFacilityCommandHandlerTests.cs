@@ -521,7 +521,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void FacilityCardDatabase_LoadsFormalBuildingCardsManifest()
+        public void FacilityCardDatabase_UsesInitializedFormalFacilityCatalog()
         {
             Assert.That(FacilityCardDatabase.DefaultSupplyIds, Has.Count.EqualTo(41));
             Assert.That(FacilityCardDatabase.DefaultSupplyIds, Does.Not.Contain(FacilityCardDatabase.CoreCommandTower));
@@ -538,16 +538,14 @@ namespace YC.Tests.EditMode
             Assert.That(logisticsHub.Name, Is.EqualTo("物流枢纽"));
             Assert.That(logisticsHub.ResourceCost.PureOriginium, Is.EqualTo(1));
             Assert.That(logisticsHub.ResourceCost.GoldVoucher, Is.EqualTo(2));
+            Assert.That(FacilityCardDatabase.IsInitialized, Is.True);
+            Assert.That(
+                System.IO.File.Exists("Assets/YC/Editor/Data/building_cards_manifest.json"),
+                Is.True);
             Assert.That(
                 System.IO.File.Exists(
-                    System.IO.Path.Combine(
-                        System.IO.Directory.GetCurrentDirectory(),
-                        "Assets",
-                        "StreamingAssets",
-                        "YC",
-                        "Data",
-                        "building_cards_manifest.json")),
-                Is.True);
+                    "Assets/StreamingAssets/YC/Data/building_cards_manifest.json"),
+                Is.False);
 
             var extensionHub = FacilityCardDatabase.Get(FacilityCardDatabase.ExtensionHubBlue);
             Assert.That(extensionHub.ReserveOnly, Is.True);
@@ -557,6 +555,13 @@ namespace YC.Tests.EditMode
                 var reserveId = FacilityCardDatabase.ReserveIds[i];
                 Assert.That(FacilityCardDatabase.Get(reserveId), Is.Not.Null);
             }
+
+            var enterprise = FacilityCardDatabase.Get(FacilityCardDatabase.EnterpriseOffice);
+            Assert.That(enterprise, Is.Not.Null);
+            Assert.That(enterprise.Name, Is.EqualTo("企业办事处"));
+            Assert.That(enterprise.ReserveOnly, Is.False);
+            Assert.That(FacilityCardDatabase.DefaultSupplyIds, Does.Not.Contain(enterprise.FacilityId));
+            Assert.That(FacilityCardDatabase.ReserveIds, Does.Not.Contain(enterprise.FacilityId));
 
             Assert.That(typeof(FacilityCardDefinition).GetField("ImageRelativePath"), Is.Null);
         }

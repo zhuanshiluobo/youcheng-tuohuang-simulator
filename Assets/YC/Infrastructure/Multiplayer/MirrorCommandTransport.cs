@@ -16,6 +16,7 @@ namespace YC.Infrastructure.Multiplayer
     public struct InitialStateMessage : NetworkMessage { public string Json; }
     public struct InitialStateAppliedMessage : NetworkMessage { public int PlayerId; }
 
+    [DefaultExecutionOrder(-23000)]
     public sealed class MirrorCommandTransport : MonoBehaviour, INetworkCommandTransport
     {
         private readonly SteamIdentityBindingRegistry bindings = new SteamIdentityBindingRegistry();
@@ -30,14 +31,29 @@ namespace YC.Infrastructure.Multiplayer
         public event Action<ConfirmedGameCommandDto> ConfirmedCommandApplied;
         public event Action<InitialGameStateDto> InitialStateApplied;
         public event Action<RejectedGameCommandDto> CommandRejected;
+        public static MirrorCommandTransport Instance { get; private set; }
 
         public static MirrorCommandTransport Ensure()
         {
-            var existing = FindObjectOfType<MirrorCommandTransport>();
-            if (existing != null) return existing;
-            var go = new GameObject("MirrorCommandTransport");
-            DontDestroyOnLoad(go);
-            return go.AddComponent<MirrorCommandTransport>();
+            if (Instance == null)
+            {
+                throw new InvalidOperationException(
+                    "缺少预接线的 MirrorCommandTransport。请重建 NetworkRuntimeRoot Prefab 并确认 StartScene 接线完整。");
+            }
+
+            return Instance;
+        }
+
+        private void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                gameObject.SetActive(false);
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
         }
 
         public void Initialize(GameSession session, LaunchMode launchMode, int playerId, IList<PlayerSeat> seats)
@@ -131,7 +147,12 @@ namespace YC.Infrastructure.Multiplayer
             launchSeats = null;
         }
 
-        private void OnDestroy() => Shutdown();
+        private void OnDestroy()
+        {
+            if (Instance != this) return;
+            Shutdown();
+            Instance = null;
+        }
 
         private void OnServerConnected(NetworkConnectionToClient connection)
         {

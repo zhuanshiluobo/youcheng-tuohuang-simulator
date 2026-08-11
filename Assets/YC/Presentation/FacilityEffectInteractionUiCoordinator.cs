@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using YC.Application.Gameplay;
 using YC.Domain.Commands;
 using YC.Domain.Economy;
@@ -36,7 +35,6 @@ namespace YC.Presentation
 
         private readonly Func<GameState> getState;
         private readonly Func<int> getLocalPlayerId;
-        private readonly Func<RectTransform> getCanvas;
         private readonly IMapQueryService mapQuery;
         private readonly FacilityEffectChoiceDialog dialog;
         private readonly FacilityEffectPendingChoicePresenter presenter;
@@ -66,7 +64,6 @@ namespace YC.Presentation
         public FacilityEffectInteractionUiCoordinator(
             Func<GameState> getState,
             Func<int> getLocalPlayerId,
-            Func<RectTransform> getCanvas,
             IMapQueryService mapQuery,
             FacilityEffectChoiceDialog dialog,
             Action<IReadOnlyList<WorkflowHighlight>> setHighlights,
@@ -78,7 +75,6 @@ namespace YC.Presentation
         {
             this.getState = getState ?? throw new ArgumentNullException(nameof(getState));
             this.getLocalPlayerId = getLocalPlayerId ?? throw new ArgumentNullException(nameof(getLocalPlayerId));
-            this.getCanvas = getCanvas ?? throw new ArgumentNullException(nameof(getCanvas));
             this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
             this.dialog = dialog ?? throw new ArgumentNullException(nameof(dialog));
             this.setHighlights = setHighlights ?? throw new ArgumentNullException(nameof(setHighlights));
@@ -434,7 +430,6 @@ namespace YC.Presentation
                     return;
                 default:
                     dialog.ShowMapPrompt(
-                        getCanvas(),
                         "设施入场效果",
                         "暂不支持显示该设施待选类型：" + pending.ChoiceType,
                         string.Empty,
@@ -455,7 +450,7 @@ namespace YC.Presentation
                     () => Submit(pending, captured, null)));
             }
 
-            dialog.ShowOptions(getCanvas(), "附属能源设施", "选择一张十字相邻设施，重新结算它的入场效果。", options);
+            dialog.ShowOptions("附属能源设施", "选择一张十字相邻设施，重新结算它的入场效果。", options);
         }
 
         private void ShowAdditionalBuild(PendingCardSessionState pending)
@@ -472,7 +467,6 @@ namespace YC.Presentation
 
             HideAdditionalBuildDraft();
             dialog.ShowMapPrompt(
-                getCanvas(),
                 "简陋工程营",
                 "拖动供应区中亮起的建设牌到城市面板空槽位，选择位置后进入标准建设确认流程。",
                 string.Empty,
@@ -680,7 +674,6 @@ namespace YC.Presentation
             }
 
             dialog.ShowExtensionHubOptions(
-                getCanvas(),
                 hubs,
                 () => extensionHubDragging = true,
                 (facilityId, slotIndex) =>
@@ -710,6 +703,7 @@ namespace YC.Presentation
                         return;
                     }
 
+                    dialog.Hide();
                     Submit(
                         pending,
                         facilityId,
@@ -738,7 +732,6 @@ namespace YC.Presentation
                     player.Resources.PureOriginium
                 };
             dialog.ShowResourceAllocation(
-                getCanvas(),
                 "贸易街区",
                 "选择出售数量：源岩每个 " + ResourceSaleService.OriginiumUnitPrice +
                 " 金券，源石碎片每个 " + ResourceSaleService.OriginiumShardUnitPrice +
@@ -757,7 +750,6 @@ namespace YC.Presentation
         private void ShowFiveResources(PendingCardSessionState pending)
         {
             dialog.ShowResourceAllocation(
-                getCanvas(),
                 "开采电铲",
                 "在源岩、源石碎片和异铁之间恰好分配 5 个资源。",
                 new[] { "源岩", "源石碎片", "异铁" },
@@ -806,7 +798,6 @@ namespace YC.Presentation
             {
                 setHighlights(BuildOpponentInfluenceHighlights());
                 dialog.ShowCollapsibleMapPrompt(
-                    getCanvas(),
                     "佣兵指挥部 · 替换",
                     "点击地图上的高亮影响力，将它替换为你的影响力。",
                     "佣兵指挥部 · 替换影响力",
@@ -823,7 +814,6 @@ namespace YC.Presentation
 
             setHighlights(BuildDeployInfluenceSlotHighlights());
             dialog.ShowCollapsibleMapPrompt(
-                getCanvas(),
                 "佣兵指挥部 · 放置",
                 "点击地图上的一个高亮空槽位，放置你的影响力。",
                 "佣兵指挥部 · 放置影响力",
@@ -841,7 +831,6 @@ namespace YC.Presentation
         {
             setHighlights(BuildDeployInfluenceSlotHighlights());
             dialog.ShowCollapsibleMapPrompt(
-                getCanvas(),
                 "护航调度中心",
                 "请依次点击地图上的两个高亮空槽位。",
                 "护航调度中心 · 放置两个影响力",
@@ -855,7 +844,6 @@ namespace YC.Presentation
         {
             setHighlights(BuildAllLocationHighlights(WorkflowHighlightSemantic.MoveTarget));
             dialog.ShowCollapsibleMapPrompt(
-                getCanvas(),
                 "高性能动力设施",
                 "点击地图地点，尝试执行一次免费城市移动。",
                 "高性能动力设施 · 免费城市移动",
@@ -902,7 +890,6 @@ namespace YC.Presentation
             {
                 clearHighlights();
                 dialog.ShowCollapsibleMapPrompt(
-                    getCanvas(),
                     "载具仓库 · 探索",
                     "请按正常探索流程选择目标、同优路线与路费接收者。",
                     "载具仓库 · 探索",
@@ -921,7 +908,6 @@ namespace YC.Presentation
             {
                 setHighlights(BuildPlacedInfluenceHighlights(null, WorkflowHighlightSemantic.EventInfluenceTarget));
                 dialog.ShowCollapsibleMapPrompt(
-                    getCanvas(),
                     "载具仓库 · 移除",
                     "点击一个已有影响力。完成移除选择后还必须执行一次调度。",
                     "载具仓库 · 移除影响力",
@@ -939,7 +925,6 @@ namespace YC.Presentation
             {
                 setHighlights(BuildPlacedInfluenceHighlights(getLocalPlayerId(), WorkflowHighlightSemantic.DispatchSource));
                 dialog.ShowCollapsibleMapPrompt(
-                    getCanvas(),
                     "载具仓库 · 调度来源",
                     "点击自己的一个影响力作为调度来源。",
                     "载具仓库 · 选择调度来源",
@@ -955,7 +940,6 @@ namespace YC.Presentation
 
             setHighlights(BuildAllInfluenceSlotHighlights(WorkflowHighlightSemantic.DispatchTarget));
             dialog.ShowCollapsibleMapPrompt(
-                getCanvas(),
                 "载具仓库 · 调度目标",
                 "点击调度目标槽位。",
                 "载具仓库 · 选择调度目标",
@@ -976,7 +960,6 @@ namespace YC.Presentation
             bool canClose)
         {
             dialog.ShowCollapsibleOptions(
-                getCanvas(),
                 title,
                 canClose ? "当前没有合法目标，请关闭以完成入场结算。" : "选择本次入场效果的执行分支。",
                 summary,

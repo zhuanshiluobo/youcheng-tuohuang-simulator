@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -21,6 +22,12 @@ namespace YC.Tests.EditMode
     {
         private static readonly Color DisabledOptionColor = new Color(0.09f, 0.075f, 0.06f, 0.72f);
         private GameObject canvasObject;
+
+        [SetUp]
+        public void SetUpViewerPrefab()
+        {
+            ViewerPrefabTestUtility.RegisterZoomablePrefab();
+        }
 
         [TearDown]
         public void TearDown()
@@ -889,8 +896,16 @@ namespace YC.Tests.EditMode
             var dialogType = Type.GetType(
                 "YC.Presentation.FacilityEffectChoiceDialog, Assembly-CSharp",
                 false);
+            var registryType = Type.GetType(
+                "YC.Presentation.GameplayDialogRegistry, Assembly-CSharp",
+                false);
+            var effectViewType = Type.GetType(
+                "YC.Presentation.EffectDialogShellView, Assembly-CSharp",
+                false);
             Assert.That(coordinatorType, Is.Not.Null, "Missing FacilityEffectInteractionUiCoordinator.");
             Assert.That(dialogType, Is.Not.Null, "Missing FacilityEffectChoiceDialog.");
+            Assert.That(registryType, Is.Not.Null);
+            Assert.That(effectViewType, Is.Not.Null);
 
             canvasObject = new GameObject(
                 "Facility Effect Coordinator Test Canvas",
@@ -902,11 +917,20 @@ namespace YC.Tests.EditMode
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 15;
 
-            var dialog = Activator.CreateInstance(dialogType, true);
+            var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            Assert.That(hudPrefab, Is.Not.Null);
+            var registry = hudPrefab.GetComponentInChildren(registryType, true);
+            Assert.That(registry, Is.Not.Null);
+            var dialog = Activator.CreateInstance(
+                dialogType,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null,
+                new object[] { registry, canvasObject.GetComponent<RectTransform>() },
+                null);
             var mapQuery = new MapQueryService(map ?? new GameMapDefinition { MapId = "facility-ui-test" });
             Func<GameState> getState = () => state;
             Func<int> getLocalPlayerId = () => 1;
-            Func<RectTransform> getCanvas = () => canvasObject.GetComponent<RectTransform>();
             var highlights = new List<WorkflowHighlight>();
             Action<IReadOnlyList<WorkflowHighlight>> setHighlights = values =>
             {
@@ -945,7 +969,6 @@ namespace YC.Tests.EditMode
             {
                 getState,
                 getLocalPlayerId,
-                getCanvas,
                 mapQuery,
                 dialog,
                 setHighlights,
@@ -1233,11 +1256,12 @@ namespace YC.Tests.EditMode
             Assert.That(shellField, Is.Not.Null);
             var shell = shellField.GetValue(dialog);
             Assert.That(shell, Is.Not.Null);
-            var overlayField = shell.GetType().GetField(
-                "overlay",
+            var viewField = shell.GetType().GetField(
+                "view",
                 BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.That(overlayField, Is.Not.Null);
-            return (GameObject)overlayField.GetValue(shell);
+            Assert.That(viewField, Is.Not.Null);
+            var view = viewField.GetValue(shell) as Component;
+            return view == null ? null : view.gameObject;
         }
 
         private static void ClickButton(GameObject root, string objectName)

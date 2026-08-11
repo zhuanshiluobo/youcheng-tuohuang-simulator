@@ -1,6 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json.Linq;
 using YC.Domain.State;
 
 namespace YC.Domain.Facilities
@@ -29,616 +28,80 @@ namespace YC.Domain.Facilities
         public const string ExtensionHubRed = "reserve_004";
         public const string EnterpriseOffice = "facility_enterprise_office";
 
-        private static readonly string[] ManifestPathParts =
-        {
-            "StreamingAssets",
-            "YC",
-            "Data",
-            "building_cards_manifest.json"
-        };
+        public const int ExpectedDefinitionCount = 46;
+        public const int ExpectedDefaultSupplyCount = 41;
+        public const int ExpectedReserveCount = 4;
 
-        private static readonly Dictionary<string, FacilityCardDefinition> LegacyDefinitions =
-            new Dictionary<string, FacilityCardDefinition>
+        private static readonly Dictionary<string, FacilityCardDefinition> Definitions =
+            new Dictionary<string, FacilityCardDefinition>(StringComparer.Ordinal);
+        private static IReadOnlyList<string> defaultSupplyIds = Array.Empty<string>();
+        private static IReadOnlyList<string> reserveIds = Array.Empty<string>();
+        private static bool injectedDefinitions;
+
+        public static bool IsInitialized => injectedDefinitions;
+
+        public static void Initialize(IEnumerable<FacilityCardDefinition> sourceDefinitions)
+        {
+            if (sourceDefinitions == null)
             {
-                {
-                    CoreCommandTower,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = CoreCommandTower,
-                        Name = "核心指挥塔",
-                        Score = 0,
-                        Unique = true,
-                        Color = "rainbow",
-                        EffectType = "setup"
-                    }
-                },
-                {
-                    BoroughAdministrativeDistrict,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = BoroughAdministrativeDistrict,
-                        Name = "城邦行政区",
-                        Score = 3,
-                        Unique = true,
-                        Color = "rainbow",
-                        ResourceCost = new ResourceSet { Originium = 3, Iron = 3, OriginiumShard = 3 },
-                        GoldVoucherCost = 30,
-                        EffectType = "unique"
-                    }
-                },
-                {
-                    AffiliatedEnergyFacility,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = AffiliatedEnergyFacility,
-                        Name = "附属能源设施",
-                        Score = 1,
-                        Unique = true,
-                        Color = "rainbow",
-                        ResourceCost = new ResourceSet { Originium = 2, Iron = 3, OriginiumShard = 2 },
-                        GoldVoucherCost = 23,
-                        EffectType = "entry"
-                    }
-                },
-                {
-                    FederalOffice,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = FederalOffice,
-                        Name = "联邦理事处",
-                        Score = 0,
-                        Unique = true,
-                        Color = "rainbow",
-                        ResourceCost = new ResourceSet { Originium = 4, OriginiumShard = 2 },
-                        GoldVoucherCost = 17,
-                        EffectType = "cleanup"
-                    }
-                },
-                {
-                    SimpleEngineeringCamp,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = SimpleEngineeringCamp,
-                        Name = "简陋工程营",
-                        Score = -1,
-                        Unique = true,
-                        Color = "rainbow",
-                        ResourceCost = new ResourceSet { Originium = 2, OriginiumShard = 1 },
-                        GoldVoucherCost = 8,
-                        EffectType = "special_action"
-                    }
-                },
-                {
-                    SourceStoneRefinery,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = SourceStoneRefinery,
-                        Name = "源石精炼厂",
-                        Color = "blue,yellow",
-                        Score = 0,
-                        ResourceCost = new ResourceSet { Originium = 1, Iron = 1, OriginiumShard = 1 },
-                        GoldVoucherCost = 10,
-                        EffectType = "entry",
-                        OnBuiltReward = new ResourceSet { OriginiumShard = 6 }
-                    }
-                },
-                {
-                    UrbanizedArea,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = UrbanizedArea,
-                        Name = "城市化区域",
-                        Color = "blue",
-                        Score = 1,
-                        ResourceCost = new ResourceSet { Originium = 3, Iron = 2 },
-                        GoldVoucherCost = 16,
-                        EffectType = "scoring"
-                    }
-                },
-                {
-                    IronRefinery,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = IronRefinery,
-                        Name = "异铁冶炼厂",
-                        Color = "blue,red",
-                        Score = 1,
-                        ResourceCost = new ResourceSet { Originium = 2, Iron = 1, OriginiumShard = 2 },
-                        GoldVoucherCost = 15,
-                        EffectType = "entry",
-                        OnBuiltReward = new ResourceSet { Iron = 4 }
-                    }
-                },
-                {
-                    TradeDistrict,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = TradeDistrict,
-                        Name = "贸易街区",
-                        Color = "blue",
-                        Score = 0,
-                        ResourceCost = new ResourceSet { Originium = 1, Iron = 1 },
-                        GoldVoucherCost = 6,
-                        EffectType = "special_action"
-                    }
-                },
-                {
-                    OriginiumPurificationPlant,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = OriginiumPurificationPlant,
-                        Name = "固源岩提纯厂",
-                        Color = "yellow,red",
-                        Score = 0,
-                        ResourceCost = new ResourceSet { Originium = 1, Iron = 1, OriginiumShard = 1 },
-                        GoldVoucherCost = 10,
-                        EffectType = "entry",
-                        OnBuiltReward = new ResourceSet { Originium = 7 }
-                    }
-                },
-                {
-                    EquipmentWarehouse,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = EquipmentWarehouse,
-                        Name = "载具仓库",
-                        Color = "red",
-                        Score = 0,
-                        ResourceCost = new ResourceSet { Originium = 1, OriginiumShard = 2 },
-                        GoldVoucherCost = 9,
-                        EffectType = "special_action"
-                    }
-                },
-                {
-                    EnterpriseOffice,
-                    new FacilityCardDefinition
-                    {
-                        FacilityId = EnterpriseOffice,
-                        Name = "企业办事处",
-                        Color = "rainbow",
-                        Score = 1,
-                        ResourceCost = new ResourceSet { Originium = 3, Iron = 1, OriginiumShard = 3 },
-                        GoldVoucherCost = 23,
-                        EffectType = "entry"
-                    }
-                }
-            };
-
-        private static readonly Dictionary<string, FacilityCardDefinition> Definitions = BuildDefinitions();
-
-        private static Dictionary<string, FacilityCardDefinition> BuildDefinitions()
-        {
-            var manifestDefinitions = TryBuildDefinitionsFromManifest();
-            return manifestDefinitions != null && manifestDefinitions.Count > 0
-                ? manifestDefinitions
-                : BuildDefinitionsFallback();
-        }
-
-        private static Dictionary<string, FacilityCardDefinition> TryBuildDefinitionsFromManifest()
-        {
-            var manifestPath = ResolveManifestPath();
-            if (string.IsNullOrEmpty(manifestPath))
-            {
-                return null;
+                throw new ArgumentNullException(nameof(sourceDefinitions));
             }
 
-            var root = JObject.Parse(File.ReadAllText(manifestPath));
-            var result = new Dictionary<string, FacilityCardDefinition>();
-            var effectContracts = root["effectContracts"];
-            AddManifestCards(result, root["buildingCards"], effectContracts, false);
-            AddManifestCards(result, root["reserveCards"], effectContracts, true);
-            return result;
-        }
-
-        private static string ResolveManifestPath()
-        {
-            var candidates = new[]
+            var next = new Dictionary<string, FacilityCardDefinition>(StringComparer.Ordinal);
+            foreach (var source in sourceDefinitions)
             {
-                Path.Combine(Directory.GetCurrentDirectory(), "Assets", Path.Combine(ManifestPathParts)),
-                Path.Combine(Directory.GetCurrentDirectory(), "..", "Assets", Path.Combine(ManifestPathParts)),
-                Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "Assets", Path.Combine(ManifestPathParts)),
-                Path.Combine(System.AppContext.BaseDirectory, Path.Combine(ManifestPathParts))
-            };
-
-            for (var i = 0; i < candidates.Length; i++)
-            {
-                var path = Path.GetFullPath(candidates[i]);
-                if (File.Exists(path))
+                ValidateInjectedDefinition(source);
+                if (next.ContainsKey(source.FacilityId))
                 {
-                    return path;
-                }
-            }
-
-            var baseDirectory = System.AppContext.BaseDirectory;
-            if (Directory.Exists(baseDirectory))
-            {
-                var playerDataDirectories = Directory.GetDirectories(baseDirectory, "*_Data");
-                for (var i = 0; i < playerDataDirectories.Length; i++)
-                {
-                    var path = Path.Combine(playerDataDirectories[i], Path.Combine(ManifestPathParts));
-                    if (File.Exists(path))
-                    {
-                        return Path.GetFullPath(path);
-                    }
-                }
-            }
-
-            return string.Empty;
-        }
-
-        private static void AddManifestCards(
-            Dictionary<string, FacilityCardDefinition> result,
-            JToken cards,
-            JToken effectContracts,
-            bool reserveOnly)
-        {
-            if (cards == null)
-            {
-                return;
-            }
-
-            foreach (var card in cards)
-            {
-                var id = ReadString(card, "id");
-                if (string.IsNullOrEmpty(id))
-                {
-                    continue;
+                    throw new InvalidOperationException("设施目录包含重复 ID：" + source.FacilityId);
                 }
 
-                var name = ReadString(card, "name");
-                var effect = ReadString(card, "effect");
-                var effectContract = effectContracts == null ? null : effectContracts[name];
-                var keywords = ReadStringList(effectContract, "keywords");
-                var unique = keywords == null
-                    ? effect.Contains("唯一")
-                    : keywords.Contains(FacilityCardKeywords.Unique);
-                var hasEntryEffect = ReadBool(
-                    effectContract,
-                    "hasEntryEffect",
-                    ResolveHasEntryEffect(name));
-                if (keywords == null)
+                next.Add(source.FacilityId, CloneInjectedDefinition(source));
+            }
+
+            ValidateInjectedDefinitionSet(next);
+            if (injectedDefinitions)
+            {
+                if (InjectedDefinitionSetsEqual(Definitions, next))
                 {
-                    keywords = ResolveKeywords(name, unique, hasEntryEffect);
+                    return;
                 }
 
-                var effectId = ReadString(effectContract, "effectId");
-                if (string.IsNullOrEmpty(effectId))
-                {
-                    effectId = ResolveEffectId(name);
-                }
+                throw new InvalidOperationException("FacilityCardDatabase 已使用不同的完整设施目录初始化，禁止覆盖。");
+            }
 
-                result[id] = new FacilityCardDefinition
-                {
-                    FacilityId = id,
-                    ManifestId = id,
-                    Name = name,
-                    Color = ReadString(card, "color"),
-                    Score = ReadInt(card, "score"),
-                    ResourceCost = ToResourceSet(card["resourceCost"]),
-                    GoldVoucherCost = ReadInt(card, "goldVoucherCost"),
-                    Unique = unique,
-                    UniqueGroupId = unique ? name : string.Empty,
-                    HasEntryEffect = hasEntryEffect,
-                    Keywords = keywords,
-                    EffectId = effectId,
-                    EffectType = ResolveEffectType(name),
-                    Description = ReadString(card, "description"),
-                    EffectText = effect,
-                    ReserveOnly = reserveOnly,
-                    OnBuiltReward = ResolveOnBuiltReward(name)
-                };
+            Definitions.Clear();
+            foreach (var pair in next)
+            {
+                Definitions.Add(pair.Key, pair.Value);
+            }
+
+            defaultSupplyIds = BuildDefaultSupplyIds(next);
+            reserveIds = BuildReserveIds(next);
+            injectedDefinitions = true;
+        }
+
+        public static IReadOnlyList<string> DefaultSupplyIds
+        {
+            get
+            {
+                EnsureInitialized();
+                return defaultSupplyIds;
             }
         }
 
-        private static ResourceSet ToResourceSet(JToken resourceCost)
+        public static IReadOnlyList<string> ReserveIds
         {
-            if (resourceCost == null || resourceCost.Type == JTokenType.Null)
+            get
             {
-                return new ResourceSet();
-            }
-
-            return new ResourceSet
-            {
-                Originium = ReadInt(resourceCost, "源岩"),
-                OriginiumShard = ReadInt(resourceCost, "源石碎片"),
-                Iron = ReadInt(resourceCost, "异铁"),
-                PureOriginium = ReadInt(resourceCost, "至纯源石"),
-                GoldVoucher = ReadInt(resourceCost, "金券")
-            };
-        }
-
-        private static ResourceSet ResolveOnBuiltReward(string name)
-        {
-            switch (name)
-            {
-                case "源石精炼厂":
-                    return new ResourceSet { OriginiumShard = 6 };
-                case "异铁冶炼厂":
-                    return new ResourceSet { Iron = 4 };
-                case "固源岩提纯厂":
-                    return new ResourceSet { Originium = 7 };
-                default:
-                    return new ResourceSet();
+                EnsureInitialized();
+                return reserveIds;
             }
         }
-
-        private static string ResolveEffectType(string name)
-        {
-            switch (name)
-            {
-                case "城邦行政区":
-                    return "unique";
-                case "联邦理事处":
-                    return "cleanup";
-                case "简陋工程营":
-                case "贸易街区":
-                case "高性能动力设施":
-                case "载具仓库":
-                    return "special_action";
-                case "城市化区域":
-                    return "scoring";
-                case "城邦工业区":
-                    return "discount";
-                case "佣兵指挥部":
-                case "护航调度中心":
-                    return "entry";
-                case "开采电铲":
-                    return "entry_choice";
-                case "核心指挥塔":
-                    return "setup";
-                case "延伸枢纽":
-                    return "reserve";
-                default:
-                    return "entry";
-            }
-        }
-
-        private static bool ResolveHasEntryEffect(string name)
-        {
-            switch (name)
-            {
-                case "城邦行政区":
-                case "城邦工业区":
-                case "核心指挥塔":
-                case "延伸枢纽":
-                case "企业办事处":
-                    return false;
-                default:
-                    return true;
-            }
-        }
-
-        private static List<string> ResolveKeywords(string name, bool unique, bool hasEntryEffect)
-        {
-            var keywords = new List<string>();
-            if (hasEntryEffect)
-            {
-                keywords.Add(FacilityCardKeywords.Entry);
-            }
-
-            if (unique)
-            {
-                keywords.Add(FacilityCardKeywords.Unique);
-            }
-
-            if (name == "高性能动力设施")
-            {
-                keywords.Add(FacilityCardKeywords.Free);
-            }
-
-            return keywords;
-        }
-
-        private static string ResolveEffectId(string name)
-        {
-            switch (name)
-            {
-                case "城邦行政区":
-                    return FacilityCardEffectIds.UniqueOnly;
-                case "附属能源设施":
-                    return FacilityCardEffectIds.CopyAdjacentEntryEffect;
-                case "联邦理事处":
-                    return FacilityCardEffectIds.ClaimStartMarkerAtCleanup;
-                case "简陋工程营":
-                    return FacilityCardEffectIds.BuildAdditionalFacility;
-                case "物流枢纽":
-                    return FacilityCardEffectIds.BuildExtensionHub;
-                case "源石精炼厂":
-                    return FacilityCardEffectIds.GainOriginiumShardSix;
-                case "城市化区域":
-                    return FacilityCardEffectIds.GainGoldPerCoreAdjacentFacility;
-                case "异铁冶炼厂":
-                    return FacilityCardEffectIds.GainIronFour;
-                case "贸易街区":
-                    return FacilityCardEffectIds.SellResources;
-                case "城邦工业区":
-                    return FacilityCardEffectIds.DiscountOriginiumByFacilityColor;
-                case "高性能动力设施":
-                    return FacilityCardEffectIds.FreeCityMoveAndDeployRouteInfluence;
-                case "固源岩提纯厂":
-                    return FacilityCardEffectIds.GainOriginiumSeven;
-                case "开采电铲":
-                    return FacilityCardEffectIds.ChooseFiveBasicResources;
-                case "佣兵指挥部":
-                    return FacilityCardEffectIds.ReplaceOneInfluence;
-                case "护航调度中心":
-                    return FacilityCardEffectIds.DeployTwoInfluences;
-                case "载具仓库":
-                    return FacilityCardEffectIds.RemoveThenDispatchOrExplore;
-                case "核心指挥塔":
-                    return FacilityCardEffectIds.SetupCoreCommandTower;
-                case "延伸枢纽":
-                    return FacilityCardEffectIds.ReserveExtensionHub;
-                case "企业办事处":
-                    return FacilityCardEffectIds.EnterpriseOffice;
-                default:
-                    return string.Empty;
-            }
-        }
-
-        private static string ReadString(JToken token, string propertyName)
-        {
-            var value = token == null ? null : token[propertyName];
-            return value == null || value.Type == JTokenType.Null ? string.Empty : value.Value<string>();
-        }
-
-        private static int ReadInt(JToken token, string propertyName)
-        {
-            var value = token == null ? null : token[propertyName];
-            return value == null || value.Type == JTokenType.Null ? 0 : value.Value<int>();
-        }
-
-        private static bool ReadBool(JToken token, string propertyName, bool fallback)
-        {
-            var value = token == null ? null : token[propertyName];
-            return value == null || value.Type == JTokenType.Null ? fallback : value.Value<bool>();
-        }
-
-        private static List<string> ReadStringList(JToken token, string propertyName)
-        {
-            var value = token == null ? null : token[propertyName];
-            if (value == null || value.Type != JTokenType.Array)
-            {
-                return null;
-            }
-
-            var result = new List<string>();
-            foreach (var item in value)
-            {
-                var text = item.Value<string>();
-                if (!string.IsNullOrEmpty(text))
-                {
-                    result.Add(text);
-                }
-            }
-
-            return result;
-        }
-
-        private static Dictionary<string, FacilityCardDefinition> BuildDefinitionsFallback()
-        {
-            var result = new Dictionary<string, FacilityCardDefinition>();
-
-            AddCopies(result, LegacyDefinitions[BoroughAdministrativeDistrict], "rainbow", "building_001", "building_002", "building_003");
-            AddCopies(result, LegacyDefinitions[AffiliatedEnergyFacility], "rainbow", "building_004", "building_005", "building_006");
-            AddCopies(result, LegacyDefinitions[FederalOffice], "rainbow", "building_007", "building_008", "building_009");
-            AddCopies(result, LegacyDefinitions[SimpleEngineeringCamp], "rainbow", "building_010", "building_011");
-            AddCopies(result, New(LogisticsHub, "物流枢纽", "blue", 2, new ResourceSet { PureOriginium = 1, GoldVoucher = 2 }, 24, true, "entry"), "blue", "building_012", "building_013");
-            AddCopies(result, LegacyDefinitions[SourceStoneRefinery], "blue", "building_014");
-            AddCopies(result, LegacyDefinitions[UrbanizedArea], "blue", "building_015", "building_016", "building_017");
-            AddCopies(result, LegacyDefinitions[IronRefinery], "blue", "building_018");
-            AddCopies(result, LegacyDefinitions[TradeDistrict], "blue", "building_019", "building_020", "building_021");
-            AddCopies(result, New(CityIndustrialDistrict, "城邦工业区", "yellow", 2, new ResourceSet { Originium = 4, OriginiumShard = 3, GoldVoucher = 2 }, 24, false, "discount"), "yellow", "building_022", "building_023", "building_024");
-            AddCopies(result, New(HighPerformancePowerFacility, "高性能动力设施", "yellow", 0, new ResourceSet { OriginiumShard = 4, Iron = 2 }, 20, false, "special_action"), "yellow", "building_025", "building_026");
-            AddCopies(result, LegacyDefinitions[OriginiumPurificationPlant], "yellow", "building_027");
-            AddCopies(result, LegacyDefinitions[SourceStoneRefinery], "yellow", "building_028");
-            AddCopies(result, New(MiningPowerShovel, "开采电铲", "yellow", 0, new ResourceSet { OriginiumShard = 2, Iron = 1 }, 10, false, "entry_choice"), "yellow", "building_029", "building_030", "building_031");
-            AddCopies(result, LegacyDefinitions[IronRefinery], "red", "building_032");
-            AddCopies(result, LegacyDefinitions[OriginiumPurificationPlant], "red", "building_033");
-            AddCopies(result, New(MercenaryCommand, "佣兵指挥部", "red", 1, new ResourceSet { Originium = 2, Iron = 2, GoldVoucher = 4 }, 18, false, "entry"), "red", "building_034", "building_035", "building_036");
-            AddCopies(result, New(EscortDispatchCenter, "护航调度中心", "red", 0, new ResourceSet { Originium = 2, OriginiumShard = 2, Iron = 2 }, 18, false, "entry"), "red", "building_037", "building_038");
-            AddCopies(result, LegacyDefinitions[EquipmentWarehouse], "red", "building_039", "building_040", "building_041");
-
-            result[CoreCommandTower] = Clone(LegacyDefinitions[CoreCommandTower], CoreCommandTower, "rainbow", true);
-            result[ExtensionHubBlue] = New(ExtensionHubBlue, "延伸枢纽", "blue", -1, new ResourceSet(), 0, false, "reserve", true);
-            result[ExtensionHubYellow] = New(ExtensionHubYellow, "延伸枢纽", "yellow", -1, new ResourceSet(), 0, false, "reserve", true);
-            result[ExtensionHubRed] = New(ExtensionHubRed, "延伸枢纽", "red", -1, new ResourceSet(), 0, false, "reserve", true);
-            result[EnterpriseOffice] = Clone(LegacyDefinitions[EnterpriseOffice], EnterpriseOffice, "rainbow", false);
-
-            return result;
-        }
-
-        private static void AddCopies(
-            Dictionary<string, FacilityCardDefinition> result,
-            FacilityCardDefinition template,
-            string color,
-            params string[] facilityIds)
-        {
-            for (var i = 0; i < facilityIds.Length; i++)
-            {
-                result[facilityIds[i]] = Clone(template, facilityIds[i], color, false);
-            }
-        }
-
-        private static FacilityCardDefinition Clone(
-            FacilityCardDefinition template,
-            string facilityId,
-            string color,
-            bool reserveOnly)
-        {
-            return new FacilityCardDefinition
-            {
-                FacilityId = facilityId,
-                Name = template.Name,
-                Color = color,
-                Score = template.Score,
-                ResourceCost = template.ResourceCost.Clone(),
-                GoldVoucherCost = template.GoldVoucherCost,
-                Unique = template.Unique,
-                UniqueGroupId = string.IsNullOrEmpty(template.UniqueGroupId) ? template.FacilityId : template.UniqueGroupId,
-                HasEntryEffect = ResolveHasEntryEffect(template.Name),
-                Keywords = ResolveKeywords(template.Name, template.Unique, ResolveHasEntryEffect(template.Name)),
-                EffectId = ResolveEffectId(template.Name),
-                EffectType = template.EffectType,
-                Description = template.Description,
-                EffectText = template.EffectText,
-                ManifestId = facilityId,
-                ReserveOnly = reserveOnly,
-                OnBuiltReward = template.OnBuiltReward.Clone()
-            };
-        }
-
-        private static FacilityCardDefinition New(
-            string facilityId,
-            string name,
-            string color,
-            int score,
-            ResourceSet resourceCost,
-            int goldVoucherCost,
-            bool unique,
-            string effectType,
-            bool reserveOnly = false)
-        {
-            return new FacilityCardDefinition
-            {
-                FacilityId = facilityId,
-                Name = name,
-                Color = color,
-                Score = score,
-                ResourceCost = resourceCost,
-                GoldVoucherCost = goldVoucherCost,
-                Unique = unique,
-                UniqueGroupId = facilityId,
-                HasEntryEffect = ResolveHasEntryEffect(name),
-                Keywords = ResolveKeywords(name, unique, ResolveHasEntryEffect(name)),
-                EffectId = ResolveEffectId(name),
-                EffectType = effectType,
-                ManifestId = facilityId,
-                ReserveOnly = reserveOnly
-            };
-        }
-
-        public static readonly List<string> DefaultSupplyIds = new List<string>
-        {
-            "building_001", "building_002", "building_003", "building_004", "building_005", "building_006",
-            "building_007", "building_008", "building_009", "building_010", "building_011", "building_012",
-            "building_013", "building_014", "building_015", "building_016", "building_017", "building_018",
-            "building_019", "building_020", "building_021", "building_022", "building_023", "building_024",
-            "building_025", "building_026", "building_027", "building_028", "building_029", "building_030",
-            "building_031", "building_032", "building_033", "building_034", "building_035", "building_036",
-            "building_037", "building_038", "building_039", "building_040", "building_041"
-        };
-
-        public static readonly List<string> ReserveIds = new List<string>
-        {
-            CoreCommandTower,
-            ExtensionHubBlue,
-            ExtensionHubYellow,
-            ExtensionHubRed
-        };
 
         public static bool PlayerHasBuiltUniqueFacility(PlayerState player, FacilityCardDefinition facility)
         {
+            EnsureInitialized();
             if (player == null || facility == null || !facility.Unique)
             {
                 return false;
@@ -665,6 +128,7 @@ namespace YC.Domain.Facilities
 
         public static bool TryGet(string facilityId, out FacilityCardDefinition definition)
         {
+            EnsureInitialized();
             if (string.IsNullOrEmpty(facilityId))
             {
                 definition = null;
@@ -676,8 +140,288 @@ namespace YC.Domain.Facilities
 
         public static FacilityCardDefinition Get(string facilityId)
         {
+            EnsureInitialized();
             FacilityCardDefinition definition;
             return TryGet(facilityId, out definition) ? definition : null;
+        }
+
+        private static void EnsureInitialized()
+        {
+            if (!injectedDefinitions)
+            {
+                throw new InvalidOperationException(
+                    "FacilityCardDatabase 未初始化：必须先由 FacilityCatalogBootstrap 注入完整设施目录。");
+            }
+        }
+
+        private static IReadOnlyList<string> BuildDefaultSupplyIds(
+            IReadOnlyDictionary<string, FacilityCardDefinition> definitions)
+        {
+            var result = new List<string>(ExpectedDefaultSupplyCount);
+            for (var index = 1; index <= ExpectedDefaultSupplyCount; index++)
+            {
+                var id = "building_" + index.ToString("000");
+                if (!definitions.TryGetValue(id, out var definition) || definition.ReserveOnly)
+                {
+                    throw new InvalidOperationException("默认供应设施缺失或分类错误：" + id);
+                }
+
+                result.Add(id);
+            }
+
+            return result.AsReadOnly();
+        }
+
+        private static IReadOnlyList<string> BuildReserveIds(
+            IReadOnlyDictionary<string, FacilityCardDefinition> definitions)
+        {
+            var result = new List<string>(ExpectedReserveCount);
+            for (var index = 1; index <= ExpectedReserveCount; index++)
+            {
+                var id = "reserve_" + index.ToString("000");
+                if (!definitions.TryGetValue(id, out var definition) || !definition.ReserveOnly)
+                {
+                    throw new InvalidOperationException("reserve 设施缺失或分类错误：" + id);
+                }
+
+                result.Add(id);
+            }
+
+            return result.AsReadOnly();
+        }
+
+        private static void ValidateInjectedDefinitionSet(
+            IReadOnlyDictionary<string, FacilityCardDefinition> candidates)
+        {
+            if (candidates.Count != ExpectedDefinitionCount)
+            {
+                throw new InvalidOperationException(
+                    "设施目录必须精确包含 " + ExpectedDefinitionCount + " 项，实际 " + candidates.Count + " 项。");
+            }
+
+            for (var index = 1; index <= ExpectedDefaultSupplyCount; index++)
+            {
+                var id = "building_" + index.ToString("000");
+                if (!candidates.TryGetValue(id, out var definition) || definition.ReserveOnly)
+                {
+                    throw new InvalidOperationException("默认供应设施缺失或分类错误：" + id);
+                }
+            }
+
+            for (var index = 1; index <= ExpectedReserveCount; index++)
+            {
+                var id = "reserve_" + index.ToString("000");
+                if (!candidates.TryGetValue(id, out var definition) || !definition.ReserveOnly)
+                {
+                    throw new InvalidOperationException("reserve 设施缺失或分类错误：" + id);
+                }
+            }
+
+            if (!candidates.TryGetValue(EnterpriseOffice, out var enterprise) || enterprise.ReserveOnly)
+            {
+                throw new InvalidOperationException("缺少非 reserve 的企业办事处补充定义。");
+            }
+        }
+
+        private static void ValidateInjectedDefinition(FacilityCardDefinition definition)
+        {
+            if (definition == null)
+            {
+                throw new InvalidOperationException("设施目录包含空定义。");
+            }
+
+            if (string.IsNullOrEmpty(definition.FacilityId) ||
+                definition.ManifestId != definition.FacilityId ||
+                string.IsNullOrEmpty(definition.Name) ||
+                string.IsNullOrEmpty(definition.Color) ||
+                string.IsNullOrEmpty(definition.EffectId) ||
+                string.IsNullOrEmpty(definition.EffectType))
+            {
+                throw new InvalidOperationException(definition.FacilityId + " 缺少必需字段或 ManifestId 不一致。");
+            }
+
+            if (definition.ResourceCost == null || definition.OnBuiltReward == null || definition.Keywords == null)
+            {
+                throw new InvalidOperationException(definition.FacilityId + " 缺少资源或关键词结构。");
+            }
+
+            ValidateInjectedResourceSet(definition.ResourceCost, definition.FacilityId + " 的建造成本");
+            ValidateInjectedResourceSet(definition.OnBuiltReward, definition.FacilityId + " 的建造奖励");
+            if (definition.GoldVoucherCost < 0)
+            {
+                throw new InvalidOperationException(definition.FacilityId + " 的金券成本不能为负数。");
+            }
+
+            var keywordSet = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < definition.Keywords.Count; i++)
+            {
+                if (string.IsNullOrEmpty(definition.Keywords[i]) || !keywordSet.Add(definition.Keywords[i]))
+                {
+                    throw new InvalidOperationException(definition.FacilityId + " 包含空或重复关键词。");
+                }
+            }
+
+            var unique = keywordSet.Contains(FacilityCardKeywords.Unique);
+            if (definition.Unique != unique || definition.UniqueGroupId != (unique ? definition.Name : string.Empty))
+            {
+                throw new InvalidOperationException(definition.FacilityId + " 的唯一设施字段未由关键词稳定推导。");
+            }
+
+            if (!KnownEffectIds.Contains(definition.EffectId))
+            {
+                throw new InvalidOperationException(
+                    definition.FacilityId + " 使用未知 effectId：" + definition.EffectId);
+            }
+
+            var hasEntryKeyword = keywordSet.Contains(FacilityCardKeywords.Entry);
+            if (definition.HasEntryEffect != hasEntryKeyword)
+            {
+                throw new InvalidOperationException(
+                    definition.FacilityId + " 的 HasEntryEffect 与 entry 关键词不一致。");
+            }
+
+            ValidateOnBuiltRewardContract(definition);
+        }
+
+        private static readonly HashSet<string> KnownEffectIds = new HashSet<string>(StringComparer.Ordinal)
+        {
+            FacilityCardEffectIds.UniqueOnly,
+            FacilityCardEffectIds.CopyAdjacentEntryEffect,
+            FacilityCardEffectIds.ClaimStartMarkerAtCleanup,
+            FacilityCardEffectIds.BuildAdditionalFacility,
+            FacilityCardEffectIds.BuildExtensionHub,
+            FacilityCardEffectIds.GainOriginiumShardSix,
+            FacilityCardEffectIds.GainGoldPerCoreAdjacentFacility,
+            FacilityCardEffectIds.GainIronFour,
+            FacilityCardEffectIds.SellResources,
+            FacilityCardEffectIds.DiscountOriginiumByFacilityColor,
+            FacilityCardEffectIds.FreeCityMoveAndDeployRouteInfluence,
+            FacilityCardEffectIds.GainOriginiumSeven,
+            FacilityCardEffectIds.ChooseFiveBasicResources,
+            FacilityCardEffectIds.ReplaceOneInfluence,
+            FacilityCardEffectIds.DeployTwoInfluences,
+            FacilityCardEffectIds.RemoveThenDispatchOrExplore,
+            FacilityCardEffectIds.SetupCoreCommandTower,
+            FacilityCardEffectIds.ReserveExtensionHub,
+            FacilityCardEffectIds.EnterpriseOffice
+        };
+
+        private static void ValidateOnBuiltRewardContract(FacilityCardDefinition definition)
+        {
+            ResourceSet expected;
+            switch (definition.EffectId)
+            {
+                case FacilityCardEffectIds.GainOriginiumShardSix:
+                    expected = new ResourceSet { OriginiumShard = 6 };
+                    break;
+                case FacilityCardEffectIds.GainIronFour:
+                    expected = new ResourceSet { Iron = 4 };
+                    break;
+                case FacilityCardEffectIds.GainOriginiumSeven:
+                    expected = new ResourceSet { Originium = 7 };
+                    break;
+                default:
+                    expected = new ResourceSet();
+                    break;
+            }
+
+            if (!InjectedResourceSetsEqual(definition.OnBuiltReward, expected))
+            {
+                throw new InvalidOperationException(
+                    definition.FacilityId + " 的 OnBuiltReward 与 effectId 契约不一致：" + definition.EffectId);
+            }
+        }
+
+        private static void ValidateInjectedResourceSet(ResourceSet value, string label)
+        {
+            if (value.Originium < 0 || value.OriginiumShard < 0 || value.Iron < 0 ||
+                value.PureOriginium < 0 || value.GoldVoucher < 0)
+            {
+                throw new InvalidOperationException(label + " 包含负数资源。");
+            }
+        }
+
+        private static FacilityCardDefinition CloneInjectedDefinition(FacilityCardDefinition source)
+        {
+            return new FacilityCardDefinition
+            {
+                FacilityId = source.FacilityId,
+                ManifestId = source.ManifestId,
+                Name = source.Name,
+                Color = source.Color,
+                Score = source.Score,
+                ResourceCost = source.ResourceCost.Clone(),
+                GoldVoucherCost = source.GoldVoucherCost,
+                Unique = source.Unique,
+                UniqueGroupId = source.UniqueGroupId,
+                HasEntryEffect = source.HasEntryEffect,
+                Keywords = new List<string>(source.Keywords),
+                EffectId = source.EffectId,
+                EffectType = source.EffectType,
+                Description = source.Description,
+                EffectText = source.EffectText,
+                ReserveOnly = source.ReserveOnly,
+                OnBuiltReward = source.OnBuiltReward.Clone()
+            };
+        }
+
+        private static bool InjectedDefinitionSetsEqual(
+            IReadOnlyDictionary<string, FacilityCardDefinition> left,
+            IReadOnlyDictionary<string, FacilityCardDefinition> right)
+        {
+            if (left.Count != right.Count)
+            {
+                return false;
+            }
+
+            foreach (var pair in left)
+            {
+                if (!right.TryGetValue(pair.Key, out var candidate) ||
+                    !InjectedDefinitionsEqual(pair.Value, candidate))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool InjectedDefinitionsEqual(
+            FacilityCardDefinition left,
+            FacilityCardDefinition right)
+        {
+            if (left.FacilityId != right.FacilityId || left.ManifestId != right.ManifestId ||
+                left.Name != right.Name || left.Color != right.Color || left.Score != right.Score ||
+                left.GoldVoucherCost != right.GoldVoucherCost || left.Unique != right.Unique ||
+                left.UniqueGroupId != right.UniqueGroupId || left.HasEntryEffect != right.HasEntryEffect ||
+                left.EffectId != right.EffectId || left.EffectType != right.EffectType ||
+                left.Description != right.Description || left.EffectText != right.EffectText ||
+                left.ReserveOnly != right.ReserveOnly ||
+                !InjectedResourceSetsEqual(left.ResourceCost, right.ResourceCost) ||
+                !InjectedResourceSetsEqual(left.OnBuiltReward, right.OnBuiltReward) ||
+                left.Keywords.Count != right.Keywords.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < left.Keywords.Count; i++)
+            {
+                if (left.Keywords[i] != right.Keywords[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool InjectedResourceSetsEqual(ResourceSet left, ResourceSet right)
+        {
+            return left.Originium == right.Originium &&
+                   left.OriginiumShard == right.OriginiumShard &&
+                   left.Iron == right.Iron &&
+                   left.PureOriginium == right.PureOriginium &&
+                   left.GoldVoucher == right.GoldVoucher;
         }
 
         private static string GetUniqueGroupId(FacilityCardDefinition facility)

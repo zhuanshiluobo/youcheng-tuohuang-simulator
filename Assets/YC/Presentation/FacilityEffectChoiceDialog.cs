@@ -25,10 +25,33 @@ namespace YC.Presentation
     /// <summary>设施入场待选专用弹窗；不读取或修改游戏规则状态。</summary>
     internal sealed class FacilityEffectChoiceDialog
     {
-        private readonly EffectDialogShell shell = new EffectDialogShell();
+        private readonly RectTransform canvas;
+        private readonly EffectDialogShell shell;
+        private readonly CardVisualCatalog cardVisualCatalog;
+        private readonly EffectDialogLayoutProfile layoutProfile;
         private EffectDialogCollapsiblePanel collapsiblePanel;
         private RectTransform facilityCardDragGhost;
         private ZoomableImageViewerController facilityCardImageViewer;
+
+        internal FacilityEffectChoiceDialog(
+            GameplayDialogRegistry dialogRegistry,
+            RectTransform configuredCanvas)
+        {
+            canvas = configuredCanvas ?? throw new ArgumentNullException(nameof(configuredCanvas));
+            if (dialogRegistry == null) throw new ArgumentNullException(nameof(dialogRegistry));
+            cardVisualCatalog = dialogRegistry.CardVisualCatalog;
+            layoutProfile = dialogRegistry.EffectDialogShellPrefab == null
+                ? null
+                : dialogRegistry.EffectDialogShellPrefab.LayoutProfile;
+            var layoutReason = string.Empty;
+            if (layoutProfile == null || !layoutProfile.TryValidateConfiguration(out layoutReason))
+            {
+                throw new InvalidOperationException(
+                    "FacilityEffectChoiceDialog 缺少有效的显式布局 Profile：" + layoutReason);
+            }
+            shell = new EffectDialogShell(
+                dialogRegistry);
+        }
 
         public bool IsShowing
         {
@@ -36,17 +59,15 @@ namespace YC.Presentation
         }
 
         public void ShowOptions(
-            RectTransform canvas,
             string title,
             string description,
             IReadOnlyList<EffectDialogOption> options,
             Action back = null)
         {
-            ShowOptionsCore(canvas, title, description, options, back, string.Empty, false);
+            ShowOptionsCore(title, description, options, back, string.Empty, false);
         }
 
         public void ShowCollapsibleOptions(
-            RectTransform canvas,
             string title,
             string description,
             string summary,
@@ -54,25 +75,18 @@ namespace YC.Presentation
             Action back = null,
             string backLabel = null)
         {
-            ShowOptionsCore(canvas, title, description, options, back, summary, false, backLabel);
+            ShowOptionsCore(title, description, options, back, summary, false, backLabel);
         }
 
         public void ShowExtensionHubOptions(
-            RectTransform canvas,
             IReadOnlyList<FacilityEffectCardOption> options,
             Action beginDrag,
             Action<string, int> drop,
             Action cancelDrag,
             Action skip)
         {
-            if (canvas == null)
-            {
-                return;
-            }
-
             var panel = Rebuild(
-                canvas,
-                new Vector2(520f, 360f),
+                layoutProfile.ExtensionHubPanelSize,
                 Vector2.zero,
                 "\u5ef6\u4f38\u67a2\u7ebd\uff1a\u62d6\u52a8\u5361\u7247\u5230\u57ce\u5e02\u9762\u677f\u7a7a\u69fd\u4f4d\u5efa\u8bbe\u3002",
                 false);
@@ -80,69 +94,61 @@ namespace YC.Presentation
                 panel,
                 "延伸枢纽",
                 "选择一个尚未使用的延伸枢纽，拖动到城市面板空槽位进行建设。",
-                58f);
+                layoutProfile.ExtensionHubDescriptionHeight);
 
-            const float cardWidth = FacilityCardDragUtility.CardWidth;
-            const float cardHeight = FacilityCardDragUtility.CardHeight;
-            const float cardGap = 28f;
+            var cardWidth = layoutProfile.ExtensionHubCardSize.x;
+            var cardHeight = layoutProfile.ExtensionHubCardSize.y;
+            var cardGap = layoutProfile.ExtensionHubCardGap;
             var optionCount = options == null ? 0 : options.Count;
             var rowWidth = optionCount * cardWidth + Mathf.Max(0, optionCount - 1) * cardGap;
             var rowStartX = -rowWidth * 0.5f + cardWidth * 0.5f;
             for (var i = 0; i < optionCount; i++)
             {
                 var option = options[i];
-                var texture = BuildInfoPanel.TryLoadFacilityCardTexture(option.FacilityId);
-                var cardObject = new GameObject(
-                    "Extension Hub Card " + option.FacilityId,
-                    typeof(RectTransform),
-                    typeof(Image),
-                    typeof(Button),
-                    typeof(Outline),
-                    typeof(CanvasGroup));
-                cardObject.transform.SetParent(panel, false);
-                var cardRect = cardObject.GetComponent<RectTransform>();
+                var texture = cardVisualCatalog.GetFacility(option.FacilityId);
+                var card = EffectDialogShell.CreateFacilityCard(panel);
+                card.gameObject.name = "Extension Hub Card " + option.FacilityId;
+                var cardRect = card.CardRect;
                 SetRect(
                     cardRect,
-                    new Vector2(0.5f, 1f),
-                    new Vector2(0.5f, 1f),
-                    new Vector2(cardWidth, cardHeight),
-                    new Vector2(rowStartX + i * (cardWidth + cardGap), -205f));
+                    layoutProfile.ExtensionHubCardAnchor,
+                    layoutProfile.ExtensionHubCardAnchor,
+                    layoutProfile.ExtensionHubCardSize,
+                    new Vector2(
+                        rowStartX + i * (cardWidth + cardGap),
+                        layoutProfile.ExtensionHubCardY));
 
-                cardObject.GetComponent<Image>().color = UiTheme.ScrollBackground;
-                var outline = cardObject.GetComponent<Outline>();
-                outline.effectColor = option.Available ? UiTheme.GoldOutline : UiTheme.GoldOutlineThin;
-                outline.effectDistance = new Vector2(2f, -2f);
-                var button = cardObject.GetComponent<Button>();
+                card.Background.color = UiTheme.ScrollBackground;
+                card.Outline.effectColor = option.Available ? UiTheme.GoldOutline : UiTheme.GoldOutlineThin;
+                card.Outline.effectDistance = layoutProfile.FacilityCardOutlineDistance;
+                var button = card.Button;
+                button.onClick.RemoveAllListeners();
                 button.interactable = true;
-                var canvasGroup = cardObject.GetComponent<CanvasGroup>();
+                var canvasGroup = card.CanvasGroup;
                 canvasGroup.alpha = option.Available ? 1f : 0.32f;
                 canvasGroup.interactable = true;
                 canvasGroup.blocksRaycasts = true;
 
-                var imageObject = new GameObject("Card Image", typeof(RectTransform), typeof(RawImage));
-                imageObject.transform.SetParent(cardRect, false);
-                var imageRect = imageObject.GetComponent<RectTransform>();
-                Stretch(imageRect, FacilityCardDragUtility.CardImageInset);
-                var rawImage = imageObject.GetComponent<RawImage>();
-                rawImage.texture = texture;
-                rawImage.color = texture == null ? Color.clear : Color.white;
-                rawImage.raycastTarget = false;
+                var imageRect = card.CardImage.rectTransform;
+                layoutProfile.FacilityCardImageLayout.ApplyTo(imageRect);
+                card.CardImage.texture = texture;
+                card.CardImage.color = texture == null ? Color.clear : Color.white;
+                card.CardImage.raycastTarget = false;
 
-                var label = CreateText(cardRect, "Shared Name", option.Label, 18, TextAnchor.MiddleCenter);
+                var label = card.FallbackLabel;
+                label.gameObject.name = "Shared Name";
+                label.text = option.Label;
+                label.fontSize = 18;
+                label.alignment = TextAnchor.MiddleCenter;
                 label.fontStyle = FontStyle.Bold;
                 label.color = UiTheme.GoldText;
                 label.gameObject.SetActive(texture == null);
-                SetRect(
-                    label.rectTransform,
-                    new Vector2(0f, 0f),
-                    new Vector2(1f, 1f),
-                    Vector2.zero,
-                    Vector2.zero);
+                layoutProfile.FacilityCardFallbackLayout.ApplyTo(label.rectTransform);
 
                 var facilityId = option.FacilityId;
                 var cardName = option.Label;
                 var available = option.Available;
-                var interaction = cardObject.AddComponent<CardPointerInteraction>();
+                var interaction = card.PointerInteraction;
                 interaction.ConfigureClick(
                     button,
                     () => CardImagePreviewUtility.Open(
@@ -157,7 +163,7 @@ namespace YC.Presentation
                     () => available,
                     eventData =>
                     {
-                        BeginFacilityCardDrag(canvas, cardRect, texture, cardName, eventData);
+                        BeginFacilityCardDrag(cardRect, texture, cardName, card.FallbackLabel.font, eventData);
                         beginDrag?.Invoke();
                     },
                     MoveFacilityCardDrag,
@@ -175,17 +181,12 @@ namespace YC.Presentation
             }
 
             var skipButton = CreateButton(panel, "Skip Extension Hub", "不建设", 18);
-            SetRect(
-                skipButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0f),
-                new Vector2(0.5f, 0f),
-                new Vector2(220f, 48f),
-                new Vector2(0f, 34f));
-            skipButton.onClick.AddListener(() => skip?.Invoke());
+            layoutProfile.ExtensionHubSkipButtonLayout.ApplyTo(
+                skipButton.GetComponent<RectTransform>());
+            BindOnce(skipButton, skip);
         }
 
         private void ShowOptionsCore(
-            RectTransform canvas,
             string title,
             string description,
             IReadOnlyList<EffectDialogOption> options,
@@ -195,17 +196,25 @@ namespace YC.Presentation
             string backLabel = null)
         {
             var isCollapsible = !string.IsNullOrEmpty(summary);
-            var panel = Rebuild(canvas, new Vector2(660f, 600f), Vector2.zero, summary, startCollapsed);
+            var panel = Rebuild(layoutProfile.OptionsPanelSize, Vector2.zero, summary, startCollapsed);
             AddHeading(panel, title, description);
 
-            var scrollBottom = back == null ? 34f : 82f;
+            var scrollBottom = back == null
+                ? layoutProfile.OptionsScrollBottom
+                : layoutProfile.OptionsScrollBottomWithBack;
             if (isCollapsible)
             {
-                scrollBottom += back == null ? 20f : 54f;
+                scrollBottom += back == null
+                    ? layoutProfile.CollapsibleOptionsExtraBottom
+                    : layoutProfile.CollapsibleOptionsExtraBottomWithBack;
             }
 
-            var content = EffectDialogShell.AddOptionScroll(panel, "Options Scroll", scrollBottom, 142f);
-            EffectDialogShell.AddOptions(content, options, "Option ", null);
+            var content = EffectDialogShell.AddOptionScroll(
+                panel,
+                "Options Scroll",
+                scrollBottom,
+                layoutProfile.OptionsScrollTop);
+            EffectDialogShell.AddOptions(content, options, "Option ", Hide);
 
             if (back != null)
             {
@@ -214,13 +223,21 @@ namespace YC.Presentation
                     "Back",
                     string.IsNullOrEmpty(backLabel) ? "\u8fd4\u56de" : backLabel,
                     17);
-                SetRect(backButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(180f, 44f), new Vector2(0f, isCollapsible ? 76f : 28f));
-                backButton.onClick.AddListener(() => back());
+                SetRect(
+                    backButton.GetComponent<RectTransform>(),
+                    layoutProfile.BottomCenterAnchor,
+                    layoutProfile.BottomCenterAnchor,
+                    layoutProfile.OptionsBackButtonSize,
+                    new Vector2(
+                        0f,
+                        isCollapsible
+                            ? layoutProfile.OptionsBackButtonCollapsibleY
+                            : layoutProfile.OptionsBackButtonNormalY));
+                BindOnce(backButton, back);
             }
         }
 
         public void ShowResourceAllocation(
-            RectTransform canvas,
             string title,
             string description,
             IReadOnlyList<string> labels,
@@ -229,7 +246,7 @@ namespace YC.Presentation
             Action<IReadOnlyList<int>> confirm,
             Action skip)
         {
-            var panel = Rebuild(canvas, new Vector2(650f, 560f), Vector2.zero);
+            var panel = Rebuild(layoutProfile.ResourceAllocationPanelSize, Vector2.zero);
             shell.AddResourceAllocation(panel, new ResourceAllocationSpec
             {
                 Title = title,
@@ -237,30 +254,30 @@ namespace YC.Presentation
                 Labels = labels,
                 Maximums = maximums,
                 ExactTotal = exactTotal,
-                LabelWidth = 230f,
-                LabelHeight = 48f,
-                LabelX = 145f,
-                DecreaseX = 320f,
-                ValueX = 390f,
-                IncreaseX = 460f,
+                LabelWidth = layoutProfile.ResourceLabelWidth,
+                LabelHeight = layoutProfile.ResourceLabelHeight,
+                LabelX = layoutProfile.ResourceLabelX,
+                DecreaseX = layoutProfile.ResourceDecreaseX,
+                ValueX = layoutProfile.ResourceValueX,
+                IncreaseX = layoutProfile.ResourceIncreaseX,
                 Confirm = confirm,
-                Cancel = skip
+                Cancel = skip,
+                CloseBeforeConfirm = true,
+                CloseBeforeCancel = true
             });
         }
 
         public void ShowMapPrompt(
-            RectTransform canvas,
             string title,
             string description,
             string primaryLabel,
             Action primary,
             Action back = null)
         {
-            ShowMapPromptCore(canvas, title, description, primaryLabel, primary, back, string.Empty, false);
+            ShowMapPromptCore(title, description, primaryLabel, primary, back, string.Empty, false);
         }
 
         public void ShowCollapsibleMapPrompt(
-            RectTransform canvas,
             string title,
             string description,
             string summary,
@@ -269,11 +286,10 @@ namespace YC.Presentation
             Action back = null,
             bool startCollapsed = true)
         {
-            ShowMapPromptCore(canvas, title, description, primaryLabel, primary, back, summary, startCollapsed);
+            ShowMapPromptCore(title, description, primaryLabel, primary, back, summary, startCollapsed);
         }
 
         private void ShowMapPromptCore(
-            RectTransform canvas,
             string title,
             string description,
             string primaryLabel,
@@ -283,21 +299,45 @@ namespace YC.Presentation
             bool startCollapsed)
         {
             var isCollapsible = !string.IsNullOrEmpty(summary);
-            var panelHeight = isCollapsible ? 260f : 210f;
-            var panel = Rebuild(canvas, new Vector2(650f, panelHeight), new Vector2(0f, 310f), summary, startCollapsed);
-            AddHeading(panel, title, description, 74f);
+            var panelHeight = isCollapsible
+                ? layoutProfile.CollapsibleMapPromptPanelHeight
+                : layoutProfile.MapPromptPanelHeight;
+            var panel = Rebuild(
+                new Vector2(layoutProfile.MapPromptPanelWidth, panelHeight),
+                layoutProfile.MapPromptPanelPosition,
+                summary,
+                startCollapsed);
+            AddHeading(panel, title, description, layoutProfile.MapPromptDescriptionHeight);
             if (primary != null)
             {
                 var primaryButton = CreateButton(panel, "Primary", primaryLabel, 17);
-                SetRect(primaryButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(220f, 42f), new Vector2(back == null ? 0f : -120f, isCollapsible ? 68f : 26f));
-                primaryButton.onClick.AddListener(() => primary());
+                SetRect(
+                    primaryButton.GetComponent<RectTransform>(),
+                    layoutProfile.BottomCenterAnchor,
+                    layoutProfile.BottomCenterAnchor,
+                    layoutProfile.MapPrimaryButtonSize,
+                    new Vector2(
+                        back == null ? 0f : layoutProfile.MapPrimaryWithBackX,
+                        isCollapsible
+                            ? layoutProfile.MapButtonCollapsibleY
+                            : layoutProfile.MapButtonNormalY));
+                BindOnce(primaryButton, primary);
             }
 
             if (back != null)
             {
                 var backButton = CreateButton(panel, "Back", "返回", 17);
-                SetRect(backButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(180f, 42f), new Vector2(primary == null ? 0f : 130f, isCollapsible ? 68f : 26f));
-                backButton.onClick.AddListener(() => back());
+                SetRect(
+                    backButton.GetComponent<RectTransform>(),
+                    layoutProfile.BottomCenterAnchor,
+                    layoutProfile.BottomCenterAnchor,
+                    layoutProfile.MapBackButtonSize,
+                    new Vector2(
+                        primary == null ? 0f : layoutProfile.MapBackWithPrimaryX,
+                        isCollapsible
+                            ? layoutProfile.MapButtonCollapsibleY
+                            : layoutProfile.MapButtonNormalY));
+                BindOnce(backButton, back);
             }
         }
 
@@ -310,12 +350,12 @@ namespace YC.Presentation
         }
 
         private RectTransform Rebuild(
-            RectTransform canvas,
             Vector2 size,
             Vector2 position,
             string collapseSummary = null,
             bool startCollapsed = false)
         {
+            DestroyFacilityCardDragGhost();
             facilityCardImageViewer?.Close();
             collapsiblePanel = null;
             var panel = shell.Rebuild(
@@ -329,61 +369,32 @@ namespace YC.Presentation
                 return panel;
             }
 
-            return ConfigureCollapsiblePanel(panel, canvas, size, collapseSummary, startCollapsed);
+            return ConfigureCollapsiblePanel(size, collapseSummary, startCollapsed);
         }
 
         private RectTransform ConfigureCollapsiblePanel(
-            RectTransform panel,
-            RectTransform canvas,
             Vector2 expandedSize,
             string summary,
             bool startCollapsed)
         {
-            var collapsedSummaryText = CreateText(panel, "Facility Collapsed Summary", summary, 18, TextAnchor.MiddleLeft);
-            collapsedSummaryText.fontStyle = FontStyle.Bold;
-            collapsedSummaryText.color = UiTheme.GoldText;
-            SetRect(
-                collapsedSummaryText.rectTransform,
-                new Vector2(0.06f, 1f),
-                new Vector2(0.72f, 1f),
-                new Vector2(0f, 42f),
-                new Vector2(0f, -29f));
-
-            var expandedContent = new GameObject("Facility Expanded Content", typeof(RectTransform));
-            expandedContent.transform.SetParent(panel, false);
-            var contentRect = expandedContent.GetComponent<RectTransform>();
-            Stretch(contentRect, 0f);
-
-            var toggleButton = CreateButton(panel, "Facility Collapse Toggle", "收起卡片", 14);
-            var collapseToggleRect = toggleButton.GetComponent<RectTransform>();
-            var collapseToggleText = toggleButton.GetComponentInChildren<Text>();
-            var collapseToggleIcon = UguiUtility.CreateTriangleIcon(
-                collapseToggleRect,
-                "Facility Collapse Triangle",
-                true);
-            collapsiblePanel = panel.gameObject.AddComponent<EffectDialogCollapsiblePanel>();
-            collapsiblePanel.Configure(new EffectDialogCollapseSpec
-            {
-                Panel = panel,
-                Canvas = canvas == null ? null : canvas.GetComponentInParent<Canvas>(),
-                OverlayImage = panel.parent == null ? null : panel.parent.GetComponent<Image>(),
-                ExpandedContent = expandedContent,
-                CollapsedSummaryText = collapsedSummaryText,
-                ToggleRect = collapseToggleRect,
-                ToggleText = collapseToggleText,
-                ToggleIcon = collapseToggleIcon,
-                ExpandedSize = expandedSize,
-                StartCollapsed = startCollapsed
-            });
-            toggleButton.onClick.AddListener(collapsiblePanel.Toggle);
-            return contentRect;
+            var content = shell.ConfigureCollapsiblePanel(
+                canvas,
+                expandedSize,
+                summary,
+                startCollapsed,
+                "Facility Expanded Content",
+                "Facility Collapsed Summary",
+                "Facility Collapse Toggle",
+                "Facility Collapse Triangle");
+            collapsiblePanel = shell.CollapsiblePanel;
+            return content;
         }
 
         private void BeginFacilityCardDrag(
-            RectTransform canvas,
             RectTransform source,
             Texture2D texture,
             string fallbackLabel,
+            Font fallbackFont,
             PointerEventData eventData)
         {
             DestroyFacilityCardDragGhost();
@@ -391,7 +402,8 @@ namespace YC.Presentation
                 canvas,
                 source,
                 texture,
-                fallbackLabel);
+                fallbackLabel,
+                fallbackFont);
             MoveFacilityCardDrag(eventData);
         }
 
@@ -405,28 +417,46 @@ namespace YC.Presentation
             FacilityCardDragUtility.DestroyDragGhost(ref facilityCardDragGhost);
         }
 
-        private static void AddHeading(RectTransform panel, string title, string description, float descriptionHeight = 70f)
+        private void AddHeading(RectTransform panel, string title, string description, float descriptionHeight = 70f)
         {
-            var addDragHandle = panel == null ||
-                                panel.GetComponentInParent<EffectDialogCollapsiblePanel>() == null;
             EffectDialogShell.AddHeading(
                 panel,
                 title,
                 description,
                 descriptionHeight,
-                addDragHandle: addDragHandle);
-        }
-
-        private static Text CreateText(RectTransform parent, string name, string value, int fontSize, TextAnchor alignment)
-        {
-            var text = EffectDialogShell.CreateText(parent, name, value, fontSize, alignment);
-            text.verticalOverflow = VerticalWrapMode.Truncate;
-            return text;
+                addDragHandle: collapsiblePanel == null);
         }
 
         private static Button CreateButton(RectTransform parent, string name, string label, int fontSize)
         {
             return EffectDialogShell.CreateButton(parent, name, label, fontSize);
+        }
+
+        private void BindOnce(Button button, Action callback)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            button.onClick.RemoveAllListeners();
+            if (callback == null)
+            {
+                return;
+            }
+
+            var invoked = false;
+            button.onClick.AddListener(() =>
+            {
+                if (invoked)
+                {
+                    return;
+                }
+
+                invoked = true;
+                Hide();
+                callback();
+            });
         }
 
         private static void Stretch(RectTransform rect, float inset)

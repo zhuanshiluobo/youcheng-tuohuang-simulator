@@ -1,4 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using YC.Domain.Facilities;
+using YC.Domain.SpecialActions;
+using YC.Domain.State;
 
 namespace YC.Domain.CityStyles
 {
@@ -11,7 +16,9 @@ namespace YC.Domain.CityStyles
         public const string SourceStoneIndustrialHub = "city_style_source_stone_industrial_hub";
         public const string EfficientMobileManagementSystem = "city_style_efficient_mobile_management_system";
 
-        public static readonly List<string> DefaultSupplyIds = new List<string>
+        public const int ExpectedDefinitionCount = 6;
+
+        private static readonly IReadOnlyList<string> StableIds = Array.AsReadOnly(new[]
         {
             MilitaryIndustrialArea,
             MobilizationSupportSystem,
@@ -19,209 +26,443 @@ namespace YC.Domain.CityStyles
             MaterialRelayStation,
             SourceStoneIndustrialHub,
             EfficientMobileManagementSystem
-        };
+        });
 
-        public static readonly List<string> PresentationSupplyIds = new List<string>
-        {
-            MilitaryIndustrialArea,
-            MobilizationSupportSystem,
-            CompositePowerSystem,
-            MaterialRelayStation,
-            SourceStoneIndustrialHub,
-            EfficientMobileManagementSystem
-        };
+        private static readonly object SyncRoot = new object();
+        private static IReadOnlyDictionary<string, CityStyleDefinition> definitions =
+            CreateEmptySnapshot();
+        private static bool injectedDefinitions;
 
-        private static CityStylePatternCell Cell(int rowOffset, int columnOffset, params string[] allowedFacilityColors)
+        public static bool IsInitialized
         {
-            return new CityStylePatternCell
+            get
             {
-                RowOffset = rowOffset,
-                ColumnOffset = columnOffset,
-                AllowedFacilityColors = new List<string>(allowedFacilityColors)
-            };
+                lock (SyncRoot)
+                {
+                    return injectedDefinitions;
+                }
+            }
         }
 
-        private static readonly Dictionary<string, CityStyleDefinition> Definitions =
-            new Dictionary<string, CityStyleDefinition>
+        public static IReadOnlyList<string> DefaultSupplyIds
+        {
+            get
             {
-                {
-                    MilitaryIndustrialArea,
-                    new CityStyleDefinition
-                    {
-                        CityStyleId = MilitaryIndustrialArea,
-                        Name = "军工化区域",
-                        Level = 1,
-                        Score = 2,
-                        Description = "同一横排相邻布局：蓝/黄设施 + 红色设施。",
-                        MaxDeclarationsPerPlayer = int.MaxValue,
-                        SpecialActionId = "special_action.city_style.military_industrial_area",
-                        DeclarationRequirement = new CityStyleRequirement
-                        {
-                            RequiredFacilityCount = 2,
-                            RequiredPatternCells =
-                            {
-                                Cell(0, 0, "blue", "yellow"),
-                                Cell(0, 1, "red")
-                            }
-                        }
-                    }
-                },
-                {
-                    MobilizationSupportSystem,
-                    new CityStyleDefinition
-                    {
-                        CityStyleId = MobilizationSupportSystem,
-                        Name = "动员配套体系",
-                        Level = 1,
-                        Score = 3,
-                        Description = "同一横排相邻布局：黄色设施 + 黄色设施 + 红色设施。",
-                        MaxDeclarationsPerPlayer = int.MaxValue,
-                        SpecialActionId = "special_action.city_style.mobilization_support_system",
-                        DeclarationRequirement = new CityStyleRequirement
-                        {
-                            RequiredFacilityCount = 3,
-                            RequiredPatternCells =
-                            {
-                                Cell(0, 0, "yellow"),
-                                Cell(0, 1, "yellow"),
-                                Cell(0, 2, "red")
-                            }
-                        }
-                    }
-                },
-                {
-                    CompositePowerSystem,
-                    new CityStyleDefinition
-                    {
-                        CityStyleId = CompositePowerSystem,
-                        Name = "复合动力系统",
-                        Level = 1,
-                        Score = 3,
-                        Description = "2x2 局部布局：上方黄色；下方红色 + 黄色。",
-                        MaxDeclarationsPerPlayer = int.MaxValue,
-                        SpecialActionId = "special_action.city_style.composite_power_system",
-                        DeclarationRequirement = new CityStyleRequirement
-                        {
-                            RequiredFacilityCount = 3,
-                            RequiredPatternCells =
-                            {
-                                Cell(0, 0, "yellow"),
-                                Cell(1, 0, "red"),
-                                Cell(1, 1, "yellow")
-                            }
-                        }
-                    }
-                },
-                {
-                    MaterialRelayStation,
-                    new CityStyleDefinition
-                    {
-                        CityStyleId = MaterialRelayStation,
-                        Name = "物资中继站",
-                        Level = 1,
-                        Score = 2,
-                        Description = "同一横排相邻布局：蓝/红设施 + 黄色设施。",
-                        MaxDeclarationsPerPlayer = int.MaxValue,
-                        DeclarationReward = new YC.Domain.State.ResourceSet
-                        {
-                            Originium = 1,
-                            OriginiumShard = 1,
-                            Iron = 1
-                        },
-                        DeclarationRequirement = new CityStyleRequirement
-                        {
-                            RequiredFacilityCount = 2,
-                            RequiredPatternCells =
-                            {
-                                Cell(0, 0, "blue", "red"),
-                                Cell(0, 1, "yellow")
-                            }
-                        }
-                    }
-                },
-                {
-                    SourceStoneIndustrialHub,
-                    new CityStyleDefinition
-                    {
-                        CityStyleId = SourceStoneIndustrialHub,
-                        Name = "源石工业中枢",
-                        Level = 2,
-                        Score = 6,
-                        Description = "3 行阶梯布局：上方蓝色；中间红色 + 蓝色；下方黄色 + 黄色 + 红色。",
-                        MaxDeclarationsPerPlayer = 2,
-                        SpecialActionId = "special_action.city_style.source_stone_industrial_hub",
-                        DeclarationRequirement = new CityStyleRequirement
-                        {
-                            RequiredFacilityCount = 6,
-                            RequiredPatternCells =
-                            {
-                                Cell(0, 0, "blue"),
-                                Cell(1, 0, "red"),
-                                Cell(1, 1, "blue"),
-                                Cell(2, 0, "yellow"),
-                                Cell(2, 1, "yellow"),
-                                Cell(2, 2, "red")
-                            }
-                        }
-                    }
-                },
-                {
-                    EfficientMobileManagementSystem,
-                    new CityStyleDefinition
-                    {
-                        CityStyleId = EfficientMobileManagementSystem,
-                        Name = "高效移动管理体系",
-                        Level = 2,
-                        Score = 7,
-                        Description = "3 行阶梯布局：上方黄色；中间红色 + 黄色；下方蓝色 + 蓝色 + 红色。",
-                        MaxDeclarationsPerPlayer = 2,
-                        SpecialActionId = "special_action.city_style.efficient_mobile_management_system",
-                        DeclarationRequirement = new CityStyleRequirement
-                        {
-                            RequiredFacilityCount = 6,
-                            RequiredPatternCells =
-                            {
-                                Cell(0, 0, "yellow"),
-                                Cell(1, 0, "red"),
-                                Cell(1, 1, "yellow"),
-                                Cell(2, 0, "blue"),
-                                Cell(2, 1, "blue"),
-                                Cell(2, 2, "red")
-                            }
-                        }
-                    }
-                }
-            };
+                EnsureInitialized();
+                return StableIds;
+            }
+        }
+
+        public static IReadOnlyList<string> PresentationSupplyIds
+        {
+            get
+            {
+                EnsureInitialized();
+                return StableIds;
+            }
+        }
 
         public static IReadOnlyList<CityStyleDefinition> All
         {
             get
             {
-                var result = new List<CityStyleDefinition>();
-                foreach (var pair in Definitions)
+                var snapshot = GetInitializedSnapshot();
+                var result = new List<CityStyleDefinition>(StableIds.Count);
+                for (var i = 0; i < StableIds.Count; i++)
                 {
-                    result.Add(pair.Value);
+                    result.Add(CloneDefinition(snapshot[StableIds[i]]));
                 }
 
-                return result;
+                return result.AsReadOnly();
+            }
+        }
+
+        public static void Initialize(IEnumerable<CityStyleDefinition> sourceDefinitions)
+        {
+            if (sourceDefinitions == null)
+            {
+                throw new ArgumentNullException(nameof(sourceDefinitions));
+            }
+
+            var next = new Dictionary<string, CityStyleDefinition>(StringComparer.Ordinal);
+            foreach (var source in sourceDefinitions)
+            {
+                ValidateDefinition(source);
+                if (next.ContainsKey(source.CityStyleId))
+                {
+                    throw new InvalidOperationException("城市样式目录包含重复 ID：" + source.CityStyleId);
+                }
+
+                next.Add(source.CityStyleId, CloneDefinition(source));
+            }
+
+            ValidateDefinitionSet(next);
+            var nextSnapshot = new ReadOnlyDictionary<string, CityStyleDefinition>(next);
+            lock (SyncRoot)
+            {
+                if (injectedDefinitions)
+                {
+                    if (DefinitionSetsEqual(definitions, next))
+                    {
+                        return;
+                    }
+
+                    throw new InvalidOperationException(
+                        "CityStyleDatabase 已使用不同的完整城市样式目录初始化，禁止覆盖。");
+                }
+
+                definitions = nextSnapshot;
+                injectedDefinitions = true;
             }
         }
 
         public static bool TryGet(string cityStyleId, out CityStyleDefinition definition)
         {
-            if (string.IsNullOrEmpty(cityStyleId))
+            var snapshot = GetInitializedSnapshot();
+            CityStyleDefinition stored;
+            if (string.IsNullOrEmpty(cityStyleId) || !snapshot.TryGetValue(cityStyleId, out stored))
             {
                 definition = null;
                 return false;
             }
 
-            return Definitions.TryGetValue(cityStyleId, out definition);
+            definition = CloneDefinition(stored);
+            return true;
         }
 
         public static CityStyleDefinition Get(string cityStyleId)
         {
             CityStyleDefinition definition;
             return TryGet(cityStyleId, out definition) ? definition : null;
+        }
+
+        private static void EnsureInitialized()
+        {
+            lock (SyncRoot)
+            {
+                if (!injectedDefinitions)
+                {
+                    throw new InvalidOperationException(
+                        "CityStyleDatabase 未初始化：必须先由 CityStyleSpecialActionCatalogBootstrap 注入完整目录。");
+                }
+            }
+        }
+
+        private static IReadOnlyDictionary<string, CityStyleDefinition> GetInitializedSnapshot()
+        {
+            lock (SyncRoot)
+            {
+                if (!injectedDefinitions)
+                {
+                    throw new InvalidOperationException(
+                        "CityStyleDatabase 未初始化：必须先由 CityStyleSpecialActionCatalogBootstrap 注入完整目录。");
+                }
+
+                return definitions;
+            }
+        }
+
+        private static void ValidateDefinitionSet(
+            IReadOnlyDictionary<string, CityStyleDefinition> candidates)
+        {
+            if (candidates.Count != ExpectedDefinitionCount)
+            {
+                throw new InvalidOperationException(
+                    "城市样式目录必须精确包含 6 项，实际 " + candidates.Count + " 项。");
+            }
+
+            for (var i = 0; i < StableIds.Count; i++)
+            {
+                if (!candidates.ContainsKey(StableIds[i]))
+                {
+                    throw new InvalidOperationException("城市样式目录缺少稳定 ID：" + StableIds[i]);
+                }
+            }
+        }
+
+        public static bool TryValidateDefinition(
+            CityStyleDefinition definition,
+            out string reason)
+        {
+            try
+            {
+                ValidateDefinition(definition);
+                reason = string.Empty;
+                return true;
+            }
+            catch (InvalidOperationException exception)
+            {
+                reason = exception.Message;
+                return false;
+            }
+        }
+
+        private static void ValidateDefinition(CityStyleDefinition definition)
+        {
+            if (definition == null)
+            {
+                throw new InvalidOperationException("城市样式目录包含空定义。");
+            }
+
+            var expectedActionId = GetExpectedSpecialActionId(definition.CityStyleId);
+            if (expectedActionId == null)
+            {
+                throw new InvalidOperationException("城市样式目录包含未知稳定 ID：" + definition.CityStyleId);
+            }
+
+            if (definition.SpecialActionId != expectedActionId)
+            {
+                throw new InvalidOperationException(definition.CityStyleId + " 的特殊行动映射不正确。");
+            }
+
+            if (string.IsNullOrWhiteSpace(definition.Name) ||
+                string.IsNullOrWhiteSpace(definition.Description) ||
+                definition.Level <= 0 || definition.Score < 0 ||
+                definition.MaxDeclarationsPerPlayer <= 0 ||
+                definition.DeclarationReward == null ||
+                definition.DeclarationRequirement == null)
+            {
+                throw new InvalidOperationException(definition.CityStyleId + " 缺少必需字段或数值无效。");
+            }
+
+            ValidateResourceSet(definition.DeclarationReward, definition.CityStyleId + " 的声明奖励");
+            ValidateRequirement(definition.CityStyleId, definition.DeclarationRequirement);
+        }
+
+        private static string GetExpectedSpecialActionId(string cityStyleId)
+        {
+            switch (cityStyleId)
+            {
+                case MilitaryIndustrialArea:
+                    return SpecialActionDatabase.MilitaryIndustrialArea;
+                case MobilizationSupportSystem:
+                    return SpecialActionDatabase.MobilizationSupportSystem;
+                case CompositePowerSystem:
+                    return SpecialActionDatabase.CompositePowerSystem;
+                case MaterialRelayStation:
+                    return string.Empty;
+                case SourceStoneIndustrialHub:
+                    return SpecialActionDatabase.SourceStoneIndustrialHub;
+                case EfficientMobileManagementSystem:
+                    return SpecialActionDatabase.EfficientMobileManagementSystem;
+                default:
+                    return null;
+            }
+        }
+
+        private static void ValidateRequirement(string id, CityStyleRequirement requirement)
+        {
+            if (requirement.RequiredFacilityCount <= 0 ||
+                requirement.RequiredEffectTypes == null ||
+                requirement.RequiredResourceTypes == null ||
+                requirement.RequiredCityBoardSlotIndexes == null ||
+                requirement.RequiredPatternCells == null ||
+                requirement.RequiredPatternCells.Count != requirement.RequiredFacilityCount)
+            {
+                throw new InvalidOperationException(id + " 的声明条件无效。");
+            }
+
+            var effectTypes = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < requirement.RequiredEffectTypes.Count; i++)
+            {
+                var effectType = requirement.RequiredEffectTypes[i];
+                if (string.IsNullOrWhiteSpace(effectType) || !effectTypes.Add(effectType))
+                {
+                    throw new InvalidOperationException(id + " 包含空或重复的必需效果类型。");
+                }
+            }
+
+            var resourceTypes = new HashSet<YC.Domain.Rules.ResourceType>();
+            for (var i = 0; i < requirement.RequiredResourceTypes.Count; i++)
+            {
+                var resourceType = requirement.RequiredResourceTypes[i];
+                if (!Enum.IsDefined(typeof(YC.Domain.Rules.ResourceType), resourceType) ||
+                    !resourceTypes.Add(resourceType))
+                {
+                    throw new InvalidOperationException(id + " 包含非法或重复的必需资源类型。");
+                }
+            }
+
+            var slotIndexes = new HashSet<int>();
+            for (var i = 0; i < requirement.RequiredCityBoardSlotIndexes.Count; i++)
+            {
+                var slotIndex = requirement.RequiredCityBoardSlotIndexes[i];
+                if (slotIndex < 0 || slotIndex >= BuildFacilityService.CityBoardSlotCount ||
+                    !slotIndexes.Add(slotIndex))
+                {
+                    throw new InvalidOperationException(id + " 包含越界或重复的城市面板槽位。");
+                }
+            }
+
+            var offsets = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < requirement.RequiredPatternCells.Count; i++)
+            {
+                var cell = requirement.RequiredPatternCells[i];
+                if (cell == null || cell.AllowedFacilityColors == null ||
+                    cell.AllowedFacilityColors.Count == 0 ||
+                    !offsets.Add(cell.RowOffset + ":" + cell.ColumnOffset))
+                {
+                    throw new InvalidOperationException(id + " 包含无效或重复的样式格。");
+                }
+
+                var colors = new HashSet<string>(StringComparer.Ordinal);
+                for (var colorIndex = 0; colorIndex < cell.AllowedFacilityColors.Count; colorIndex++)
+                {
+                    var color = cell.AllowedFacilityColors[colorIndex];
+                    if ((color != "blue" && color != "yellow" && color != "red") ||
+                        !colors.Add(color))
+                    {
+                        throw new InvalidOperationException(id + " 包含无效或重复的设施颜色。");
+                    }
+                }
+            }
+        }
+
+        private static void ValidateResourceSet(ResourceSet value, string label)
+        {
+            if (value.Originium < 0 || value.OriginiumShard < 0 || value.Iron < 0 ||
+                value.PureOriginium < 0 || value.GoldVoucher < 0)
+            {
+                throw new InvalidOperationException(label + " 包含负数资源。");
+            }
+        }
+
+        private static CityStyleDefinition CloneDefinition(CityStyleDefinition source)
+        {
+            var requirement = source.DeclarationRequirement;
+            var requirementCopy = new CityStyleRequirement
+            {
+                RequiredFacilityCount = requirement.RequiredFacilityCount,
+                RequiredEffectTypes = new List<string>(requirement.RequiredEffectTypes),
+                RequiredResourceTypes = new List<YC.Domain.Rules.ResourceType>(
+                    requirement.RequiredResourceTypes),
+                RequiredCityBoardSlotIndexes = new List<int>(requirement.RequiredCityBoardSlotIndexes),
+                RequireSameCityBoardRow = requirement.RequireSameCityBoardRow
+            };
+
+            for (var i = 0; i < requirement.RequiredPatternCells.Count; i++)
+            {
+                var cell = requirement.RequiredPatternCells[i];
+                requirementCopy.RequiredPatternCells.Add(new CityStylePatternCell
+                {
+                    RowOffset = cell.RowOffset,
+                    ColumnOffset = cell.ColumnOffset,
+                    AllowedFacilityColors = new List<string>(cell.AllowedFacilityColors)
+                });
+            }
+
+            return new CityStyleDefinition
+            {
+                CityStyleId = source.CityStyleId,
+                Name = source.Name,
+                Level = source.Level,
+                Score = source.Score,
+                Description = source.Description,
+                MaxDeclarationsPerPlayer = source.MaxDeclarationsPerPlayer,
+                SpecialActionId = source.SpecialActionId,
+                DeclarationReward = source.DeclarationReward.Clone(),
+                DeclarationRequirement = requirementCopy
+            };
+        }
+
+        private static bool DefinitionSetsEqual(
+            IReadOnlyDictionary<string, CityStyleDefinition> left,
+            IReadOnlyDictionary<string, CityStyleDefinition> right)
+        {
+            if (left.Count != right.Count)
+            {
+                return false;
+            }
+
+            foreach (var pair in left)
+            {
+                CityStyleDefinition candidate;
+                if (!right.TryGetValue(pair.Key, out candidate) ||
+                    !DefinitionsEqual(pair.Value, candidate))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool DefinitionsEqual(CityStyleDefinition left, CityStyleDefinition right)
+        {
+            var leftRequirement = left.DeclarationRequirement;
+            var rightRequirement = right.DeclarationRequirement;
+            if (left.CityStyleId != right.CityStyleId || left.Name != right.Name ||
+                left.Level != right.Level || left.Score != right.Score ||
+                left.Description != right.Description ||
+                left.MaxDeclarationsPerPlayer != right.MaxDeclarationsPerPlayer ||
+                left.SpecialActionId != right.SpecialActionId ||
+                !ResourceSetsEqual(left.DeclarationReward, right.DeclarationReward) ||
+                leftRequirement.RequiredFacilityCount != rightRequirement.RequiredFacilityCount ||
+                leftRequirement.RequireSameCityBoardRow != rightRequirement.RequireSameCityBoardRow ||
+                !ListsEqual(leftRequirement.RequiredEffectTypes, rightRequirement.RequiredEffectTypes) ||
+                !ListsEqual(leftRequirement.RequiredResourceTypes, rightRequirement.RequiredResourceTypes) ||
+                !ListsEqual(leftRequirement.RequiredCityBoardSlotIndexes, rightRequirement.RequiredCityBoardSlotIndexes) ||
+                leftRequirement.RequiredPatternCells.Count != rightRequirement.RequiredPatternCells.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < leftRequirement.RequiredPatternCells.Count; i++)
+            {
+                var leftCell = leftRequirement.RequiredPatternCells[i];
+                var rightCell = rightRequirement.RequiredPatternCells[i];
+                if (leftCell.RowOffset != rightCell.RowOffset ||
+                    leftCell.ColumnOffset != rightCell.ColumnOffset ||
+                    !ListsEqual(leftCell.AllowedFacilityColors, rightCell.AllowedFacilityColors))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool ListsEqual<T>(IReadOnlyList<T> left, IReadOnlyList<T> right)
+        {
+            if (left.Count != right.Count)
+            {
+                return false;
+            }
+
+            var comparer = EqualityComparer<T>.Default;
+            for (var i = 0; i < left.Count; i++)
+            {
+                if (!comparer.Equals(left[i], right[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool ResourceSetsEqual(ResourceSet left, ResourceSet right)
+        {
+            return left.Originium == right.Originium &&
+                   left.OriginiumShard == right.OriginiumShard &&
+                   left.Iron == right.Iron &&
+                   left.PureOriginium == right.PureOriginium &&
+                   left.GoldVoucher == right.GoldVoucher;
+        }
+
+        internal static void ResetForTests()
+        {
+            lock (SyncRoot)
+            {
+                definitions = CreateEmptySnapshot();
+                injectedDefinitions = false;
+            }
+        }
+
+        private static IReadOnlyDictionary<string, CityStyleDefinition> CreateEmptySnapshot()
+        {
+            return new ReadOnlyDictionary<string, CityStyleDefinition>(
+                new Dictionary<string, CityStyleDefinition>(StringComparer.Ordinal));
         }
     }
 }

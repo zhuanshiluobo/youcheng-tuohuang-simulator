@@ -1,0 +1,975 @@
+{
+  "sourceImage": "游城拓荒/素材/建设牌堆.jpg",
+  "grid": {
+    "columns": 9,
+    "rows": 6,
+    "cardWidth": 600,
+    "cardHeight": 850
+  },
+  "counts": {
+    "buildingCards": 41,
+    "coreCommandTowerScreenshots": 1,
+    "coreCommandTowerCopies": 4,
+    "extensionHubs": 3,
+    "runtimeSupplementalCards": 1,
+    "skippedEnterpriseOffices": 3
+  },
+  "effectContracts": {
+    "城邦行政区": {
+      "effectId": "unique_only",
+      "effectType": "unique",
+      "hasEntryEffect": false,
+      "keywords": ["unique"]
+    },
+    "附属能源设施": {
+      "effectId": "copy_adjacent_entry_effect",
+      "effectType": "entry",
+      "hasEntryEffect": true,
+      "keywords": ["entry", "unique"]
+    },
+    "联邦理事处": {
+      "effectId": "claim_start_marker_at_cleanup",
+      "effectType": "cleanup",
+      "hasEntryEffect": true,
+      "keywords": ["entry", "unique"]
+    },
+    "简陋工程营": {
+      "effectId": "build_additional_facility",
+      "effectType": "special_action",
+      "hasEntryEffect": true,
+      "keywords": ["entry", "unique"]
+    },
+    "物流枢纽": {
+      "effectId": "build_extension_hub",
+      "effectType": "entry",
+      "hasEntryEffect": true,
+      "keywords": ["entry", "unique"]
+    },
+    "源石精炼厂": {
+      "effectId": "gain_originium_shard_6",
+      "effectType": "entry",
+      "hasEntryEffect": true,
+      "keywords": ["entry"],
+      "onBuiltReward": {
+        "源石碎片": 6
+      }
+    },
+    "城市化区域": {
+      "effectId": "gain_gold_per_core_adjacent_facility",
+      "effectType": "scoring",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "异铁冶炼厂": {
+      "effectId": "gain_iron_4",
+      "effectType": "entry",
+      "hasEntryEffect": true,
+      "keywords": ["entry"],
+      "onBuiltReward": {
+        "异铁": 4
+      }
+    },
+    "贸易街区": {
+      "effectId": "sell_resources",
+      "effectType": "special_action",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "城邦工业区": {
+      "effectId": "discount_originium_by_facility_color",
+      "effectType": "discount",
+      "hasEntryEffect": false,
+      "keywords": []
+    },
+    "高性能动力设施": {
+      "effectId": "free_city_move_and_deploy_route_influence",
+      "effectType": "special_action",
+      "hasEntryEffect": true,
+      "keywords": ["entry", "free"]
+    },
+    "固源岩提纯厂": {
+      "effectId": "gain_originium_7",
+      "effectType": "entry",
+      "hasEntryEffect": true,
+      "keywords": ["entry"],
+      "onBuiltReward": {
+        "源岩": 7
+      }
+    },
+    "开采电铲": {
+      "effectId": "choose_five_basic_resources",
+      "effectType": "entry_choice",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "佣兵指挥部": {
+      "effectId": "replace_one_influence",
+      "effectType": "entry",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "护航调度中心": {
+      "effectId": "deploy_two_influences",
+      "effectType": "entry",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "载具仓库": {
+      "effectId": "remove_then_dispatch_or_explore",
+      "effectType": "special_action",
+      "hasEntryEffect": true,
+      "keywords": ["entry"]
+    },
+    "核心指挥塔": {
+      "effectId": "setup_core_command_tower",
+      "effectType": "setup",
+      "hasEntryEffect": false,
+      "keywords": ["unique"]
+    },
+    "延伸枢纽": {
+      "effectId": "reserve_extension_hub",
+      "effectType": "reserve",
+      "hasEntryEffect": false,
+      "keywords": []
+    }
+  },
+  "buildingCards": [
+    {
+      "id": "building_001",
+      "name": "城邦行政区",
+      "color": "rainbow",
+      "row": 1,
+      "column": 1,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_001_城邦行政区_r01c01.jpg",
+      "score": 3,
+      "resourceCost": {
+        "源岩": 3,
+        "源石碎片": 3,
+        "异铁": 3
+      },
+      "goldVoucherCost": 30,
+      "description": "行政体系的建立能够解决各种问题，特别是在这片正待开垦的荒原之上。",
+      "effect": "唯一。"
+    },
+    {
+      "id": "building_002",
+      "name": "城邦行政区",
+      "color": "rainbow",
+      "row": 1,
+      "column": 2,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_002_城邦行政区_r01c02.jpg",
+      "score": 3,
+      "resourceCost": {
+        "源岩": 3,
+        "源石碎片": 3,
+        "异铁": 3
+      },
+      "goldVoucherCost": 30,
+      "description": "行政体系的建立能够解决各种问题，特别是在这片正待开垦的荒原之上。",
+      "effect": "唯一。"
+    },
+    {
+      "id": "building_003",
+      "name": "城邦行政区",
+      "color": "rainbow",
+      "row": 1,
+      "column": 3,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_003_城邦行政区_r01c03.jpg",
+      "score": 3,
+      "resourceCost": {
+        "源岩": 3,
+        "源石碎片": 3,
+        "异铁": 3
+      },
+      "goldVoucherCost": 30,
+      "description": "行政体系的建立能够解决各种问题，特别是在这片正待开垦的荒原之上。",
+      "effect": "唯一。"
+    },
+    {
+      "id": "building_004",
+      "name": "附属能源设施",
+      "color": "rainbow",
+      "row": 1,
+      "column": 4,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_004_附属能源设施_r01c04.jpg",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 2,
+        "源石碎片": 2,
+        "异铁": 3
+      },
+      "goldVoucherCost": 23,
+      "description": "通过源源不断的能源供应，移动城市上的设施日以继夜地运作着，一刻不停。",
+      "effect": "唯一；选择一个十字相邻的非彩色设施，结算其入场效果。"
+    },
+    {
+      "id": "building_005",
+      "name": "附属能源设施",
+      "color": "rainbow",
+      "row": 1,
+      "column": 5,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_005_附属能源设施_r01c05.jpg",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 2,
+        "源石碎片": 2,
+        "异铁": 3
+      },
+      "goldVoucherCost": 23,
+      "description": "通过源源不断的能源供应，移动城市上的设施日以继夜地运作着，一刻不停。",
+      "effect": "唯一；选择一个十字相邻的非彩色设施，结算其入场效果。"
+    },
+    {
+      "id": "building_006",
+      "name": "附属能源设施",
+      "color": "rainbow",
+      "row": 1,
+      "column": 6,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_006_附属能源设施_r01c06.jpg",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 2,
+        "源石碎片": 2,
+        "异铁": 3
+      },
+      "goldVoucherCost": 23,
+      "description": "通过源源不断的能源供应，移动城市上的设施日以继夜地运作着，一刻不停。",
+      "effect": "唯一；选择一个十字相邻的非彩色设施，结算其入场效果。"
+    },
+    {
+      "id": "building_007",
+      "name": "联邦理事处",
+      "color": "rainbow",
+      "row": 1,
+      "column": 7,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_007_联邦理事处_r01c07.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 4,
+        "源石碎片": 2
+      },
+      "goldVoucherCost": 17,
+      "description": "尽管拓荒队之间各自为政，但依旧在一些方面受制于哥伦比亚当局。",
+      "effect": "唯一；本回合的收尾阶段传递起始标记时，由你获得起始标记。只有本回合最后建造的联邦理事处会生效。",
+      "notes": "效果中的“起始标记”为根据牌面句式与规则语义补全。"
+    },
+    {
+      "id": "building_008",
+      "name": "联邦理事处",
+      "color": "rainbow",
+      "row": 1,
+      "column": 8,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_008_联邦理事处_r01c08.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 4,
+        "源石碎片": 2
+      },
+      "goldVoucherCost": 17,
+      "description": "尽管拓荒队之间各自为政，但依旧在一些方面受制于哥伦比亚当局。",
+      "effect": "唯一；本回合的收尾阶段传递起始标记时，由你获得起始标记。只有本回合最后建造的联邦理事处会生效。",
+      "notes": "效果中的“起始标记”为根据牌面句式与规则语义补全。"
+    },
+    {
+      "id": "building_009",
+      "name": "联邦理事处",
+      "color": "rainbow",
+      "row": 1,
+      "column": 9,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_009_联邦理事处_r01c09.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 4,
+        "源石碎片": 2
+      },
+      "goldVoucherCost": 17,
+      "description": "尽管拓荒队之间各自为政，但依旧在一些方面受制于哥伦比亚当局。",
+      "effect": "唯一；本回合的收尾阶段传递起始标记时，由你获得起始标记。只有本回合最后建造的联邦理事处会生效。",
+      "notes": "效果中的“起始标记”为根据牌面句式与规则语义补全。"
+    },
+    {
+      "id": "building_010",
+      "name": "简陋工程营",
+      "color": "rainbow",
+      "row": 2,
+      "column": 1,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_010_简陋工程营_r02c01.jpg",
+      "score": -1,
+      "resourceCost": {
+        "源岩": 2,
+        "源石碎片": 1
+      },
+      "goldVoucherCost": 8,
+      "description": "“我们提供高规格的防护，有效的抑制剂，并维护工人的个人利益。”",
+      "effect": "唯一；入场时，执行 1 次建设（仍需支付建设费用）。",
+      "effectRaw": "唯一 + 吊车图标。"
+    },
+    {
+      "id": "building_011",
+      "name": "简陋工程营",
+      "color": "rainbow",
+      "row": 2,
+      "column": 2,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_011_简陋工程营_r02c02.jpg",
+      "score": -1,
+      "resourceCost": {
+        "源岩": 2,
+        "源石碎片": 1
+      },
+      "goldVoucherCost": 8,
+      "description": "“我们提供高规格的防护，有效的抑制剂，并维护工人的个人利益。”",
+      "effect": "唯一；入场时，执行 1 次建设（仍需支付建设费用）。",
+      "effectRaw": "唯一 + 吊车图标。"
+    },
+    {
+      "id": "building_012",
+      "name": "物流枢纽",
+      "color": "blue",
+      "row": 2,
+      "column": 3,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_012_物流枢纽_r02c03.jpg",
+      "score": 2,
+      "resourceCost": {
+        "至纯源石": 1,
+        "金券": 2
+      },
+      "goldVoucherCost": 24,
+      "description": "“本城的第一座物流港，愿其能我们开辟一条……”",
+      "effect": "唯一；可以从余下的延伸枢纽中选择 1 张并建设。"
+    },
+    {
+      "id": "building_013",
+      "name": "物流枢纽",
+      "color": "blue",
+      "row": 2,
+      "column": 4,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_013_物流枢纽_r02c04.jpg",
+      "score": 2,
+      "resourceCost": {
+        "至纯源石": 1,
+        "金券": 2
+      },
+      "goldVoucherCost": 24,
+      "description": "“本城的第一座物流港，愿其能我们开辟一条……”",
+      "effect": "唯一；可以从余下的延伸枢纽中选择 1 张并建设。"
+    },
+    {
+      "id": "building_014",
+      "name": "源石精炼厂",
+      "color": "blue",
+      "row": 2,
+      "column": 5,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_014_源石精炼厂_r02c05.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 1,
+        "源石碎片": 1,
+        "异铁": 1
+      },
+      "goldVoucherCost": 10,
+      "description": "现在，移动城市有了跳动的心脏。",
+      "effect": "获得 6 源石碎片。"
+    },
+    {
+      "id": "building_015",
+      "name": "城市化区域",
+      "color": "blue",
+      "row": 2,
+      "column": 6,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_015_城市化区域_r02c06.jpg",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 3,
+        "异铁": 2
+      },
+      "goldVoucherCost": 16,
+      "description": "“哥伦比亚重视开拓与研究，当然也重视在其背后支持的贸易系统。”",
+      "effect": "每有一个与核心指挥塔十字相邻的设施，获得 4 金券。"
+    },
+    {
+      "id": "building_016",
+      "name": "城市化区域",
+      "color": "blue",
+      "row": 2,
+      "column": 7,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_016_城市化区域_r02c07.jpg",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 3,
+        "异铁": 2
+      },
+      "goldVoucherCost": 16,
+      "description": "“哥伦比亚重视开拓与研究，当然也重视在其背后支持的贸易系统。”",
+      "effect": "每有一个与核心指挥塔十字相邻的设施，获得 4 金券。"
+    },
+    {
+      "id": "building_017",
+      "name": "城市化区域",
+      "color": "blue",
+      "row": 2,
+      "column": 8,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_017_城市化区域_r02c08.jpg",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 3,
+        "异铁": 2
+      },
+      "goldVoucherCost": 16,
+      "description": "“哥伦比亚重视开拓与研究，当然也重视在其背后支持的贸易系统。”",
+      "effect": "每有一个与核心指挥塔十字相邻的设施，获得 4 金券。"
+    },
+    {
+      "id": "building_018",
+      "name": "异铁冶炼厂",
+      "color": "blue",
+      "row": 2,
+      "column": 9,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_018_异铁冶炼厂_r02c09.jpg",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 2,
+        "源石碎片": 2,
+        "异铁": 1
+      },
+      "goldVoucherCost": 15,
+      "description": "少有人造物可以像异铁块一样，承受着这片大地的苦难而不变质。",
+      "effect": "获得 4 异铁。"
+    },
+    {
+      "id": "building_019",
+      "name": "贸易街区",
+      "color": "blue",
+      "row": 3,
+      "column": 1,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_019_贸易街区_r03c01.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 1,
+        "异铁": 1
+      },
+      "goldVoucherCost": 6,
+      "description": "“在这不一定能寻到最好的价格，但一定可以解你燃眉之急。”",
+      "effect": "你可以将任何资源用以下单价出售：源岩 3 金券、源石碎片 3 金券、异铁 4 金券、至纯源石 15 金券。"
+    },
+    {
+      "id": "building_020",
+      "name": "贸易街区",
+      "color": "blue",
+      "row": 3,
+      "column": 2,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_020_贸易街区_r03c02.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 1,
+        "异铁": 1
+      },
+      "goldVoucherCost": 6,
+      "description": "“在这不一定能寻到最好的价格，但一定可以解你燃眉之急。”",
+      "effect": "你可以将任何资源用以下单价出售：源岩 3 金券、源石碎片 3 金券、异铁 4 金券、至纯源石 15 金券。"
+    },
+    {
+      "id": "building_021",
+      "name": "贸易街区",
+      "color": "blue",
+      "row": 3,
+      "column": 3,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_021_贸易街区_r03c03.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 1,
+        "异铁": 1
+      },
+      "goldVoucherCost": 6,
+      "description": "“在这不一定能寻到最好的价格，但一定可以解你燃眉之急。”",
+      "effect": "你可以将任何资源用以下单价出售：源岩 3 金券、源石碎片 3 金券、异铁 4 金券、至纯源石 15 金券。"
+    },
+    {
+      "id": "building_022",
+      "name": "城邦工业区",
+      "color": "yellow",
+      "row": 3,
+      "column": 5,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_022_城邦工业区_r03c05.jpg",
+      "score": 2,
+      "resourceCost": {
+        "源岩": 4,
+        "源石碎片": 3,
+        "金券": 2
+      },
+      "goldVoucherCost": 24,
+      "description": "移动城市的优势既非武力，也非经济，而是可以躲避天灾的生产力。",
+      "effect": "你的建筑面板上每有 1 种非彩色的设施，此设施的建筑花费 -1 源岩。"
+    },
+    {
+      "id": "building_023",
+      "name": "城邦工业区",
+      "color": "yellow",
+      "row": 3,
+      "column": 6,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_023_城邦工业区_r03c06.jpg",
+      "score": 2,
+      "resourceCost": {
+        "源岩": 4,
+        "源石碎片": 3,
+        "金券": 2
+      },
+      "goldVoucherCost": 24,
+      "description": "移动城市的优势既非武力，也非经济，而是可以躲避天灾的生产力。",
+      "effect": "你的建筑面板上每有 1 种非彩色的设施，此设施的建筑花费 -1 源岩。"
+    },
+    {
+      "id": "building_024",
+      "name": "城邦工业区",
+      "color": "yellow",
+      "row": 3,
+      "column": 7,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_024_城邦工业区_r03c07.jpg",
+      "score": 2,
+      "resourceCost": {
+        "源岩": 4,
+        "源石碎片": 3,
+        "金券": 2
+      },
+      "goldVoucherCost": 24,
+      "description": "移动城市的优势既非武力，也非经济，而是可以躲避天灾的生产力。",
+      "effect": "你的建筑面板上每有 1 种非彩色的设施，此设施的建筑花费 -1 源岩。"
+    },
+    {
+      "id": "building_025",
+      "name": "高性能动力设施",
+      "color": "yellow",
+      "row": 3,
+      "column": 8,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_025_高性能动力设施_r03c08.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源石碎片": 4,
+        "异铁": 2
+      },
+      "goldVoucherCost": 20,
+      "description": "下层动力区关乎所有人的存亡，有必要对其进行翻修和改良。",
+      "effect": "免费执行牌面航道图标效果：在经过的航道上放置 1 影响力。",
+      "effectRaw": "免费 + 航道箭头图标；在经过的航道上放置 1 影响力。"
+    },
+    {
+      "id": "building_026",
+      "name": "高性能动力设施",
+      "color": "yellow",
+      "row": 3,
+      "column": 9,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_026_高性能动力设施_r03c09.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源石碎片": 4,
+        "异铁": 2
+      },
+      "goldVoucherCost": 20,
+      "description": "下层动力区关乎所有人的存亡，有必要对其进行翻修和改良。",
+      "effect": "免费执行牌面航道图标效果：在经过的航道上放置 1 影响力。",
+      "effectRaw": "免费 + 航道箭头图标；在经过的航道上放置 1 影响力。"
+    },
+    {
+      "id": "building_027",
+      "name": "固源岩提纯厂",
+      "color": "yellow",
+      "row": 4,
+      "column": 1,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_027_固源岩提纯厂_r04c01.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 1,
+        "源石碎片": 1,
+        "异铁": 1
+      },
+      "goldVoucherCost": 10,
+      "description": "假如精炼源石是移动城市不断流动的血液，那提纯源岩便是坚实的肌肉。",
+      "effect": "获得 7 源岩。"
+    },
+    {
+      "id": "building_028",
+      "name": "源石精炼厂",
+      "color": "yellow",
+      "row": 4,
+      "column": 2,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_028_源石精炼厂_r04c02.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 1,
+        "源石碎片": 1,
+        "异铁": 1
+      },
+      "goldVoucherCost": 10,
+      "description": "现在，移动城市有了跳动的心脏。",
+      "effect": "获得 6 源石碎片。"
+    },
+    {
+      "id": "building_029",
+      "name": "开采电铲",
+      "color": "yellow",
+      "row": 4,
+      "column": 3,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_029_开采电铲_r04c03.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源石碎片": 2,
+        "异铁": 1
+      },
+      "goldVoucherCost": 10,
+      "description": "当开采平台发展为移动城市，会有人想起它简陋的过往吗？",
+      "effect": "合计获得 5 个源岩、源石碎片或异铁。"
+    },
+    {
+      "id": "building_030",
+      "name": "开采电铲",
+      "color": "yellow",
+      "row": 4,
+      "column": 4,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_030_开采电铲_r04c04.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源石碎片": 2,
+        "异铁": 1
+      },
+      "goldVoucherCost": 10,
+      "description": "当开采平台发展为移动城市，会有人想起它简陋的过往吗？",
+      "effect": "合计获得 5 个源岩、源石碎片或异铁。"
+    },
+    {
+      "id": "building_031",
+      "name": "开采电铲",
+      "color": "yellow",
+      "row": 4,
+      "column": 5,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_031_开采电铲_r04c05.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源石碎片": 2,
+        "异铁": 1
+      },
+      "goldVoucherCost": 10,
+      "description": "当开采平台发展为移动城市，会有人想起它简陋的过往吗？",
+      "effect": "合计获得 5 个源岩、源石碎片或异铁。"
+    },
+    {
+      "id": "building_032",
+      "name": "异铁冶炼厂",
+      "color": "red",
+      "row": 4,
+      "column": 7,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_032_异铁冶炼厂_r04c07.jpg",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 2,
+        "源石碎片": 2,
+        "异铁": 1
+      },
+      "goldVoucherCost": 15,
+      "description": "少有人造物可以像异铁块一样，承受着这片大地的苦难而不变质。",
+      "effect": "获得 4 异铁。"
+    },
+    {
+      "id": "building_033",
+      "name": "固源岩提纯厂",
+      "color": "red",
+      "row": 4,
+      "column": 8,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_033_固源岩提纯厂_r04c08.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 1,
+        "源石碎片": 1,
+        "异铁": 1
+      },
+      "goldVoucherCost": 10,
+      "description": "假如精炼源石是移动城市不断流动的血液，那提纯源岩便是坚实的肌肉。",
+      "effect": "获得 7 源岩。"
+    },
+    {
+      "id": "building_034",
+      "name": "佣兵指挥部",
+      "color": "red",
+      "row": 4,
+      "column": 9,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_034_佣兵指挥部_r04c09.jpg",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 2,
+        "异铁": 2,
+        "金券": 4
+      },
+      "goldVoucherCost": 18,
+      "description": "“放心，把活儿交给专业的人。”",
+      "effect": "入场时，替换 1 个影响力或放置 1 个影响力。",
+      "effectRaw": "替换 1 个影响力或放置 1 个影响力。"
+    },
+    {
+      "id": "building_035",
+      "name": "佣兵指挥部",
+      "color": "red",
+      "row": 5,
+      "column": 1,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_035_佣兵指挥部_r05c01.jpg",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 2,
+        "异铁": 2,
+        "金券": 4
+      },
+      "goldVoucherCost": 18,
+      "description": "“放心，把活儿交给专业的人。”",
+      "effect": "入场时，替换 1 个影响力或放置 1 个影响力。",
+      "effectRaw": "替换 1 个影响力或放置 1 个影响力。"
+    },
+    {
+      "id": "building_036",
+      "name": "佣兵指挥部",
+      "color": "red",
+      "row": 5,
+      "column": 2,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_036_佣兵指挥部_r05c02.jpg",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 2,
+        "异铁": 2,
+        "金券": 4
+      },
+      "goldVoucherCost": 18,
+      "description": "“放心，把活儿交给专业的人。”",
+      "effect": "入场时，替换 1 个影响力或放置 1 个影响力。",
+      "effectRaw": "替换 1 个影响力或放置 1 个影响力。"
+    },
+    {
+      "id": "building_037",
+      "name": "护航调度中心",
+      "color": "red",
+      "row": 5,
+      "column": 3,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_037_护航调度中心_r05c03.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 2,
+        "源石碎片": 2,
+        "异铁": 2
+      },
+      "goldVoucherCost": 18,
+      "description": "“虽不及高多汀开拓军的前人来得谨慎，但这些新人拓荒者们勇气尚可。”",
+      "effect": "入场时，部署 2 个影响力。",
+      "effectRaw": "部署 2 个影响力。"
+    },
+    {
+      "id": "building_038",
+      "name": "护航调度中心",
+      "color": "red",
+      "row": 5,
+      "column": 4,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_038_护航调度中心_r05c04.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 2,
+        "源石碎片": 2,
+        "异铁": 2
+      },
+      "goldVoucherCost": 18,
+      "description": "“虽不及高多汀开拓军的前人来得谨慎，但这些新人拓荒者们勇气尚可。”",
+      "effect": "入场时，部署 2 个影响力。",
+      "effectRaw": "部署 2 个影响力。"
+    },
+    {
+      "id": "building_039",
+      "name": "载具仓库",
+      "color": "red",
+      "row": 5,
+      "column": 5,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_039_载具仓库_r05c05.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 1,
+        "源石碎片": 2
+      },
+      "goldVoucherCost": 9,
+      "description": "从矿区回收的探索车辆正在进行细致的清洗，等待它的下一任主人。",
+      "effect": "入场时，移除 1 个影响力，然后调度 1 次；或者执行 1 次探索。",
+      "effectRaw": "移除 1 个影响力 + 调度 1 次，或执行 1 次探索。"
+    },
+    {
+      "id": "building_040",
+      "name": "载具仓库",
+      "color": "red",
+      "row": 5,
+      "column": 6,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_040_载具仓库_r05c06.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 1,
+        "源石碎片": 2
+      },
+      "goldVoucherCost": 9,
+      "description": "从矿区回收的探索车辆正在进行细致的清洗，等待它的下一任主人。",
+      "effect": "入场时，移除 1 个影响力，然后调度 1 次；或者执行 1 次探索。",
+      "effectRaw": "移除 1 个影响力 + 调度 1 次，或执行 1 次探索。"
+    },
+    {
+      "id": "building_041",
+      "name": "载具仓库",
+      "color": "red",
+      "row": 5,
+      "column": 7,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/建筑卡片/building_041_载具仓库_r05c07.jpg",
+      "score": 0,
+      "resourceCost": {
+        "源岩": 1,
+        "源石碎片": 2
+      },
+      "goldVoucherCost": 9,
+      "description": "从矿区回收的探索车辆正在进行细致的清洗，等待它的下一任主人。",
+      "effect": "入场时，移除 1 个影响力，然后调度 1 次；或者执行 1 次探索。",
+      "effectRaw": "移除 1 个影响力 + 调度 1 次，或执行 1 次探索。"
+    }
+  ],
+  "reserveCards": [
+    {
+      "id": "reserve_001",
+      "name": "核心指挥塔",
+      "color": "rainbow",
+      "row": 5,
+      "column": 9,
+      "copyCount": 4,
+      "image": "游城拓荒/素材/建设牌输出/备用卡片/core_command_tower_x4_核心指挥塔.jpg",
+      "score": 0,
+      "resourceCost": {},
+      "goldVoucherCost": null,
+      "description": "“起航的第一个信号在塔顶点亮。”",
+      "effect": "唯一。"
+    },
+    {
+      "id": "reserve_002",
+      "name": "延伸枢纽",
+      "color": "blue",
+      "row": 3,
+      "column": 4,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_blue_延伸枢纽.jpg",
+      "score": -1,
+      "resourceCost": {},
+      "goldVoucherCost": null,
+      "description": "……权力与扩张之路。",
+      "effect": "只能通过物流枢纽的入场效果进行建设。"
+    },
+    {
+      "id": "reserve_003",
+      "name": "延伸枢纽",
+      "color": "yellow",
+      "row": 4,
+      "column": 6,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_yellow_延伸枢纽.jpg",
+      "score": -1,
+      "resourceCost": {},
+      "goldVoucherCost": null,
+      "description": "……权力与扩张之路。",
+      "effect": "只能通过物流枢纽的入场效果进行建设。"
+    },
+    {
+      "id": "reserve_004",
+      "name": "延伸枢纽",
+      "color": "red",
+      "row": 5,
+      "column": 8,
+      "copyCount": 1,
+      "image": "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_red_延伸枢纽.jpg",
+      "score": -1,
+      "resourceCost": {},
+      "goldVoucherCost": null,
+      "description": "……权力与扩张之路。",
+      "effect": "只能通过物流枢纽的入场效果进行建设。"
+    }
+  ],
+  "runtimeSupplementalCards": [
+    {
+      "id": "facility_enterprise_office",
+      "name": "企业办事处",
+      "color": "rainbow",
+      "score": 1,
+      "resourceCost": {
+        "源岩": 3,
+        "源石碎片": 3,
+        "异铁": 1
+      },
+      "goldVoucherCost": 23,
+      "description": "",
+      "effect": "",
+      "effectId": "enterprise_office",
+      "effectType": "entry",
+      "hasEntryEffect": false,
+      "keywords": [],
+      "reserveOnly": false,
+      "defaultSupply": false
+    }
+  ],
+  "skippedCards": [
+    {
+      "row": 6,
+      "column": 4,
+      "name": "企业办事处",
+      "reason": "按用户要求暂不记录"
+    },
+    {
+      "row": 6,
+      "column": 5,
+      "name": "企业办事处",
+      "reason": "按用户要求暂不记录"
+    },
+    {
+      "row": 6,
+      "column": 6,
+      "name": "企业办事处",
+      "reason": "按用户要求暂不记录"
+    }
+  ],
+  "notes": [
+    "resourceCost 表示牌面 or 上方的资源/混合成本；goldVoucherCost 表示 or 下方的纯金券成本。",
+    "红色设施的影响力图标已按部署、调度、移除术语复核，不属于企业等级效果。",
+    "3 张企业办事处按用户要求暂不记录。"
+  ]
+}

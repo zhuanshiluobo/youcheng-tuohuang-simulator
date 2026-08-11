@@ -1,0 +1,828 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f4e78c3a1d24c2f9b7e5160d8a3c642, type: 3}
+  m_Name: EventChoiceDialogLayoutProfile
+  m_EditorClassIdentifier: 
+  sourceManifestSha256: 0594CCEF465B749522FB09747D601645D65B69958495DA7FAF0DB02D2FB64760
+  values:
+    PanelLayout:
+      AnchorMin: {x: 0.5, y: 0.5}
+      AnchorMax: {x: 0.5, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 760, y: 500}
+      AnchoredPosition: {x: 0, y: -30}
+    PanelOutlineDistance: {x: 3, y: -3}
+    OverlayAlpha: 0.5
+    EventOverlayRaycastTarget: 0
+    ExplorePathOverlayRaycastTarget: 1
+    ExplorePaymentOverlayRaycastTarget: 1
+    ResourcePaymentOverlayRaycastTarget: 0
+    BuildFocusOverlayRaycastTarget: 1
+    BuildConfirmationOverlayRaycastTarget: 1
+    LegacyCityStyleOverlayRaycastTarget: 1
+    CharacterOverlayRaycastTarget: 1
+    EventCardPanelWidth: 760
+    EventCardPanelPosition: {x: 0, y: -40}
+    EventCardCollapsedHeight: 58
+    EventCardTopPadding: 8
+    EventCardTitleMetadataGap: 2
+    EventCardMetadataDescriptionGap: 8
+    EventCardDescriptionWidthRatio: 0.88
+    EventCardDescriptionMinHeight: 84
+    EventCardChoiceStep: 72
+    EventCardPaymentRowStep: 54
+    EventCardPaymentFirstRowGap: 24
+    EventCardNoPaymentChoiceGap: 22
+    EventCardPaymentChoiceGap: 10
+    EventCardToggleButtonTopGap: 22
+    EventCardToggleButtonTopInset: 38
+    EventTitleLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 60}
+      AnchoredPosition: {x: 0, y: -38}
+    EventTitleTextStyle:
+      FontSize: 31
+      ResizeMinSize: 24
+      ResizeMaxSize: 31
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    EventMetadataLayout:
+      AnchorMin: {x: 0.06, y: 1}
+      AnchorMax: {x: 0.94, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 31}
+      AnchoredPosition: {x: 0, y: -85.5}
+    EventMetadataTextStyle:
+      FontSize: 18
+      ResizeMinSize: 14
+      ResizeMaxSize: 18
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    EventDescriptionLayout:
+      AnchorMin: {x: 0.06, y: 1}
+      AnchorMax: {x: 0.94, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 84}
+      AnchoredPosition: {x: 0, y: -151}
+    EventDescriptionTextStyle:
+      FontSize: 23
+      ResizeMinSize: 15
+      ResizeMaxSize: 23
+      FontStyle: 0
+      Alignment: 0
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    CollapsedSummaryLayout:
+      AnchorMin: {x: 0.06, y: 1}
+      AnchorMax: {x: 0.74, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 42}
+      AnchoredPosition: {x: 0, y: -26}
+    CollapsedSummaryTextStyle:
+      FontSize: 18
+      ResizeMinSize: 12
+      ResizeMaxSize: 18
+      FontStyle: 1
+      Alignment: 3
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    CollapseButtonLayout:
+      AnchorMin: {x: 0.5, y: 0}
+      AnchorMax: {x: 0.5, y: 0}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 220, y: 32}
+      AnchoredPosition: {x: 0, y: 22}
+    CollapseButtonStyle:
+      LabelStyle:
+        FontSize: 14
+        ResizeMinSize: 12
+        ResizeMaxSize: 14
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    CollapseIconLayout:
+      AnchorMin: {x: 0, y: 0.5}
+      AnchorMax: {x: 0, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 16, y: 16}
+      AnchoredPosition: {x: 18, y: 0}
+    ExplorePathPanelWidth: 820
+    ExplorePathPanelBaseHeight: 126
+    ExplorePathPanelRowStep: 62
+    ExplorePathPanelPosition: {x: 0, y: -30}
+    ExplorePathFirstRowOffset: 88
+    ExplorePathTitleLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 46}
+      AnchoredPosition: {x: 0, y: -30}
+    ExplorePathTitleTextStyle:
+      FontSize: 22
+      ResizeMinSize: 22
+      ResizeMaxSize: 22
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    ExplorePaymentPanelWidth: 760
+    ExplorePaymentPanelBaseHeight: 160
+    ExplorePaymentPanelRowStep: 54
+    ExplorePaymentPanelPosition: {x: 0, y: -30}
+    ExplorePaymentFirstRouteOffset: 204
+    ExplorePaymentConfirmBaseOffset: 114
+    ExplorePaymentTitleLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 46}
+      AnchoredPosition: {x: 0, y: -30}
+    ExplorePaymentTitleTextStyle:
+      FontSize: 22
+      ResizeMinSize: 22
+      ResizeMaxSize: 22
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    ResourcePaymentPanelWidth: 620
+    ResourcePaymentPanelBaseHeight: 144
+    ResourcePaymentPanelRowStep: 56
+    ResourcePaymentPanelPosition: {x: 0, y: -30}
+    ResourcePaymentFirstRowOffset: 120
+    ResourcePaymentTitleLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 46}
+      AnchoredPosition: {x: 0, y: -30}
+    ResourcePaymentTitleTextStyle:
+      FontSize: 22
+      ResizeMinSize: 18
+      ResizeMaxSize: 22
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    ResourceReceiverLayout:
+      AnchorMin: {x: 0.06, y: 1}
+      AnchorMax: {x: 0.94, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 34}
+      AnchoredPosition: {x: 0, y: -74}
+    ResourceReceiverTextStyle:
+      FontSize: 15
+      ResizeMinSize: 12
+      ResizeMaxSize: 15
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    ResourceBankButtonLayout:
+      AnchorMin: {x: 0.12, y: 1}
+      AnchorMax: {x: 0.88, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 42}
+      AnchoredPosition: {x: 0, y: -120}
+    ResourceBankButtonStyle:
+      LabelStyle:
+        FontSize: 16
+        ResizeMinSize: 13
+        ResizeMaxSize: 16
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    ManualCloseButtonLayout:
+      AnchorMin: {x: 1, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 40, y: 34}
+      AnchoredPosition: {x: -28, y: -26}
+    ManualCloseButtonStyle:
+      LabelStyle:
+        FontSize: 16
+        ResizeMinSize: 12
+        ResizeMaxSize: 16
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    BuildFacilityFocusPanelSize: {x: 900, y: 590}
+    BuildFacilityFocusPanelPosition: {x: 0, y: -20}
+    BuildFocusTitleLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 54}
+      AnchoredPosition: {x: 0, y: -36}
+    BuildFocusTitleTextStyle:
+      FontSize: 28
+      ResizeMinSize: 20
+      ResizeMaxSize: 28
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    FacilityPreviewContainerLayout:
+      AnchorMin: {x: 0.05, y: 0.08}
+      AnchorMax: {x: 0.43, y: 0.88}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 0}
+      AnchoredPosition: {x: 0, y: 0}
+    BuildFocusDetailsLayout:
+      AnchorMin: {x: 0.46, y: 1}
+      AnchorMax: {x: 0.94, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 218}
+      AnchoredPosition: {x: 0, y: -186}
+    BuildFocusDetailsTextStyle:
+      FontSize: 18
+      ResizeMinSize: 14
+      ResizeMaxSize: 20
+      FontStyle: 1
+      Alignment: 0
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    BuildResourceButtonLayout:
+      AnchorMin: {x: 0.48, y: 1}
+      AnchorMax: {x: 0.7, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 66}
+      AnchoredPosition: {x: 0, y: -350}
+    BuildResourceButtonStyle:
+      LabelStyle:
+        FontSize: 16
+        ResizeMinSize: 12
+        ResizeMaxSize: 18
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    BuildResourceReasonLayout:
+      AnchorMin: {x: 0.47, y: 1}
+      AnchorMax: {x: 0.71, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 42}
+      AnchoredPosition: {x: 0, y: -405}
+    BuildResourceReasonTextStyle:
+      FontSize: 13
+      ResizeMinSize: 11
+      ResizeMaxSize: 13
+      FontStyle: 0
+      Alignment: 1
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    BuildGoldButtonLayout:
+      AnchorMin: {x: 0.72, y: 1}
+      AnchorMax: {x: 0.94, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 66}
+      AnchoredPosition: {x: 0, y: -350}
+    BuildGoldButtonStyle:
+      LabelStyle:
+        FontSize: 16
+        ResizeMinSize: 12
+        ResizeMaxSize: 18
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    BuildGoldReasonLayout:
+      AnchorMin: {x: 0.71, y: 1}
+      AnchorMax: {x: 0.95, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 42}
+      AnchoredPosition: {x: 0, y: -405}
+    BuildGoldReasonTextStyle:
+      FontSize: 13
+      ResizeMinSize: 11
+      ResizeMaxSize: 13
+      FontStyle: 0
+      Alignment: 1
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    BuildFocusErrorLayout:
+      AnchorMin: {x: 0.46, y: 0}
+      AnchorMax: {x: 0.96, y: 0}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 44}
+      AnchoredPosition: {x: 0, y: 92}
+    BuildFocusErrorTextStyle:
+      FontSize: 15
+      ResizeMinSize: 12
+      ResizeMaxSize: 15
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    BuildFacilityConfirmationPanelSize: {x: 720, y: 500}
+    BuildFacilityConfirmationPanelPosition: {x: 0, y: -20}
+    BuildConfirmationTitleLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 56}
+      AnchoredPosition: {x: 0, y: -38}
+    BuildConfirmationTitleTextStyle:
+      FontSize: 26
+      ResizeMinSize: 20
+      ResizeMaxSize: 26
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    BuildConfirmationSummaryLayout:
+      AnchorMin: {x: 0.1, y: 1}
+      AnchorMax: {x: 0.9, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 270}
+      AnchoredPosition: {x: 0, y: -205}
+    BuildConfirmationSummaryTextStyle:
+      FontSize: 20
+      ResizeMinSize: 15
+      ResizeMaxSize: 21
+      FontStyle: 1
+      Alignment: 0
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    BuildConfirmationErrorLayout:
+      AnchorMin: {x: 0.1, y: 0}
+      AnchorMax: {x: 0.9, y: 0}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 54}
+      AnchoredPosition: {x: 0, y: 128}
+    BuildConfirmationErrorTextStyle:
+      FontSize: 16
+      ResizeMinSize: 12
+      ResizeMaxSize: 16
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    BuildBackButtonLayout:
+      AnchorMin: {x: 0.12, y: 0}
+      AnchorMax: {x: 0.42, y: 0}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 54}
+      AnchoredPosition: {x: 0, y: 54}
+    BuildBackButtonStyle:
+      LabelStyle:
+        FontSize: 18
+        ResizeMinSize: 14
+        ResizeMaxSize: 20
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    BuildConfirmButtonLayout:
+      AnchorMin: {x: 0.58, y: 0}
+      AnchorMax: {x: 0.88, y: 0}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 54}
+      AnchoredPosition: {x: 0, y: 54}
+    BuildConfirmButtonStyle:
+      LabelStyle:
+        FontSize: 18
+        ResizeMinSize: 14
+        ResizeMaxSize: 20
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    BuildCloseButtonLayout:
+      AnchorMin: {x: 1, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 1, y: 1}
+      SizeDelta: {x: 42, y: 42}
+      AnchoredPosition: {x: -18, y: -12}
+    BuildCloseButtonStyle:
+      LabelStyle:
+        FontSize: 30
+        ResizeMinSize: 12
+        ResizeMaxSize: 30
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 8, y: 0}
+      LabelOffsetMax: {x: -8, y: 0}
+      OutlineDistance: {x: 2, y: -2}
+      LabelHasOutline: 1
+      LabelOutlineDistance: {x: 1, y: -1}
+    LegacyCityStylePanelWidth: 880
+    LegacyCityStylePanelBaseHeight: 136
+    LegacyCityStylePanelRowStep: 70
+    LegacyCityStylePanelPosition: {x: 0, y: -30}
+    LegacyCityStyleFirstRowOffset: 106
+    LegacyCityStyleTitleLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 44}
+      AnchoredPosition: {x: 0, y: -30}
+    LegacyCityStyleTitleTextStyle:
+      FontSize: 22
+      ResizeMinSize: 18
+      ResizeMaxSize: 22
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    LegacyCityStyleEmptyLayout:
+      AnchorMin: {x: 0.08, y: 1}
+      AnchorMax: {x: 0.92, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 42}
+      AnchoredPosition: {x: 0, y: -112}
+    LegacyCityStyleEmptyTextStyle:
+      FontSize: 16
+      ResizeMinSize: 12
+      ResizeMaxSize: 16
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    CharacterSecondEffectPanelSize: {x: 620, y: 290}
+    CharacterSecondEffectPanelPosition: {x: 0, y: 0}
+    CharacterTitleLayout:
+      AnchorMin: {x: 0.5, y: 0.5}
+      AnchorMax: {x: 0.5, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 540, y: 56}
+      AnchoredPosition: {x: 0, y: 82}
+    CharacterTitleTextStyle:
+      FontSize: 30
+      ResizeMinSize: 20
+      ResizeMaxSize: 30
+      FontStyle: 1
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    CharacterDescriptionLayout:
+      AnchorMin: {x: 0.5, y: 0.5}
+      AnchorMax: {x: 0.5, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 530, y: 70}
+      AnchoredPosition: {x: 0, y: 22}
+    CharacterDescriptionTextStyle:
+      FontSize: 20
+      ResizeMinSize: 15
+      ResizeMaxSize: 20
+      FontStyle: 0
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    CharacterContinueButtonLayout:
+      AnchorMin: {x: 0.5, y: 0.5}
+      AnchorMax: {x: 0.5, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 230, y: 58}
+      AnchoredPosition: {x: -132, y: -78}
+    CharacterContinueButtonStyle:
+      LabelStyle:
+        FontSize: 20
+        ResizeMinSize: 14
+        ResizeMaxSize: 20
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    CharacterFinishButtonLayout:
+      AnchorMin: {x: 0.5, y: 0.5}
+      AnchorMax: {x: 0.5, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 230, y: 58}
+      AnchoredPosition: {x: 132, y: -78}
+    CharacterFinishButtonStyle:
+      LabelStyle:
+        FontSize: 20
+        ResizeMinSize: 14
+        ResizeMaxSize: 20
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    ChoiceRowTemplateLayout:
+      AnchorMin: {x: 0.05, y: 1}
+      AnchorMax: {x: 0.95, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 62}
+      AnchoredPosition: {x: 0, y: 0}
+    ChoiceRowButtonStyle:
+      LabelStyle:
+        FontSize: 15
+        ResizeMinSize: 12
+        ResizeMaxSize: 15
+        FontStyle: 1
+        Alignment: 3
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    PathRowTemplateLayout:
+      AnchorMin: {x: 0.05, y: 1}
+      AnchorMax: {x: 0.95, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 50}
+      AnchoredPosition: {x: 0, y: 0}
+    PathRowButtonStyle:
+      LabelStyle:
+        FontSize: 14
+        ResizeMinSize: 11
+        ResizeMaxSize: 14
+        FontStyle: 1
+        Alignment: 3
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    ExploreConfirmTemplateLayout:
+      AnchorMin: {x: 0.5, y: 1}
+      AnchorMax: {x: 0.5, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 220, y: 42}
+      AnchoredPosition: {x: 0, y: 0}
+    ExploreConfirmButtonStyle:
+      LabelStyle:
+        FontSize: 15
+        ResizeMinSize: 15
+        ResizeMaxSize: 15
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    ResourceRecipientTemplateLayout:
+      AnchorMin: {x: 0.12, y: 1}
+      AnchorMax: {x: 0.88, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 42}
+      AnchoredPosition: {x: 0, y: 0}
+    ResourceRecipientButtonStyle:
+      LabelStyle:
+        FontSize: 15
+        ResizeMinSize: 12
+        ResizeMaxSize: 15
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    LegacyCityStyleTemplateLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 70}
+      AnchoredPosition: {x: 0, y: 0}
+    LegacyCityStyleSummaryLayout:
+      AnchorMin: {x: 0.06, y: 0.5}
+      AnchorMax: {x: 0.64, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 50}
+      AnchoredPosition: {x: 0, y: 0}
+    LegacyCityStyleSummaryTextStyle:
+      FontSize: 14
+      ResizeMinSize: 10
+      ResizeMaxSize: 14
+      FontStyle: 1
+      Alignment: 3
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    LegacyCityStyleReasonLayout:
+      AnchorMin: {x: 0.66, y: 0.5}
+      AnchorMax: {x: 0.82, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 46}
+      AnchoredPosition: {x: 0, y: 0}
+    LegacyCityStyleReasonTextStyle:
+      FontSize: 13
+      ResizeMinSize: 10
+      ResizeMaxSize: 13
+      FontStyle: 0
+      Alignment: 4
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    LegacyCityStyleDeclareLayout:
+      AnchorMin: {x: 0.84, y: 0.5}
+      AnchorMax: {x: 0.94, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 40}
+      AnchoredPosition: {x: 0, y: 0}
+    LegacyCityStyleDeclareButtonStyle:
+      LabelStyle:
+        FontSize: 13
+        ResizeMinSize: 10
+        ResizeMaxSize: 13
+        FontStyle: 1
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 12, y: 0}
+      LabelOffsetMax: {x: -12, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    PaymentRouteTemplateLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 40}
+      AnchoredPosition: {x: 0, y: 0}
+    PaymentRouteLabelLayout:
+      AnchorMin: {x: 0.06, y: 0}
+      AnchorMax: {x: 0.34, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 0}
+      AnchoredPosition: {x: 0, y: 0}
+    PaymentRouteLabelTextStyle:
+      FontSize: 14
+      ResizeMinSize: 11
+      ResizeMaxSize: 14
+      FontStyle: 0
+      Alignment: 3
+      HorizontalOverflow: 0
+      VerticalOverflow: 0
+      ResizeTextForBestFit: 1
+      RaycastTarget: 1
+    PaymentRecipientTemplateLayout:
+      AnchorMin: {x: 0.36, y: 0.5}
+      AnchorMax: {x: 0.94, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 34}
+      AnchoredPosition: {x: 0, y: 0}
+    PaymentRecipientButtonStyle:
+      LabelStyle:
+        FontSize: 13
+        ResizeMinSize: 10
+        ResizeMaxSize: 13
+        FontStyle: 0
+        Alignment: 4
+        HorizontalOverflow: 0
+        VerticalOverflow: 0
+        ResizeTextForBestFit: 1
+        RaycastTarget: 1
+      LabelOffsetMin: {x: 8, y: 0}
+      LabelOffsetMax: {x: -8, y: 0}
+      OutlineDistance: {x: 1, y: -1}
+      LabelHasOutline: 0
+      LabelOutlineDistance: {x: 0, y: 0}
+    PaymentRecipientFirstOffsetX: 0
+    PaymentRecipientStepX: 110
+    TextCharacterWidthScale: 0.95
+    TextMinimumLineCount: 2
+    TextLineHeightScale: 1.18
+    TextExtraHeight: 8
+    TextNewlineWeight: 30
+    TextWhitespaceWeight: 0.35
+    TextAsciiWeight: 0.55
+    TextNonAsciiWeight: 1

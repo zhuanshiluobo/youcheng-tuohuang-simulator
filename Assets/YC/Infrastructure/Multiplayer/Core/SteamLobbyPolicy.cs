@@ -10,6 +10,8 @@ namespace YC.Infrastructure.Multiplayer
         public const string ProtocolVersion = "2";
         public const string WaitingStatus = "waiting";
         public const string StartedStatus = "started";
+        public const string SessionKindKey = "sessionKind";
+        public const string TwoPlayerValidationSessionKind = "steam_two_player_validation";
 
         public static bool TryParseLobbyId(string value, out ulong lobbyId)
         {
@@ -39,7 +41,7 @@ namespace YC.Infrastructure.Multiplayer
 
             if (!data.TryGetValue("playerCount", out var value) ||
                 !int.TryParse(value, out var actualPlayerCount) ||
-                (actualPlayerCount != 3 && actualPlayerCount != 4) ||
+                !IsSupportedRoomConfiguration(data, actualPlayerCount) ||
                 (requestedPlayerCount > 0 && requestedPlayerCount != actualPlayerCount))
             {
                 reason = "房间人数配置不匹配。";
@@ -55,6 +57,24 @@ namespace YC.Infrastructure.Multiplayer
             }
 
             return true;
+        }
+
+        public static bool IsTwoPlayerValidationRoom(
+            IReadOnlyDictionary<string, string> data,
+            int playerCount)
+        {
+            return playerCount == 2 &&
+                   data != null &&
+                   Has(data, SessionKindKey, TwoPlayerValidationSessionKind);
+        }
+
+        private static bool IsSupportedRoomConfiguration(
+            IReadOnlyDictionary<string, string> data,
+            int playerCount)
+        {
+            return playerCount == 3 ||
+                   playerCount == 4 ||
+                   IsTwoPlayerValidationRoom(data, playerCount);
         }
 
         public static string SeatKey(int playerId)

@@ -1,12 +1,15 @@
 using System;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace YC.Tests.EditMode
 {
     public sealed class GameSettingsMenuControllerTests
     {
+        private const string PrefabPath = "Assets/YC/Presentation/Prefabs/GameSettings/GameSettingsMenu.prefab";
+
         private GameObject root;
         private Component controller;
 
@@ -16,9 +19,13 @@ namespace YC.Tests.EditMode
             var type = Type.GetType("YC.Presentation.GameSettingsMenuController, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.GameSettingsMenuController.");
 
-            root = new GameObject("GameSettingsMenuControllerTests");
-            controller = root.AddComponent(type);
-            EnsureAwakeRan(controller, "canvasTransform");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            Assert.That(prefab, Is.Not.Null, "Missing editor-authored settings prefab.");
+            root = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            Assert.That(root, Is.Not.Null);
+            controller = root.GetComponent(type);
+            Assert.That(controller, Is.Not.Null);
+            EnsureAwakeRan(controller);
         }
 
         [TearDown]
@@ -30,7 +37,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void HandleEscapePressed_WhenClosed_OpensSettingsOverlay()
         {
-            var overlay = root.transform.Find("Settings Menu Canvas/Settings Overlay");
+            var overlay = root.transform.Find("Game Settings Canvas/Settings Overlay");
 
             InvokePublic(controller, "HandleEscapePressed");
 
@@ -64,9 +71,9 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void BuildUi_DoesNotCreateHintCardButton()
+        public void Prefab_DoesNotContainHintCardButton()
         {
-            var hintButton = root.transform.Find("Settings Menu Canvas/Hint Card Button");
+            var hintButton = root.transform.Find("Game Settings Canvas/Hint Card Button");
             Assert.That(hintButton, Is.Null);
         }
 
@@ -75,9 +82,11 @@ namespace YC.Tests.EditMode
         {
             var viewerType = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", false);
             Assert.That(viewerType, Is.Not.Null);
-            var viewerObject = new GameObject("Open Image Viewer");
+            var viewerObject = ViewerPrefabTestUtility.Instantiate(
+                ViewerPrefabTestUtility.ZoomablePrefabPath);
+            viewerObject.name = "Open Image Viewer";
             viewerObject.transform.SetParent(root.transform, false);
-            var viewer = viewerObject.AddComponent(viewerType);
+            var viewer = viewerObject.GetComponent(viewerType);
             var texture = new Texture2D(32, 32);
 
             var configure = viewerType.GetMethod("Configure", BindingFlags.Instance | BindingFlags.Public);
@@ -107,11 +116,11 @@ namespace YC.Tests.EditMode
             Assert.That(GetPublicProperty<bool>(controller, "IsOpen"), Is.False);
         }
 
-        private static void EnsureAwakeRan(Component component, string readyFieldName)
+        private static void EnsureAwakeRan(Component component)
         {
-            var field = component.GetType().GetField(readyFieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            var field = component.GetType().GetField("initialized", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(field, Is.Not.Null);
-            if (field.GetValue(component) != null)
+            if ((bool)field.GetValue(component))
             {
                 return;
             }

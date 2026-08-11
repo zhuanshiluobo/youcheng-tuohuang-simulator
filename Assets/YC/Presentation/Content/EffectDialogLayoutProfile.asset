@@ -1,0 +1,154 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c4caac71fb244d3b90ed6791229115d, type: 3}
+  m_Name: EffectDialogLayoutProfile
+  m_EditorClassIdentifier: 
+  sourceManifestSha256: 84988DCACCEE2575064C8BCAE1A4FD1D5EB533F993E31122397FF1EA9A9AF7BB
+  values:
+    OverlayColor: {r: 0, g: 0, b: 0, a: 0.22}
+    PanelLayout:
+      AnchorMin: {x: 0.5, y: 0.5}
+      AnchorMax: {x: 0.5, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 660, y: 600}
+      AnchoredPosition: {x: 0, y: 0}
+    PanelOutlineDistance: {x: 2, y: -2}
+    TitleLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: -40, y: 52}
+      AnchoredPosition: {x: 0, y: -34}
+    DescriptionLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: -70, y: 70}
+      AnchoredPosition: {x: 0, y: -92}
+    CollapsedSummaryLayout:
+      AnchorMin: {x: 0.06, y: 1}
+      AnchorMax: {x: 0.72, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 42}
+      AnchoredPosition: {x: 0, y: -29}
+    CollapsedToggleLayout:
+      AnchorMin: {x: 1, y: 0.5}
+      AnchorMax: {x: 1, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 126, y: 34}
+      AnchoredPosition: {x: -76, y: 0}
+    ExpandedToggleLayout:
+      AnchorMin: {x: 0.5, y: 0}
+      AnchorMax: {x: 0.5, y: 0}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 220, y: 32}
+      AnchoredPosition: {x: 0, y: 22}
+    CollapseIconLayout:
+      AnchorMin: {x: 0, y: 0.5}
+      AnchorMax: {x: 0, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 16, y: 16}
+      AnchoredPosition: {x: 18, y: 0}
+    CollapsedHeight: 58
+    CollapsedOverlayColor: {r: 0, g: 0, b: 0, a: 0}
+    CollapsedOverlayRaycastTarget: 0
+    OptionScrollLayout:
+      AnchorMin: {x: 0.06, y: 0}
+      AnchorMax: {x: 0.94, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      OffsetMin: {x: 0, y: 34}
+      OffsetMax: {x: 0, y: -142}
+    ResourceSummaryLayout:
+      AnchorMin: {x: 0.08, y: 0}
+      AnchorMax: {x: 0.92, y: 0}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 42}
+      AnchoredPosition: {x: 0, y: 94}
+    ResourceRowAnchor: {x: 0, y: 1}
+    ResourceDecreaseButtonSize: {x: 58, y: 44}
+    ResourceValueSize: {x: 74, y: 44}
+    ResourceIncreaseButtonSize: {x: 58, y: 44}
+    BottomCenterAnchor: {x: 0.5, y: 0}
+    ResourceCancelButtonPosition: {x: 125, y: 34}
+    ActionButtonSize: {x: 220, y: 48}
+    CharacterOptionsPanelBaseSize: {x: 680, y: 218}
+    CharacterOptionsRowHeight: 62
+    CharacterOptionsPanelMinHeight: 330
+    CharacterOptionsPanelMaxHeight: 610
+    CharacterPanelPosition: {x: 0, y: 0}
+    CharacterOptionsDescriptionHeight: 72
+    CharacterOptionsScrollTop: 142
+    CharacterOptionsScrollBottom: 28
+    CharacterOptionsScrollBottomWithCancel: 82
+    CharacterOptionsCancelButtonLayout:
+      AnchorMin: {x: 0.5, y: 0}
+      AnchorMax: {x: 0.5, y: 0}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 180, y: 44}
+      AnchoredPosition: {x: 0, y: 28}
+    CharacterResourceSalePanelSize: {x: 690, y: 570}
+    CharacterResourceSaleRowStartY: -166
+    SpecialActionPaymentPanelSize: {x: 650, y: 500}
+    SpecialActionPaymentPanelPosition: {x: 0, y: 0}
+    SpecialActionMapPromptPanelSize: {x: 650, y: 260}
+    ExtensionHubPanelSize: {x: 520, y: 360}
+    ExtensionHubDescriptionHeight: 58
+    ExtensionHubCardAnchor: {x: 0.5, y: 1}
+    ExtensionHubCardSize: {x: 99, y: 141}
+    ExtensionHubCardGap: 28
+    ExtensionHubCardY: -205
+    FacilityCardOutlineDistance: {x: 2, y: -2}
+    FacilityCardImageLayout:
+      AnchorMin: {x: 0, y: 0}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      OffsetMin: {x: 3, y: 3}
+      OffsetMax: {x: -3, y: -3}
+    FacilityCardFallbackLayout:
+      AnchorMin: {x: 0, y: 0}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      OffsetMin: {x: 0, y: 0}
+      OffsetMax: {x: 0, y: 0}
+    ExtensionHubSkipButtonLayout:
+      AnchorMin: {x: 0.5, y: 0}
+      AnchorMax: {x: 0.5, y: 0}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 220, y: 48}
+      AnchoredPosition: {x: 0, y: 34}
+    OptionsPanelSize: {x: 660, y: 600}
+    OptionsScrollTop: 142
+    OptionsScrollBottom: 34
+    OptionsScrollBottomWithBack: 82
+    CollapsibleOptionsExtraBottom: 20
+    CollapsibleOptionsExtraBottomWithBack: 54
+    OptionsBackButtonSize: {x: 180, y: 44}
+    OptionsBackButtonNormalY: 28
+    OptionsBackButtonCollapsibleY: 76
+    ResourceAllocationPanelSize: {x: 650, y: 560}
+    ResourceLabelWidth: 230
+    ResourceLabelHeight: 48
+    ResourceLabelX: 145
+    ResourceDecreaseX: 320
+    ResourceValueX: 390
+    ResourceIncreaseX: 460
+    MapPromptPanelWidth: 650
+    MapPromptPanelHeight: 210
+    CollapsibleMapPromptPanelHeight: 260
+    MapPromptPanelPosition: {x: 0, y: 310}
+    MapPromptDescriptionHeight: 74
+    MapPrimaryButtonSize: {x: 220, y: 42}
+    MapBackButtonSize: {x: 180, y: 42}
+    MapPrimaryWithBackX: -120
+    MapBackWithPrimaryX: 130
+    MapButtonNormalY: 26
+    MapButtonCollapsibleY: 68

@@ -22,8 +22,13 @@ namespace YC.Presentation
     public sealed partial class MobileCityInteractionController : MonoBehaviour
     {
         [SerializeField] private SpriteRenderer mapRenderer;
+        [SerializeField] private MapView mapViewBinding;
         [SerializeField] private Camera targetCamera;
         [SerializeField] private bool debugClicks;
+        [SerializeField] private GameSettingsMenuController settingsMenu;
+        [SerializeField] private GameplayInteractionHudView gameplayInteractionHud;
+        [SerializeField] private ExpandableInfoPanel infoPanel;
+        [SerializeField] private BuildInfoPanel buildInfoPanel;
 
         private GameSession session;
         private MapQueryService mapQuery;
@@ -43,9 +48,7 @@ namespace YC.Presentation
         private CommandGateway commandGateway;
         private MobileCityWorkflowViewAdapter workflowView;
         private MapInteractionRouter mapInteractionRouter;
-        private ExpandableInfoPanel infoPanel;
-        private BuildInfoPanel buildInfoPanel;
-        private readonly EventChoiceDialog eventChoiceDialog = new EventChoiceDialog();
+        private EventChoiceDialog eventChoiceDialog;
         private MapViewPresenter mapView;
         private Canvas uiCanvas;
         private ActionPanelController actionPanel;
@@ -60,7 +63,7 @@ namespace YC.Presentation
         private CharacterCardCoverDragCoordinator characterCardCoverDrag;
         private int lastPresentedGameLogSequence;
         private BuildFacilityInteractionUiCoordinator buildFacilityInteraction;
-        private readonly FacilityEffectChoiceDialog facilityEffectChoiceDialog = new FacilityEffectChoiceDialog();
+        private FacilityEffectChoiceDialog facilityEffectChoiceDialog;
         private FacilityEffectInteractionUiCoordinator facilityEffectInteraction;
         private SpecialActionInteractionUiCoordinator specialActionInteraction;
 
@@ -71,13 +74,44 @@ namespace YC.Presentation
             turnActionPresenter != null && turnActionPresenter.CanEndCurrentAction();
 
         public void EndCurrentAction() => turnActionPresenter?.EndCurrentAction();
-
         private void Awake()
         {
-            if (mapRenderer == null)
+            if (!GameplayInteractionHudView.TryValidateSceneBinding(
+                    gameplayInteractionHud,
+                    this,
+                    infoPanel,
+                    buildInfoPanel,
+                    out var hudReason))
             {
-                mapRenderer = GetComponent<SpriteRenderer>();
+                Debug.LogError("[MobileCityInteractionController] 交互 HUD 配置无效：" + hudReason, this);
+                enabled = false; return;
             }
+
+            var cardVisualCatalog = gameplayInteractionHud.DialogRegistry.CardVisualCatalog;
+            if (!infoPanel.ConfigureCardVisualCatalog(cardVisualCatalog) ||
+                !buildInfoPanel.ConfigureCardVisualCatalog(cardVisualCatalog) ||
+                !infoPanel.Bind(infoPanel.View) ||
+                !buildInfoPanel.Bind(buildInfoPanel.View))
+            {
+                Debug.LogError("[MobileCityInteractionController] 信息面板固定 View 绑定失败。", this);
+                enabled = false;
+                return;
+            }
+
+            eventChoiceDialog = new EventChoiceDialog(
+                gameplayInteractionHud.DialogRegistry,
+                GetUiCanvasTransform);
+
+            buildInfoPanel.CityStyleClicked += OnBuildInfoCityStyleClicked;
+
+            if (mapViewBinding == null)
+            {
+                Debug.LogError("[MobileCityInteractionController] 缺少固定 MapView 场景引用。", this);
+                enabled = false;
+                return;
+            }
+
+            mapRenderer = mapViewBinding.MapRenderer;
 
             if (targetCamera == null)
             {
@@ -98,6 +132,7 @@ namespace YC.Presentation
                 () => session == null ? null : session.State,
                 () => localPlayerId,
                 GetUiCanvasTransform,
+                gameplayInteractionHud.DialogRegistry,
                 () => mapView,
                 mapQuery,
                 eventChoiceDialog,
@@ -148,8 +183,14 @@ namespace YC.Presentation
                 influenceActionPresenter,
                 explorationEventPresenter,
                 turnActionPresenter);
-            mapView = new MapViewPresenter(this, transform, mapRenderer, mapQuery, influenceService);
-            mapView.BuildViews();
+            mapView = new MapViewPresenter(this, mapViewBinding, mapQuery, influenceService);
+            string mapViewReason;
+            if (!mapView.BuildViews(out mapViewReason))
+            {
+                Debug.LogError("[MobileCityInteractionController] 地图固定 View 绑定失败：" + mapViewReason, this);
+                enabled = false;
+                return;
+            }
             mapInteractionRouter = new MapInteractionRouter(
                 () => mapView,
                 () => targetCamera,
@@ -167,16 +208,20 @@ namespace YC.Presentation
                 RefreshInfluenceDisplay);
             RefreshResourceTokenDisplay();
             RefreshInfluenceDisplay();
-            BuildPromptPresenter();
-            BuildActionPanel();
-            EnsureInfoPanel();
-            EnsureBuildInfoPanel();
+            if (!BindGameplayInteractionHud())
+            {
+                enabled = false;
+                return;
+            }
+            RefreshInfoPanel();
             EnsureSettingsMenu();
             ShowInitialPlacementChoices();
+            facilityEffectChoiceDialog = new FacilityEffectChoiceDialog(
+                gameplayInteractionHud.DialogRegistry,
+                GetUiCanvasTransform());
             facilityEffectInteraction = new FacilityEffectInteractionUiCoordinator(
                 () => session == null ? null : session.State,
                 () => localPlayerId,
-                GetUiCanvasTransform,
                 mapQuery,
                 facilityEffectChoiceDialog,
                 highlights => workflowView.SetHighlights(highlights),
@@ -190,6 +235,7 @@ namespace YC.Presentation
                 () => session == null ? null : session.State,
                 () => localPlayerId,
                 GetUiCanvasTransform,
+                gameplayInteractionHud.DialogRegistry,
                 new SpecialActionOptionQueryService(
                     mapQuery, influenceService, movementService, new SpecialActionLifecycleService()),
                 highlights => workflowView.SetHighlights(highlights),
@@ -324,45 +370,19 @@ namespace YC.Presentation
         private bool HasPendingDispatchFirstMove() =>
             influenceActionPresenter != null && influenceActionPresenter.HasPendingFirstMove;
 
-        private void EnsureInfoPanel()
+        private void EnsureSettingsMenu()
         {
-            infoPanel = FindObjectOfType<ExpandableInfoPanel>();
-            if (infoPanel == null)
+            if (settingsMenu != null)
             {
-                var go = new GameObject("ExpandableInfoPanel");
-                go.transform.SetParent(transform, false);
-                infoPanel = go.AddComponent<ExpandableInfoPanel>();
+                settingsMenu.ConfigureActionLog(session);
+                return;
             }
 
-            infoPanel.Initialize(infoPanel.transform);
-            RefreshInfoPanel();
+            Debug.LogError("MobileCityInteractionController 缺少 GameSettingsMenuController 场景引用。", this);
         }
-
-        private void EnsureBuildInfoPanel()
-        {
-            buildInfoPanel = FindObjectOfType<BuildInfoPanel>();
-            if (buildInfoPanel == null)
-            {
-                var go = new GameObject("BuildInfoPanel");
-                go.transform.SetParent(transform, false);
-                buildInfoPanel = go.AddComponent<BuildInfoPanel>();
-            }
-
-            buildInfoPanel.Initialize(buildInfoPanel.transform);
-            buildInfoPanel.CityStyleClicked += OnBuildInfoCityStyleClicked;
-            RefreshBuildInfoPanel();
-        }
-
-        private void EnsureSettingsMenu() =>
-            GameSettingsMenuController.EnsureInScene(transform).ConfigureActionLog(session);
 
         private void RefreshInfoPanel()
         {
-            if (infoPanel == null)
-            {
-                infoPanel = FindObjectOfType<ExpandableInfoPanel>();
-            }
-
             if (infoPanel == null) return;
 
             var player = session.State.FindPlayer(localPlayerId);
@@ -386,9 +406,6 @@ namespace YC.Presentation
             if (characterCardCoverDrag == null)
             {
                 characterCardCoverDrag = new CharacterCardCoverDragCoordinator(
-                    () => characterCardPresenter == null || session == null
-                        ? null
-                        : characterCardPresenter.BuildView(session.State, localPlayerId),
                     () => actionPanel,
                     SubmitCoverCharacterCard,
                     SetPrompt);
@@ -408,11 +425,6 @@ namespace YC.Presentation
 
         private void RefreshBuildInfoPanel()
         {
-            if (buildInfoPanel == null)
-            {
-                buildInfoPanel = FindObjectOfType<BuildInfoPanel>();
-            }
-
             if (buildInfoPanel == null || session == null || session.State == null)
             {
                 return;
@@ -668,28 +680,22 @@ namespace YC.Presentation
                 influenceActionPresenter == null ? string.Empty : influenceActionPresenter.FirstTargetSlotId);
         }
 
-        private void BuildPromptPresenter()
+        private bool BindGameplayInteractionHud()
         {
-            promptPresenter = PromptPresenter.Build(transform);
-            uiCanvas = promptPresenter?.Canvas;
-        }
-
-        private void BuildActionPanel()
-        {
-            actionPanel = ActionPanelController.Build(
-                uiCanvas,
+            uiCanvas = gameplayInteractionHud.Canvas;
+            promptPresenter = PromptPresenter.Bind(gameplayInteractionHud.PromptView);
+            actionPanel = ActionPanelController.Bind(
+                gameplayInteractionHud.ActionPanelView,
+                gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
                 OnUseCharacterActionClicked,
                 OnDeclareCityStyleClicked,
-                BeginDeployAction,
-                BeginDispatchAction,
-                BeginExploreAction,
-                BeginMoveAction,
-                OnBuildActionClicked,
-                EndCurrentAction);
-            actionPanel?.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
-            actionPanel?.ConfigureCharacterCardViewerAction(() => infoPanel?.OpenCoveredCharacterCardViewer());
-            actionPanel?.ConfigureCharacterFlipAction(FinishCharacterUseOnFlip);
+                BeginDeployAction, BeginDispatchAction, BeginExploreAction, BeginMoveAction, EndCurrentAction);
+            if (promptPresenter == null || actionPanel == null) { Debug.LogError("[MobileCityInteractionController] 交互 HUD 行为绑定失败。", this); return false; }
+            actionPanel.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
+            actionPanel.ConfigureCharacterCardViewerAction(() => infoPanel?.OpenCoveredCharacterCardViewer());
+            actionPanel.ConfigureCharacterFlipAction(FinishCharacterUseOnFlip);
             RefreshActionPanel();
+            return true;
         }
 
         private void RefreshActionPanel()

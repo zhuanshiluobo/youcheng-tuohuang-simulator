@@ -23,77 +23,29 @@ namespace YC.Presentation
         private float targetAlpha;
         private bool hideScheduled;
 
-        private PromptPresenter(
-            Canvas canvas,
-            Text promptText,
-            RectTransform panelTransform,
-            CanvasGroup promptCanvasGroup)
+        private PromptPresenter(GameplayPromptView view)
         {
-            Canvas = canvas;
-            this.promptText = promptText;
-            this.panelTransform = panelTransform;
-            this.promptCanvasGroup = promptCanvasGroup;
+            Canvas = view.Canvas;
+            promptText = view.PromptText;
+            panelTransform = view.PanelTransform;
+            promptCanvasGroup = view.CanvasGroup;
             targetX = GetHiddenX();
             targetAlpha = 0f;
         }
 
         public Canvas Canvas { get; private set; }
 
-        public static PromptPresenter Build(Transform parent)
+        public static PromptPresenter Bind(GameplayPromptView view)
         {
-            UguiUtility.EnsureEventSystem();
+            var reason = string.Empty;
+            if (view == null || !view.TryValidateConfiguration(out reason))
+            {
+                Debug.LogError("[PromptPresenter] 无法绑定交互提示 View：" +
+                               (view == null ? "引用为空。" : reason));
+                return null;
+            }
 
-            var canvasObject = new GameObject("Mobile City UI Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            canvasObject.transform.SetParent(parent, false);
-
-            var canvas = canvasObject.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 15;
-
-            var scaler = canvasObject.GetComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
-
-            var panelObject = new GameObject("Prompt Panel", typeof(RectTransform), typeof(Image), typeof(Outline), typeof(CanvasGroup));
-            panelObject.transform.SetParent(canvasObject.transform, false);
-
-            var panelTransform = panelObject.GetComponent<RectTransform>();
-            panelTransform.anchorMin = new Vector2(1f, 1f);
-            panelTransform.anchorMax = new Vector2(1f, 1f);
-            panelTransform.pivot = new Vector2(1f, 1f);
-            panelTransform.sizeDelta = new Vector2(PanelWidth, MinPanelHeight);
-            panelTransform.anchoredPosition = new Vector2(GetHiddenX(), GetVisibleY());
-
-            panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
-            var outline = panelObject.GetComponent<Outline>();
-            outline.effectColor = UiTheme.GoldOutline;
-            outline.effectDistance = new Vector2(3f, -3f);
-
-            var promptCanvasGroup = panelObject.GetComponent<CanvasGroup>();
-            promptCanvasGroup.alpha = 0f;
-            promptCanvasGroup.interactable = false;
-            promptCanvasGroup.blocksRaycasts = false;
-
-            var textObject = new GameObject("Prompt Text", typeof(RectTransform), typeof(Text));
-            textObject.transform.SetParent(panelTransform, false);
-
-            var textTransform = textObject.GetComponent<RectTransform>();
-            textTransform.anchorMin = Vector2.zero;
-            textTransform.anchorMax = Vector2.one;
-            textTransform.offsetMin = new Vector2(22f, 0f);
-            textTransform.offsetMax = new Vector2(-22f, 0f);
-
-            var promptText = textObject.GetComponent<Text>();
-            promptText.alignment = TextAnchor.MiddleCenter;
-            promptText.color = UiTheme.GoldText;
-            promptText.fontSize = 30;
-            promptText.fontStyle = FontStyle.Bold;
-            promptText.font = FontUtility.GetCjkFont(promptText.fontSize);
-            promptText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            promptText.verticalOverflow = VerticalWrapMode.Overflow;
-
-            return new PromptPresenter(canvas, promptText, panelTransform, promptCanvasGroup);
+            return new PromptPresenter(view);
         }
 
         public void SetPrompt(string message)

@@ -26,7 +26,7 @@ namespace YC.Editor
         {
             var errors = new List<string>();
             ValidateResourceIcons(errors);
-            ValidateFourPlayerResourcePointDisplayDefinitions(errors);
+            ValidateFourPlayerMapDisplayLayout(errors);
             return errors;
         }
 
@@ -76,17 +76,24 @@ namespace YC.Editor
             }
         }
 
-        private static void ValidateFourPlayerResourcePointDisplayDefinitions(List<string> errors)
+        private static void ValidateFourPlayerMapDisplayLayout(List<string> errors)
         {
             var map = StaticMapDefinitions.CreateFourPlayerMap();
-            var definitions = FourPlayerResourcePointDisplayDefinitions.Create();
-            errors.AddRange(MapResourcePointDisplayDefinitionValidator.Validate(map, definitions));
+            var layout = MapDisplayLayoutCatalog.Load(map.MapId);
+            errors.AddRange(MapDisplayLayoutValidator.Validate(map, layout));
+            if (layout == null)
+            {
+                return;
+            }
 
             var locationIds = new HashSet<string>(map.Locations.Select(location => location.LocationId));
-            var definitionIds = new HashSet<string>(definitions.Select(definition => definition.LocationId));
+            var definitionIds = new HashSet<string>(
+                layout.Locations
+                    .Where(definition => definition != null)
+                    .Select(definition => definition.LocationId));
             if (!locationIds.SetEquals(definitionIds))
             {
-                errors.Add("Four-player resource point display definitions do not exactly match map locations.");
+                errors.Add("Four-player map display layout does not exactly match map locations.");
             }
         }
     }

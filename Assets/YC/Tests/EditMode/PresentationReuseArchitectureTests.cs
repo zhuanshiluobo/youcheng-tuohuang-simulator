@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using YC.Domain.CityStyles;
 using YC.Domain.Rules;
 using YC.Domain.SpecialActions;
 using YC.Domain.State;
+using YC.Presentation.Maps;
 using YC.Presentation.Workflows;
 
 namespace YC.Tests.EditMode
@@ -100,7 +102,10 @@ namespace YC.Tests.EditMode
         public void CityBoardSlotLayout_ProvidesSharedTwelveSlotGeometry()
         {
             var type = Type.GetType("YC.Presentation.CityBoardSlotLayout, Assembly-CSharp", false);
+            var layout = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(
+                "Assets/YC/Presentation/Content/CardBoardVisualLayout.asset");
             Assert.That(type, Is.Not.Null);
+            Assert.That(layout, Is.Not.Null);
             Assert.That(
                 (int)type.GetField("SlotCount", BindingFlags.Static | BindingFlags.Public)
                     .GetRawConstantValue(),
@@ -111,7 +116,7 @@ namespace YC.Tests.EditMode
             {
                 var rect = owner.GetComponent<RectTransform>();
                 type.GetMethod("Apply", BindingFlags.Static | BindingFlags.Public)
-                    .Invoke(null, new object[] { rect, 0 });
+                    .Invoke(null, new object[] { rect, layout, 0 });
                 Assert.That((rect.anchorMin.x + rect.anchorMax.x) * 0.5f, Is.EqualTo(0.176f).Within(0.0001f));
                 Assert.That((rect.anchorMin.y + rect.anchorMax.y) * 0.5f, Is.EqualTo(0.848f).Within(0.0001f));
                 Assert.That(rect.anchorMax.x - rect.anchorMin.x, Is.EqualTo(0.292f).Within(0.0001f));
@@ -124,6 +129,50 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void RealConsumers_CallInjectedSpatialLayoutResolvers()
+        {
+            var slotLayout = Type.GetType(
+                "YC.Presentation.CityBoardSlotLayout, Assembly-CSharp",
+                true);
+            var buildInfo = Type.GetType(
+                "YC.Presentation.BuildInfoPanel, Assembly-CSharp",
+                true);
+            var previewView = Type.GetType(
+                "YC.Presentation.CityStyleDeclarationPreviewView, Assembly-CSharp",
+                true);
+            var presenter = Type.GetType(
+                "YC.Presentation.MapViewPresenter, Assembly-CSharp",
+                true);
+
+            Assert.That(
+                CallsMethod(
+                    buildInfo.GetMethod(
+                        "BindFixedViews",
+                        BindingFlags.Instance | BindingFlags.NonPublic),
+                    slotLayout.GetMethod("Apply", BindingFlags.Static | BindingFlags.Public)),
+                Is.True,
+                "BuildInfoPanel 必须在运行时从显式注入的布局资产应用槽位几何。");
+            Assert.That(
+                CallsMethod(
+                    previewView.GetMethod("ApplyCityBoardSlotLayout"),
+                    slotLayout.GetMethod("Apply", BindingFlags.Static | BindingFlags.Public)),
+                Is.True,
+                "城市样式预览必须从自身持久布局引用应用槽位几何。");
+
+            var refresh = presenter.GetMethod("RefreshScoreTrackDisplay");
+            Assert.That(CallsMethod(
+                    refresh,
+                    typeof(MapDisplayLayout).GetMethod("GetScoreTrackNormalizedPosition")),
+                Is.True,
+                "MapViewPresenter 必须直接消费 View 已有 MapDisplayLayout 的计分轨迹。");
+            Assert.That(CallsMethod(
+                    refresh,
+                    typeof(MapDisplayLayout).GetMethod("GetScoreMarkerOffset")),
+                Is.True,
+                "MapViewPresenter 必须直接消费 View 已有 MapDisplayLayout 的同分偏移。");
+        }
+
+        [Test]
         public void CityStyleMarkerRenderer_UsesSharedMarkerAreaAnchors()
         {
             var type = Type.GetType(
@@ -131,32 +180,35 @@ namespace YC.Tests.EditMode
                 false);
             Assert.That(type, Is.Not.Null);
             var resolve = type.GetMethod("ResolveAnchor", BindingFlags.Static | BindingFlags.Public);
+            var layout = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(
+                "Assets/YC/Presentation/Content/CardBoardVisualLayout.asset");
             Assert.That(resolve, Is.Not.Null);
+            Assert.That(layout, Is.Not.Null);
 
             var unused = (Vector2)resolve.Invoke(
                 null,
-                new object[] { "style.test", CityStyleMarkerAreas.Unused, 0, 0, 0 });
+                new object[] { layout, "style.test", CityStyleMarkerAreas.Unused, 0, 0, 0 });
             var used = (Vector2)resolve.Invoke(
                 null,
-                new object[] { "style.test", CityStyleMarkerAreas.Used, 0, 0, 0 });
+                new object[] { layout, "style.test", CityStyleMarkerAreas.Used, 0, 0, 0 });
             var secondInArea = (Vector2)resolve.Invoke(
                 null,
-                new object[] { "style.test", CityStyleMarkerAreas.Used, 1, 0, 1 });
+                new object[] { layout, "style.test", CityStyleMarkerAreas.Used, 1, 0, 1 });
             var usesTwo = (Vector2)resolve.Invoke(
                 null,
-                new object[] { "style.test", CityStyleMarkerAreas.UsesTwo, 0, 0, 0 });
+                new object[] { layout, "style.test", CityStyleMarkerAreas.UsesTwo, 0, 0, 0 });
             var usedFromTwo = (Vector2)resolve.Invoke(
                 null,
-                new object[] { "style.test", SpecialActionMarkerAreas.UsedFromTwo, 0, 0, 0 });
+                new object[] { layout, "style.test", SpecialActionMarkerAreas.UsedFromTwo, 0, 0, 0 });
             var usesOne = (Vector2)resolve.Invoke(
                 null,
-                new object[] { "style.test", CityStyleMarkerAreas.UsesOne, 0, 0, 0 });
+                new object[] { layout, "style.test", CityStyleMarkerAreas.UsesOne, 0, 0, 0 });
             var usedFromOne = (Vector2)resolve.Invoke(
                 null,
-                new object[] { "style.test", SpecialActionMarkerAreas.UsedFromOne, 0, 0, 0 });
+                new object[] { layout, "style.test", SpecialActionMarkerAreas.UsedFromOne, 0, 0, 0 });
             var usesZero = (Vector2)resolve.Invoke(
                 null,
-                new object[] { "style.test", CityStyleMarkerAreas.UsesZero, 0, 0, 0 });
+                new object[] { layout, "style.test", CityStyleMarkerAreas.UsesZero, 0, 0, 0 });
             Assert.That(unused.y, Is.GreaterThan(used.y));
             Assert.That(secondInArea.x - used.x, Is.EqualTo(0.055f).Within(0.0001f));
             Assert.That(usesTwo.y, Is.GreaterThan(usedFromTwo.y));
@@ -185,6 +237,9 @@ namespace YC.Tests.EditMode
                 BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(resolveBounds, Is.Not.Null);
             Assert.That(renderTargets, Is.Not.Null);
+            var layout = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(
+                "Assets/YC/Presentation/Content/CardBoardVisualLayout.asset");
+            Assert.That(layout, Is.Not.Null);
             Assert.That(CallsMethod(renderTargets, resolveBounds), Is.True,
                 "特殊行动拖拽命中区必须复用卡面区域边界，不能退回固定尺寸的小矩形。");
 
@@ -192,6 +247,7 @@ namespace YC.Tests.EditMode
                 null,
                 new object[]
                 {
+                    layout,
                     CityStyleDatabase.MilitaryIndustrialArea,
                     CityStyleMarkerAreas.Used
                 });
@@ -204,6 +260,7 @@ namespace YC.Tests.EditMode
                 null,
                 new object[]
                 {
+                    layout,
                     CityStyleDatabase.SourceStoneIndustrialHub,
                     SpecialActionMarkerAreas.UsedFromTwo
                 });
@@ -216,6 +273,7 @@ namespace YC.Tests.EditMode
                 null,
                 new object[]
                 {
+                    layout,
                     CityStyleDatabase.EfficientMobileManagementSystem,
                     SpecialActionMarkerAreas.UsedFromOne
                 });
@@ -238,6 +296,9 @@ namespace YC.Tests.EditMode
                 BindingFlags.Static | BindingFlags.Public);
             Assert.That(resolve, Is.Not.Null);
             Assert.That(resolveLane, Is.Not.Null);
+            var layout = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(
+                "Assets/YC/Presentation/Content/CardBoardVisualLayout.asset");
+            Assert.That(layout, Is.Not.Null);
 
             const float unusedMinimumX = 0.557f;
             const float unusedMaximumX = 0.941f;
@@ -249,7 +310,7 @@ namespace YC.Tests.EditMode
             var firstPlayerAnchors = new Vector2[3];
             for (var playerId = 1; playerId <= 4; playerId++)
             {
-                var laneIndex = (int)resolveLane.Invoke(null, new object[] { playerId });
+                var laneIndex = (int)resolveLane.Invoke(null, new object[] { layout, playerId });
                 Assert.That(laneIndex, Is.EqualTo(playerId - 1));
                 for (var playerMarkerIndex = 0; playerMarkerIndex < 3; playerMarkerIndex++)
                 {
@@ -257,6 +318,7 @@ namespace YC.Tests.EditMode
                         null,
                         new object[]
                         {
+                            layout,
                             CityStyleDatabase.MilitaryIndustrialArea,
                             CityStyleMarkerAreas.Unused,
                             (playerId - 1) * 3 + playerMarkerIndex,
@@ -295,6 +357,7 @@ namespace YC.Tests.EditMode
                 null,
                 new object[]
                 {
+                    layout,
                     CityStyleDatabase.MilitaryIndustrialArea,
                     CityStyleMarkerAreas.Unused,
                     99,
@@ -333,7 +396,10 @@ namespace YC.Tests.EditMode
                     trackerType),
                 Is.True);
 
-            var tracker = Activator.CreateInstance(trackerType, true);
+            var layout = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(
+                "Assets/YC/Presentation/Content/CardBoardVisualLayout.asset");
+            Assert.That(layout, Is.Not.Null);
+            var tracker = Activator.CreateInstance(trackerType, new object[] { layout });
             var next = trackerType.GetMethod("Next", BindingFlags.Instance | BindingFlags.Public);
             Assert.That(next, Is.Not.Null);
             var playerOneFirst = next.Invoke(
@@ -374,7 +440,7 @@ namespace YC.Tests.EditMode
             Assert.That(GetPublicProperty<int>(playerTwoFirst, "PlayerLaneIndex"), Is.EqualTo(1));
             Assert.That(GetPublicProperty<int>(playerTwoFirst, "PlayerMarkerIndex"), Is.Zero);
 
-            var otherStyleTracker = Activator.CreateInstance(trackerType, true);
+            var otherStyleTracker = Activator.CreateInstance(trackerType, new object[] { layout });
             var otherStyleMarker = next.Invoke(
                 otherStyleTracker,
                 new object[] { "style.test", CityStyleMarkerAreas.Declared, 1 });

@@ -8,36 +8,42 @@ namespace YC.Presentation
 {
     public sealed class ActionLogViewerController : MonoBehaviour
     {
-        private const float PanelWidth = 864f;
         private const float RowHeight = 58f;
-        private const float ScrollSensitivity = 60f;
 
+        [SerializeField] private ActionLogViewerView view;
         private Func<GameState> stateProvider;
-        private GameObject rootObject;
-        private RectTransform contentTransform;
+        private bool initialized;
         private bool isOpen;
 
         public bool IsOpen => isOpen;
 
+        private void Awake()
+        {
+            TryInitialize();
+        }
+
         public void Configure(Func<GameState> provider)
         {
             stateProvider = provider;
-            EnsureUi();
         }
 
         public void Open()
         {
-            EnsureUi();
+            if (!TryInitialize())
+            {
+                return;
+            }
+
             Refresh();
-            rootObject.SetActive(true);
+            view.OverlayObject.SetActive(true);
             isOpen = true;
         }
 
         public void Close()
         {
-            if (rootObject != null)
+            if (initialized)
             {
-                rootObject.SetActive(false);
+                view.OverlayObject.SetActive(false);
             }
 
             isOpen = false;
@@ -45,7 +51,11 @@ namespace YC.Presentation
 
         public void Refresh()
         {
-            EnsureUi();
+            if (!TryInitialize())
+            {
+                return;
+            }
+
             ClearRows();
 
             var entries = BuildDisplayEntries(stateProvider == null ? null : stateProvider());
@@ -101,145 +111,45 @@ namespace YC.Presentation
             return result;
         }
 
-        private void EnsureUi()
+        private bool TryInitialize()
         {
-            if (rootObject != null)
+            if (initialized)
             {
-                return;
+                return true;
             }
 
-            var canvas = UguiUtility.CreateCanvas("Action Log Viewer Canvas", 125, transform);
-            rootObject = new GameObject("Action Log Overlay", typeof(RectTransform), typeof(Image), typeof(Button));
-            rootObject.transform.SetParent(canvas.transform, false);
-            var rootRect = rootObject.GetComponent<RectTransform>();
-            rootRect.anchorMin = Vector2.zero;
-            rootRect.anchorMax = Vector2.one;
-            rootRect.offsetMin = Vector2.zero;
-            rootRect.offsetMax = Vector2.zero;
-            rootObject.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.65f);
-            rootObject.GetComponent<Button>().onClick.AddListener(Close);
+            var reason = "View 未绑定。";
+            if (view == null || !view.TryValidateConfiguration(out reason))
+            {
+                Debug.LogError(
+                    "ActionLogViewerController 缺少完整编辑器 View 引用：" +
+                    reason,
+                    this);
+                enabled = false;
+                return false;
+            }
 
-            var panelObject = new GameObject("Action Log Panel", typeof(RectTransform), typeof(Image), typeof(Outline));
-            panelObject.transform.SetParent(rootRect, false);
-            var panel = panelObject.GetComponent<RectTransform>();
-            panel.anchorMin = panel.anchorMax = panel.pivot = new Vector2(0.5f, 0.5f);
-            panel.sizeDelta = new Vector2(PanelWidth, 680f);
-            panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
-            panelObject.GetComponent<Outline>().effectColor = UiTheme.GoldOutline;
-
-            CreateText(panel, "Action Log Title", "\u5bf9\u5c40\u884c\u52a8\u65e5\u5fd7", 30, TextAnchor.MiddleCenter,
-                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -64f), new Vector2(0f, 0f));
-            CreateCloseButton(panel);
-            BuildScrollView(panel);
-            rootObject.SetActive(false);
-        }
-
-        private void BuildScrollView(RectTransform panel)
-        {
-            var scrollObject = new GameObject("Action Log Scroll View", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
-            scrollObject.transform.SetParent(panel, false);
-            var scrollRectTransform = scrollObject.GetComponent<RectTransform>();
-            scrollRectTransform.anchorMin = Vector2.zero;
-            scrollRectTransform.anchorMax = Vector2.one;
-            scrollRectTransform.offsetMin = new Vector2(26f, 24f);
-            scrollRectTransform.offsetMax = new Vector2(-26f, -76f);
-            scrollObject.GetComponent<Image>().color = UiTheme.ScrollBackground;
-
-            var viewportObject = new GameObject("Action Log Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
-            viewportObject.transform.SetParent(scrollRectTransform, false);
-            var viewport = viewportObject.GetComponent<RectTransform>();
-            viewport.anchorMin = Vector2.zero;
-            viewport.anchorMax = Vector2.one;
-            viewport.offsetMin = new Vector2(8f, 8f);
-            viewport.offsetMax = new Vector2(-38f, -8f);
-            viewportObject.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.01f);
-
-            var scrollbarObject = new GameObject("Action Log Scrollbar", typeof(RectTransform), typeof(Image), typeof(Scrollbar));
-            scrollbarObject.transform.SetParent(scrollRectTransform, false);
-            var scrollbarRect = scrollbarObject.GetComponent<RectTransform>();
-            scrollbarRect.anchorMin = new Vector2(1f, 0f);
-            scrollbarRect.anchorMax = new Vector2(1f, 1f);
-            scrollbarRect.offsetMin = new Vector2(-30f, 8f);
-            scrollbarRect.offsetMax = new Vector2(-8f, -8f);
-            scrollbarObject.GetComponent<Image>().color = new Color(0.08f, 0.07f, 0.04f, 0.9f);
-
-            var slidingAreaObject = new GameObject("Sliding Area", typeof(RectTransform));
-            slidingAreaObject.transform.SetParent(scrollbarRect, false);
-            var slidingArea = slidingAreaObject.GetComponent<RectTransform>();
-            slidingArea.anchorMin = Vector2.zero;
-            slidingArea.anchorMax = Vector2.one;
-            slidingArea.offsetMin = new Vector2(3f, 3f);
-            slidingArea.offsetMax = new Vector2(-3f, -3f);
-
-            var handleObject = new GameObject("Handle", typeof(RectTransform), typeof(Image));
-            handleObject.transform.SetParent(slidingArea, false);
-            var handleRect = handleObject.GetComponent<RectTransform>();
-            handleRect.anchorMin = Vector2.zero;
-            handleRect.anchorMax = Vector2.one;
-            handleRect.offsetMin = Vector2.zero;
-            handleRect.offsetMax = Vector2.zero;
-            var handleImage = handleObject.GetComponent<Image>();
-            handleImage.color = UiTheme.GoldOutline;
-
-            var scrollbar = scrollbarObject.GetComponent<Scrollbar>();
-            scrollbar.handleRect = handleRect;
-            scrollbar.targetGraphic = handleImage;
-            scrollbar.direction = Scrollbar.Direction.BottomToTop;
-            scrollbar.value = 1f;
-
-            var contentObject = new GameObject("Action Log Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
-            contentObject.transform.SetParent(viewport, false);
-            contentTransform = contentObject.GetComponent<RectTransform>();
-            contentTransform.anchorMin = new Vector2(0f, 1f);
-            contentTransform.anchorMax = new Vector2(1f, 1f);
-            contentTransform.pivot = new Vector2(0.5f, 1f);
-            contentTransform.sizeDelta = Vector2.zero;
-            var layout = contentObject.GetComponent<VerticalLayoutGroup>();
-            layout.spacing = 10f;
-            layout.padding = new RectOffset(8, 8, 8, 8);
-            layout.childControlHeight = true;
-            layout.childForceExpandHeight = false;
-            contentObject.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            var scroll = scrollObject.GetComponent<ScrollRect>();
-            scroll.viewport = viewport;
-            scroll.content = contentTransform;
-            scroll.horizontal = false;
-            scroll.vertical = true;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
-            scroll.scrollSensitivity = ScrollSensitivity;
-            scroll.verticalScrollbar = scrollbar;
-            scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
-            scroll.verticalScrollbarSpacing = 8f;
-        }
-
-        private void CreateCloseButton(RectTransform panel)
-        {
-            var buttonObject = new GameObject("Close Action Log Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
-            buttonObject.transform.SetParent(panel, false);
-            var rect = buttonObject.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1f, 1f);
-            rect.sizeDelta = new Vector2(46f, 36f);
-            rect.anchoredPosition = new Vector2(-14f, -14f);
-            buttonObject.GetComponent<Image>().color = UiTheme.ButtonBackground;
-            buttonObject.GetComponent<Outline>().effectColor = UiTheme.GoldOutline;
-            buttonObject.GetComponent<Button>().onClick.AddListener(Close);
-            CreateText(rect, "Close Action Log Label", "\u00d7", 24, TextAnchor.MiddleCenter,
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            BindButton(view.OverlayCloseButton, Close);
+            BindButton(view.CloseButton, Close);
+            view.RowTemplate.gameObject.SetActive(false);
+            view.OverlayObject.SetActive(false);
+            initialized = true;
+            return true;
         }
 
         private void CreateRow(string value, Color accent, float height)
         {
-            var rowObject = new GameObject("Action Log Row", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
-            rowObject.transform.SetParent(contentTransform, false);
-            rowObject.GetComponent<Image>().color = new Color(accent.r, accent.g, accent.b, 0.18f);
-            rowObject.GetComponent<LayoutElement>().preferredHeight = height;
-            var rowText = CreateText(rowObject.GetComponent<RectTransform>(), "Action Log Row Text", value, 20, TextAnchor.MiddleLeft,
-                Vector2.zero, Vector2.one, new Vector2(16f, 6f), new Vector2(-16f, -6f));
-            rowText.resizeTextForBestFit = true;
-            rowText.resizeTextMinSize = 14;
-            rowText.resizeTextMaxSize = 20;
-            rowText.verticalOverflow = VerticalWrapMode.Truncate;
+            // 动态边界：日志条目仅实例化编辑器行模板并绑定文本/颜色/高度。
+            var row = Instantiate(view.RowTemplate, view.ContentTransform, false);
+            row.gameObject.name = "Action Log Row";
+            row.gameObject.SetActive(true);
+            row.Bind(value, accent, height);
+        }
+
+        private static void BindButton(Button button, UnityEngine.Events.UnityAction action)
+        {
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(action);
         }
 
         public static bool TryPrepareDisplayMessage(string source, out string message)
@@ -391,9 +301,14 @@ namespace YC.Presentation
 
         private void ClearRows()
         {
-            for (var i = contentTransform.childCount - 1; i >= 0; i--)
+            for (var i = view.ContentTransform.childCount - 1; i >= 0; i--)
             {
-                var child = contentTransform.GetChild(i).gameObject;
+                var child = view.ContentTransform.GetChild(i).gameObject;
+                if (child == view.RowTemplate.gameObject)
+                {
+                    continue;
+                }
+
                 if (UnityEngine.Application.isPlaying)
                 {
                     Destroy(child);
@@ -403,25 +318,6 @@ namespace YC.Presentation
                     DestroyImmediate(child);
                 }
             }
-        }
-
-        private static Text CreateText(RectTransform parent, string name, string value, int size, TextAnchor alignment,
-            Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
-        {
-            var textObject = new GameObject(name, typeof(RectTransform), typeof(Text));
-            textObject.transform.SetParent(parent, false);
-            var rect = textObject.GetComponent<RectTransform>();
-            rect.anchorMin = anchorMin;
-            rect.anchorMax = anchorMax;
-            rect.offsetMin = offsetMin;
-            rect.offsetMax = offsetMax;
-            var text = textObject.GetComponent<Text>();
-            text.text = value;
-            text.font = FontUtility.GetCjkFont(size);
-            text.fontSize = size;
-            text.color = UiTheme.ValueText;
-            text.alignment = alignment;
-            return text;
         }
 
         private static string GetColorName(YC.Domain.Rules.PlayerColor color)

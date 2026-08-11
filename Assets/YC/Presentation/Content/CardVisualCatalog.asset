@@ -1,0 +1,141 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34878c71b40c19341be9d12d1299574c, type: 3}
+  m_Name: CardVisualCatalog
+  m_EditorClassIdentifier: 
+  facilityTextures:
+  - id: building_001
+    texture: {fileID: 2800000, guid: fec9150bfa0ae014da93c0cf55c35185, type: 3}
+  - id: building_002
+    texture: {fileID: 2800000, guid: 0fe880866d0d44149b2639cd54f4dff7, type: 3}
+  - id: building_003
+    texture: {fileID: 2800000, guid: 8adb6d95a2c323e44bcd4d52faa5f2b1, type: 3}
+  - id: building_004
+    texture: {fileID: 2800000, guid: 034718f5edda8544da2151a4a77e39b7, type: 3}
+  - id: building_005
+    texture: {fileID: 2800000, guid: 95a99df95f0798648bb0db807ea35cf2, type: 3}
+  - id: building_006
+    texture: {fileID: 2800000, guid: 2efe7bfe7c4519e4e97349cdefa8839c, type: 3}
+  - id: building_007
+    texture: {fileID: 2800000, guid: eebc6ba83a098fc49836ab8cdb6804a0, type: 3}
+  - id: building_008
+    texture: {fileID: 2800000, guid: 24bd89e2d7194d647a74464951756362, type: 3}
+  - id: building_009
+    texture: {fileID: 2800000, guid: 3c969dcec16cc62479894c8205972b75, type: 3}
+  - id: building_010
+    texture: {fileID: 2800000, guid: 91b061662b2a2a84bbcb5839991c5e9c, type: 3}
+  - id: building_011
+    texture: {fileID: 2800000, guid: 8a1fff9b7afaf3f43ad612d4624f9fb3, type: 3}
+  - id: building_012
+    texture: {fileID: 2800000, guid: 018e4faa643708d42b40a441c08b6bcc, type: 3}
+  - id: building_013
+    texture: {fileID: 2800000, guid: 5add9fd5fdb24d742b2f8d348f9445d7, type: 3}
+  - id: building_014
+    texture: {fileID: 2800000, guid: 597c99f5c6c884b41a015c3a2d8ae265, type: 3}
+  - id: building_015
+    texture: {fileID: 2800000, guid: 4c86999ba371f834997150189a5345ad, type: 3}
+  - id: building_016
+    texture: {fileID: 2800000, guid: 7bbc33fee1a36f0408d9c5842a83f2e5, type: 3}
+  - id: building_017
+    texture: {fileID: 2800000, guid: a0858fdec6197054f8e88d1cc3efb8ce, type: 3}
+  - id: building_018
+    texture: {fileID: 2800000, guid: 74dbdf81366c0a446a3dcccb3ead8de8, type: 3}
+  - id: building_019
+    texture: {fileID: 2800000, guid: 4f787d27d6da0ce4796ebe1cc909c233, type: 3}
+  - id: building_020
+    texture: {fileID: 2800000, guid: 1ec25186e50daff468bcaff94074a26a, type: 3}
+  - id: building_021
+    texture: {fileID: 2800000, guid: 5d78811d7eebbfa49b5ed5a5f706e1da, type: 3}
+  - id: building_022
+    texture: {fileID: 2800000, guid: 8c774bea727b8ee499bfca8cbb1f7b43, type: 3}
+  - id: building_023
+    texture: {fileID: 2800000, guid: ad342d08e2142f44e8e86d8d02b65ee1, type: 3}
+  - id: building_024
+    texture: {fileID: 2800000, guid: cfdc00178bf89134c842317917034360, type: 3}
+  - id: building_025
+    texture: {fileID: 2800000, guid: fe93a2d560a7a0c4790db1920ee80200, type: 3}
+  - id: building_026
+    texture: {fileID: 2800000, guid: 376c9b21a95916e4c974fd66bc4133c1, type: 3}
+  - id: building_027
+    texture: {fileID: 2800000, guid: 8e6d2865e156e08448902729e505ae79, type: 3}
+  - id: building_028
+    texture: {fileID: 2800000, guid: e6340a8e573c80e4e9a26595f6e4e640, type: 3}
+  - id: building_029
+    texture: {fileID: 2800000, guid: 77a230676ff84384d8d5986967bef0ee, type: 3}
+  - id: building_030
+    texture: {fileID: 2800000, guid: 552627f809a5c194ba6b6c6b4cdecb3c, type: 3}
+  - id: building_031
+    texture: {fileID: 2800000, guid: ce21012919dce264b9b89d008ea42fe8, type: 3}
+  - id: building_032
+    texture: {fileID: 2800000, guid: 7df5d330d2e03394090119da259d6451, type: 3}
+  - id: building_033
+    texture: {fileID: 2800000, guid: 72b8ac6136989a4438ad6ea7d9d8558d, type: 3}
+  - id: building_034
+    texture: {fileID: 2800000, guid: 1b808c1485bd63f4ca5deb24c8e4f6ff, type: 3}
+  - id: building_035
+    texture: {fileID: 2800000, guid: b08b97ca590369f41be8a0e87c192ae1, type: 3}
+  - id: building_036
+    texture: {fileID: 2800000, guid: 4f23d94f780a01a4ba140bd53ba3296f, type: 3}
+  - id: building_037
+    texture: {fileID: 2800000, guid: 095b17ad0656ab64a8f920e2bba1f125, type: 3}
+  - id: building_038
+    texture: {fileID: 2800000, guid: bf0b165c2bead8743adc52b9db4cd2f0, type: 3}
+  - id: building_039
+    texture: {fileID: 2800000, guid: 11568facf27ede04a81400064a3afe8a, type: 3}
+  - id: building_040
+    texture: {fileID: 2800000, guid: b7037be58a63b3043aecbde43c8efe29, type: 3}
+  - id: building_041
+    texture: {fileID: 2800000, guid: 3a4dffe9aa76a2948945ec0a29a5fa18, type: 3}
+  - id: reserve_001
+    texture: {fileID: 2800000, guid: 4124e29a47b6bc940a22e700d153660d, type: 3}
+  - id: reserve_002
+    texture: {fileID: 2800000, guid: 07da78045541c9e489ec41a50317dd1a, type: 3}
+  - id: reserve_003
+    texture: {fileID: 2800000, guid: ae50253e86a45b643948e421a44d11df, type: 3}
+  - id: reserve_004
+    texture: {fileID: 2800000, guid: 2f20fb8f65fe47c4cbbb86a80fbee5be, type: 3}
+  - id: facility_enterprise_office
+    texture: {fileID: 2800000, guid: 219752c51199df34197d2553d2bbff4f, type: 3}
+  cityStyleTextures:
+  - id: city_style_military_industrial_area
+    texture: {fileID: 2800000, guid: 13d11e9463ab4ac42a0b09e2790f7c99, type: 3}
+  - id: city_style_mobilization_support_system
+    texture: {fileID: 2800000, guid: 86c0f00fe68ebac4f95b2d84e9ee1ab3, type: 3}
+  - id: city_style_composite_power_system
+    texture: {fileID: 2800000, guid: ec16c5c9cb19f274aa5b3142d8cedc7d, type: 3}
+  - id: city_style_material_relay_station
+    texture: {fileID: 2800000, guid: d4a9a93e2e729274e9808cf9e1b42b54, type: 3}
+  - id: city_style_source_stone_industrial_hub
+    texture: {fileID: 2800000, guid: 48ce49aa93deb8043901d5ce0b60066e, type: 3}
+  - id: city_style_efficient_mobile_management_system
+    texture: {fileID: 2800000, guid: 5a2ea71abc2a6cb4dbd16662dc6307f1, type: 3}
+  characterFrontTextures:
+  - id: liskarm
+    texture: {fileID: 2800000, guid: a136b3d42d6c21a41b4d03c35ea54762, type: 3}
+  - id: texas
+    texture: {fileID: 2800000, guid: 3e04720757aa0b74aae6180416dc6606, type: 3}
+  - id: tin-man
+    texture: {fileID: 2800000, guid: b5f6cf5533f85c54695447b52f3fa3b4, type: 3}
+  - id: cannot
+    texture: {fileID: 2800000, guid: ba86672a41c78e54db52d6f8a0487db0, type: 3}
+  - id: elysium
+    texture: {fileID: 2800000, guid: dfb19c9bac7a54741b3c9c76e0aec9a9, type: 3}
+  characterBackTextures:
+  - color: 0
+    texture: {fileID: 2800000, guid: 473e289a27467844c8f11f052a0c903a, type: 3}
+  - color: 3
+    texture: {fileID: 2800000, guid: 9f4fb97e7dcddf54494a027d83da8bcc, type: 3}
+  - color: 2
+    texture: {fileID: 2800000, guid: f00f4e9a391a10d49a69d0f324e6ddc5, type: 3}
+  - color: 1
+    texture: {fileID: 2800000, guid: b2b74655e2e2f754aae40144b8b4bdbc, type: 3}
+  cityBoardTexture: {fileID: 2800000, guid: cfbcd3b26b03e954999a7fd904f94250, type: 3}

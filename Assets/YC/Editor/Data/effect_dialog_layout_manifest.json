@@ -1,0 +1,251 @@
+{
+  "Version": 1,
+  "EffectDialog": {
+    "OverlayColor": { "r": 0.0, "g": 0.0, "b": 0.0, "a": 0.22 },
+    "PanelLayout": {
+      "AnchorMin": { "x": 0.5, "y": 0.5 },
+      "AnchorMax": { "x": 0.5, "y": 0.5 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "SizeDelta": { "x": 660.0, "y": 600.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 0.0 }
+    },
+    "PanelOutlineDistance": { "x": 2.0, "y": -2.0 },
+    "TitleLayout": {
+      "AnchorMin": { "x": 0.0, "y": 1.0 },
+      "AnchorMax": { "x": 1.0, "y": 1.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "SizeDelta": { "x": -40.0, "y": 52.0 },
+      "AnchoredPosition": { "x": 0.0, "y": -34.0 }
+    },
+    "DescriptionLayout": {
+      "AnchorMin": { "x": 0.0, "y": 1.0 },
+      "AnchorMax": { "x": 1.0, "y": 1.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "SizeDelta": { "x": -70.0, "y": 70.0 },
+      "AnchoredPosition": { "x": 0.0, "y": -92.0 }
+    },
+    "CollapsedSummaryLayout": {
+      "AnchorMin": { "x": 0.06, "y": 1.0 },
+      "AnchorMax": { "x": 0.72, "y": 1.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "SizeDelta": { "x": 0.0, "y": 42.0 },
+      "AnchoredPosition": { "x": 0.0, "y": -29.0 }
+    },
+    "CollapsedToggleLayout": {
+      "AnchorMin": { "x": 1.0, "y": 0.5 },
+      "AnchorMax": { "x": 1.0, "y": 0.5 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "SizeDelta": { "x": 126.0, "y": 34.0 },
+      "AnchoredPosition": { "x": -76.0, "y": 0.0 }
+    },
+    "ExpandedToggleLayout": {
+      "AnchorMin": { "x": 0.5, "y": 0.0 },
+      "AnchorMax": { "x": 0.5, "y": 0.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "SizeDelta": { "x": 220.0, "y": 32.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 22.0 }
+    },
+    "CollapseIconLayout": {
+      "AnchorMin": { "x": 0.0, "y": 0.5 },
+      "AnchorMax": { "x": 0.0, "y": 0.5 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "SizeDelta": { "x": 16.0, "y": 16.0 },
+      "AnchoredPosition": { "x": 18.0, "y": 0.0 }
+    },
+    "CollapsedHeight": 58.0,
+    "CollapsedOverlayColor": { "r": 0.0, "g": 0.0, "b": 0.0, "a": 0.0 },
+    "CollapsedOverlayRaycastTarget": false,
+    "OptionScrollLayout": {
+      "AnchorMin": { "x": 0.06, "y": 0.0 },
+      "AnchorMax": { "x": 0.94, "y": 1.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "OffsetMin": { "x": 0.0, "y": 34.0 },
+      "OffsetMax": { "x": 0.0, "y": -142.0 }
+    },
+    "ResourceSummaryLayout": {
+      "AnchorMin": { "x": 0.08, "y": 0.0 },
+      "AnchorMax": { "x": 0.92, "y": 0.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "SizeDelta": { "x": 0.0, "y": 42.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 94.0 }
+    },
+    "ResourceRowAnchor": { "x": 0.0, "y": 1.0 },
+    "ResourceDecreaseButtonSize": { "x": 58.0, "y": 44.0 },
+    "ResourceValueSize": { "x": 74.0, "y": 44.0 },
+    "ResourceIncreaseButtonSize": { "x": 58.0, "y": 44.0 },
+    "BottomCenterAnchor": { "x": 0.5, "y": 0.0 },
+    "ResourceCancelButtonPosition": { "x": 125.0, "y": 34.0 },
+    "ActionButtonSize": { "x": 220.0, "y": 48.0 },
+    "CharacterOptionsPanelBaseSize": { "x": 680.0, "y": 218.0 },
+    "CharacterOptionsRowHeight": 62.0,
+    "CharacterOptionsPanelMinHeight": 330.0,
+    "CharacterOptionsPanelMaxHeight": 610.0,
+    "CharacterPanelPosition": { "x": 0.0, "y": 0.0 },
+    "CharacterOptionsDescriptionHeight": 72.0,
+    "CharacterOptionsScrollTop": 142.0,
+    "CharacterOptionsScrollBottom": 28.0,
+    "CharacterOptionsScrollBottomWithCancel": 82.0,
+    "CharacterOptionsCancelButtonLayout": {
+      "AnchorMin": { "x": 0.5, "y": 0.0 },
+      "AnchorMax": { "x": 0.5, "y": 0.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "SizeDelta": { "x": 180.0, "y": 44.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 28.0 }
+    },
+    "CharacterResourceSalePanelSize": { "x": 690.0, "y": 570.0 },
+    "CharacterResourceSaleRowStartY": -166.0,
+    "SpecialActionPaymentPanelSize": { "x": 650.0, "y": 500.0 },
+    "SpecialActionPaymentPanelPosition": { "x": 0.0, "y": 0.0 },
+    "SpecialActionMapPromptPanelSize": { "x": 650.0, "y": 260.0 },
+    "ExtensionHubPanelSize": { "x": 520.0, "y": 360.0 },
+    "ExtensionHubDescriptionHeight": 58.0,
+    "ExtensionHubCardAnchor": { "x": 0.5, "y": 1.0 },
+    "ExtensionHubCardSize": { "x": 99.0, "y": 141.0 },
+    "ExtensionHubCardGap": 28.0,
+    "ExtensionHubCardY": -205.0,
+    "FacilityCardOutlineDistance": { "x": 2.0, "y": -2.0 },
+    "FacilityCardImageLayout": {
+      "AnchorMin": { "x": 0.0, "y": 0.0 },
+      "AnchorMax": { "x": 1.0, "y": 1.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "OffsetMin": { "x": 3.0, "y": 3.0 },
+      "OffsetMax": { "x": -3.0, "y": -3.0 }
+    },
+    "FacilityCardFallbackLayout": {
+      "AnchorMin": { "x": 0.0, "y": 0.0 },
+      "AnchorMax": { "x": 1.0, "y": 1.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "OffsetMin": { "x": 0.0, "y": 0.0 },
+      "OffsetMax": { "x": 0.0, "y": 0.0 }
+    },
+    "ExtensionHubSkipButtonLayout": {
+      "AnchorMin": { "x": 0.5, "y": 0.0 },
+      "AnchorMax": { "x": 0.5, "y": 0.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "SizeDelta": { "x": 220.0, "y": 48.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 34.0 }
+    },
+    "OptionsPanelSize": { "x": 660.0, "y": 600.0 },
+    "OptionsScrollTop": 142.0,
+    "OptionsScrollBottom": 34.0,
+    "OptionsScrollBottomWithBack": 82.0,
+    "CollapsibleOptionsExtraBottom": 20.0,
+    "CollapsibleOptionsExtraBottomWithBack": 54.0,
+    "OptionsBackButtonSize": { "x": 180.0, "y": 44.0 },
+    "OptionsBackButtonNormalY": 28.0,
+    "OptionsBackButtonCollapsibleY": 76.0,
+    "ResourceAllocationPanelSize": { "x": 650.0, "y": 560.0 },
+    "ResourceLabelWidth": 230.0,
+    "ResourceLabelHeight": 48.0,
+    "ResourceLabelX": 145.0,
+    "ResourceDecreaseX": 320.0,
+    "ResourceValueX": 390.0,
+    "ResourceIncreaseX": 460.0,
+    "MapPromptPanelWidth": 650.0,
+    "MapPromptPanelHeight": 210.0,
+    "CollapsibleMapPromptPanelHeight": 260.0,
+    "MapPromptPanelPosition": { "x": 0.0, "y": 310.0 },
+    "MapPromptDescriptionHeight": 74.0,
+    "MapPrimaryButtonSize": { "x": 220.0, "y": 42.0 },
+    "MapBackButtonSize": { "x": 180.0, "y": 42.0 },
+    "MapPrimaryWithBackX": -120.0,
+    "MapBackWithPrimaryX": 130.0,
+    "MapButtonNormalY": 26.0,
+    "MapButtonCollapsibleY": 68.0
+  },
+  "ExpandableInfoPanel": {
+    "ExpandedWidth": 504.0,
+    "CollapsedWidth": 65.0,
+    "RowHeight": 22.0,
+    "ModuleContentWidth": 420.0,
+    "ModuleContentLeftPadding": 7.0,
+    "ModuleContentRightPadding": 4.0,
+    "ModuleContentTopPadding": 2.0,
+    "ModuleContentSpacing": 2.0,
+    "PreviewMaxWidth": 320.0,
+    "PreviewMaxHeight": 420.0,
+    "PreviewFramePadding": 8.0,
+    "PreviewRowExtraHeight": 12.0,
+    "CardStripHeight": 122.0,
+    "CardStripGap": 6.0,
+    "CardStripMaxCardWidth": 74.0,
+    "CardStripCardY": -6.0,
+    "CardStripCardHeight": 110.0,
+    "DragGhostScale": 1.08,
+    "DragGhostColor": { "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.68 },
+    "TopLeftAnchor": { "x": 0.0, "y": 1.0 },
+    "CenterAnchor": { "x": 0.5, "y": 0.5 },
+    "TextRowOffset": { "x": 7.0, "y": 0.0 },
+    "CardStripOffset": { "x": 7.0, "y": 0.0 },
+    "EmptyModuleContentSize": { "x": 420.0, "y": 2.0 },
+    "PanelLayout": {
+      "AnchorMin": { "x": 0.0, "y": 0.0 },
+      "AnchorMax": { "x": 0.0, "y": 1.0 },
+      "Pivot": { "x": 0.0, "y": 0.5 },
+      "SizeDelta": { "x": 65.0, "y": 0.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 0.0 }
+    },
+    "PanelOutlineDistance": { "x": 2.0, "y": 0.0 },
+    "ToggleLayout": {
+      "AnchorMin": { "x": 1.0, "y": 0.5 },
+      "AnchorMax": { "x": 1.0, "y": 0.5 },
+      "Pivot": { "x": 1.0, "y": 0.5 },
+      "SizeDelta": { "x": 47.0, "y": 90.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 0.0 }
+    },
+    "ContentAreaLayout": {
+      "AnchorMin": { "x": 0.0, "y": 0.0 },
+      "AnchorMax": { "x": 1.0, "y": 1.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "OffsetMin": { "x": 11.0, "y": 11.0 },
+      "OffsetMax": { "x": -54.0, "y": -11.0 }
+    },
+    "HeaderLayout": {
+      "AnchorMin": { "x": 0.0, "y": 1.0 },
+      "AnchorMax": { "x": 1.0, "y": 1.0 },
+      "Pivot": { "x": 0.5, "y": 1.0 },
+      "SizeDelta": { "x": 0.0, "y": 48.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 0.0 }
+    },
+    "HeaderOutlineDistance": { "x": 1.0, "y": -1.0 },
+    "HeaderSeparatorLayout": {
+      "AnchorMin": { "x": 0.0, "y": 0.0 },
+      "AnchorMax": { "x": 1.0, "y": 0.0 },
+      "Pivot": { "x": 0.5, "y": 0.0 },
+      "SizeDelta": { "x": 0.0, "y": 2.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 0.0 }
+    },
+    "ScrollLayout": {
+      "AnchorMin": { "x": 0.0, "y": 0.0 },
+      "AnchorMax": { "x": 1.0, "y": 1.0 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "OffsetMin": { "x": 0.0, "y": 0.0 },
+      "OffsetMax": { "x": 0.0, "y": -48.0 }
+    },
+    "ScrollContentLayout": {
+      "AnchorMin": { "x": 0.0, "y": 1.0 },
+      "AnchorMax": { "x": 1.0, "y": 1.0 },
+      "Pivot": { "x": 0.5, "y": 1.0 },
+      "SizeDelta": { "x": 0.0, "y": 0.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 0.0 }
+    },
+    "ModuleContentLayout": {
+      "AnchorMin": { "x": 0.0, "y": 1.0 },
+      "AnchorMax": { "x": 0.0, "y": 1.0 },
+      "Pivot": { "x": 0.0, "y": 1.0 },
+      "SizeDelta": { "x": 420.0, "y": 0.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 0.0 }
+    },
+    "ModuleTitleLayout": {
+      "AnchorMin": { "x": 0.5, "y": 0.5 },
+      "AnchorMax": { "x": 0.5, "y": 0.5 },
+      "Pivot": { "x": 0.5, "y": 0.5 },
+      "SizeDelta": { "x": 0.0, "y": 25.0 },
+      "AnchoredPosition": { "x": 0.0, "y": 0.0 }
+    },
+    "ItemOutlineDistance": { "x": 1.0, "y": -1.0 },
+    "TextInsetMin": { "x": 6.0, "y": 0.0 },
+    "TextInsetMax": { "x": -6.0, "y": 0.0 },
+    "CardOutlineDistance": { "x": 2.0, "y": -2.0 }
+  }
+}

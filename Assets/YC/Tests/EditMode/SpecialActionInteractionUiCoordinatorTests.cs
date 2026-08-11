@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using YC.Application.Gameplay;
@@ -282,7 +283,15 @@ namespace YC.Tests.EditMode
             var type = Type.GetType(
                 "YC.Presentation.SpecialActionInteractionUiCoordinator, Assembly-CSharp",
                 false);
+            var registryType = Type.GetType(
+                "YC.Presentation.GameplayDialogRegistry, Assembly-CSharp",
+                true);
             Assert.That(type, Is.Not.Null);
+            var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            Assert.That(hudPrefab, Is.Not.Null);
+            var registry = hudPrefab.GetComponentInChildren(registryType, true);
+            Assert.That(registry, Is.Not.Null);
             coordinator = Activator.CreateInstance(
                 type,
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
@@ -292,6 +301,7 @@ namespace YC.Tests.EditMode
                     new Func<GameState>(() => state),
                     new Func<int>(() => 1),
                     new Func<RectTransform>(() => canvasObject.GetComponent<RectTransform>()),
+                    registry,
                     optionQuery,
                     setHighlights,
                     clearHighlights,

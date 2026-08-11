@@ -37,12 +37,11 @@ namespace YC.Tests.EditMode
             Assert.That(view.CoveredStatus, Is.EqualTo("已盖放（背面）"));
             Assert.That(view.CoveredStatus, Does.Not.Contain("texas"));
             Assert.That(view.InteractionStatus, Does.Not.Contain("secret"));
-            Assert.That(view.CoveredBackImageRelativePath, Does.EndWith("back-red.jpg"));
-            Assert.That(view.CoveredBackImageRelativePath, Does.Not.Contain("texas"));
+            Assert.That(view.CoveredCardBackColor, Is.EqualTo(PlayerColor.Red));
         }
 
         [Test]
-        public void BuildView_StandardHandProvidesFiveFrontImagesWithoutExpansionCards()
+        public void BuildView_StandardHandProvidesFiveStableIdsWithoutExpansionCards()
         {
             var state = CreateState(GamePhase.CharacterCover);
             var player = state.FindPlayer(1);
@@ -52,14 +51,13 @@ namespace YC.Tests.EditMode
 
             Assert.That(view.HandCards, Has.Count.EqualTo(5));
             Assert.That(view.HandCards, Has.All.Matches<CharacterCardHandItemViewModel>(item =>
-                !string.IsNullOrEmpty(item.FrontImageRelativePath) &&
-                item.FrontImageRelativePath.Contains("/CardImages/Characters/")));
+                !string.IsNullOrEmpty(item.CardId)));
             Assert.That(view.HandCards, Has.None.Matches<CharacterCardHandItemViewModel>(item =>
                 item.CardId.Contains("mlynar") || item.CardId.Contains("mountain")));
         }
 
         [Test]
-        public void BuildView_DiscardAreaShowsFrontImagesButNeverAllowsCover()
+        public void BuildView_DiscardAreaKeepsStableIdsButNeverAllowsCover()
         {
             var state = CreateState(GamePhase.ActionRound1);
             var player = state.FindPlayer(1);
@@ -71,14 +69,14 @@ namespace YC.Tests.EditMode
             Assert.That(view.DiscardCards, Has.Count.EqualTo(2));
             Assert.That(view.DiscardCards[0].DisplayName, Is.EqualTo("雷蛇"));
             Assert.That(view.DiscardCards, Has.All.Matches<CharacterCardHandItemViewModel>(item =>
-                !item.CanCover && !string.IsNullOrEmpty(item.FrontImageRelativePath)));
+                !item.CanCover && !string.IsNullOrEmpty(item.CardId)));
         }
 
-        [TestCase(PlayerColor.Red, "back-red.jpg")]
-        [TestCase(PlayerColor.Yellow, "back-yellow.jpg")]
-        [TestCase(PlayerColor.Green, "back-green.jpg")]
-        [TestCase(PlayerColor.Blue, "back-blue.jpg")]
-        public void BuildView_CoveredCardUsesPlayerColorBack(PlayerColor color, string expectedFile)
+        [TestCase(PlayerColor.Red)]
+        [TestCase(PlayerColor.Yellow)]
+        [TestCase(PlayerColor.Green)]
+        [TestCase(PlayerColor.Blue)]
+        public void BuildView_CoveredCardCarriesPlayerColor(PlayerColor color)
         {
             var state = CreateState(GamePhase.ActionRound1);
             var player = state.FindPlayer(1);
@@ -87,7 +85,7 @@ namespace YC.Tests.EditMode
 
             var view = new CharacterCardPanelPresenter().BuildView(state, 1);
 
-            Assert.That(view.CoveredBackImageRelativePath, Does.EndWith(expectedFile));
+            Assert.That(view.CoveredCardBackColor, Is.EqualTo(color));
         }
 
         [Test]

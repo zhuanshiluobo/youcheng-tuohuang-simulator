@@ -1,0 +1,1285 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0486d526f1bea840843ac2000b4e808, type: 3}
+  m_Name: FacilityCardCatalog
+  m_EditorClassIdentifier: 
+  sourceSha256: E7B7653518AA7CCF1F1DF18533B13AAF7C1E47A50FC2AC89E99D99D8406EFD07
+  definitions:
+  - facilityId: building_001
+    manifestId: building_001
+    name: "\u57CE\u90A6\u884C\u653F\u533A"
+    color: rainbow
+    score: 3
+    resourceCost:
+      originium: 3
+      originiumShard: 3
+      iron: 3
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 30
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 0
+    keywords:
+    - unique
+    effectId: unique_only
+    effectType: unique
+    description: "\u884C\u653F\u4F53\u7CFB\u7684\u5EFA\u7ACB\u80FD\u591F\u89E3\u51B3\u5404\u79CD\u95EE\u9898\uFF0C\u7279\u522B\u662F\u5728\u8FD9\u7247\u6B63\u5F85\u5F00\u57A6\u7684\u8352\u539F\u4E4B\u4E0A\u3002"
+    effectText: "\u552F\u4E00\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_002
+    manifestId: building_002
+    name: "\u57CE\u90A6\u884C\u653F\u533A"
+    color: rainbow
+    score: 3
+    resourceCost:
+      originium: 3
+      originiumShard: 3
+      iron: 3
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 30
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 0
+    keywords:
+    - unique
+    effectId: unique_only
+    effectType: unique
+    description: "\u884C\u653F\u4F53\u7CFB\u7684\u5EFA\u7ACB\u80FD\u591F\u89E3\u51B3\u5404\u79CD\u95EE\u9898\uFF0C\u7279\u522B\u662F\u5728\u8FD9\u7247\u6B63\u5F85\u5F00\u57A6\u7684\u8352\u539F\u4E4B\u4E0A\u3002"
+    effectText: "\u552F\u4E00\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_003
+    manifestId: building_003
+    name: "\u57CE\u90A6\u884C\u653F\u533A"
+    color: rainbow
+    score: 3
+    resourceCost:
+      originium: 3
+      originiumShard: 3
+      iron: 3
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 30
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 0
+    keywords:
+    - unique
+    effectId: unique_only
+    effectType: unique
+    description: "\u884C\u653F\u4F53\u7CFB\u7684\u5EFA\u7ACB\u80FD\u591F\u89E3\u51B3\u5404\u79CD\u95EE\u9898\uFF0C\u7279\u522B\u662F\u5728\u8FD9\u7247\u6B63\u5F85\u5F00\u57A6\u7684\u8352\u539F\u4E4B\u4E0A\u3002"
+    effectText: "\u552F\u4E00\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_004
+    manifestId: building_004
+    name: "\u9644\u5C5E\u80FD\u6E90\u8BBE\u65BD"
+    color: rainbow
+    score: 1
+    resourceCost:
+      originium: 2
+      originiumShard: 2
+      iron: 3
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 23
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - unique
+    effectId: copy_adjacent_entry_effect
+    effectType: entry
+    description: "\u901A\u8FC7\u6E90\u6E90\u4E0D\u65AD\u7684\u80FD\u6E90\u4F9B\u5E94\uFF0C\u79FB\u52A8\u57CE\u5E02\u4E0A\u7684\u8BBE\u65BD\u65E5\u4EE5\u7EE7\u591C\u5730\u8FD0\u4F5C\u7740\uFF0C\u4E00\u523B\u4E0D\u505C\u3002"
+    effectText: "\u552F\u4E00\uFF1B\u9009\u62E9\u4E00\u4E2A\u5341\u5B57\u76F8\u90BB\u7684\u975E\u5F69\u8272\u8BBE\u65BD\uFF0C\u7ED3\u7B97\u5176\u5165\u573A\u6548\u679C\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_005
+    manifestId: building_005
+    name: "\u9644\u5C5E\u80FD\u6E90\u8BBE\u65BD"
+    color: rainbow
+    score: 1
+    resourceCost:
+      originium: 2
+      originiumShard: 2
+      iron: 3
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 23
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - unique
+    effectId: copy_adjacent_entry_effect
+    effectType: entry
+    description: "\u901A\u8FC7\u6E90\u6E90\u4E0D\u65AD\u7684\u80FD\u6E90\u4F9B\u5E94\uFF0C\u79FB\u52A8\u57CE\u5E02\u4E0A\u7684\u8BBE\u65BD\u65E5\u4EE5\u7EE7\u591C\u5730\u8FD0\u4F5C\u7740\uFF0C\u4E00\u523B\u4E0D\u505C\u3002"
+    effectText: "\u552F\u4E00\uFF1B\u9009\u62E9\u4E00\u4E2A\u5341\u5B57\u76F8\u90BB\u7684\u975E\u5F69\u8272\u8BBE\u65BD\uFF0C\u7ED3\u7B97\u5176\u5165\u573A\u6548\u679C\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_006
+    manifestId: building_006
+    name: "\u9644\u5C5E\u80FD\u6E90\u8BBE\u65BD"
+    color: rainbow
+    score: 1
+    resourceCost:
+      originium: 2
+      originiumShard: 2
+      iron: 3
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 23
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - unique
+    effectId: copy_adjacent_entry_effect
+    effectType: entry
+    description: "\u901A\u8FC7\u6E90\u6E90\u4E0D\u65AD\u7684\u80FD\u6E90\u4F9B\u5E94\uFF0C\u79FB\u52A8\u57CE\u5E02\u4E0A\u7684\u8BBE\u65BD\u65E5\u4EE5\u7EE7\u591C\u5730\u8FD0\u4F5C\u7740\uFF0C\u4E00\u523B\u4E0D\u505C\u3002"
+    effectText: "\u552F\u4E00\uFF1B\u9009\u62E9\u4E00\u4E2A\u5341\u5B57\u76F8\u90BB\u7684\u975E\u5F69\u8272\u8BBE\u65BD\uFF0C\u7ED3\u7B97\u5176\u5165\u573A\u6548\u679C\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_007
+    manifestId: building_007
+    name: "\u8054\u90A6\u7406\u4E8B\u5904"
+    color: rainbow
+    score: 0
+    resourceCost:
+      originium: 4
+      originiumShard: 2
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 17
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - unique
+    effectId: claim_start_marker_at_cleanup
+    effectType: cleanup
+    description: "\u5C3D\u7BA1\u62D3\u8352\u961F\u4E4B\u95F4\u5404\u81EA\u4E3A\u653F\uFF0C\u4F46\u4F9D\u65E7\u5728\u4E00\u4E9B\u65B9\u9762\u53D7\u5236\u4E8E\u54E5\u4F26\u6BD4\u4E9A\u5F53\u5C40\u3002"
+    effectText: "\u552F\u4E00\uFF1B\u672C\u56DE\u5408\u7684\u6536\u5C3E\u9636\u6BB5\u4F20\u9012\u8D77\u59CB\u6807\u8BB0\u65F6\uFF0C\u7531\u4F60\u83B7\u5F97\u8D77\u59CB\u6807\u8BB0\u3002\u53EA\u6709\u672C\u56DE\u5408\u6700\u540E\u5EFA\u9020\u7684\u8054\u90A6\u7406\u4E8B\u5904\u4F1A\u751F\u6548\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_008
+    manifestId: building_008
+    name: "\u8054\u90A6\u7406\u4E8B\u5904"
+    color: rainbow
+    score: 0
+    resourceCost:
+      originium: 4
+      originiumShard: 2
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 17
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - unique
+    effectId: claim_start_marker_at_cleanup
+    effectType: cleanup
+    description: "\u5C3D\u7BA1\u62D3\u8352\u961F\u4E4B\u95F4\u5404\u81EA\u4E3A\u653F\uFF0C\u4F46\u4F9D\u65E7\u5728\u4E00\u4E9B\u65B9\u9762\u53D7\u5236\u4E8E\u54E5\u4F26\u6BD4\u4E9A\u5F53\u5C40\u3002"
+    effectText: "\u552F\u4E00\uFF1B\u672C\u56DE\u5408\u7684\u6536\u5C3E\u9636\u6BB5\u4F20\u9012\u8D77\u59CB\u6807\u8BB0\u65F6\uFF0C\u7531\u4F60\u83B7\u5F97\u8D77\u59CB\u6807\u8BB0\u3002\u53EA\u6709\u672C\u56DE\u5408\u6700\u540E\u5EFA\u9020\u7684\u8054\u90A6\u7406\u4E8B\u5904\u4F1A\u751F\u6548\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_009
+    manifestId: building_009
+    name: "\u8054\u90A6\u7406\u4E8B\u5904"
+    color: rainbow
+    score: 0
+    resourceCost:
+      originium: 4
+      originiumShard: 2
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 17
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - unique
+    effectId: claim_start_marker_at_cleanup
+    effectType: cleanup
+    description: "\u5C3D\u7BA1\u62D3\u8352\u961F\u4E4B\u95F4\u5404\u81EA\u4E3A\u653F\uFF0C\u4F46\u4F9D\u65E7\u5728\u4E00\u4E9B\u65B9\u9762\u53D7\u5236\u4E8E\u54E5\u4F26\u6BD4\u4E9A\u5F53\u5C40\u3002"
+    effectText: "\u552F\u4E00\uFF1B\u672C\u56DE\u5408\u7684\u6536\u5C3E\u9636\u6BB5\u4F20\u9012\u8D77\u59CB\u6807\u8BB0\u65F6\uFF0C\u7531\u4F60\u83B7\u5F97\u8D77\u59CB\u6807\u8BB0\u3002\u53EA\u6709\u672C\u56DE\u5408\u6700\u540E\u5EFA\u9020\u7684\u8054\u90A6\u7406\u4E8B\u5904\u4F1A\u751F\u6548\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_010
+    manifestId: building_010
+    name: "\u7B80\u964B\u5DE5\u7A0B\u8425"
+    color: rainbow
+    score: -1
+    resourceCost:
+      originium: 2
+      originiumShard: 1
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 8
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - unique
+    effectId: build_additional_facility
+    effectType: special_action
+    description: "\u201C\u6211\u4EEC\u63D0\u4F9B\u9AD8\u89C4\u683C\u7684\u9632\u62A4\uFF0C\u6709\u6548\u7684\u6291\u5236\u5242\uFF0C\u5E76\u7EF4\u62A4\u5DE5\u4EBA\u7684\u4E2A\u4EBA\u5229\u76CA\u3002\u201D"
+    effectText: "\u552F\u4E00\uFF1B\u5165\u573A\u65F6\uFF0C\u6267\u884C 1 \u6B21\u5EFA\u8BBE\uFF08\u4ECD\u9700\u652F\u4ED8\u5EFA\u8BBE\u8D39\u7528\uFF09\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_011
+    manifestId: building_011
+    name: "\u7B80\u964B\u5DE5\u7A0B\u8425"
+    color: rainbow
+    score: -1
+    resourceCost:
+      originium: 2
+      originiumShard: 1
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 8
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - unique
+    effectId: build_additional_facility
+    effectType: special_action
+    description: "\u201C\u6211\u4EEC\u63D0\u4F9B\u9AD8\u89C4\u683C\u7684\u9632\u62A4\uFF0C\u6709\u6548\u7684\u6291\u5236\u5242\uFF0C\u5E76\u7EF4\u62A4\u5DE5\u4EBA\u7684\u4E2A\u4EBA\u5229\u76CA\u3002\u201D"
+    effectText: "\u552F\u4E00\uFF1B\u5165\u573A\u65F6\uFF0C\u6267\u884C 1 \u6B21\u5EFA\u8BBE\uFF08\u4ECD\u9700\u652F\u4ED8\u5EFA\u8BBE\u8D39\u7528\uFF09\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_012
+    manifestId: building_012
+    name: "\u7269\u6D41\u67A2\u7EBD"
+    color: blue
+    score: 2
+    resourceCost:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 1
+      goldVoucher: 2
+    goldVoucherCost: 24
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - unique
+    effectId: build_extension_hub
+    effectType: entry
+    description: "\u201C\u672C\u57CE\u7684\u7B2C\u4E00\u5EA7\u7269\u6D41\u6E2F\uFF0C\u613F\u5176\u80FD\u6211\u4EEC\u5F00\u8F9F\u4E00\u6761\u2026\u2026\u201D"
+    effectText: "\u552F\u4E00\uFF1B\u53EF\u4EE5\u4ECE\u4F59\u4E0B\u7684\u5EF6\u4F38\u67A2\u7EBD\u4E2D\u9009\u62E9
+      1 \u5F20\u5E76\u5EFA\u8BBE\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_013
+    manifestId: building_013
+    name: "\u7269\u6D41\u67A2\u7EBD"
+    color: blue
+    score: 2
+    resourceCost:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 1
+      goldVoucher: 2
+    goldVoucherCost: 24
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - unique
+    effectId: build_extension_hub
+    effectType: entry
+    description: "\u201C\u672C\u57CE\u7684\u7B2C\u4E00\u5EA7\u7269\u6D41\u6E2F\uFF0C\u613F\u5176\u80FD\u6211\u4EEC\u5F00\u8F9F\u4E00\u6761\u2026\u2026\u201D"
+    effectText: "\u552F\u4E00\uFF1B\u53EF\u4EE5\u4ECE\u4F59\u4E0B\u7684\u5EF6\u4F38\u67A2\u7EBD\u4E2D\u9009\u62E9
+      1 \u5F20\u5E76\u5EFA\u8BBE\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_014
+    manifestId: building_014
+    name: "\u6E90\u77F3\u7CBE\u70BC\u5382"
+    color: blue
+    score: 0
+    resourceCost:
+      originium: 1
+      originiumShard: 1
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 10
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: gain_originium_shard_6
+    effectType: entry
+    description: "\u73B0\u5728\uFF0C\u79FB\u52A8\u57CE\u5E02\u6709\u4E86\u8DF3\u52A8\u7684\u5FC3\u810F\u3002"
+    effectText: "\u83B7\u5F97 6 \u6E90\u77F3\u788E\u7247\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 6
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_015
+    manifestId: building_015
+    name: "\u57CE\u5E02\u5316\u533A\u57DF"
+    color: blue
+    score: 1
+    resourceCost:
+      originium: 3
+      originiumShard: 0
+      iron: 2
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 16
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: gain_gold_per_core_adjacent_facility
+    effectType: scoring
+    description: "\u201C\u54E5\u4F26\u6BD4\u4E9A\u91CD\u89C6\u5F00\u62D3\u4E0E\u7814\u7A76\uFF0C\u5F53\u7136\u4E5F\u91CD\u89C6\u5728\u5176\u80CC\u540E\u652F\u6301\u7684\u8D38\u6613\u7CFB\u7EDF\u3002\u201D"
+    effectText: "\u6BCF\u6709\u4E00\u4E2A\u4E0E\u6838\u5FC3\u6307\u6325\u5854\u5341\u5B57\u76F8\u90BB\u7684\u8BBE\u65BD\uFF0C\u83B7\u5F97
+      4 \u91D1\u5238\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_016
+    manifestId: building_016
+    name: "\u57CE\u5E02\u5316\u533A\u57DF"
+    color: blue
+    score: 1
+    resourceCost:
+      originium: 3
+      originiumShard: 0
+      iron: 2
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 16
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: gain_gold_per_core_adjacent_facility
+    effectType: scoring
+    description: "\u201C\u54E5\u4F26\u6BD4\u4E9A\u91CD\u89C6\u5F00\u62D3\u4E0E\u7814\u7A76\uFF0C\u5F53\u7136\u4E5F\u91CD\u89C6\u5728\u5176\u80CC\u540E\u652F\u6301\u7684\u8D38\u6613\u7CFB\u7EDF\u3002\u201D"
+    effectText: "\u6BCF\u6709\u4E00\u4E2A\u4E0E\u6838\u5FC3\u6307\u6325\u5854\u5341\u5B57\u76F8\u90BB\u7684\u8BBE\u65BD\uFF0C\u83B7\u5F97
+      4 \u91D1\u5238\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_017
+    manifestId: building_017
+    name: "\u57CE\u5E02\u5316\u533A\u57DF"
+    color: blue
+    score: 1
+    resourceCost:
+      originium: 3
+      originiumShard: 0
+      iron: 2
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 16
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: gain_gold_per_core_adjacent_facility
+    effectType: scoring
+    description: "\u201C\u54E5\u4F26\u6BD4\u4E9A\u91CD\u89C6\u5F00\u62D3\u4E0E\u7814\u7A76\uFF0C\u5F53\u7136\u4E5F\u91CD\u89C6\u5728\u5176\u80CC\u540E\u652F\u6301\u7684\u8D38\u6613\u7CFB\u7EDF\u3002\u201D"
+    effectText: "\u6BCF\u6709\u4E00\u4E2A\u4E0E\u6838\u5FC3\u6307\u6325\u5854\u5341\u5B57\u76F8\u90BB\u7684\u8BBE\u65BD\uFF0C\u83B7\u5F97
+      4 \u91D1\u5238\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_018
+    manifestId: building_018
+    name: "\u5F02\u94C1\u51B6\u70BC\u5382"
+    color: blue
+    score: 1
+    resourceCost:
+      originium: 2
+      originiumShard: 2
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 15
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: gain_iron_4
+    effectType: entry
+    description: "\u5C11\u6709\u4EBA\u9020\u7269\u53EF\u4EE5\u50CF\u5F02\u94C1\u5757\u4E00\u6837\uFF0C\u627F\u53D7\u7740\u8FD9\u7247\u5927\u5730\u7684\u82E6\u96BE\u800C\u4E0D\u53D8\u8D28\u3002"
+    effectText: "\u83B7\u5F97 4 \u5F02\u94C1\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 4
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_019
+    manifestId: building_019
+    name: "\u8D38\u6613\u8857\u533A"
+    color: blue
+    score: 0
+    resourceCost:
+      originium: 1
+      originiumShard: 0
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 6
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: sell_resources
+    effectType: special_action
+    description: "\u201C\u5728\u8FD9\u4E0D\u4E00\u5B9A\u80FD\u5BFB\u5230\u6700\u597D\u7684\u4EF7\u683C\uFF0C\u4F46\u4E00\u5B9A\u53EF\u4EE5\u89E3\u4F60\u71C3\u7709\u4E4B\u6025\u3002\u201D"
+    effectText: "\u4F60\u53EF\u4EE5\u5C06\u4EFB\u4F55\u8D44\u6E90\u7528\u4EE5\u4E0B\u5355\u4EF7\u51FA\u552E\uFF1A\u6E90\u5CA9
+      3 \u91D1\u5238\u3001\u6E90\u77F3\u788E\u7247 3 \u91D1\u5238\u3001\u5F02\u94C1
+      4 \u91D1\u5238\u3001\u81F3\u7EAF\u6E90\u77F3 15 \u91D1\u5238\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_020
+    manifestId: building_020
+    name: "\u8D38\u6613\u8857\u533A"
+    color: blue
+    score: 0
+    resourceCost:
+      originium: 1
+      originiumShard: 0
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 6
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: sell_resources
+    effectType: special_action
+    description: "\u201C\u5728\u8FD9\u4E0D\u4E00\u5B9A\u80FD\u5BFB\u5230\u6700\u597D\u7684\u4EF7\u683C\uFF0C\u4F46\u4E00\u5B9A\u53EF\u4EE5\u89E3\u4F60\u71C3\u7709\u4E4B\u6025\u3002\u201D"
+    effectText: "\u4F60\u53EF\u4EE5\u5C06\u4EFB\u4F55\u8D44\u6E90\u7528\u4EE5\u4E0B\u5355\u4EF7\u51FA\u552E\uFF1A\u6E90\u5CA9
+      3 \u91D1\u5238\u3001\u6E90\u77F3\u788E\u7247 3 \u91D1\u5238\u3001\u5F02\u94C1
+      4 \u91D1\u5238\u3001\u81F3\u7EAF\u6E90\u77F3 15 \u91D1\u5238\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_021
+    manifestId: building_021
+    name: "\u8D38\u6613\u8857\u533A"
+    color: blue
+    score: 0
+    resourceCost:
+      originium: 1
+      originiumShard: 0
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 6
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: sell_resources
+    effectType: special_action
+    description: "\u201C\u5728\u8FD9\u4E0D\u4E00\u5B9A\u80FD\u5BFB\u5230\u6700\u597D\u7684\u4EF7\u683C\uFF0C\u4F46\u4E00\u5B9A\u53EF\u4EE5\u89E3\u4F60\u71C3\u7709\u4E4B\u6025\u3002\u201D"
+    effectText: "\u4F60\u53EF\u4EE5\u5C06\u4EFB\u4F55\u8D44\u6E90\u7528\u4EE5\u4E0B\u5355\u4EF7\u51FA\u552E\uFF1A\u6E90\u5CA9
+      3 \u91D1\u5238\u3001\u6E90\u77F3\u788E\u7247 3 \u91D1\u5238\u3001\u5F02\u94C1
+      4 \u91D1\u5238\u3001\u81F3\u7EAF\u6E90\u77F3 15 \u91D1\u5238\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_022
+    manifestId: building_022
+    name: "\u57CE\u90A6\u5DE5\u4E1A\u533A"
+    color: yellow
+    score: 2
+    resourceCost:
+      originium: 4
+      originiumShard: 3
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 2
+    goldVoucherCost: 24
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 0
+    keywords: []
+    effectId: discount_originium_by_facility_color
+    effectType: discount
+    description: "\u79FB\u52A8\u57CE\u5E02\u7684\u4F18\u52BF\u65E2\u975E\u6B66\u529B\uFF0C\u4E5F\u975E\u7ECF\u6D4E\uFF0C\u800C\u662F\u53EF\u4EE5\u8EB2\u907F\u5929\u707E\u7684\u751F\u4EA7\u529B\u3002"
+    effectText: "\u4F60\u7684\u5EFA\u7B51\u9762\u677F\u4E0A\u6BCF\u6709 1 \u79CD\u975E\u5F69\u8272\u7684\u8BBE\u65BD\uFF0C\u6B64\u8BBE\u65BD\u7684\u5EFA\u7B51\u82B1\u8D39
+      -1 \u6E90\u5CA9\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_023
+    manifestId: building_023
+    name: "\u57CE\u90A6\u5DE5\u4E1A\u533A"
+    color: yellow
+    score: 2
+    resourceCost:
+      originium: 4
+      originiumShard: 3
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 2
+    goldVoucherCost: 24
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 0
+    keywords: []
+    effectId: discount_originium_by_facility_color
+    effectType: discount
+    description: "\u79FB\u52A8\u57CE\u5E02\u7684\u4F18\u52BF\u65E2\u975E\u6B66\u529B\uFF0C\u4E5F\u975E\u7ECF\u6D4E\uFF0C\u800C\u662F\u53EF\u4EE5\u8EB2\u907F\u5929\u707E\u7684\u751F\u4EA7\u529B\u3002"
+    effectText: "\u4F60\u7684\u5EFA\u7B51\u9762\u677F\u4E0A\u6BCF\u6709 1 \u79CD\u975E\u5F69\u8272\u7684\u8BBE\u65BD\uFF0C\u6B64\u8BBE\u65BD\u7684\u5EFA\u7B51\u82B1\u8D39
+      -1 \u6E90\u5CA9\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_024
+    manifestId: building_024
+    name: "\u57CE\u90A6\u5DE5\u4E1A\u533A"
+    color: yellow
+    score: 2
+    resourceCost:
+      originium: 4
+      originiumShard: 3
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 2
+    goldVoucherCost: 24
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 0
+    keywords: []
+    effectId: discount_originium_by_facility_color
+    effectType: discount
+    description: "\u79FB\u52A8\u57CE\u5E02\u7684\u4F18\u52BF\u65E2\u975E\u6B66\u529B\uFF0C\u4E5F\u975E\u7ECF\u6D4E\uFF0C\u800C\u662F\u53EF\u4EE5\u8EB2\u907F\u5929\u707E\u7684\u751F\u4EA7\u529B\u3002"
+    effectText: "\u4F60\u7684\u5EFA\u7B51\u9762\u677F\u4E0A\u6BCF\u6709 1 \u79CD\u975E\u5F69\u8272\u7684\u8BBE\u65BD\uFF0C\u6B64\u8BBE\u65BD\u7684\u5EFA\u7B51\u82B1\u8D39
+      -1 \u6E90\u5CA9\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_025
+    manifestId: building_025
+    name: "\u9AD8\u6027\u80FD\u52A8\u529B\u8BBE\u65BD"
+    color: yellow
+    score: 0
+    resourceCost:
+      originium: 0
+      originiumShard: 4
+      iron: 2
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 20
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - free
+    effectId: free_city_move_and_deploy_route_influence
+    effectType: special_action
+    description: "\u4E0B\u5C42\u52A8\u529B\u533A\u5173\u4E4E\u6240\u6709\u4EBA\u7684\u5B58\u4EA1\uFF0C\u6709\u5FC5\u8981\u5BF9\u5176\u8FDB\u884C\u7FFB\u4FEE\u548C\u6539\u826F\u3002"
+    effectText: "\u514D\u8D39\u6267\u884C\u724C\u9762\u822A\u9053\u56FE\u6807\u6548\u679C\uFF1A\u5728\u7ECF\u8FC7\u7684\u822A\u9053\u4E0A\u653E\u7F6E
+      1 \u5F71\u54CD\u529B\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_026
+    manifestId: building_026
+    name: "\u9AD8\u6027\u80FD\u52A8\u529B\u8BBE\u65BD"
+    color: yellow
+    score: 0
+    resourceCost:
+      originium: 0
+      originiumShard: 4
+      iron: 2
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 20
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    - free
+    effectId: free_city_move_and_deploy_route_influence
+    effectType: special_action
+    description: "\u4E0B\u5C42\u52A8\u529B\u533A\u5173\u4E4E\u6240\u6709\u4EBA\u7684\u5B58\u4EA1\uFF0C\u6709\u5FC5\u8981\u5BF9\u5176\u8FDB\u884C\u7FFB\u4FEE\u548C\u6539\u826F\u3002"
+    effectText: "\u514D\u8D39\u6267\u884C\u724C\u9762\u822A\u9053\u56FE\u6807\u6548\u679C\uFF1A\u5728\u7ECF\u8FC7\u7684\u822A\u9053\u4E0A\u653E\u7F6E
+      1 \u5F71\u54CD\u529B\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_027
+    manifestId: building_027
+    name: "\u56FA\u6E90\u5CA9\u63D0\u7EAF\u5382"
+    color: yellow
+    score: 0
+    resourceCost:
+      originium: 1
+      originiumShard: 1
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 10
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: gain_originium_7
+    effectType: entry
+    description: "\u5047\u5982\u7CBE\u70BC\u6E90\u77F3\u662F\u79FB\u52A8\u57CE\u5E02\u4E0D\u65AD\u6D41\u52A8\u7684\u8840\u6DB2\uFF0C\u90A3\u63D0\u7EAF\u6E90\u5CA9\u4FBF\u662F\u575A\u5B9E\u7684\u808C\u8089\u3002"
+    effectText: "\u83B7\u5F97 7 \u6E90\u5CA9\u3002"
+    onBuiltReward:
+      originium: 7
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_028
+    manifestId: building_028
+    name: "\u6E90\u77F3\u7CBE\u70BC\u5382"
+    color: yellow
+    score: 0
+    resourceCost:
+      originium: 1
+      originiumShard: 1
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 10
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: gain_originium_shard_6
+    effectType: entry
+    description: "\u73B0\u5728\uFF0C\u79FB\u52A8\u57CE\u5E02\u6709\u4E86\u8DF3\u52A8\u7684\u5FC3\u810F\u3002"
+    effectText: "\u83B7\u5F97 6 \u6E90\u77F3\u788E\u7247\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 6
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_029
+    manifestId: building_029
+    name: "\u5F00\u91C7\u7535\u94F2"
+    color: yellow
+    score: 0
+    resourceCost:
+      originium: 0
+      originiumShard: 2
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 10
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: choose_five_basic_resources
+    effectType: entry_choice
+    description: "\u5F53\u5F00\u91C7\u5E73\u53F0\u53D1\u5C55\u4E3A\u79FB\u52A8\u57CE\u5E02\uFF0C\u4F1A\u6709\u4EBA\u60F3\u8D77\u5B83\u7B80\u964B\u7684\u8FC7\u5F80\u5417\uFF1F"
+    effectText: "\u5408\u8BA1\u83B7\u5F97 5 \u4E2A\u6E90\u5CA9\u3001\u6E90\u77F3\u788E\u7247\u6216\u5F02\u94C1\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_030
+    manifestId: building_030
+    name: "\u5F00\u91C7\u7535\u94F2"
+    color: yellow
+    score: 0
+    resourceCost:
+      originium: 0
+      originiumShard: 2
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 10
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: choose_five_basic_resources
+    effectType: entry_choice
+    description: "\u5F53\u5F00\u91C7\u5E73\u53F0\u53D1\u5C55\u4E3A\u79FB\u52A8\u57CE\u5E02\uFF0C\u4F1A\u6709\u4EBA\u60F3\u8D77\u5B83\u7B80\u964B\u7684\u8FC7\u5F80\u5417\uFF1F"
+    effectText: "\u5408\u8BA1\u83B7\u5F97 5 \u4E2A\u6E90\u5CA9\u3001\u6E90\u77F3\u788E\u7247\u6216\u5F02\u94C1\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_031
+    manifestId: building_031
+    name: "\u5F00\u91C7\u7535\u94F2"
+    color: yellow
+    score: 0
+    resourceCost:
+      originium: 0
+      originiumShard: 2
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 10
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: choose_five_basic_resources
+    effectType: entry_choice
+    description: "\u5F53\u5F00\u91C7\u5E73\u53F0\u53D1\u5C55\u4E3A\u79FB\u52A8\u57CE\u5E02\uFF0C\u4F1A\u6709\u4EBA\u60F3\u8D77\u5B83\u7B80\u964B\u7684\u8FC7\u5F80\u5417\uFF1F"
+    effectText: "\u5408\u8BA1\u83B7\u5F97 5 \u4E2A\u6E90\u5CA9\u3001\u6E90\u77F3\u788E\u7247\u6216\u5F02\u94C1\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_032
+    manifestId: building_032
+    name: "\u5F02\u94C1\u51B6\u70BC\u5382"
+    color: red
+    score: 1
+    resourceCost:
+      originium: 2
+      originiumShard: 2
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 15
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: gain_iron_4
+    effectType: entry
+    description: "\u5C11\u6709\u4EBA\u9020\u7269\u53EF\u4EE5\u50CF\u5F02\u94C1\u5757\u4E00\u6837\uFF0C\u627F\u53D7\u7740\u8FD9\u7247\u5927\u5730\u7684\u82E6\u96BE\u800C\u4E0D\u53D8\u8D28\u3002"
+    effectText: "\u83B7\u5F97 4 \u5F02\u94C1\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 4
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_033
+    manifestId: building_033
+    name: "\u56FA\u6E90\u5CA9\u63D0\u7EAF\u5382"
+    color: red
+    score: 0
+    resourceCost:
+      originium: 1
+      originiumShard: 1
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 10
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: gain_originium_7
+    effectType: entry
+    description: "\u5047\u5982\u7CBE\u70BC\u6E90\u77F3\u662F\u79FB\u52A8\u57CE\u5E02\u4E0D\u65AD\u6D41\u52A8\u7684\u8840\u6DB2\uFF0C\u90A3\u63D0\u7EAF\u6E90\u5CA9\u4FBF\u662F\u575A\u5B9E\u7684\u808C\u8089\u3002"
+    effectText: "\u83B7\u5F97 7 \u6E90\u5CA9\u3002"
+    onBuiltReward:
+      originium: 7
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_034
+    manifestId: building_034
+    name: "\u4F63\u5175\u6307\u6325\u90E8"
+    color: red
+    score: 1
+    resourceCost:
+      originium: 2
+      originiumShard: 0
+      iron: 2
+      pureOriginium: 0
+      goldVoucher: 4
+    goldVoucherCost: 18
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: replace_one_influence
+    effectType: entry
+    description: "\u201C\u653E\u5FC3\uFF0C\u628A\u6D3B\u513F\u4EA4\u7ED9\u4E13\u4E1A\u7684\u4EBA\u3002\u201D"
+    effectText: "\u5165\u573A\u65F6\uFF0C\u66FF\u6362 1 \u4E2A\u5F71\u54CD\u529B\u6216\u653E\u7F6E
+      1 \u4E2A\u5F71\u54CD\u529B\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_035
+    manifestId: building_035
+    name: "\u4F63\u5175\u6307\u6325\u90E8"
+    color: red
+    score: 1
+    resourceCost:
+      originium: 2
+      originiumShard: 0
+      iron: 2
+      pureOriginium: 0
+      goldVoucher: 4
+    goldVoucherCost: 18
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: replace_one_influence
+    effectType: entry
+    description: "\u201C\u653E\u5FC3\uFF0C\u628A\u6D3B\u513F\u4EA4\u7ED9\u4E13\u4E1A\u7684\u4EBA\u3002\u201D"
+    effectText: "\u5165\u573A\u65F6\uFF0C\u66FF\u6362 1 \u4E2A\u5F71\u54CD\u529B\u6216\u653E\u7F6E
+      1 \u4E2A\u5F71\u54CD\u529B\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_036
+    manifestId: building_036
+    name: "\u4F63\u5175\u6307\u6325\u90E8"
+    color: red
+    score: 1
+    resourceCost:
+      originium: 2
+      originiumShard: 0
+      iron: 2
+      pureOriginium: 0
+      goldVoucher: 4
+    goldVoucherCost: 18
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: replace_one_influence
+    effectType: entry
+    description: "\u201C\u653E\u5FC3\uFF0C\u628A\u6D3B\u513F\u4EA4\u7ED9\u4E13\u4E1A\u7684\u4EBA\u3002\u201D"
+    effectText: "\u5165\u573A\u65F6\uFF0C\u66FF\u6362 1 \u4E2A\u5F71\u54CD\u529B\u6216\u653E\u7F6E
+      1 \u4E2A\u5F71\u54CD\u529B\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_037
+    manifestId: building_037
+    name: "\u62A4\u822A\u8C03\u5EA6\u4E2D\u5FC3"
+    color: red
+    score: 0
+    resourceCost:
+      originium: 2
+      originiumShard: 2
+      iron: 2
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 18
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: deploy_two_influences
+    effectType: entry
+    description: "\u201C\u867D\u4E0D\u53CA\u9AD8\u591A\u6C40\u5F00\u62D3\u519B\u7684\u524D\u4EBA\u6765\u5F97\u8C28\u614E\uFF0C\u4F46\u8FD9\u4E9B\u65B0\u4EBA\u62D3\u8352\u8005\u4EEC\u52C7\u6C14\u5C1A\u53EF\u3002\u201D"
+    effectText: "\u5165\u573A\u65F6\uFF0C\u90E8\u7F72 2 \u4E2A\u5F71\u54CD\u529B\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_038
+    manifestId: building_038
+    name: "\u62A4\u822A\u8C03\u5EA6\u4E2D\u5FC3"
+    color: red
+    score: 0
+    resourceCost:
+      originium: 2
+      originiumShard: 2
+      iron: 2
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 18
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: deploy_two_influences
+    effectType: entry
+    description: "\u201C\u867D\u4E0D\u53CA\u9AD8\u591A\u6C40\u5F00\u62D3\u519B\u7684\u524D\u4EBA\u6765\u5F97\u8C28\u614E\uFF0C\u4F46\u8FD9\u4E9B\u65B0\u4EBA\u62D3\u8352\u8005\u4EEC\u52C7\u6C14\u5C1A\u53EF\u3002\u201D"
+    effectText: "\u5165\u573A\u65F6\uFF0C\u90E8\u7F72 2 \u4E2A\u5F71\u54CD\u529B\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_039
+    manifestId: building_039
+    name: "\u8F7D\u5177\u4ED3\u5E93"
+    color: red
+    score: 0
+    resourceCost:
+      originium: 1
+      originiumShard: 2
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 9
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: remove_then_dispatch_or_explore
+    effectType: special_action
+    description: "\u4ECE\u77FF\u533A\u56DE\u6536\u7684\u63A2\u7D22\u8F66\u8F86\u6B63\u5728\u8FDB\u884C\u7EC6\u81F4\u7684\u6E05\u6D17\uFF0C\u7B49\u5F85\u5B83\u7684\u4E0B\u4E00\u4EFB\u4E3B\u4EBA\u3002"
+    effectText: "\u5165\u573A\u65F6\uFF0C\u79FB\u9664 1 \u4E2A\u5F71\u54CD\u529B\uFF0C\u7136\u540E\u8C03\u5EA6
+      1 \u6B21\uFF1B\u6216\u8005\u6267\u884C 1 \u6B21\u63A2\u7D22\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_040
+    manifestId: building_040
+    name: "\u8F7D\u5177\u4ED3\u5E93"
+    color: red
+    score: 0
+    resourceCost:
+      originium: 1
+      originiumShard: 2
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 9
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: remove_then_dispatch_or_explore
+    effectType: special_action
+    description: "\u4ECE\u77FF\u533A\u56DE\u6536\u7684\u63A2\u7D22\u8F66\u8F86\u6B63\u5728\u8FDB\u884C\u7EC6\u81F4\u7684\u6E05\u6D17\uFF0C\u7B49\u5F85\u5B83\u7684\u4E0B\u4E00\u4EFB\u4E3B\u4EBA\u3002"
+    effectText: "\u5165\u573A\u65F6\uFF0C\u79FB\u9664 1 \u4E2A\u5F71\u54CD\u529B\uFF0C\u7136\u540E\u8C03\u5EA6
+      1 \u6B21\uFF1B\u6216\u8005\u6267\u884C 1 \u6B21\u63A2\u7D22\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: building_041
+    manifestId: building_041
+    name: "\u8F7D\u5177\u4ED3\u5E93"
+    color: red
+    score: 0
+    resourceCost:
+      originium: 1
+      originiumShard: 2
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 9
+    defaultSupply: 1
+    reserveOnly: 0
+    hasEntryEffect: 1
+    keywords:
+    - entry
+    effectId: remove_then_dispatch_or_explore
+    effectType: special_action
+    description: "\u4ECE\u77FF\u533A\u56DE\u6536\u7684\u63A2\u7D22\u8F66\u8F86\u6B63\u5728\u8FDB\u884C\u7EC6\u81F4\u7684\u6E05\u6D17\uFF0C\u7B49\u5F85\u5B83\u7684\u4E0B\u4E00\u4EFB\u4E3B\u4EBA\u3002"
+    effectText: "\u5165\u573A\u65F6\uFF0C\u79FB\u9664 1 \u4E2A\u5F71\u54CD\u529B\uFF0C\u7136\u540E\u8C03\u5EA6
+      1 \u6B21\uFF1B\u6216\u8005\u6267\u884C 1 \u6B21\u63A2\u7D22\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: reserve_001
+    manifestId: reserve_001
+    name: "\u6838\u5FC3\u6307\u6325\u5854"
+    color: rainbow
+    score: 0
+    resourceCost:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 0
+    defaultSupply: 0
+    reserveOnly: 1
+    hasEntryEffect: 0
+    keywords:
+    - unique
+    effectId: setup_core_command_tower
+    effectType: setup
+    description: "\u201C\u8D77\u822A\u7684\u7B2C\u4E00\u4E2A\u4FE1\u53F7\u5728\u5854\u9876\u70B9\u4EAE\u3002\u201D"
+    effectText: "\u552F\u4E00\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: reserve_002
+    manifestId: reserve_002
+    name: "\u5EF6\u4F38\u67A2\u7EBD"
+    color: blue
+    score: -1
+    resourceCost:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 0
+    defaultSupply: 0
+    reserveOnly: 1
+    hasEntryEffect: 0
+    keywords: []
+    effectId: reserve_extension_hub
+    effectType: reserve
+    description: "\u2026\u2026\u6743\u529B\u4E0E\u6269\u5F20\u4E4B\u8DEF\u3002"
+    effectText: "\u53EA\u80FD\u901A\u8FC7\u7269\u6D41\u67A2\u7EBD\u7684\u5165\u573A\u6548\u679C\u8FDB\u884C\u5EFA\u8BBE\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: reserve_003
+    manifestId: reserve_003
+    name: "\u5EF6\u4F38\u67A2\u7EBD"
+    color: yellow
+    score: -1
+    resourceCost:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 0
+    defaultSupply: 0
+    reserveOnly: 1
+    hasEntryEffect: 0
+    keywords: []
+    effectId: reserve_extension_hub
+    effectType: reserve
+    description: "\u2026\u2026\u6743\u529B\u4E0E\u6269\u5F20\u4E4B\u8DEF\u3002"
+    effectText: "\u53EA\u80FD\u901A\u8FC7\u7269\u6D41\u67A2\u7EBD\u7684\u5165\u573A\u6548\u679C\u8FDB\u884C\u5EFA\u8BBE\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: reserve_004
+    manifestId: reserve_004
+    name: "\u5EF6\u4F38\u67A2\u7EBD"
+    color: red
+    score: -1
+    resourceCost:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 0
+    defaultSupply: 0
+    reserveOnly: 1
+    hasEntryEffect: 0
+    keywords: []
+    effectId: reserve_extension_hub
+    effectType: reserve
+    description: "\u2026\u2026\u6743\u529B\u4E0E\u6269\u5F20\u4E4B\u8DEF\u3002"
+    effectText: "\u53EA\u80FD\u901A\u8FC7\u7269\u6D41\u67A2\u7EBD\u7684\u5165\u573A\u6548\u679C\u8FDB\u884C\u5EFA\u8BBE\u3002"
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+  - facilityId: facility_enterprise_office
+    manifestId: facility_enterprise_office
+    name: "\u4F01\u4E1A\u529E\u4E8B\u5904"
+    color: rainbow
+    score: 1
+    resourceCost:
+      originium: 3
+      originiumShard: 3
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    goldVoucherCost: 23
+    defaultSupply: 0
+    reserveOnly: 0
+    hasEntryEffect: 0
+    keywords: []
+    effectId: enterprise_office
+    effectType: entry
+    description: 
+    effectText: 
+    onBuiltReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0

@@ -210,10 +210,9 @@ namespace YC.Tests.EditMode
             InfluenceService influenceService)
         {
             var mapViewType = GetAssemblyCSharpType("YC.Presentation.MapViewPresenter");
-            var constructor = FindConstructor(mapViewType, 5);
+            var constructor = FindConstructor(mapViewType, 4);
             return constructor.Invoke(new object[]
             {
-                null,
                 null,
                 null,
                 mapQuery,

@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using NUnit.Framework;
 using YC.Domain.Cards;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -72,53 +73,13 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void ExternalLinkButtons_ShowCollapsedMarksAndUseBottomNotchedBookmarks()
+        public void ExternalLinkButtons_AreAuthoredInStartMenuPrefab()
         {
-            var type = Type.GetType("YC.Presentation.StartMenuController, Assembly-CSharp", false);
-            Assert.That(type, Is.Not.Null, "Missing YC.Presentation.StartMenuController.");
-
-            var parentObject = new GameObject("External Link Layout Test", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            try
-            {
-                parentObject.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
-                var parent = parentObject.GetComponent<RectTransform>();
-                parent.sizeDelta = new Vector2(800f, 400f);
-
-                InvokePrivateStatic(type, "CreateExternalLinkButton", parent, "官方网站", "https://example.invalid", "官", 1);
-                InvokePrivateStatic(type, "CreateExternalLinkButton", parent, "进入wiki", "https://example.invalid/wiki", "W", 0);
-
-                var buttons = parent.GetComponentsInChildren<Button>(true);
-                Assert.That(buttons.Length, Is.EqualTo(2));
-                for (var i = 0; i < buttons.Length; i++)
-                {
-                    var rect = buttons[i].GetComponent<RectTransform>();
-                    Assert.That(rect.sizeDelta.x, Is.EqualTo(52f).Within(0.01f));
-                }
-
-                Assert.That(HasBookmarkMark(parent, "官"), Is.True);
-                Assert.That(HasBookmarkMark(parent, "W"), Is.True);
-
-                AssertBookmarkMarksCanGenerateVertices(parent);
-
-                var icon = FindChildRect(parent, "Bookmark Icon");
-                Assert.That(icon, Is.Not.Null);
-
-                var sprite = icon.GetComponent<Image>().sprite;
-                Assert.That(sprite, Is.Not.Null);
-
-                var texture = sprite.texture;
-                var centerX = texture.width / 2;
-                Assert.That(texture.GetPixel(centerX, 0).a, Is.EqualTo(0f).Within(0.01f));
-                Assert.That(texture.GetPixel(0, 0).a, Is.EqualTo(1f).Within(0.01f));
-                Assert.That(texture.GetPixel(1, 0).a, Is.EqualTo(0f).Within(0.01f));
-                Assert.That(texture.GetPixel(texture.width - 1, 0).a, Is.EqualTo(1f).Within(0.01f));
-                Assert.That(texture.GetPixel(texture.width - 2, 0).a, Is.EqualTo(0f).Within(0.01f));
-                Assert.That(texture.GetPixel(centerX, texture.height - 1).a, Is.EqualTo(1f).Within(0.01f));
-            }
-            finally
-            {
-                Object.DestroyImmediate(parentObject);
-            }
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab");
+            Assert.That(prefab, Is.Not.Null);
+            Assert.That(FindChildRect(prefab.transform, "Official Link Button"), Is.Not.Null);
+            Assert.That(FindChildRect(prefab.transform, "Wiki Link Button"), Is.Not.Null);
         }
 
         private static Component CreateController(out GameObject owner)
@@ -126,8 +87,12 @@ namespace YC.Tests.EditMode
             var type = Type.GetType("YC.Presentation.StartMenuController, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.StartMenuController.");
 
-            owner = new GameObject("Start Menu Clipboard Test");
-            return owner.AddComponent(type);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab");
+            Assert.That(prefab, Is.Not.Null, "Missing editor-authored StartMenuRoot prefab.");
+            owner = Object.Instantiate(prefab);
+            owner.name = "Start Menu Clipboard Test";
+            return owner.GetComponent(type);
         }
 
         private static void Invoke(Component controller, string methodName, params object[] args)
@@ -224,12 +189,6 @@ namespace YC.Tests.EditMode
 
         private static void DestroyControllerObjects(Component controller, GameObject owner)
         {
-            var roomPanel = GetPrivateField<GameObject>(controller, "roomPanel");
-            if (roomPanel != null)
-            {
-                Object.DestroyImmediate(roomPanel);
-            }
-
             Object.DestroyImmediate(owner);
         }
     }

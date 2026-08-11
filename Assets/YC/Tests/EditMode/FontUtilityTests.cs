@@ -1,19 +1,26 @@
 using System;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace YC.Tests.EditMode
 {
     public sealed class FontUtilityTests
     {
-        private const string CjkResourcePath = "Fonts/CJK/NotoSansCJKsc-Regular";
-        private const string LatinResourcePath = "Fonts/Latin/NotoSans-Regular";
+        private const string CjkAssetPath = "Assets/YC/Resources/Fonts/CJK/NotoSansCJKsc-Regular.otf";
+        private const string LatinAssetPath = "Assets/YC/Resources/Fonts/Latin/NotoSans-Regular.ttf";
+        private GameObject configurationOwner;
 
         [SetUp]
         public void SetUp()
         {
             ResetFontUtilityRuntimeState();
+            configurationOwner = new GameObject("FontUtility Test Owner");
+            ConfigureFontUtility(
+                AssetDatabase.LoadAssetAtPath<Font>(CjkAssetPath),
+                AssetDatabase.LoadAssetAtPath<Font>(LatinAssetPath),
+                configurationOwner);
             DestroyIfExists("YC Font Health Probe");
         }
 
@@ -22,62 +29,61 @@ namespace YC.Tests.EditMode
         {
             DestroyIfExists("YC Font Health Probe");
             ResetFontUtilityRuntimeState();
+            UnityEngine.Object.DestroyImmediate(configurationOwner);
         }
 
         [Test]
-        public void GetCjkFont_PrefersBundledProjectFont()
+        public void GetCjkFont_ReturnsConfiguredProjectFont()
         {
-            var expectedFont = Resources.Load<Font>(CjkResourcePath);
+            var expectedFont = AssetDatabase.LoadAssetAtPath<Font>(CjkAssetPath);
             Assert.That(expectedFont, Is.Not.Null, "Missing bundled CJK font asset.");
 
             var font = InvokeGetFont("GetCjkFont", 18);
 
             Assert.That(font, Is.SameAs(expectedFont));
-            Assert.That(GetManagedFontOrigin(font), Is.EqualTo("ProjectResource:" + CjkResourcePath));
+            Assert.That(GetManagedFontOrigin(font), Is.EqualTo("Serialized:CJK"));
         }
 
         [Test]
-        public void GetLatinFont_PrefersBundledProjectFont()
+        public void GetLatinFont_ReturnsConfiguredProjectFont()
         {
-            var expectedFont = Resources.Load<Font>(LatinResourcePath);
+            var expectedFont = AssetDatabase.LoadAssetAtPath<Font>(LatinAssetPath);
             Assert.That(expectedFont, Is.Not.Null, "Missing bundled Latin font asset.");
 
             var font = InvokeGetFont("GetLatinFont", 18);
 
             Assert.That(font, Is.SameAs(expectedFont));
-            Assert.That(GetManagedFontOrigin(font), Is.EqualTo("ProjectResource:" + LatinResourcePath));
+            Assert.That(GetManagedFontOrigin(font), Is.EqualTo("Serialized:Latin"));
         }
 
         [Test]
-        public void GetCjkFont_FallsBackToBundledLatinFontWhenPrimaryResourceMissing()
+        public void GetCjkFont_ThrowsClearlyWhenNoDriverConfigured()
         {
-            var expectedFont = Resources.Load<Font>(LatinResourcePath);
-            Assert.That(expectedFont, Is.Not.Null, "Missing bundled Latin font asset.");
+            ResetFontUtilityRuntimeState();
 
-            SetPrivateStaticField(
-                "cjkProjectFontResourcePaths",
-                new[] { "Fonts/CJK/MissingFont", LatinResourcePath });
+            var error = Assert.Throws<TargetInvocationException>(() => InvokeGetFont("GetCjkFont", 18));
 
-            var font = InvokeGetFont("GetCjkFont", 18);
-
-            Assert.That(font, Is.SameAs(expectedFont));
-            Assert.That(GetManagedFontOrigin(font), Is.EqualTo("ProjectResource:" + LatinResourcePath));
+            Assert.That(error.InnerException, Is.TypeOf<InvalidOperationException>());
+            Assert.That(error.InnerException.Message, Does.Contain("FontRefreshDriver"));
         }
 
         [Test]
-        public void GetLatinFont_FallsBackToBundledCjkFontWhenPrimaryResourceMissing()
+        public void ReleaseFromOldOwner_DoesNotClearNewDriverConfiguration()
         {
-            var expectedFont = Resources.Load<Font>(CjkResourcePath);
-            Assert.That(expectedFont, Is.Not.Null, "Missing bundled CJK font asset.");
+            var newerOwner = new GameObject("New Font Driver Owner");
+            try
+            {
+                var cjk = AssetDatabase.LoadAssetAtPath<Font>(CjkAssetPath);
+                var latin = AssetDatabase.LoadAssetAtPath<Font>(LatinAssetPath);
+                ConfigureFontUtility(cjk, latin, newerOwner);
+                InvokePrivateStaticMethod("Release", configurationOwner);
 
-            SetPrivateStaticField(
-                "latinProjectFontResourcePaths",
-                new[] { "Fonts/Latin/MissingFont", CjkResourcePath });
-
-            var font = InvokeGetFont("GetLatinFont", 18);
-
-            Assert.That(font, Is.SameAs(expectedFont));
-            Assert.That(GetManagedFontOrigin(font), Is.EqualTo("ProjectResource:" + CjkResourcePath));
+                Assert.That(InvokeGetFont("GetCjkFont", 18), Is.SameAs(cjk));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(newerOwner);
+            }
         }
 
         [Test]
@@ -110,7 +116,7 @@ namespace YC.Tests.EditMode
             Assert.That(snapshot, Does.Contain("长挂机字体自检快照"));
             Assert.That(snapshot, Does.Contain("YC Font Health Probe"));
             Assert.That(snapshot, Does.Contain("Prompt Text"));
-            Assert.That(snapshot, Does.Contain("ProjectResource:" + CjkResourcePath));
+            Assert.That(snapshot, Does.Contain("Serialized:CJK"));
         }
 
         [Test]
@@ -127,21 +133,16 @@ namespace YC.Tests.EditMode
             Assert.That(snapshot, Does.Contain("SimulatedInvalidTexture: True"));
             Assert.That(afterFont, Is.Not.Null);
             Assert.That(afterFont, Is.SameAs(beforeFont));
-            Assert.That(GetManagedFontOrigin(afterFont), Is.EqualTo("ProjectResource:" + CjkResourcePath));
+            Assert.That(GetManagedFontOrigin(afterFont), Is.EqualTo("Serialized:CJK"));
         }
 
         [Test]
-        public void OnFontTextureRebuilt_QueuesDeferredRefresh()
+        public void OnFontTextureRebuilt_DoesNotTriggerGlobalRefreshOnNormalAtlasUpdates()
         {
             var font = InvokeGetFont("GetCjkFont", 18);
             Assert.That(font, Is.Not.Null);
 
             InvokePrivateStaticMethod("OnFontTextureRebuilt", font);
-
-            Assert.That(GetPrivateStaticField<bool>("pendingManagedTextRefresh"), Is.True);
-            Assert.That(GetPrivateStaticField<bool>("pendingManagedFontRecreate"), Is.False);
-
-            InvokePrivateStaticMethod("FlushPendingManagedTextRefresh");
 
             Assert.That(GetPrivateStaticField<bool>("pendingManagedTextRefresh"), Is.False);
             Assert.That(GetPrivateStaticField<bool>("pendingManagedFontRecreate"), Is.False);
@@ -224,6 +225,16 @@ namespace YC.Tests.EditMode
             var method = type.GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
             Assert.That(method, Is.Not.Null, "Missing FontUtility.ResetRuntimeState.");
             method.Invoke(null, null);
+        }
+
+        private static void ConfigureFontUtility(Font cjk, Font latin, UnityEngine.Object owner)
+        {
+            Assert.That(cjk, Is.Not.Null, "Missing bundled CJK font asset.");
+            Assert.That(latin, Is.Not.Null, "Missing bundled Latin font asset.");
+            var type = GetFontUtilityType();
+            var method = type.GetMethod("Configure", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null, "Missing FontUtility.Configure.");
+            method.Invoke(null, new object[] { cjk, latin, owner });
         }
 
         private static void DestroyIfExists(string objectName)

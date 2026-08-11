@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7a28b0919ee4a80b234e097ad4d7d21, type: 3}
+  m_Name: CardBoardVisualLayout
+  m_EditorClassIdentifier: 
+  sourceManifestSha256: 03C979B63F8B036225E061A59BE9E0EA2E86BB9F5CDE81C854396894E124DB5B
+  cityBoardSlotCenters:
+  - {x: 0.176, y: 0.152}
+  - {x: 0.502, y: 0.152}
+  - {x: 0.827, y: 0.152}
+  - {x: 0.176, y: 0.383}
+  - {x: 0.502, y: 0.383}
+  - {x: 0.827, y: 0.383}
+  - {x: 0.176, y: 0.615}
+  - {x: 0.502, y: 0.615}
+  - {x: 0.827, y: 0.615}
+  - {x: 0.176, y: 0.846}
+  - {x: 0.502, y: 0.846}
+  - {x: 0.827, y: 0.846}
+  cityBoardSlotWidthRatio: 0.292
+  cityBoardSlotHeightRatio: 0.224
+  markerAreaAnchors:
+  - MarkerArea: unused
+    Anchor: {x: 0.69, y: 0.73}
+  - MarkerArea: used
+    Anchor: {x: 0.69, y: 0.28}
+  - MarkerArea: 2
+    Anchor: {x: 0.69, y: 0.82}
+  - MarkerArea: used_from_2
+    Anchor: {x: 0.69, y: 0.66}
+  - MarkerArea: 1
+    Anchor: {x: 0.69, y: 0.5}
+  - MarkerArea: used_from_1
+    Anchor: {x: 0.69, y: 0.34}
+  - MarkerArea: 0
+    Anchor: {x: 0.69, y: 0.18}
+  regularMarkerColumnCount: 4
+  regularMarkerColumnSpacingX: 0.055
+  regularMarkerRowSpacingY: 0.11
+  militaryUnusedPlayerLaneCount: 4
+  militaryUnusedMarkerRowCount: 3
+  militaryUnusedFirstLaneX: 0.62
+  militaryUnusedLaneSpacingX: 0.09
+  militaryUnusedFirstMarkerY: 0.84
+  militaryUnusedMarkerSpacingY: 0.14
+  levelOneUsedSpecialActionArea:
+    serializedVersion: 2
+    x: 0.54
+    y: 0.08
+    width: 0.40499997
+    height: 0.40500003
+  levelTwoUsedFromTwoSpecialActionArea:
+    serializedVersion: 2
+    x: 0.54
+    y: 0.6
+    width: 0.40499997
+    height: 0.14999998
+  levelTwoUsedFromOneSpecialActionArea:
+    serializedVersion: 2
+    x: 0.54
+    y: 0.23
+    width: 0.40499997
+    height: 0.14999999
+  fallbackSpecialActionAreaHalfExtents: {x: 0.09, y: 0.07}
+  buildInfoMarkerSizePixels: 12
+  declarationPreviewMarkerSizePixels: 20

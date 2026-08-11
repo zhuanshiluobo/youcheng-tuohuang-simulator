@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace YC.Presentation
 {
@@ -10,8 +9,27 @@ namespace YC.Presentation
     /// </summary>
     internal sealed class SpecialActionChoiceDialog
     {
-        private readonly EffectDialogShell shell = new EffectDialogShell();
+        private readonly Func<RectTransform> getCanvas;
+        private readonly EffectDialogShell shell;
+        private readonly EffectDialogLayoutProfile layoutProfile;
         private EffectDialogCollapsiblePanel collapsiblePanel;
+
+        internal SpecialActionChoiceDialog(
+            GameplayDialogRegistry dialogRegistry,
+            Func<RectTransform> canvasProvider)
+        {
+            getCanvas = canvasProvider ?? throw new ArgumentNullException(nameof(canvasProvider));
+            if (dialogRegistry == null) throw new ArgumentNullException(nameof(dialogRegistry));
+            layoutProfile = dialogRegistry.EffectDialogLayoutProfile;
+            var layoutReason = string.Empty;
+            if (layoutProfile == null || !layoutProfile.TryValidateConfiguration(out layoutReason))
+            {
+                throw new InvalidOperationException(
+                    "SpecialActionChoiceDialog 缺少有效的显式布局 Profile：" + layoutReason);
+            }
+
+            shell = new EffectDialogShell(dialogRegistry);
+        }
 
         public bool IsShowing
         {
@@ -24,13 +42,11 @@ namespace YC.Presentation
         }
 
         public void ShowCompositePayment(
-            RectTransform canvas,
             int maximumOriginium,
             int maximumIron,
             Action<IReadOnlyList<int>> confirm)
         {
             ShowCompositePayment(
-                canvas,
                 maximumOriginium,
                 maximumIron,
                 confirm,
@@ -38,19 +54,19 @@ namespace YC.Presentation
         }
 
         public void ShowCompositePayment(
-            RectTransform canvas,
             int maximumOriginium,
             int maximumIron,
             Action<IReadOnlyList<int>> confirm,
             Action cancel)
         {
             collapsiblePanel = null;
+            var canvas = getCanvas();
             var panel = shell.Rebuild(
                 canvas,
                 "Special Action Choice Overlay",
                 "Special Action Choice Panel",
-                new Vector2(650f, 500f),
-                Vector2.zero,
+                layoutProfile.SpecialActionPaymentPanelSize,
+                layoutProfile.SpecialActionPaymentPanelPosition,
                 true);
             if (panel == null)
             {
@@ -64,12 +80,12 @@ namespace YC.Presentation
                 Labels = new[] { "源岩", "异铁" },
                 Maximums = new[] { Math.Max(0, maximumOriginium), Math.Max(0, maximumIron) },
                 ExactTotal = 3,
-                LabelWidth = 230f,
-                LabelHeight = 48f,
-                LabelX = 145f,
-                DecreaseX = 320f,
-                ValueX = 390f,
-                IncreaseX = 460f,
+                LabelWidth = layoutProfile.ResourceLabelWidth,
+                LabelHeight = layoutProfile.ResourceLabelHeight,
+                LabelX = layoutProfile.ResourceLabelX,
+                DecreaseX = layoutProfile.ResourceDecreaseX,
+                ValueX = layoutProfile.ResourceValueX,
+                IncreaseX = layoutProfile.ResourceIncreaseX,
                 SummaryName = "Special Action Payment Summary",
                 FormatSummary = values =>
                 {
@@ -88,76 +104,40 @@ namespace YC.Presentation
         }
 
         public void ShowCollapsibleMapPrompt(
-            RectTransform canvas,
             string title,
             string description,
             string summary)
         {
             collapsiblePanel = null;
+            var canvas = getCanvas();
             var panel = shell.Rebuild(
                 canvas,
                 "Special Action Choice Overlay",
                 "Special Action Choice Panel",
-                new Vector2(650f, 260f),
-                new Vector2(0f, 310f));
+                layoutProfile.SpecialActionMapPromptPanelSize,
+                layoutProfile.MapPromptPanelPosition);
             if (panel == null)
             {
                 return;
             }
 
-            var collapsedSummary = EffectDialogShell.CreateText(
-                panel,
-                "Special Action Collapsed Summary",
+            var expandedContent = shell.ConfigureCollapsiblePanel(
+                canvas,
+                layoutProfile.SpecialActionMapPromptPanelSize,
                 summary,
-                18,
-                TextAnchor.MiddleLeft);
-            collapsedSummary.fontStyle = FontStyle.Bold;
-            collapsedSummary.color = UiTheme.GoldText;
-            EffectDialogShell.SetRect(
-                collapsedSummary.rectTransform,
-                new Vector2(0.06f, 1f),
-                new Vector2(0.72f, 1f),
-                new Vector2(0f, 42f),
-                new Vector2(0f, -29f));
-
-            var expandedContentObject = new GameObject("Special Action Expanded Content", typeof(RectTransform));
-            expandedContentObject.transform.SetParent(panel, false);
-            var expandedContent = expandedContentObject.GetComponent<RectTransform>();
-            EffectDialogShell.Stretch(expandedContent, 0f);
+                true,
+                "Special Action Expanded Content",
+                "Special Action Collapsed Summary",
+                "Special Action Collapse Toggle",
+                "Special Action Collapse Triangle");
+            collapsiblePanel = shell.CollapsiblePanel;
             EffectDialogShell.AddHeading(
                 expandedContent,
                 title,
                 description,
-                74f,
+                layoutProfile.MapPromptDescriptionHeight,
                 addDragHandle: false);
 
-            var toggle = EffectDialogShell.CreateButton(
-                panel,
-                "Special Action Collapse Toggle",
-                "收起卡片",
-                14);
-            var toggleRect = toggle.GetComponent<RectTransform>();
-            var toggleText = toggle.GetComponentInChildren<Text>();
-            var toggleIcon = UguiUtility.CreateTriangleIcon(
-                toggleRect,
-                "Special Action Collapse Triangle",
-                true);
-
-            collapsiblePanel = panel.gameObject.AddComponent<EffectDialogCollapsiblePanel>();
-            collapsiblePanel.Configure(new EffectDialogCollapseSpec
-            {
-                Panel = panel,
-                Canvas = canvas == null ? null : canvas.GetComponentInParent<Canvas>(),
-                OverlayImage = panel.parent == null ? null : panel.parent.GetComponent<Image>(),
-                ExpandedContent = expandedContentObject,
-                CollapsedSummaryText = collapsedSummary,
-                ToggleRect = toggleRect,
-                ToggleText = toggleText,
-                ToggleIcon = toggleIcon,
-                ExpandedSize = new Vector2(650f, 260f),
-                StartCollapsed = true
-            });
-            toggle.onClick.AddListener(collapsiblePanel.Toggle);
         }
 
         public void Hide()

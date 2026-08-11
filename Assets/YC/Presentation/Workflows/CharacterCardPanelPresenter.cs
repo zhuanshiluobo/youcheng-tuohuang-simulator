@@ -84,13 +84,10 @@ namespace YC.Presentation.Workflows
                 for (var i = 0; i < player.HandCardIds.Count; i++)
                 {
                     var cardId = player.HandCardIds[i] ?? string.Empty;
-                    string imageRelativePath;
-                    CharacterCardImagePathCatalog.TryGetFrontImageRelativePath(cardId, out imageRelativePath);
                     hand.Add(new CharacterCardHandItemViewModel(
                         cardId,
                         ResolveCardDisplayName(cardId),
-                        canCover,
-                        imageRelativePath));
+                        canCover));
                 }
             }
 
@@ -100,26 +97,11 @@ namespace YC.Presentation.Workflows
                 for (var i = 0; i < player.DiscardCardIds.Count; i++)
                 {
                     var cardId = player.DiscardCardIds[i] ?? string.Empty;
-                    string imageRelativePath;
-                    CharacterCardImagePathCatalog.TryGetFrontImageRelativePath(cardId, out imageRelativePath);
                     discard.Add(new CharacterCardHandItemViewModel(
                         cardId,
                         ResolveCardDisplayName(cardId),
-                        false,
-                        imageRelativePath));
+                        false));
                 }
-            }
-
-            string coveredBackImageRelativePath;
-            if (!hasCoveredCard || !CharacterCardImagePathCatalog.TryGetBackImageRelativePath(player.Color, out coveredBackImageRelativePath))
-            {
-                coveredBackImageRelativePath = string.Empty;
-            }
-
-            string coveredFrontImageRelativePath;
-            if (!hasCoveredCard || !CharacterCardImagePathCatalog.TryGetFrontImageRelativePath(player.CoveredCharacterCardId, out coveredFrontImageRelativePath))
-            {
-                coveredFrontImageRelativePath = string.Empty;
             }
 
             string coveredStatus;
@@ -186,8 +168,7 @@ namespace YC.Presentation.Workflows
                 pendingCharacter == null || pendingCharacter.RemainingCardIds == null || pendingCharacter.RemainingCardIds.Count == 0
                     ? string.Empty
                     : ResolveCardDisplayName(pendingCharacter.RemainingCardIds[0]),
-                coveredBackImageRelativePath,
-                coveredFrontImageRelativePath,
+                player.Color,
                 pendingCharacter == null ? string.Empty : pendingCharacter.RemainingEffectMode);
         }
 
@@ -328,8 +309,7 @@ namespace YC.Presentation.Workflows
             CharacterCardEffectKind tacticEffect,
             string pendingChoiceType,
             string pendingCardDisplayName,
-            string coveredBackImageRelativePath,
-            string coveredFrontImageRelativePath,
+            PlayerColor coveredCardBackColor,
             string remainingEffectMode)
         {
             HandCards = handCards ?? new List<CharacterCardHandItemViewModel>().AsReadOnly();
@@ -351,8 +331,7 @@ namespace YC.Presentation.Workflows
             TacticEffect = tacticEffect;
             PendingChoiceType = pendingChoiceType ?? string.Empty;
             PendingCardDisplayName = pendingCardDisplayName ?? string.Empty;
-            CoveredBackImageRelativePath = coveredBackImageRelativePath ?? string.Empty;
-            CoveredFrontImageRelativePath = coveredFrontImageRelativePath ?? string.Empty;
+            CoveredCardBackColor = coveredCardBackColor;
             RemainingEffectMode = remainingEffectMode ?? string.Empty;
         }
 
@@ -375,8 +354,7 @@ namespace YC.Presentation.Workflows
         public CharacterCardEffectKind TacticEffect { get; private set; }
         public string PendingChoiceType { get; private set; }
         public string PendingCardDisplayName { get; private set; }
-        public string CoveredBackImageRelativePath { get; private set; }
-        public string CoveredFrontImageRelativePath { get; private set; }
+        public PlayerColor CoveredCardBackColor { get; private set; }
         public string RemainingEffectMode { get; private set; }
         public bool HasPendingCharacterChoice => !string.IsNullOrEmpty(PendingChoiceType);
         public bool IsSecondEffectDecision => PendingChoiceType == CharacterPendingChoiceTypes.SecondEffectDecision;
@@ -404,25 +382,22 @@ namespace YC.Presentation.Workflows
                 CharacterCardEffectKind.Unsupported,
                 string.Empty,
                 string.Empty,
-                string.Empty,
-                string.Empty,
+                default(PlayerColor),
                 string.Empty);
         }
     }
 
     public sealed class CharacterCardHandItemViewModel
     {
-        public CharacterCardHandItemViewModel(string cardId, string displayName, bool canCover, string frontImageRelativePath)
+        public CharacterCardHandItemViewModel(string cardId, string displayName, bool canCover)
         {
             CardId = cardId ?? string.Empty;
             DisplayName = displayName ?? string.Empty;
             CanCover = canCover;
-            FrontImageRelativePath = frontImageRelativePath ?? string.Empty;
         }
 
         public string CardId { get; private set; }
         public string DisplayName { get; private set; }
         public bool CanCover { get; private set; }
-        public string FrontImageRelativePath { get; private set; }
     }
 }

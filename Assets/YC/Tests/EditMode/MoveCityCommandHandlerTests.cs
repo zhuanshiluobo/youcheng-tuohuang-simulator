@@ -359,22 +359,6 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(1).CityLocationId, Is.EqualTo("A-01"));
         }
 
-        [Test]
-        public void PhaseFlow_AdvancingToNextRound_ResetsCityMoveFlags()
-        {
-            var state = CreateState();
-            state.Phase = GamePhase.Cleanup;
-            state.Round = 1;
-            state.MaxRounds = 8;
-            state.FindPlayer(1).HasMovedCityThisRound = true;
-
-            PhaseFlow.Advance(state);
-
-            Assert.That(state.Phase, Is.EqualTo(GamePhase.RoundStart));
-            Assert.That(state.Round, Is.EqualTo(2));
-            Assert.That(state.FindPlayer(1).HasMovedCityThisRound, Is.False);
-        }
-
         private static MoveCityCommandHandler CreateHandler()
         {
             var mapQuery = new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap());

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -336,8 +337,16 @@ namespace YC.Tests.EditMode
             var dialogType = Type.GetType(
                 "YC.Presentation.CharacterCardEffectChoiceDialog, Assembly-CSharp",
                 false);
+            var registryType = Type.GetType(
+                "YC.Presentation.GameplayDialogRegistry, Assembly-CSharp",
+                false);
+            var effectViewType = Type.GetType(
+                "YC.Presentation.EffectDialogShellView, Assembly-CSharp",
+                false);
             Assert.That(coordinatorType, Is.Not.Null);
             Assert.That(dialogType, Is.Not.Null);
+            Assert.That(registryType, Is.Not.Null);
+            Assert.That(effectViewType, Is.Not.Null);
 
             canvasObject = new GameObject(
                 "Character Effect Test Canvas",
@@ -348,12 +357,21 @@ namespace YC.Tests.EditMode
             canvasObject.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
             canvasObject.GetComponent<RectTransform>().sizeDelta = new Vector2(1920f, 1080f);
 
-            var dialog = Activator.CreateInstance(dialogType, true);
+            var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            Assert.That(hudPrefab, Is.Not.Null);
+            var registry = hudPrefab.GetComponentInChildren(registryType, true);
+            Assert.That(registry, Is.Not.Null);
+            var dialog = Activator.CreateInstance(
+                dialogType,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null,
+                new object[] { registry, canvasObject.GetComponent<RectTransform>() },
+                null);
             var presenter = new CharacterCardPanelPresenter();
             var fixture = new CoordinatorFixture(dialog);
             Func<GameState> getState = () => state;
             Func<int> getPlayerId = () => 1;
-            Func<RectTransform> getCanvas = () => canvasObject.GetComponent<RectTransform>();
             Func<string, CharacterCardEffectKind, bool> beginMap = (mode, effect) =>
             {
                 fixture.MapEffectBegun = mapEffectResult;
@@ -392,7 +410,6 @@ namespace YC.Tests.EditMode
             {
                 getState,
                 getPlayerId,
-                getCanvas,
                 presenter,
                 dialog,
                 beginMap,
@@ -454,9 +471,10 @@ namespace YC.Tests.EditMode
                 .GetField("shell", BindingFlags.Instance | BindingFlags.NonPublic)
                 .GetValue(dialog);
             Assert.That(shell, Is.Not.Null);
-            return (GameObject)shell.GetType()
-                .GetField("overlay", BindingFlags.Instance | BindingFlags.NonPublic)
-                .GetValue(shell);
+            var view = shell.GetType()
+                .GetField("view", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetValue(shell) as Component;
+            return view == null ? null : view.gameObject;
         }
 
         private static void ClickButton(GameObject root, string objectName)

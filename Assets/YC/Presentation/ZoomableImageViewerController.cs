@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,44 +14,33 @@ namespace YC.Presentation
         private const float PanelHorizontalChrome = 192f;
         private const float PanelVerticalChrome = 156f;
         private const float CollapsedPanelHeight = 58f;
+
+        private static readonly HashSet<ZoomableImageViewerController> Instances =
+            new HashSet<ZoomableImageViewerController>();
+        private static ZoomableImageViewerController registeredPrefab;
         private static int escapeConsumedFrame = -1;
 
+        [SerializeField] private ZoomableImageViewerView view;
+
         private Func<int, Texture2D> textureProvider;
-        private GameObject viewerCanvasObject;
-        private RectTransform panelTransform;
-        private RectTransform viewportTransform;
-        private RectTransform imageTransform;
-        private GameObject rootObject;
-        private Image rootBackgroundImage;
-        private GameObject expandedContentObject;
-        private RawImage image;
-        private Text pageLabel;
-        private Text titleText;
-        private Button previousButton;
-        private Button nextButton;
-        private Button primaryActionButton;
-        private Button secondaryActionButton;
-        private Text primaryActionLabel;
-        private Text secondaryActionLabel;
-        private Text collapsedSummaryText;
-        private RectTransform collapseToggleRect;
-        private Text collapseToggleLabel;
         private string primaryActionText = string.Empty;
         private string secondaryActionText = string.Empty;
         private Action primaryAction;
         private Action secondaryAction;
-        private string viewerName;
-        private string title;
-        private int pageCount;
+        private string viewerName = "Image";
+        private string title = string.Empty;
+        private int pageCount = 1;
         private int pageIndex;
         private float zoom = 1f;
         private bool collapseEnabled;
         private bool collapsed;
+        private bool initialized;
+        private bool ownsDetachedCanvas;
         private string collapsedSummary = string.Empty;
         private Vector2 expandedPanelSize;
         private Vector2 expandedPanelPosition;
 
-        public bool IsOpen => rootObject != null && rootObject.activeSelf;
+        public bool IsOpen => initialized && view.RootObject.activeSelf;
         public float Zoom => zoom;
         public int PageIndex => pageIndex;
         public bool IsCollapsed => collapsed;
@@ -62,16 +52,92 @@ namespace YC.Presentation
 
         public static bool HasOpenViewer()
         {
-            var viewers = FindObjectsOfType<ZoomableImageViewerController>();
-            for (var i = 0; i < viewers.Length; i++)
+            foreach (var viewer in Instances)
             {
-                if (viewers[i] != null && viewers[i].IsOpen)
+                if (viewer != null && viewer.IsOpen)
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        public static void RegisterPrefab(ZoomableImageViewerController prefab)
+        {
+            if (prefab == null)
+            {
+                Debug.LogError("无法注册空的 ZoomableImageViewer prefab 引用。");
+                return;
+            }
+
+            registeredPrefab = prefab;
+        }
+
+        public static void UnregisterPrefab(ZoomableImageViewerController prefab)
+        {
+            if (registeredPrefab == prefab)
+            {
+                registeredPrefab = null;
+            }
+        }
+
+        public static ZoomableImageViewerController InstantiateRegistered(
+            Transform parent,
+            string instanceName)
+        {
+            if (registeredPrefab == null)
+            {
+                Debug.LogError(
+                    "缺少已注册的 ZoomableImageViewer prefab。请由场景中的 GameSettingsMenuController 提供显式资产引用。");
+                return null;
+            }
+
+            // 动态边界：按需实例化完整编辑器 Prefab，不在运行时创建任何固定 UI 组件。
+            var instance = Instantiate(registeredPrefab, parent, false);
+            if (!string.IsNullOrEmpty(instanceName))
+            {
+                instance.gameObject.name = instanceName;
+            }
+
+            instance.DetachCanvasForDynamicInstance();
+
+            return instance;
+        }
+
+        private void Awake()
+        {
+            TryInitialize();
+        }
+
+        private void OnEnable()
+        {
+            Instances.Add(this);
+        }
+
+        private void OnDisable()
+        {
+            Instances.Remove(this);
+            if (ownsDetachedCanvas && view != null && view.RootObject != null)
+            {
+                view.RootObject.SetActive(false);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            Instances.Remove(this);
+            if (ownsDetachedCanvas && view != null && view.CanvasObject != null)
+            {
+                if (UnityEngine.Application.isPlaying)
+                {
+                    Destroy(view.CanvasObject);
+                }
+                else
+                {
+                    DestroyImmediate(view.CanvasObject);
+                }
+            }
         }
 
         private void Update()
@@ -112,34 +178,37 @@ namespace YC.Presentation
             int configuredPageCount,
             Func<int, Texture2D> configuredTextureProvider)
         {
+            if (!TryInitialize())
+            {
+                return;
+            }
+
             viewerName = string.IsNullOrEmpty(configuredViewerName) ? "Image" : configuredViewerName;
             title = configuredTitle ?? string.Empty;
             pageCount = Mathf.Max(1, configuredPageCount);
             textureProvider = configuredTextureProvider;
+            view.ApplyViewerName(viewerName);
+            view.TitleText.text = title;
+            view.PageLabel.gameObject.SetActive(pageCount > 1);
+            view.PreviousButton.gameObject.SetActive(pageCount > 1);
+            view.NextButton.gameObject.SetActive(pageCount > 1);
 
             if (collapsed)
             {
                 SetCollapsed(false);
             }
 
-            if (rootObject == null)
-            {
-                BuildUi();
-            }
-            else if (titleText != null)
-            {
-                titleText.text = title;
-            }
+            UpdateControls();
         }
 
         public void Open(int initialPage = 0)
         {
-            if (rootObject == null)
+            if (!TryInitialize())
             {
-                BuildUi();
+                return;
             }
 
-            rootObject.SetActive(true);
+            view.RootObject.SetActive(true);
             ShowPage(initialPage);
         }
 
@@ -153,7 +222,7 @@ namespace YC.Presentation
             primaryAction = configuredPrimaryAction;
             secondaryActionText = configuredSecondaryActionText ?? string.Empty;
             secondaryAction = configuredSecondaryAction;
-            if (rootObject != null)
+            if (TryInitialize())
             {
                 UpdateActionButtons();
             }
@@ -161,23 +230,25 @@ namespace YC.Presentation
 
         public void ConfigureReferenceCollapse(string summary)
         {
+            if (!TryInitialize())
+            {
+                return;
+            }
+
             collapseEnabled = true;
             collapsedSummary = summary ?? string.Empty;
-            if (collapsedSummaryText != null)
-            {
-                collapsedSummaryText.text = collapsedSummary;
-            }
-
-            if (collapseToggleRect != null)
-            {
-                collapseToggleRect.gameObject.SetActive(true);
-            }
-
+            view.CollapsedSummaryText.text = collapsedSummary;
+            view.CollapseToggleButton.gameObject.SetActive(true);
             ApplyCollapseState();
         }
 
         public void DisableReferenceCollapse()
         {
+            if (!TryInitialize())
+            {
+                return;
+            }
+
             if (collapsed)
             {
                 SetCollapsed(false);
@@ -185,19 +256,13 @@ namespace YC.Presentation
 
             collapseEnabled = false;
             collapsedSummary = string.Empty;
-            if (collapseToggleRect != null)
-            {
-                collapseToggleRect.gameObject.SetActive(false);
-            }
-            if (collapsedSummaryText != null)
-            {
-                collapsedSummaryText.gameObject.SetActive(false);
-            }
+            view.CollapseToggleButton.gameObject.SetActive(false);
+            view.CollapsedSummaryText.gameObject.SetActive(false);
         }
 
         public void SetCollapsed(bool value)
         {
-            if (!collapseEnabled && value)
+            if (!TryInitialize() || (!collapseEnabled && value))
             {
                 return;
             }
@@ -208,10 +273,10 @@ namespace YC.Presentation
                 return;
             }
 
-            if (value && panelTransform != null)
+            if (value)
             {
-                expandedPanelSize = panelTransform.sizeDelta;
-                expandedPanelPosition = panelTransform.anchoredPosition;
+                expandedPanelSize = view.PanelTransform.sizeDelta;
+                expandedPanelPosition = view.PanelTransform.anchoredPosition;
             }
 
             collapsed = value;
@@ -220,257 +285,73 @@ namespace YC.Presentation
 
         public void Close()
         {
-            if (rootObject != null)
+            if (initialized)
             {
-                rootObject.SetActive(false);
+                view.RootObject.SetActive(false);
             }
         }
 
         public void SetZoom(float value)
         {
             zoom = Mathf.Clamp(value, MinZoom, MaxZoom);
-            if (image != null && image.texture != null)
+            if (initialized && view.Image.texture != null)
             {
-                ApplyImageSize(image.texture);
+                ApplyImageSize(view.Image.texture);
                 UpdateControls();
             }
         }
 
-        private void BuildUi()
+        private bool TryInitialize()
         {
-            UguiUtility.EnsureEventSystem();
-            var canvas = UguiUtility.CreateCanvas(viewerName + " Viewer Canvas", 130);
-            viewerCanvasObject = canvas.gameObject;
-            var canvasTransform = canvas.GetComponent<RectTransform>();
-
-            rootObject = new GameObject(viewerName + " Viewer", typeof(RectTransform), typeof(Image));
-            rootObject.transform.SetParent(canvasTransform, false);
-            rootObject.SetActive(false);
-
-            var rootRect = rootObject.GetComponent<RectTransform>();
-            rootRect.anchorMin = Vector2.zero;
-            rootRect.anchorMax = Vector2.one;
-            rootRect.offsetMin = Vector2.zero;
-            rootRect.offsetMax = Vector2.zero;
-            rootBackgroundImage = rootObject.GetComponent<Image>();
-            rootBackgroundImage.color = new Color(0f, 0f, 0f, 0.74f);
-
-            CreatePanel(rootRect);
-        }
-
-        private void OnDestroy()
-        {
-            if (viewerCanvasObject == null)
+            if (initialized)
             {
-                return;
+                return true;
             }
 
-            var canvasObject = viewerCanvasObject;
-            viewerCanvasObject = null;
-            if (UnityEngine.Application.isPlaying)
+            var reason = "View 未绑定。";
+            if (view == null || !view.TryValidateConfiguration(out reason))
             {
-                Destroy(canvasObject);
-            }
-            else
-            {
-                DestroyImmediate(canvasObject);
-            }
-        }
-
-        private void CreatePanel(RectTransform parent)
-        {
-            var panelObject = new GameObject(viewerName + " Panel", typeof(RectTransform), typeof(Image), typeof(Outline));
-            panelObject.transform.SetParent(parent, false);
-            panelTransform = panelObject.GetComponent<RectTransform>();
-            panelTransform.anchorMin = new Vector2(0.5f, 0.5f);
-            panelTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            panelTransform.pivot = new Vector2(0.5f, 0.5f);
-            panelTransform.anchoredPosition = Vector2.zero;
-            panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
-            var outline = panelObject.GetComponent<Outline>();
-            outline.effectColor = UiTheme.GoldOutline;
-            outline.effectDistance = new Vector2(3f, -3f);
-
-            expandedContentObject = new GameObject(viewerName + " Expanded Content", typeof(RectTransform));
-            expandedContentObject.transform.SetParent(panelTransform, false);
-            var expandedRect = expandedContentObject.GetComponent<RectTransform>();
-            expandedRect.anchorMin = Vector2.zero;
-            expandedRect.anchorMax = Vector2.one;
-            expandedRect.offsetMin = Vector2.zero;
-            expandedRect.offsetMax = Vector2.zero;
-
-            CreateHeader(expandedRect);
-            CreateViewport(expandedRect);
-            CreateFooter(expandedRect);
-
-            if (pageCount > 1)
-            {
-                previousButton = CreateNavButton(expandedRect, "Previous " + viewerName, "<", new Vector2(0f, 0.5f), new Vector2(28f, 0f), () => ShowPage(pageIndex - 1));
-                nextButton = CreateNavButton(expandedRect, "Next " + viewerName, ">", new Vector2(1f, 0.5f), new Vector2(-28f, 0f), () => ShowPage(pageIndex + 1));
+                Debug.LogError(
+                    "ZoomableImageViewerController 缺少完整编辑器 View 引用：" +
+                    reason,
+                    this);
+                enabled = false;
+                return false;
             }
 
-            CreateCollapseControls(panelTransform);
+            BindButton(view.CloseButton, Close);
+            BindButton(view.PreviousButton, () => ShowPage(pageIndex - 1));
+            BindButton(view.NextButton, () => ShowPage(pageIndex + 1));
+            BindButton(view.PrimaryActionButton, () => primaryAction?.Invoke());
+            BindButton(view.SecondaryActionButton, () => secondaryAction?.Invoke());
+            BindButton(view.CollapseToggleButton, () => SetCollapsed(!collapsed));
+            expandedPanelSize = view.PanelTransform.sizeDelta;
+            expandedPanelPosition = view.PanelTransform.anchoredPosition;
+            view.RootObject.SetActive(false);
+            view.PrimaryActionButton.gameObject.SetActive(false);
+            view.SecondaryActionButton.gameObject.SetActive(false);
+            view.CollapseToggleButton.gameObject.SetActive(false);
+            view.CollapsedSummaryText.gameObject.SetActive(false);
+            initialized = true;
+            Instances.Add(this);
+            return true;
         }
 
-        private void CreateCollapseControls(RectTransform parent)
+        private static void BindButton(Button button, UnityEngine.Events.UnityAction action)
         {
-            var summaryObject = new GameObject(viewerName + " Collapsed Summary", typeof(RectTransform), typeof(Text), typeof(Outline));
-            summaryObject.transform.SetParent(parent, false);
-            var summaryRect = summaryObject.GetComponent<RectTransform>();
-            summaryRect.anchorMin = new Vector2(0f, 0.5f);
-            summaryRect.anchorMax = new Vector2(1f, 0.5f);
-            summaryRect.sizeDelta = new Vector2(-160f, 42f);
-            summaryRect.anchoredPosition = new Vector2(-68f, 0f);
-            collapsedSummaryText = summaryObject.GetComponent<Text>();
-            collapsedSummaryText.text = collapsedSummary;
-            collapsedSummaryText.alignment = TextAnchor.MiddleLeft;
-            collapsedSummaryText.color = UiTheme.GoldText;
-            collapsedSummaryText.fontSize = 18;
-            collapsedSummaryText.fontStyle = FontStyle.Bold;
-            collapsedSummaryText.font = FontUtility.GetCjkFont(collapsedSummaryText.fontSize);
-            summaryObject.GetComponent<Outline>().effectColor = UiTheme.DarkShadowLight;
-            summaryObject.SetActive(false);
-
-            var toggleButton = CreateFooterActionButton(parent, viewerName + " Collapse Toggle", new Vector2(0f, 18f));
-            collapseToggleRect = toggleButton.GetComponent<RectTransform>();
-            collapseToggleLabel = toggleButton.GetComponentInChildren<Text>();
-            toggleButton.onClick.AddListener(() => SetCollapsed(!collapsed));
-            toggleButton.gameObject.SetActive(false);
-        }
-
-        private void CreateHeader(RectTransform parent)
-        {
-            var titleObject = new GameObject(viewerName + " Title", typeof(RectTransform), typeof(Text), typeof(Outline));
-            titleObject.transform.SetParent(parent, false);
-            var titleRect = titleObject.GetComponent<RectTransform>();
-            titleRect.anchorMin = new Vector2(0f, 1f);
-            titleRect.anchorMax = new Vector2(1f, 1f);
-            titleRect.pivot = new Vector2(0.5f, 1f);
-            titleRect.sizeDelta = new Vector2(0f, 64f);
-
-            titleText = titleObject.GetComponent<Text>();
-            titleText.text = title;
-            titleText.alignment = TextAnchor.MiddleCenter;
-            titleText.color = UiTheme.GoldText;
-            titleText.fontSize = 34;
-            titleText.fontStyle = FontStyle.Bold;
-            titleText.font = FontUtility.GetCjkFont(titleText.fontSize);
-            titleObject.GetComponent<Outline>().effectColor = UiTheme.DarkShadowLight;
-
-            UguiUtility.CreateViewerCloseButton(
-                parent,
-                "Close " + viewerName + " Button",
-                Close);
-        }
-
-        private void CreateViewport(RectTransform parent)
-        {
-            var viewportObject = new GameObject(viewerName + " Viewport", typeof(RectTransform), typeof(Image), typeof(Mask), typeof(ScrollRect));
-            viewportObject.transform.SetParent(parent, false);
-            viewportTransform = viewportObject.GetComponent<RectTransform>();
-            viewportTransform.anchorMin = Vector2.zero;
-            viewportTransform.anchorMax = Vector2.one;
-            viewportTransform.offsetMin = new Vector2(96f, 82f);
-            viewportTransform.offsetMax = new Vector2(-96f, -74f);
-            viewportObject.GetComponent<Image>().color = new Color(0.025f, 0.022f, 0.02f, 0.96f);
-            viewportObject.GetComponent<Mask>().showMaskGraphic = true;
-
-            imageTransform = new GameObject(viewerName + " Image", typeof(RectTransform), typeof(RawImage)).GetComponent<RectTransform>();
-            imageTransform.SetParent(viewportTransform, false);
-            imageTransform.anchorMin = new Vector2(0.5f, 0.5f);
-            imageTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            imageTransform.pivot = new Vector2(0.5f, 0.5f);
-            image = imageTransform.GetComponent<RawImage>();
-            image.color = Color.white;
-
-            var scrollRect = viewportObject.GetComponent<ScrollRect>();
-            scrollRect.horizontal = true;
-            scrollRect.vertical = true;
-            scrollRect.movementType = ScrollRect.MovementType.Clamped;
-            scrollRect.inertia = true;
-            scrollRect.scrollSensitivity = 0f;
-            scrollRect.viewport = viewportTransform;
-            scrollRect.content = imageTransform;
-        }
-
-        private void CreateFooter(RectTransform parent)
-        {
-            var labelObject = new GameObject(viewerName + " Page Label", typeof(RectTransform), typeof(Text), typeof(Outline));
-            labelObject.transform.SetParent(parent, false);
-            var labelRect = labelObject.GetComponent<RectTransform>();
-            labelRect.anchorMin = new Vector2(0.5f, 0f);
-            labelRect.anchorMax = new Vector2(0.5f, 0f);
-            labelRect.pivot = new Vector2(0.5f, 0f);
-            labelRect.sizeDelta = new Vector2(520f, 44f);
-            labelRect.anchoredPosition = new Vector2(0f, 22f);
-            pageLabel = labelObject.GetComponent<Text>();
-            pageLabel.alignment = TextAnchor.MiddleCenter;
-            pageLabel.color = UiTheme.GoldText;
-            pageLabel.fontSize = 20;
-            pageLabel.fontStyle = FontStyle.Bold;
-            pageLabel.font = FontUtility.GetCjkFont(pageLabel.fontSize);
-            labelObject.SetActive(pageCount > 1);
-
-            primaryActionButton = CreateFooterActionButton(parent, "Primary " + viewerName + " Action", new Vector2(-112f, 18f));
-            secondaryActionButton = CreateFooterActionButton(parent, "Secondary " + viewerName + " Action", new Vector2(112f, 18f));
-            primaryActionLabel = primaryActionButton.GetComponentInChildren<Text>();
-            secondaryActionLabel = secondaryActionButton.GetComponentInChildren<Text>();
-            primaryActionButton.onClick.AddListener(() => primaryAction?.Invoke());
-            secondaryActionButton.onClick.AddListener(() => secondaryAction?.Invoke());
-            UpdateActionButtons();
-        }
-
-        private static Button CreateFooterActionButton(RectTransform parent, string name, Vector2 position)
-        {
-            var buttonObject = new GameObject(name + " Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
-            buttonObject.transform.SetParent(parent, false);
-            var rect = buttonObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0f);
-            rect.anchorMax = new Vector2(0.5f, 0f);
-            rect.pivot = new Vector2(0.5f, 0f);
-            rect.sizeDelta = new Vector2(208f, 48f);
-            rect.anchoredPosition = position;
-            ApplyButtonStyle(buttonObject);
-            CreateButtonText(rect, string.Empty, 20);
-            return buttonObject.GetComponent<Button>();
-        }
-
-        private void UpdateActionButtons()
-        {
-            UpdateActionButton(primaryActionButton, primaryActionLabel, primaryActionText, primaryAction);
-            UpdateActionButton(secondaryActionButton, secondaryActionLabel, secondaryActionText, secondaryAction);
-        }
-
-        private static void UpdateActionButton(Button button, Text label, string text, Action action)
-        {
-            if (button == null)
-            {
-                return;
-            }
-
-            var visible = action != null && !string.IsNullOrEmpty(text);
-            button.gameObject.SetActive(visible);
-            if (label != null)
-            {
-                label.text = text ?? string.Empty;
-            }
-        }
-
-        private Button CreateNavButton(RectTransform parent, string name, string label, Vector2 anchor, Vector2 position, UnityEngine.Events.UnityAction action)
-        {
-            var buttonObject = new GameObject(name + " Button", typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
-            buttonObject.transform.SetParent(parent, false);
-            var rect = buttonObject.GetComponent<RectTransform>();
-            rect.anchorMin = anchor;
-            rect.anchorMax = anchor;
-            rect.pivot = new Vector2(anchor.x, 0.5f);
-            rect.sizeDelta = new Vector2(58f, 118f);
-            rect.anchoredPosition = position;
-            ApplyButtonStyle(buttonObject);
-            var button = buttonObject.GetComponent<Button>();
+            button.onClick.RemoveAllListeners();
             button.onClick.AddListener(action);
-            CreateButtonText(rect, label, 34);
-            return button;
+        }
+
+        private void DetachCanvasForDynamicInstance()
+        {
+            if (!TryInitialize())
+            {
+                return;
+            }
+
+            view.CanvasObject.transform.SetParent(null, false);
+            ownsDetachedCanvas = true;
         }
 
         private void ShowPage(int index)
@@ -483,7 +364,7 @@ namespace YC.Presentation
                 return;
             }
 
-            image.texture = texture;
+            view.Image.texture = texture;
             zoom = 1f;
             ApplyPanelSize(texture);
             ApplyImageSize(texture);
@@ -493,11 +374,11 @@ namespace YC.Presentation
         private void ApplyPanelSize(Texture texture)
         {
             Canvas.ForceUpdateCanvases();
-            var root = panelTransform == null ? null : panelTransform.parent as RectTransform;
+            var root = view.PanelTransform.parent as RectTransform;
             var rootSize = root == null ? Vector2.zero : root.rect.size;
             if (rootSize.x <= 0f || rootSize.y <= 0f)
             {
-                rootSize = new Vector2(1920f, 1080f);
+                rootSize = UiTheme.CanvasReferenceResolution;
             }
 
             var maximumPanelSize = rootSize * PanelScreenFill;
@@ -508,136 +389,108 @@ namespace YC.Presentation
                 maximumViewportSize.x / texture.width,
                 maximumViewportSize.y / texture.height);
             var fittedImageSize = new Vector2(texture.width, texture.height) * fitScale;
-            panelTransform.sizeDelta = new Vector2(
+            view.PanelTransform.sizeDelta = new Vector2(
                 fittedImageSize.x + PanelHorizontalChrome,
                 fittedImageSize.y + PanelVerticalChrome);
             if (!collapsed)
             {
-                expandedPanelSize = panelTransform.sizeDelta;
-                expandedPanelPosition = panelTransform.anchoredPosition;
+                expandedPanelSize = view.PanelTransform.sizeDelta;
+                expandedPanelPosition = view.PanelTransform.anchoredPosition;
             }
+
             Canvas.ForceUpdateCanvases();
         }
 
         private void ApplyCollapseState()
         {
-            if (panelTransform == null)
+            view.ExpandedContentObject.SetActive(!collapsed);
+            view.CollapsedSummaryText.text = collapsedSummary;
+            view.CollapsedSummaryText.gameObject.SetActive(collapseEnabled && collapsed);
+            view.CollapseToggleButton.gameObject.SetActive(collapseEnabled);
+
+            var toggleRect = view.CollapseToggleButton.GetComponent<RectTransform>();
+            if (collapseEnabled && collapsed)
             {
-                return;
+                toggleRect.anchorMin = new Vector2(1f, 0.5f);
+                toggleRect.anchorMax = new Vector2(1f, 0.5f);
+                toggleRect.pivot = new Vector2(1f, 0.5f);
+                toggleRect.sizeDelta = new Vector2(142f, 34f);
+                toggleRect.anchoredPosition = new Vector2(-12f, 0f);
+            }
+            else
+            {
+                toggleRect.anchorMin = new Vector2(0.5f, 0f);
+                toggleRect.anchorMax = new Vector2(0.5f, 0f);
+                toggleRect.pivot = new Vector2(0.5f, 0f);
+                toggleRect.sizeDelta = new Vector2(208f, 48f);
+                toggleRect.anchoredPosition = new Vector2(0f, 18f);
             }
 
-            if (expandedContentObject != null)
-            {
-                expandedContentObject.SetActive(!collapsed);
-            }
-
-            if (collapsedSummaryText != null)
-            {
-                collapsedSummaryText.text = collapsedSummary;
-                collapsedSummaryText.gameObject.SetActive(collapseEnabled && collapsed);
-            }
-
-            if (collapseToggleRect != null)
-            {
-                collapseToggleRect.gameObject.SetActive(collapseEnabled);
-                if (collapseEnabled && collapsed)
-                {
-                    collapseToggleRect.anchorMin = new Vector2(1f, 0.5f);
-                    collapseToggleRect.anchorMax = new Vector2(1f, 0.5f);
-                    collapseToggleRect.pivot = new Vector2(1f, 0.5f);
-                    collapseToggleRect.sizeDelta = new Vector2(142f, 34f);
-                    collapseToggleRect.anchoredPosition = new Vector2(-12f, 0f);
-                }
-                else
-                {
-                    collapseToggleRect.anchorMin = new Vector2(0.5f, 0f);
-                    collapseToggleRect.anchorMax = new Vector2(0.5f, 0f);
-                    collapseToggleRect.pivot = new Vector2(0.5f, 0f);
-                    collapseToggleRect.sizeDelta = new Vector2(208f, 48f);
-                    collapseToggleRect.anchoredPosition = new Vector2(0f, 18f);
-                }
-            }
-
-            if (collapseToggleLabel != null)
-            {
-                collapseToggleLabel.text = collapsed ? "▼ 展开卡牌" : "▲ 收起卡牌";
-            }
-
+            view.CollapseToggleLabel.text = collapsed ? "▼ 展开卡牌" : "▲ 收起卡牌";
             if (collapsed)
             {
                 var width = Mathf.Max(560f, expandedPanelSize.x);
-                panelTransform.sizeDelta = new Vector2(width, CollapsedPanelHeight);
-                panelTransform.anchoredPosition = expandedPanelPosition +
+                view.PanelTransform.sizeDelta = new Vector2(width, CollapsedPanelHeight);
+                view.PanelTransform.anchoredPosition = expandedPanelPosition +
                     new Vector2(0f, (expandedPanelSize.y - CollapsedPanelHeight) * 0.5f);
             }
             else if (expandedPanelSize.x > 0f && expandedPanelSize.y > 0f)
             {
-                panelTransform.sizeDelta = expandedPanelSize;
-                panelTransform.anchoredPosition = expandedPanelPosition;
+                view.PanelTransform.sizeDelta = expandedPanelSize;
+                view.PanelTransform.anchoredPosition = expandedPanelPosition;
             }
 
-            if (rootBackgroundImage != null)
-            {
-                rootBackgroundImage.color = collapsed ? new Color(0f, 0f, 0f, 0f) : new Color(0f, 0f, 0f, 0.74f);
-                rootBackgroundImage.raycastTarget = !collapsed;
-            }
+            view.RootBackgroundImage.color = collapsed
+                ? new Color(0f, 0f, 0f, 0f)
+                : new Color(0f, 0f, 0f, 0.74f);
+            view.RootBackgroundImage.raycastTarget = !collapsed;
         }
 
         private void ApplyImageSize(Texture texture)
         {
             Canvas.ForceUpdateCanvases();
-            var viewportSize = viewportTransform.rect.size;
+            var viewportSize = view.ViewportTransform.rect.size;
             if (viewportSize.x <= 0f || viewportSize.y <= 0f)
             {
                 viewportSize = new Vector2(1400f, 860f);
             }
 
             var scale = Mathf.Min(viewportSize.x / texture.width, viewportSize.y / texture.height);
-            imageTransform.sizeDelta = new Vector2(texture.width * scale, texture.height * scale) * zoom;
-            imageTransform.anchoredPosition = Vector2.zero;
+            view.ImageTransform.sizeDelta =
+                new Vector2(texture.width * scale, texture.height * scale) * zoom;
+            view.ImageTransform.anchoredPosition = Vector2.zero;
         }
 
         private void UpdateControls()
         {
-            if (pageLabel != null && pageCount > 1)
+            if (pageCount > 1)
             {
-                pageLabel.text = string.Format(
-                    "{0} / {1}",
-                    pageIndex + 1,
-                    pageCount);
+                view.PageLabel.text = string.Format("{0} / {1}", pageIndex + 1, pageCount);
             }
-            if (previousButton != null) previousButton.interactable = pageIndex > 0;
-            if (nextButton != null) nextButton.interactable = pageIndex < pageCount - 1;
+
+            view.PreviousButton.interactable = pageIndex > 0;
+            view.NextButton.interactable = pageIndex < pageCount - 1;
         }
 
-        private static void ApplyButtonStyle(GameObject buttonObject)
+        private void UpdateActionButtons()
         {
-            buttonObject.GetComponent<Image>().color = UiTheme.ButtonBackground;
-            var outline = buttonObject.GetComponent<Outline>();
-            outline.effectColor = UiTheme.GoldOutlineThin;
-            outline.effectDistance = new Vector2(2f, -2f);
+            UpdateActionButton(
+                view.PrimaryActionButton,
+                view.PrimaryActionLabel,
+                primaryActionText,
+                primaryAction);
+            UpdateActionButton(
+                view.SecondaryActionButton,
+                view.SecondaryActionLabel,
+                secondaryActionText,
+                secondaryAction);
         }
 
-        private static void CreateButtonText(RectTransform parent, string content, int fontSize)
+        private static void UpdateActionButton(Button button, Text label, string text, Action action)
         {
-            var textObject = new GameObject("Label", typeof(RectTransform), typeof(Text), typeof(Outline));
-            textObject.transform.SetParent(parent, false);
-            var textRect = textObject.GetComponent<RectTransform>();
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(8f, 0f);
-            textRect.offsetMax = new Vector2(-8f, 0f);
-            var text = textObject.GetComponent<Text>();
-            text.text = content;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = UiTheme.GoldText;
-            text.fontSize = fontSize;
-            text.fontStyle = FontStyle.Bold;
-            text.font = FontUtility.GetCjkFont(fontSize);
-            text.resizeTextForBestFit = true;
-            text.resizeTextMinSize = 12;
-            text.resizeTextMaxSize = fontSize;
-            textObject.GetComponent<Outline>().effectColor = UiTheme.DarkShadowLight;
+            var visible = action != null && !string.IsNullOrEmpty(text);
+            button.gameObject.SetActive(visible);
+            label.text = text ?? string.Empty;
         }
     }
 }

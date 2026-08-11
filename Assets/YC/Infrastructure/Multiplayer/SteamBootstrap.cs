@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace YC.Infrastructure.Multiplayer
 {
+    [DefaultExecutionOrder(-25000)]
     public sealed class SteamBootstrap : MonoBehaviour
     {
         public static SteamBootstrap Instance { get; private set; }
@@ -12,18 +13,20 @@ namespace YC.Infrastructure.Multiplayer
 
         public static SteamBootstrap Ensure()
         {
-            if (Instance != null) return Instance;
-            var existing = FindObjectOfType<SteamBootstrap>();
-            if (existing != null) return existing;
-            var go = new GameObject("SteamBootstrap");
-            DontDestroyOnLoad(go);
-            return go.AddComponent<SteamBootstrap>();
+            if (Instance == null)
+            {
+                throw new InvalidOperationException(
+                    "缺少预接线的 SteamBootstrap。请重建 NetworkRuntimeRoot Prefab 并确认 StartScene 接线完整。");
+            }
+
+            return Instance;
         }
 
         private void Awake()
         {
             if (Instance != null && Instance != this)
             {
+                gameObject.SetActive(false);
                 Destroy(gameObject);
                 return;
             }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.Maps;
-using UnityEngine;
 
 namespace YC.Presentation.Maps
 {
@@ -70,11 +69,6 @@ namespace YC.Presentation.Maps
                     continue;
                 }
 
-                if (definition.NormalizedPoints == null || definition.NormalizedPoints.Count < 2)
-                {
-                    errors.Add("Route " + definition.RouteId + " must define at least two normalized points.");
-                }
-
                 if (definition.InfluenceSlots == null)
                 {
                     errors.Add("Route " + definition.RouteId + " must define influence slots.");
@@ -86,7 +80,6 @@ namespace YC.Presentation.Maps
                         " display slots but rules require " + route.InfluenceSlotCount + ".");
                 }
 
-                ValidatePoints(definition.RouteId, "route point", definition.NormalizedPoints, errors);
                 ValidateInfluenceSlots(definition.RouteId, definition.InfluenceSlots, errors);
             }
 
@@ -100,27 +93,6 @@ namespace YC.Presentation.Maps
             }
 
             return errors;
-        }
-
-        private static void ValidatePoints(
-            string routeId,
-            string label,
-            IReadOnlyList<Vector2> points,
-            List<string> errors)
-        {
-            if (points == null)
-            {
-                return;
-            }
-
-            for (var i = 0; i < points.Count; i++)
-            {
-                var point = points[i];
-                if (point.x < 0f || point.x > 1f || point.y < 0f || point.y > 1f)
-                {
-                    errors.Add("Route " + routeId + " " + label + " " + i + " is outside normalized map bounds.");
-                }
-            }
         }
 
         private static void ValidateInfluenceSlots(

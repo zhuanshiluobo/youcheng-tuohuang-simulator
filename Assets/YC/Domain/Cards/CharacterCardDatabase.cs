@@ -13,10 +13,68 @@ namespace YC.Domain.Cards
         public const string Cannot = "cannot";
         public const string TinMan = "tin-man";
 
-        private static readonly string[] InitialTemplateIds =
+        public const int ExpectedTemplateCount = 5;
+
+        private static readonly string[] CanonicalInitialTemplateIds =
         {
             Liskarm, Elysium, Texas, Cannot, TinMan
         };
+
+        private static readonly object Gate = new object();
+        private static IReadOnlyDictionary<string, CharacterCardDefinition> templatesById;
+        private static IReadOnlyList<string> initialTemplateIds;
+
+        public static bool IsInitialized
+        {
+            get
+            {
+                lock (Gate)
+                {
+                    return templatesById != null;
+                }
+            }
+        }
+
+        public static void Initialize(IEnumerable<CharacterCardDefinition> sourceDefinitions)
+        {
+            if (sourceDefinitions == null)
+            {
+                throw new ArgumentNullException(nameof(sourceDefinitions));
+            }
+
+            var orderedIds = new List<string>(ExpectedTemplateCount);
+            var next = new Dictionary<string, CharacterCardDefinition>(StringComparer.Ordinal);
+            foreach (var source in sourceDefinitions)
+            {
+                ValidateTemplate(source);
+                if (next.ContainsKey(source.TemplateId))
+                {
+                    throw new InvalidOperationException(
+                        "角色卡目录包含重复模板 ID：" + source.TemplateId);
+                }
+
+                orderedIds.Add(source.TemplateId);
+                next.Add(source.TemplateId, CloneTemplate(source));
+            }
+
+            ValidateTemplateSet(orderedIds);
+            lock (Gate)
+            {
+                if (templatesById != null)
+                {
+                    if (TemplateSetsEqual(templatesById, initialTemplateIds, next, orderedIds))
+                    {
+                        return;
+                    }
+
+                    throw new InvalidOperationException(
+                        "CharacterCardDatabase 已使用不同的完整角色卡目录初始化，禁止覆盖。");
+                }
+
+                templatesById = next;
+                initialTemplateIds = orderedIds.AsReadOnly();
+            }
+        }
 
         public static List<string> GetInitialCardIds(PlayerState player)
         {
@@ -25,10 +83,22 @@ namespace YC.Domain.Cards
                 throw new ArgumentNullException(nameof(player));
             }
 
-            var ids = new List<string>(InitialTemplateIds.Length);
-            for (var i = 0; i < InitialTemplateIds.Length; i++)
+            IReadOnlyList<string> templateIds;
+            lock (Gate)
             {
-                ids.Add(CreateOwnedCardId(player.Color, player.PlayerId, InitialTemplateIds[i]));
+                templateIds = initialTemplateIds;
+            }
+
+            if (templateIds == null)
+            {
+                throw new InvalidOperationException(
+                    "CharacterCardDatabase 未初始化：必须先由 EventCharacterCatalogBootstrap 注入完整目录。");
+            }
+
+            var ids = new List<string>(templateIds.Count);
+            for (var i = 0; i < templateIds.Count; i++)
+            {
+                ids.Add(CreateOwnedCardId(player.Color, player.PlayerId, templateIds[i]));
             }
 
             return ids;
@@ -46,39 +116,132 @@ namespace YC.Domain.Cards
 
         public static CharacterCardDefinition Get(string cardId)
         {
-            var templateId = GetTemplateId(cardId);
-            switch (templateId)
+            IReadOnlyDictionary<string, CharacterCardDefinition> snapshot;
+            lock (Gate)
             {
-                case Liskarm:
-                    return Create(cardId, templateId, "雷蛇", CharacterCardEffectKind.LiskarmSecurityProtocol, CharacterCardEffectKind.LiskarmControlPosition);
-                case Elysium:
-                    return Create(cardId, templateId, "极境", CharacterCardEffectKind.ElysiumLogistics, CharacterCardEffectKind.ElysiumNavigation);
-                case Texas:
-                    return Create(cardId, templateId, "德克萨斯", CharacterCardEffectKind.TexasSpecialDelivery, CharacterCardEffectKind.TexasRemoveAndDoubleMove);
-                case Cannot:
-                    return Create(cardId, templateId, "坎诺特", CharacterCardEffectKind.CannotTradeChannel, CharacterCardEffectKind.CannotRequisition);
-                case TinMan:
-                    return Create(cardId, templateId, "锡人", CharacterCardEffectKind.TinManEstablishPrestige, CharacterCardEffectKind.TinManDeepPlanning);
-                default:
-                    return null;
+                snapshot = templatesById;
+            }
+
+            if (snapshot == null)
+            {
+                throw new InvalidOperationException(
+                    "CharacterCardDatabase 未初始化：必须先由 EventCharacterCatalogBootstrap 注入完整目录。");
+            }
+
+            var templateId = GetTemplateId(cardId);
+            if (string.IsNullOrEmpty(templateId) ||
+                !snapshot.TryGetValue(templateId, out var template))
+            {
+                return null;
+            }
+
+            var definition = CloneTemplate(template);
+            definition.CardId = cardId;
+            return definition;
+        }
+
+        private static void ValidateTemplate(CharacterCardDefinition definition)
+        {
+            if (definition == null)
+            {
+                throw new InvalidOperationException("角色卡目录包含空定义。");
+            }
+
+            if (string.IsNullOrEmpty(definition.TemplateId) ||
+                definition.CardId != definition.TemplateId ||
+                string.IsNullOrEmpty(definition.Name) ||
+                !Enum.IsDefined(typeof(CharacterCardEffectKind), definition.StrategyEffect) ||
+                !Enum.IsDefined(typeof(CharacterCardEffectKind), definition.TacticEffect) ||
+                definition.StrategyEffect == CharacterCardEffectKind.Unsupported ||
+                definition.TacticEffect == CharacterCardEffectKind.Unsupported ||
+                definition.StrategyEffect == definition.TacticEffect)
+            {
+                throw new InvalidOperationException(
+                    "角色卡模板字段无效：" + (definition.TemplateId ?? string.Empty));
             }
         }
 
-        private static CharacterCardDefinition Create(
-            string cardId,
-            string templateId,
-            string name,
-            CharacterCardEffectKind strategy,
-            CharacterCardEffectKind tactic)
+        private static void ValidateTemplateSet(IReadOnlyList<string> orderedIds)
+        {
+            if (orderedIds.Count != ExpectedTemplateCount)
+            {
+                throw new InvalidOperationException(
+                    "角色卡目录必须精确包含 5 个模板，实际 " + orderedIds.Count + " 个。");
+            }
+
+            for (var i = 0; i < CanonicalInitialTemplateIds.Length; i++)
+            {
+                if (orderedIds[i] != CanonicalInitialTemplateIds[i])
+                {
+                    throw new InvalidOperationException(
+                        "角色卡模板顺序错误：位置 " + i + " 应为 " +
+                        CanonicalInitialTemplateIds[i] + "。");
+                }
+            }
+        }
+
+        private static CharacterCardDefinition CloneTemplate(
+            CharacterCardDefinition source)
         {
             return new CharacterCardDefinition
             {
-                CardId = cardId,
-                TemplateId = templateId,
-                Name = name,
-                StrategyEffect = strategy,
-                TacticEffect = tactic
+                CardId = source.CardId,
+                TemplateId = source.TemplateId,
+                Name = source.Name,
+                StrategyEffect = source.StrategyEffect,
+                TacticEffect = source.TacticEffect
             };
+        }
+
+        private static bool TemplateSetsEqual(
+            IReadOnlyDictionary<string, CharacterCardDefinition> left,
+            IReadOnlyList<string> leftOrder,
+            IReadOnlyDictionary<string, CharacterCardDefinition> right,
+            IReadOnlyList<string> rightOrder)
+        {
+            if (left.Count != right.Count || leftOrder.Count != rightOrder.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < leftOrder.Count; i++)
+            {
+                if (leftOrder[i] != rightOrder[i])
+                {
+                    return false;
+                }
+            }
+
+            foreach (var pair in left)
+            {
+                if (!right.TryGetValue(pair.Key, out var candidate) ||
+                    !TemplatesEqual(pair.Value, candidate))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool TemplatesEqual(
+            CharacterCardDefinition left,
+            CharacterCardDefinition right)
+        {
+            return left.CardId == right.CardId &&
+                   left.TemplateId == right.TemplateId &&
+                   left.Name == right.Name &&
+                   left.StrategyEffect == right.StrategyEffect &&
+                   left.TacticEffect == right.TacticEffect;
+        }
+
+        internal static void ResetForTests()
+        {
+            lock (Gate)
+            {
+                templatesById = null;
+                initialTemplateIds = null;
+            }
         }
 
         private static string CreateOwnedCardId(PlayerColor color, int playerId, string templateId)

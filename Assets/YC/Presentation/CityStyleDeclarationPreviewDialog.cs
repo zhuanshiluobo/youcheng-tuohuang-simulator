@@ -9,295 +9,24 @@ using YC.Presentation.Workflows;
 
 namespace YC.Presentation
 {
-    internal sealed class CityStyleDeclarationSlotPointerHandler : MonoBehaviour,
-        IPointerDownHandler,
-        IPointerUpHandler,
-        IPointerEnterHandler,
-        IPointerClickHandler,
-        IBeginDragHandler,
-        IDragHandler,
-        IEndDragHandler
-    {
-        private int slotIndex;
-        private Func<bool> isLeftPointerHeld;
-        private Action<int, Vector2> leftPointerDown;
-        private Action<int, Vector2> leftPointerEnter;
-        private Action<Vector2> leftPointerDrag;
-        private Action leftPointerUp;
-        private Action<int> leftClick;
-        private bool draggedDuringCurrentPress;
-
-        public void Configure(
-            int configuredSlotIndex,
-            Func<bool> configuredIsLeftPointerHeld,
-            Action<int, Vector2> configuredLeftPointerDown,
-            Action<int, Vector2> configuredLeftPointerEnter,
-            Action<Vector2> configuredLeftPointerDrag,
-            Action configuredLeftPointerUp,
-            Action<int> configuredLeftClick)
-        {
-            slotIndex = configuredSlotIndex;
-            isLeftPointerHeld = configuredIsLeftPointerHeld;
-            leftPointerDown = configuredLeftPointerDown;
-            leftPointerEnter = configuredLeftPointerEnter;
-            leftPointerDrag = configuredLeftPointerDrag;
-            leftPointerUp = configuredLeftPointerUp;
-            leftClick = configuredLeftClick;
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            if (eventData != null && eventData.button == PointerEventData.InputButton.Left)
-            {
-                draggedDuringCurrentPress = false;
-                leftPointerDown?.Invoke(slotIndex, eventData.position);
-            }
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            if (eventData != null && eventData.button == PointerEventData.InputButton.Left)
-            {
-                leftPointerUp?.Invoke();
-            }
-        }
-
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            if (eventData != null && isLeftPointerHeld != null && isLeftPointerHeld())
-            {
-                leftPointerEnter?.Invoke(slotIndex, eventData.position);
-            }
-        }
-
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            if (eventData == null)
-            {
-                return;
-            }
-
-            if (eventData.button == PointerEventData.InputButton.Left)
-            {
-                if (!draggedDuringCurrentPress && !eventData.dragging)
-                {
-                    leftClick?.Invoke(slotIndex);
-                }
-            }
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            if (eventData != null && eventData.button == PointerEventData.InputButton.Left)
-            {
-                draggedDuringCurrentPress = true;
-                leftPointerDrag?.Invoke(eventData.position);
-            }
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            if (eventData != null && eventData.button == PointerEventData.InputButton.Left)
-            {
-                draggedDuringCurrentPress = true;
-                leftPointerDrag?.Invoke(eventData.position);
-            }
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            if (eventData != null && eventData.button == PointerEventData.InputButton.Left)
-            {
-                leftPointerUp?.Invoke();
-            }
-        }
-    }
-
-    internal sealed class CityStyleDeclarationBoardPointerHandler : MonoBehaviour,
-        IPointerDownHandler,
-        IPointerUpHandler,
-        IBeginDragHandler,
-        IDragHandler,
-        IEndDragHandler
-    {
-        private Action<Vector2> leftPointerDown;
-        private Action<Vector2> leftPointerDrag;
-        private Action leftPointerUp;
-
-        public void Configure(
-            Action<Vector2> configuredLeftPointerDown,
-            Action<Vector2> configuredLeftPointerDrag,
-            Action configuredLeftPointerUp)
-        {
-            leftPointerDown = configuredLeftPointerDown;
-            leftPointerDrag = configuredLeftPointerDrag;
-            leftPointerUp = configuredLeftPointerUp;
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            if (eventData != null && eventData.button == PointerEventData.InputButton.Left)
-            {
-                leftPointerDown?.Invoke(eventData.position);
-            }
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            if (eventData != null && eventData.button == PointerEventData.InputButton.Left)
-            {
-                leftPointerUp?.Invoke();
-            }
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            if (eventData != null && eventData.button == PointerEventData.InputButton.Left)
-            {
-                leftPointerDrag?.Invoke(eventData.position);
-            }
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            if (eventData != null && eventData.button == PointerEventData.InputButton.Left)
-            {
-                leftPointerDrag?.Invoke(eventData.position);
-            }
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            if (eventData != null && eventData.button == PointerEventData.InputButton.Left)
-            {
-                leftPointerUp?.Invoke();
-            }
-        }
-    }
-
-    internal sealed class CityStyleDeclarationPreviewInputHandler : MonoBehaviour
-    {
-        private static int escapeConsumedFrame = -1;
-
-        private Action clearSelectionRequested;
-        private Action closeRequested;
-        private Action<int> pageChangeRequested;
-
-        public static bool WasEscapeConsumedThisFrame()
-        {
-            return escapeConsumedFrame == Time.frameCount;
-        }
-
-        public static bool HasOpenDialog()
-        {
-            var handlers = FindObjectsOfType<CityStyleDeclarationPreviewInputHandler>();
-            for (var i = 0; i < handlers.Length; i++)
-            {
-                if (handlers[i] != null && handlers[i].isActiveAndEnabled)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public void Configure(
-            Action configuredClearSelectionRequested,
-            Action configuredCloseRequested,
-            Action<int> configuredPageChangeRequested)
-        {
-            clearSelectionRequested = configuredClearSelectionRequested;
-            closeRequested = configuredCloseRequested;
-            pageChangeRequested = configuredPageChangeRequested;
-        }
-
-        private void Update()
-        {
-            if (Input.GetMouseButtonDown(1))
-            {
-                HandleRightClick(RaycastPointerTarget());
-            }
-            else if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                escapeConsumedFrame = Time.frameCount;
-                closeRequested?.Invoke();
-            }
-            else if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                pageChangeRequested?.Invoke(-1);
-            }
-            else if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                pageChangeRequested?.Invoke(1);
-            }
-        }
-
-        private void HandleRightClick(GameObject pointerTarget)
-        {
-            if (IsDeclarationSlot(pointerTarget))
-            {
-                clearSelectionRequested?.Invoke();
-                return;
-            }
-
-            closeRequested?.Invoke();
-        }
-
-        private static GameObject RaycastPointerTarget()
-        {
-            if (EventSystem.current == null)
-            {
-                return null;
-            }
-
-            var pointer = new PointerEventData(EventSystem.current)
-            {
-                position = Input.mousePosition
-            };
-            var results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(pointer, results);
-            return results.Count > 0 ? results[0].gameObject : null;
-        }
-
-        private static bool IsDeclarationSlot(GameObject pointerTarget)
-        {
-            return pointerTarget != null &&
-                   pointerTarget.GetComponentInParent<CityStyleDeclarationSlotPointerHandler>() != null;
-        }
-    }
-
-    internal sealed class CityStyleSpecialActionDropTarget : MonoBehaviour
-    {
-        public string MarkerArea { get; private set; } = string.Empty;
-
-        public void Configure(string markerArea)
-        {
-            MarkerArea = markerArea ?? string.Empty;
-        }
-    }
-
     internal sealed class CityStyleDeclarationPreviewDialog
     {
-        private const int PreviewCanvasSortingOrder = 130;
-
-        private static readonly Color OverlayColor = new Color(0f, 0f, 0f, 0.82f);
         private static readonly Color SelectableSlotBackground = new Color(0.9f, 0.68f, 0.16f, 0.18f);
         private static readonly Color SelectedSlotBackground = new Color(0.18f, 0.78f, 0.28f, 0.42f);
         private static readonly Color SelectedSlotOutline = new Color(0.48f, 1f, 0.42f, 1f);
         private static readonly Color EmptySlotColor = new Color(1f, 1f, 1f, 0f);
         private static readonly Color ConfirmEnabledColor = new Color(0.2f, 0.62f, 0.18f, 0.98f);
-        private static Sprite cityStyleInfluenceMarkerSprite;
-
+        private readonly GameplayDialogRegistry dialogRegistry;
+        private readonly Func<RectTransform> getCanvas;
         private readonly List<CityBoardSlotBinding> slotBindings = new List<CityBoardSlotBinding>();
         private readonly List<int> selectedSlotIndexes = new List<int>();
         private readonly List<Image> cityStyleInfluenceMarkers = new List<Image>();
         private readonly List<SpecialActionDropTargetBinding> specialActionDropTargets =
             new List<SpecialActionDropTargetBinding>();
-        private readonly SpecialActionChoiceDialog specialActionPaymentDialog =
-            new SpecialActionChoiceDialog();
+        private readonly SpecialActionChoiceDialog specialActionPaymentDialog;
 
         private CityStyleOptionsViewModel model;
+        private CityStyleDeclarationPreviewView view;
         private GameObject previewCanvasObject;
         private GameObject overlayObject;
         private RawImage cityStyleCardImage;
@@ -326,9 +55,24 @@ namespace YC.Presentation
         private GameObject specialActionConfirmationObject;
         private CityStyleMarkerViewModel pendingSpecialActionConfirmation;
 
+        internal CityStyleDeclarationPreviewDialog(
+            GameplayDialogRegistry dialogRegistry,
+            Func<RectTransform> canvasProvider)
+        {
+            this.dialogRegistry = dialogRegistry ?? throw new ArgumentNullException(nameof(dialogRegistry));
+            getCanvas = canvasProvider ?? throw new ArgumentNullException(nameof(canvasProvider));
+            specialActionPaymentDialog = new SpecialActionChoiceDialog(
+                this.dialogRegistry,
+                () => view == null ? null : view.RootRect);
+        }
+
         public bool IsShowing
         {
-            get { return overlayObject != null && overlayObject.activeSelf; }
+            get
+            {
+                return view != null && view.gameObject.activeSelf &&
+                       overlayObject != null && overlayObject.activeSelf;
+            }
         }
 
         public bool IsSelecting
@@ -360,9 +104,10 @@ namespace YC.Presentation
             get { return matchStatusText == null ? string.Empty : matchStatusText.text; }
         }
 
-        public void Show(RectTransform canvasTransform, CityStyleOptionsViewModel viewModel)
+        public void Show(CityStyleOptionsViewModel viewModel)
         {
             HideInternal(false);
+            var canvasTransform = getCanvas();
             if (canvasTransform == null || viewModel == null)
             {
                 return;
@@ -372,8 +117,14 @@ namespace YC.Presentation
             currentCityStyleIndex = ResolveInitialCityStyleIndex(viewModel);
             var initialOption = GetCurrentOption();
             selectingFacilities = initialOption != null && initialOption.CanDeclare;
-            UguiUtility.EnsureEventSystem();
             BuildUi();
+            if (view == null)
+            {
+                model = null;
+                selectingFacilities = false;
+                return;
+            }
+
             BuildCityBoard();
             RenderCurrentCityStyle();
             if (initialOption != null)
@@ -389,199 +140,47 @@ namespace YC.Presentation
 
         private void BuildUi()
         {
-            var canvas = UguiUtility.CreateCanvas(
-                "City Style Declaration Preview Canvas",
-                PreviewCanvasSortingOrder);
-            previewCanvasObject = canvas.gameObject;
-            var canvasRect = canvas.GetComponent<RectTransform>();
+            view = dialogRegistry.InstantiateCityStyleDeclarationPreview(getCanvas());
+            if (view == null)
+            {
+                return;
+            }
 
-            overlayObject = new GameObject(
-                "City Style Declaration Preview Overlay",
-                typeof(RectTransform),
-                typeof(Image));
-            overlayObject.transform.SetParent(canvasRect, false);
-            var overlayRect = overlayObject.GetComponent<RectTransform>();
-            Stretch(overlayRect);
-            overlayObject.GetComponent<Image>().color = OverlayColor;
-            overlayObject.AddComponent<CityStyleDeclarationPreviewInputHandler>()
-                .Configure(ClearCurrentSelection, HandleBackNavigation, ChangeCityStyle);
+            view.PrepareForUse();
+            previewCanvasObject = view.gameObject;
+            overlayObject = view.OverlayObject;
+            cityStyleCardImage = view.CityStyleCardImage;
+            cityStyleInfluenceMarkerRoot = view.CityStyleInfluenceMarkerRoot;
+            cityStyleCardPlaceholder = view.CityStyleCardPlaceholder;
+            cityStyleTitleText = view.CityStyleTitleText;
+            matchStatusText = view.MatchStatusText;
+            specialActionHintText = view.SpecialActionHintText;
+            boardTitleText = view.BoardTitleText;
+            cityBoardRect = view.CityBoardRect;
+            previousButton = view.PreviousButton;
+            nextButton = view.NextButton;
+            confirmDeclarationButton = view.ConfirmDeclarationButton;
+            boardOutline = view.BoardOutline;
 
-            var panel = CreatePanel(
-                overlayRect,
-                "City Style Declaration Preview Panel",
-                new Vector2(1520f, 900f),
-                Vector2.zero,
-                UiTheme.PanelBackground);
-            panel.GetComponent<Outline>().effectDistance = new Vector2(4f, -4f);
-
-            CreateText(
-                panel,
-                "City Style Declaration Preview Title",
-                "样式卡预览",
-                30,
-                FontStyle.Bold,
-                UiTheme.GoldText,
-                TextAnchor.MiddleCenter,
-                new Vector2(680f, 52f),
-                new Vector2(0f, 410f));
-
-            UguiUtility.CreateViewerCloseButton(
-                panel,
-                "Close City Style Declaration Preview Button",
-                Hide);
-
-            var leftPanel = CreatePanel(
-                panel,
-                "City Style Preview Section",
-                new Vector2(920f, 800f),
-                new Vector2(-280f, -24f),
-                new Color(0.04f, 0.035f, 0.028f, 0.72f));
-            var rightPanel = CreatePanel(
-                panel,
-                "City Style Preview Board Section",
-                new Vector2(500f, 800f),
-                new Vector2(490f, -24f),
-                new Color(0.04f, 0.035f, 0.028f, 0.72f));
-
-            cityStyleTitleText = CreateText(
-                leftPanel,
-                "City Style Preview Name",
-                string.Empty,
-                24,
-                FontStyle.Bold,
-                UiTheme.GoldText,
-                TextAnchor.MiddleCenter,
-                new Vector2(700f, 40f),
-                new Vector2(0f, 360f));
-            var cardFrame = CreatePanel(
-                leftPanel,
-                "City Style Preview Card Frame",
-                new Vector2(850f, 548f),
-                new Vector2(0f, 40f),
-                UiTheme.ScrollBackground);
-            var cardObject = new GameObject(
-                "City Style Preview Card",
-                typeof(RectTransform),
-                typeof(RawImage));
-            cardObject.transform.SetParent(cardFrame, false);
-            var cardRect = cardObject.GetComponent<RectTransform>();
-            StretchWithInset(cardRect, 6f);
-            cityStyleCardImage = cardObject.GetComponent<RawImage>();
-            cityStyleCardImage.color = Color.white;
-            cityStyleCardImage.raycastTarget = false;
-
-            var markerRootObject = new GameObject(
-                "City Style Preview Influence Markers",
-                typeof(RectTransform));
-            markerRootObject.transform.SetParent(cardRect, false);
-            cityStyleInfluenceMarkerRoot = markerRootObject.GetComponent<RectTransform>();
-            Stretch(cityStyleInfluenceMarkerRoot);
-
-            cityStyleCardPlaceholder = CreateText(
-                cardFrame,
-                "City Style Preview Missing Image",
-                "样式卡图片暂不可用",
-                20,
-                FontStyle.Bold,
-                UiTheme.ValueText,
-                TextAnchor.MiddleCenter,
-                new Vector2(760f, 100f),
-                Vector2.zero);
-            cityStyleCardPlaceholder.gameObject.SetActive(false);
-
-            previousButton = CreateButton(
-                leftPanel,
-                "Previous City Style",
-                "<",
-                new Vector2(58f, 118f),
-                new Vector2(-425f, 40f),
-                34);
+            view.CloseButton.onClick.AddListener(Hide);
             previousButton.onClick.AddListener(() => ChangeCityStyle(-1));
-            nextButton = CreateButton(
-                leftPanel,
-                "Next City Style",
-                ">",
-                new Vector2(58f, 118f),
-                new Vector2(425f, 40f),
-                34);
             nextButton.onClick.AddListener(() => ChangeCityStyle(1));
-
-            confirmDeclarationButton = CreateButton(
-                leftPanel,
-                "Confirm City Style Declaration",
-                "确认宣告",
-                new Vector2(180f, 48f),
-                new Vector2(0f, -310f));
             confirmDeclarationButton.onClick.AddListener(ConfirmDeclaration);
+            view.InputHandler.Configure(ClearCurrentSelection, HandleBackNavigation, ChangeCityStyle);
+            view.BoardPointerHandler.Configure(
+                OnBoardLeftPointerDown,
+                OnLeftPointerDrag,
+                EndLeftPointerGesture);
 
-            specialActionHintText = CreateText(
-                leftPanel,
-                "City Style Special Action Hint",
-                string.Empty,
-                15,
-                FontStyle.Bold,
-                new Color(0.48f, 1f, 0.42f, 1f),
-                TextAnchor.MiddleCenter,
-                new Vector2(820f, 38f),
-                new Vector2(0f, -258f));
-            specialActionHintText.raycastTarget = false;
-
-            matchStatusText = CreateText(
-                leftPanel,
-                "City Style Match Status",
-                string.Empty,
-                15,
-                FontStyle.Bold,
-                UiTheme.ValueText,
-                TextAnchor.MiddleCenter,
-                new Vector2(840f, 54f),
-                new Vector2(0f, -375f));
-            matchStatusText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            matchStatusText.verticalOverflow = VerticalWrapMode.Truncate;
-            matchStatusText.raycastTarget = false;
-
-            boardTitleText = CreateText(
-                rightPanel,
-                "City Style Preview Board Title",
-                "建设面板",
-                23,
-                FontStyle.Bold,
-                UiTheme.ValueText,
-                TextAnchor.MiddleCenter,
-                new Vector2(430f, 42f),
-                new Vector2(0f, 370f));
-
-            var boardObject = new GameObject(
-                "City Style Preview Board",
-                typeof(RectTransform),
-                typeof(RawImage),
-                typeof(Outline));
-            boardObject.transform.SetParent(rightPanel, false);
-            var boardRect = boardObject.GetComponent<RectTransform>();
-            boardRect.anchorMin = new Vector2(0.5f, 0.5f);
-            boardRect.anchorMax = new Vector2(0.5f, 0.5f);
-            boardRect.pivot = new Vector2(0.5f, 0.5f);
-            boardRect.sizeDelta = new Vector2(397f, 733f);
-            boardRect.anchoredPosition = new Vector2(0f, -20f);
-            cityBoardRect = boardRect;
-            var boardImage = boardObject.GetComponent<RawImage>();
-            boardImage.texture = CardTextureCatalog.LoadCityBoard();
-            boardImage.color = boardImage.texture == null ? UiTheme.ScrollBackground : Color.white;
-            boardImage.raycastTarget = true;
-            boardOutline = boardObject.GetComponent<Outline>();
-            boardOutline.effectColor = UiTheme.GoldOutlineThin;
-            boardOutline.effectDistance = new Vector2(2f, -2f);
-            boardObject.AddComponent<CityStyleDeclarationBoardPointerHandler>()
-                .Configure(
-                    OnBoardLeftPointerDown,
-                    OnLeftPointerDrag,
-                    EndLeftPointerGesture);
+            var boardTexture = dialogRegistry.CardVisualCatalog.GetCityBoard();
+            view.CityBoardImage.texture = boardTexture;
+            view.CityBoardImage.color = boardTexture == null ? UiTheme.ScrollBackground : Color.white;
         }
 
         private void BuildCityBoard()
         {
             slotBindings.Clear();
-            if (cityBoardRect == null)
+            if (cityBoardRect == null || view == null)
             {
                 return;
             }
@@ -592,36 +191,29 @@ namespace YC.Presentation
                 var facilityId = slotModel == null ? string.Empty : slotModel.FacilityId;
                 var occupied = !string.IsNullOrEmpty(facilityId);
                 var used = occupied && slotModel.Used;
-                var slotObject = new GameObject(
-                    "宣告槽位 " + (slotIndex + 1),
-                    typeof(RectTransform),
-                    typeof(Image),
-                    typeof(Button),
-                    typeof(Outline));
-                slotObject.transform.SetParent(cityBoardRect, false);
-                var slotRect = slotObject.GetComponent<RectTransform>();
+                var slot = view.GetCityBoardSlot(slotIndex);
+                var slotRect = slot.Root;
+                slotRect.gameObject.name = "宣告槽位 " + (slotIndex + 1);
                 SetCityBoardSlotRect(slotRect, slotIndex);
                 slotRect.localEulerAngles = used ? new Vector3(0f, 0f, 180f) : Vector3.zero;
 
-                var slotImage = slotObject.GetComponent<Image>();
+                var slotImage = slot.Image;
                 slotImage.color = occupied ? SelectableSlotBackground : EmptySlotColor;
                 slotImage.raycastTarget = true;
-                var slotOutline = slotObject.GetComponent<Outline>();
+                var slotOutline = slot.Outline;
                 slotOutline.effectColor = occupied ? UiTheme.GoldOutlineThin : EmptySlotColor;
                 slotOutline.effectDistance = new Vector2(1f, -1f);
-                var slotButton = slotObject.GetComponent<Button>();
+                var slotButton = slot.Button;
                 slotButton.transition = Selectable.Transition.None;
                 slotButton.interactable = false;
-
-                if (occupied)
-                {
-                    AddFacilityCardImage(slotRect, facilityId);
-                }
-
-                if (used)
-                {
-                    AddUsedBadge(slotRect);
-                }
+                var facilityTexture = occupied
+                    ? dialogRegistry.CardVisualCatalog.GetFacility(facilityId)
+                    : null;
+                slot.FacilityImage.texture = facilityTexture;
+                slot.FacilityImage.color = Color.white;
+                slot.FacilityImage.raycastTarget = false;
+                slot.FacilityImage.gameObject.SetActive(facilityTexture != null);
+                slot.UsedBadge.SetActive(used);
 
                 var binding = new CityBoardSlotBinding
                 {
@@ -634,7 +226,7 @@ namespace YC.Presentation
                     Used = used
                 };
                 slotBindings.Add(binding);
-                slotObject.AddComponent<CityStyleDeclarationSlotPointerHandler>().Configure(
+                slot.PointerHandler.Configure(
                     slotIndex,
                     () => leftPointerHeld,
                     OnSlotLeftPointerDown,
@@ -659,7 +251,7 @@ namespace YC.Presentation
             else
             {
                 cityStyleTitleText.text = option.Name;
-                var texture = CardTextureCatalog.LoadCityStyle(option.CityStyleId, option.Name);
+            var texture = dialogRegistry.CardVisualCatalog.GetCityStyle(option.CityStyleId);
                 cityStyleCardImage.texture = texture;
                 cityStyleCardImage.gameObject.SetActive(texture != null);
                 cityStyleCardPlaceholder.gameObject.SetActive(texture == null);
@@ -677,7 +269,7 @@ namespace YC.Presentation
         private void RenderCityStyleInfluenceMarkers(string cityStyleId)
         {
             var displayIndex = 0;
-            var markerLayout = new CityStyleMarkerLayoutTracker();
+            var markerLayout = new CityStyleMarkerLayoutTracker(view.CardBoardVisualLayout);
             var markers = model == null ? null : model.CityStyleMarkers;
             if (!string.IsNullOrEmpty(cityStyleId) && markers != null)
             {
@@ -717,11 +309,12 @@ namespace YC.Presentation
             }
 
             CityStyleMarkerRenderer.Configure(
+                view.CardBoardVisualLayout,
                 marker,
                 "样式预览影响力 玩家" + markerModel.PlayerId + " 标记" + (displayIndex + 1),
                 UiTheme.GetPlayerColor(markerModel.PlayerColor, 1f),
-                cityStyleInfluenceMarkerSprite,
-                new Vector2(20f, 20f),
+                marker.sprite,
+                view.CardBoardVisualLayout.DeclarationPreviewMarkerSize,
                 markerModel.CityStyleId,
                 placement);
             marker.raycastTarget = markerModel.CanDragForSpecialAction;
@@ -741,36 +334,19 @@ namespace YC.Presentation
 
         private Image EnsureCityStyleInfluenceMarker(int markerIndex)
         {
-            if (cityStyleInfluenceMarkerRoot == null)
+            if (cityStyleInfluenceMarkerRoot == null || view == null)
             {
                 return null;
             }
 
-            if (cityStyleInfluenceMarkerSprite == null)
-            {
-                cityStyleInfluenceMarkerSprite = UguiUtility.CreateFilledSquareSprite(32, 24f);
-            }
-
             while (cityStyleInfluenceMarkers.Count <= markerIndex)
             {
-                var markerObject = new GameObject(
-                    "样式预览影响力",
-                    typeof(RectTransform),
-                    typeof(Image),
-                    typeof(Outline),
-                    typeof(Button),
-                    typeof(CardPointerInteraction));
-                markerObject.transform.SetParent(cityStyleInfluenceMarkerRoot, false);
-                var markerRect = markerObject.GetComponent<RectTransform>();
-                markerRect.pivot = new Vector2(0.5f, 0.5f);
-                markerRect.sizeDelta = new Vector2(20f, 20f);
+                var image = view.CreateInfluenceMarker();
+                if (image == null)
+                {
+                    return null;
+                }
 
-                var image = markerObject.GetComponent<Image>();
-                image.sprite = cityStyleInfluenceMarkerSprite;
-                image.raycastTarget = false;
-                var outline = markerObject.GetComponent<Outline>();
-                outline.effectColor = Color.white;
-                outline.effectDistance = new Vector2(1f, -1f);
                 cityStyleInfluenceMarkers.Add(image);
             }
 
@@ -800,10 +376,16 @@ namespace YC.Presentation
             for (var i = 0; i < requiredAreas.Count; i++)
             {
                 var binding = EnsureSpecialActionDropTarget(i);
+                if (binding == null)
+                {
+                    continue;
+                }
+
                 var area = requiredAreas[i];
                 binding.MarkerArea = area;
                 binding.Target.Configure(area);
                 var bounds = CityStyleMarkerRenderer.ResolveSpecialActionAreaBounds(
+                    view.CardBoardVisualLayout,
                     cityStyleId,
                     area);
                 binding.Rect.anchorMin = new Vector2(bounds.xMin, bounds.yMin);
@@ -825,25 +407,21 @@ namespace YC.Presentation
         {
             while (specialActionDropTargets.Count <= index)
             {
-                var targetObject = new GameObject(
-                    "特殊行动合法落区",
-                    typeof(RectTransform),
-                    typeof(Image),
-                    typeof(Outline),
-                    typeof(CityStyleSpecialActionDropTarget));
-                targetObject.transform.SetParent(cityStyleInfluenceMarkerRoot, false);
+                var target = view == null ? null : view.CreateSpecialActionDropTarget();
+                if (target == null)
+                {
+                    return null;
+                }
+
+                var targetObject = target.gameObject;
                 var image = targetObject.GetComponent<Image>();
-                image.color = new Color(0.18f, 0.9f, 0.32f, 0.2f);
-                image.raycastTarget = true;
                 var outline = targetObject.GetComponent<Outline>();
-                outline.effectColor = new Color(0.48f, 1f, 0.42f, 1f);
-                outline.effectDistance = new Vector2(4f, -4f);
                 specialActionDropTargets.Add(new SpecialActionDropTargetBinding
                 {
                     Rect = targetObject.GetComponent<RectTransform>(),
                     Image = image,
                     Outline = outline,
-                    Target = targetObject.GetComponent<CityStyleSpecialActionDropTarget>()
+                    Target = target
                 });
             }
 
@@ -915,7 +493,8 @@ namespace YC.Presentation
                 canvasRect,
                 markerImage.rectTransform,
                 null,
-                string.Empty);
+                string.Empty,
+                null);
             if (specialActionDragGhost != null)
             {
                 specialActionDragGhost.gameObject.name = "特殊行动影响力拖动虚影";
@@ -976,63 +555,21 @@ namespace YC.Presentation
         private void ShowSpecialActionWarningConfirmation(CityStyleMarkerViewModel markerModel)
         {
             HideSpecialActionWarningConfirmation();
-            if (markerModel == null || overlayObject == null)
+            if (markerModel == null || overlayObject == null || view == null)
             {
                 return;
             }
 
             pendingSpecialActionConfirmation = markerModel;
-            specialActionConfirmationObject = new GameObject(
-                "Special Action Warning Confirmation",
-                typeof(RectTransform),
-                typeof(Image));
-            specialActionConfirmationObject.transform.SetParent(overlayObject.transform, false);
+            specialActionConfirmationObject = view.SpecialActionWarningObject;
+            view.SpecialActionWarningMessage.text =
+                markerModel.SpecialActionWarning + "\n仍要消耗主要行动与本次样式行动次数吗？";
+            view.CancelSpecialActionWarningButton.onClick.RemoveAllListeners();
+            view.ConfirmSpecialActionWarningButton.onClick.RemoveAllListeners();
+            view.CancelSpecialActionWarningButton.onClick.AddListener(HideSpecialActionWarningConfirmation);
+            view.ConfirmSpecialActionWarningButton.onClick.AddListener(ConfirmPendingSpecialAction);
+            specialActionConfirmationObject.SetActive(true);
             specialActionConfirmationObject.transform.SetAsLastSibling();
-            var confirmationRect = specialActionConfirmationObject.GetComponent<RectTransform>();
-            Stretch(confirmationRect);
-            specialActionConfirmationObject.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.72f);
-
-            var panel = CreatePanel(
-                confirmationRect,
-                "Special Action Warning Confirmation Panel",
-                new Vector2(620f, 280f),
-                Vector2.zero,
-                UiTheme.PanelBackground);
-            CreateText(
-                panel,
-                "Special Action Warning Confirmation Title",
-                "确认发动特殊行动",
-                24,
-                FontStyle.Bold,
-                UiTheme.GoldText,
-                TextAnchor.MiddleCenter,
-                new Vector2(540f, 44f),
-                new Vector2(0f, 86f));
-            var warning = CreateText(
-                panel,
-                "Special Action Warning Confirmation Message",
-                markerModel.SpecialActionWarning + "\n仍要消耗主要行动与本次样式行动次数吗？",
-                17,
-                FontStyle.Bold,
-                UiTheme.ValueText,
-                TextAnchor.MiddleCenter,
-                new Vector2(540f, 96f),
-                new Vector2(0f, 12f));
-            warning.raycastTarget = false;
-            var cancelButton = CreateButton(
-                panel,
-                "Cancel Special Action Warning",
-                "取消",
-                new Vector2(160f, 46f),
-                new Vector2(-98f, -90f));
-            cancelButton.onClick.AddListener(HideSpecialActionWarningConfirmation);
-            var confirmButton = CreateButton(
-                panel,
-                "Confirm Special Action Warning",
-                "确认发动",
-                new Vector2(160f, 46f),
-                new Vector2(98f, -90f));
-            confirmButton.onClick.AddListener(ConfirmPendingSpecialAction);
         }
 
         private void ConfirmPendingSpecialAction()
@@ -1063,11 +600,7 @@ namespace YC.Presentation
 
         private void ShowCompositePowerPayment(CityStyleMarkerViewModel markerModel)
         {
-            var canvas = previewCanvasObject == null
-                ? null
-                : previewCanvasObject.GetComponent<RectTransform>();
             specialActionPaymentDialog.ShowCompositePayment(
-                canvas,
                 markerModel.MaximumOriginiumPayment,
                 markerModel.MaximumIronPayment,
                 values =>
@@ -1103,20 +636,39 @@ namespace YC.Presentation
             int originiumAmount,
             int ironAmount)
         {
-            if (model != null &&
-                model.TryUseSpecialAction != null &&
-                markerModel != null &&
-                model.TryUseSpecialAction(
-                    markerModel.SpecialActionId,
-                    markerModel.MarkerId,
-                    originiumAmount,
-                    ironAmount))
+            var activeModel = model;
+            var attemptedView = view;
+            if (activeModel == null || activeModel.TryUseSpecialAction == null || markerModel == null)
             {
-                HideInternal(false);
                 return;
             }
 
-            RenderSpecialActionHint(markerModel == null ? CurrentCityStyleId : markerModel.CityStyleId);
+            CancelSpecialActionDrag();
+            if (attemptedView != null)
+            {
+                attemptedView.gameObject.SetActive(false);
+            }
+
+            var succeeded = activeModel.TryUseSpecialAction(
+                markerModel.SpecialActionId,
+                markerModel.MarkerId,
+                originiumAmount,
+                ironAmount);
+            if (succeeded)
+            {
+                if (ReferenceEquals(view, attemptedView))
+                {
+                    HideInternal(false);
+                }
+
+                return;
+            }
+
+            if (ReferenceEquals(view, attemptedView) && attemptedView != null)
+            {
+                attemptedView.gameObject.SetActive(true);
+                RenderSpecialActionHint(markerModel.CityStyleId);
+            }
         }
 
         private void HideSpecialActionWarningConfirmation()
@@ -1127,16 +679,14 @@ namespace YC.Presentation
                 return;
             }
 
-            var confirmation = specialActionConfirmationObject;
+            if (view != null)
+            {
+                view.CancelSpecialActionWarningButton.onClick.RemoveAllListeners();
+                view.ConfirmSpecialActionWarningButton.onClick.RemoveAllListeners();
+            }
+
+            specialActionConfirmationObject.SetActive(false);
             specialActionConfirmationObject = null;
-            if (UnityEngine.Application.isPlaying)
-            {
-                UnityEngine.Object.Destroy(confirmation);
-            }
-            else
-            {
-                UnityEngine.Object.DestroyImmediate(confirmation);
-            }
         }
 
         private string ResolveSpecialActionDropArea(PointerEventData eventData)
@@ -1529,13 +1079,29 @@ namespace YC.Presentation
 
             var styleId = option.CityStyleId;
             var selection = new List<int>(selectedSlotIndexes).AsReadOnly();
-            if (model.ConfirmSelection(styleId, selection))
+            var activeModel = model;
+            var attemptedView = view;
+            EndLeftPointerGesture();
+            if (attemptedView != null)
             {
-                HideInternal(false);
+                attemptedView.gameObject.SetActive(false);
+            }
+
+            if (activeModel.ConfirmSelection(styleId, selection))
+            {
+                if (ReferenceEquals(view, attemptedView))
+                {
+                    HideInternal(false);
+                }
+
                 return;
             }
 
-            ValidateCurrentSelection();
+            if (ReferenceEquals(view, attemptedView) && attemptedView != null)
+            {
+                attemptedView.gameObject.SetActive(true);
+                ValidateCurrentSelection();
+            }
         }
 
         private bool IsSpecialActionModalOpen()
@@ -1602,6 +1168,14 @@ namespace YC.Presentation
             CancelSpecialActionDrag();
             specialActionPaymentDialog.Hide();
             HideSpecialActionWarningConfirmation();
+            var oldView = view;
+            if (oldView != null)
+            {
+                oldView.ClearCallbacks();
+                oldView.DestroyDynamicInstances();
+                oldView.gameObject.SetActive(false);
+            }
+
             model = null;
             selectingFacilities = false;
             selectedSlotIndexes.Clear();
@@ -1628,6 +1202,18 @@ namespace YC.Presentation
                 }
             }
 
+            view = null;
+            cityStyleCardImage = null;
+            cityStyleCardPlaceholder = null;
+            cityStyleTitleText = null;
+            matchStatusText = null;
+            specialActionHintText = null;
+            boardTitleText = null;
+            previousButton = null;
+            nextButton = null;
+            confirmDeclarationButton = null;
+            boardOutline = null;
+
             cancel?.Invoke();
         }
 
@@ -1650,59 +1236,9 @@ namespace YC.Presentation
             return null;
         }
 
-        private static void SetCityBoardSlotRect(RectTransform rect, int slotIndex)
+        private void SetCityBoardSlotRect(RectTransform rect, int slotIndex)
         {
-            CityBoardSlotLayout.Apply(rect, slotIndex);
-        }
-
-        private static void AddFacilityCardImage(RectTransform parent, string facilityId)
-        {
-            var texture = CardTextureCatalog.LoadFacility(facilityId);
-            if (texture == null)
-            {
-                return;
-            }
-
-            var imageObject = new GameObject("设施卡图", typeof(RectTransform), typeof(RawImage));
-            imageObject.transform.SetParent(parent, false);
-            Stretch(imageObject.GetComponent<RectTransform>());
-            var image = imageObject.GetComponent<RawImage>();
-            image.texture = texture;
-            image.color = Color.white;
-            image.raycastTarget = false;
-        }
-
-        private static void AddUsedBadge(RectTransform parent)
-        {
-            var badgeObject = new GameObject(
-                "历史已使用",
-                typeof(RectTransform),
-                typeof(Image),
-                typeof(Outline));
-            badgeObject.transform.SetParent(parent, false);
-            var badgeRect = badgeObject.GetComponent<RectTransform>();
-            badgeRect.anchorMin = new Vector2(0.5f, 0.5f);
-            badgeRect.anchorMax = new Vector2(0.5f, 0.5f);
-            badgeRect.pivot = new Vector2(0.5f, 0.5f);
-            badgeRect.sizeDelta = new Vector2(92f, 28f);
-            badgeRect.anchoredPosition = Vector2.zero;
-            badgeRect.localEulerAngles = new Vector3(0f, 0f, 180f);
-            badgeObject.GetComponent<Image>().color = new Color(0.58f, 0.06f, 0.03f, 0.94f);
-            badgeObject.GetComponent<Image>().raycastTarget = false;
-            var outline = badgeObject.GetComponent<Outline>();
-            outline.effectColor = UiTheme.DarkShadowLight;
-            outline.effectDistance = new Vector2(1f, -1f);
-            var text = CreateText(
-                badgeRect,
-                "历史已使用 Text",
-                "已使用",
-                13,
-                FontStyle.Bold,
-                Color.white,
-                TextAnchor.MiddleCenter,
-                badgeRect.sizeDelta,
-                Vector2.zero);
-            text.raycastTarget = false;
+            view.ApplyCityBoardSlotLayout(rect, slotIndex);
         }
 
         private static bool SegmentIntersectsRect(Vector2 start, Vector2 end, RectTransform rectTransform)
@@ -1762,67 +1298,6 @@ namespace YC.Presentation
             return minimumTime <= maximumTime;
         }
 
-        private static RectTransform CreatePanel(
-            RectTransform parent,
-            string name,
-            Vector2 size,
-            Vector2 position,
-            Color color)
-        {
-            var panelObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Outline));
-            panelObject.transform.SetParent(parent, false);
-            var rect = panelObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = size;
-            rect.anchoredPosition = position;
-            panelObject.GetComponent<Image>().color = color;
-            var outline = panelObject.GetComponent<Outline>();
-            outline.effectColor = UiTheme.GoldOutline;
-            outline.effectDistance = new Vector2(2f, -2f);
-            return rect;
-        }
-
-        private static Button CreateButton(
-            RectTransform parent,
-            string name,
-            string label,
-            Vector2 size,
-            Vector2 position,
-            int fontSize = 16)
-        {
-            var buttonObject = new GameObject(
-                name,
-                typeof(RectTransform),
-                typeof(Image),
-                typeof(Button),
-                typeof(Outline));
-            buttonObject.transform.SetParent(parent, false);
-            var rect = buttonObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = size;
-            rect.anchoredPosition = position;
-            buttonObject.GetComponent<Image>().color = UiTheme.ButtonBackground;
-            var outline = buttonObject.GetComponent<Outline>();
-            outline.effectColor = UiTheme.GoldOutlineThin;
-            outline.effectDistance = new Vector2(1f, -1f);
-            var text = CreateText(
-                rect,
-                name + " Label",
-                label,
-                fontSize,
-                FontStyle.Bold,
-                UiTheme.ValueText,
-                TextAnchor.MiddleCenter,
-                size,
-                Vector2.zero);
-            text.raycastTarget = false;
-            return buttonObject.GetComponent<Button>();
-        }
-
         private static void SetButtonState(Button button, bool interactable, bool emphasizeWhenEnabled)
         {
             if (button == null)
@@ -1855,53 +1330,6 @@ namespace YC.Presentation
             {
                 label.color = interactable ? UiTheme.ValueText : UiTheme.LabelText;
             }
-        }
-
-        private static Text CreateText(
-            RectTransform parent,
-            string name,
-            string value,
-            int fontSize,
-            FontStyle fontStyle,
-            Color color,
-            TextAnchor alignment,
-            Vector2 size,
-            Vector2 position)
-        {
-            var textObject = new GameObject(name, typeof(RectTransform), typeof(Text));
-            textObject.transform.SetParent(parent, false);
-            var rect = textObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = size;
-            rect.anchoredPosition = position;
-            var text = textObject.GetComponent<Text>();
-            text.text = value ?? string.Empty;
-            text.font = FontUtility.GetCjkFont(fontSize);
-            text.fontSize = fontSize;
-            text.fontStyle = fontStyle;
-            text.color = color;
-            text.alignment = alignment;
-            text.horizontalOverflow = HorizontalWrapMode.Wrap;
-            text.verticalOverflow = VerticalWrapMode.Truncate;
-            return text;
-        }
-
-        private static void Stretch(RectTransform rect)
-        {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-        }
-
-        private static void StretchWithInset(RectTransform rect, float inset)
-        {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = new Vector2(inset, inset);
-            rect.offsetMax = new Vector2(-inset, -inset);
         }
 
         private sealed class CityBoardSlotBinding

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
+using UnityEngine;
 using YC.Domain.Cards;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -31,20 +32,22 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void FourPlayerRouteDisplayDefinitions_AlignWithRuleRouteIds()
+        public void FourPlayerRouteLayout_AlignsWithRuleRouteIds()
         {
             var map = StaticMapDefinitions.CreateFourPlayerMap();
-            var definitions = FourPlayerRouteDisplayDefinitions.Create();
+            var layout = MapDisplayLayoutCatalog.Load(map.MapId);
+            var definitions = layout.CreateRouteDefinitions();
 
             Assert.That(definitions.Select(definition => definition.RouteId),
                 Is.EquivalentTo(map.Routes.Select(route => route.RouteId)));
         }
 
         [Test]
-        public void FourPlayerRouteDisplayDefinitions_KeepInfluenceSlotCountsConsistent()
+        public void FourPlayerRouteLayout_KeepsInfluenceSlotCountsConsistent()
         {
             var map = StaticMapDefinitions.CreateFourPlayerMap();
-            var definitions = FourPlayerRouteDisplayDefinitions.Create();
+            var layout = MapDisplayLayoutCatalog.Load(map.MapId);
+            var definitions = layout.CreateRouteDefinitions();
 
             var errors = MapRouteDisplayDefinitionValidator.Validate(map, definitions);
 
@@ -52,10 +55,91 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void FourPlayerResourcePointDisplayDefinitions_CoverAllRuleLocationIds()
+        public void FourPlayerMapDisplayLayout_IsBoundToMapSpriteAndValid()
         {
             var map = StaticMapDefinitions.CreateFourPlayerMap();
-            var definitions = FourPlayerResourcePointDisplayDefinitions.Create();
+            var layout = MapDisplayLayoutCatalog.Load(map.MapId);
+
+            Assert.That(layout, Is.Not.Null);
+            Assert.That(layout.MapSprite, Is.Not.Null);
+            Assert.That(layout.MapId, Is.EqualTo(map.MapId));
+            Assert.That(MapDisplayLayoutValidator.Validate(map, layout), Is.Empty);
+        }
+
+        [Test]
+        public void FourPlayerLocationChildren_StayRelativeToTheirLocationAnchor()
+        {
+            var map = StaticMapDefinitions.CreateFourPlayerMap();
+            var layout = MapDisplayLayoutCatalog.Load(map.MapId);
+            var location = layout.Locations.Single(definition => definition.LocationId == "A-01");
+            var display = layout.CreateResourcePointDefinitions()
+                .Single(definition => definition.LocationId == location.LocationId);
+
+            Assert.That(Vector2.Distance(
+                    display.ResourceTokenPosition - location.NormalizedPosition,
+                    location.ResourceTokenOffset),
+                Is.LessThan(0.00001f));
+            Assert.That(Vector2.Distance(
+                    display.InfluenceSlots[0].NormalizedPosition - location.NormalizedPosition,
+                    location.InfluenceSlots[0].Offset),
+                Is.LessThan(0.00001f));
+            Assert.That(Vector2.Distance(
+                    display.InfluenceSlots[1].NormalizedPosition - location.NormalizedPosition,
+                    location.InfluenceSlots[1].Offset),
+                Is.LessThan(0.00001f));
+        }
+
+        [Test]
+        public void MapCoordinateSpace_RoundTripsAfterMapTransformChanges()
+        {
+            var mapObject = new GameObject("Map coordinate test", typeof(SpriteRenderer));
+            var texture = new Texture2D(200, 100);
+            var sprite = Sprite.Create(
+                texture,
+                new Rect(0f, 0f, texture.width, texture.height),
+                new Vector2(0.5f, 0.5f),
+                100f);
+            var layout = ScriptableObject.CreateInstance<MapDisplayLayout>();
+            layout.MapId = "test-map";
+            layout.MapSprite = sprite;
+
+            try
+            {
+                mapObject.transform.position = new Vector3(13f, -7f, 2f);
+                mapObject.transform.rotation = Quaternion.Euler(0f, 0f, 31f);
+                mapObject.transform.localScale = new Vector3(1.75f, 0.8f, 1f);
+
+                var renderer = mapObject.GetComponent<SpriteRenderer>();
+                renderer.sprite = sprite;
+                var coordinateSpace = mapObject.AddComponent<MapCoordinateSpace>();
+                var contentRoot = new GameObject("Map Content").transform;
+                contentRoot.SetParent(renderer.transform, false);
+                coordinateSpace.Configure(renderer, layout, contentRoot);
+
+                var normalized = new Vector2(0.23f, 0.71f);
+                var world = coordinateSpace.ToWorldPosition(normalized, -0.2f);
+
+                Assert.That(coordinateSpace.ToNormalizedPosition(world).x,
+                    Is.EqualTo(normalized.x).Within(0.0001f));
+                Assert.That(coordinateSpace.ToNormalizedPosition(world).y,
+                    Is.EqualTo(normalized.y).Within(0.0001f));
+                Assert.That(coordinateSpace.ContentRoot.parent, Is.EqualTo(renderer.transform));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(mapObject);
+                UnityEngine.Object.DestroyImmediate(layout);
+                UnityEngine.Object.DestroyImmediate(sprite);
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
+        }
+
+        [Test]
+        public void FourPlayerResourcePointLayout_CoversAllRuleLocationIds()
+        {
+            var map = StaticMapDefinitions.CreateFourPlayerMap();
+            var layout = MapDisplayLayoutCatalog.Load(map.MapId);
+            var definitions = layout.CreateResourcePointDefinitions();
 
             Assert.That(definitions.Select(definition => definition.LocationId),
                 Is.EquivalentTo(map.Locations.Select(location => location.LocationId)));
@@ -67,10 +151,11 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void FourPlayerResourcePointDisplayDefinitions_StayWithinNormalizedMapBounds()
+        public void FourPlayerResourcePointLayout_StaysWithinNormalizedMapBounds()
         {
             var map = StaticMapDefinitions.CreateFourPlayerMap();
-            var definitions = FourPlayerResourcePointDisplayDefinitions.Create();
+            var layout = MapDisplayLayoutCatalog.Load(map.MapId);
+            var definitions = layout.CreateResourcePointDefinitions();
             var errors = MapResourcePointDisplayDefinitionValidator.Validate(map, definitions);
 
             Assert.That(errors, Is.Empty);

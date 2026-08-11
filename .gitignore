@@ -34,10 +34,20 @@
 /.vscode/
 /.idea/
 /.claude/
+/.codex/
 *.swp
 *.swo
 .DS_Store
 Thumbs.db
+
+# Local verification artifacts
+/tmp/
+/tmp_*
+/tools/__pycache__/
+/Assets/InitTestScene*.unity
+/Assets/InitTestScene*.unity.meta
+/Assets/Screenshots/
+/Assets/Screenshots.meta
 
 # Local build/cache artifacts
 /MemoryCaptures/

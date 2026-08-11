@@ -20,7 +20,21 @@ namespace YC.Editor
 
         private static void LogResult(FontHealthCheckMode mode)
         {
-            var result = FontHealthCheckRunner.Run(mode);
+            var settingsPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/GameSettings/GameSettingsMenu.prefab");
+            var driver = settingsPrefab == null ? null : settingsPrefab.GetComponent<FontRefreshDriver>();
+            var reason = string.Empty;
+            if (driver == null || !driver.TryValidateConfiguration(out reason))
+            {
+                throw new System.InvalidOperationException(
+                    string.IsNullOrEmpty(reason) ? "Missing serialized FontRefreshDriver." : reason);
+            }
+
+            var result = FontHealthCheckRunner.RunWithSerializedFonts(
+                mode,
+                driver.CjkFont,
+                driver.LatinFont,
+                driver);
             if (result.RecreatedManagedFonts)
             {
                 Debug.LogWarning(result.Snapshot);

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using YC.Domain.Rules;
 
@@ -5,47 +6,94 @@ namespace YC.Presentation
 {
     public static class UiTheme
     {
-        public static readonly Color PanelBackground = new Color(0.08f, 0.07f, 0.055f, 0.94f);
-        public static readonly Color PanelBackgroundLighter = new Color(0.14f, 0.1f, 0.06f, 0.96f);
-        public static readonly Color SectionTitleBackground = new Color(0.12f, 0.09f, 0.06f, 0.92f);
-        public static readonly Color ScrollBackground = new Color(0.06f, 0.05f, 0.04f, 0.5f);
-        public static readonly Color ButtonBackground = new Color(0.16f, 0.1f, 0.055f, 0.96f);
-        public static readonly Color DisabledButtonBackground = new Color(0.09f, 0.075f, 0.06f, 0.72f);
+        private static UiThemeCatalog catalog;
+        private static UiThemeCatalog snapshot;
 
-        public static readonly Color GoldText = new Color(0.86f, 0.75f, 0.55f, 1f);
-        public static readonly Color GoldOutline = new Color(0.78f, 0.63f, 0.38f, 0.85f);
-        public static readonly Color GoldOutlineThin = new Color(0.78f, 0.63f, 0.38f, 0.65f);
-        public static readonly Color GoldSeparator = new Color(0.78f, 0.63f, 0.38f, 0.7f);
-        public static readonly Color CyanAccent = new Color(0.12f, 0.88f, 1f, 1f);
-        public static readonly Color TacticalMapBg = new Color(0.08f, 0.10f, 0.12f, 1f);
+        public static bool IsInitialized => snapshot != null;
+        public static UiThemeCatalog Catalog => RequireCatalog();
+        public static Color PanelBackground => RequireCatalog().PanelBackground;
+        public static Color PanelBackgroundLighter => RequireCatalog().PanelBackgroundLighter;
+        public static Color SectionTitleBackground => RequireCatalog().SectionTitleBackground;
+        public static Color ScrollBackground => RequireCatalog().ScrollBackground;
+        public static Color ButtonBackground => RequireCatalog().ButtonBackground;
+        public static Color DisabledButtonBackground => RequireCatalog().DisabledButtonBackground;
+        public static Color GoldText => RequireCatalog().GoldText;
+        public static Color GoldOutline => RequireCatalog().GoldOutline;
+        public static Color GoldOutlineThin => RequireCatalog().GoldOutlineThin;
+        public static Color GoldSeparator => RequireCatalog().GoldSeparator;
+        public static Color CyanAccent => RequireCatalog().CyanAccent;
+        public static Color TacticalMapBg => RequireCatalog().TacticalMapBackground;
+        public static Color DarkShadow => RequireCatalog().DarkShadow;
+        public static Color DarkShadowLight => RequireCatalog().DarkShadowLight;
+        public static Color LabelText => RequireCatalog().LabelText;
+        public static Color ValueText => RequireCatalog().ValueText;
+        public static Color TrackBackground => RequireCatalog().TrackBackground;
+        public static Color DangerBand => RequireCatalog().DangerBand;
+        public static Color SafeBand => RequireCatalog().SafeBand;
+        public static Color GameOverOverlay => RequireCatalog().GameOverOverlay;
+        public static Color GameOverDialog => RequireCatalog().GameOverDialog;
+        public static Vector2 CanvasReferenceResolution => RequireCatalog().CanvasReferenceResolution;
+        public static float CanvasMatchWidthOrHeight => RequireCatalog().CanvasMatchWidthOrHeight;
+        public static Vector2 DialogActionButtonSize => RequireCatalog().DialogActionButtonSize;
+        public static Vector2 CollapsibleMapPromptSize => RequireCatalog().CollapsibleMapPromptSize;
+        public static Vector2 ViewerCloseButtonSize => RequireCatalog().ViewerCloseButtonSize;
+        public static Vector2 ViewerCloseButtonOffset => RequireCatalog().ViewerCloseButtonOffset;
 
-        public static readonly Color DarkShadow = new Color(0.06f, 0.04f, 0.025f, 0.9f);
-        public static readonly Color DarkShadowLight = new Color(0.06f, 0.04f, 0.025f, 0.95f);
+        public static void Initialize(UiThemeCatalog themeCatalog)
+        {
+            if (themeCatalog == null)
+            {
+                throw new ArgumentNullException(nameof(themeCatalog));
+            }
 
-        public static readonly Color LabelText = new Color(0.7f, 0.65f, 0.55f, 1f);
-        public static readonly Color ValueText = new Color(0.95f, 0.9f, 0.82f, 1f);
+            if (!themeCatalog.TryValidateConfiguration(out var reason))
+            {
+                throw new InvalidOperationException("UiThemeCatalog 无效：" + reason);
+            }
 
-        public static readonly Color TrackBackground = new Color(0.1f, 0.1f, 0.09f, 0.88f);
-        public static readonly Color DangerBand = new Color(0.56f, 0.08f, 0.06f, 0.95f);
-        public static readonly Color SafeBand = new Color(0.82f, 0.78f, 0.67f, 0.95f);
-        public static readonly Color GameOverOverlay = new Color(0f, 0f, 0f, 0.62f);
-        public static readonly Color GameOverDialog = new Color(0.16f, 0.1f, 0.055f, 0.98f);
+            if (snapshot != null && !snapshot.HasSameValues(themeCatalog))
+            {
+                throw new InvalidOperationException("UiTheme 已由不同数据的 UiThemeCatalog 初始化。");
+            }
+
+            if (snapshot == null)
+            {
+                snapshot = ScriptableObject.CreateInstance<UiThemeCatalog>();
+                snapshot.hideFlags = HideFlags.HideAndDontSave;
+                JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(themeCatalog), snapshot);
+                catalog = themeCatalog;
+            }
+        }
 
         public static Color GetPlayerColor(PlayerColor playerColor, float alpha)
         {
-            switch (playerColor)
+            return RequireCatalog().GetPlayerColor(playerColor, alpha);
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetForRuntimeStart()
+        {
+            catalog = null;
+            snapshot = null;
+        }
+
+#if UNITY_EDITOR
+        public static void ResetForTests()
+        {
+            catalog = null;
+            snapshot = null;
+        }
+#endif
+
+        private static UiThemeCatalog RequireCatalog()
+        {
+            if (snapshot == null)
             {
-                case PlayerColor.Red:
-                    return new Color(0.7019608f, 0f, 0.1137255f, alpha);
-                case PlayerColor.Blue:
-                    return new Color(0.003921569f, 0.2705882f, 0.6980392f, alpha);
-                case PlayerColor.Green:
-                    return new Color(0.3764706f, 0.8235294f, 0.003921569f, alpha);
-                case PlayerColor.Yellow:
-                    return new Color(1f, 0.7450981f, 0f, alpha);
-                default:
-                    return Color.white;
+                throw new InvalidOperationException(
+                    "UiTheme 未初始化。场景必须通过 UiThemeBootstrap 注入 UiThemeCatalog。");
             }
+
+            return snapshot;
         }
     }
 }

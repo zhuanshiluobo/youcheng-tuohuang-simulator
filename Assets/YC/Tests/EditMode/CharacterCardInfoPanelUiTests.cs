@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -18,6 +19,12 @@ namespace YC.Tests.EditMode
     public sealed class CharacterCardInfoPanelUiTests
     {
         private GameObject owner;
+
+        [SetUp]
+        public void SetUp()
+        {
+            ViewerPrefabTestUtility.RegisterZoomablePrefab();
+        }
 
         [TearDown]
         public void TearDown()
@@ -379,10 +386,33 @@ namespace YC.Tests.EditMode
         {
             var type = Type.GetType("YC.Presentation.ExpandableInfoPanel, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.ExpandableInfoPanel.");
-            owner = new GameObject("Character Card Info Panel Test");
-            var panel = owner.AddComponent(type);
-            type.GetMethod("Initialize", BindingFlags.Instance | BindingFlags.Public)
-                .Invoke(panel, new object[] { owner.transform });
+            var viewType = Type.GetType("YC.Presentation.ExpandableInfoPanelView, Assembly-CSharp", false);
+            Assert.That(viewType, Is.Not.Null);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/ExpandableInfoPanel.prefab");
+            Assert.That(prefab, Is.Not.Null);
+            owner = new GameObject(
+                "Character Card Info Panel Test",
+                typeof(RectTransform),
+                typeof(Canvas),
+                typeof(CanvasScaler),
+                typeof(GraphicRaycaster));
+            owner.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, owner.transform);
+            var panel = instance.GetComponent(type);
+            var panelView = instance.GetComponent(viewType);
+            Assert.That(panel, Is.Not.Null);
+            Assert.That(panelView, Is.Not.Null);
+            const string catalogPath = "Assets/YC/Presentation/Content/CardVisualCatalog.asset";
+            var catalogType = Type.GetType("YC.Presentation.CardVisualCatalog, Assembly-CSharp", true);
+            var catalog = AssetDatabase.LoadAssetAtPath(catalogPath, catalogType);
+            Assert.That(catalog, Is.Not.Null, catalogPath);
+            type.GetMethod("ConfigureCardVisualCatalog", BindingFlags.Instance | BindingFlags.Public)
+                .Invoke(panel, new[] { catalog });
+            Assert.That(
+                (bool)type.GetMethod("Bind", BindingFlags.Instance | BindingFlags.Public)
+                    .Invoke(panel, new[] { panelView }),
+                Is.True);
             return panel;
         }
 

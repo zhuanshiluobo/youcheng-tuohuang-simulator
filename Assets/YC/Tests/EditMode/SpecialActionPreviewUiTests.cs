@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -34,15 +35,18 @@ namespace YC.Tests.EditMode
         public void MarkerDrag_RejectsInvalidDropAndSubmitsOnlyOnItsLegalHighlightedArea()
         {
             var submissionCount = 0;
+            var submissionObservedHiddenDialog = false;
             var submittedActionId = string.Empty;
             var submittedMarkerId = string.Empty;
             var submittedOriginium = -1;
             var submittedIron = -1;
-            var dialog = ShowDialog(
+            object dialog = null;
+            dialog = ShowDialog(
                 string.Empty,
                 (actionId, markerId, originium, iron) =>
                 {
                     submissionCount += 1;
+                    submissionObservedHiddenDialog = !GetProperty<bool>(dialog, "IsShowing");
                     submittedActionId = actionId;
                     submittedMarkerId = markerId;
                     submittedOriginium = originium;
@@ -83,6 +87,7 @@ namespace YC.Tests.EditMode
             Assert.That(submittedMarkerId, Is.EqualTo("marker-1"));
             Assert.That(submittedOriginium, Is.Zero);
             Assert.That(submittedIron, Is.Zero);
+            Assert.That(submissionObservedHiddenDialog, Is.True, "特殊行动回调触发前必须先隐藏预览。");
             Assert.That(GameObject.Find("City Style Declaration Preview Canvas"), Is.Null);
         }
 
@@ -112,11 +117,14 @@ namespace YC.Tests.EditMode
         public void WarningDrop_RequiresExplicitConfirmationAndCancelDoesNotSubmit()
         {
             var submissionCount = 0;
-            var dialog = ShowDialog(
+            var submissionObservedHiddenDialog = false;
+            object dialog = null;
+            dialog = ShowDialog(
                 "当前没有可执行目标，发动后对应步骤会跳过。",
                 (actionId, markerId, originium, iron) =>
                 {
                     submissionCount += 1;
+                    submissionObservedHiddenDialog = !GetProperty<bool>(dialog, "IsShowing");
                     return true;
                 });
             var canvas = GameObject.Find("City Style Declaration Preview Canvas");
@@ -139,9 +147,12 @@ namespace YC.Tests.EditMode
             canvas = GameObject.Find("City Style Declaration Preview Canvas");
             DropMarkerOnLegalTarget(canvas);
             confirmation = GameObject.Find("Special Action Warning Confirmation");
-            FindButton(confirmation, "Confirm Special Action Warning").onClick.Invoke();
+            var confirmEvent = FindButton(confirmation, "Confirm Special Action Warning").onClick;
+            confirmEvent.Invoke();
+            confirmEvent.Invoke();
 
             Assert.That(submissionCount, Is.EqualTo(1));
+            Assert.That(submissionObservedHiddenDialog, Is.True, "警告确认回调触发前必须先隐藏预览。");
             Assert.That(GameObject.Find("City Style Declaration Preview Canvas"), Is.Null);
         }
 
@@ -149,13 +160,16 @@ namespace YC.Tests.EditMode
         public void CompositeDrop_WarningPrecedesCancelablePaymentAndConfirmCarriesAllocation()
         {
             var submissionCount = 0;
+            var submissionObservedHiddenDialog = false;
             var submittedOriginium = -1;
             var submittedIron = -1;
-            ShowDialog(
+            object dialog = null;
+            dialog = ShowDialog(
                 "当前没有可执行目标，发动后对应步骤会跳过。",
                 (actionId, markerId, originium, iron) =>
                 {
                     submissionCount += 1;
+                    submissionObservedHiddenDialog = !GetProperty<bool>(dialog, "IsShowing");
                     submittedOriginium = originium;
                     submittedIron = iron;
                     return true;
@@ -192,9 +206,12 @@ namespace YC.Tests.EditMode
                 "Confirm Special Action Warning").onClick.Invoke();
             payment = GameObject.Find("Special Action Choice Overlay");
             FindButton(payment, "Increase 1").onClick.Invoke();
-            FindButton(payment, "Confirm Special Action Payment").onClick.Invoke();
+            var confirmPaymentEvent = FindButton(payment, "Confirm Special Action Payment").onClick;
+            confirmPaymentEvent.Invoke();
+            confirmPaymentEvent.Invoke();
 
             Assert.That(submissionCount, Is.EqualTo(1));
+            Assert.That(submissionObservedHiddenDialog, Is.True, "支付确认回调触发前必须先隐藏预览。");
             Assert.That(submittedOriginium, Is.EqualTo(2));
             Assert.That(submittedIron, Is.EqualTo(1));
             Assert.That(GameObject.Find("City Style Declaration Preview Canvas"), Is.Null);
@@ -350,9 +367,26 @@ namespace YC.Tests.EditMode
             var dialogType = Type.GetType(
                 "YC.Presentation.CityStyleDeclarationPreviewDialog, Assembly-CSharp",
                 true);
-            var dialog = Activator.CreateInstance(dialogType, true);
+            var registryType = Type.GetType(
+                "YC.Presentation.GameplayDialogRegistry, Assembly-CSharp",
+                true);
+            var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            Assert.That(hudPrefab, Is.Not.Null);
+            var registry = hudPrefab.GetComponentInChildren(registryType, true);
+            Assert.That(registry, Is.Not.Null);
+            var dialog = Activator.CreateInstance(
+                dialogType,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null,
+                new object[]
+                {
+                    registry,
+                    new Func<RectTransform>(() => host.GetComponent<RectTransform>())
+                },
+                null);
             dialogType.GetMethod("Show", BindingFlags.Instance | BindingFlags.Public)
-                .Invoke(dialog, new object[] { host.GetComponent<RectTransform>(), model });
+                .Invoke(dialog, new object[] { model });
             Canvas.ForceUpdateCanvases();
             return dialog;
         }

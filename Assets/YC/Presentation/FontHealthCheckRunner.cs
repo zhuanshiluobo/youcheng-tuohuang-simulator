@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace YC.Presentation
@@ -21,8 +20,39 @@ namespace YC.Presentation
 
     public static class FontHealthCheckRunner
     {
+        public static FontHealthCheckResult RunWithSerializedFonts(
+            FontHealthCheckMode mode,
+            Font cjkFont,
+            Font latinFont,
+            UnityEngine.Object owner)
+        {
+            var configureForRun = !FontUtility.IsConfigured;
+            if (configureForRun)
+            {
+                FontUtility.Configure(cjkFont, latinFont, owner);
+            }
+
+            try
+            {
+                return Run(mode);
+            }
+            finally
+            {
+                if (configureForRun)
+                {
+                    FontUtility.Release(owner);
+                }
+            }
+        }
+
         public static FontHealthCheckResult Run(FontHealthCheckMode mode = FontHealthCheckMode.CheckOnly)
         {
+            if (!FontUtility.IsConfigured)
+            {
+                throw new System.InvalidOperationException(
+                    "Font health check requires serialized fonts configured by FontRefreshDriver.");
+            }
+
             using (var probeScope = FontHealthProbeScope.Create())
             {
                 var report = FontUtility.RunManagedFontHealthCheck(mode == FontHealthCheckMode.SimulateRecreate);
@@ -84,17 +114,30 @@ namespace YC.Presentation
 
             private void Initialize()
             {
-                root = new GameObject("YC Font Health Probe");
-                if (Object.FindObjectOfType<EventSystem>() == null)
-                {
-                    new GameObject("YC Font Health Probe EventSystem", typeof(EventSystem), typeof(StandaloneInputModule))
-                        .transform.SetParent(root.transform, false);
-                }
+                root = new GameObject(
+                    "YC Font Health Probe",
+                    typeof(RectTransform),
+                    typeof(Canvas),
+                    typeof(CanvasScaler),
+                    typeof(GraphicRaycaster));
+                var canvas = root.GetComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = 32000;
+                var scaler = root.GetComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = UiTheme.CanvasReferenceResolution;
+                scaler.matchWidthOrHeight = UiTheme.CanvasMatchWidthOrHeight;
 
-                var promptPresenter = PromptPresenter.Build(root.transform);
-                promptPresenter.SetPrompt("长挂机字体自检探针：汉字 ABC 123");
                 CreateProbeText(
-                    promptPresenter.Canvas.transform,
+                    root.transform,
+                    "Prompt Text",
+                    new Vector2(0f, -68f),
+                    "长挂机字体自检探针：汉字 ABC 123",
+                    FontUtility.GetCjkFont(30),
+                    false,
+                    TextAnchor.MiddleCenter);
+                CreateProbeText(
+                    root.transform,
                     "Best Fit Probe",
                     new Vector2(0f, -148f),
                     "长挂机字体健康检查 Best Fit",
@@ -102,7 +145,7 @@ namespace YC.Presentation
                     true,
                     TextAnchor.MiddleCenter);
                 CreateProbeText(
-                    promptPresenter.Canvas.transform,
+                    root.transform,
                     "Latin Probe",
                     new Vector2(0f, -228f),
                     "Font health snapshot LATIN 123",

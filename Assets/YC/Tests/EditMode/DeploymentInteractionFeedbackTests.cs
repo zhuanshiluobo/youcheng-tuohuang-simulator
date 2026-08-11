@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -46,6 +48,59 @@ namespace YC.Tests.EditMode
                 Object.DestroyImmediate(cameraObject);
                 Object.DestroyImmediate(mapObject);
             }
+        }
+
+        [Test]
+        public void MapDisplayController_EditModeBeforeThemeBootstrap_SkipsThemeRead()
+        {
+            var themeType = RequireType("YC.Presentation.UiTheme");
+            var catalogType = RequireType("YC.Presentation.UiThemeCatalog");
+            var catalog = AssetDatabase.LoadAssetAtPath(
+                FacilityCardDatabaseSetUpFixture.UiThemeCatalogAssetPath,
+                catalogType);
+            var reset = themeType.GetMethod("ResetForTests", BindingFlags.Public | BindingFlags.Static);
+            var initialize = themeType.GetMethod("Initialize", BindingFlags.Public | BindingFlags.Static);
+            Assert.That(catalog, Is.Not.Null);
+            Assert.That(reset, Is.Not.Null);
+            Assert.That(initialize, Is.Not.Null);
+
+            var mapObject = new GameObject("Map Display Cold Editor Test", typeof(SpriteRenderer));
+            var cameraObject = new GameObject("Map Display Cold Editor Camera", typeof(Camera));
+            mapObject.SetActive(false);
+            try
+            {
+                var controllerType = RequireType("YC.Presentation.MapDisplayController");
+                var controller = mapObject.AddComponent(controllerType);
+                var camera = cameraObject.GetComponent<Camera>();
+                camera.clearFlags = CameraClearFlags.Skybox;
+                camera.backgroundColor = Color.magenta;
+                controllerType.GetField("targetCamera", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .SetValue(controller, camera);
+
+                reset.Invoke(null, null);
+                Assert.DoesNotThrow(() => controllerType
+                    .GetMethod("FitCameraToMap", BindingFlags.Instance | BindingFlags.Public)
+                    .Invoke(controller, null));
+
+                Assert.That(camera.clearFlags, Is.EqualTo(CameraClearFlags.SolidColor));
+                Assert.That(camera.backgroundColor, Is.EqualTo(Color.magenta));
+            }
+            finally
+            {
+                initialize.Invoke(null, new[] { catalog });
+                Object.DestroyImmediate(cameraObject);
+                Object.DestroyImmediate(mapObject);
+            }
+        }
+
+        [Test]
+        public void MapDisplayController_PlayModeFlagCannotBypassThemeInitialization()
+        {
+            var source = File.ReadAllText("Assets/YC/Presentation/MapDisplayController.cs");
+            Assert.That(source, Does.Contain("if (UiTheme.IsInitialized)"));
+            Assert.That(
+                source,
+                Does.Not.Contain("Application.isPlaying || UiTheme.IsInitialized"));
         }
 
         [Test]
@@ -99,7 +154,8 @@ namespace YC.Tests.EditMode
                 var pulseType = RequireType("YC.Presentation.MapHighlightPulse");
                 var pulse = owner.AddComponent(pulseType);
                 var renderer = owner.GetComponent<SpriteRenderer>();
-                pulseType.GetMethod("Configure").Invoke(pulse, new object[] { renderer });
+                var bindArguments = new object[] { renderer, string.Empty };
+                Assert.That(pulseType.GetMethod("Bind").Invoke(pulse, bindArguments), Is.True);
                 pulseType.GetMethod("SetHighlighted").Invoke(pulse, new object[] { true });
 
                 Assert.That(renderer.enabled, Is.True);
@@ -131,13 +187,35 @@ namespace YC.Tests.EditMode
                 var originalScale = owner.transform.localScale;
                 var feedbackType = RequireType("YC.Presentation.MapPlacementFeedback");
                 var feedback = owner.AddComponent(feedbackType);
-                feedbackType.GetMethod("Configure").Invoke(feedback, new object[] { 20 });
+                var animator = owner.AddComponent<Animator>();
+                animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(
+                    "Assets/YC/Presentation/Animations/MapPlacementFeedback.controller");
+                Assert.That(animator.runtimeAnimatorController, Is.Not.Null);
+                animator.updateMode = AnimatorUpdateMode.UnscaledTime;
+                animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                animator.applyRootMotion = false;
+                animator.enabled = false;
+                var flashObject = new GameObject("Placement Flash", typeof(SpriteRenderer));
+                flashObject.transform.SetParent(owner.transform, false);
+                var flash = flashObject.GetComponent<SpriteRenderer>();
+                flash.sortingOrder = 20;
+                var ringObject = new GameObject("Placement Expanding Ring", typeof(SpriteRenderer));
+                ringObject.transform.SetParent(owner.transform, false);
+                var ring = ringObject.GetComponent<SpriteRenderer>();
+                ring.sortingOrder = 21;
+                var serialized = new SerializedObject(feedback);
+                serialized.FindProperty("flashRenderer").objectReferenceValue = flash;
+                serialized.FindProperty("expandingRingRenderer").objectReferenceValue = ring;
+                serialized.FindProperty("animator").objectReferenceValue = animator;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                var bindArguments = new object[] { string.Empty };
+                Assert.That(feedbackType.GetMethod("Bind").Invoke(feedback, bindArguments), Is.True);
                 feedbackType.GetMethod("Play").Invoke(feedback, null);
 
                 Assert.That(ReadConstant(feedbackType, "Duration"), Is.EqualTo(0.15f));
+                Assert.That(ReadConstant(feedbackType, "FlashEndAlpha"), Is.EqualTo(0.35f));
                 Assert.That(owner.transform.localScale, Is.EqualTo(originalScale));
-                var flash = owner.transform.Find("Placement Flash").GetComponent<SpriteRenderer>();
-                var ring = owner.transform.Find("Placement Expanding Ring").GetComponent<SpriteRenderer>();
+                Assert.That(animator.enabled, Is.False);
                 Assert.That(flash.enabled, Is.True);
                 Assert.That(ring.enabled, Is.True);
                 Assert.That(flash.transform.localScale.x, Is.EqualTo(1.2f).Within(0.001f));
@@ -145,6 +223,7 @@ namespace YC.Tests.EditMode
                 AssertColorRgb(flash.color, 0.12f, 0.88f, 1f);
 
                 Assert.That(Evaluate(feedbackType, "EvaluateFlashScale", 1f), Is.EqualTo(1f));
+                Assert.That(Evaluate(feedbackType, "EvaluateFlashAlpha", 1f), Is.EqualTo(0.35f));
                 Assert.That(Evaluate(feedbackType, "EvaluateRingScale", 1f), Is.EqualTo(1.8f));
                 Assert.That(Evaluate(feedbackType, "EvaluateRingAlpha", 1f), Is.Zero);
 
@@ -168,6 +247,12 @@ namespace YC.Tests.EditMode
 
         private static Color ReadColor(Type type, string fieldName)
         {
+            var property = type.GetProperty(fieldName, BindingFlags.Public | BindingFlags.Static);
+            if (property != null)
+            {
+                return (Color)property.GetValue(null, null);
+            }
+
             return (Color)type.GetField(fieldName, BindingFlags.Public | BindingFlags.Static).GetValue(null);
         }
 

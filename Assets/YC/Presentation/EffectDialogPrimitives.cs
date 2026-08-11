@@ -1,129 +1,28 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace YC.Presentation
 {
-    /// <summary>效果弹窗共用的标题栏拖动手柄。</summary>
-    internal sealed class EffectDialogDragHandle : MonoBehaviour,
-        IBeginDragHandler,
-        IDragHandler,
-        IEndDragHandler
-    {
-        private RectTransform panel;
-        private RectTransform parent;
-        private Vector2 pointerOffset;
-        private bool dragging;
-
-        public void Configure(RectTransform configuredPanel)
-        {
-            panel = configuredPanel;
-            parent = panel == null ? null : panel.parent as RectTransform;
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            dragging = eventData != null &&
-                       eventData.button == PointerEventData.InputButton.Left &&
-                       panel != null &&
-                       parent != null;
-            if (!dragging)
-            {
-                return;
-            }
-
-            Vector2 localPoint;
-            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    parent,
-                    eventData.position,
-                    eventData.pressEventCamera,
-                    out localPoint))
-            {
-                dragging = false;
-                return;
-            }
-
-            pointerOffset = panel.anchoredPosition - localPoint;
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            if (!dragging || eventData == null || panel == null || parent == null)
-            {
-                return;
-            }
-
-            Vector2 localPoint;
-            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    parent,
-                    eventData.position,
-                    eventData.pressEventCamera,
-                    out localPoint))
-            {
-                return;
-            }
-
-            panel.anchoredPosition = ClampToParent(localPoint + pointerOffset);
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            dragging = false;
-        }
-
-        private void OnDisable()
-        {
-            dragging = false;
-        }
-
-        private Vector2 ClampToParent(Vector2 position)
-        {
-            var horizontalLimit = Mathf.Max(0f, (parent.rect.width - panel.rect.width) * 0.5f);
-            var verticalLimit = Mathf.Max(0f, (parent.rect.height - panel.rect.height) * 0.5f);
-            return new Vector2(
-                Mathf.Clamp(position.x, -horizontalLimit, horizontalLimit),
-                Mathf.Clamp(position.y, -verticalLimit, verticalLimit));
-        }
-    }
-
-    internal struct EffectDialogToggleLayout
-    {
-        public EffectDialogToggleLayout(
-            Vector2 anchorMin,
-            Vector2 anchorMax,
-            Vector2 size,
-            Vector2 position)
-        {
-            AnchorMin = anchorMin;
-            AnchorMax = anchorMax;
-            Size = size;
-            Position = position;
-        }
-
-        public Vector2 AnchorMin;
-        public Vector2 AnchorMax;
-        public Vector2 Size;
-        public Vector2 Position;
-
-        public void Apply(RectTransform target)
-        {
-            if (target == null)
-            {
-                return;
-            }
-
-            target.anchorMin = AnchorMin;
-            target.anchorMax = AnchorMax;
-            target.pivot = new Vector2(0.5f, 0.5f);
-            target.sizeDelta = Size;
-            target.anchoredPosition = Position;
-        }
-    }
-
     internal sealed class EffectDialogCollapseSpec
     {
+        public EffectDialogCollapseSpec(EffectDialogLayoutProfile layoutProfile)
+        {
+            var reason = string.Empty;
+            if (layoutProfile == null || !layoutProfile.TryValidateConfiguration(out reason))
+            {
+                throw new InvalidOperationException(
+                    "EffectDialogCollapseSpec 缺少有效的显式布局 Profile：" + reason);
+            }
+
+            CollapsedHeight = layoutProfile.CollapsedHeight;
+            CollapsedOverlayColor = layoutProfile.CollapsedOverlayColor;
+            CollapsedOverlayRaycastTarget = layoutProfile.CollapsedOverlayRaycastTarget;
+            CollapsedToggleLayout = layoutProfile.CollapsedToggleLayout;
+            ExpandedToggleLayout = layoutProfile.ExpandedToggleLayout;
+        }
+
         public RectTransform Panel;
         public Canvas Canvas;
         public Image OverlayImage;
@@ -137,162 +36,11 @@ namespace YC.Presentation
         public string CollapseLabel = "\u6536\u8d77\u5361\u7247";
         public string ExpandLabel = "\u5c55\u5f00\u5361\u7247";
         public bool StartCollapsed;
+        public bool ClampToCanvasBounds;
         public Color CollapsedOverlayColor = Color.clear;
         public bool CollapsedOverlayRaycastTarget;
-        public EffectDialogToggleLayout CollapsedToggleLayout = new EffectDialogToggleLayout(
-            new Vector2(1f, 0.5f),
-            new Vector2(1f, 0.5f),
-            new Vector2(126f, 34f),
-            new Vector2(-76f, 0f));
-        public EffectDialogToggleLayout ExpandedToggleLayout = new EffectDialogToggleLayout(
-            new Vector2(0.5f, 0f),
-            new Vector2(0.5f, 0f),
-            new Vector2(220f, 32f),
-            new Vector2(0f, 22f));
-    }
-
-    /// <summary>Shared movement and collapse state for effect dialogs that must leave the map visible.</summary>
-    internal sealed class EffectDialogCollapsiblePanel : MonoBehaviour,
-        IBeginDragHandler,
-        IDragHandler
-    {
-        private RectTransform panel;
-        private Canvas canvas;
-        private Image overlayImage;
-        private GameObject expandedContent;
-        private Text collapsedSummaryText;
-        private RectTransform toggleRect;
-        private Text toggleText;
-        private Image toggleIcon;
-        private Vector2 expandedSize;
-        private float collapsedHeight;
-        private string collapseLabel;
-        private string expandLabel;
-        private Color expandedOverlayColor;
-        private Color collapsedOverlayColor;
-        private bool expandedOverlayRaycastTarget;
-        private bool collapsedOverlayRaycastTarget;
-        private EffectDialogToggleLayout collapsedToggleLayout;
-        private EffectDialogToggleLayout expandedToggleLayout;
-        private bool configured;
-        private bool collapsed;
-
-        public bool IsCollapsed
-        {
-            get { return configured && collapsed; }
-        }
-
-        public void Configure(EffectDialogCollapseSpec spec)
-        {
-            if (spec == null)
-            {
-                configured = false;
-                return;
-            }
-
-            panel = spec.Panel == null ? transform as RectTransform : spec.Panel;
-            canvas = spec.Canvas == null && panel != null
-                ? panel.GetComponentInParent<Canvas>()
-                : spec.Canvas;
-            overlayImage = spec.OverlayImage;
-            expandedContent = spec.ExpandedContent;
-            collapsedSummaryText = spec.CollapsedSummaryText;
-            toggleRect = spec.ToggleRect;
-            toggleText = spec.ToggleText;
-            toggleIcon = spec.ToggleIcon;
-            expandedSize = spec.ExpandedSize;
-            collapsedHeight = spec.CollapsedHeight;
-            collapseLabel = spec.CollapseLabel ?? string.Empty;
-            expandLabel = spec.ExpandLabel ?? string.Empty;
-            collapsedOverlayColor = spec.CollapsedOverlayColor;
-            collapsedOverlayRaycastTarget = spec.CollapsedOverlayRaycastTarget;
-            collapsedToggleLayout = spec.CollapsedToggleLayout;
-            expandedToggleLayout = spec.ExpandedToggleLayout;
-            expandedOverlayColor = overlayImage == null ? Color.clear : overlayImage.color;
-            expandedOverlayRaycastTarget = overlayImage != null && overlayImage.raycastTarget;
-            collapsed = spec.StartCollapsed;
-            configured = panel != null;
-            ApplyCollapseState();
-        }
-
-        public void Toggle()
-        {
-            SetCollapsed(!collapsed);
-        }
-
-        public void SetCollapsed(bool value)
-        {
-            if (!configured || collapsed == value)
-            {
-                return;
-            }
-
-            collapsed = value;
-            ApplyCollapseState();
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            if (!configured || panel == null || eventData == null)
-            {
-                return;
-            }
-
-            var scaleFactor = canvas == null || canvas.scaleFactor <= 0f ? 1f : canvas.scaleFactor;
-            panel.anchoredPosition += eventData.delta / scaleFactor;
-        }
-
-        private void ApplyCollapseState()
-        {
-            if (!configured || panel == null)
-            {
-                return;
-            }
-
-            var previousHeight = panel.sizeDelta.y;
-            var targetSize = collapsed
-                ? new Vector2(expandedSize.x, collapsedHeight)
-                : expandedSize;
-            panel.sizeDelta = targetSize;
-            panel.anchoredPosition += new Vector2(0f, (previousHeight - targetSize.y) * 0.5f);
-
-            if (expandedContent != null)
-            {
-                expandedContent.SetActive(!collapsed);
-            }
-
-            if (collapsedSummaryText != null)
-            {
-                collapsedSummaryText.gameObject.SetActive(collapsed);
-            }
-
-            if (toggleText != null)
-            {
-                toggleText.text = collapsed ? expandLabel : collapseLabel;
-            }
-
-            UguiUtility.SetTriangleIconDirection(toggleIcon, !collapsed);
-            if (collapsed)
-            {
-                collapsedToggleLayout.Apply(toggleRect);
-            }
-            else
-            {
-                expandedToggleLayout.Apply(toggleRect);
-            }
-
-            if (overlayImage != null)
-            {
-                overlayImage.color = collapsed ? collapsedOverlayColor : expandedOverlayColor;
-                overlayImage.raycastTarget = collapsed
-                    ? collapsedOverlayRaycastTarget
-                    : expandedOverlayRaycastTarget;
-            }
-        }
+        public EffectDialogRectLayout CollapsedToggleLayout;
+        public EffectDialogRectLayout ExpandedToggleLayout;
     }
 
     internal sealed class EffectDialogOption
@@ -350,11 +98,17 @@ namespace YC.Presentation
         // 游戏内效果弹窗统一位于设置/日志按钮（120）之下、其余常驻游戏 UI 之上。
         internal const int SortingOrder = 119;
 
-        private GameObject overlay;
+        private readonly GameplayDialogRegistry registry;
+        private EffectDialogShellView view;
+
+        internal EffectDialogShell(GameplayDialogRegistry configuredRegistry)
+        {
+            registry = configuredRegistry ?? throw new ArgumentNullException(nameof(configuredRegistry));
+        }
 
         public bool IsShowing
         {
-            get { return overlay != null; }
+            get { return view != null; }
         }
 
         public RectTransform Rebuild(
@@ -371,51 +125,122 @@ namespace YC.Presentation
                 return null;
             }
 
-            overlay = new GameObject(
-                overlayName,
-                typeof(RectTransform),
-                typeof(Canvas),
-                typeof(GraphicRaycaster),
-                typeof(Image));
-            overlay.transform.SetParent(canvas, false);
-            var overlayRect = overlay.GetComponent<RectTransform>();
-            Stretch(overlayRect, 0f);
-            var overlayCanvas = overlay.GetComponent<Canvas>();
-            overlayCanvas.overrideSorting = true;
-            overlayCanvas.sortingOrder = SortingOrder;
-            var overlayImage = overlay.GetComponent<Image>();
-            overlayImage.color = new Color(0f, 0f, 0f, 0.22f);
-            overlayImage.raycastTarget = blockBackgroundInput;
+            if (registry == null)
+            {
+                throw new InvalidOperationException("EffectDialogShell 缺少显式 GameplayDialogRegistry 注入。");
+            }
 
-            var panelObject = new GameObject(panelName, typeof(RectTransform), typeof(Image), typeof(Outline));
-            panelObject.transform.SetParent(overlayRect, false);
-            var panel = panelObject.GetComponent<RectTransform>();
-            SetRect(panel, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), size, position);
-            panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
-            var outline = panelObject.GetComponent<Outline>();
-            outline.effectColor = UiTheme.GoldOutline;
-            outline.effectDistance = new Vector2(2f, -2f);
-            return panel;
+            view = registry.InstantiateEffectDialogShell(canvas);
+            if (view == null)
+            {
+                return null;
+            }
+
+            if (!view.TryValidateConfiguration(out var reason))
+            {
+                var invalidView = view;
+                view = null;
+                DestroyView(invalidView);
+                throw new InvalidOperationException(reason);
+            }
+
+            view.PrepareForUse(overlayName, panelName, size, position, blockBackgroundInput);
+            return view.ExpandedContent;
         }
 
         public void Hide()
         {
-            if (overlay == null)
+            if (view == null)
             {
                 return;
             }
 
-            overlay.SetActive(false);
+            var releasedView = view;
+            view = null;
+            DestroyView(releasedView);
+        }
+
+        internal RectTransform ConfigureCollapsiblePanel(
+            RectTransform canvas,
+            Vector2 expandedSize,
+            string summary,
+            bool startCollapsed,
+            string expandedContentName = null,
+            string collapsedSummaryName = null,
+            string toggleName = null,
+            string toggleIconName = null)
+        {
+            if (view == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(expandedContentName))
+            {
+                view.ExpandedContent.gameObject.name = expandedContentName;
+            }
+
+            if (!string.IsNullOrEmpty(collapsedSummaryName))
+            {
+                view.CollapsedSummaryText.gameObject.name = collapsedSummaryName;
+            }
+
+            if (!string.IsNullOrEmpty(toggleName))
+            {
+                view.CollapseButton.gameObject.name = toggleName;
+            }
+
+            if (!string.IsNullOrEmpty(toggleIconName))
+            {
+                view.CollapseButtonIcon.gameObject.name = toggleIconName;
+            }
+
+            view.CollapsedSummaryText.text = summary ?? string.Empty;
+            view.CollapsedSummaryText.fontStyle = FontStyle.Bold;
+            view.CollapsedSummaryText.color = UiTheme.GoldText;
+            view.LayoutProfile.CollapsedSummaryLayout.ApplyTo(
+                view.CollapsedSummaryText.rectTransform);
+            view.CollapsedSummaryText.gameObject.SetActive(false);
+            view.CollapseButton.gameObject.SetActive(true);
+            view.DragHandle.enabled = false;
+            view.CollapsiblePanel.Configure(new EffectDialogCollapseSpec(view.LayoutProfile)
+            {
+                Panel = view.Panel,
+                Canvas = canvas == null ? null : canvas.GetComponentInParent<Canvas>(),
+                OverlayImage = view.OverlayImage,
+                ExpandedContent = view.ExpandedContent.gameObject,
+                CollapsedSummaryText = view.CollapsedSummaryText,
+                ToggleRect = view.CollapseButton.GetComponent<RectTransform>(),
+                ToggleText = view.CollapseButtonText,
+                ToggleIcon = view.CollapseButtonIcon,
+                ExpandedSize = expandedSize,
+                StartCollapsed = startCollapsed,
+                ClampToCanvasBounds = true
+            });
+            view.CollapseButton.onClick.RemoveAllListeners();
+            view.CollapseButton.onClick.AddListener(view.CollapsiblePanel.Toggle);
+            return view.ExpandedContent;
+        }
+
+        internal EffectDialogCollapsiblePanel CollapsiblePanel =>
+            view == null ? null : view.CollapsiblePanel;
+
+        private static void DestroyView(EffectDialogShellView target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            target.gameObject.SetActive(false);
             if (UnityEngine.Application.isPlaying)
             {
-                UnityEngine.Object.Destroy(overlay);
+                UnityEngine.Object.Destroy(target.gameObject);
             }
             else
             {
-                UnityEngine.Object.DestroyImmediate(overlay);
+                UnityEngine.Object.DestroyImmediate(target.gameObject);
             }
-
-            overlay = null;
         }
 
         public static RectTransform AddOptionScroll(
@@ -424,50 +249,8 @@ namespace YC.Presentation
             float bottom,
             float top)
         {
-            var scrollObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(ScrollRect));
-            scrollObject.transform.SetParent(panel, false);
-            var scrollRectTransform = scrollObject.GetComponent<RectTransform>();
-            scrollRectTransform.anchorMin = new Vector2(0.06f, 0f);
-            scrollRectTransform.anchorMax = new Vector2(0.94f, 1f);
-            scrollRectTransform.offsetMin = new Vector2(0f, bottom);
-            scrollRectTransform.offsetMax = new Vector2(0f, -top);
-            scrollObject.GetComponent<Image>().color = UiTheme.ScrollBackground;
-
-            var viewportObject = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(Mask));
-            viewportObject.transform.SetParent(scrollRectTransform, false);
-            var viewport = viewportObject.GetComponent<RectTransform>();
-            Stretch(viewport, 0f);
-            viewportObject.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.01f);
-            viewportObject.GetComponent<Mask>().showMaskGraphic = false;
-
-            var contentObject = new GameObject(
-                "Content",
-                typeof(RectTransform),
-                typeof(VerticalLayoutGroup),
-                typeof(ContentSizeFitter));
-            contentObject.transform.SetParent(viewport, false);
-            var content = contentObject.GetComponent<RectTransform>();
-            content.anchorMin = new Vector2(0f, 1f);
-            content.anchorMax = new Vector2(1f, 1f);
-            content.pivot = new Vector2(0.5f, 1f);
-            content.sizeDelta = Vector2.zero;
-            var layout = contentObject.GetComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(12, 12, 12, 12);
-            layout.spacing = 9f;
-            layout.childControlHeight = false;
-            layout.childControlWidth = true;
-            layout.childForceExpandHeight = false;
-            layout.childForceExpandWidth = true;
-            contentObject.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            var scroll = scrollObject.GetComponent<ScrollRect>();
-            scroll.viewport = viewport;
-            scroll.content = content;
-            scroll.horizontal = false;
-            scroll.vertical = true;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
-            scroll.scrollSensitivity = 28f;
-            return content;
+            var shellView = ResolveView(panel);
+            return shellView.ConfigureOptionScroll(name, bottom, top);
         }
 
         public static void AddOptions(
@@ -484,10 +267,15 @@ namespace YC.Presentation
             for (var i = 0; i < options.Count; i++)
             {
                 var option = options[i];
-                var button = CreateButton(content, buttonNamePrefix + i, option.Label, 18);
-                button.gameObject.AddComponent<LayoutElement>().preferredHeight = 54f;
+                var row = ResolveView(content).CreateOptionRow(content);
+                row.gameObject.name = buttonNamePrefix + i;
+                row.Label.text = option.Label;
+                row.Label.fontSize = 18;
+                row.LayoutElement.preferredHeight = 54f;
+                var button = row.Button;
+                button.onClick.RemoveAllListeners();
                 button.interactable = option.Enabled;
-                button.GetComponent<Image>().color = option.Enabled
+                row.Background.color = option.Enabled
                     ? UiTheme.ButtonBackground
                     : UiTheme.DisabledButtonBackground;
                 if (!option.Enabled)
@@ -496,8 +284,15 @@ namespace YC.Presentation
                 }
 
                 var select = option.Select;
+                var invoked = false;
                 button.onClick.AddListener(() =>
                 {
+                    if (invoked)
+                    {
+                        return;
+                    }
+
+                    invoked = true;
                     beforeSelect?.Invoke();
                     select?.Invoke();
                 });
@@ -507,6 +302,7 @@ namespace YC.Presentation
         public void AddResourceAllocation(RectTransform panel, ResourceAllocationSpec spec)
         {
             AddHeading(panel, spec.Title, spec.Description);
+            var shellView = ResolveView(panel);
             var count = spec.Labels == null ? 0 : spec.Labels.Count;
             var values = new int[count];
             if (spec.ExactTotal >= 0 && count > 0)
@@ -519,19 +315,17 @@ namespace YC.Presentation
             var valueTexts = new Text[count];
             var decreaseButtons = new Button[count];
             var increaseButtons = new Button[count];
-            var summaryText = string.IsNullOrEmpty(spec.SummaryName)
-                ? null
-                : CreateText(panel, spec.SummaryName, string.Empty, 18, TextAnchor.MiddleCenter);
-            if (summaryText != null)
+            Text summaryText = null;
+            if (!string.IsNullOrEmpty(spec.SummaryName))
             {
+                summaryText = shellView.ResourceSummaryText;
+                summaryText.gameObject.name = spec.SummaryName;
+                summaryText.gameObject.SetActive(true);
+                summaryText.text = string.Empty;
                 summaryText.color = UiTheme.GoldText;
                 summaryText.fontStyle = FontStyle.Bold;
-                SetRect(
-                    summaryText.rectTransform,
-                    new Vector2(0.08f, 0f),
-                    new Vector2(0.92f, 0f),
-                    new Vector2(0f, 42f),
-                    new Vector2(0f, 94f));
+                shellView.LayoutProfile.ResourceSummaryLayout.ApplyTo(
+                    summaryText.rectTransform);
             }
 
             Button confirmButton = null;
@@ -570,27 +364,32 @@ namespace YC.Presentation
             {
                 var rowIndex = i;
                 var rowY = spec.RowStartY - i * spec.RowSpacing;
+                var row = shellView.CreateResourceRow();
+                row.gameObject.name = "Resource Allocation Row " + i;
                 var labelValue = spec.FormatRowLabel == null
                     ? spec.Labels[i]
                     : spec.FormatRowLabel(
                         i,
                         spec.Labels[i],
                         spec.UnitPrices != null && i < spec.UnitPrices.Count ? spec.UnitPrices[i] : 0);
-                var label = CreateText(
-                    panel,
-                    spec.LabelNamePrefix + i,
-                    labelValue,
-                    18,
-                    TextAnchor.MiddleLeft);
+                row.Label.gameObject.name = spec.LabelNamePrefix + i;
+                row.Label.text = labelValue;
                 SetRect(
-                    label.rectTransform,
-                    new Vector2(0f, 1f),
-                    new Vector2(0f, 1f),
+                    row.Label.rectTransform,
+                    shellView.LayoutProfile.ResourceRowAnchor,
+                    shellView.LayoutProfile.ResourceRowAnchor,
                     new Vector2(spec.LabelWidth, spec.LabelHeight),
                     new Vector2(spec.LabelX, rowY));
 
-                decreaseButtons[i] = CreateButton(panel, spec.DecreaseNamePrefix + i, "−", 24);
-                SetRect(decreaseButtons[i].GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(58f, 44f), new Vector2(spec.DecreaseX, rowY));
+                decreaseButtons[i] = row.DecreaseButton;
+                decreaseButtons[i].gameObject.name = spec.DecreaseNamePrefix + i;
+                decreaseButtons[i].onClick.RemoveAllListeners();
+                SetRect(
+                    decreaseButtons[i].GetComponent<RectTransform>(),
+                    shellView.LayoutProfile.ResourceRowAnchor,
+                    shellView.LayoutProfile.ResourceRowAnchor,
+                    shellView.LayoutProfile.ResourceDecreaseButtonSize,
+                    new Vector2(spec.DecreaseX, rowY));
                 decreaseButtons[i].onClick.AddListener(() =>
                 {
                     if (values[rowIndex] > 0)
@@ -600,11 +399,25 @@ namespace YC.Presentation
                     }
                 });
 
-                valueTexts[i] = CreateText(panel, spec.ValueNamePrefix + i, "0", 22, TextAnchor.MiddleCenter);
-                SetRect(valueTexts[i].rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(74f, 44f), new Vector2(spec.ValueX, rowY));
+                valueTexts[i] = row.ValueText;
+                valueTexts[i].gameObject.name = spec.ValueNamePrefix + i;
+                valueTexts[i].text = "0";
+                SetRect(
+                    valueTexts[i].rectTransform,
+                    shellView.LayoutProfile.ResourceRowAnchor,
+                    shellView.LayoutProfile.ResourceRowAnchor,
+                    shellView.LayoutProfile.ResourceValueSize,
+                    new Vector2(spec.ValueX, rowY));
 
-                increaseButtons[i] = CreateButton(panel, spec.IncreaseNamePrefix + i, "+", 24);
-                SetRect(increaseButtons[i].GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(58f, 44f), new Vector2(spec.IncreaseX, rowY));
+                increaseButtons[i] = row.IncreaseButton;
+                increaseButtons[i].gameObject.name = spec.IncreaseNamePrefix + i;
+                increaseButtons[i].onClick.RemoveAllListeners();
+                SetRect(
+                    increaseButtons[i].GetComponent<RectTransform>(),
+                    shellView.LayoutProfile.ResourceRowAnchor,
+                    shellView.LayoutProfile.ResourceRowAnchor,
+                    shellView.LayoutProfile.ResourceIncreaseButtonSize,
+                    new Vector2(spec.IncreaseX, rowY));
                 increaseButtons[i].onClick.AddListener(() =>
                 {
                     var maximum = spec.Maximums != null && rowIndex < spec.Maximums.Count
@@ -627,12 +440,19 @@ namespace YC.Presentation
             confirmButton = CreateButton(panel, spec.ConfirmName, spec.ConfirmLabel, 18);
             SetRect(
                 confirmButton.GetComponent<RectTransform>(),
-                new Vector2(0.5f, 0f),
-                new Vector2(0.5f, 0f),
-                new Vector2(220f, 48f),
+                shellView.LayoutProfile.BottomCenterAnchor,
+                shellView.LayoutProfile.BottomCenterAnchor,
+                UiTheme.DialogActionButtonSize,
                 new Vector2(spec.Cancel == null ? 0f : -125f, 34f));
+            var confirmInvoked = false;
             confirmButton.onClick.AddListener(() =>
             {
+                if (confirmInvoked)
+                {
+                    return;
+                }
+
+                confirmInvoked = true;
                 var result = new List<int>(values).AsReadOnly();
                 if (spec.CloseBeforeConfirm)
                 {
@@ -647,12 +467,19 @@ namespace YC.Presentation
                 var cancelButton = CreateButton(panel, spec.CancelName, spec.CancelLabel, 18);
                 SetRect(
                     cancelButton.GetComponent<RectTransform>(),
-                    new Vector2(0.5f, 0f),
-                    new Vector2(0.5f, 0f),
-                    new Vector2(220f, 48f),
-                    new Vector2(125f, 34f));
+                    shellView.LayoutProfile.BottomCenterAnchor,
+                    shellView.LayoutProfile.BottomCenterAnchor,
+                    UiTheme.DialogActionButtonSize,
+                    shellView.LayoutProfile.ResourceCancelButtonPosition);
+                var cancelInvoked = false;
                 cancelButton.onClick.AddListener(() =>
                 {
+                    if (cancelInvoked)
+                    {
+                        return;
+                    }
+
+                    cancelInvoked = true;
                     if (spec.CloseBeforeCancel)
                     {
                         Hide();
@@ -680,27 +507,23 @@ namespace YC.Presentation
                 return;
             }
 
-            var titleText = CreateText(panel, titleName, title, titleSize, TextAnchor.MiddleCenter);
-            titleText.fontStyle = FontStyle.Bold;
-            titleText.color = UiTheme.GoldText;
-            if (addDragHandle)
-            {
-                titleText.gameObject.AddComponent<EffectDialogDragHandle>().Configure(panel);
-            }
-            SetRect(titleText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(-40f, 52f), new Vector2(0f, -34f));
-
-            var descriptionText = CreateText(panel, descriptionName, description, 16, TextAnchor.UpperLeft);
-            descriptionText.color = UiTheme.ValueText;
-            SetRect(descriptionText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(-70f, descriptionHeight), new Vector2(0f, -92f));
+            ResolveView(panel).ConfigureHeading(
+                title,
+                description,
+                descriptionHeight,
+                titleName,
+                descriptionName,
+                titleSize,
+                addDragHandle);
         }
 
         public static Text CreateText(Transform parent, string name, string value, int fontSize, TextAnchor alignment)
         {
-            var textObject = new GameObject(name, typeof(RectTransform), typeof(Text));
-            textObject.transform.SetParent(parent, false);
-            var text = textObject.GetComponent<Text>();
+            var shellView = ResolveView(parent);
+            var text = UnityEngine.Object.Instantiate(shellView.DescriptionText, parent, false);
+            text.gameObject.name = name ?? string.Empty;
+            text.gameObject.SetActive(true);
             text.text = value ?? string.Empty;
-            text.font = FontUtility.GetCjkFont(fontSize);
             text.fontSize = fontSize;
             text.color = UiTheme.ValueText;
             text.alignment = alignment;
@@ -711,18 +534,41 @@ namespace YC.Presentation
 
         public static Button CreateButton(Transform parent, string name, string label, int fontSize)
         {
-            var buttonObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button), typeof(Outline));
-            buttonObject.transform.SetParent(parent, false);
-            buttonObject.GetComponent<Image>().color = UiTheme.ButtonBackground;
-            var outline = buttonObject.GetComponent<Outline>();
-            outline.effectColor = UiTheme.GoldOutlineThin;
-            outline.effectDistance = new Vector2(1f, -1f);
-            var labelText = CreateText(buttonObject.GetComponent<RectTransform>(), "Label", label, fontSize, TextAnchor.MiddleCenter);
-            labelText.color = UiTheme.GoldText;
-            labelText.fontStyle = FontStyle.Bold;
-            labelText.raycastTarget = false;
-            Stretch(labelText.rectTransform, 8f);
-            return buttonObject.GetComponent<Button>();
+            var shellView = ResolveView(parent);
+            var action = shellView.AcquireActionButton(parent as RectTransform);
+            action.gameObject.name = name ?? string.Empty;
+            action.Background.color = UiTheme.ButtonBackground;
+            action.Label.text = label ?? string.Empty;
+            action.Label.fontSize = fontSize;
+            action.Label.color = UiTheme.GoldText;
+            action.Label.fontStyle = FontStyle.Bold;
+            action.Label.raycastTarget = false;
+            action.Button.onClick.RemoveAllListeners();
+            return action.Button;
+        }
+
+        internal static FacilityEffectCardView CreateFacilityCard(RectTransform parent)
+        {
+            var shellView = ResolveView(parent);
+            var card = shellView.CreateFacilityCard();
+            card.transform.SetParent(parent == null ? shellView.ExpandedContent : parent, false);
+            return card;
+        }
+
+        private static EffectDialogShellView ResolveView(Transform source)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            var shellView = source.GetComponentInParent<EffectDialogShellView>();
+            if (shellView == null)
+            {
+                throw new InvalidOperationException("Effect dialog content must belong to an EffectDialogShellView prefab instance.");
+            }
+
+            return shellView;
         }
 
         public static void Stretch(RectTransform rect, float inset)

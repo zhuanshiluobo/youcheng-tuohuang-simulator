@@ -63,6 +63,23 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void IsCompatible_TwoPlayerRoomRequiresExplicitSteamValidationKind()
+        {
+            var data = CompatibleData();
+            data["playerCount"] = "2";
+
+            Assert.IsFalse(SteamLobbyPolicy.IsCompatible(data, 0, out _));
+
+            data[SteamLobbyPolicy.SessionKindKey] =
+                SteamLobbyPolicy.TwoPlayerValidationSessionKind;
+
+            Assert.IsTrue(SteamLobbyPolicy.IsCompatible(data, 0, out var reason), reason);
+            Assert.IsTrue(SteamLobbyPolicy.IsCompatible(data, 2, out reason), reason);
+            Assert.IsFalse(SteamLobbyPolicy.IsCompatible(data, 4, out _));
+            Assert.IsTrue(SteamLobbyPolicy.IsTwoPlayerValidationRoom(data, 2));
+        }
+
+        [Test]
         public void BindingRegistry_BindsSteamIdentityToStableSeatAndRejectsImpersonation()
         {
             var registry = new SteamIdentityBindingRegistry();
@@ -119,6 +136,20 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void SeatAssignment_TwoPlayerValidationRoomPinsHostAndOneClient()
+        {
+            var assigned = SteamSeatAssignment.Assign(
+                300UL,
+                2,
+                new[] { 200UL, 300UL },
+                null);
+
+            CollectionAssert.AreEqual(
+                new[] { 300UL, 200UL },
+                new[] { assigned[1], assigned[2] });
+        }
+
+        [Test]
         public void SeatAssignment_PreservesExistingValidSeatsWhenNewMemberJoins()
         {
             var existing = new Dictionary<int, ulong>
@@ -167,6 +198,27 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void StartMenu_TwoPlayerSteamValidationIsExplicitAndDoesNotChangeStandardRoomSize()
+        {
+            var source = ReadSource("YC/Presentation/StartMenuController.cs");
+            var standardRoom = ExtractMethod(
+                source,
+                "public void CreateStandardRoom()",
+                "public void CreateSteamTwoPlayerVerificationRoom()");
+            var validationRoom = ExtractMethod(
+                source,
+                "public void CreateSteamTwoPlayerVerificationRoom()",
+                "public void JoinRoom()");
+
+            StringAssert.Contains("selectedRoomPlayerCount = 4;", standardRoom);
+            StringAssert.Contains("selectedRoomPlayerCount = SteamTwoPlayerValidationCount;", validationRoom);
+            StringAssert.Contains("LocalMirrorTestMode.IsEnabled", validationRoom);
+            StringAssert.Contains(
+                "BindButton(view.SteamTwoPlayerButton, CreateSteamTwoPlayerVerificationRoom);",
+                source);
+        }
+
+        [Test]
         public void SteamBootstrap_AwakeDoesNotInitializeSteamApi()
         {
             var path = Path.Combine(UnityEngine.Application.dataPath, "YC/Infrastructure/Multiplayer/SteamBootstrap.cs");
@@ -185,7 +237,7 @@ namespace YC.Tests.EditMode
             var menuPath = Path.Combine(UnityEngine.Application.dataPath, "YC/Presentation/StartMenuController.cs");
             var menuSource = File.ReadAllText(menuPath);
             var createStart = menuSource.IndexOf("public async void CreateRoom()", System.StringComparison.Ordinal);
-            var buildMenuStart = menuSource.IndexOf("private void BuildMenu()", createStart, System.StringComparison.Ordinal);
+            var buildMenuStart = menuSource.IndexOf("private bool BuildMenu()", createStart, System.StringComparison.Ordinal);
             var connectStart = menuSource.IndexOf("private async void ConnectToRoom()", System.StringComparison.Ordinal);
             var showRoomStart = menuSource.IndexOf("private void ShowRoomPanel", connectStart, System.StringComparison.Ordinal);
             Assert.GreaterOrEqual(createStart, 0);

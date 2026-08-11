@@ -1,0 +1,100 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9466b0171de42a78d9a59e4136f4f6a, type: 3}
+  m_Name: ExpandableInfoPanelLayoutProfile
+  m_EditorClassIdentifier: 
+  sourceManifestSha256: 84988DCACCEE2575064C8BCAE1A4FD1D5EB533F993E31122397FF1EA9A9AF7BB
+  values:
+    ExpandedWidth: 504
+    CollapsedWidth: 65
+    RowHeight: 22
+    ModuleContentWidth: 420
+    ModuleContentLeftPadding: 7
+    ModuleContentRightPadding: 4
+    ModuleContentTopPadding: 2
+    ModuleContentSpacing: 2
+    PreviewMaxWidth: 320
+    PreviewMaxHeight: 420
+    PreviewFramePadding: 8
+    PreviewRowExtraHeight: 12
+    CardStripHeight: 122
+    CardStripGap: 6
+    CardStripMaxCardWidth: 74
+    CardStripCardY: -6
+    CardStripCardHeight: 110
+    DragGhostScale: 1.08
+    DragGhostColor: {r: 1, g: 1, b: 1, a: 0.68}
+    TopLeftAnchor: {x: 0, y: 1}
+    CenterAnchor: {x: 0.5, y: 0.5}
+    TextRowOffset: {x: 7, y: 0}
+    CardStripOffset: {x: 7, y: 0}
+    EmptyModuleContentSize: {x: 420, y: 2}
+    PanelLayout:
+      AnchorMin: {x: 0, y: 0}
+      AnchorMax: {x: 0, y: 1}
+      Pivot: {x: 0, y: 0.5}
+      SizeDelta: {x: 65, y: 0}
+      AnchoredPosition: {x: 0, y: 0}
+    PanelOutlineDistance: {x: 2, y: 0}
+    ToggleLayout:
+      AnchorMin: {x: 1, y: 0.5}
+      AnchorMax: {x: 1, y: 0.5}
+      Pivot: {x: 1, y: 0.5}
+      SizeDelta: {x: 47, y: 90}
+      AnchoredPosition: {x: 0, y: 0}
+    ContentAreaLayout:
+      AnchorMin: {x: 0, y: 0}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      OffsetMin: {x: 11, y: 11}
+      OffsetMax: {x: -54, y: -11}
+    HeaderLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 1}
+      SizeDelta: {x: 0, y: 48}
+      AnchoredPosition: {x: 0, y: 0}
+    HeaderOutlineDistance: {x: 1, y: -1}
+    HeaderSeparatorLayout:
+      AnchorMin: {x: 0, y: 0}
+      AnchorMax: {x: 1, y: 0}
+      Pivot: {x: 0.5, y: 0}
+      SizeDelta: {x: 0, y: 2}
+      AnchoredPosition: {x: 0, y: 0}
+    ScrollLayout:
+      AnchorMin: {x: 0, y: 0}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 0.5}
+      OffsetMin: {x: 0, y: 0}
+      OffsetMax: {x: 0, y: -48}
+    ScrollContentLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 1, y: 1}
+      Pivot: {x: 0.5, y: 1}
+      SizeDelta: {x: 0, y: 0}
+      AnchoredPosition: {x: 0, y: 0}
+    ModuleContentLayout:
+      AnchorMin: {x: 0, y: 1}
+      AnchorMax: {x: 0, y: 1}
+      Pivot: {x: 0, y: 1}
+      SizeDelta: {x: 420, y: 0}
+      AnchoredPosition: {x: 0, y: 0}
+    ModuleTitleLayout:
+      AnchorMin: {x: 0.5, y: 0.5}
+      AnchorMax: {x: 0.5, y: 0.5}
+      Pivot: {x: 0.5, y: 0.5}
+      SizeDelta: {x: 0, y: 25}
+      AnchoredPosition: {x: 0, y: 0}
+    ItemOutlineDistance: {x: 1, y: -1}
+    TextInsetMin: {x: 6, y: 0}
+    TextInsetMax: {x: -6, y: 0}
+    CardOutlineDistance: {x: 2, y: -2}

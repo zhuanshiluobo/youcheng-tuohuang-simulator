@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "cardBoard": {
+    "slotWidthRatio": 0.292,
+    "slotHeightRatio": 0.224,
+    "slotCenters": [
+      { "x": 0.176, "y": 0.152 },
+      { "x": 0.502, "y": 0.152 },
+      { "x": 0.827, "y": 0.152 },
+      { "x": 0.176, "y": 0.383 },
+      { "x": 0.502, "y": 0.383 },
+      { "x": 0.827, "y": 0.383 },
+      { "x": 0.176, "y": 0.615 },
+      { "x": 0.502, "y": 0.615 },
+      { "x": 0.827, "y": 0.615 },
+      { "x": 0.176, "y": 0.846 },
+      { "x": 0.502, "y": 0.846 },
+      { "x": 0.827, "y": 0.846 }
+    ],
+    "markerAnchors": [
+      { "markerArea": "unused", "x": 0.69, "y": 0.73 },
+      { "markerArea": "used", "x": 0.69, "y": 0.28 },
+      { "markerArea": "2", "x": 0.69, "y": 0.82 },
+      { "markerArea": "used_from_2", "x": 0.69, "y": 0.66 },
+      { "markerArea": "1", "x": 0.69, "y": 0.50 },
+      { "markerArea": "used_from_1", "x": 0.69, "y": 0.34 },
+      { "markerArea": "0", "x": 0.69, "y": 0.18 }
+    ],
+    "regularMarkers": {
+      "columnCount": 4,
+      "columnSpacingX": 0.055,
+      "rowSpacingY": 0.11
+    },
+    "militaryUnusedMarkers": {
+      "playerLaneCount": 4,
+      "markerRowCount": 3,
+      "firstLaneX": 0.62,
+      "laneSpacingX": 0.09,
+      "firstMarkerY": 0.84,
+      "markerSpacingY": 0.14
+    },
+    "specialActionAreas": [
+      { "areaId": "level_one_used", "minX": 0.54, "minY": 0.08, "maxX": 0.945, "maxY": 0.485 },
+      { "areaId": "level_two_used_from_two", "minX": 0.54, "minY": 0.60, "maxX": 0.945, "maxY": 0.75 },
+      { "areaId": "level_two_used_from_one", "minX": 0.54, "minY": 0.23, "maxX": 0.945, "maxY": 0.38 }
+    ],
+    "fallbackSpecialActionAreaHalfExtents": { "x": 0.09, "y": 0.07 },
+    "markerSizesPixels": {
+      "buildInfo": 12,
+      "declarationPreview": 20
+    }
+  },
+  "mapFourPlayers": {
+    "mapId": "map-four-players",
+    "scoreTrackSegments": [
+      {
+        "minimumScore": -2,
+        "maximumScore": 23,
+        "start": { "x": 0.1013, "y": 0.98065 },
+        "end": { "x": 0.98015, "y": 0.98065 }
+      },
+      {
+        "minimumScore": 24,
+        "maximumScore": 50,
+        "start": { "x": 0.98015, "y": 0.9437 },
+        "end": { "x": 0.98015, "y": 0.02535 }
+      }
+    ],
+    "scoreMarkerOffsets": [
+      {
+        "markerCount": 1,
+        "offsets": [
+          { "x": 0.0, "y": 0.0 }
+        ]
+      },
+      {
+        "markerCount": 2,
+        "offsets": [
+          { "x": -0.0055, "y": 0.0 },
+          { "x": 0.0055, "y": 0.0 }
+        ]
+      },
+      {
+        "markerCount": 3,
+        "offsets": [
+          { "x": -0.0055, "y": 0.0045 },
+          { "x": 0.0055, "y": 0.0045 },
+          { "x": 0.0, "y": -0.005 }
+        ]
+      },
+      {
+        "markerCount": 4,
+        "offsets": [
+          { "x": -0.0055, "y": 0.005 },
+          { "x": 0.0055, "y": 0.005 },
+          { "x": -0.0055, "y": -0.005 },
+          { "x": 0.0055, "y": -0.005 }
+        ]
+      }
+    ]
+  }
+}

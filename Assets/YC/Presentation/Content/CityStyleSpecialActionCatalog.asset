@@ -1,0 +1,311 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b69d1d5c424a43aeab8601b55c39e6e1, type: 3}
+  m_Name: CityStyleSpecialActionCatalog
+  m_EditorClassIdentifier:
+  cityStyles:
+  - cityStyleId: city_style_military_industrial_area
+    name: "军工化区域"
+    level: 1
+    score: 2
+    description: "同一横排相邻布局：蓝/黄设施 + 红色设施。"
+    maxDeclarationsPerPlayer: 2147483647
+    specialActionId: special_action.city_style.military_industrial_area
+    declarationReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    declarationRequirement:
+      requiredFacilityCount: 2
+      requiredEffectTypes: []
+      requiredResourceTypes: []
+      requiredCityBoardSlotIndexes: []
+      requiredPatternCells:
+      - rowOffset: 0
+        columnOffset: 0
+        allowedFacilityColors:
+        - blue
+        - yellow
+      - rowOffset: 0
+        columnOffset: 1
+        allowedFacilityColors:
+        - red
+      requireSameCityBoardRow: 0
+  - cityStyleId: city_style_mobilization_support_system
+    name: "动员配套体系"
+    level: 1
+    score: 3
+    description: "同一横排相邻布局：黄色设施 + 黄色设施 + 红色设施。"
+    maxDeclarationsPerPlayer: 2147483647
+    specialActionId: special_action.city_style.mobilization_support_system
+    declarationReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    declarationRequirement:
+      requiredFacilityCount: 3
+      requiredEffectTypes: []
+      requiredResourceTypes: []
+      requiredCityBoardSlotIndexes: []
+      requiredPatternCells:
+      - rowOffset: 0
+        columnOffset: 0
+        allowedFacilityColors:
+        - yellow
+      - rowOffset: 0
+        columnOffset: 1
+        allowedFacilityColors:
+        - yellow
+      - rowOffset: 0
+        columnOffset: 2
+        allowedFacilityColors:
+        - red
+      requireSameCityBoardRow: 0
+  - cityStyleId: city_style_composite_power_system
+    name: "复合动力系统"
+    level: 1
+    score: 3
+    description: "2x2 局部布局：上方黄色；下方红色 + 黄色。"
+    maxDeclarationsPerPlayer: 2147483647
+    specialActionId: special_action.city_style.composite_power_system
+    declarationReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    declarationRequirement:
+      requiredFacilityCount: 3
+      requiredEffectTypes: []
+      requiredResourceTypes: []
+      requiredCityBoardSlotIndexes: []
+      requiredPatternCells:
+      - rowOffset: 0
+        columnOffset: 0
+        allowedFacilityColors:
+        - yellow
+      - rowOffset: 1
+        columnOffset: 0
+        allowedFacilityColors:
+        - red
+      - rowOffset: 1
+        columnOffset: 1
+        allowedFacilityColors:
+        - yellow
+      requireSameCityBoardRow: 0
+  - cityStyleId: city_style_material_relay_station
+    name: "物资中继站"
+    level: 1
+    score: 2
+    description: "同一横排相邻布局：蓝/红设施 + 黄色设施。"
+    maxDeclarationsPerPlayer: 2147483647
+    specialActionId:
+    declarationReward:
+      originium: 1
+      originiumShard: 1
+      iron: 1
+      pureOriginium: 0
+      goldVoucher: 0
+    declarationRequirement:
+      requiredFacilityCount: 2
+      requiredEffectTypes: []
+      requiredResourceTypes: []
+      requiredCityBoardSlotIndexes: []
+      requiredPatternCells:
+      - rowOffset: 0
+        columnOffset: 0
+        allowedFacilityColors:
+        - blue
+        - red
+      - rowOffset: 0
+        columnOffset: 1
+        allowedFacilityColors:
+        - yellow
+      requireSameCityBoardRow: 0
+  - cityStyleId: city_style_source_stone_industrial_hub
+    name: "源石工业中枢"
+    level: 2
+    score: 6
+    description: "3 行阶梯布局：上方蓝色；中间红色 + 蓝色；下方黄色 + 黄色 + 红色。"
+    maxDeclarationsPerPlayer: 2
+    specialActionId: special_action.city_style.source_stone_industrial_hub
+    declarationReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    declarationRequirement:
+      requiredFacilityCount: 6
+      requiredEffectTypes: []
+      requiredResourceTypes: []
+      requiredCityBoardSlotIndexes: []
+      requiredPatternCells:
+      - rowOffset: 0
+        columnOffset: 0
+        allowedFacilityColors:
+        - blue
+      - rowOffset: 1
+        columnOffset: 0
+        allowedFacilityColors:
+        - red
+      - rowOffset: 1
+        columnOffset: 1
+        allowedFacilityColors:
+        - blue
+      - rowOffset: 2
+        columnOffset: 0
+        allowedFacilityColors:
+        - yellow
+      - rowOffset: 2
+        columnOffset: 1
+        allowedFacilityColors:
+        - yellow
+      - rowOffset: 2
+        columnOffset: 2
+        allowedFacilityColors:
+        - red
+      requireSameCityBoardRow: 0
+  - cityStyleId: city_style_efficient_mobile_management_system
+    name: "高效移动管理体系"
+    level: 2
+    score: 7
+    description: "3 行阶梯布局：上方黄色；中间红色 + 黄色；下方蓝色 + 蓝色 + 红色。"
+    maxDeclarationsPerPlayer: 2
+    specialActionId: special_action.city_style.efficient_mobile_management_system
+    declarationReward:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    declarationRequirement:
+      requiredFacilityCount: 6
+      requiredEffectTypes: []
+      requiredResourceTypes: []
+      requiredCityBoardSlotIndexes: []
+      requiredPatternCells:
+      - rowOffset: 0
+        columnOffset: 0
+        allowedFacilityColors:
+        - yellow
+      - rowOffset: 1
+        columnOffset: 0
+        allowedFacilityColors:
+        - red
+      - rowOffset: 1
+        columnOffset: 1
+        allowedFacilityColors:
+        - yellow
+      - rowOffset: 2
+        columnOffset: 0
+        allowedFacilityColors:
+        - blue
+      - rowOffset: 2
+        columnOffset: 1
+        allowedFacilityColors:
+        - blue
+      - rowOffset: 2
+        columnOffset: 2
+        allowedFacilityColors:
+        - red
+      requireSameCityBoardRow: 0
+  specialActions:
+  - specialActionId: special_action.city_style.military_industrial_area
+    cityStyleId: city_style_military_industrial_area
+    name: "军工化区域"
+    description: "放置尽可能多的影响力；数量等于本方在该样式上的标记数，最多 3 个。"
+    level: 1
+    effectKind: 0
+    fixedCost:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    flexibleOriginiumAndIronCost: 0
+    maximumTargetCount: 3
+    freeMoveCount: 0
+    extraMainActionCount: 0
+    locksCharacterCard: 0
+  - specialActionId: special_action.city_style.mobilization_support_system
+    cityStyleId: city_style_mobilization_support_system
+    name: "动员配套体系"
+    description: "移除 1 个对手影响力，再尽量在原槽位放置自己的影响力。"
+    level: 1
+    effectKind: 1
+    fixedCost:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    flexibleOriginiumAndIronCost: 0
+    maximumTargetCount: 1
+    freeMoveCount: 0
+    extraMainActionCount: 0
+    locksCharacterCard: 0
+  - specialActionId: special_action.city_style.composite_power_system
+    cityStyleId: city_style_composite_power_system
+    name: "复合动力系统"
+    description: "支付 1 源石碎片及合计 3 个源岩/异铁，免费移动一次，再在经过的航道放置影响力。"
+    level: 1
+    effectKind: 2
+    fixedCost:
+      originium: 0
+      originiumShard: 1
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    flexibleOriginiumAndIronCost: 3
+    maximumTargetCount: 1
+    freeMoveCount: 1
+    extraMainActionCount: 0
+    locksCharacterCard: 0
+  - specialActionId: special_action.city_style.source_stone_industrial_hub
+    cityStyleId: city_style_source_stone_industrial_hub
+    name: "源石工业中枢"
+    description: "支付 6 金券，本玩家行动轮获得至多 2 次额外主要行动。"
+    level: 2
+    effectKind: 3
+    fixedCost:
+      originium: 0
+      originiumShard: 0
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 6
+    flexibleOriginiumAndIronCost: 0
+    maximumTargetCount: 0
+    freeMoveCount: 0
+    extraMainActionCount: 2
+    locksCharacterCard: 1
+  - specialActionId: special_action.city_style.efficient_mobile_management_system
+    cityStyleId: city_style_efficient_mobile_management_system
+    name: "高效移动管理体系"
+    description: "支付 3 源石碎片，连续执行 2 次免费移动城市。"
+    level: 2
+    effectKind: 4
+    fixedCost:
+      originium: 0
+      originiumShard: 3
+      iron: 0
+      pureOriginium: 0
+      goldVoucher: 0
+    flexibleOriginiumAndIronCost: 0
+    maximumTargetCount: 0
+    freeMoveCount: 2
+    extraMainActionCount: 0
+    locksCharacterCard: 1

@@ -6,18 +6,19 @@ namespace YC.Presentation
 {
     public sealed partial class MobileCityInteractionController
     {
-        private readonly CharacterCardEffectChoiceDialog characterCardEffectChoiceDialog =
-            new CharacterCardEffectChoiceDialog();
+        private CharacterCardEffectChoiceDialog characterCardEffectChoiceDialog;
         private CharacterCardEffectInteractionUiCoordinator characterCardEffectInteraction;
         private string automaticSecondEffectMode = string.Empty;
         private bool submittingSecondEffectDecision;
 
         private void BuildCharacterCardEffectInteraction()
         {
+            characterCardEffectChoiceDialog = new CharacterCardEffectChoiceDialog(
+                gameplayInteractionHud.DialogRegistry,
+                GetUiCanvasTransform());
             characterCardEffectInteraction = new CharacterCardEffectInteractionUiCoordinator(
                 () => session == null ? null : session.State,
                 () => localPlayerId,
-                GetUiCanvasTransform,
                 characterCardPresenter,
                 characterCardEffectChoiceDialog,
                 (mode, effect) => characterMapInteraction != null && characterMapInteraction.TryBeginEffect(mode, effect),

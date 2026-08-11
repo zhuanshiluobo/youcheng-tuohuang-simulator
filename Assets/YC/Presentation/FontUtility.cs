@@ -7,136 +7,97 @@ namespace YC.Presentation
 {
     public static class FontUtility
     {
-        private const string BuiltinArialResourceName = "Arial.ttf";
-        private static readonly string[] DefaultCjkProjectFontResourcePaths =
-        {
-            "Fonts/CJK/NotoSansCJKsc-Regular",
-            "Fonts/Latin/NotoSans-Regular"
-        };
-        private static readonly string[] DefaultLatinProjectFontResourcePaths =
-        {
-            "Fonts/Latin/NotoSans-Regular",
-            "Fonts/CJK/NotoSansCJKsc-Regular"
-        };
-        private static readonly string[] CjkFallback =
-        {
-            "SimHei",
-            "Microsoft YaHei",
-            "Arial Unicode MS",
-            "Arial"
-        };
-        private static readonly string[] LatinFallback =
-        {
-            "Arial",
-            "Segoe UI",
-            "Microsoft YaHei",
-            "SimHei"
-        };
         private static readonly Dictionary<Font, FontFamily> ManagedFontFamilies = new Dictionary<Font, FontFamily>();
         private static readonly Dictionary<Font, string> ManagedFontOrigins = new Dictionary<Font, string>();
-        private static string[] cjkProjectFontResourcePaths = DefaultCjkProjectFontResourcePaths;
-        private static string[] latinProjectFontResourcePaths = DefaultLatinProjectFontResourcePaths;
         private static Font cjkFont;
         private static Font latinFont;
-        private static FontRefreshDriver refreshDriver;
-        private static bool runtimeHooksInstalled;
+        private static Object configurationOwner;
         private static bool refreshingTextRenderers;
         private static bool pendingManagedTextRefresh;
         private static bool pendingManagedFontRecreate;
 
         public static Font GetCjkFont(int fontSize)
         {
-            return GetFont(ref cjkFont, cjkProjectFontResourcePaths, CjkFallback, FontFamily.Cjk, fontSize);
+            return GetConfiguredFont(cjkFont, "CJK");
         }
 
         public static Font GetLatinFont(int fontSize)
         {
-            return GetFont(ref latinFont, latinProjectFontResourcePaths, LatinFallback, FontFamily.Latin, fontSize);
+            return GetConfiguredFont(latinFont, "Latin");
+        }
+
+        internal static bool IsConfigured => cjkFont != null && latinFont != null && configurationOwner != null;
+
+        internal static void Configure(Font configuredCjkFont, Font configuredLatinFont, Object owner)
+        {
+            if (configuredCjkFont == null || configuredLatinFont == null || owner == null)
+            {
+                throw new System.InvalidOperationException(
+                    "FontUtility requires serialized CJK and Latin fonts plus a live configuration owner.");
+            }
+
+            cjkFont = configuredCjkFont;
+            latinFont = configuredLatinFont;
+            configurationOwner = owner;
+            ManagedFontFamilies.Clear();
+            ManagedFontOrigins.Clear();
+            ManagedFontFamilies[cjkFont] = FontFamily.Cjk;
+            ManagedFontOrigins[cjkFont] = "Serialized:CJK";
+            ManagedFontFamilies[latinFont] = FontFamily.Latin;
+            ManagedFontOrigins[latinFont] = "Serialized:Latin";
+        }
+
+        internal static void Release(Object owner)
+        {
+            if (owner == null || configurationOwner != owner)
+            {
+                return;
+            }
+
+            cjkFont = null;
+            latinFont = null;
+            configurationOwner = null;
+            ManagedFontFamilies.Clear();
+            ManagedFontOrigins.Clear();
+            pendingManagedTextRefresh = false;
+            pendingManagedFontRecreate = false;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
-            Font.textureRebuilt -= OnFontTextureRebuilt;
-            cjkProjectFontResourcePaths = DefaultCjkProjectFontResourcePaths;
-            latinProjectFontResourcePaths = DefaultLatinProjectFontResourcePaths;
             cjkFont = null;
             latinFont = null;
+            configurationOwner = null;
             ManagedFontFamilies.Clear();
             ManagedFontOrigins.Clear();
-            refreshDriver = null;
-            runtimeHooksInstalled = false;
             refreshingTextRenderers = false;
             pendingManagedTextRefresh = false;
             pendingManagedFontRecreate = false;
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void InstallRuntimeHooks()
+        private static Font GetConfiguredFont(Font font, string familyName)
         {
-            if (runtimeHooksInstalled)
+            if (font == null || configurationOwner == null)
+            {
+                throw new System.InvalidOperationException(
+                    "FontUtility " + familyName +
+                    " font is not configured. A serialized FontRefreshDriver must run before UI initialization.");
+            }
+
+            return font;
+        }
+
+        internal static void OnFontTextureRebuilt(Font font)
+        {
+            if (font == null || !ManagedFontFamilies.ContainsKey(font))
             {
                 return;
             }
 
-            Font.textureRebuilt += OnFontTextureRebuilt;
-
-            var driverObject = new GameObject("YC Font Refresh Driver");
-            Object.DontDestroyOnLoad(driverObject);
-            refreshDriver = driverObject.AddComponent<FontRefreshDriver>();
-            runtimeHooksInstalled = true;
-        }
-
-        private static Font GetFont(
-            ref Font cachedFont,
-            string[] projectFontResourcePaths,
-            string[] fallbackNames,
-            FontFamily family,
-            int fontSize)
-        {
-            fontSize = Mathf.Max(1, fontSize);
-            if (cachedFont != null)
-            {
-                return cachedFont;
-            }
-
-            string origin;
-            cachedFont = LoadProjectFont(projectFontResourcePaths, out origin);
-            if (cachedFont == null)
-            {
-                cachedFont = Font.CreateDynamicFontFromOSFont(fallbackNames, fontSize);
-                if (cachedFont != null)
-                {
-                    origin = "SystemDynamic:" + string.Join(" > ", fallbackNames);
-                }
-            }
-
-            if (cachedFont == null)
-            {
-                cachedFont = Resources.GetBuiltinResource<Font>(BuiltinArialResourceName);
-                if (cachedFont != null)
-                {
-                    origin = "Builtin:" + BuiltinArialResourceName;
-                }
-            }
-
-            if (cachedFont != null)
-            {
-                ManagedFontFamilies[cachedFont] = family;
-                ManagedFontOrigins[cachedFont] = origin;
-            }
-
-            return cachedFont;
-        }
-
-        private static void OnFontTextureRebuilt(Font font)
-        {
-            if (refreshingTextRenderers || font == null || !ManagedFontFamilies.ContainsKey(font))
-            {
-                return;
-            }
-
-            RequestManagedTextRefresh(false);
+            // UnityEngine.UI.Text observes normal atlas rebuilds itself. The shared driver
+            // keeps this subscription only to identify managed-font events; expensive
+            // hierarchy refreshes are reserved for explicit focus/health recovery.
         }
 
         internal static void RecreateManagedFonts()
@@ -234,14 +195,6 @@ namespace YC.Presentation
                         managed[i] = true;
                         families[i] = family;
                     }
-                }
-
-                if (recreateFonts)
-                {
-                    cjkFont = null;
-                    latinFont = null;
-                    ManagedFontFamilies.Clear();
-                    ManagedFontOrigins.Clear();
                 }
 
                 if (textCount == 0)
@@ -383,35 +336,6 @@ namespace YC.Presentation
             return font != null && font.material != null && font.material.mainTexture != null;
         }
 
-        private static Font LoadProjectFont(string[] projectFontResourcePaths, out string origin)
-        {
-            origin = null;
-            if (projectFontResourcePaths == null)
-            {
-                return null;
-            }
-
-            for (var i = 0; i < projectFontResourcePaths.Length; i++)
-            {
-                var path = projectFontResourcePaths[i];
-                if (string.IsNullOrEmpty(path))
-                {
-                    continue;
-                }
-
-                var font = Resources.Load<Font>(path);
-                if (font == null)
-                {
-                    continue;
-                }
-
-                origin = "ProjectResource:" + path;
-                return font;
-            }
-
-            return null;
-        }
-
         private static Texture GetFontTexture(Font font)
         {
             return font != null && font.material != null
@@ -495,43 +419,4 @@ namespace YC.Presentation
         public string Snapshot { get; internal set; }
     }
 
-    internal sealed class FontRefreshDriver : MonoBehaviour
-    {
-        private const float HealthCheckSeconds = 30f;
-        private float nextHealthCheckAt;
-
-        private void Update()
-        {
-            FontUtility.FlushPendingManagedTextRefresh();
-
-            if (Time.unscaledTime < nextHealthCheckAt)
-            {
-                return;
-            }
-
-            nextHealthCheckAt = Time.unscaledTime + HealthCheckSeconds;
-            if (FontUtility.HasInvalidManagedFontTexture())
-            {
-                FontUtility.RecreateManagedFonts();
-            }
-
-            FontUtility.FlushPendingManagedTextRefresh();
-        }
-
-        private void OnApplicationFocus(bool hasFocus)
-        {
-            if (hasFocus)
-            {
-                FontUtility.RecreateManagedFonts();
-            }
-        }
-
-        private void OnApplicationPause(bool pauseStatus)
-        {
-            if (!pauseStatus)
-            {
-                FontUtility.RecreateManagedFonts();
-            }
-        }
-    }
 }

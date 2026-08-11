@@ -58,7 +58,10 @@ namespace YC.Infrastructure.Multiplayer
         {
             ThrowIfDisposed();
             Initialize();
-            if (playerCount != 3 && playerCount != 4) throw new ArgumentOutOfRangeException(nameof(playerCount), "Steam 房间仅支持 3 或 4 人。");
+            if (playerCount != 2 && playerCount != 3 && playerCount != 4)
+                throw new ArgumentOutOfRangeException(
+                    nameof(playerCount),
+                    "Steam 房间仅支持 3 人、4 人，或明确标记的 2 人联机验证房。");
             ShutdownNetworkAndLobby();
             requestedPlayerCount = playerCount;
             isHost = true;
@@ -168,6 +171,11 @@ namespace YC.Infrastructure.Multiplayer
                 SetData("roomStatus", SteamLobbyPolicy.WaitingStatus);
                 SetData("playerCount", requestedPlayerCount.ToString());
                 SetData("hostSteamId", originalHostSteamId.ToString());
+                SetData(
+                    SteamLobbyPolicy.SessionKindKey,
+                    requestedPlayerCount == 2
+                        ? SteamLobbyPolicy.TwoPlayerValidationSessionKind
+                        : string.Empty);
                 for (var playerId = 1; playerId <= requestedPlayerCount; playerId++)
                 {
                     SetData(SteamLobbyPolicy.SeatKey(playerId), playerId == 1 ? originalHostSteamId.ToString() : string.Empty);
@@ -402,7 +410,8 @@ namespace YC.Infrastructure.Multiplayer
         {
             ["gameKey"] = GetData("gameKey"), ["protocolVersion"] = GetData("protocolVersion"),
             ["roomStatus"] = GetData("roomStatus"), ["playerCount"] = GetData("playerCount"),
-            ["hostSteamId"] = GetData("hostSteamId")
+            ["hostSteamId"] = GetData("hostSteamId"),
+            [SteamLobbyPolicy.SessionKindKey] = GetData(SteamLobbyPolicy.SessionKindKey)
         };
         private string GetData(string key) => SteamMatchmaking.GetLobbyData(lobbyId, key) ?? string.Empty;
         private void SetData(string key, string value) => SteamMatchmaking.SetLobbyData(lobbyId, key, value ?? string.Empty);

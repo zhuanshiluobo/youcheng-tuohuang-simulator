@@ -130,8 +130,10 @@ namespace YC.Tests.EditMode
 
         private object CreateViewer(GameSession session)
         {
-            owner = new GameObject("Action Log Viewer Tests");
-            var viewer = owner.AddComponent(GetControllerType());
+            owner = ViewerPrefabTestUtility.Instantiate(ViewerPrefabTestUtility.ActionLogPrefabPath);
+            owner.name = "Action Log Viewer Tests";
+            var viewer = owner.GetComponent(GetControllerType());
+            Assert.That(viewer, Is.Not.Null);
             Invoke(viewer, "Configure", new Func<GameState>(() => session.State));
             return viewer;
         }

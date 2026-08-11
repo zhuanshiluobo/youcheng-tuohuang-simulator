@@ -3,6 +3,8 @@ param(
     [string]$UnityVersion = "2022.3.62f2c1",
     [string]$ProjectPath,
     [string]$TestFilter,
+    [ValidateSet("EditMode", "PlayMode")]
+    [string]$TestPlatform = "EditMode",
     [string]$OutputDirectory,
     [string]$LogFile,
     [string]$ResultsFile,
