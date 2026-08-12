@@ -23,6 +23,12 @@ namespace YC.Tests.EditMode
             "Assets/YC/Presentation/Materials/MapFeedbackAdditive.mat";
         private const string FeedbackControllerPath =
             "Assets/YC/Presentation/Animations/MapPlacementFeedback.controller";
+        private const string PieceMaterialPath =
+            "Assets/YC/Presentation/Materials/MapPiecePlayerColor.mat";
+        private const string InfluencePiecePrefabPath =
+            "Assets/YC/Presentation/Prefabs/Map/Pieces/InfluencePiece.prefab";
+        private const string MobileCityPiecePrefabPath =
+            "Assets/YC/Presentation/Prefabs/Map/Pieces/MobileCityPiece.prefab";
         private const string ScenePath = "Assets/Scenes/SampleScene.unity";
 
         [Test]
@@ -100,6 +106,35 @@ namespace YC.Tests.EditMode
                 Assert.That(root.GetComponentsInChildren(GetRuntimeType("YC.Presentation.InfluenceSlotClickTarget"), true).Length, Is.EqualTo(77));
                 Assert.That(root.GetComponentsInChildren(GetRuntimeType("YC.Presentation.MobileCityClickTarget"), true).Length, Is.EqualTo(4));
                 Assert.That(root.GetComponentsInChildren(GetRuntimeType("YC.Presentation.MapHighlightPulse"), true).Length, Is.EqualTo(99));
+                var pieceVisualType = GetRuntimeType("YC.Presentation.MapPieceVisual");
+                var pieceVisuals = root.GetComponentsInChildren(pieceVisualType, true);
+                Assert.That(pieceVisuals, Has.Length.EqualTo(85));
+                Assert.That(root.GetComponentsInChildren<MeshRenderer>(true), Has.Length.EqualTo(85));
+                Assert.That(root.GetComponentsInChildren<Collider>(true), Is.Empty);
+                Assert.That(root.GetComponentsInChildren<Rigidbody>(true), Is.Empty);
+                var pieceMaterial = AssetDatabase.LoadAssetAtPath<Material>(PieceMaterialPath);
+                Assert.That(pieceMaterial, Is.Not.Null);
+                Assert.That(pieceMaterial.GetFloat("_Metallic"), Is.EqualTo(0.05f).Within(0.0001f));
+                Assert.That(pieceMaterial.GetFloat("_Glossiness"), Is.EqualTo(0.25f).Within(0.0001f));
+                Assert.That(pieceMaterial.IsKeywordEnabled("_EMISSION"), Is.True);
+                Assert.That(root.GetComponentsInChildren<MeshRenderer>(true),
+                    Has.All.Matches<MeshRenderer>(item =>
+                        !item.enabled && item.sharedMaterials.Length == 1 && item.sharedMaterial == pieceMaterial));
+                var pieceLight = root.GetComponentsInChildren<Light>(true).Single();
+                Assert.That(pieceLight.type, Is.EqualTo(LightType.Directional));
+                Assert.That(pieceLight.intensity, Is.EqualTo(0.85f).Within(0.0001f));
+                Assert.That(pieceLight.shadows, Is.EqualTo(LightShadows.Soft));
+                Assert.That(pieceLight.shadowStrength, Is.EqualTo(0.45f).Within(0.0001f));
+
+                var serializedView = new SerializedObject(view);
+                AssertPieceVisualReferences(serializedView.FindProperty("influenceSlots"), 77);
+                AssertPieceVisualReferences(serializedView.FindProperty("cityPool"), 4);
+                AssertPieceVisualReferences(serializedView.FindProperty("scoreMarkerPool"), 4);
+                AssertGroundedInfluencePieces(serializedView.FindProperty("influenceSlots"));
+                AssertGroundedCityPieces(serializedView.FindProperty("cityPool"));
+                AssertGroundedScorePieces(serializedView.FindProperty("scoreMarkerPool"));
+                AssertPiecePrefab(InfluencePiecePrefabPath, pieceVisualType, new Vector3(0.7f, 0.7f, 0.7f));
+                AssertPiecePrefab(MobileCityPiecePrefabPath, pieceVisualType, new Vector3(1.38f, 2.376f, 0.64f));
                 var feedbackType = GetRuntimeType("YC.Presentation.MapPlacementFeedback");
                 var feedbacks = root.GetComponentsInChildren(feedbackType, true);
                 Assert.That(feedbacks.Length, Is.EqualTo(99));
@@ -183,6 +218,131 @@ namespace YC.Tests.EditMode
                 .GetValue(target) as ICollection;
             Assert.That(value, Is.Not.Null, propertyName);
             return value.Count;
+        }
+
+        private static void AssertPieceVisualReferences(SerializedProperty bindings, int expectedCount)
+        {
+            Assert.That(bindings, Is.Not.Null);
+            Assert.That(bindings.arraySize, Is.EqualTo(expectedCount));
+            for (var i = 0; i < bindings.arraySize; i++)
+            {
+                Assert.That(
+                    bindings.GetArrayElementAtIndex(i).FindPropertyRelative("pieceVisual").objectReferenceValue,
+                    Is.Not.Null,
+                    "pieceVisual[" + i + "]");
+            }
+        }
+
+        private static void AssertGroundedInfluencePieces(SerializedProperty bindings)
+        {
+            for (var i = 0; i < bindings.arraySize; i++)
+            {
+                var element = bindings.GetArrayElementAtIndex(i);
+                var renderer = element.FindPropertyRelative("renderer").objectReferenceValue as SpriteRenderer;
+                var visual = element.FindPropertyRelative("pieceVisual").objectReferenceValue as Component;
+                Assert.That(renderer, Is.Not.Null);
+                Assert.That(renderer.enabled, Is.True);
+                Assert.That(visual, Is.Not.Null);
+                var bounds = CalculateBoundsRelativeTo(
+                    renderer.transform,
+                    visual.GetComponentInChildren<MeshFilter>(true));
+                Assert.That(bounds.center.x, Is.EqualTo(0f).Within(0.001f));
+                Assert.That(bounds.center.y, Is.EqualTo(0f).Within(0.001f));
+                Assert.That(bounds.max.z + renderer.transform.localPosition.z,
+                    Is.EqualTo(0f).Within(0.01f),
+                    "影响力方块底面必须落在地图 Z=0：" + i);
+            }
+        }
+
+        private static void AssertGroundedCityPieces(SerializedProperty bindings)
+        {
+            for (var i = 0; i < bindings.arraySize; i++)
+            {
+                var element = bindings.GetArrayElementAtIndex(i);
+                var renderer = element.FindPropertyRelative("renderer").objectReferenceValue as SpriteRenderer;
+                var visual = element.FindPropertyRelative("pieceVisual").objectReferenceValue as Component;
+                Assert.That(renderer, Is.Not.Null);
+                Assert.That(renderer.enabled, Is.False);
+                Assert.That(visual, Is.Not.Null);
+                var bounds = CalculateBoundsRelativeTo(
+                    renderer.transform,
+                    visual.GetComponentInChildren<MeshFilter>(true));
+                Assert.That(bounds.center.x, Is.EqualTo(0f).Within(0.001f));
+                Assert.That(bounds.center.y, Is.EqualTo(0f).Within(0.001f));
+                Assert.That(bounds.max.z - 0.4f,
+                    Is.EqualTo(0f).Within(0.01f),
+                    "城市根节点运行时位于 Z=-0.4，模型底面应补偿到地图 Z=0：" + i);
+            }
+        }
+
+        private static void AssertGroundedScorePieces(SerializedProperty bindings)
+        {
+            for (var i = 0; i < bindings.arraySize; i++)
+            {
+                var element = bindings.GetArrayElementAtIndex(i);
+                var renderer = element.FindPropertyRelative("renderer").objectReferenceValue as SpriteRenderer;
+                var border = element.FindPropertyRelative("borderRenderer").objectReferenceValue as SpriteRenderer;
+                var visual = element.FindPropertyRelative("pieceVisual").objectReferenceValue as Component;
+                Assert.That(renderer, Is.Not.Null);
+                Assert.That(border, Is.Not.Null);
+                Assert.That(renderer.enabled, Is.False);
+                Assert.That(border.enabled, Is.False);
+                Assert.That(visual, Is.Not.Null);
+                var bounds = CalculateBoundsRelativeTo(
+                    renderer.transform,
+                    visual.GetComponentInChildren<MeshFilter>(true));
+                Assert.That(bounds.center.x, Is.EqualTo(0f).Within(0.001f));
+                Assert.That(bounds.center.y, Is.EqualTo(0f).Within(0.001f));
+                Assert.That(bounds.max.z - 0.62f,
+                    Is.EqualTo(0f).Within(0.01f),
+                    "分数标记运行时位于 Z=-0.62，方块底面应补偿到地图 Z=0：" + i);
+            }
+        }
+
+        private static void AssertPiecePrefab(string path, Type pieceVisualType, Vector3 expectedSize)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            Assert.That(prefab, Is.Not.Null, path);
+            Assert.That(prefab.GetComponentsInChildren(pieceVisualType, true), Has.Length.EqualTo(1));
+            Assert.That(prefab.GetComponentsInChildren<MeshRenderer>(true), Has.Length.EqualTo(1));
+            Assert.That(prefab.GetComponentsInChildren<Collider>(true), Is.Empty);
+            Assert.That(prefab.GetComponentsInChildren<Collider2D>(true), Is.Empty);
+            var bounds = CalculateBoundsRelativeTo(prefab.transform, prefab.GetComponentInChildren<MeshFilter>(true));
+            Assert.That(bounds.size.x, Is.EqualTo(expectedSize.x).Within(0.02f), path);
+            Assert.That(bounds.size.y, Is.EqualTo(expectedSize.y).Within(0.02f), path);
+            Assert.That(bounds.size.z, Is.EqualTo(expectedSize.z).Within(0.02f), path);
+            Assert.That(bounds.max.z, Is.EqualTo(0f).Within(0.01f), path);
+            Assert.That(bounds.min.z, Is.LessThan(-expectedSize.z + 0.02f), path);
+        }
+
+        private static Bounds CalculateBoundsRelativeTo(Transform root, MeshFilter filter)
+        {
+            Assert.That(filter, Is.Not.Null);
+            Assert.That(filter.sharedMesh, Is.Not.Null);
+            var meshBounds = filter.sharedMesh.bounds;
+            var matrix = root.worldToLocalMatrix * filter.transform.localToWorldMatrix;
+            var initialized = false;
+            var result = new Bounds();
+            for (var x = 0; x < 2; x++)
+            for (var y = 0; y < 2; y++)
+            for (var z = 0; z < 2; z++)
+            {
+                var corner = new Vector3(
+                    x == 0 ? meshBounds.min.x : meshBounds.max.x,
+                    y == 0 ? meshBounds.min.y : meshBounds.max.y,
+                    z == 0 ? meshBounds.min.z : meshBounds.max.z);
+                var point = matrix.MultiplyPoint3x4(corner);
+                if (!initialized)
+                {
+                    result = new Bounds(point, Vector3.zero);
+                    initialized = true;
+                }
+                else
+                {
+                    result.Encapsulate(point);
+                }
+            }
+            return result;
         }
 
         private static Type GetRuntimeType(string name)

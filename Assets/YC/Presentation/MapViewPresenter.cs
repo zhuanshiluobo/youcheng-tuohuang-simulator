@@ -11,7 +11,7 @@ namespace YC.Presentation
     public sealed class MapViewPresenter
     {
         private static readonly Vector3 ResourceTokenIconScale = Vector3.one;
-        private static readonly Vector3 MobileCityScale = new Vector3(1.8f, 1.8f, 1f);
+        private const float ScoreMarkerZ = -0.62f;
         private readonly MobileCityInteractionController controller;
         private readonly MapView view;
         private readonly MapCoordinateSpace mapCoordinateSpace;
@@ -24,6 +24,8 @@ namespace YC.Presentation
         private readonly Dictionary<string, SpriteRenderer> influenceSlotRenderers =
             new Dictionary<string, SpriteRenderer>();
         private readonly Dictionary<string, SpriteRenderer> influenceSlotBorderRenderers = new Dictionary<string, SpriteRenderer>();
+        private readonly Dictionary<string, MapPieceVisual> influencePieceVisuals =
+            new Dictionary<string, MapPieceVisual>();
         private readonly Dictionary<string, MapHighlightPulse> influenceSlotPulses =
             new Dictionary<string, MapHighlightPulse>();
         private readonly Dictionary<string, MapPlacementFeedback> influenceSlotPlacementFeedbacks =
@@ -31,7 +33,8 @@ namespace YC.Presentation
         private readonly Dictionary<string, SpriteRenderer> resourceTokenRenderers = new Dictionary<string, SpriteRenderer>();
         private readonly Dictionary<int, MapCityViewBinding> cityBindingsByPlayerId =
             new Dictionary<int, MapCityViewBinding>();
-        private readonly Dictionary<int, SpriteRenderer> scoreMarkerRenderers = new Dictionary<int, SpriteRenderer>();
+        private readonly Dictionary<int, MapScoreMarkerViewBinding> scoreMarkerBindings =
+            new Dictionary<int, MapScoreMarkerViewBinding>();
         private readonly HashSet<string> highlightedLocationIds = new HashSet<string>();
         private readonly HashSet<string> highlightedInfluenceSlotIds = new HashSet<string>();
 
@@ -190,7 +193,9 @@ namespace YC.Presentation
             }
 
             cityBinding.Renderer.transform.position = ToWorldPosition(view.NormalizedPosition, -0.4f);
-            cityBinding.Renderer.color = GetPlayerColor(state, playerId, 1f);
+            cityBinding.Renderer.enabled = false;
+            cityBinding.PieceVisual.SetPlayerColor(GetPlayerColor(state, playerId, 1f));
+            cityBinding.PieceVisual.SetVisible(true);
             cityBinding.Collider.enabled = playerId == localPlayerId;
             cityBinding.Renderer.gameObject.SetActive(true);
         }
@@ -253,16 +258,21 @@ namespace YC.Presentation
                     pendingDispatchFirstSourceSlotId,
                     pendingDispatchFirstTargetSlotId);
                 SetInfluenceSlotBorderVisible(slotId, highlightedInfluenceSlotIds.Contains(slotId));
-                RefreshInfluenceSlotRenderer(state, pair.Value, slotId, placement);
+                RefreshInfluenceSlotRenderer(
+                    state,
+                    pair.Value,
+                    influencePieceVisuals[slotId],
+                    slotId,
+                    placement);
             }
         }
 
         public void RefreshScoreTrackDisplay(GameState state)
         {
             RequireScoreTrackLayout();
-            foreach (var pair in scoreMarkerRenderers)
+            foreach (var pair in scoreMarkerBindings)
             {
-                pair.Value.gameObject.SetActive(false);
+                pair.Value.Renderer.gameObject.SetActive(false);
             }
 
             if (state == null)
@@ -303,15 +313,18 @@ namespace YC.Presentation
                                          mapDisplayLayout.GetScoreMarkerOffset(
                                              markerIndex,
                                              markerCountsByScore[trackScore]);
-                SpriteRenderer renderer;
-                if (!scoreMarkerRenderers.TryGetValue(player.PlayerId, out renderer))
+                MapScoreMarkerViewBinding binding;
+                if (!scoreMarkerBindings.TryGetValue(player.PlayerId, out binding))
                 {
                     Debug.LogError("Map view has no score marker pool entry for player " + player.PlayerId + ".", controller);
                     continue;
                 }
-                renderer.transform.position = ToWorldPosition(normalizedPosition, -0.62f);
-                renderer.color = GetPlayerColor(state, player.PlayerId, 1f);
-                renderer.gameObject.SetActive(true);
+                binding.Renderer.transform.position = ToWorldPosition(normalizedPosition, ScoreMarkerZ);
+                binding.Renderer.enabled = false;
+                binding.BorderRenderer.enabled = false;
+                binding.PieceVisual.SetPlayerColor(GetPlayerColor(state, player.PlayerId, 1f));
+                binding.PieceVisual.SetVisible(true);
+                binding.Renderer.gameObject.SetActive(true);
             }
         }
 
@@ -346,10 +359,11 @@ namespace YC.Presentation
             resourceTokenRenderers.Clear();
             influenceSlotRenderers.Clear();
             influenceSlotBorderRenderers.Clear();
+            influencePieceVisuals.Clear();
             influenceSlotPulses.Clear();
             influenceSlotPlacementFeedbacks.Clear();
             cityBindingsByPlayerId.Clear();
-            scoreMarkerRenderers.Clear();
+            scoreMarkerBindings.Clear();
 
             for (var i = 0; i < view.Locations.Count; i++)
             {
@@ -392,13 +406,16 @@ namespace YC.Presentation
                     presentation.LocalZ);
                 binding.Renderer.transform.localScale = Vector3.one * definition.Size;
                 binding.Renderer.sprite = sprites.EmptyInfluenceSlot;
+                binding.Renderer.enabled = true;
                 binding.Renderer.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
                 binding.Collider.radius = definition.ColliderRadius;
+                binding.PieceVisual.SetVisible(false);
                 binding.BorderRenderer.sprite = sprites.MovableInfluenceBorder;
                 binding.BorderRenderer.color = UiTheme.CyanAccent;
                 binding.BorderPulse.SetHighlighted(false);
                 influenceSlotRenderers.Add(binding.SlotId, binding.Renderer);
                 influenceSlotBorderRenderers.Add(binding.SlotId, binding.BorderRenderer);
+                influencePieceVisuals.Add(binding.SlotId, binding.PieceVisual);
                 influenceSlotPulses.Add(binding.SlotId, binding.BorderPulse);
                 influenceSlotPlacementFeedbacks.Add(binding.SlotId, binding.PlacementFeedback);
             }
@@ -407,7 +424,9 @@ namespace YC.Presentation
             {
                 var binding = view.CityPool[i];
                 binding.Renderer.sprite = sprites.MobileCity;
-                binding.Renderer.transform.localScale = MobileCityScale;
+                binding.Renderer.enabled = false;
+                binding.Renderer.transform.localScale = Vector3.one;
+                binding.PieceVisual.SetVisible(false);
                 binding.Renderer.gameObject.SetActive(false);
                 cityBindingsByPlayerId.Add(binding.PlayerId, binding);
             }
@@ -417,8 +436,11 @@ namespace YC.Presentation
                 var binding = view.ScoreMarkerPool[i];
                 binding.Renderer.sprite = sprites.ScoreMarker;
                 binding.BorderRenderer.sprite = sprites.ScoreMarkerBorder;
+                binding.Renderer.enabled = false;
+                binding.BorderRenderer.enabled = false;
+                binding.PieceVisual.SetVisible(false);
                 binding.Renderer.gameObject.SetActive(false);
-                scoreMarkerRenderers.Add(binding.PlayerId, binding.Renderer);
+                scoreMarkerBindings.Add(binding.PlayerId, binding);
             }
         }
 
@@ -467,18 +489,23 @@ namespace YC.Presentation
         private void RefreshInfluenceSlotRenderer(
             GameState state,
             SpriteRenderer renderer,
+            MapPieceVisual pieceVisual,
             string slotId,
             InfluencePlacement placement)
         {
             if (placement != null)
             {
-                renderer.sprite = sprites.OccupiedInfluenceSlot;
-                renderer.color = GetPlayerColor(state, placement.PlayerId, 1f);
+                renderer.sprite = sprites.EmptyInfluenceSlot;
+                renderer.enabled = false;
+                pieceVisual.SetPlayerColor(GetPlayerColor(state, placement.PlayerId, 1f));
+                pieceVisual.SetVisible(true);
             }
             else
             {
                 renderer.sprite = sprites.EmptyInfluenceSlot;
+                renderer.enabled = true;
                 renderer.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
+                pieceVisual.SetVisible(false);
             }
         }
 
