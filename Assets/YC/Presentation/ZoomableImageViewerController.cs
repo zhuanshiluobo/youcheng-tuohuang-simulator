@@ -411,19 +411,11 @@ namespace YC.Presentation
             var toggleRect = view.CollapseToggleButton.GetComponent<RectTransform>();
             if (collapseEnabled && collapsed)
             {
-                toggleRect.anchorMin = new Vector2(1f, 0.5f);
-                toggleRect.anchorMax = new Vector2(1f, 0.5f);
-                toggleRect.pivot = new Vector2(1f, 0.5f);
-                toggleRect.sizeDelta = new Vector2(142f, 34f);
-                toggleRect.anchoredPosition = new Vector2(-12f, 0f);
+                view.LayoutProfile.CollapsedToggleLayout.ApplyTo(toggleRect);
             }
             else
             {
-                toggleRect.anchorMin = new Vector2(0.5f, 0f);
-                toggleRect.anchorMax = new Vector2(0.5f, 0f);
-                toggleRect.pivot = new Vector2(0.5f, 0f);
-                toggleRect.sizeDelta = new Vector2(208f, 48f);
-                toggleRect.anchoredPosition = new Vector2(0f, 18f);
+                view.LayoutProfile.ExpandedToggleLayout.ApplyTo(toggleRect);
             }
 
             view.CollapseToggleLabel.text = collapsed ? "▼ 展开卡牌" : "▲ 收起卡牌";
@@ -452,7 +444,7 @@ namespace YC.Presentation
             var viewportSize = view.ViewportTransform.rect.size;
             if (viewportSize.x <= 0f || viewportSize.y <= 0f)
             {
-                viewportSize = new Vector2(1400f, 860f);
+                viewportSize = view.LayoutProfile.FallbackViewportSize;
             }
 
             var scale = Mathf.Min(viewportSize.x / texture.width, viewportSize.y / texture.height);

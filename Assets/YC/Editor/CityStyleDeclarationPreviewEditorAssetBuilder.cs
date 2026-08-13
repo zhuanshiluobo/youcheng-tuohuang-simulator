@@ -26,6 +26,8 @@ namespace YC.EditorTools
         {
             var cardBoardVisualLayout =
                 YC.Editor.SpatialLayoutEditorAssetBuilder.LoadRequiredCardBoardLayout();
+            var cardInteractionLayoutProfile =
+                YC.Editor.SecondaryLayoutEditorAssetBuilder.LoadRequiredCardProfile();
             var stagingCanvasObject = CreateUiObject(
                 "City Style Preview Staging Canvas",
                 null,
@@ -289,6 +291,7 @@ namespace YC.EditorTools
                     ("closeButton", closeButton),
                     ("closeButtonLabel", closeLabel),
                     ("cardBoardVisualLayout", cardBoardVisualLayout),
+                    ("cardInteractionLayoutProfile", cardInteractionLayoutProfile),
                     ("cityStyleCardImage", cardImage),
                     ("cityStyleInfluenceMarkerRoot", markerRoot),
                     ("cityStyleCardPlaceholder", cardPlaceholder),

@@ -181,8 +181,8 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
-  orthographic: 1
+  field of view: 45
+  orthographic: 0
   orthographic size: 25.75
   m_Depth: -1
   m_CullingMask:
@@ -207,8 +207,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalRotation: {x: -0.25881907, y: 0, z: 0, w: 0.9659259}
+  m_LocalPosition: {x: 7.759742, y: -33.168667, z: -57.449814}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -406,60 +406,7 @@ SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 5219553816687061844, guid: 8b0f4d6ff3b02384e96723a98fa9fa0d, type: 3}
   m_PrefabInstance: {fileID: 867462444}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1200000000
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1200000001}
-  - component: {fileID: 1200000004}
-  m_Layer: 0
-  m_Name: MapRoot
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1200000001
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1200000000}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 867462446}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1200000004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1200000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d6a381aa4cb64bca8d123c39588429b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mapRenderer: {fileID: 867462447}
-  mapViewBinding: {fileID: 867462445}
-  targetCamera: {fileID: 519420031}
-  debugClicks: 0
-  settingsMenu: {fileID: 1623334979}
-  gameplayInteractionHud: {fileID: 1599970242}
-  infoPanel: {fileID: 1599970244}
-  buildInfoPanel: {fileID: 1599970243}
---- !u!1001 &1599970241
+--- !u!1001 &952091510
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -532,10 +479,10 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 97d4d860d450f7247969c8aca5a9d934, type: 3}
---- !u!114 &1599970242 stripped
+--- !u!114 &952091511 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 65381164276375644, guid: 97d4d860d450f7247969c8aca5a9d934, type: 3}
-  m_PrefabInstance: {fileID: 1599970241}
+  m_PrefabInstance: {fileID: 952091510}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -543,10 +490,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f388f1d1d6c8a61499e5938824f8c06d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1599970243 stripped
+--- !u!114 &952091512 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4094313393851763004, guid: 97d4d860d450f7247969c8aca5a9d934, type: 3}
-  m_PrefabInstance: {fileID: 1599970241}
+  m_PrefabInstance: {fileID: 952091510}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -554,10 +501,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfd5795201b28ff41b5f4680d3542226, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1599970244 stripped
+--- !u!114 &952091513 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8212794038705902226, guid: 97d4d860d450f7247969c8aca5a9d934, type: 3}
-  m_PrefabInstance: {fileID: 1599970241}
+  m_PrefabInstance: {fileID: 952091510}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -565,6 +512,59 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 351c8005309e42f49a2137bd8d94041d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1200000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1200000001}
+  - component: {fileID: 1200000004}
+  m_Layer: 0
+  m_Name: MapRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1200000001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1200000000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 867462446}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1200000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1200000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6a381aa4cb64bca8d123c39588429b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapRenderer: {fileID: 867462447}
+  mapViewBinding: {fileID: 867462445}
+  targetCamera: {fileID: 519420031}
+  debugClicks: 0
+  settingsMenu: {fileID: 1623334979}
+  gameplayInteractionHud: {fileID: 952091511}
+  infoPanel: {fileID: 952091513}
+  buildInfoPanel: {fileID: 952091512}
 --- !u!1001 &1623334978
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -646,4 +646,4 @@ SceneRoots:
   - {fileID: 1623334978}
   - {fileID: 536109167}
   - {fileID: 543422156}
-  - {fileID: 1599970241}
+  - {fileID: 952091510}

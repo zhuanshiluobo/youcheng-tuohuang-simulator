@@ -303,16 +303,17 @@ namespace YC.Presentation
             return true;
         }
 
-        private bool IsPointerOverInteractionTarget()
+        private bool IsPointerOverInteractionTarget() =>
+            IsPointerOverInteractionTarget(Input.mousePosition);
+
+        private bool IsPointerOverInteractionTarget(Vector2 screenPosition)
         {
             var camera = getCamera();
             if (camera == null) return false;
-            var screen = Input.mousePosition;
-            var world = camera.ScreenToWorldPoint(new Vector3(screen.x, screen.y, -camera.transform.position.z));
-            var hits = Physics2D.OverlapPointAll(world);
+            var hits = Physics2D.GetRayIntersectionAll(camera.ScreenPointToRay(screenPosition));
             for (var i = 0; i < hits.Length; i++)
             {
-                var hit = hits[i];
+                var hit = hits[i].collider;
                 if (hit != null && (hit.GetComponent<MapHotspot>() != null ||
                                     hit.GetComponent<InfluenceSlotClickTarget>() != null ||
                                     hit.GetComponent<MobileCityClickTarget>() != null)) return true;

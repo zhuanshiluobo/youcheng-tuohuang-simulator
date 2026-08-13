@@ -202,7 +202,7 @@ namespace YC.Presentation
                 slotImage.raycastTarget = true;
                 var slotOutline = slot.Outline;
                 slotOutline.effectColor = occupied ? UiTheme.GoldOutlineThin : EmptySlotColor;
-                slotOutline.effectDistance = new Vector2(1f, -1f);
+                slotOutline.effectDistance = view.CardInteractionLayoutProfile.NormalOutlineDistance;
                 var slotButton = slot.Button;
                 slotButton.transition = Selectable.Transition.None;
                 slotButton.interactable = false;
@@ -390,7 +390,7 @@ namespace YC.Presentation
                     area);
                 binding.Rect.anchorMin = new Vector2(bounds.xMin, bounds.yMin);
                 binding.Rect.anchorMax = new Vector2(bounds.xMax, bounds.yMax);
-                binding.Rect.pivot = new Vector2(0.5f, 0.5f);
+                binding.Rect.pivot = view.CardInteractionLayoutProfile.DragGhostLayout.RootLayout.Pivot;
                 binding.Rect.offsetMin = Vector2.zero;
                 binding.Rect.offsetMax = Vector2.zero;
                 binding.Rect.gameObject.name = "特殊行动合法落区 " + area;
@@ -494,7 +494,8 @@ namespace YC.Presentation
                 markerImage.rectTransform,
                 null,
                 string.Empty,
-                null);
+                null,
+                view.CardInteractionLayoutProfile.DragGhostLayout);
             if (specialActionDragGhost != null)
             {
                 specialActionDragGhost.gameObject.name = "特殊行动影响力拖动虚影";
@@ -753,8 +754,8 @@ namespace YC.Presentation
                     ? new Color(1f, 0.82f, 0.24f, 1f)
                     : UiTheme.GoldOutlineThin;
                 boardOutline.effectDistance = hasStyleCard
-                    ? new Vector2(5f, -5f)
-                    : new Vector2(2f, -2f);
+                    ? view.CardInteractionLayoutProfile.CityStyleBoardActiveOutlineDistance
+                    : view.CardInteractionLayoutProfile.CityStyleBoardInactiveOutlineDistance;
             }
 
             if (boardTitleText != null)
@@ -784,19 +785,21 @@ namespace YC.Presentation
                 {
                     binding.Image.color = SelectedSlotBackground;
                     binding.Outline.effectColor = SelectedSlotOutline;
-                    binding.Outline.effectDistance = new Vector2(4f, -4f);
+                    binding.Outline.effectDistance =
+                        view.CardInteractionLayoutProfile.CityStyleSelectedSlotOutlineDistance;
                 }
                 else if (hasStyleCard)
                 {
                     binding.Image.color = SelectableSlotBackground;
                     binding.Outline.effectColor = new Color(1f, 0.82f, 0.24f, 0.92f);
-                    binding.Outline.effectDistance = new Vector2(2f, -2f);
+                    binding.Outline.effectDistance =
+                        view.CardInteractionLayoutProfile.CityStyleSelectableSlotOutlineDistance;
                 }
                 else
                 {
                     binding.Image.color = new Color(0.12f, 0.08f, 0.04f, 0.18f);
                     binding.Outline.effectColor = UiTheme.GoldOutlineThin;
-                    binding.Outline.effectDistance = new Vector2(1f, -1f);
+                    binding.Outline.effectDistance = view.CardInteractionLayoutProfile.NormalOutlineDistance;
                 }
             }
 
@@ -1298,7 +1301,7 @@ namespace YC.Presentation
             return minimumTime <= maximumTime;
         }
 
-        private static void SetButtonState(Button button, bool interactable, bool emphasizeWhenEnabled)
+        private void SetButtonState(Button button, bool interactable, bool emphasizeWhenEnabled)
         {
             if (button == null)
             {
@@ -1321,8 +1324,8 @@ namespace YC.Presentation
                     ? SelectedSlotOutline
                     : interactable ? UiTheme.GoldOutline : UiTheme.GoldOutlineThin;
                 outline.effectDistance = interactable && emphasizeWhenEnabled
-                    ? new Vector2(3f, -3f)
-                    : new Vector2(1f, -1f);
+                    ? view.CardInteractionLayoutProfile.CityStyleEmphasizedButtonOutlineDistance
+                    : view.CardInteractionLayoutProfile.NormalOutlineDistance;
             }
 
             var label = button.GetComponentInChildren<Text>();

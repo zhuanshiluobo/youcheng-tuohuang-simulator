@@ -113,10 +113,9 @@ namespace YC.Presentation
 
             mapRenderer = mapViewBinding.MapRenderer;
 
-            if (targetCamera == null)
-            {
-                targetCamera = Camera.main;
-            }
+            if (targetCamera == null) targetCamera = Camera.main;
+
+            if (!TabletopRuntimeBootstrap.TryConfigure(gameplayInteractionHud.TabletopCanvas, targetCamera, mapRenderer, this)) return;
 
             ReadRightCardSmokeCommandLine();
             BuildSession();
@@ -974,7 +973,8 @@ namespace YC.Presentation
 
             lastDebugCoordinateLogFrame = Time.frameCount;
             var screenPosition = Input.mousePosition;
-            var worldPosition = targetCamera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, -targetCamera.transform.position.z));
+            if (!MapCameraGeometry.TryScreenToMapPlane(targetCamera, screenPosition, mapRenderer, out var worldPosition)) return;
+
             var normalizedPosition = mapView.ToNormalizedMapPosition(worldPosition);
             Debug.Log(string.Format(
                 "Map click world=({0:F3}, {1:F3}) normalized=({2:F3}, {3:F3})",

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6bd5e5fc7e0f1e4da0f6ea6372e953f, type: 3}
+  m_Name: ActionPanelLayoutProfile
+  m_EditorClassIdentifier: Assembly-CSharp:YC.Presentation:ActionPanelLayoutProfile
+  sourceManifestSha256: EFCBE8FFF20617DC67A9671AEFE123A83553D739BBA7B09476B3964869213544
+  cardImageOffsetMin: {x: 6, y: 6}
+  cardImageOffsetMax: {x: -6, y: -6}
+  characterContainerLayout:
+    AnchorMin: {x: 0.5, y: 1}
+    AnchorMax: {x: 0.5, y: 1}
+    Pivot: {x: 0.5, y: 1}
+    SizeDelta: {x: 222, y: 310}
+    AnchoredPosition: {x: 0, y: -58}

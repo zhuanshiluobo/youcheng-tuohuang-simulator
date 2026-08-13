@@ -141,7 +141,46 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.HasPendingConfirmation, Is.False);
         }
 
-        private static Fixture CreateFixture(GamePhase phase)
+        [Test]
+        public void PointerTargetDetection_WithPerspectiveCamera_UsesRayIntersection()
+        {
+            var cameraOwner = new GameObject("Perspective Camera");
+            var targetOwner = new GameObject("Map Hotspot");
+            var targetTexture = new RenderTexture(400, 300, 16);
+            try
+            {
+                var camera = cameraOwner.AddComponent<Camera>();
+                camera.orthographic = false;
+                camera.fieldOfView = 45f;
+                camera.targetTexture = targetTexture;
+                camera.transform.position = new Vector3(0f, -10f, -10f);
+                camera.transform.LookAt(Vector3.zero);
+
+                targetOwner.AddComponent<CircleCollider2D>().radius = 1f;
+                targetOwner.AddComponent(GetAssemblyCSharpType("YC.Presentation.MapHotspot"));
+                Physics2D.SyncTransforms();
+
+                var fixture = CreateFixture(GamePhase.ActionRound1, camera);
+                var method = fixture.Router.GetType().GetMethod(
+                    "IsPointerOverInteractionTarget",
+                    BindingFlags.Instance | BindingFlags.NonPublic,
+                    null,
+                    new[] { typeof(Vector2) },
+                    null);
+                Assert.That(method, Is.Not.Null);
+
+                var screenPosition = (Vector2)camera.WorldToScreenPoint(Vector3.zero);
+                Assert.That(method.Invoke(fixture.Router, new object[] { screenPosition }), Is.True);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(targetOwner);
+                UnityEngine.Object.DestroyImmediate(cameraOwner);
+                UnityEngine.Object.DestroyImmediate(targetTexture);
+            }
+        }
+
+        private static Fixture CreateFixture(GamePhase phase, Camera camera = null)
         {
             var map = CreateMap();
             var state = CreateState(phase);
@@ -182,6 +221,7 @@ namespace YC.Tests.EditMode
             var mapView = CreateMapView(mapQuery, influenceService);
             var router = CreateRouter(
                 mapView,
+                camera,
                 mapQuery,
                 coordinator,
                 turn,
@@ -222,6 +262,7 @@ namespace YC.Tests.EditMode
 
         private static object CreateRouter(
             object mapView,
+            Camera camera,
             IMapQueryService mapQuery,
             InteractionFlowCoordinator coordinator,
             TurnActionPresenter turn,
@@ -243,7 +284,7 @@ namespace YC.Tests.EditMode
             return constructor.Invoke(new object[]
             {
                 getMapView,
-                (Func<Camera>)(() => null),
+                (Func<Camera>)(() => camera),
                 mapQuery,
                 coordinator,
                 turn,

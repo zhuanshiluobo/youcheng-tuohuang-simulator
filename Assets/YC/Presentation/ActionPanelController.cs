@@ -344,8 +344,12 @@ namespace YC.Presentation
 
         private void ConfigureCharacterContainerLayout()
         {
-            ConfigureCharacterContainerRect(view.CardImageContainer);
-            StretchWithInset(view.CardImage.rectTransform, 6f);
+            var layoutProfile = view.LayoutProfile;
+            layoutProfile.CharacterContainerLayout.ApplyTo(view.CardImageContainer);
+            StretchWithOffsets(
+                view.CardImage.rectTransform,
+                layoutProfile.CardImageOffsetMin,
+                layoutProfile.CardImageOffsetMax);
             view.CardImageContainerBackground.color = UiTheme.ScrollBackground;
         }
 
@@ -357,21 +361,12 @@ namespace YC.Presentation
             rect.offsetMax = Vector2.zero;
         }
 
-        private static void StretchWithInset(RectTransform rect, float inset)
+        private static void StretchWithOffsets(RectTransform rect, Vector2 offsetMin, Vector2 offsetMax)
         {
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
-            rect.offsetMin = new Vector2(inset, inset);
-            rect.offsetMax = new Vector2(-inset, -inset);
-        }
-
-        private static void ConfigureCharacterContainerRect(RectTransform rect)
-        {
-            rect.anchorMin = new Vector2(0.5f, 1f);
-            rect.anchorMax = new Vector2(0.5f, 1f);
-            rect.pivot = new Vector2(0.5f, 1f);
-            rect.sizeDelta = new Vector2(222f, 310f);
-            rect.anchoredPosition = new Vector2(0f, -58f);
+            rect.offsetMin = offsetMin;
+            rect.offsetMax = offsetMax;
         }
 
         private void InvokeCardPrimaryAction()

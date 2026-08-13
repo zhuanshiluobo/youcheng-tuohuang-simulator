@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d7158e745490aa4fad93ac66f8fe748, type: 3}
+  m_Name: ZoomableViewerLayoutProfile
+  m_EditorClassIdentifier: Assembly-CSharp:YC.Presentation:ZoomableViewerLayoutProfile
+  sourceManifestSha256: EFCBE8FFF20617DC67A9671AEFE123A83553D739BBA7B09476B3964869213544
+  collapsedToggleLayout:
+    AnchorMin: {x: 1, y: 0.5}
+    AnchorMax: {x: 1, y: 0.5}
+    Pivot: {x: 1, y: 0.5}
+    SizeDelta: {x: 142, y: 34}
+    AnchoredPosition: {x: -12, y: 0}
+  expandedToggleLayout:
+    AnchorMin: {x: 0.5, y: 0}
+    AnchorMax: {x: 0.5, y: 0}
+    Pivot: {x: 0.5, y: 0}
+    SizeDelta: {x: 208, y: 48}
+    AnchoredPosition: {x: 0, y: 18}
+  fallbackViewportSize: {x: 1400, y: 860}

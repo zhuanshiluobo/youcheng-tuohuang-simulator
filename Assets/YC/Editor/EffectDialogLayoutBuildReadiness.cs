@@ -16,7 +16,7 @@ namespace YC.Editor
         internal const string EffectDialogPrimitivesSha256 =
             "773DD745669CC0B20E14C89BC718437487B8556292C34D1C839EF4C942F4A938";
         internal const string FacilityEffectChoiceDialogSha256 =
-            "279C47DFF3517918D51D843DAE4B62759742BEC018D8F3A6A42C00E58AF90929";
+            "12E63BBC0DE44826062B348B540C4947E3D518CF72E74A358F4529C09D9ACFE9";
         internal const string ExpandableInfoPanelSha256 =
             "DD49B5FCDD4ACA83C18CF552AEDF4F03EE676A874B78BD406FB3146A1C956C61";
         internal const string EffectDialogShellViewSha256 =
@@ -26,7 +26,7 @@ namespace YC.Editor
         internal const string ExpandableInfoPanelLayoutProfileSha256 =
             "29C387F6098684646E371C5094353F26D0323F8FEFECBECC679739A4E6723597";
         internal const string GameplayDialogRegistrySha256 =
-            "170C3700A9ABFEE4BFFE9A12725B8BF5339A3285672D76650073E7D52244BD70";
+            "1CFC3E900520B00F38C51D761D40E7DE97F0E6F171328E2BE94057D5BC1DA5B4";
         internal const string CharacterCardEffectChoiceDialogSha256 =
             "39384175068DD57DFBEBFAC1DFFF8B125B665D131B99143C902A263DB27B122C";
         internal const string SpecialActionChoiceDialogSha256 =
@@ -358,10 +358,10 @@ namespace YC.Editor
                     "*.cs",
                     SearchOption.AllDirectories)
                 .Sum(path => CountVector2Constructors(File.ReadAllText(path)));
-            if (recursiveCount != 134)
+            if (recursiveCount != 87)
             {
                 throw new InvalidOperationException(
-                    "Presentation 递归 new Vector2 次数漂移；预期 134，实际 " +
+                    "Presentation 递归 new Vector2 次数漂移；预期 87，实际 " +
                     recursiveCount + "。");
             }
 

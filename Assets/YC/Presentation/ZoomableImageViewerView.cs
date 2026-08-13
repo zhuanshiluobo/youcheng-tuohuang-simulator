@@ -5,6 +5,7 @@ namespace YC.Presentation
 {
     public sealed class ZoomableImageViewerView : MonoBehaviour
     {
+        [SerializeField] private ZoomableViewerLayoutProfile layoutProfile;
         [SerializeField] private GameObject canvasObject;
         [SerializeField] private GameObject rootObject;
         [SerializeField] private Image rootBackgroundImage;
@@ -27,6 +28,7 @@ namespace YC.Presentation
         [SerializeField] private Text collapsedSummaryText;
 
         public GameObject CanvasObject => canvasObject;
+        public ZoomableViewerLayoutProfile LayoutProfile => layoutProfile;
         public GameObject RootObject => rootObject;
         public Image RootBackgroundImage => rootBackgroundImage;
         public RectTransform PanelTransform => panelTransform;
@@ -49,6 +51,13 @@ namespace YC.Presentation
 
         public bool TryValidateConfiguration(out string reason)
         {
+            reason = string.Empty;
+            if (layoutProfile == null || !layoutProfile.TryValidateConfiguration(out reason))
+            {
+                reason = "图片查看器缺少有效的显式布局 Profile：" + reason;
+                return false;
+            }
+
             if (canvasObject == null || rootObject == null || rootBackgroundImage == null || panelTransform == null ||
                 expandedContentObject == null || viewportTransform == null || imageTransform == null ||
                 image == null || titleText == null || pageLabel == null)

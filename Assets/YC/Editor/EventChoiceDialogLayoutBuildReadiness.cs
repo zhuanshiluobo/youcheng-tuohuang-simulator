@@ -26,7 +26,7 @@ namespace YC.Editor
         internal const string SampleScenePath = "Assets/Scenes/SampleScene.unity";
         internal const string SampleSceneGuid = "2cda990e2423bbf4892e6590ba056729";
         internal const string GameplayHudPrefabGuid = "97d4d860d450f7247969c8aca5a9d934";
-        internal const string GameplayHudSceneInstanceLocalId = "1599970241";
+        internal const string GameplayHudSceneInstanceLocalId = "952091510";
         internal const string GameplayHudRegistryLocalId = "7007614311448219973";
         internal const string GameplayHudViewLocalId = "65381164276375644";
         internal const string GameplayHudRegistryGameObjectLocalId = "6753386143783961735";

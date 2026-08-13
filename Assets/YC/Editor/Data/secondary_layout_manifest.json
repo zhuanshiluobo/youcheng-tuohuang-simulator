@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "actionPanel": {
+    "cardImageOffsetMin": [6.0, 6.0],
+    "cardImageOffsetMax": [-6.0, -6.0],
+    "characterContainer": {
+      "anchorMin": [0.5, 1.0],
+      "anchorMax": [0.5, 1.0],
+      "pivot": [0.5, 1.0],
+      "sizeDelta": [222.0, 310.0],
+      "anchoredPosition": [0.0, -58.0]
+    }
+  },
+  "cardInteraction": {
+    "pendingBuildGhostAnchorMin": [0.08, 0.08],
+    "pendingBuildGhostAnchorMax": [0.92, 0.92],
+    "dragGhost": {
+      "anchorMin": [0.5, 0.5],
+      "anchorMax": [0.5, 0.5],
+      "pivot": [0.5, 0.5],
+      "fallbackOffsetMin": [8.0, 8.0],
+      "fallbackOffsetMax": [-8.0, -8.0],
+      "fallbackOutlineDistance": [1.0, -1.0]
+    },
+    "externalCardAnchor": {
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [0.0, 1.0],
+      "pivot": [0.0, 1.0]
+    },
+    "facilitySelectableOutlineDistance": [3.0, -3.0],
+    "normalOutlineDistance": [1.0, -1.0],
+    "legalCityBoardSlotOutlineDistance": [2.0, -2.0],
+    "cityStyleBoardActiveOutlineDistance": [5.0, -5.0],
+    "cityStyleBoardInactiveOutlineDistance": [2.0, -2.0],
+    "cityStyleSelectedSlotOutlineDistance": [4.0, -4.0],
+    "cityStyleSelectableSlotOutlineDistance": [2.0, -2.0],
+    "cityStyleEmphasizedButtonOutlineDistance": [3.0, -3.0]
+  },
+  "zoomableViewer": {
+    "collapsedToggle": {
+      "anchorMin": [1.0, 0.5],
+      "anchorMax": [1.0, 0.5],
+      "pivot": [1.0, 0.5],
+      "sizeDelta": [142.0, 34.0],
+      "anchoredPosition": [-12.0, 0.0]
+    },
+    "expandedToggle": {
+      "anchorMin": [0.5, 0.0],
+      "anchorMax": [0.5, 0.0],
+      "pivot": [0.5, 0.0],
+      "sizeDelta": [208.0, 48.0],
+      "anchoredPosition": [0.0, 18.0]
+    },
+    "fallbackViewportSize": [1400.0, 860.0]
+  }
+}

@@ -79,17 +79,32 @@ namespace YC.Tests.EditMode
                 var view = root.GetComponent(viewType);
                 Assert.That(view, Is.Not.Null);
                 var displayType = GetRuntimeType("YC.Presentation.MapDisplayController");
+                var navigationBoundsType = GetRuntimeType("YC.Presentation.TabletopViewportNavigationBounds");
                 var display = root.GetComponent(displayType);
+                var navigationBounds = root.GetComponent(navigationBoundsType);
                 var mapRenderer = root.GetComponent<SpriteRenderer>();
                 Assert.That(display, Is.Not.Null);
+                Assert.That(navigationBounds, Is.Not.Null);
                 Assert.That(mapRenderer, Is.Not.Null);
                 Assert.That(mapRenderer.enabled, Is.True);
-                Assert.That(new SerializedObject(display).FindProperty("mapRenderer").objectReferenceValue,
+                var displaySerialized = new SerializedObject(display);
+                Assert.That(displaySerialized.FindProperty("mapRenderer").objectReferenceValue,
                     Is.SameAs(mapRenderer));
+                Assert.That(displaySerialized.FindProperty("navigationBoundsSource").objectReferenceValue,
+                    Is.SameAs(navigationBounds));
+                var navigationBoundsSerialized = new SerializedObject(navigationBounds);
+                Assert.That(navigationBoundsSerialized.FindProperty("horizontalMapMarginFraction").floatValue,
+                    Is.EqualTo(0.15f).Within(0.0001f));
+                Assert.That(navigationBoundsSerialized.FindProperty("verticalMapMarginFraction").floatValue,
+                    Is.EqualTo(0.15f).Within(0.0001f));
+                Assert.That(displaySerialized.FindProperty("minZoom").floatValue,
+                    Is.EqualTo(0.9f).Within(0.0001f));
+                Assert.That(displaySerialized.FindProperty("maxZoom").floatValue,
+                    Is.EqualTo(2f).Within(0.0001f));
                 Assert.That(root.GetComponents<Component>().Select(component => component.GetType()),
                     Is.EquivalentTo(new[]
                     {
-                        typeof(Transform), typeof(SpriteRenderer), displayType,
+                        typeof(Transform), typeof(SpriteRenderer), navigationBoundsType, displayType,
                         typeof(MapCoordinateSpace), viewType
                     }));
                 var validateArguments = new object[] { map, string.Empty };
@@ -206,7 +221,18 @@ namespace YC.Tests.EditMode
                 Is.SameAs(view));
             Assert.That(serialized.FindProperty("mapRenderer").objectReferenceValue,
                 Is.SameAs(viewRoot.GetComponent<SpriteRenderer>()));
-            Assert.That(viewRoot.GetComponent(GetRuntimeType("YC.Presentation.MapDisplayController")), Is.Not.Null);
+            var display = viewRoot.GetComponent(GetRuntimeType("YC.Presentation.MapDisplayController"));
+            var navigationBounds = viewRoot.GetComponent(
+                GetRuntimeType("YC.Presentation.TabletopViewportNavigationBounds"));
+            Assert.That(display, Is.Not.Null);
+            Assert.That(navigationBounds, Is.Not.Null);
+            Assert.That(new SerializedObject(display).FindProperty("navigationBoundsSource").objectReferenceValue,
+                Is.SameAs(navigationBounds));
+            var navigationBoundsSerialized = new SerializedObject(navigationBounds);
+            Assert.That(navigationBoundsSerialized.FindProperty("horizontalMapMarginFraction").floatValue,
+                Is.EqualTo(0.15f).Within(0.0001f));
+            Assert.That(navigationBoundsSerialized.FindProperty("verticalMapMarginFraction").floatValue,
+                Is.EqualTo(0.15f).Within(0.0001f));
             Assert.That(roots.SelectMany(root => root.GetComponentsInChildren<Transform>(true))
                 .Sum(transform => transform.gameObject.GetComponents<Component>().Count(component => component == null)),
                 Is.Zero);

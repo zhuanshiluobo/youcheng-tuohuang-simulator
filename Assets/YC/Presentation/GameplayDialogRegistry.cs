@@ -11,6 +11,7 @@ namespace YC.Presentation
         [SerializeField] private EventChoiceDialogView eventChoiceDialogPrefab;
         [SerializeField] private CityStyleDeclarationPreviewView cityStyleDeclarationPreviewPrefab;
         [SerializeField] private CardVisualCatalog cardVisualCatalog;
+        [SerializeField] private CardInteractionLayoutProfile cardInteractionLayoutProfile;
 
         public EffectDialogShellView EffectDialogShellPrefab => effectDialogShellPrefab;
         public DispatchDecisionDialogView DispatchDecisionPrefab => dispatchDecisionPrefab;
@@ -18,6 +19,7 @@ namespace YC.Presentation
         public CityStyleDeclarationPreviewView CityStyleDeclarationPreviewPrefab =>
             cityStyleDeclarationPreviewPrefab;
         public CardVisualCatalog CardVisualCatalog => cardVisualCatalog;
+        public CardInteractionLayoutProfile CardInteractionLayoutProfile => cardInteractionLayoutProfile;
         internal EffectDialogLayoutProfile EffectDialogLayoutProfile =>
             effectDialogShellPrefab == null ? null : effectDialogShellPrefab.LayoutProfile;
 
@@ -25,7 +27,7 @@ namespace YC.Presentation
         {
             if (effectDialogShellPrefab == null || dispatchDecisionPrefab == null ||
                 eventChoiceDialogPrefab == null || cityStyleDeclarationPreviewPrefab == null ||
-                cardVisualCatalog == null)
+                cardVisualCatalog == null || cardInteractionLayoutProfile == null)
             {
                 reason = "游戏流程对话框 Registry 的 Prefab 引用不完整。";
                 return false;
@@ -33,6 +35,12 @@ namespace YC.Presentation
 
             if (!cardVisualCatalog.TryValidateConfiguration(out reason))
             {
+                return false;
+            }
+
+            if (!cardInteractionLayoutProfile.TryValidateConfiguration(out reason))
+            {
+                reason = "游戏流程对话框 Registry 的卡牌交互布局 Profile 无效：" + reason;
                 return false;
             }
 

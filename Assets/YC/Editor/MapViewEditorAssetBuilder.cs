@@ -160,7 +160,8 @@ namespace YC.EditorTools
                 errors.Add("MapRoot/MapView 未保持目标 Prefab connected。");
             var controller = mapRoot.GetComponent<MobileCityInteractionController>();
             var displayController = child.GetComponent<MapDisplayController>();
-            if (controller == null || displayController == null || view == null)
+            var navigationBounds = child.GetComponent<TabletopViewportNavigationBounds>();
+            if (controller == null || displayController == null || navigationBounds == null || view == null)
                 errors.Add("MapRoot 固定组件缺失。");
             else
             {
@@ -169,7 +170,8 @@ namespace YC.EditorTools
                     RequireProperty(controllerSerialized, "mapRenderer").objectReferenceValue != view.MapRenderer)
                     errors.Add("MobileCityInteractionController 地图引用未序列化到固定 MapView。");
                 var displaySerialized = new SerializedObject(displayController);
-                if (RequireProperty(displaySerialized, "mapRenderer").objectReferenceValue != view.MapRenderer)
+                if (RequireProperty(displaySerialized, "mapRenderer").objectReferenceValue != view.MapRenderer ||
+                    RequireProperty(displaySerialized, "navigationBoundsSource").objectReferenceValue != navigationBounds)
                     errors.Add("MapRoot MapCoordinateSpace 固定引用不完整。");
             }
             var mapRootComponents = mapRoot.GetComponents<Component>();
@@ -478,8 +480,12 @@ namespace YC.EditorTools
                 var coordinateRenderer = root.AddComponent<SpriteRenderer>();
                 coordinateRenderer.sprite = layout.MapSprite;
                 coordinateRenderer.enabled = true;
+                var navigationBounds = root.AddComponent<TabletopViewportNavigationBounds>();
                 var displayController = root.AddComponent<MapDisplayController>();
-                SetReferences(displayController, ("mapRenderer", coordinateRenderer));
+                SetReferences(
+                    displayController,
+                    ("mapRenderer", coordinateRenderer),
+                    ("navigationBoundsSource", navigationBounds));
                 var coordinateSpace = root.AddComponent<MapCoordinateSpace>();
                 coordinateSpace.Configure(coordinateRenderer, layout, root.transform);
                 var view = root.AddComponent<MapView>();
@@ -984,9 +990,12 @@ namespace YC.EditorTools
                 }
                 var mapRenderer = root.GetComponent<SpriteRenderer>();
                 var displayController = root.GetComponent<MapDisplayController>();
+                var navigationBounds = root.GetComponent<TabletopViewportNavigationBounds>();
                 if (mapRenderer == null || !mapRenderer.enabled || view.MapRenderer != mapRenderer ||
+                    navigationBounds == null ||
                     displayController == null ||
-                    RequireProperty(new SerializedObject(displayController), "mapRenderer").objectReferenceValue != mapRenderer)
+                    RequireProperty(new SerializedObject(displayController), "mapRenderer").objectReferenceValue != mapRenderer ||
+                    RequireProperty(new SerializedObject(displayController), "navigationBoundsSource").objectReferenceValue != navigationBounds)
                 {
                     errors.Add("MapView Prefab 的地图渲染与相机适配组件接线不完整。");
                 }
@@ -1005,6 +1014,7 @@ namespace YC.EditorTools
                 }
                 ValidateComponentCount<MapHotspot>(root, map.Locations.Count, errors);
                 ValidateComponentCount<MapDisplayController>(root, 1, errors);
+                ValidateComponentCount<TabletopViewportNavigationBounds>(root, 1, errors);
                 ValidateComponentCount<MobileCityClickTarget>(root, map.MaxPlayers, errors);
                 ValidateComponentCount<InfluenceSlotClickTarget>(root, locationSlots + routeSlots, errors);
                 ValidateComponentCount<MapHighlightPulse>(root, map.Locations.Count + locationSlots + routeSlots, errors);

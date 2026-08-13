@@ -1810,6 +1810,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2717006112603070832}
   - component: {fileID: 5219553816687061844}
+  - component: {fileID: 8822158668727979870}
   - component: {fileID: 3101691048847438477}
   - component: {fileID: 4173450531748752265}
   - component: {fileID: 2626644039141644551}
@@ -1893,6 +1894,20 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &8822158668727979870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 507126819919661777}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ff219e55cd14391aa2450ac0b93eaf0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  horizontalMapMarginFraction: 0.15
+  verticalMapMarginFraction: 0.15
 --- !u!114 &3101691048847438477
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1907,7 +1922,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapRenderer: {fileID: 5219553816687061844}
   targetCamera: {fileID: 0}
+  navigationBoundsSource: {fileID: 8822158668727979870}
+  cameraPitch: 30
+  fieldOfView: 45
   cameraPadding: 1.03
+  tabletopViewport:
+    serializedVersion: 2
+    x: 0.02865
+    y: 0
+    width: 0.78385
+    height: 1
+  minZoom: 0.9
+  maxZoom: 2
+  wheelZoomStep: 0.1
+  zoomSmoothTime: 0.12
 --- !u!114 &4173450531748752265
 MonoBehaviour:
   m_ObjectHideFlags: 0

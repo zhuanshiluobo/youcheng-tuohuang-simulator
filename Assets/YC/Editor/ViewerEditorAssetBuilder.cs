@@ -36,6 +36,8 @@ namespace YC.EditorTools
 
         private static GameObject BuildZoomablePrefab()
         {
+            var layoutProfile = YC.Editor.SecondaryLayoutEditorAssetBuilder
+                .LoadRequiredZoomableViewerProfile();
             var root = new GameObject("Zoomable Image Viewer");
             try
             {
@@ -178,6 +180,7 @@ namespace YC.EditorTools
 
                 SetReferences(
                     view,
+                    ("layoutProfile", layoutProfile),
                     ("canvasObject", canvasObject),
                     ("rootObject", overlay),
                     ("rootBackgroundImage", rootBackground),

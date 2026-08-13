@@ -29,6 +29,8 @@ namespace YC.EditorTools
             ExpandableInfoPanelEditorAssetBuilder.Rebuild();
             BuildInfoPanelEditorAssetBuilder.Rebuild();
             GameplayDialogEditorAssetBuilder.Rebuild();
+            var actionPanelLayoutProfile = YC.Editor.SecondaryLayoutEditorAssetBuilder.LoadRequiredActionProfile();
+            var cardInteractionLayoutProfile = YC.Editor.SecondaryLayoutEditorAssetBuilder.LoadRequiredCardProfile();
             var cardVisualCatalog = YC.Editor.CardVisualCatalogEditorAssetBuilder.LoadRequiredCatalog();
             var hintCardTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(HintCardTexturePath);
             if (hintCardTexture == null)
@@ -63,7 +65,9 @@ namespace YC.EditorTools
                 effectDialogShellPrefab.GetComponent<EffectDialogShellView>(),
                 dispatchDecisionPrefab.GetComponent<DispatchDecisionDialogView>(),
                 eventChoiceDialogPrefab.GetComponent<EventChoiceDialogView>(),
-                cityStyleDeclarationPreviewPrefab.GetComponent<CityStyleDeclarationPreviewView>());
+                cityStyleDeclarationPreviewPrefab.GetComponent<CityStyleDeclarationPreviewView>(),
+                actionPanelLayoutProfile,
+                cardInteractionLayoutProfile);
             InstallInSampleScene(prefab);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -78,7 +82,9 @@ namespace YC.EditorTools
             EffectDialogShellView effectDialogShellPrefab,
             DispatchDecisionDialogView dispatchDecisionPrefab,
             EventChoiceDialogView eventChoiceDialogPrefab,
-            CityStyleDeclarationPreviewView cityStyleDeclarationPreviewPrefab)
+            CityStyleDeclarationPreviewView cityStyleDeclarationPreviewPrefab,
+            ActionPanelLayoutProfile actionPanelLayoutProfile,
+            CardInteractionLayoutProfile cardInteractionLayoutProfile)
         {
             var root = new GameObject("Gameplay Interaction HUD");
             try
@@ -97,15 +103,43 @@ namespace YC.EditorTools
                 scaler.referenceResolution = UiTheme.CanvasReferenceResolution;
                 scaler.matchWidthOrHeight = UiTheme.CanvasMatchWidthOrHeight;
 
+                var tabletopCanvasObject = CreateUiObject(
+                    "Tabletop UI Canvas",
+                    root.transform,
+                    typeof(Canvas),
+                    typeof(CanvasScaler),
+                    typeof(GraphicRaycaster),
+                    typeof(TabletopCanvasLayout),
+                    typeof(TabletopBoundsContributor));
+                var tabletopCanvas = tabletopCanvasObject.GetComponent<Canvas>();
+                tabletopCanvas.renderMode = RenderMode.WorldSpace;
+                tabletopCanvas.sortingOrder = 60;
+                var tabletopRect = tabletopCanvasObject.GetComponent<RectTransform>();
+                tabletopRect.sizeDelta = TabletopCanvasLayout.ReferenceResolution;
+                var tabletopScaler = tabletopCanvasObject.GetComponent<CanvasScaler>();
+                tabletopScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                tabletopScaler.referenceResolution = TabletopCanvasLayout.ReferenceResolution;
+                tabletopScaler.matchWidthOrHeight = 0.5f;
+                var tabletopRaycaster = tabletopCanvasObject.GetComponent<GraphicRaycaster>();
+                var tabletopLayout = tabletopCanvasObject.GetComponent<TabletopCanvasLayout>();
+                SetReferences(
+                    tabletopLayout,
+                    ("canvas", tabletopCanvas),
+                    ("rectTransform", tabletopRect),
+                    ("graphicRaycaster", tabletopRaycaster),
+                    ("canvasScaler", tabletopScaler));
+
                 var promptView = BuildPromptView(canvasObject.transform, canvas);
-                var actionPanelView = BuildActionPanelView(canvasObject.transform, hintCardTexture);
+                var actionPanelView = BuildActionPanelView(
+                    canvasObject.transform,
+                    hintCardTexture,
+                    actionPanelLayoutProfile);
                 var infoPanelInstance = (GameObject)PrefabUtility.InstantiatePrefab(
                     infoPanelPrefab,
                     canvasObject.transform);
                 var buildInfoPanelInstance = (GameObject)PrefabUtility.InstantiatePrefab(
                     buildInfoPanelPrefab,
-                    canvasObject.transform);
-                // 信息面板展开后必须盖在建设卡区和建设面板之上。
+                    tabletopCanvasObject.transform);
                 infoPanelInstance.transform.SetAsLastSibling();
                 var infoPanel = infoPanelInstance.GetComponent<ExpandableInfoPanel>();
                 var buildInfoPanel = buildInfoPanelInstance.GetComponent<BuildInfoPanel>();
@@ -113,6 +147,15 @@ namespace YC.EditorTools
                 {
                     throw new InvalidOperationException("信息面板 nested prefab 缺少控制器组件。");
                 }
+
+                var buildInfoView = buildInfoPanel.View;
+                var boundsContributor = tabletopCanvasObject.GetComponent<TabletopBoundsContributor>();
+                SetObjectReferenceArray(
+                    boundsContributor,
+                    "rectTransforms",
+                    buildInfoView.ExternalFacilityArea,
+                    buildInfoView.ExternalCityStyleArea,
+                    buildInfoView.PanelTransform);
 
                 var registryObject = new GameObject("Gameplay Dialog Registry");
                 registryObject.transform.SetParent(root.transform, false);
@@ -123,6 +166,7 @@ namespace YC.EditorTools
                     ("dispatchDecisionPrefab", dispatchDecisionPrefab),
                     ("eventChoiceDialogPrefab", eventChoiceDialogPrefab),
                     ("cityStyleDeclarationPreviewPrefab", cityStyleDeclarationPreviewPrefab),
+                    ("cardInteractionLayoutProfile", cardInteractionLayoutProfile),
                     ("cardVisualCatalog", cardVisualCatalog));
                 if (!dialogRegistry.TryValidateConfiguration(out var registryReason))
                 {
@@ -133,6 +177,7 @@ namespace YC.EditorTools
                 SetReferences(
                     hudView,
                     ("canvas", canvas),
+                    ("tabletopCanvas", tabletopLayout),
                     ("promptView", promptView),
                     ("actionPanelView", actionPanelView),
                     ("infoPanel", infoPanel),
@@ -187,7 +232,10 @@ namespace YC.EditorTools
             return view;
         }
 
-        private static ActionPanelView BuildActionPanelView(Transform parent, Texture2D hintCardTexture)
+        private static ActionPanelView BuildActionPanelView(
+            Transform parent,
+            Texture2D hintCardTexture,
+            ActionPanelLayoutProfile layoutProfile)
         {
             var panelObject = CreateUiObject("Action Panel", parent, typeof(Image), typeof(Outline));
             var panel = panelObject.GetComponent<RectTransform>();
@@ -283,6 +331,7 @@ namespace YC.EditorTools
             var view = panelObject.AddComponent<ActionPanelView>();
             SetReferences(
                 view,
+                ("layoutProfile", layoutProfile),
                 ("panelObject", panelObject),
                 ("mainFaceObject", mainFace),
                 ("cardFaceObject", cardFace),
@@ -406,15 +455,45 @@ namespace YC.EditorTools
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        private static void SetObjectReferenceArray(
+            Object target,
+            string propertyName,
+            params Object[] values)
+        {
+            var serialized = new SerializedObject(target);
+            var property = serialized.FindProperty(propertyName);
+            if (property == null || !property.isArray)
+            {
+                throw new InvalidOperationException(
+                    target.GetType().Name + " missing array property " + propertyName + ".");
+            }
+
+            property.arraySize = values.Length;
+            for (var i = 0; i < values.Length; i++)
+            {
+                property.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
+            }
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         private static void InstallInSampleScene(GameObject prefab)
         {
             var scene = EditorSceneManager.OpenScene(SampleScenePath, OpenSceneMode.Single);
             var roots = scene.GetRootGameObjects();
+            GameObject instance = null;
             for (var i = 0; i < roots.Length; i++)
             {
                 if (roots[i].name == "Gameplay Interaction HUD")
                 {
-                    Object.DestroyImmediate(roots[i]);
+                    if (instance != null ||
+                        PrefabUtility.GetCorrespondingObjectFromSource(roots[i]) != prefab)
+                    {
+                        throw new InvalidOperationException(
+                            "SampleScene 的 Gameplay Interaction HUD 必须是唯一的目标 Prefab 实例。");
+                    }
+
+                    instance = roots[i];
                 }
                 else if (roots[i].name == "InfoPanel")
                 {
@@ -438,7 +517,10 @@ namespace YC.EditorTools
                 throw new InvalidOperationException("SampleScene 必须且只能保留一个场景 EventSystem。");
             }
 
-            var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
+            if (instance == null)
+            {
+                instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
+            }
             instance.name = "Gameplay Interaction HUD";
             var hudView = instance.GetComponent<GameplayInteractionHudView>();
             SetReferences(hudView, ("cityInteractionController", cityController));

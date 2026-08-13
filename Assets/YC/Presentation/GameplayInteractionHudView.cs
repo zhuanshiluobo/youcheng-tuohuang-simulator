@@ -5,6 +5,7 @@ namespace YC.Presentation
     public sealed class GameplayInteractionHudView : MonoBehaviour
     {
         [SerializeField] private Canvas canvas;
+        [SerializeField] private TabletopCanvasLayout tabletopCanvas;
         [SerializeField] private GameplayPromptView promptView;
         [SerializeField] private ActionPanelView actionPanelView;
         [SerializeField] private ExpandableInfoPanel infoPanel;
@@ -13,6 +14,7 @@ namespace YC.Presentation
         [SerializeField] private MobileCityInteractionController cityInteractionController;
 
         public Canvas Canvas => canvas;
+        public TabletopCanvasLayout TabletopCanvas => tabletopCanvas;
         public GameplayPromptView PromptView => promptView;
         public ActionPanelView ActionPanelView => actionPanelView;
         public ExpandableInfoPanel InfoPanel => infoPanel;
@@ -21,14 +23,15 @@ namespace YC.Presentation
         public MobileCityInteractionController CityInteractionController => cityInteractionController;
         public bool TryValidateConfiguration(out string reason)
         {
-            if (canvas == null || promptView == null || actionPanelView == null ||
+            if (canvas == null || tabletopCanvas == null || promptView == null || actionPanelView == null ||
                 infoPanel == null || buildInfoPanel == null || dialogRegistry == null)
             {
                 reason = "交互 HUD 总 View 引用不完整。";
                 return false;
             }
 
-            if (!promptView.TryValidateConfiguration(out reason) ||
+            if (!tabletopCanvas.TryValidateConfiguration(out reason) ||
+                !promptView.TryValidateConfiguration(out reason) ||
                 !actionPanelView.TryValidateConfiguration(out reason) ||
                 infoPanel.View == null ||
                 !infoPanel.View.IsBoundTo(infoPanel) ||
