@@ -103,7 +103,7 @@ namespace YC.Tests.EditMode
                     @"\bnew\s+Vector2\s*\(").Count;
             }
 
-            Assert.That(recursiveCount, Is.EqualTo(87));
+            Assert.That(recursiveCount, Is.EqualTo(81));
         }
 
         [Test]

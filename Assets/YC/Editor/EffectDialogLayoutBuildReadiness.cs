@@ -358,10 +358,10 @@ namespace YC.Editor
                     "*.cs",
                     SearchOption.AllDirectories)
                 .Sum(path => CountVector2Constructors(File.ReadAllText(path)));
-            if (recursiveCount != 87)
+            if (recursiveCount != 81)
             {
                 throw new InvalidOperationException(
-                    "Presentation 递归 new Vector2 次数漂移；预期 87，实际 " +
+                    "Presentation 递归 new Vector2 次数漂移；预期 81，实际 " +
                     recursiveCount + "。");
             }
 

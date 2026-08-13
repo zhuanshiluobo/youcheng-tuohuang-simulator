@@ -110,7 +110,7 @@ namespace YC.Tests.EditMode
                 .Sum(path => Regex.Matches(
                     File.ReadAllText(path),
                     @"\bnew\s+Vector2\s*\(").Count);
-            Assert.That(total, Is.EqualTo(87));
+            Assert.That(total, Is.EqualTo(81));
 
             var combinedSource = string.Join(
                 "\n",

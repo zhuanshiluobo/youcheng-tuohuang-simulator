@@ -122,8 +122,8 @@ namespace YC.Editor
                     throw new InvalidOperationException(path + " 不得恢复已撤销的 GameplayInteractionLayoutProfile。");
             }
 
-            if (total != 87)
-                throw new InvalidOperationException("Presentation 全局 new Vector2 构造数应为 87，实际为 " + total + "。");
+            if (total != 81)
+                throw new InvalidOperationException("Presentation 全局 new Vector2 构造数应为 81，实际为 " + total + "。");
 
             AssertNoRuntimeFallback("Assets/YC/Presentation/ActionPanelController.cs");
             AssertNoRuntimeFallback("Assets/YC/Presentation/BuildInfoPanel.cs");

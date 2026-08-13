@@ -66,7 +66,7 @@ namespace YC.EditorTools
                     FontStyle.Bold, UiTheme.GoldText, TextAnchor.MiddleCenter,
                     new Vector2(680f, 52f), new Vector2(0f, 410f));
 
-                var closeButton = UguiUtility.CreateViewerCloseButton(
+                var closeButton = UguiEditorUtility.CreateViewerCloseButton(
                     panel,
                     "Close City Style Declaration Preview Button",
                     () => { });

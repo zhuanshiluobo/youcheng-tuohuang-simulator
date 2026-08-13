@@ -1,36 +1,16 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using YC.Presentation;
 
-namespace YC.Presentation
+namespace YC.EditorTools
 {
-    public static class UguiUtility
+    internal static class UguiEditorUtility
     {
-        public static Canvas CreateCanvas(string name, int sortingOrder, Transform parent = null)
-        {
-            var canvasObject = new GameObject(name, typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            if (parent != null)
-            {
-                canvasObject.transform.SetParent(parent, false);
-            }
-
-            var canvas = canvasObject.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = sortingOrder;
-
-            var scaler = canvasObject.GetComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = UiTheme.CanvasReferenceResolution;
-            scaler.matchWidthOrHeight = UiTheme.CanvasMatchWidthOrHeight;
-
-            return canvas;
-        }
-
-        public static Button CreateViewerCloseButton(
+        internal static Button CreateViewerCloseButton(
             RectTransform parent,
             string name,
-            UnityEngine.Events.UnityAction closeAction)
+            UnityAction closeAction)
         {
             var buttonObject = new GameObject(
                 name,
@@ -50,30 +30,6 @@ namespace YC.Presentation
             button.onClick.AddListener(closeAction);
             CreateViewerButtonText(rect, "×", 30);
             return button;
-        }
-
-        public static Button CreateWindowCloseControls(
-            GameObject inputOwner,
-            RectTransform panel,
-            string closeButtonName,
-            UnityAction closeAction)
-        {
-            UnityAction requestClose = closeAction;
-            if (inputOwner != null)
-            {
-                var inputHandler = inputOwner.GetComponent<WindowCloseInputHandler>() ??
-                                   inputOwner.AddComponent<WindowCloseInputHandler>();
-                inputHandler.Configure(closeAction);
-                requestClose = inputHandler.RequestClose;
-            }
-
-            var closeButton = CreateViewerCloseButton(panel, closeButtonName, requestClose);
-            if (closeButton != null)
-            {
-                closeButton.transform.SetAsLastSibling();
-            }
-
-            return closeButton;
         }
 
         private static void ApplyViewerButtonStyle(GameObject buttonObject)
@@ -104,6 +60,5 @@ namespace YC.Presentation
             text.resizeTextMaxSize = fontSize;
             textObject.GetComponent<Outline>().effectColor = UiTheme.DarkShadowLight;
         }
-
     }
 }
