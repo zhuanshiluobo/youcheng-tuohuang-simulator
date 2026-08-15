@@ -3,6 +3,7 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace YC.Tests.EditMode
 {
@@ -75,6 +76,52 @@ namespace YC.Tests.EditMode
         {
             var hintButton = root.transform.Find("Game Settings Canvas/Hint Card Button");
             Assert.That(hintButton, Is.Null);
+        }
+
+        [Test]
+        public void Prefab_DefaultsToGeneralTabWithFourResolutionOptions()
+        {
+            var generalContent = root.transform.Find(
+                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content");
+            var futureContent = root.transform.Find(
+                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/占位 Content");
+            var generalTab = root.transform.Find(
+                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Button");
+            var dropdownTransform = root.transform.Find(
+                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Dropdown");
+
+            Assert.That(generalContent, Is.Not.Null);
+            Assert.That(generalContent.gameObject.activeSelf, Is.True);
+            Assert.That(futureContent, Is.Not.Null);
+            Assert.That(futureContent.gameObject.activeSelf, Is.False);
+            Assert.That(generalTab.GetComponent<Button>().interactable, Is.False);
+            Assert.That(dropdownTransform, Is.Not.Null);
+
+            var dropdown = dropdownTransform.GetComponent<Dropdown>();
+            Assert.That(dropdown, Is.Not.Null);
+            Assert.That(dropdown.options, Has.Count.EqualTo(4));
+            Assert.That(dropdown.options[0].text, Is.EqualTo("1280 × 720"));
+            Assert.That(dropdown.options[1].text, Is.EqualTo("1600 × 900"));
+            Assert.That(dropdown.options[2].text, Is.EqualTo("1920 × 1080"));
+            Assert.That(dropdown.options[3].text, Is.EqualTo("全屏"));
+        }
+
+        [Test]
+        public void PlaceholderTab_ShowsFutureContentAndHidesGeneralContent()
+        {
+            var generalContent = root.transform.Find(
+                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content");
+            var futureContent = root.transform.Find(
+                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/占位 Content");
+            var placeholderTab = root.transform.Find(
+                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/占位 Button")
+                .GetComponent<Button>();
+
+            placeholderTab.onClick.Invoke();
+
+            Assert.That(generalContent.gameObject.activeSelf, Is.False);
+            Assert.That(futureContent.gameObject.activeSelf, Is.True);
+            Assert.That(placeholderTab.interactable, Is.False);
         }
 
         [Test]

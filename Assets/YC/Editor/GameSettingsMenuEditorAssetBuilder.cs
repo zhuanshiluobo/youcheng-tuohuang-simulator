@@ -110,7 +110,51 @@ namespace YC.EditorTools
                 bodyRect.offsetMin = new Vector2(28f, 84f);
                 bodyRect.offsetMax = new Vector2(-28f, -76f);
                 bodyObject.GetComponent<Image>().color = UiTheme.ScrollBackground;
-                var rulebook = CreateButton(bodyObject.transform, "规则书 Button", "规则书", new Vector2(24f, -24f), new Vector2(184f, 52f), Anchor.TopLeft, 22);
+                var generalTab = CreateButton(bodyObject.transform, "通用 Button", "通用", new Vector2(18f, -18f), new Vector2(174f, 46f), Anchor.TopLeft, 21);
+                var rulebook = CreateButton(bodyObject.transform, "规则书 Button", "规则书", new Vector2(205f, -18f), new Vector2(174f, 46f), Anchor.TopLeft, 21);
+                var placeholderTab = CreateButton(bodyObject.transform, "占位 Button", "占位", new Vector2(392f, -18f), new Vector2(174f, 46f), Anchor.TopLeft, 21);
+                generalTab.interactable = false;
+
+                var generalContent = CreateUiObject("通用 Content", bodyObject.transform, typeof(Image));
+                var generalContentRect = generalContent.GetComponent<RectTransform>();
+                generalContentRect.anchorMin = Vector2.zero;
+                generalContentRect.anchorMax = Vector2.one;
+                generalContentRect.offsetMin = new Vector2(18f, 18f);
+                generalContentRect.offsetMax = new Vector2(-18f, -78f);
+                generalContent.GetComponent<Image>().color = UiTheme.SectionTitleBackground;
+                var resolutionLabel = CreateText(
+                    generalContent.transform,
+                    "分辨率 Label",
+                    "分辨率",
+                    20,
+                    new Vector2(24f, -24f),
+                    new Vector2(120f, 46f),
+                    FontStyle.Bold,
+                    Anchor.TopLeft);
+                resolutionLabel.alignment = TextAnchor.MiddleLeft;
+                var resolutionDropdown = CreateDropdown(
+                    generalContent.transform,
+                    "分辨率 Dropdown",
+                    new Vector2(168f, -24f),
+                    new Vector2(260f, 46f),
+                    Anchor.TopLeft,
+                    19);
+
+                var futureContent = CreateUiObject("占位 Content", bodyObject.transform, typeof(Image));
+                var futureContentRect = futureContent.GetComponent<RectTransform>();
+                futureContentRect.anchorMin = Vector2.zero;
+                futureContentRect.anchorMax = Vector2.one;
+                futureContentRect.offsetMin = new Vector2(18f, 18f);
+                futureContentRect.offsetMax = new Vector2(-18f, -78f);
+                futureContent.GetComponent<Image>().color = UiTheme.SectionTitleBackground;
+                CreateText(
+                    futureContent.transform,
+                    "Future Content Label",
+                    "功能待接入",
+                    20,
+                    Vector2.zero,
+                    new Vector2(300f, 48f));
+                futureContent.SetActive(false);
                 var returnButton = CreateButton(panelObject.transform, "返回主菜单 Button", "返回主菜单", new Vector2(-28f, 20f), new Vector2(174f, 48f), Anchor.BottomRight, 20);
 
                 var confirmationObject = CreateUiObject("Return Confirmation", panelObject.transform, typeof(Image));
@@ -148,14 +192,19 @@ namespace YC.EditorTools
                     ("confirmationObject", confirmationObject),
                     ("returnButtonObject", returnButton.gameObject),
                     ("actionLogButtonObject", actionLog.gameObject),
+                    ("generalContentObject", generalContent),
+                    ("futureContentObject", futureContent),
                     ("gearButton", gear),
                     ("actionLogButton", actionLog),
                     ("overlayCloseButton", overlayObject.GetComponent<Button>()),
                     ("headerCloseButton", headerClose),
+                    ("generalTabButton", generalTab),
                     ("rulebookButton", rulebook),
+                    ("placeholderTabButton", placeholderTab),
                     ("returnButton", returnButton),
                     ("confirmReturnButton", confirmReturn),
-                    ("cancelReturnButton", cancelReturn));
+                    ("cancelReturnButton", cancelReturn),
+                    ("resolutionDropdown", resolutionDropdown));
 
                 var fontRefreshDriver = root.AddComponent<FontRefreshDriver>();
                 SetReferences(
@@ -406,6 +455,7 @@ namespace YC.EditorTools
             buttonObject.GetComponent<Image>().color = UiTheme.ButtonBackground;
             buttonObject.GetComponent<Outline>().effectColor = UiTheme.GoldOutlineThin;
             buttonObject.GetComponent<Outline>().effectDistance = new Vector2(2f, -2f);
+            ConfigureSelectableColors(buttonObject.GetComponent<Button>());
             var labelText = CreateText(buttonObject.transform, "Label", label, fontSize, Vector2.zero, Vector2.zero, FontStyle.Bold);
             Stretch(labelText.rectTransform);
             labelText.rectTransform.offsetMin = new Vector2(8f, 0f);
@@ -415,6 +465,133 @@ namespace YC.EditorTools
             labelText.resizeTextMaxSize = fontSize;
             labelText.raycastTarget = false;
             return buttonObject.GetComponent<Button>();
+        }
+
+        private static Dropdown CreateDropdown(
+            Transform parent,
+            string name,
+            Vector2 position,
+            Vector2 size,
+            Anchor anchor,
+            int fontSize)
+        {
+            var dropdownObject = CreateUiObject(name, parent, typeof(Image), typeof(Dropdown), typeof(Outline));
+            SetAnchoredRect(dropdownObject.GetComponent<RectTransform>(), size, position, anchor);
+            dropdownObject.GetComponent<Image>().color = UiTheme.ButtonBackground;
+            dropdownObject.GetComponent<Outline>().effectColor = UiTheme.GoldOutlineThin;
+            dropdownObject.GetComponent<Outline>().effectDistance = new Vector2(2f, -2f);
+
+            var caption = CreateText(
+                dropdownObject.transform,
+                "Label",
+                string.Empty,
+                fontSize,
+                Vector2.zero,
+                Vector2.zero,
+                FontStyle.Bold);
+            Stretch(caption.rectTransform);
+            caption.rectTransform.offsetMin = new Vector2(14f, 0f);
+            caption.rectTransform.offsetMax = new Vector2(-42f, 0f);
+            caption.alignment = TextAnchor.MiddleLeft;
+            caption.raycastTarget = false;
+
+            var arrow = CreateText(
+                dropdownObject.transform,
+                "Arrow",
+                "▼",
+                16,
+                new Vector2(-12f, 0f),
+                new Vector2(30f, 46f),
+                FontStyle.Bold,
+                Anchor.TopRight);
+            arrow.rectTransform.pivot = new Vector2(1f, 0.5f);
+            arrow.rectTransform.anchorMin = Vector2.one;
+            arrow.rectTransform.anchorMax = Vector2.one;
+            arrow.rectTransform.anchoredPosition = new Vector2(-10f, -23f);
+            arrow.raycastTarget = false;
+
+            var templateObject = CreateUiObject(
+                "Template",
+                dropdownObject.transform,
+                typeof(Image),
+                typeof(ScrollRect));
+            var templateRect = templateObject.GetComponent<RectTransform>();
+            templateRect.anchorMin = Vector2.zero;
+            templateRect.anchorMax = Vector2.right;
+            templateRect.pivot = new Vector2(0.5f, 1f);
+            templateRect.anchoredPosition = new Vector2(0f, -2f);
+            templateRect.sizeDelta = new Vector2(0f, 168f);
+            templateObject.GetComponent<Image>().color = UiTheme.PanelBackgroundLighter;
+
+            var viewportObject = CreateUiObject("Viewport", templateObject.transform, typeof(Image), typeof(Mask));
+            Stretch(viewportObject.GetComponent<RectTransform>());
+            viewportObject.GetComponent<Image>().color = Color.white;
+            viewportObject.GetComponent<Mask>().showMaskGraphic = false;
+
+            var contentObject = CreateUiObject("Content", viewportObject.transform);
+            var contentRect = contentObject.GetComponent<RectTransform>();
+            contentRect.anchorMin = Vector2.up;
+            contentRect.anchorMax = Vector2.one;
+            contentRect.pivot = new Vector2(0.5f, 1f);
+            contentRect.anchoredPosition = Vector2.zero;
+            contentRect.sizeDelta = new Vector2(0f, 168f);
+
+            var itemObject = CreateUiObject("Item", contentObject.transform, typeof(Toggle));
+            var itemRect = itemObject.GetComponent<RectTransform>();
+            itemRect.anchorMin = Vector2.up;
+            itemRect.anchorMax = Vector2.one;
+            itemRect.pivot = new Vector2(0.5f, 1f);
+            itemRect.anchoredPosition = Vector2.zero;
+            itemRect.sizeDelta = new Vector2(0f, 42f);
+
+            var itemBackground = CreateUiObject("Item Background", itemObject.transform, typeof(Image));
+            Stretch(itemBackground.GetComponent<RectTransform>());
+            itemBackground.GetComponent<Image>().color = UiTheme.ButtonBackground;
+            var itemLabel = CreateText(
+                itemObject.transform,
+                "Item Label",
+                "分辨率",
+                fontSize,
+                Vector2.zero,
+                Vector2.zero);
+            Stretch(itemLabel.rectTransform);
+            itemLabel.rectTransform.offsetMin = new Vector2(14f, 0f);
+            itemLabel.rectTransform.offsetMax = new Vector2(-14f, 0f);
+            itemLabel.alignment = TextAnchor.MiddleLeft;
+            itemLabel.raycastTarget = false;
+
+            var itemToggle = itemObject.GetComponent<Toggle>();
+            itemToggle.targetGraphic = itemBackground.GetComponent<Image>();
+            itemToggle.graphic = null;
+            ConfigureSelectableColors(itemToggle);
+
+            var scrollRect = templateObject.GetComponent<ScrollRect>();
+            scrollRect.content = contentRect;
+            scrollRect.viewport = viewportObject.GetComponent<RectTransform>();
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+
+            var dropdown = dropdownObject.GetComponent<Dropdown>();
+            dropdown.targetGraphic = dropdownObject.GetComponent<Image>();
+            dropdown.template = templateRect;
+            dropdown.captionText = caption;
+            dropdown.itemText = itemLabel;
+            ConfigureSelectableColors(dropdown);
+            templateObject.SetActive(false);
+            return dropdown;
+        }
+
+        private static void ConfigureSelectableColors(Selectable selectable)
+        {
+            var colors = selectable.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1f, 0.92f, 0.78f, 1f);
+            colors.pressedColor = new Color(0.86f, 0.75f, 0.55f, 1f);
+            colors.selectedColor = colors.highlightedColor;
+            colors.disabledColor = new Color(0.72f, 0.58f, 0.36f, 0.92f);
+            colors.colorMultiplier = 1f;
+            colors.fadeDuration = 0.08f;
+            selectable.colors = colors;
         }
 
         private static Text CreateText(
