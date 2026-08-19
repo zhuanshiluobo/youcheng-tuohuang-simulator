@@ -11,6 +11,7 @@ namespace YC.Presentation
     public sealed class MapViewPresenter
     {
         private static readonly Vector3 ResourceTokenIconScale = Vector3.one;
+        private const float MapPlaneZ = 0f;
         private const float ScoreMarkerZ = -0.62f;
         private readonly MobileCityInteractionController controller;
         private readonly MapView view;
@@ -192,7 +193,7 @@ namespace YC.Presentation
                 return;
             }
 
-            cityBinding.Renderer.transform.position = ToWorldPosition(view.NormalizedPosition, -0.4f);
+            cityBinding.Renderer.transform.position = ToWorldPosition(view.NormalizedPosition, MapPlaneZ);
             cityBinding.Renderer.enabled = false;
             cityBinding.PieceVisual.SetPlayerColor(GetPlayerColor(state, playerId, 1f));
             cityBinding.PieceVisual.SetVisible(true);
@@ -369,7 +370,7 @@ namespace YC.Presentation
             {
                 var binding = view.Locations[i];
                 var location = locationsById[binding.LocationId];
-                binding.Hotspot.transform.position = ToWorldPosition(location.NormalizedPosition, -0.2f);
+                binding.Hotspot.transform.position = ToWorldPosition(location.NormalizedPosition, MapPlaneZ);
                 binding.Hotspot.Renderer.sprite = sprites.Hotspot;
                 binding.Hotspot.SetColor(new Color(0.25f, 0.95f, 0.45f, 0f));
                 hotspotsById.Add(binding.LocationId, binding.Hotspot);
@@ -387,7 +388,7 @@ namespace YC.Presentation
                 var renderer = binding.Renderer;
                 renderer.transform.position = ToWorldPosition(
                     resourcesById[binding.LocationId].ResourceTokenPosition,
-                    -0.18f);
+                    MapPlaneZ);
                 renderer.transform.localScale = Vector3.one;
                 renderer.sprite = sprites.EmptyInfluenceSlot;
                 renderer.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
@@ -455,7 +456,7 @@ namespace YC.Presentation
                 {
                     result.Add(
                         InfluenceService.GetLocationSlotId(definition.LocationId, slotIndex),
-                        new InfluenceSlotPresentation(definition.InfluenceSlots[slotIndex], -0.25f));
+                        new InfluenceSlotPresentation(definition.InfluenceSlots[slotIndex], MapPlaneZ));
                 }
             }
 
@@ -467,7 +468,7 @@ namespace YC.Presentation
                 {
                     result.Add(
                         InfluenceService.GetRouteSlotId(definition.RouteId, slotIndex),
-                        new InfluenceSlotPresentation(definition.InfluenceSlots[slotIndex], -0.24f));
+                        new InfluenceSlotPresentation(definition.InfluenceSlots[slotIndex], MapPlaneZ));
                 }
             }
 

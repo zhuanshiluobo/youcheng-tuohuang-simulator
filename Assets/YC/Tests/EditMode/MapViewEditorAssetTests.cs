@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Presentation.Maps;
 
@@ -193,6 +194,97 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void MapViewPrefab_AllArtworkAnchorsStayProjectedToMapPlaneAcrossZoomRange()
+        {
+            var root = PrefabUtility.LoadPrefabContents(PrefabPath);
+            var cameraObject = new GameObject("Map projection test camera", typeof(Camera));
+            try
+            {
+                var view = root.GetComponent(GetRuntimeType("YC.Presentation.MapView"));
+                var serializedView = new SerializedObject(view);
+                var coordinateSpace = root.GetComponent<MapCoordinateSpace>();
+                var layout = MapDisplayLayoutCatalog.Load(StaticMapDefinitions.FourPlayerMapId);
+                var camera = cameraObject.GetComponent<Camera>();
+                camera.orthographic = false;
+                camera.fieldOfView = 45f;
+                camera.aspect = 16f / 9f;
+
+                var locationPoints = layout.Locations.ToDictionary(
+                    definition => definition.LocationId,
+                    definition => definition.NormalizedPosition);
+                var resourcePoints = layout.CreateResourcePointDefinitions().ToDictionary(
+                    definition => definition.LocationId,
+                    definition => definition.ResourceTokenPosition);
+                var slotPoints = new System.Collections.Generic.Dictionary<string, Vector2>();
+                foreach (var definition in layout.CreateResourcePointDefinitions())
+                for (var i = 0; i < definition.InfluenceSlots.Count; i++)
+                    slotPoints.Add(
+                        InfluenceService.GetLocationSlotId(definition.LocationId, i),
+                        definition.InfluenceSlots[i].NormalizedPosition);
+                foreach (var definition in layout.CreateRouteDefinitions())
+                for (var i = 0; i < definition.InfluenceSlots.Count; i++)
+                    slotPoints.Add(
+                        InfluenceService.GetRouteSlotId(definition.RouteId, i),
+                        definition.InfluenceSlots[i].NormalizedPosition);
+
+                var locations = serializedView.FindProperty("locations");
+                for (var i = 0; i < locations.arraySize; i++)
+                {
+                    var element = locations.GetArrayElementAtIndex(i);
+                    var locationId = element.FindPropertyRelative("locationId").stringValue;
+                    var hotspot = element.FindPropertyRelative("hotspot").objectReferenceValue as Component;
+                    Assert.That(hotspot, Is.Not.Null, locationId);
+                    AssertProjectedToMapPlane(
+                        camera,
+                        hotspot.transform,
+                        coordinateSpace.ToWorldPosition(locationPoints[locationId], 0f),
+                        locationId + " city");
+                }
+
+                var resources = serializedView.FindProperty("resourceTokens");
+                for (var i = 0; i < resources.arraySize; i++)
+                {
+                    var element = resources.GetArrayElementAtIndex(i);
+                    var locationId = element.FindPropertyRelative("locationId").stringValue;
+                    var renderer = element.FindPropertyRelative("renderer").objectReferenceValue as SpriteRenderer;
+                    Assert.That(renderer, Is.Not.Null, locationId);
+                    AssertProjectedToMapPlane(
+                        camera,
+                        renderer.transform,
+                        coordinateSpace.ToWorldPosition(resourcePoints[locationId], 0f),
+                        locationId + " resource");
+                }
+
+                var slots = serializedView.FindProperty("influenceSlots");
+                for (var i = 0; i < slots.arraySize; i++)
+                {
+                    var element = slots.GetArrayElementAtIndex(i);
+                    var slotId = element.FindPropertyRelative("slotId").stringValue;
+                    var renderer = element.FindPropertyRelative("renderer").objectReferenceValue as SpriteRenderer;
+                    var border = element.FindPropertyRelative("borderRenderer").objectReferenceValue as SpriteRenderer;
+                    var feedback = element.FindPropertyRelative("placementFeedback").objectReferenceValue as Component;
+                    Assert.That(renderer, Is.Not.Null, slotId);
+                    Assert.That(border, Is.Not.Null, slotId);
+                    Assert.That(feedback, Is.Not.Null, slotId);
+                    Assert.That(border.transform.localPosition.z, Is.EqualTo(0f).Within(0.0001f), slotId);
+                    Assert.That(feedback.transform.localPosition.z, Is.EqualTo(0f).Within(0.0001f), slotId);
+                    AssertProjectedToMapPlane(
+                        camera,
+                        renderer.transform,
+                        coordinateSpace.ToWorldPosition(slotPoints[slotId], 0f),
+                        slotId);
+                }
+
+                Assert.That(locations.arraySize + resources.arraySize + slots.arraySize, Is.EqualTo(121));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(cameraObject);
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        [Test]
         public void SampleScene_HasOneConnectedMapViewWithoutChangingInfrastructureRoots()
         {
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
@@ -268,6 +360,7 @@ namespace YC.Tests.EditMode
                 var visual = element.FindPropertyRelative("pieceVisual").objectReferenceValue as Component;
                 Assert.That(renderer, Is.Not.Null);
                 Assert.That(renderer.enabled, Is.True);
+                Assert.That(renderer.transform.localPosition.z, Is.EqualTo(0f).Within(0.0001f));
                 Assert.That(visual, Is.Not.Null);
                 var bounds = CalculateBoundsRelativeTo(
                     renderer.transform,
@@ -289,15 +382,40 @@ namespace YC.Tests.EditMode
                 var visual = element.FindPropertyRelative("pieceVisual").objectReferenceValue as Component;
                 Assert.That(renderer, Is.Not.Null);
                 Assert.That(renderer.enabled, Is.False);
+                Assert.That(renderer.transform.localPosition.z, Is.EqualTo(0f).Within(0.0001f));
                 Assert.That(visual, Is.Not.Null);
                 var bounds = CalculateBoundsRelativeTo(
                     renderer.transform,
                     visual.GetComponentInChildren<MeshFilter>(true));
                 Assert.That(bounds.center.x, Is.EqualTo(0f).Within(0.001f));
                 Assert.That(bounds.center.y, Is.EqualTo(0f).Within(0.001f));
-                Assert.That(bounds.max.z - 0.4f,
+                Assert.That(bounds.max.z,
                     Is.EqualTo(0f).Within(0.01f),
-                    "城市根节点运行时位于 Z=-0.4，模型底面应补偿到地图 Z=0：" + i);
+                    "城市模型底面必须直接落在地图 Z=0：" + i);
+            }
+        }
+
+        private static void AssertProjectedToMapPlane(
+            Camera camera,
+            Transform marker,
+            Vector3 expectedMapPoint,
+            string label)
+        {
+            Assert.That(Vector3.Distance(marker.position, expectedMapPoint),
+                Is.LessThanOrEqualTo(0.0001f), label + " world");
+            var cameraRotation = Quaternion.Euler(-30f, 0f, 0f);
+            var zoomLevels = new[] { 0.9f, 1f, 2f };
+            for (var i = 0; i < zoomLevels.Length; i++)
+            {
+                var distance = 80f / zoomLevels[i];
+                camera.transform.SetPositionAndRotation(
+                    -(cameraRotation * Vector3.forward) * distance,
+                    cameraRotation);
+                var markerScreen = camera.WorldToScreenPoint(marker.position);
+                var mapScreen = camera.WorldToScreenPoint(expectedMapPoint);
+                Assert.That(Vector2.Distance(markerScreen, mapScreen),
+                    Is.LessThanOrEqualTo(0.001f),
+                    label + " zoom " + zoomLevels[i]);
             }
         }
 

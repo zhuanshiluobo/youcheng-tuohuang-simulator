@@ -30,13 +30,9 @@ namespace YC.EditorTools
         public const string SampleScenePath = "Assets/Scenes/SampleScene.unity";
 
         private const string TargetChildName = "MapView";
-        private const float HotspotZ = -0.2f;
-        private const float ResourceTokenZ = -0.18f;
-        private const float LocationSlotZ = -0.25f;
-        private const float RouteSlotZ = -0.24f;
-        private const float MobileCityZ = -0.4f;
+        private const float MapPlaneZ = 0f;
         private const float ScoreMarkerZ = -0.62f;
-        private const float PieceOverlayLocalZ = -0.78f;
+        private const float PieceOverlayLocalZ = 0f;
 
         [MenuItem("Tools/YC/Rebuild Map View Editor Assets")]
         public static void Rebuild()
@@ -545,7 +541,7 @@ namespace YC.EditorTools
                 var definition = layout.Locations[i];
                 var go = new GameObject("Hotspot " + definition.LocationId);
                 go.transform.SetParent(parent, false);
-                go.transform.position = space.ToWorldPosition(definition.NormalizedPosition, HotspotZ);
+                go.transform.position = space.ToWorldPosition(definition.NormalizedPosition, MapPlaneZ);
                 var renderer = go.AddComponent<SpriteRenderer>();
                 renderer.sprite = library.Hotspot;
                 renderer.sharedMaterial = feedbackVisuals.FeedbackMaterial;
@@ -580,7 +576,7 @@ namespace YC.EditorTools
                 var definition = definitions[i];
                 var go = new GameObject("ResourceToken " + definition.LocationId);
                 go.transform.SetParent(parent, false);
-                go.transform.position = space.ToWorldPosition(definition.ResourceTokenPosition, ResourceTokenZ);
+                go.transform.position = space.ToWorldPosition(definition.ResourceTokenPosition, MapPlaneZ);
                 var renderer = go.AddComponent<SpriteRenderer>();
                 renderer.sprite = library.EmptyInfluenceSlot;
                 renderer.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
@@ -608,7 +604,7 @@ namespace YC.EditorTools
                     result.Add(BuildSlot(
                         InfluenceService.GetLocationSlotId(definition.LocationId, slotIndex),
                         definition.InfluenceSlots[slotIndex],
-                        LocationSlotZ,
+                        MapPlaneZ,
                         library,
                         feedbackVisuals,
                         influencePiecePrefab,
@@ -625,7 +621,7 @@ namespace YC.EditorTools
                     result.Add(BuildSlot(
                         InfluenceService.GetRouteSlotId(definition.RouteId, slotIndex),
                         definition.InfluenceSlots[slotIndex],
-                        RouteSlotZ,
+                        MapPlaneZ,
                         library,
                         feedbackVisuals,
                         influencePiecePrefab,
@@ -661,7 +657,7 @@ namespace YC.EditorTools
                 influencePiecePrefab,
                 go.transform,
                 "Influence Piece",
-                new Vector3(0f, 0f, -z / definition.Size),
+                Vector3.zero,
                 Vector3.one / definition.Size);
             pieceVisual.SetVisible(false);
 
@@ -719,7 +715,7 @@ namespace YC.EditorTools
                     mobileCityPiecePrefab,
                     go.transform,
                     "Mobile City Piece",
-                    new Vector3(0f, 0f, -MobileCityZ),
+                    Vector3.zero,
                     Vector3.one);
                 pieceVisual.SetVisible(false);
                 result.Add(new CityBuildBinding(playerId, renderer, collider, click, pieceVisual));
@@ -1112,14 +1108,14 @@ namespace YC.EditorTools
                 var hotspot = view.Locations[i].Hotspot;
                 var collider = hotspot.GetComponent<CircleCollider2D>();
                 Check(hotspot.Renderer.sortingOrder == 10, "热点 sortingOrder", errors);
-                Check(Approximately(hotspot.transform.localPosition.z, HotspotZ), "热点 z", errors);
+                Check(Approximately(hotspot.transform.localPosition.z, MapPlaneZ), "热点 z", errors);
                 Check(collider != null && Approximately(collider.radius, 0.45f), "热点 collider", errors);
             }
             for (var i = 0; i < view.ResourceTokens.Count; i++)
             {
                 var renderer = view.ResourceTokens[i].Renderer;
                 Check(renderer.sortingOrder == 18, "资源 token sortingOrder", errors);
-                Check(Approximately(renderer.transform.localPosition.z, ResourceTokenZ), "资源 token z", errors);
+                Check(Approximately(renderer.transform.localPosition.z, MapPlaneZ), "资源 token z", errors);
             }
             var expectedSlots = BuildSlotSettings(layout);
             for (var i = 0; i < view.InfluenceSlots.Count; i++)
@@ -1144,12 +1140,16 @@ namespace YC.EditorTools
                 Check(binding.Renderer.sortingOrder == 15, "影响槽 sortingOrder", errors);
                 Check(binding.BorderRenderer.sortingOrder == 16, "影响槽边框 sortingOrder", errors);
                 Check(Approximately(binding.Renderer.transform.localPosition.z, expected.Z), "影响槽 z", errors);
+                Check(Approximately(binding.BorderRenderer.transform.localPosition.z, PieceOverlayLocalZ),
+                    "影响槽边框 z", errors);
                 Check(Approximately(binding.Collider.radius, expected.Radius), "影响槽 collider", errors);
                 var feedback = RequireProperty(
                     new SerializedObject(binding.Renderer.GetComponent(
                         typeof(MapView).Assembly.GetType("YC.Presentation.MapPlacementFeedback"))),
                     "flashRenderer").objectReferenceValue as SpriteRenderer;
                 Check(feedback != null && feedback.sortingOrder == 17, "影响槽反馈 sortingOrder", errors);
+                Check(feedback != null && Approximately(feedback.transform.localPosition.z, PieceOverlayLocalZ),
+                    "影响槽反馈 z", errors);
             }
             for (var i = 0; i < view.CityPool.Count; i++)
             {
@@ -1164,11 +1164,12 @@ namespace YC.EditorTools
                     Check(Mathf.Abs(pieceBounds.center.x) < 0.001f &&
                           Mathf.Abs(pieceBounds.center.y) < 0.001f,
                         "移动城市模型中心对齐", errors);
-                    Check(Mathf.Abs(pieceBounds.max.z + MobileCityZ) < 0.01f &&
-                          pieceBounds.min.z + MobileCityZ < -0.63f,
+                    Check(Mathf.Abs(pieceBounds.max.z) < 0.01f &&
+                          pieceBounds.min.z < -0.63f,
                         "移动城市模型贴合地图平面", errors);
                 }
                 Check(binding.Renderer.sortingOrder == 20 + binding.PlayerId, "城市池 sortingOrder", errors);
+                Check(Approximately(binding.Renderer.transform.localPosition.z, MapPlaneZ), "城市池 z", errors);
                 Check(binding.Collider.size == new Vector2(0.95f, 1.35f), "城市池 collider", errors);
             }
             for (var i = 0; i < view.ScoreMarkerPool.Count; i++)
@@ -1318,11 +1319,11 @@ namespace YC.EditorTools
             foreach (var definition in layout.CreateResourcePointDefinitions())
                 for (var i = 0; i < definition.InfluenceSlots.Count; i++)
                     result.Add(InfluenceService.GetLocationSlotId(definition.LocationId, i),
-                        new SlotSetting(LocationSlotZ, definition.InfluenceSlots[i].ColliderRadius));
+                        new SlotSetting(MapPlaneZ, definition.InfluenceSlots[i].ColliderRadius));
             foreach (var definition in layout.CreateRouteDefinitions())
                 for (var i = 0; i < definition.InfluenceSlots.Count; i++)
                     result.Add(InfluenceService.GetRouteSlotId(definition.RouteId, i),
-                        new SlotSetting(RouteSlotZ, definition.InfluenceSlots[i].ColliderRadius));
+                        new SlotSetting(MapPlaneZ, definition.InfluenceSlots[i].ColliderRadius));
             return result;
         }
 
