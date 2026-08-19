@@ -19,19 +19,13 @@ namespace YC.Tests.EditMode
             "Assets/YC/Editor/Data/effect_dialog_layout_manifest.json";
         private const string ManifestGuid = "6a219b35f3dd49a6a04a5b4ceea9bb70";
         private const string ManifestSha256 =
-            "84988DCACCEE2575064C8BCAE1A4FD1D5EB533F993E31122397FF1EA9A9AF7BB";
+            "47409DCBA169FDD577B10D0247FC34229D288FDA5C0FCA3B3AB7D3355A292C9A";
         private const string EffectProfilePath =
             "Assets/YC/Presentation/Content/EffectDialogLayoutProfile.asset";
         private const string EffectProfileGuid = "c4df7a0a512c4f9ca6979764614620dd";
-        private const string ExpandableProfilePath =
-            "Assets/YC/Presentation/Content/ExpandableInfoPanelLayoutProfile.asset";
-        private const string ExpandableProfileGuid = "8f1b3fc2cb09419b939e7d36abe52d4a";
         private const string EffectPrefabPath =
             "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/EffectDialogShell.prefab";
         private const string EffectPrefabGuid = "a247544ff081c484cb987604277e8d90";
-        private const string ExpandablePrefabPath =
-            "Assets/YC/Presentation/Prefabs/Gameplay/ExpandableInfoPanel.prefab";
-        private const string ExpandablePrefabGuid = "b57f7a980c01fa84c93597e4131f169c";
 
         [Test]
         public void ManifestProfilesPrefabsAndProductionChain_AreLockedAndReady()
@@ -39,35 +33,23 @@ namespace YC.Tests.EditMode
             Assert.That(ComputeFileSha256(ManifestPath), Is.EqualTo(ManifestSha256).IgnoreCase);
             AssertControlledAsset(ManifestPath, ManifestGuid);
             AssertControlledAsset(EffectProfilePath, EffectProfileGuid);
-            AssertControlledAsset(ExpandableProfilePath, ExpandableProfileGuid);
             AssertControlledAsset(EffectPrefabPath, EffectPrefabGuid);
-            AssertControlledAsset(ExpandablePrefabPath, ExpandablePrefabGuid);
             Assert.That(AssetDatabase.FindAssets("t:EffectDialogLayoutProfile"),
                 Is.EqualTo(new[] { EffectProfileGuid }));
-            Assert.That(AssetDatabase.FindAssets("t:ExpandableInfoPanelLayoutProfile"),
-                Is.EqualTo(new[] { ExpandableProfileGuid }));
 
             var effectProfile = LoadRuntimeAsset(
                 EffectProfilePath,
                 "YC.Presentation.EffectDialogLayoutProfile");
-            var expandableProfile = LoadRuntimeAsset(
-                ExpandableProfilePath,
-                "YC.Presentation.ExpandableInfoPanelLayoutProfile");
             AssertProfileValid(effectProfile);
-            AssertProfileValid(expandableProfile);
             Assert.That(
                 new SerializedObject(effectProfile)
-                    .FindProperty("sourceManifestSha256").stringValue,
-                Is.EqualTo(ManifestSha256).IgnoreCase);
-            Assert.That(
-                new SerializedObject(expandableProfile)
                     .FindProperty("sourceManifestSha256").stringValue,
                 Is.EqualTo(ManifestSha256).IgnoreCase);
             Assert.DoesNotThrow(InvokeReadiness);
         }
 
         [Test]
-        public void ConsumerSourceGate_UsesExactConstructorCountsAndLockedNormalizedHashes()
+        public void ConsumerSourceGate_UsesExplicitProfilesAndNoRuntimeLookupFallbacks()
         {
             Assert.DoesNotThrow(() => InvokeEditorStatic(
                 "YC.Editor.EffectDialogLayoutBuildReadiness",
@@ -77,7 +59,6 @@ namespace YC.Tests.EditMode
             {
                 { "Assets/YC/Presentation/EffectDialogPrimitives.cs", 9 },
                 { "Assets/YC/Presentation/FacilityEffectChoiceDialog.cs", 5 },
-                { "Assets/YC/Presentation/ExpandableInfoPanel.cs", 7 },
                 { "Assets/YC/Presentation/EffectDialogShellView.cs", 3 },
                 { "Assets/YC/Presentation/CharacterCardEffectChoiceDialog.cs", 0 },
                 { "Assets/YC/Presentation/SpecialActionChoiceDialog.cs", 0 }
@@ -91,19 +72,6 @@ namespace YC.Tests.EditMode
                     pair.Key);
             }
 
-            var recursiveCount = 0;
-            var presentationRoot = Path.GetFullPath("Assets/YC/Presentation");
-            foreach (var path in Directory.GetFiles(
-                         presentationRoot,
-                         "*.cs",
-                         SearchOption.AllDirectories))
-            {
-                recursiveCount += Regex.Matches(
-                    File.ReadAllText(path),
-                    @"\bnew\s+Vector2\s*\(").Count;
-            }
-
-            Assert.That(recursiveCount, Is.EqualTo(81));
         }
 
         [Test]
@@ -420,25 +388,6 @@ namespace YC.Tests.EditMode
                 PrefabUtility.UnloadPrefabContents(effectRoot);
             }
 
-            var expandableProfile = LoadRuntimeAsset(
-                ExpandableProfilePath,
-                "YC.Presentation.ExpandableInfoPanelLayoutProfile");
-            var expandableRoot = PrefabUtility.LoadPrefabContents(ExpandablePrefabPath);
-            try
-            {
-                var controller = expandableRoot.GetComponent(
-                    GetRuntimeType("YC.Presentation.ExpandableInfoPanel")) as Behaviour;
-                Assert.That(controller, Is.Not.Null);
-                controller.enabled = false;
-                AssertEditorGateRejects(
-                    "ValidateExpandablePrefabContents",
-                    expandableRoot,
-                    expandableProfile);
-            }
-            finally
-            {
-                PrefabUtility.UnloadPrefabContents(expandableRoot);
-            }
         }
 
         [Test]

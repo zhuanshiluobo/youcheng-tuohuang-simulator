@@ -52,5 +52,26 @@
       "anchoredPosition": [0.0, 18.0]
     },
     "fallbackViewportSize": [1400.0, 860.0]
+  },
+  "characterHand": {
+    "cardSize": [180.0, 255.0],
+    "fanSpacing": 112.0,
+    "fanMaxAngle": 14.0,
+    "passiveVisibleFraction": 0.3,
+    "passiveAlpha": 0.38,
+    "hoverScale": 1.18,
+    "hoverAlpha": 0.82,
+    "hoverBottom": 16.0,
+    "expandedSpacing": 145.0,
+    "expandedMaxAngle": 6.0,
+    "expandedBottom": 32.0,
+    "fanCenterOffsetX": -140.0,
+    "overlayCardSize": [176.0, 249.0],
+    "overlaySpacing": [18.0, 18.0],
+    "discardAlpha": 0.65,
+    "discardButtonSize": [68.0, 68.0],
+      "discardButtonPosition": [-372.0, 12.0],
+    "modalPanelSize": [1420.0, 720.0],
+    "modalPanelPosition": [-140.0, 0.0]
   }
 }

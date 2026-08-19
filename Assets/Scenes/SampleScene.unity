@@ -503,13 +503,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
 --- !u!114 &952091513 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8212794038705902226, guid: 97d4d860d450f7247969c8aca5a9d934, type: 3}
+  m_CorrespondingSourceObject: {fileID: 1035537174348582482, guid: 97d4d860d450f7247969c8aca5a9d934, type: 3}
   m_PrefabInstance: {fileID: 952091510}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 351c8005309e42f49a2137bd8d94041d, type: 3}
+  m_Script: {fileID: 11500000, guid: 749be7f2273c22c4aad2fbecf218be91, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1200000000
@@ -563,7 +563,7 @@ MonoBehaviour:
   debugClicks: 0
   settingsMenu: {fileID: 1623334979}
   gameplayInteractionHud: {fileID: 952091511}
-  infoPanel: {fileID: 952091513}
+  resourceCounterBoard: {fileID: 952091513}
   buildInfoPanel: {fileID: 952091512}
 --- !u!1001 &1623334978
 PrefabInstance:

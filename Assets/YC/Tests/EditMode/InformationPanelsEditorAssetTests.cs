@@ -9,12 +9,9 @@ namespace YC.Tests.EditMode
 {
     public sealed class InformationPanelsEditorAssetTests
     {
-        private const string ExpandablePrefabPath =
-            "Assets/YC/Presentation/Prefabs/Gameplay/ExpandableInfoPanel.prefab";
         private const string BuildPrefabPath =
             "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab";
 
-        [TestCase(ExpandablePrefabPath, "YC.Presentation.ExpandableInfoPanel")]
         [TestCase(BuildPrefabPath, "YC.Presentation.BuildInfoPanel")]
         public void StandalonePrefab_HasValidBidirectionalViewAndNoMissingScripts(
             string prefabPath,
@@ -76,9 +73,9 @@ namespace YC.Tests.EditMode
         public void ProductionControllers_DoNotRecreateFixedUiAtRuntime()
         {
             var projectRoot = Directory.GetCurrentDirectory();
-            var expandable = File.ReadAllText(Path.Combine(
+            var resources = File.ReadAllText(Path.Combine(
                 projectRoot,
-                "Assets/YC/Presentation/ExpandableInfoPanel.cs"));
+                "Assets/YC/Presentation/ResourceCounterBoard.cs"));
             var build = File.ReadAllText(Path.Combine(
                 projectRoot,
                 "Assets/YC/Presentation/BuildInfoPanel.cs"));
@@ -86,14 +83,14 @@ namespace YC.Tests.EditMode
                 projectRoot,
                 "Assets/YC/Presentation/MobileCityInteractionController.cs"));
 
-            StringAssert.DoesNotContain("new GameObject(", expandable);
-            StringAssert.DoesNotContain(".AddComponent<", expandable);
+            StringAssert.DoesNotContain("new GameObject(", resources);
+            StringAssert.DoesNotContain(".AddComponent<", resources);
             StringAssert.DoesNotContain("new GameObject(", build);
             StringAssert.DoesNotContain(".AddComponent<", build);
             StringAssert.DoesNotContain("Resources.Load", build);
             StringAssert.DoesNotContain("EnsureInfoPanel", mobile);
             StringAssert.DoesNotContain("EnsureBuildInfoPanel", mobile);
-            StringAssert.DoesNotContain("FindObjectOfType<ExpandableInfoPanel>", mobile);
+            StringAssert.DoesNotContain("FindObjectOfType<ResourceCounterBoard>", mobile);
             StringAssert.DoesNotContain("FindObjectOfType<BuildInfoPanel>", mobile);
             StringAssert.DoesNotContain("new GameObject(", mobile);
             StringAssert.DoesNotContain(".AddComponent<", mobile);

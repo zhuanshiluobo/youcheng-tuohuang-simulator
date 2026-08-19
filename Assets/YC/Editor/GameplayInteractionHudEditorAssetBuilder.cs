@@ -25,9 +25,11 @@ namespace YC.EditorTools
         public static void Rebuild()
         {
             YC.Editor.UiThemeBuildReadiness.InitializeRequiredTheme();
+            YC.Editor.SecondaryLayoutEditorAssetBuilder.RebuildAssets();
             EnsureFolder("Assets/YC/Presentation/Prefabs/Gameplay");
-            ExpandableInfoPanelEditorAssetBuilder.Rebuild();
+            ResourceCounterBoardEditorAssetBuilder.Rebuild();
             BuildInfoPanelEditorAssetBuilder.Rebuild();
+            CharacterHandPanelEditorAssetBuilder.Rebuild();
             GameplayDialogEditorAssetBuilder.Rebuild();
             var actionPanelLayoutProfile = YC.Editor.SecondaryLayoutEditorAssetBuilder.LoadRequiredActionProfile();
             var cardInteractionLayoutProfile = YC.Editor.SecondaryLayoutEditorAssetBuilder.LoadRequiredCardProfile();
@@ -38,8 +40,10 @@ namespace YC.EditorTools
                 throw new InvalidOperationException("缺少固定提示卡纹理：" + HintCardTexturePath);
             }
 
-            var infoPanelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
-                ExpandableInfoPanelEditorAssetBuilder.PrefabPath);
+            var resourceCounterBoardPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                ResourceCounterBoardEditorAssetBuilder.PrefabPath);
+            var characterHandPanelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                CharacterHandPanelEditorAssetBuilder.PrefabPath);
             var buildInfoPanelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
                 BuildInfoPanelEditorAssetBuilder.PrefabPath);
             var effectDialogShellPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
@@ -50,17 +54,19 @@ namespace YC.EditorTools
                 GameplayDialogEditorAssetBuilder.EventChoiceDialogPrefabPath);
             var cityStyleDeclarationPreviewPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
                 CityStyleDeclarationPreviewEditorAssetBuilder.PrefabPath);
-            if (infoPanelPrefab == null || buildInfoPanelPrefab == null || effectDialogShellPrefab == null ||
+            if (resourceCounterBoardPrefab == null || characterHandPanelPrefab == null ||
+                buildInfoPanelPrefab == null || effectDialogShellPrefab == null ||
                 dispatchDecisionPrefab == null || eventChoiceDialogPrefab == null ||
                 cityStyleDeclarationPreviewPrefab == null)
             {
-                throw new InvalidOperationException("交互 HUD 缺少信息面板 Prefab 依赖。");
+                throw new InvalidOperationException("交互 HUD 缺少资源卡板或信息面板 Prefab 依赖。");
             }
 
             var prefab = BuildPrefab(
                 hintCardTexture,
                 cardVisualCatalog,
-                infoPanelPrefab,
+                resourceCounterBoardPrefab,
+                characterHandPanelPrefab,
                 buildInfoPanelPrefab,
                 effectDialogShellPrefab.GetComponent<EffectDialogShellView>(),
                 dispatchDecisionPrefab.GetComponent<DispatchDecisionDialogView>(),
@@ -77,7 +83,8 @@ namespace YC.EditorTools
         private static GameObject BuildPrefab(
             Texture2D hintCardTexture,
             CardVisualCatalog cardVisualCatalog,
-            GameObject infoPanelPrefab,
+            GameObject resourceCounterBoardPrefab,
+            GameObject characterHandPanelPrefab,
             GameObject buildInfoPanelPrefab,
             EffectDialogShellView effectDialogShellPrefab,
             DispatchDecisionDialogView dispatchDecisionPrefab,
@@ -134,16 +141,21 @@ namespace YC.EditorTools
                     canvasObject.transform,
                     hintCardTexture,
                     actionPanelLayoutProfile);
-                var infoPanelInstance = (GameObject)PrefabUtility.InstantiatePrefab(
-                    infoPanelPrefab,
+                var characterHandPanelInstance = (GameObject)PrefabUtility.InstantiatePrefab(
+                    characterHandPanelPrefab,
+                    canvasObject.transform);
+                var resourceCounterBoardInstance = (GameObject)PrefabUtility.InstantiatePrefab(
+                    resourceCounterBoardPrefab,
                     canvasObject.transform);
                 var buildInfoPanelInstance = (GameObject)PrefabUtility.InstantiatePrefab(
                     buildInfoPanelPrefab,
                     tabletopCanvasObject.transform);
-                infoPanelInstance.transform.SetAsLastSibling();
-                var infoPanel = infoPanelInstance.GetComponent<ExpandableInfoPanel>();
+                resourceCounterBoardInstance.transform.SetAsLastSibling();
+                characterHandPanelInstance.transform.SetAsLastSibling();
+                var characterHandPanel = characterHandPanelInstance.GetComponent<CharacterHandPanel>();
+                var resourceCounterBoard = resourceCounterBoardInstance.GetComponent<ResourceCounterBoard>();
                 var buildInfoPanel = buildInfoPanelInstance.GetComponent<BuildInfoPanel>();
-                if (infoPanel == null || buildInfoPanel == null)
+                if (characterHandPanel == null || resourceCounterBoard == null || buildInfoPanel == null)
                 {
                     throw new InvalidOperationException("信息面板 nested prefab 缺少控制器组件。");
                 }
@@ -180,7 +192,8 @@ namespace YC.EditorTools
                     ("tabletopCanvas", tabletopLayout),
                     ("promptView", promptView),
                     ("actionPanelView", actionPanelView),
-                    ("infoPanel", infoPanel),
+                    ("characterHandPanel", characterHandPanel),
+                    ("resourceCounterBoard", resourceCounterBoard),
                     ("buildInfoPanel", buildInfoPanel),
                     ("dialogRegistry", dialogRegistry));
 
@@ -495,15 +508,6 @@ namespace YC.EditorTools
 
                     instance = roots[i];
                 }
-                else if (roots[i].name == "InfoPanel")
-                {
-                    if (roots[i].GetComponent<ExpandableInfoPanel>() == null)
-                    {
-                        throw new InvalidOperationException("SampleScene 的 InfoPanel 根不是预期旧控制器，停止替换。");
-                    }
-
-                    Object.DestroyImmediate(roots[i]);
-                }
             }
 
             var cityController = FindInScene<MobileCityInteractionController>(scene);
@@ -528,21 +532,21 @@ namespace YC.EditorTools
 
             var cityData = new SerializedObject(cityController);
             cityData.FindProperty("gameplayInteractionHud").objectReferenceValue = hudView;
-            cityData.FindProperty("infoPanel").objectReferenceValue = hudView.InfoPanel;
+            cityData.FindProperty("resourceCounterBoard").objectReferenceValue = hudView.ResourceCounterBoard;
             cityData.FindProperty("buildInfoPanel").objectReferenceValue = hudView.BuildInfoPanel;
             cityData.ApplyModifiedPropertiesWithoutUndo();
 
             if (!GameplayInteractionHudView.TryValidateSceneBinding(
                     hudView,
                     cityController,
-                    hudView.InfoPanel,
+                    hudView.ResourceCounterBoard,
                     hudView.BuildInfoPanel,
                     out var reason))
             {
                 throw new InvalidOperationException("SampleScene 三方引用校验失败：" + reason);
             }
 
-            if (FindAllInScene<ExpandableInfoPanel>(scene).Length != 1 ||
+            if (FindAllInScene<ResourceCounterBoard>(scene).Length != 1 ||
                 FindAllInScene<BuildInfoPanel>(scene).Length != 1 ||
                 scene.GetRootGameObjects().Length != 6)
             {

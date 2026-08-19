@@ -14,7 +14,7 @@ namespace YC.Editor
             "Assets/YC/Editor/Data/secondary_layout_manifest.json";
         public const string SourceJsonGuid = "84181727001c7bc48b3b310efcce7325";
         public const string ExpectedManifestSha256 =
-            "EFCBE8FFF20617DC67A9671AEFE123A83553D739BBA7B09476B3964869213544";
+            "6FB4251B920FF7680E688394065DB5DCE430C637F9BA15379C2FDCA7AAC05BCE";
         public const string ActionPanelAssetPath =
             "Assets/YC/Presentation/Content/ActionPanelLayoutProfile.asset";
         public const string ActionPanelAssetGuid = "fdfb2e039f0c842439596ccfcea7686b";
@@ -24,6 +24,9 @@ namespace YC.Editor
         public const string ZoomableViewerAssetPath =
             "Assets/YC/Presentation/Content/ZoomableViewerLayoutProfile.asset";
         public const string ZoomableViewerAssetGuid = "6897c32684bc9b7448d53ba522fcdbc8";
+        public const string CharacterHandAssetPath =
+            "Assets/YC/Presentation/Content/CharacterHandLayoutProfile.asset";
+        public const string CharacterHandAssetGuid = "49dc093f8a269884aad1c54e85becb8f";
 
         [MenuItem("YC/Build/Secondary Layout/Rebuild Assets")]
         public static void RebuildAssetsMenu()
@@ -48,6 +51,7 @@ namespace YC.Editor
             var action = RequireObject(root, "actionPanel");
             var card = RequireObject(root, "cardInteraction");
             var viewer = RequireObject(root, "zoomableViewer");
+            var characterHand = RequireObject(root, "characterHand");
 
             var actionProfile = GetOrCreate<ActionPanelLayoutProfile>(ActionPanelAssetPath);
             actionProfile.ConfigureForEditor(
@@ -91,13 +95,39 @@ namespace YC.Editor
                 ReadVector(viewer["fallbackViewportSize"], "zoomableViewer.fallbackViewportSize"));
             ValidateProfile(viewerProfile, "ZoomableViewerLayoutProfile");
 
+            var characterHandProfile = GetOrCreate<CharacterHandLayoutProfile>(CharacterHandAssetPath);
+            characterHandProfile.ConfigureForEditor(
+                sha256,
+                ReadVector(characterHand["cardSize"], "characterHand.cardSize"),
+                ReadFloat(characterHand["fanSpacing"], "characterHand.fanSpacing"),
+                ReadFloat(characterHand["fanMaxAngle"], "characterHand.fanMaxAngle"),
+                ReadFloat(characterHand["passiveVisibleFraction"], "characterHand.passiveVisibleFraction"),
+                ReadFloat(characterHand["passiveAlpha"], "characterHand.passiveAlpha"),
+                ReadFloat(characterHand["hoverScale"], "characterHand.hoverScale"),
+                ReadFloat(characterHand["hoverAlpha"], "characterHand.hoverAlpha"),
+                ReadFloat(characterHand["hoverBottom"], "characterHand.hoverBottom"),
+                ReadFloat(characterHand["expandedSpacing"], "characterHand.expandedSpacing"),
+                ReadFloat(characterHand["expandedMaxAngle"], "characterHand.expandedMaxAngle"),
+                ReadFloat(characterHand["expandedBottom"], "characterHand.expandedBottom"),
+                ReadFloat(characterHand["fanCenterOffsetX"], "characterHand.fanCenterOffsetX"),
+                ReadVector(characterHand["overlayCardSize"], "characterHand.overlayCardSize"),
+                ReadVector(characterHand["overlaySpacing"], "characterHand.overlaySpacing"),
+                ReadFloat(characterHand["discardAlpha"], "characterHand.discardAlpha"),
+                ReadVector(characterHand["discardButtonSize"], "characterHand.discardButtonSize"),
+                ReadVector(characterHand["discardButtonPosition"], "characterHand.discardButtonPosition"),
+                ReadVector(characterHand["modalPanelSize"], "characterHand.modalPanelSize"),
+                ReadVector(characterHand["modalPanelPosition"], "characterHand.modalPanelPosition"));
+            ValidateProfile(characterHandProfile, "CharacterHandLayoutProfile");
+
             EditorUtility.SetDirty(actionProfile);
             EditorUtility.SetDirty(cardProfile);
             EditorUtility.SetDirty(viewerProfile);
+            EditorUtility.SetDirty(characterHandProfile);
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(ActionPanelAssetPath, ImportAssetOptions.ForceUpdate);
             AssetDatabase.ImportAsset(CardInteractionAssetPath, ImportAssetOptions.ForceUpdate);
             AssetDatabase.ImportAsset(ZoomableViewerAssetPath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(CharacterHandAssetPath, ImportAssetOptions.ForceUpdate);
         }
 
         public static ActionPanelLayoutProfile LoadRequiredActionProfile()
@@ -113,6 +143,11 @@ namespace YC.Editor
         public static ZoomableViewerLayoutProfile LoadRequiredZoomableViewerProfile()
         {
             return LoadRequired<ZoomableViewerLayoutProfile>(ZoomableViewerAssetPath, ZoomableViewerAssetGuid);
+        }
+
+        public static CharacterHandLayoutProfile LoadRequiredCharacterHandProfile()
+        {
+            return LoadRequired<CharacterHandLayoutProfile>(CharacterHandAssetPath, CharacterHandAssetGuid);
         }
 
         internal static string ComputeCurrentSourceSha256()
@@ -181,6 +216,7 @@ namespace YC.Editor
             if (asset is ActionPanelLayoutProfile action) return action.SourceManifestSha256;
             if (asset is CardInteractionLayoutProfile card) return card.SourceManifestSha256;
             if (asset is ZoomableViewerLayoutProfile viewer) return viewer.SourceManifestSha256;
+            if (asset is CharacterHandLayoutProfile characterHand) return characterHand.SourceManifestSha256;
             return string.Empty;
         }
 
@@ -191,8 +227,10 @@ namespace YC.Editor
                 ? action.TryValidateConfiguration(out reason)
                 : asset is CardInteractionLayoutProfile card
                     ? card.TryValidateConfiguration(out reason)
-                    : asset is ZoomableViewerLayoutProfile viewer &&
-                      viewer.TryValidateConfiguration(out reason);
+                    : asset is ZoomableViewerLayoutProfile viewer
+                        ? viewer.TryValidateConfiguration(out reason)
+                        : asset is CharacterHandLayoutProfile characterHand &&
+                          characterHand.TryValidateConfiguration(out reason);
             if (!valid) throw new InvalidOperationException(label + " 数据无效：" + reason);
         }
 
@@ -228,6 +266,17 @@ namespace YC.Editor
             var result = new Vector2((float)values[0], (float)values[1]);
             if (float.IsNaN(result.x) || float.IsInfinity(result.x) ||
                 float.IsNaN(result.y) || float.IsInfinity(result.y))
+                throw new InvalidOperationException(label + " 包含非有限数值。");
+            return result;
+        }
+
+        private static float ReadFloat(JToken token, string label)
+        {
+            if (token == null ||
+                token.Type != JTokenType.Float && token.Type != JTokenType.Integer)
+                throw new InvalidOperationException(label + " 必须是有限数字。");
+            var result = (float)token;
+            if (float.IsNaN(result) || float.IsInfinity(result))
                 throw new InvalidOperationException(label + " 包含非有限数值。");
             return result;
         }

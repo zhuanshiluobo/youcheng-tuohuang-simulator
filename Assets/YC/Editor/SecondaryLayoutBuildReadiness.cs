@@ -16,6 +16,8 @@ namespace YC.Editor
             "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab";
         private const string BuildInfoPrefabPath =
             "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab";
+        private const string CharacterHandPrefabPath =
+            "Assets/YC/Presentation/Prefabs/Gameplay/CharacterHandPanel.prefab";
         private const string CityStylePrefabPath =
             "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab";
         private const string ZoomableViewerPrefabPath =
@@ -29,6 +31,7 @@ namespace YC.Editor
                 { "Assets/YC/Presentation/BuildInfoPanel.cs", 2 },
                 { "Assets/YC/Presentation/CityStyleDeclarationPreviewDialog.cs", 2 },
                 { "Assets/YC/Presentation/CardPointerInteraction.cs", 0 },
+                { "Assets/YC/Presentation/CharacterHandPanel.cs", 0 },
                 { "Assets/YC/Presentation/ZoomableImageViewerController.cs", 6 }
             };
 
@@ -38,7 +41,8 @@ namespace YC.Editor
             var action = SecondaryLayoutEditorAssetBuilder.LoadRequiredActionProfile();
             var card = SecondaryLayoutEditorAssetBuilder.LoadRequiredCardProfile();
             var viewer = SecondaryLayoutEditorAssetBuilder.LoadRequiredZoomableViewerProfile();
-            ValidatePrefabReferences(action, card, viewer);
+            var characterHand = SecondaryLayoutEditorAssetBuilder.LoadRequiredCharacterHandProfile();
+            ValidatePrefabReferences(action, card, viewer, characterHand);
             ValidateSceneOverrides();
             ValidateSourceSemantics();
         }
@@ -60,12 +64,14 @@ namespace YC.Editor
         public static void ValidatePrefabReferences(
             ActionPanelLayoutProfile action,
             CardInteractionLayoutProfile card,
-            ZoomableViewerLayoutProfile viewer)
+            ZoomableViewerLayoutProfile viewer,
+            CharacterHandLayoutProfile characterHand)
         {
             var hud = LoadPrefab(GameplayHudPrefabPath);
             var actionViews = hud.GetComponentsInChildren<ActionPanelView>(true);
             var registries = hud.GetComponentsInChildren<GameplayDialogRegistry>(true);
             var nestedBuildInfoViews = hud.GetComponentsInChildren<BuildInfoPanelView>(true);
+            var nestedCharacterHandPanels = hud.GetComponentsInChildren<CharacterHandPanel>(true);
             var actionReason = string.Empty;
             if (actionViews.Length != 1 || actionViews[0].LayoutProfile != action ||
                 !actionViews[0].TryValidateConfiguration(out actionReason))
@@ -77,6 +83,17 @@ namespace YC.Editor
             if (nestedBuildInfoViews.Length != 1 ||
                 nestedBuildInfoViews[0].CardInteractionLayoutProfile != card)
                 throw new InvalidOperationException("Gameplay HUD 的嵌套建设面板未共享 CardInteractionLayoutProfile。");
+            var handReason = string.Empty;
+            if (nestedCharacterHandPanels.Length != 1 ||
+                nestedCharacterHandPanels[0].LayoutProfile != characterHand ||
+                !nestedCharacterHandPanels[0].TryValidateConfiguration(out handReason))
+                throw new InvalidOperationException("Gameplay HUD 的嵌套手牌面板引用无效：" + handReason);
+
+            var standaloneHand = LoadPrefab(CharacterHandPrefabPath).GetComponent<CharacterHandPanel>();
+            handReason = string.Empty;
+            if (standaloneHand == null || standaloneHand.LayoutProfile != characterHand ||
+                !standaloneHand.TryValidateConfiguration(out handReason))
+                throw new InvalidOperationException("CharacterHandPanel Profile 引用无效：" + handReason);
 
             var buildInfoView = LoadPrefab(BuildInfoPrefabPath).GetComponent<BuildInfoPanelView>();
             var buildInfoReason = string.Empty;
@@ -122,13 +139,14 @@ namespace YC.Editor
                     throw new InvalidOperationException(path + " 不得恢复已撤销的 GameplayInteractionLayoutProfile。");
             }
 
-            if (total != 81)
-                throw new InvalidOperationException("Presentation 全局 new Vector2 构造数应为 81，实际为 " + total + "。");
+            if (total != 76)
+                throw new InvalidOperationException("Presentation 全局 new Vector2 构造数应为 76，实际为 " + total + "。");
 
             AssertNoRuntimeFallback("Assets/YC/Presentation/ActionPanelController.cs");
             AssertNoRuntimeFallback("Assets/YC/Presentation/BuildInfoPanel.cs");
             AssertNoRuntimeFallback("Assets/YC/Presentation/CityStyleDeclarationPreviewDialog.cs");
             AssertNoRuntimeFallback("Assets/YC/Presentation/CardPointerInteraction.cs");
+            AssertNoRuntimeFallback("Assets/YC/Presentation/CharacterHandPanel.cs");
             AssertNoRuntimeFallback("Assets/YC/Presentation/ZoomableImageViewerController.cs");
             ValidateSharedDragGhostConsumers();
         }

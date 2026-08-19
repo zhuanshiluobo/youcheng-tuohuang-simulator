@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6bd5e5fc7e0f1e4da0f6ea6372e953f, type: 3}
   m_Name: ActionPanelLayoutProfile
   m_EditorClassIdentifier: Assembly-CSharp:YC.Presentation:ActionPanelLayoutProfile
-  sourceManifestSha256: EFCBE8FFF20617DC67A9671AEFE123A83553D739BBA7B09476B3964869213544
+  sourceManifestSha256: 6FB4251B920FF7680E688394065DB5DCE430C637F9BA15379C2FDCA7AAC05BCE
   cardImageOffsetMin: {x: 6, y: 6}
   cardImageOffsetMax: {x: -6, y: -6}
   characterContainerLayout:

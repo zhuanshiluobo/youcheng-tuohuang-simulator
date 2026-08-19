@@ -205,6 +205,8 @@ namespace YC.Presentation
     public sealed class CardPointerInteraction : MonoBehaviour,
         IPointerDownHandler,
         IPointerClickHandler,
+        IPointerEnterHandler,
+        IPointerExitHandler,
         IBeginDragHandler,
         IDragHandler,
         IEndDragHandler
@@ -217,7 +219,10 @@ namespace YC.Presentation
         private Action<PointerEventData> drag;
         private Action<PointerEventData> endDrag;
         private Action cancelDrag;
+        private Action pointerEnter;
+        private Action pointerExit;
         private bool dragging;
+        private bool pointerInside;
         private bool suppressClickForCurrentPress;
 
         public void ConfigureClick(
@@ -249,6 +254,12 @@ namespace YC.Presentation
             cancelDrag = configuredCancelDrag;
         }
 
+        public void ConfigureHover(Action configuredPointerEnter, Action configuredPointerExit)
+        {
+            pointerEnter = configuredPointerEnter;
+            pointerExit = configuredPointerExit;
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             if (IsLeftPointer(eventData))
@@ -277,6 +288,18 @@ namespace YC.Presentation
             }
 
             singleClick?.Invoke();
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            pointerInside = true;
+            pointerEnter?.Invoke();
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            pointerInside = false;
+            pointerExit?.Invoke();
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -320,6 +343,12 @@ namespace YC.Presentation
             {
                 dragging = false;
                 cancelDrag?.Invoke();
+            }
+
+            if (pointerInside)
+            {
+                pointerInside = false;
+                pointerExit?.Invoke();
             }
         }
 

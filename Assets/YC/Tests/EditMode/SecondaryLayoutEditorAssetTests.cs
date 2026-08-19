@@ -18,7 +18,7 @@ namespace YC.Tests.EditMode
             "Assets/YC/Editor/Data/secondary_layout_manifest.json";
         private const string ManifestGuid = "84181727001c7bc48b3b310efcce7325";
         private const string ManifestSha256 =
-            "EFCBE8FFF20617DC67A9671AEFE123A83553D739BBA7B09476B3964869213544";
+            "6FB4251B920FF7680E688394065DB5DCE430C637F9BA15379C2FDCA7AAC05BCE";
         private const string ActionProfilePath =
             "Assets/YC/Presentation/Content/ActionPanelLayoutProfile.asset";
         private const string ActionProfileGuid = "fdfb2e039f0c842439596ccfcea7686b";
@@ -28,6 +28,9 @@ namespace YC.Tests.EditMode
         private const string ViewerProfilePath =
             "Assets/YC/Presentation/Content/ZoomableViewerLayoutProfile.asset";
         private const string ViewerProfileGuid = "6897c32684bc9b7448d53ba522fcdbc8";
+        private const string CharacterHandProfilePath =
+            "Assets/YC/Presentation/Content/CharacterHandLayoutProfile.asset";
+        private const string CharacterHandProfileGuid = "49dc093f8a269884aad1c54e85becb8f";
 
         [Test]
         public void ManifestProfilesAndPrefabs_AreLockedAndReady()
@@ -37,16 +40,20 @@ namespace YC.Tests.EditMode
             AssertControlledAsset(ActionProfilePath, ActionProfileGuid);
             AssertControlledAsset(CardProfilePath, CardProfileGuid);
             AssertControlledAsset(ViewerProfilePath, ViewerProfileGuid);
+            AssertControlledAsset(CharacterHandProfilePath, CharacterHandProfileGuid);
 
             var action = AssetDatabase.LoadAssetAtPath<Object>(ActionProfilePath);
             var card = AssetDatabase.LoadAssetAtPath<Object>(CardProfilePath);
             var viewer = AssetDatabase.LoadAssetAtPath<Object>(ViewerProfilePath);
+            var characterHand = AssetDatabase.LoadAssetAtPath<Object>(CharacterHandProfilePath);
             AssertProfileValid(action);
             AssertProfileValid(card);
             AssertProfileValid(viewer);
+            AssertProfileValid(characterHand);
             AssertSourceHash(action);
             AssertSourceHash(card);
             AssertSourceHash(viewer);
+            AssertSourceHash(characterHand);
 
             AssertPrefabReference(
                 "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
@@ -73,6 +80,16 @@ namespace YC.Tests.EditMode
                 "YC.Presentation.ZoomableImageViewerView",
                 "layoutProfile",
                 viewer);
+            AssertPrefabReference(
+                "Assets/YC/Presentation/Prefabs/Gameplay/CharacterHandPanel.prefab",
+                "YC.Presentation.CharacterHandPanel",
+                "layoutProfile",
+                characterHand);
+            AssertPrefabReference(
+                "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+                "YC.Presentation.CharacterHandPanel",
+                "layoutProfile",
+                characterHand);
 
             Assert.DoesNotThrow(InvokeReadiness);
         }
@@ -83,9 +100,11 @@ namespace YC.Tests.EditMode
             AssertInvalidTransientProfile("YC.Presentation.ActionPanelLayoutProfile");
             AssertInvalidTransientProfile("YC.Presentation.CardInteractionLayoutProfile");
             AssertInvalidTransientProfile("YC.Presentation.ZoomableViewerLayoutProfile");
+            AssertInvalidTransientProfile("YC.Presentation.CharacterHandLayoutProfile");
             AssertMissingViewProfile("YC.Presentation.ActionPanelView");
             AssertMissingViewProfile("YC.Presentation.BuildInfoPanelView");
             AssertMissingViewProfile("YC.Presentation.ZoomableImageViewerView");
+            AssertMissingViewProfile("YC.Presentation.CharacterHandPanel");
         }
 
         [Test]
@@ -98,6 +117,7 @@ namespace YC.Tests.EditMode
                 { "Assets/YC/Presentation/BuildInfoPanel.cs", 2 },
                 { "Assets/YC/Presentation/CityStyleDeclarationPreviewDialog.cs", 2 },
                 { "Assets/YC/Presentation/CardPointerInteraction.cs", 0 },
+                { "Assets/YC/Presentation/CharacterHandPanel.cs", 0 },
                 { "Assets/YC/Presentation/ZoomableImageViewerController.cs", 6 }
             };
             foreach (var pair in expected)
@@ -110,7 +130,7 @@ namespace YC.Tests.EditMode
                 .Sum(path => Regex.Matches(
                     File.ReadAllText(path),
                     @"\bnew\s+Vector2\s*\(").Count);
-            Assert.That(total, Is.EqualTo(81));
+            Assert.That(total, Is.EqualTo(76));
 
             var combinedSource = string.Join(
                 "\n",

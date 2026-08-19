@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d7158e745490aa4fad93ac66f8fe748, type: 3}
   m_Name: ZoomableViewerLayoutProfile
   m_EditorClassIdentifier: Assembly-CSharp:YC.Presentation:ZoomableViewerLayoutProfile
-  sourceManifestSha256: EFCBE8FFF20617DC67A9671AEFE123A83553D739BBA7B09476B3964869213544
+  sourceManifestSha256: 6FB4251B920FF7680E688394065DB5DCE430C637F9BA15379C2FDCA7AAC05BCE
   collapsedToggleLayout:
     AnchorMin: {x: 1, y: 0.5}
     AnchorMax: {x: 1, y: 0.5}
