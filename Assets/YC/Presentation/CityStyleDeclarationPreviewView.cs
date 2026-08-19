@@ -49,6 +49,7 @@ namespace YC.Presentation
         [SerializeField] private Button closeButton;
         [SerializeField] private Text closeButtonLabel;
         [SerializeField] private CardBoardVisualLayout cardBoardVisualLayout;
+        [SerializeField] private CardInteractionLayoutProfile cardInteractionLayoutProfile;
         [SerializeField] private RawImage cityStyleCardImage;
         [SerializeField] private RectTransform cityStyleInfluenceMarkerRoot;
         [SerializeField] private Text cityStyleCardPlaceholder;
@@ -98,6 +99,7 @@ namespace YC.Presentation
         public Button CloseButton => closeButton;
         public Text CloseButtonLabel => closeButtonLabel;
         public CardBoardVisualLayout CardBoardVisualLayout => cardBoardVisualLayout;
+        public CardInteractionLayoutProfile CardInteractionLayoutProfile => cardInteractionLayoutProfile;
         public RawImage CityStyleCardImage => cityStyleCardImage;
         public RectTransform CityStyleInfluenceMarkerRoot => cityStyleInfluenceMarkerRoot;
         public Text CityStyleCardPlaceholder => cityStyleCardPlaceholder;
@@ -131,7 +133,7 @@ namespace YC.Presentation
         {
             if (overlayCanvas == null || rootRect == null || overlayObject == null || overlayImage == null ||
                 panel == null || inputHandler == null || closeButton == null || closeButtonLabel == null ||
-                cardBoardVisualLayout == null ||
+                cardBoardVisualLayout == null || cardInteractionLayoutProfile == null ||
                 cityStyleCardImage == null || cityStyleInfluenceMarkerRoot == null ||
                 cityStyleCardPlaceholder == null || cityStyleTitleText == null || matchStatusText == null ||
                 specialActionHintText == null || boardTitleText == null || cityBoardRect == null ||
@@ -147,6 +149,12 @@ namespace YC.Presentation
             if (!cardBoardVisualLayout.TryValidateConfiguration(out reason))
             {
                 reason = "城市样式预览 CardBoardVisualLayout 无效：" + reason;
+                return false;
+            }
+
+            if (!cardInteractionLayoutProfile.TryValidateConfiguration(out reason))
+            {
+                reason = "城市样式预览 CardInteractionLayoutProfile 无效：" + reason;
                 return false;
             }
 

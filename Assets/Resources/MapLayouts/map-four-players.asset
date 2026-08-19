@@ -16,321 +16,321 @@ MonoBehaviour:
   MapSprite: {fileID: 21300000, guid: 37ec701aa09b4714a901b0b7e07d20d5, type: 3}
   Locations:
   - LocationId: A-01
-    NormalizedPosition: {x: 0.838, y: 0.248}
-    ResourceTokenOffset: {x: -0.045, y: -0.033}
+    NormalizedPosition: {x: 0.8413, y: 0.2446}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.038, y: 0.003}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.038, y: 0.024}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: A-02
-    NormalizedPosition: {x: 0.831, y: 0.449}
-    ResourceTokenOffset: {x: -0.045, y: -0.034}
+    NormalizedPosition: {x: 0.8351, y: 0.4454}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.038, y: 0.002}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.038, y: 0.023}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: A-03
-    NormalizedPosition: {x: 0.689, y: 0.477}
-    ResourceTokenOffset: {x: -0.044, y: -0.034}
+    NormalizedPosition: {x: 0.6943, y: 0.4748}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.037, y: 0.002}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.037, y: 0.023}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: B-01
-    NormalizedPosition: {x: 0.904, y: 0.643}
-    ResourceTokenOffset: {x: -0.044, y: -0.029}
+    NormalizedPosition: {x: 0.9087, y: 0.6442}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.037, y: 0.007}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.037, y: 0.028}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: B-02
-    NormalizedPosition: {x: 0.799, y: 0.746}
-    ResourceTokenOffset: {x: -0.043, y: -0.033}
+    NormalizedPosition: {x: 0.8047, y: 0.7432}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.036, y: 0.003}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.036, y: 0.024}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: B-03
-    NormalizedPosition: {x: 0.655, y: 0.682}
-    ResourceTokenOffset: {x: -0.046, y: -0.036}
+    NormalizedPosition: {x: 0.6577, y: 0.6776}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.039, y: 0}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.039, y: 0.021}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: C-01
-    NormalizedPosition: {x: 0.801, y: 0.893}
-    ResourceTokenOffset: {x: -0.046, y: -0.027}
+    NormalizedPosition: {x: 0.8054, y: 0.8974}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.039, y: 0.009}
+    - Offset: {x: -0.0419, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.039, y: 0.03}
+    - Offset: {x: -0.0419, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: C-02
-    NormalizedPosition: {x: 0.444, y: 0.829}
-    ResourceTokenOffset: {x: -0.048, y: -0.035}
+    NormalizedPosition: {x: 0.4463, y: 0.8252}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041, y: 0.001}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041, y: 0.022}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: C-03
-    NormalizedPosition: {x: 0.134, y: 0.78}
-    ResourceTokenOffset: {x: -0.045, y: -0.027}
+    NormalizedPosition: {x: 0.1381, y: 0.7841}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.038, y: 0.009}
+    - Offset: {x: -0.0418, y: 0.0054}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.038, y: 0.03}
+    - Offset: {x: -0.0418, y: 0.0258}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: D-01
-    NormalizedPosition: {x: 0.692, y: 0.347}
-    ResourceTokenOffset: {x: -0.047, y: -0.033}
+    NormalizedPosition: {x: 0.6943, y: 0.3444}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.04, y: 0.003}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.04, y: 0.024}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: D-02
-    NormalizedPosition: {x: 0.549, y: 0.296}
-    ResourceTokenOffset: {x: -0.046, y: -0.031}
+    NormalizedPosition: {x: 0.5525, y: 0.297}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.039, y: 0.005}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.039, y: 0.026}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: D-03
-    NormalizedPosition: {x: 0.564, y: 0.489}
-    ResourceTokenOffset: {x: -0.043, y: -0.031}
+    NormalizedPosition: {x: 0.5697, y: 0.4888}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.036, y: 0.005}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.036, y: 0.026}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: E-01
-    NormalizedPosition: {x: 0.553, y: 0.751}
-    ResourceTokenOffset: {x: -0.045, y: -0.038}
+    NormalizedPosition: {x: 0.5567, y: 0.744}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0308}
     InfluenceSlots:
-    - Offset: {x: -0.038, y: -0.002}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.038, y: 0.019}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: E-02
-    NormalizedPosition: {x: 0.335, y: 0.684}
-    ResourceTokenOffset: {x: -0.043, y: -0.032}
+    NormalizedPosition: {x: 0.3389, y: 0.683}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0306}
     InfluenceSlots:
-    - Offset: {x: -0.036, y: 0.004}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.036, y: 0.025}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: E-03
-    NormalizedPosition: {x: 0.19, y: 0.587}
-    ResourceTokenOffset: {x: -0.045, y: -0.025}
+    NormalizedPosition: {x: 0.1959, y: 0.5922}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0306}
     InfluenceSlots:
-    - Offset: {x: -0.038, y: 0.011}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.038, y: 0.032}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: F-01
-    NormalizedPosition: {x: 0.329, y: 0.349}
-    ResourceTokenOffset: {x: -0.046, y: -0.038}
+    NormalizedPosition: {x: 0.3313, y: 0.3422}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.039, y: -0.002}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.039, y: 0.019}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: F-02
-    NormalizedPosition: {x: 0.387, y: 0.523}
-    ResourceTokenOffset: {x: -0.044, y: -0.027}
+    NormalizedPosition: {x: 0.3913, y: 0.5248}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.037, y: 0.009}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.037, y: 0.03}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: F-03
-    NormalizedPosition: {x: 0.176, y: 0.4}
-    ResourceTokenOffset: {x: -0.044, y: -0.031}
+    NormalizedPosition: {x: 0.1799, y: 0.3992}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.037, y: 0.005}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.037, y: 0.026}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: G-01
-    NormalizedPosition: {x: 0.734, y: 0.145}
-    ResourceTokenOffset: {x: -0.049, y: -0.033}
+    NormalizedPosition: {x: 0.7339, y: 0.143}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.042, y: 0.003}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.042, y: 0.024}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: G-02
-    NormalizedPosition: {x: 0.482, y: 0.162}
-    ResourceTokenOffset: {x: -0.046, y: -0.028}
+    NormalizedPosition: {x: 0.4859, y: 0.1644}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.039, y: 0.008}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.039, y: 0.029}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: G-03
-    NormalizedPosition: {x: 0.139, y: 0.115}
-    ResourceTokenOffset: {x: -0.043, y: -0.028}
+    NormalizedPosition: {x: 0.1457, y: 0.119}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0306}
     InfluenceSlots:
-    - Offset: {x: -0.036, y: 0.008}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.036, y: 0.029}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: G-04
-    NormalizedPosition: {x: 0.31, y: 0.232}
-    ResourceTokenOffset: {x: -0.042, y: -0.034}
+    NormalizedPosition: {x: 0.3167, y: 0.2292}
+    ResourceTokenOffset: {x: -0.0491, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.035, y: 0.002}
+    - Offset: {x: -0.0418, y: 0.0055}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.035, y: 0.023}
+    - Offset: {x: -0.0418, y: 0.0259}
       Size: 1
       ColliderRadius: 0.22
   Routes:
   - RouteId: A1
-    NormalizedPosition: {x: 0.816, y: 0.358}
+    NormalizedPosition: {x: 0.8173, y: 0.3559}
     InfluenceSlots:
     - Offset: {x: 0, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: A2
-    NormalizedPosition: {x: 0.707, y: 0.587}
+    NormalizedPosition: {x: 0.7097, y: 0.5887}
     InfluenceSlots:
-    - Offset: {x: -0.01, y: 0}
+    - Offset: {x: -0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.01, y: 0}
+    - Offset: {x: 0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: B1
-    NormalizedPosition: {x: 0.776, y: 0.628}
+    NormalizedPosition: {x: 0.7765, y: 0.6293}
     InfluenceSlots:
     - Offset: {x: 0, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: B2
-    NormalizedPosition: {x: 0.894, y: 0.834}
+    NormalizedPosition: {x: 0.8963, y: 0.8353}
     InfluenceSlots:
-    - Offset: {x: -0.01, y: 0}
+    - Offset: {x: -0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.01, y: 0}
+    - Offset: {x: 0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: C1
-    NormalizedPosition: {x: 0.3, y: 0.82}
+    NormalizedPosition: {x: 0.3035, y: 0.8215}
     InfluenceSlots:
     - Offset: {x: 0, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: C2
-    NormalizedPosition: {x: 0.6715, y: 0.823}
+    NormalizedPosition: {x: 0.6723, y: 0.8247}
     InfluenceSlots:
-    - Offset: {x: -0.0095, y: 0}
+    - Offset: {x: -0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.0095, y: 0}
+    - Offset: {x: 0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: D1
-    NormalizedPosition: {x: 0.5875, y: 0.387}
+    NormalizedPosition: {x: 0.5883, y: 0.3889}
     InfluenceSlots:
-    - Offset: {x: -0.0095, y: 0}
+    - Offset: {x: -0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.0095, y: 0}
+    - Offset: {x: 0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: D2
-    NormalizedPosition: {x: 0.4645, y: 0.434}
+    NormalizedPosition: {x: 0.4647, y: 0.4347}
     InfluenceSlots:
-    - Offset: {x: -0.0095, y: 0}
+    - Offset: {x: -0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.0095, y: 0}
+    - Offset: {x: 0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: E1
-    NormalizedPosition: {x: 0.4625, y: 0.666}
+    NormalizedPosition: {x: 0.4633, y: 0.6679}
     InfluenceSlots:
-    - Offset: {x: -0.0085, y: 0}
+    - Offset: {x: -0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.0085, y: 0}
+    - Offset: {x: 0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: E2
-    NormalizedPosition: {x: 0.2045, y: 0.69}
+    NormalizedPosition: {x: 0.2053, y: 0.6925}
     InfluenceSlots:
-    - Offset: {x: -0.0085, y: 0}
+    - Offset: {x: -0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.0085, y: 0}
+    - Offset: {x: 0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: F1
-    NormalizedPosition: {x: 0.44, y: 0.303}
+    NormalizedPosition: {x: 0.4395, y: 0.3031}
     InfluenceSlots:
     - Offset: {x: 0, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: F2
-    NormalizedPosition: {x: 0.324, y: 0.439}
+    NormalizedPosition: {x: 0.3241, y: 0.4405}
     InfluenceSlots:
     - Offset: {x: 0, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: F3
-    NormalizedPosition: {x: 0.193, y: 0.312}
+    NormalizedPosition: {x: 0.1941, y: 0.3129}
     InfluenceSlots:
     - Offset: {x: -0.009, y: 0}
       Size: 1
@@ -339,61 +339,61 @@ MonoBehaviour:
       Size: 1
       ColliderRadius: 0.22
   - RouteId: G1
-    NormalizedPosition: {x: 0.32, y: 0.1}
+    NormalizedPosition: {x: 0.3209, y: 0.1009}
     InfluenceSlots:
     - Offset: {x: 0, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: G2
-    NormalizedPosition: {x: 0.18, y: 0.244}
+    NormalizedPosition: {x: 0.1815, y: 0.2457}
     InfluenceSlots:
     - Offset: {x: 0, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R1
-    NormalizedPosition: {x: 0.6935, y: 0.241}
+    NormalizedPosition: {x: 0.6939, y: 0.2427}
     InfluenceSlots:
-    - Offset: {x: -0.0085, y: 0}
+    - Offset: {x: -0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.0085, y: 0}
+    - Offset: {x: 0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R2
-    NormalizedPosition: {x: 0.9225, y: 0.354}
+    NormalizedPosition: {x: 0.9229, y: 0.3555}
     InfluenceSlots:
-    - Offset: {x: -0.0095, y: 0}
+    - Offset: {x: -0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.0095, y: 0}
+    - Offset: {x: 0.009, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R3
-    NormalizedPosition: {x: 0.09, y: 0.443}
+    NormalizedPosition: {x: 0.0909, y: 0.4453}
     InfluenceSlots:
     - Offset: {x: 0, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R4
-    NormalizedPosition: {x: 0.181, y: 0.497}
+    NormalizedPosition: {x: 0.1807, y: 0.4979}
     InfluenceSlots:
     - Offset: {x: 0, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R5
-    NormalizedPosition: {x: 0.286, y: 0.539}
+    NormalizedPosition: {x: 0.2869, y: 0.5413}
     InfluenceSlots:
     - Offset: {x: 0, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R6
-    NormalizedPosition: {x: 0.872, y: 0.546}
+    NormalizedPosition: {x: 0.8725, y: 0.5467}
     InfluenceSlots:
     - Offset: {x: 0, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R7
-    NormalizedPosition: {x: 0.576, y: 0.597}
+    NormalizedPosition: {x: 0.5765, y: 0.5975}
     InfluenceSlots:
     - Offset: {x: -0.009, y: 0}
       Size: 1

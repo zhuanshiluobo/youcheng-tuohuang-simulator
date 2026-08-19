@@ -29,6 +29,7 @@ namespace YC.Presentation
         private readonly EffectDialogShell shell;
         private readonly CardVisualCatalog cardVisualCatalog;
         private readonly EffectDialogLayoutProfile layoutProfile;
+        private readonly CardInteractionLayoutProfile cardInteractionLayoutProfile;
         private EffectDialogCollapsiblePanel collapsiblePanel;
         private RectTransform facilityCardDragGhost;
         private ZoomableImageViewerController facilityCardImageViewer;
@@ -40,6 +41,7 @@ namespace YC.Presentation
             canvas = configuredCanvas ?? throw new ArgumentNullException(nameof(configuredCanvas));
             if (dialogRegistry == null) throw new ArgumentNullException(nameof(dialogRegistry));
             cardVisualCatalog = dialogRegistry.CardVisualCatalog;
+            cardInteractionLayoutProfile = dialogRegistry.CardInteractionLayoutProfile;
             layoutProfile = dialogRegistry.EffectDialogShellPrefab == null
                 ? null
                 : dialogRegistry.EffectDialogShellPrefab.LayoutProfile;
@@ -48,6 +50,12 @@ namespace YC.Presentation
             {
                 throw new InvalidOperationException(
                     "FacilityEffectChoiceDialog 缺少有效的显式布局 Profile：" + layoutReason);
+            }
+            if (cardInteractionLayoutProfile == null ||
+                !cardInteractionLayoutProfile.TryValidateConfiguration(out layoutReason))
+            {
+                throw new InvalidOperationException(
+                    "FacilityEffectChoiceDialog 缺少有效的 CardInteractionLayoutProfile：" + layoutReason);
             }
             shell = new EffectDialogShell(
                 dialogRegistry);
@@ -403,7 +411,8 @@ namespace YC.Presentation
                 source,
                 texture,
                 fallbackLabel,
-                fallbackFont);
+                fallbackFont,
+                cardInteractionLayoutProfile.DragGhostLayout);
             MoveFacilityCardDrag(eventData);
         }
 

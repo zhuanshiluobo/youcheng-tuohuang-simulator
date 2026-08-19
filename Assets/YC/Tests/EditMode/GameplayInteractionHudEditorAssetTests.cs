@@ -49,31 +49,66 @@ namespace YC.Tests.EditMode
             var hud = prefab.GetComponent(GetRuntimeType("YC.Presentation.GameplayInteractionHudView"));
             var prompt = prefab.GetComponentInChildren(GetRuntimeType("YC.Presentation.GameplayPromptView"), true);
             var action = prefab.GetComponentInChildren(GetRuntimeType("YC.Presentation.ActionPanelView"), true);
-            var info = GetProperty<Component>(hud, "InfoPanel");
+            var resources = GetProperty<Component>(hud, "ResourceCounterBoard");
+            var hand = GetProperty<Component>(hud, "CharacterHandPanel");
             var build = GetProperty<Component>(hud, "BuildInfoPanel");
+            var tabletop = GetProperty<Component>(hud, "TabletopCanvas");
             Assert.That(hud, Is.Not.Null);
             Assert.That(prompt, Is.Not.Null);
             Assert.That(action, Is.Not.Null);
-            Assert.That(info, Is.Not.Null);
+            Assert.That(resources, Is.Not.Null);
+            Assert.That(hand, Is.Not.Null);
             Assert.That(build, Is.Not.Null);
-            Assert.That(info.transform.parent, Is.SameAs(build.transform.parent));
-            Assert.That(
-                info.transform.GetSiblingIndex(),
-                Is.GreaterThan(build.transform.GetSiblingIndex()),
-                "展开信息面板必须位于建设卡区和建设面板之后，才能渲染在其上方。");
+            Assert.That(tabletop, Is.Not.Null);
+            var overlayCanvas = GetProperty<Canvas>(hud, "Canvas");
+            var tabletopCanvas = tabletop.GetComponent<Canvas>();
+            Assert.That(overlayCanvas.renderMode, Is.EqualTo(RenderMode.ScreenSpaceOverlay));
+            Assert.That(tabletopCanvas, Is.Not.Null);
+            Assert.That(tabletopCanvas.renderMode, Is.EqualTo(RenderMode.WorldSpace));
+            Assert.That(tabletopCanvas.worldCamera, Is.Null, "Prefab 的桌面相机应在运行时绑定。");
+            Assert.That(tabletop.GetComponent<GraphicRaycaster>(), Is.Not.Null);
+            Assert.That(tabletop.transform.parent, Is.SameAs(prefab.transform));
+            Assert.That(FindInParents(resources, typeof(Canvas)), Is.SameAs(overlayCanvas));
+            Assert.That(FindInParents(hand, typeof(Canvas)), Is.SameAs(overlayCanvas));
+            Assert.That(FindInParents(action, typeof(Canvas)), Is.SameAs(overlayCanvas));
+            Assert.That(FindInParents(prompt, typeof(Canvas)), Is.SameAs(overlayCanvas));
+            Assert.That(build.transform.parent, Is.SameAs(tabletop.transform));
+            Assert.That(FindInParents(build, GetRuntimeType("YC.Presentation.TabletopCanvasLayout")),
+                Is.SameAs(tabletop));
+            Assert.That(FindInParents(resources, GetRuntimeType("YC.Presentation.TabletopCanvasLayout")),
+                Is.Null);
             Assert.That(GetProperty<Component>(hud, "PromptView"), Is.SameAs(prompt));
             Assert.That(GetProperty<Component>(hud, "ActionPanelView"), Is.SameAs(action));
             Assert.That(
-                PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(info.gameObject),
-                Is.EqualTo("Assets/YC/Presentation/Prefabs/Gameplay/ExpandableInfoPanel.prefab"));
+                PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(resources.gameObject),
+                Is.EqualTo("Assets/YC/Presentation/Prefabs/Gameplay/ResourceCounterBoard.prefab"));
+            Assert.That(
+                PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(hand.gameObject),
+                Is.EqualTo("Assets/YC/Presentation/Prefabs/Gameplay/CharacterHandPanel.prefab"));
             Assert.That(
                 PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(build.gameObject),
                 Is.EqualTo("Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab"));
-            Assert.That(GetProperty<Canvas>(hud, "Canvas"), Is.Not.Null);
+            Assert.That(overlayCanvas, Is.Not.Null);
             AssertTryValidate(hud);
             Assert.That(GetProperty<Component>(hud, "CityInteractionController"), Is.Null);
 
             AssertReferences(new SerializedObject(prompt), "canvas", "panelTransform", "promptText", "canvasGroup");
+            AssertReferences(
+                new SerializedObject(tabletop),
+                "canvas", "rectTransform", "graphicRaycaster", "canvasScaler");
+            var contributor = tabletop.GetComponent(GetRuntimeType("YC.Presentation.TabletopBoundsContributor"));
+            Assert.That(contributor, Is.Not.Null);
+            var contributorData = new SerializedObject(contributor);
+            var contributedRects = contributorData.FindProperty("rectTransforms");
+            Assert.That(contributedRects.arraySize, Is.EqualTo(3));
+            var buildView = GetProperty<Component>(build, "View");
+            Assert.That(contributedRects.GetArrayElementAtIndex(0).objectReferenceValue,
+                Is.SameAs(GetProperty<RectTransform>(buildView, "ExternalFacilityArea")),
+                "桌面边界必须由建设界面的实际区域贡献，不能用整张空白 Canvas。");
+            Assert.That(contributedRects.GetArrayElementAtIndex(1).objectReferenceValue,
+                Is.SameAs(GetProperty<RectTransform>(buildView, "ExternalCityStyleArea")));
+            Assert.That(contributedRects.GetArrayElementAtIndex(2).objectReferenceValue,
+                Is.SameAs(GetProperty<RectTransform>(buildView, "PanelTransform")));
             AssertReferences(
                 new SerializedObject(action),
                 "panelObject", "mainFaceObject", "cardFaceObject", "cardImageContainer",
@@ -100,7 +135,7 @@ namespace YC.Tests.EditMode
 
             var feedbackType = GetRuntimeType("YC.Presentation.ActionButtonPressFeedback");
             var feedback = prefab.GetComponentsInChildren(feedbackType, true);
-            Assert.That(feedback.Length, Is.EqualTo(10));
+            Assert.That(feedback.Length, Is.EqualTo(12));
             for (var i = 0; i < feedback.Length; i++)
             {
                 Assert.That(feedback[i].GetComponent<Button>(), Is.Not.Null, feedback[i].name);
@@ -182,8 +217,8 @@ namespace YC.Tests.EditMode
                 Assert.That(GetProperty<Component>(hud, "CityInteractionController"), Is.SameAs(city));
                 var cityData = new SerializedObject(city);
                 Assert.That(cityData.FindProperty("gameplayInteractionHud").objectReferenceValue, Is.SameAs(hud));
-                Assert.That(cityData.FindProperty("infoPanel").objectReferenceValue,
-                    Is.SameAs(GetProperty<Component>(hud, "InfoPanel")));
+                Assert.That(cityData.FindProperty("resourceCounterBoard").objectReferenceValue,
+                    Is.SameAs(GetProperty<Component>(hud, "ResourceCounterBoard")));
                 Assert.That(cityData.FindProperty("buildInfoPanel").objectReferenceValue,
                     Is.SameAs(GetProperty<Component>(hud, "BuildInfoPanel")));
                 Assert.That(
@@ -193,11 +228,12 @@ namespace YC.Tests.EditMode
                 AssertOnlyExpectedSceneOverrides(root);
                 Assert.That(FindAllInScene<EventSystem>(scene).Length, Is.EqualTo(1));
                 Assert.That(root.GetComponentInChildren<EventSystem>(true), Is.Null);
-                Assert.That(FindAllInScene(scene, GetRuntimeType("YC.Presentation.ExpandableInfoPanel")).Length,
+                Assert.That(FindAllInScene(scene, GetRuntimeType("YC.Presentation.ResourceCounterBoard")).Length,
                     Is.EqualTo(1));
                 Assert.That(FindAllInScene(scene, GetRuntimeType("YC.Presentation.BuildInfoPanel")).Length,
                     Is.EqualTo(1));
-                Assert.That(FindRoots(scene, "InfoPanel"), Is.Empty);
+                Assert.That(FindAllInScene(scene, GetRuntimeType("YC.Presentation.CharacterHandPanel")).Length,
+                    Is.EqualTo(1));
                 var roots = scene.GetRootGameObjects();
                 Assert.That(
                     roots.Length,
@@ -299,6 +335,8 @@ namespace YC.Tests.EditMode
             StringAssert.DoesNotContain("BuildActionPanel()", city);
             StringAssert.Contains("PromptPresenter.Bind(gameplayInteractionHud.PromptView)", city);
             StringAssert.Contains("ActionPanelController.Bind(", city);
+            StringAssert.Contains("resourceCounterBoard.Render(player.Resources, animate)", city);
+            StringAssert.DoesNotContain("SetRowValue(\"资源状态\"", city);
 
             var fontHealth = ReadSource("YC/Presentation/FontHealthCheckRunner.cs");
             StringAssert.DoesNotContain("PromptPresenter", fontHealth);
@@ -432,6 +470,12 @@ namespace YC.Tests.EditMode
             }
 
             return results.ToArray();
+        }
+
+        private static Component FindInParents(Component component, Type componentType)
+        {
+            var matches = component.GetComponentsInParent(componentType, true);
+            return matches.Length == 0 ? null : matches[0];
         }
 
         private static void AssertOnlyExpectedSceneOverrides(GameObject root)

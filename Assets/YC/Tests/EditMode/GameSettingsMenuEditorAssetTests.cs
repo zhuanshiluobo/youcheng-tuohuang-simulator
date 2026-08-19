@@ -48,14 +48,19 @@ namespace YC.Tests.EditMode
                 "confirmationObject",
                 "returnButtonObject",
                 "actionLogButtonObject",
+                "generalContentObject",
+                "futureContentObject",
                 "gearButton",
                 "actionLogButton",
                 "overlayCloseButton",
                 "headerCloseButton",
+                "generalTabButton",
                 "rulebookButton",
+                "placeholderTabButton",
                 "returnButton",
                 "confirmReturnButton",
-                "cancelReturnButton"
+                "cancelReturnButton",
+                "resolutionDropdown"
             };
             for (var i = 0; i < referenceNames.Length; i++)
             {
@@ -74,7 +79,12 @@ namespace YC.Tests.EditMode
             Assert.That(Find(prefab.transform, "Action Log Button"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Settings Overlay"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Settings Panel"), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "通用 Button"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "规则书 Button"), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "占位 Button"), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "通用 Content"), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "分辨率 Dropdown"), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "占位 Content"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "返回主菜单 Button"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Return Confirmation"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "确认返回 Button"), Is.Not.Null);

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -10,6 +11,15 @@ namespace YC.Presentation
         private const float PanelHeight = 430f;
         private const float AnimationSpeed = 14f;
         private const string DefaultStartSceneName = "StartScene";
+        private const string ResolutionPreferenceKey = "YC.Settings.ResolutionIndex";
+
+        private static readonly ResolutionOption[] ResolutionOptions =
+        {
+            new ResolutionOption(1280, 720),
+            new ResolutionOption(1600, 900),
+            new ResolutionOption(1920, 1080),
+            ResolutionOption.FullScreen
+        };
 
         [SerializeField] private string startSceneName = DefaultStartSceneName;
         [SerializeField] private bool showReturnToStartButton = true;
@@ -192,6 +202,8 @@ namespace YC.Presentation
 
             ZoomableImageViewerController.RegisterPrefab(zoomableImageViewerPrefab);
             BindButtons();
+            InitializeResolutionDropdown();
+            SelectTab(SettingsTab.General);
             view.ReturnButtonObject.SetActive(showReturnToStartButton);
             view.ActionLogButtonObject.SetActive(false);
             view.ConfirmationObject.SetActive(false);
@@ -207,10 +219,104 @@ namespace YC.Presentation
             BindButton(view.ActionLogButton, OpenActionLog);
             BindButton(view.OverlayCloseButton, Close);
             BindButton(view.HeaderCloseButton, Close);
-            BindButton(view.RulebookButton, OpenRulebook);
+            BindButton(view.GeneralTabButton, () => SelectTab(SettingsTab.General));
+            BindButton(view.RulebookButton, SelectRulebookTab);
+            BindButton(view.PlaceholderTabButton, () => SelectTab(SettingsTab.Placeholder));
             BindButton(view.ReturnButton, ShowConfirmation);
             BindButton(view.ConfirmReturnButton, ReturnToStartScene);
             BindButton(view.CancelReturnButton, HideConfirmation);
+        }
+
+        private void InitializeResolutionDropdown()
+        {
+            var labels = new List<string>(ResolutionOptions.Length);
+            for (var index = 0; index < ResolutionOptions.Length; index++)
+            {
+                labels.Add(ResolutionOptions[index].Label);
+            }
+
+            var dropdown = view.ResolutionDropdown;
+            dropdown.onValueChanged.RemoveAllListeners();
+            dropdown.ClearOptions();
+            dropdown.AddOptions(labels);
+
+            var hasSavedPreference = PlayerPrefs.HasKey(ResolutionPreferenceKey);
+            var defaultIndex = Screen.fullScreenMode == FullScreenMode.Windowed
+                ? FindClosestResolutionIndex(Screen.width, Screen.height)
+                : ResolutionOptions.Length - 1;
+            var selectedIndex = PlayerPrefs.GetInt(
+                ResolutionPreferenceKey,
+                defaultIndex);
+            selectedIndex = Mathf.Clamp(selectedIndex, 0, ResolutionOptions.Length - 1);
+            dropdown.SetValueWithoutNotify(selectedIndex);
+            dropdown.RefreshShownValue();
+            dropdown.onValueChanged.AddListener(ApplyResolution);
+
+            if (hasSavedPreference && !UnityEngine.Application.isEditor)
+            {
+                ApplyResolutionOption(ResolutionOptions[selectedIndex]);
+            }
+        }
+
+        private void SelectRulebookTab()
+        {
+            SelectTab(SettingsTab.Rulebook);
+            OpenRulebook();
+        }
+
+        private void SelectTab(SettingsTab tab)
+        {
+            view.GeneralContentObject.SetActive(tab == SettingsTab.General);
+            view.FutureContentObject.SetActive(tab == SettingsTab.Placeholder);
+            view.GeneralTabButton.interactable = tab != SettingsTab.General;
+            view.RulebookButton.interactable = tab != SettingsTab.Rulebook;
+            view.PlaceholderTabButton.interactable = tab != SettingsTab.Placeholder;
+        }
+
+        private static int FindClosestResolutionIndex(int width, int height)
+        {
+            var closestIndex = 0;
+            var closestDistance = int.MaxValue;
+            for (var index = 0; index < ResolutionOptions.Length; index++)
+            {
+                var option = ResolutionOptions[index];
+                var distance = Mathf.Abs(option.Width - width) + Mathf.Abs(option.Height - height);
+                if (distance >= closestDistance)
+                {
+                    continue;
+                }
+
+                closestIndex = index;
+                closestDistance = distance;
+            }
+
+            return closestIndex;
+        }
+
+        private static void ApplyResolution(int index)
+        {
+            if (index < 0 || index >= ResolutionOptions.Length)
+            {
+                return;
+            }
+
+            PlayerPrefs.SetInt(ResolutionPreferenceKey, index);
+            PlayerPrefs.Save();
+            ApplyResolutionOption(ResolutionOptions[index]);
+        }
+
+        private static void ApplyResolutionOption(ResolutionOption option)
+        {
+            if (option.IsFullScreen)
+            {
+                Screen.SetResolution(
+                    Display.main.systemWidth,
+                    Display.main.systemHeight,
+                    FullScreenMode.FullScreenWindow);
+                return;
+            }
+
+            Screen.SetResolution(option.Width, option.Height, FullScreenMode.Windowed);
         }
 
         private static void BindButton(Button button, UnityEngine.Events.UnityAction action)
@@ -252,6 +358,36 @@ namespace YC.Presentation
                 ? 1080f
                 : canvas.rect.height;
             return canvasHeight * 0.5f + PanelHeight * 0.5f + 48f;
+        }
+
+        private enum SettingsTab
+        {
+            General,
+            Rulebook,
+            Placeholder
+        }
+
+        private readonly struct ResolutionOption
+        {
+            private ResolutionOption(bool isFullScreen)
+            {
+                Width = 0;
+                Height = 0;
+                IsFullScreen = isFullScreen;
+            }
+
+            public ResolutionOption(int width, int height)
+            {
+                Width = width;
+                Height = height;
+                IsFullScreen = false;
+            }
+
+            public static ResolutionOption FullScreen => new ResolutionOption(true);
+            public int Width { get; }
+            public int Height { get; }
+            public bool IsFullScreen { get; }
+            public string Label => IsFullScreen ? "全屏" : Width + " × " + Height;
         }
     }
 }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c4caac71fb244d3b90ed6791229115d, type: 3}
   m_Name: EffectDialogLayoutProfile
   m_EditorClassIdentifier: 
-  sourceManifestSha256: 84988DCACCEE2575064C8BCAE1A4FD1D5EB533F993E31122397FF1EA9A9AF7BB
+  sourceManifestSha256: 47409DCBA169FDD577B10D0247FC34229D288FDA5C0FCA3B3AB7D3355A292C9A
   values:
     OverlayColor: {r: 0, g: 0, b: 0, a: 0.22}
     PanelLayout:

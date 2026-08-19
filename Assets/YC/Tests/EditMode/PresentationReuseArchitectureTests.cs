@@ -4,6 +4,7 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 using YC.Domain.CityStyles;
 using YC.Domain.Rules;
 using YC.Domain.SpecialActions;
@@ -215,6 +216,57 @@ namespace YC.Tests.EditMode
             Assert.That(usedFromTwo.y, Is.GreaterThan(usesOne.y));
             Assert.That(usesOne.y, Is.GreaterThan(usedFromOne.y));
             Assert.That(usedFromOne.y, Is.GreaterThan(usesZero.y));
+        }
+
+        [Test]
+        public void CityStyleMarkerRenderer_ResetsCanvasDepthRotationAndScale()
+        {
+            var type = Type.GetType("YC.Presentation.CityStyleMarkerRenderer, Assembly-CSharp", false);
+            var layout = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(
+                "Assets/YC/Presentation/Content/CardBoardVisualLayout.asset");
+            var configure = type == null ? null : type.GetMethod(
+                "Configure",
+                BindingFlags.Static | BindingFlags.Public);
+            Assert.That(type, Is.Not.Null);
+            Assert.That(layout, Is.Not.Null);
+            Assert.That(configure, Is.Not.Null);
+
+            var root = new GameObject("样式卡影响力标记", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            try
+            {
+                var marker = root.GetComponent<Image>();
+                marker.rectTransform.anchoredPosition3D = new Vector3(5f, -3f, 40f);
+                marker.rectTransform.localRotation = Quaternion.Euler(12f, 7f, 3f);
+                marker.rectTransform.localScale = new Vector3(2f, 0.5f, 3f);
+                var placementType = Type.GetType(
+                    "YC.Presentation.CityStyleMarkerPlacement, Assembly-CSharp",
+                    true);
+                var placement = Activator.CreateInstance(
+                    placementType,
+                    CityStyleMarkerAreas.Declared,
+                    0,
+                    0,
+                    0);
+                configure.Invoke(null, new object[]
+                {
+                    layout,
+                    marker,
+                    "样式卡影响力标记",
+                    Color.blue,
+                    null,
+                    (object)new Vector2(14f, 14f),
+                    "style.test",
+                    placement
+                });
+
+                Assert.That(marker.rectTransform.anchoredPosition3D, Is.EqualTo(Vector3.zero));
+                Assert.That(marker.rectTransform.localRotation, Is.EqualTo(Quaternion.identity));
+                Assert.That(marker.rectTransform.localScale, Is.EqualTo(Vector3.one));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
         }
 
         [Test]

@@ -1117,8 +1117,10 @@ namespace YC.Tests.EditMode
                 Assert.That(closeLabel.GetComponent<Outline>(), Is.Not.Null);
                 Assert.That(close.GetComponent<RectTransform>().anchorMin, Is.EqualTo(Vector2.one));
                 var uguiUtilityType = Type.GetType("YC.Presentation.UguiUtility, Assembly-CSharp", false);
-                Assert.That(uguiUtilityType, Is.Not.Null);
-                Assert.That(uguiUtilityType.GetMethod("CreateViewerCloseButton"), Is.Not.Null);
+                Assert.That(
+                    uguiUtilityType,
+                    Is.Null,
+                    "运行时 Assembly-CSharp 不应继续公开编辑器 Prefab 构建工具。");
                 var inputHandlerType = Type.GetType(
                     "YC.Presentation.CityStyleDeclarationPreviewInputHandler, Assembly-CSharp",
                     false);

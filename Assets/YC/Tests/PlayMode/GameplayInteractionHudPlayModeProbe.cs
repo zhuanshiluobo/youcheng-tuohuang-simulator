@@ -37,21 +37,24 @@ namespace YC.Tests.PlayMode
 
             var hud = UnityEngine.Object.FindObjectOfType<GameplayInteractionHudView>();
             var city = UnityEngine.Object.FindObjectOfType<MobileCityInteractionController>();
-            var infoPanels = UnityEngine.Object.FindObjectsOfType<ExpandableInfoPanel>();
+            var resourceBoards = UnityEngine.Object.FindObjectsOfType<ResourceCounterBoard>();
             var buildInfoPanels = UnityEngine.Object.FindObjectsOfType<BuildInfoPanel>();
-            if (infoPanels.Length != 1 || buildInfoPanels.Length != 1)
+            var characterHandPanels = UnityEngine.Object.FindObjectsOfType<CharacterHandPanel>();
+            if (resourceBoards.Length != 1 || buildInfoPanels.Length != 1 || characterHandPanels.Length != 1)
             {
-                throw new InvalidOperationException("HUD 内必须且只能有一个信息面板和一个建设面板。");
+                throw new InvalidOperationException("HUD 内必须且只能有一个资源卡板、建设面板和手牌面板。");
             }
 
             var reason = string.Empty;
             if (hud == null || city == null ||
-                hud.InfoPanel != infoPanels[0] ||
+                hud.ResourceCounterBoard != resourceBoards[0] ||
                 hud.BuildInfoPanel != buildInfoPanels[0] ||
+                hud.CharacterHandPanel != characterHandPanels[0] ||
+                !characterHandPanels[0].TryValidateConfiguration(out reason) ||
                 !GameplayInteractionHudView.TryValidateSceneBinding(
                     hud,
                     city,
-                    infoPanels[0],
+                    resourceBoards[0],
                     buildInfoPanels[0],
                     out reason))
             {
@@ -61,6 +64,9 @@ namespace YC.Tests.PlayMode
             var cardVisualCatalog = hud.DialogRegistry.CardVisualCatalog;
             RequireCardVisualCatalogCoverage(cardVisualCatalog);
             RequirePendingBuildGhost(buildInfoPanels[0], cardVisualCatalog);
+            RequireCharacterHandModal(characterHandPanels[0]);
+            RequireResourceCounterBoard(resourceBoards[0]);
+            RequireLocalPlayerResourceRefresh(city, resourceBoards[0]);
             RequirePersistentHudCoexistence(hud);
             RunDialogMigrationChecks(hud, rootsBefore);
 
@@ -316,10 +322,124 @@ namespace YC.Tests.PlayMode
         private static void RequirePersistentHudCoexistence(GameplayInteractionHudView hud)
         {
             if (hud == null || hud.Canvas == null || hud.PromptView == null || hud.ActionPanelView == null ||
-                hud.InfoPanel == null || hud.BuildInfoPanel == null || hud.DialogRegistry == null ||
+                hud.ResourceCounterBoard == null || hud.BuildInfoPanel == null || hud.CharacterHandPanel == null ||
+                hud.DialogRegistry == null ||
                 UnityEngine.Object.FindObjectOfType<RoundTrackerController>() == null)
             {
                 throw new InvalidOperationException("Prompt/Action/Round/Info/Build/DialogRegistry 必须在 Play 中共存。");
+            }
+        }
+
+        private static void RequireCharacterHandModal(CharacterHandPanel handPanel)
+        {
+            if (handPanel.View.DiscardCountText.text.Length == 0 ||
+                !handPanel.View.DiscardOverlayObject.GetComponent<Image>().raycastTarget)
+            {
+                throw new InvalidOperationException("手牌弃牌角标或全屏输入遮罩配置无效。");
+            }
+
+            handPanel.OpenDiscardPreview();
+            if (!handPanel.IsDiscardPreviewOpen)
+            {
+                throw new InvalidOperationException("弃牌预览窗口无法打开。");
+            }
+            handPanel.CloseDiscardPreview();
+        }
+
+        private static void RequireResourceCounterBoard(ResourceCounterBoard board)
+        {
+            var resources = new ResourceSet
+            {
+                Originium = 9,
+                OriginiumShard = 99,
+                Iron = 12,
+                PureOriginium = 3,
+                GoldVoucher = 7
+            };
+            board.Render(resources, false);
+            if (board.View.GearCounters[0].TensDigitText.text != "0" ||
+                board.View.GearCounters[0].OnesDigitText.text != "9" ||
+                board.View.GearCounters[1].TensDigitText.text != "9" ||
+                board.View.GearCounters[1].OnesDigitText.text != "9" ||
+                board.View.GearCounters[2].TensDigitText.text != "1" ||
+                board.View.GearCounters[2].OnesDigitText.text != "2" ||
+                board.View.GearCounters[0].TensGearCover == null ||
+                board.View.GearCounters[0].OnesGearCover == null ||
+                board.View.AuxiliaryCounters[0].AmountText.text != "3" ||
+                board.View.AuxiliaryCounters[1].AmountText.text != "7" ||
+                board.GetComponentInChildren<Button>(true) != null)
+            {
+                throw new InvalidOperationException("资源卡板五种资源或只读约束无效。");
+            }
+
+            resources.Originium = 10;
+            resources.OriginiumShard = 100;
+            resources.Iron = 11;
+            resources.PureOriginium = 4;
+            resources.GoldVoucher = 8;
+            board.Render(resources, true);
+            var advance = typeof(ResourceCounterBoard).GetMethod(
+                "AdvanceAnimations",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            advance.Invoke(board, new object[] { 1f });
+            if (board.View.GearCounters[0].TensDigitText.text != "1" ||
+                board.View.GearCounters[0].OnesDigitText.text != "0" ||
+                board.View.GearCounters[1].TensDigitText.text != "0" ||
+                board.View.GearCounters[1].OnesDigitText.text != "0" ||
+                board.View.GearCounters[2].TensDigitText.text != "1" ||
+                board.View.GearCounters[2].OnesDigitText.text != "1" ||
+                board.View.AuxiliaryCounters[0].AmountText.text != "4" ||
+                board.View.AuxiliaryCounters[1].AmountText.text != "8")
+            {
+                throw new InvalidOperationException("资源卡板动画结束后数值不精确。");
+            }
+        }
+
+        private static void RequireLocalPlayerResourceRefresh(
+            MobileCityInteractionController city,
+            ResourceCounterBoard board)
+        {
+            var sessionField = typeof(MobileCityInteractionController).GetField(
+                "session",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var localPlayerField = typeof(MobileCityInteractionController).GetField(
+                "localPlayerId",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var refresh = typeof(MobileCityInteractionController).GetMethod(
+                "RefreshResourceDisplay",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var session = (YC.Application.Sessions.GameSession)sessionField.GetValue(city);
+            var localPlayerId = (int)localPlayerField.GetValue(city);
+            var player = session.State.FindPlayer(localPlayerId);
+            var beforeOriginium = player.Resources.Originium;
+            var beforeShard = player.Resources.OriginiumShard;
+            var beforeIron = player.Resources.Iron;
+            try
+            {
+                player.Resources.Originium = 8;
+                player.Resources.OriginiumShard = 27;
+                player.Resources.Iron = 34;
+                refresh.Invoke(city, null);
+                var advance = typeof(ResourceCounterBoard).GetMethod(
+                    "AdvanceAnimations",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                advance.Invoke(board, new object[] { 1f });
+                if (board.View.GearCounters[0].TensDigitText.text != "0" ||
+                    board.View.GearCounters[0].OnesDigitText.text != "8" ||
+                    board.View.GearCounters[1].TensDigitText.text != "2" ||
+                    board.View.GearCounters[1].OnesDigitText.text != "7" ||
+                    board.View.GearCounters[2].TensDigitText.text != "3" ||
+                    board.View.GearCounters[2].OnesDigitText.text != "4")
+                {
+                    throw new InvalidOperationException("本地玩家获得资源后，十位／个位读数未刷新。");
+                }
+            }
+            finally
+            {
+                player.Resources.Originium = beforeOriginium;
+                player.Resources.OriginiumShard = beforeShard;
+                player.Resources.Iron = beforeIron;
+                refresh.Invoke(city, null);
             }
         }
 

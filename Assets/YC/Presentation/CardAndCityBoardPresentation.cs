@@ -272,6 +272,9 @@ namespace YC.Presentation
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.sizeDelta = size;
             rect.anchoredPosition = Vector2.zero;
+            rect.anchoredPosition3D = Vector3.zero;
+            rect.localRotation = Quaternion.identity;
+            rect.localScale = Vector3.one;
             marker.gameObject.name = objectName;
             marker.sprite = sprite;
             marker.color = color;

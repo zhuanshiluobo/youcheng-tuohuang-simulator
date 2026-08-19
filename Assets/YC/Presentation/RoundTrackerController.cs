@@ -50,9 +50,14 @@ namespace YC.Presentation
 
         private void Awake()
         {
+            TryInitialize();
+        }
+
+        private bool TryInitialize()
+        {
             if (initialized)
             {
-                return;
+                return IsConfigured;
             }
 
             initialized = true;
@@ -62,7 +67,7 @@ namespace YC.Presentation
                 Debug.LogError("[RoundTrackerController] 配置无效：" +
                                (view == null ? "缺少 RoundTrackerView 引用。" : reason), this);
                 enabled = false;
-                return;
+                return false;
             }
 
             IsConfigured = true;
@@ -84,6 +89,7 @@ namespace YC.Presentation
             view.FinalScoreMessage.SetActive(false);
             BuildPlayerMarkers(null);
             MoveMarkerToCurrentIndex();
+            return true;
         }
 
         private void Update()
@@ -96,9 +102,11 @@ namespace YC.Presentation
 
         public void RefreshFromState(GameState state)
         {
-            if (!IsConfigured)
+            // Scene root Awake order is undefined. The tabletop controller can request its first
+            // refresh before this component receives Awake, so initialization must be idempotent
+            // and available on demand instead of relying on sibling object ordering.
+            if (!TryInitialize())
             {
-                Debug.LogError("[RoundTrackerController] 无法刷新：View 尚未正确配置。", this);
                 return;
             }
 

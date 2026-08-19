@@ -22,7 +22,8 @@ namespace YC.Presentation
             RectTransform source,
             Texture texture,
             string fallbackLabel,
-            Font fallbackFont)
+            Font fallbackFont,
+            CardDragGhostLayout layout)
         {
             if (canvas == null || source == null)
             {
@@ -43,9 +44,7 @@ namespace YC.Presentation
             dragCanvas.sortingOrder = ResolveDragSortingOrder();
 
             var ghost = ghostObject.GetComponent<RectTransform>();
-            ghost.anchorMin = new Vector2(0.5f, 0.5f);
-            ghost.anchorMax = new Vector2(0.5f, 0.5f);
-            ghost.pivot = new Vector2(0.5f, 0.5f);
+            layout.RootLayout.ApplyTo(ghost);
             ghost.sizeDelta = source.rect.size;
 
             var image = ghostObject.GetComponent<RawImage>();
@@ -60,7 +59,7 @@ namespace YC.Presentation
 
             if (texture == null && !string.IsNullOrEmpty(fallbackLabel))
             {
-                AddFallbackLabel(ghost, fallbackLabel, fallbackFont);
+                AddFallbackLabel(ghost, fallbackLabel, fallbackFont, layout);
             }
 
             return ghost;
@@ -147,7 +146,11 @@ namespace YC.Presentation
             }
         }
 
-        private static void AddFallbackLabel(RectTransform parent, string value, Font font)
+        private static void AddFallbackLabel(
+            RectTransform parent,
+            string value,
+            Font font,
+            CardDragGhostLayout layout)
         {
             var textObject = new GameObject(
                 "Fallback",
@@ -158,8 +161,8 @@ namespace YC.Presentation
             var rect = textObject.GetComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
-            rect.offsetMin = new Vector2(8f, 8f);
-            rect.offsetMax = new Vector2(-8f, -8f);
+            rect.offsetMin = layout.FallbackOffsetMin;
+            rect.offsetMax = layout.FallbackOffsetMax;
 
             var text = textObject.GetComponent<Text>();
             text.text = value ?? string.Empty;
@@ -175,7 +178,7 @@ namespace YC.Presentation
 
             var outline = textObject.GetComponent<Outline>();
             outline.effectColor = UiTheme.DarkShadowLight;
-            outline.effectDistance = new Vector2(1f, -1f);
+            outline.effectDistance = layout.FallbackOutlineDistance;
         }
 
         private static int ResolveDragSortingOrder()
@@ -202,6 +205,8 @@ namespace YC.Presentation
     public sealed class CardPointerInteraction : MonoBehaviour,
         IPointerDownHandler,
         IPointerClickHandler,
+        IPointerEnterHandler,
+        IPointerExitHandler,
         IBeginDragHandler,
         IDragHandler,
         IEndDragHandler
@@ -214,7 +219,10 @@ namespace YC.Presentation
         private Action<PointerEventData> drag;
         private Action<PointerEventData> endDrag;
         private Action cancelDrag;
+        private Action pointerEnter;
+        private Action pointerExit;
         private bool dragging;
+        private bool pointerInside;
         private bool suppressClickForCurrentPress;
 
         public void ConfigureClick(
@@ -246,6 +254,12 @@ namespace YC.Presentation
             cancelDrag = configuredCancelDrag;
         }
 
+        public void ConfigureHover(Action configuredPointerEnter, Action configuredPointerExit)
+        {
+            pointerEnter = configuredPointerEnter;
+            pointerExit = configuredPointerExit;
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             if (IsLeftPointer(eventData))
@@ -274,6 +288,18 @@ namespace YC.Presentation
             }
 
             singleClick?.Invoke();
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            pointerInside = true;
+            pointerEnter?.Invoke();
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            pointerInside = false;
+            pointerExit?.Invoke();
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -317,6 +343,12 @@ namespace YC.Presentation
             {
                 dragging = false;
                 cancelDrag?.Invoke();
+            }
+
+            if (pointerInside)
+            {
+                pointerInside = false;
+                pointerExit?.Invoke();
             }
         }
 

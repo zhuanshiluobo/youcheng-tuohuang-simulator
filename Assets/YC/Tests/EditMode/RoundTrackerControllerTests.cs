@@ -26,6 +26,33 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void RefreshFromState_BeforeAwake_InitializesOnDemand()
+        {
+            var prefabRoot = PrefabUtility.LoadPrefabContents(
+                "Assets/YC/Presentation/Prefabs/RoundTracker/RoundTracker.prefab");
+            try
+            {
+                var type = Type.GetType("YC.Presentation.RoundTrackerController, Assembly-CSharp", false);
+                Assert.That(type, Is.Not.Null);
+                var roundTracker = prefabRoot.GetComponent(type);
+                Assert.That(roundTracker, Is.Not.Null);
+                var isConfigured = type.GetProperty("IsConfigured", BindingFlags.Instance | BindingFlags.Public);
+                var refresh = type.GetMethod("RefreshFromState", BindingFlags.Instance | BindingFlags.Public);
+                Assert.That(isConfigured, Is.Not.Null);
+                Assert.That(refresh, Is.Not.Null);
+                Assert.That((bool)isConfigured.GetValue(roundTracker), Is.False);
+
+                refresh.Invoke(roundTracker, new object[] { new GameState() });
+
+                Assert.That((bool)isConfigured.GetValue(roundTracker), Is.True);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(prefabRoot);
+            }
+        }
+
+        [Test]
         public void BuildRoundUi_CreatesTopDockedRoundTrackWithBorderFrame()
         {
             controller = CreateController();

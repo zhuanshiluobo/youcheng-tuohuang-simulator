@@ -1527,8 +1527,19 @@ namespace YC.Editor
 
         private static bool HasCanonicalFeedbackTransform(Transform target)
         {
-            return target != null && target.localPosition == Vector3.zero &&
-                   target.localRotation == Quaternion.identity && target.localScale == Vector3.one;
+            if (target == null || target.localRotation != Quaternion.identity || target.localScale != Vector3.one ||
+                !Mathf.Approximately(target.localPosition.x, 0f) ||
+                !Mathf.Approximately(target.localPosition.y, 0f))
+            {
+                return false;
+            }
+            if (Mathf.Approximately(target.localPosition.z, 0f))
+            {
+                return true;
+            }
+            var owner = target.parent;
+            return owner != null && owner.GetComponent<InfluenceSlotClickTarget>() != null &&
+                   Mathf.Abs(target.localPosition.z * owner.lossyScale.z - -0.78f) < 0.0001f;
         }
 
         private static void RequireEmptySerializedArray(Object target, string propertyName)

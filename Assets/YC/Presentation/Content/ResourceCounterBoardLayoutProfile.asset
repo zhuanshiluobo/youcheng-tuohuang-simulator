@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9aa98821bb0c203449b189b6a63c8d09, type: 3}
+  m_Name: ResourceCounterBoardLayoutProfile
+  m_EditorClassIdentifier: 
+  rootLayout:
+    AnchorMin: {x: 0, y: 1}
+    AnchorMax: {x: 0, y: 1}
+    Pivot: {x: 0, y: 1}
+    SizeDelta: {x: 432, y: 222}
+    AnchoredPosition: {x: 18, y: -18}
+  gearCounterSize: {x: 134, y: 132}
+  auxiliaryCounterSize: {x: 212, y: 50}
+  gearAnimationDuration: 0.46
+  auxiliaryAnimationDuration: 0.32
+  degreesPerStep: 36

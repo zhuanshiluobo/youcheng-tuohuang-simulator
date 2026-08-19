@@ -1423,7 +1423,7 @@ namespace YC.Tests.EditMode
         {
             const string modificationsMarker = "    m_Modifications:";
             var blockStart = sceneYaml.IndexOf(
-                "--- !u!1001 &1599970241",
+                "--- !u!1001 &952091510",
                 StringComparison.Ordinal);
             Assert.That(blockStart, Is.GreaterThanOrEqualTo(0));
             var marker = sceneYaml.IndexOf(
@@ -1447,7 +1447,7 @@ namespace YC.Tests.EditMode
         private static string ExtractHudInstanceBlock(string sceneYaml)
         {
             var start = sceneYaml.IndexOf(
-                "--- !u!1001 &1599970241",
+                "--- !u!1001 &952091510",
                 StringComparison.Ordinal);
             Assert.That(start, Is.GreaterThanOrEqualTo(0));
             var end = sceneYaml.IndexOf("\n--- ", start + 4, StringComparison.Ordinal);

@@ -26,6 +26,8 @@ namespace YC.Tests.EditMode
                 var dragUpdates = 0;
                 var dragEnds = 0;
                 var dragCancels = 0;
+                var pointerEnters = 0;
+                var pointerExits = 0;
 
                 interactionType.GetMethod("ConfigureDrag", BindingFlags.Instance | BindingFlags.Public)
                     .Invoke(interaction, new object[]
@@ -43,6 +45,18 @@ namespace YC.Tests.EditMode
                         new Action(() => singleClicks += 1),
                         new Action(() => doubleClicks += 1)
                     });
+                interactionType.GetMethod("ConfigureHover", BindingFlags.Instance | BindingFlags.Public)
+                    .Invoke(interaction, new object[]
+                    {
+                        new Action(() => pointerEnters += 1),
+                        new Action(() => pointerExits += 1)
+                    });
+
+                var hoverPointer = CreatePointer(PointerEventData.InputButton.Left, 0);
+                ((IPointerEnterHandler)interaction).OnPointerEnter(hoverPointer);
+                ((IPointerExitHandler)interaction).OnPointerExit(hoverPointer);
+                Assert.That(pointerEnters, Is.EqualTo(1));
+                Assert.That(pointerExits, Is.EqualTo(1));
 
                 var pointer = CreatePointer(PointerEventData.InputButton.Left, 1);
                 ((IPointerDownHandler)interaction).OnPointerDown(pointer);

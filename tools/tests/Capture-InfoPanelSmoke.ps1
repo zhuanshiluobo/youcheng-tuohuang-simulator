@@ -1,6 +1,7 @@
 param(
     [string]$ExePath = "Builds\Localhost\tuohuang.exe",
     [string]$OutputPath = "Logs\Screenshots\info-panel-smoke.png",
+    [string]$LogPath = "",
     [int]$Width = 1200,
     [int]$Height = 675
 )
@@ -151,10 +152,18 @@ function Save-ClientScreenshot {
 
 $resolvedExe = Resolve-Path $ExePath
 $resolvedOutput = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputPath)
+$resolvedLog = if ([string]::IsNullOrWhiteSpace($LogPath)) {
+    [System.IO.Path]::ChangeExtension($resolvedOutput, ".log")
+}
+else {
+    $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($LogPath)
+}
 $arguments = @(
     "-screen-width", $Width,
     "-screen-height", $Height,
-    "-screen-fullscreen", "0"
+    "-screen-fullscreen", "0",
+    "--yc-dev-start-localhost",
+    "-logFile", $resolvedLog
 )
 
 $process = Start-Process -FilePath $resolvedExe -WorkingDirectory (Split-Path -Parent $resolvedExe) -ArgumentList $arguments -PassThru
@@ -163,11 +172,12 @@ $handle = [IntPtr]::Zero
 try {
     $handle = Get-WindowHandle -Process $process
     Activate-GameWindow -Handle $handle
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 5
 
-    Click-ClientPoint -Handle $handle -X ([int]($Width * 0.56)) -Y ([int]($Height * 0.51))
-    Start-Sleep -Seconds 3
-
+    # Loading SampleScene may recreate the native Player window. Resolve the
+    # handle again before sending input or capturing the client area.
+    $handle = Get-WindowHandle -Process $process
+    Activate-GameWindow -Handle $handle
     Click-ClientPoint -Handle $handle -X 30 -Y ([int]($Height * 0.5))
     Start-Sleep -Seconds 2
 

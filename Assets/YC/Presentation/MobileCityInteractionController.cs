@@ -27,7 +27,7 @@ namespace YC.Presentation
         [SerializeField] private bool debugClicks;
         [SerializeField] private GameSettingsMenuController settingsMenu;
         [SerializeField] private GameplayInteractionHudView gameplayInteractionHud;
-        [SerializeField] private ExpandableInfoPanel infoPanel;
+        [SerializeField] private ResourceCounterBoard resourceCounterBoard;
         [SerializeField] private BuildInfoPanel buildInfoPanel;
 
         private GameSession session;
@@ -52,6 +52,7 @@ namespace YC.Presentation
         private MapViewPresenter mapView;
         private Canvas uiCanvas;
         private ActionPanelController actionPanel;
+        private CharacterHandPanel characterHandPanel;
         private CharacterMapInteractionCoordinator characterMapInteraction;
         private CharacterCardInteraction characterCardInteraction;
         private PromptPresenter promptPresenter;
@@ -79,7 +80,7 @@ namespace YC.Presentation
             if (!GameplayInteractionHudView.TryValidateSceneBinding(
                     gameplayInteractionHud,
                     this,
-                    infoPanel,
+                    resourceCounterBoard,
                     buildInfoPanel,
                     out var hudReason))
             {
@@ -88,9 +89,7 @@ namespace YC.Presentation
             }
 
             var cardVisualCatalog = gameplayInteractionHud.DialogRegistry.CardVisualCatalog;
-            if (!infoPanel.ConfigureCardVisualCatalog(cardVisualCatalog) ||
-                !buildInfoPanel.ConfigureCardVisualCatalog(cardVisualCatalog) ||
-                !infoPanel.Bind(infoPanel.View) ||
+            if (!buildInfoPanel.ConfigureCardVisualCatalog(cardVisualCatalog) ||
                 !buildInfoPanel.Bind(buildInfoPanel.View))
             {
                 Debug.LogError("[MobileCityInteractionController] 信息面板固定 View 绑定失败。", this);
@@ -113,10 +112,9 @@ namespace YC.Presentation
 
             mapRenderer = mapViewBinding.MapRenderer;
 
-            if (targetCamera == null)
-            {
-                targetCamera = Camera.main;
-            }
+            if (targetCamera == null) targetCamera = Camera.main;
+
+            if (!TabletopRuntimeBootstrap.TryConfigure(gameplayInteractionHud.TabletopCanvas, targetCamera, mapRenderer, this)) return;
 
             ReadRightCardSmokeCommandLine();
             BuildSession();
@@ -138,7 +136,7 @@ namespace YC.Presentation
                 eventChoiceDialog,
                 SetPrompt,
                 SynchronizeInteractionFromState,
-                RefreshInfoPanel,
+                RefreshResourceCounter,
                 RefreshActionPanel,
                 RefreshResourceDisplay,
                 RefreshInfluenceDisplay,
@@ -213,7 +211,7 @@ namespace YC.Presentation
                 enabled = false;
                 return;
             }
-            RefreshInfoPanel();
+            RefreshResourceCounter(false);
             EnsureSettingsMenu();
             ShowInitialPlacementChoices();
             facilityEffectChoiceDialog = new FacilityEffectChoiceDialog(
@@ -381,45 +379,25 @@ namespace YC.Presentation
             Debug.LogError("MobileCityInteractionController 缺少 GameSettingsMenuController 场景引用。", this);
         }
 
-        private void RefreshInfoPanel()
+        private void RefreshResourceCounter()
         {
-            if (infoPanel == null) return;
+            RefreshResourceCounter(true);
+        }
 
+        private void RefreshResourceCounter(bool animate)
+        {
+            if (resourceCounterBoard == null) return;
             var player = session.State.FindPlayer(localPlayerId);
             if (player == null) return;
-
-            var r = player.Resources;
-            infoPanel.SetRowValue("资源状态", "源岩", r.Originium.ToString());
-            infoPanel.SetRowValue("资源状态", "源石", r.OriginiumShard.ToString());
-            infoPanel.SetRowValue("资源状态", "异铁", r.Iron.ToString());
-            infoPanel.SetRowValue("资源状态", "至纯源石", r.PureOriginium.ToString());
-            infoPanel.SetRowValue("资源状态", "金券", r.GoldVoucher.ToString());
-            infoPanel.SetPlayerDeclarations(session.State.Players);
+            resourceCounterBoard.Render(player.Resources, animate);
             var characterView = characterCardPresenter == null
                 ? CharacterCardPanelViewModel.Empty("角色牌信息尚未初始化。")
                 : characterCardPresenter.BuildView(session.State, localPlayerId);
-            if (characterView.CanCover && !infoPanel.IsExpanded) infoPanel.SetExpandedState(true);
             if (!characterView.CanUse)
             {
                 showCharacterUseOptions = false;
             }
-            if (characterCardCoverDrag == null)
-            {
-                characterCardCoverDrag = new CharacterCardCoverDragCoordinator(
-                    () => actionPanel,
-                    SubmitCoverCharacterCard,
-                    SetPrompt);
-            }
-            infoPanel.ConfigureCharacterCardDragInteraction(
-                characterCardCoverDrag.Begin,
-                characterCardCoverDrag.Update,
-                characterCardCoverDrag.End);
-            infoPanel.SetCharacterCards(
-                characterView,
-                showCharacterUseOptions,
-                SubmitCoverCharacterCard,
-                SubmitUseCharacterCard);
-
+            characterHandPanel?.Render(localPlayerId, characterView);
             RefreshBuildInfoPanel();
         }
 
@@ -447,6 +425,11 @@ namespace YC.Presentation
                 return true;
             }
 
+            if (characterHandPanel != null && characterHandPanel.TryHandleEscape())
+            {
+                interactionEscapeConsumedFrame = Time.frameCount;
+                return true;
+            }
             if (interactionRouter == null)
             {
                 return false;
@@ -582,7 +565,7 @@ namespace YC.Presentation
 
             characterSettlementInProgress = false;
             showCharacterUseOptions = false;
-            infoPanel?.CloseCharacterCardViewer();
+            characterHandPanel?.CloseCharacterCardViewer();
         }
 
         private void PresentLatestCharacterSettlementBroadcast()
@@ -691,8 +674,24 @@ namespace YC.Presentation
                 OnDeclareCityStyleClicked,
                 BeginDeployAction, BeginDispatchAction, BeginExploreAction, BeginMoveAction, EndCurrentAction);
             if (promptPresenter == null || actionPanel == null) { Debug.LogError("[MobileCityInteractionController] 交互 HUD 行为绑定失败。", this); return false; }
+            characterHandPanel = gameplayInteractionHud.CharacterHandPanel;
+            characterCardCoverDrag = new CharacterCardCoverDragCoordinator(
+                () => actionPanel,
+                SubmitCoverCharacterCard,
+                SetPrompt);
+            if (characterHandPanel == null ||
+                !characterHandPanel.Configure(
+                    gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
+                    characterCardCoverDrag.Begin,
+                    characterCardCoverDrag.Update,
+                    characterCardCoverDrag.End))
+            {
+                Debug.LogError("[MobileCityInteractionController] 手牌面板行为绑定失败。", this);
+                return false;
+            }
             actionPanel.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
-            actionPanel.ConfigureCharacterCardViewerAction(() => infoPanel?.OpenCoveredCharacterCardViewer());
+            actionPanel.ConfigureCharacterCardViewerAction(
+                () => characterHandPanel?.OpenCoveredCharacterCardViewer());
             actionPanel.ConfigureCharacterFlipAction(FinishCharacterUseOnFlip);
             RefreshActionPanel();
             return true;
@@ -823,7 +822,7 @@ namespace YC.Presentation
                     message =>
                     {
                         SetPrompt(message);
-                        RefreshInfoPanel();
+                        RefreshResourceCounter();
                     },
                     remotePrompt)
                 {
@@ -886,7 +885,7 @@ namespace YC.Presentation
 
         private void RefreshResourceDisplay()
         {
-            RefreshInfoPanel();
+            RefreshResourceCounter();
             RefreshResourceTokenDisplay();
         }
 
@@ -974,7 +973,8 @@ namespace YC.Presentation
 
             lastDebugCoordinateLogFrame = Time.frameCount;
             var screenPosition = Input.mousePosition;
-            var worldPosition = targetCamera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, -targetCamera.transform.position.z));
+            if (!MapCameraGeometry.TryScreenToMapPlane(targetCamera, screenPosition, mapRenderer, out var worldPosition)) return;
+
             var normalizedPosition = mapView.ToNormalizedMapPosition(worldPosition);
             Debug.Log(string.Format(
                 "Map click world=({0:F3}, {1:F3}) normalized=({2:F3}, {3:F3})",

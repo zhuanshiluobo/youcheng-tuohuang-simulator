@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53838c8320a960346a22e073f192d65f, type: 3}
+  m_Name: CharacterHandLayoutProfile
+  m_EditorClassIdentifier: 
+  sourceManifestSha256: 6FB4251B920FF7680E688394065DB5DCE430C637F9BA15379C2FDCA7AAC05BCE
+  cardSize: {x: 180, y: 255}
+  fanSpacing: 112
+  fanMaxAngle: 14
+  passiveVisibleFraction: 0.3
+  passiveAlpha: 0.38
+  hoverScale: 1.18
+  hoverAlpha: 0.82
+  hoverBottom: 16
+  expandedSpacing: 145
+  expandedMaxAngle: 6
+  expandedBottom: 32
+  fanCenterOffsetX: -140
+  overlayCardSize: {x: 176, y: 249}
+  overlaySpacing: {x: 18, y: 18}
+  discardAlpha: 0.65
+  discardButtonSize: {x: 68, y: 68}
+  discardButtonPosition: {x: -372, y: 12}
+  modalPanelSize: {x: 1420, y: 720}
+  modalPanelPosition: {x: -140, y: 0}

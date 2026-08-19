@@ -26,6 +26,8 @@ namespace YC.EditorTools
         {
             var cardBoardVisualLayout =
                 YC.Editor.SpatialLayoutEditorAssetBuilder.LoadRequiredCardBoardLayout();
+            var cardInteractionLayoutProfile =
+                YC.Editor.SecondaryLayoutEditorAssetBuilder.LoadRequiredCardProfile();
             var stagingCanvasObject = CreateUiObject(
                 "City Style Preview Staging Canvas",
                 null,
@@ -64,7 +66,7 @@ namespace YC.EditorTools
                     FontStyle.Bold, UiTheme.GoldText, TextAnchor.MiddleCenter,
                     new Vector2(680f, 52f), new Vector2(0f, 410f));
 
-                var closeButton = UguiUtility.CreateViewerCloseButton(
+                var closeButton = UguiEditorUtility.CreateViewerCloseButton(
                     panel,
                     "Close City Style Declaration Preview Button",
                     () => { });
@@ -289,6 +291,7 @@ namespace YC.EditorTools
                     ("closeButton", closeButton),
                     ("closeButtonLabel", closeLabel),
                     ("cardBoardVisualLayout", cardBoardVisualLayout),
+                    ("cardInteractionLayoutProfile", cardInteractionLayoutProfile),
                     ("cityStyleCardImage", cardImage),
                     ("cityStyleInfluenceMarkerRoot", markerRoot),
                     ("cityStyleCardPlaceholder", cardPlaceholder),

@@ -30,8 +30,17 @@ namespace YC.Tests.PlayMode
                 view.GetComponentsInChildren<MapHotspot>(true).Length != 22 ||
                 view.GetComponentsInChildren<MapHighlightPulse>(true).Length != 99 ||
                 view.GetComponentsInChildren<MapPlacementFeedback>(true).Length != 99 ||
-                view.GetComponentsInChildren<Animator>(true).Length != 99)
+                view.GetComponentsInChildren<Animator>(true).Length != 99 ||
+                view.GetComponentsInChildren<MapPieceVisual>(true).Length != 85 ||
+                view.GetComponentsInChildren<MeshRenderer>(true).Length != 85 ||
+                view.GetComponentsInChildren<Light>(true).Length != 1 ||
+                view.GetComponentsInChildren<Collider>(true).Length != 0 ||
+                view.GetComponentsInChildren<Rigidbody>(true).Length != 0)
                 throw new InvalidOperationException("运行时地图固定池拓扑发生变化。");
+            var pieceRenderers = view.GetComponentsInChildren<MeshRenderer>(true);
+            if (pieceRenderers.Any(renderer => renderer.sharedMaterials.Length != 1) ||
+                pieceRenderers.Select(renderer => renderer.sharedMaterial).Distinct().Count() != 1)
+                throw new InvalidOperationException("运行时地图棋子必须共享一个玩家颜色材质。");
             var animators = view.GetComponentsInChildren<Animator>(true);
             if (animators.Any(animator =>
                     animator.enabled ||

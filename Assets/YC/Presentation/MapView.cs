@@ -204,9 +204,15 @@ namespace YC.Presentation
                 if (binding == null || string.IsNullOrEmpty(binding.SlotId) ||
                     binding.Renderer == null || binding.Collider == null || binding.ClickTarget == null ||
                     binding.BorderRenderer == null || binding.BorderPulse == null ||
-                    binding.PlacementFeedback == null)
+                    binding.PlacementFeedback == null || binding.PieceVisual == null)
                 {
                     reason = "Map view has an invalid influence slot binding at index " + i + ".";
+                    return false;
+                }
+
+                if (!binding.PieceVisual.TryValidateConfiguration(out reason))
+                {
+                    reason = "Map view influence slot " + binding.SlotId + " has an invalid piece visual: " + reason;
                     return false;
                 }
 
@@ -235,9 +241,23 @@ namespace YC.Presentation
                 var city = cityPool[i];
                 var score = scoreMarkerPool[i];
                 if (city == null || city.Renderer == null || city.Collider == null || city.ClickTarget == null ||
-                    score == null || score.Renderer == null || score.BorderRenderer == null)
+                    city.PieceVisual == null ||
+                    score == null || score.Renderer == null || score.BorderRenderer == null ||
+                    score.PieceVisual == null)
                 {
                     reason = "Map view has an invalid player pool binding at index " + i + ".";
+                    return false;
+                }
+
+                if (!city.PieceVisual.TryValidateConfiguration(out reason))
+                {
+                    reason = "Map view city P" + city.PlayerId + " has an invalid piece visual: " + reason;
+                    return false;
+                }
+
+                if (!score.PieceVisual.TryValidateConfiguration(out reason))
+                {
+                    reason = "Map view score marker P" + score.PlayerId + " has an invalid piece visual: " + reason;
                     return false;
                 }
 
@@ -308,12 +328,14 @@ namespace YC.Presentation
         [SerializeField] private SpriteRenderer borderRenderer;
         [SerializeField] private MapHighlightPulse borderPulse;
         [SerializeField] private MapPlacementFeedback placementFeedback;
+        [SerializeField] private MapPieceVisual pieceVisual;
 
         public string SlotId => slotId;
         public SpriteRenderer Renderer => renderer;
         public CircleCollider2D Collider => collider;
         public InfluenceSlotClickTarget ClickTarget => clickTarget;
         public SpriteRenderer BorderRenderer => borderRenderer;
+        public MapPieceVisual PieceVisual => pieceVisual;
         internal MapHighlightPulse BorderPulse => borderPulse;
         internal MapPlacementFeedback PlacementFeedback => placementFeedback;
     }
@@ -325,10 +347,12 @@ namespace YC.Presentation
         [SerializeField] private SpriteRenderer renderer;
         [SerializeField] private BoxCollider2D collider;
         [SerializeField] private MobileCityClickTarget clickTarget;
+        [SerializeField] private MapPieceVisual pieceVisual;
         public int PlayerId => playerId;
         public SpriteRenderer Renderer => renderer;
         public BoxCollider2D Collider => collider;
         public MobileCityClickTarget ClickTarget => clickTarget;
+        public MapPieceVisual PieceVisual => pieceVisual;
     }
 
     [Serializable]
@@ -337,8 +361,10 @@ namespace YC.Presentation
         [SerializeField] private int playerId;
         [SerializeField] private SpriteRenderer renderer;
         [SerializeField] private SpriteRenderer borderRenderer;
+        [SerializeField] private MapPieceVisual pieceVisual;
         public int PlayerId => playerId;
         public SpriteRenderer Renderer => renderer;
         public SpriteRenderer BorderRenderer => borderRenderer;
+        public MapPieceVisual PieceVisual => pieceVisual;
     }
 }

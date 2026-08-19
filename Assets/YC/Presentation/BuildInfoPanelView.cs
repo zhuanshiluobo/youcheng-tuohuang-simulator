@@ -5,6 +5,7 @@ namespace YC.Presentation
 {
     public sealed class BuildInfoPanelView : MonoBehaviour
     {
+        [SerializeField] private CardInteractionLayoutProfile cardInteractionLayoutProfile;
         [SerializeField] private BuildInfoPanel controller;
         [SerializeField] private RectTransform root;
         [SerializeField] private RectTransform panelTransform;
@@ -24,6 +25,7 @@ namespace YC.Presentation
         [SerializeField] private BuildInfoItemView pendingBuildGhostTemplate;
 
         public BuildInfoPanel Controller => controller;
+        public CardInteractionLayoutProfile CardInteractionLayoutProfile => cardInteractionLayoutProfile;
         public RectTransform Root => root;
         public RectTransform PanelTransform => panelTransform;
         public RectTransform ContentArea => contentArea;
@@ -49,6 +51,13 @@ namespace YC.Presentation
         public bool TryValidateConfiguration(out string reason)
         {
             reason = string.Empty;
+            if (cardInteractionLayoutProfile == null ||
+                !cardInteractionLayoutProfile.TryValidateConfiguration(out reason))
+            {
+                reason = "建设面板缺少有效的卡牌交互布局 Profile：" + reason;
+                return false;
+            }
+
             if (controller == null || root == null || panelTransform == null || contentArea == null ||
                 contentRoot == null || externalFacilityArea == null || externalCityStyleArea == null ||
                 buildAvailabilityText == null || cityBoardRoot == null || cityBoardImage == null ||

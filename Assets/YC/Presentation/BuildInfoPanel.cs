@@ -360,8 +360,8 @@ namespace YC.Presentation
             pendingBuildGhostSlotIndex = cityBoardSlotIndex;
             var ghost = InstantiateItem(view.PendingBuildGhostTemplate, slot.Rect, "本地建设虚影");
             pendingBuildGhost = ghost.Root;
-            pendingBuildGhost.anchorMin = new Vector2(0.08f, 0.08f);
-            pendingBuildGhost.anchorMax = new Vector2(0.92f, 0.92f);
+            pendingBuildGhost.anchorMin = view.CardInteractionLayoutProfile.PendingBuildGhostAnchorMin;
+            pendingBuildGhost.anchorMax = view.CardInteractionLayoutProfile.PendingBuildGhostAnchorMax;
             pendingBuildGhost.offsetMin = Vector2.zero;
             pendingBuildGhost.offsetMax = Vector2.zero;
 
@@ -552,8 +552,8 @@ namespace YC.Presentation
                         ? FacilityEffectSelectableOutline
                         : ExternalCardNormalOutline;
                     binding.Outline.effectDistance = selectableForEffect
-                        ? new Vector2(3f, -3f)
-                        : new Vector2(1f, -1f);
+                        ? view.CardInteractionLayoutProfile.FacilitySelectableOutlineDistance
+                        : view.CardInteractionLayoutProfile.NormalOutlineDistance;
                 }
                 else
                 {
@@ -596,9 +596,7 @@ namespace YC.Presentation
 
             var ghost = InstantiateItem(view.DragGhostTemplate, canvas.transform, "建设卡拖动虚影");
             ghost.transform.SetAsLastSibling();
-            ghost.Root.anchorMin = new Vector2(0.5f, 0.5f);
-            ghost.Root.anchorMax = new Vector2(0.5f, 0.5f);
-            ghost.Root.pivot = new Vector2(0.5f, 0.5f);
+            view.CardInteractionLayoutProfile.DragGhostLayout.RootLayout.ApplyTo(ghost.Root);
             ghost.Root.sizeDelta = binding.Button.GetComponent<RectTransform>().rect.size;
             ghost.Canvas.overrideSorting = true;
             ghost.Canvas.sortingOrder = Mathf.Max(140, canvas.sortingOrder + 1);
@@ -676,7 +674,7 @@ namespace YC.Presentation
                 binding.Image.color = highlighted ? LegalCityBoardSlotBackground : binding.DefaultBackground;
                 binding.Outline.effectColor = highlighted ? LegalCityBoardSlotOutline : binding.DefaultOutline;
                 binding.Outline.effectDistance = highlighted
-                    ? new Vector2(2f, -2f)
+                    ? view.CardInteractionLayoutProfile.LegalCityBoardSlotOutlineDistance
                     : binding.DefaultOutlineDistance;
             }
         }
@@ -841,7 +839,7 @@ namespace YC.Presentation
             return CityStyleDatabase.PresentationSupplyIds;
         }
 
-        private static void SetExternalCardRect(
+        private void SetExternalCardRect(
             RectTransform rect,
             int index,
             int columnCount,
@@ -851,9 +849,7 @@ namespace YC.Presentation
             float verticalSpacing,
             float leftPadding = ExternalCardFramePadding)
         {
-            rect.anchorMin = new Vector2(0f, 1f);
-            rect.anchorMax = new Vector2(0f, 1f);
-            rect.pivot = new Vector2(0f, 1f);
+            view.CardInteractionLayoutProfile.ExternalCardAnchorLayout.ApplyTo(rect);
             rect.sizeDelta = new Vector2(cardWidth, cardHeight);
             rect.anchoredPosition = new Vector2(
                 leftPadding + (index % columnCount) * (cardWidth + horizontalSpacing),
@@ -866,7 +862,7 @@ namespace YC.Presentation
             UpdateExternalCardHighlights(cityStyleCardBindings, string.Empty);
         }
 
-        private static void UpdateExternalCardHighlights(List<ExternalCardBinding> bindings, string selectedId)
+        private void UpdateExternalCardHighlights(List<ExternalCardBinding> bindings, string selectedId)
         {
             for (var i = 0; i < bindings.Count; i++)
             {
@@ -882,10 +878,12 @@ namespace YC.Presentation
             }
         }
 
-        private static void SetExternalCardOutline(Outline outline, bool selected)
+        private void SetExternalCardOutline(Outline outline, bool selected)
         {
             outline.effectColor = selected ? ExternalCardSelectedOutline : ExternalCardNormalOutline;
-            outline.effectDistance = selected ? new Vector2(3f, -3f) : new Vector2(1f, -1f);
+            outline.effectDistance = selected
+                ? view.CardInteractionLayoutProfile.FacilitySelectableOutlineDistance
+                : view.CardInteractionLayoutProfile.NormalOutlineDistance;
         }
 
         private void AddCityBoardSection()
@@ -910,7 +908,9 @@ namespace YC.Presentation
                     : Vector3.zero;
                 binding.Image.color = isEmpty ? InvisibleCityBoardSlotColor : OccupiedCityBoardSlotBackground;
                 binding.Outline.effectColor = isEmpty ? InvisibleCityBoardSlotColor : UiTheme.GoldOutlineThin;
-                binding.Outline.effectDistance = isEmpty ? Vector2.zero : new Vector2(1f, -1f);
+                binding.Outline.effectDistance = isEmpty
+                    ? Vector2.zero
+                    : view.CardInteractionLayoutProfile.NormalOutlineDistance;
                 binding.DefaultBackground = binding.Image.color;
                 binding.DefaultOutline = binding.Outline.effectColor;
                 binding.DefaultOutlineDistance = binding.Outline.effectDistance;

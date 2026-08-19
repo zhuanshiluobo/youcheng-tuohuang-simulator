@@ -58,6 +58,53 @@ namespace YC.Tests.EditMode
             Assert.That(JsonUtility.ToJson(state), Is.EqualTo(originalState));
         }
 
+        [Test]
+        public void PointerMapCoordinate_WithPerspectiveCamera_IntersectsRendererPlane()
+        {
+            var geometryType = Type.GetType(
+                "YC.Presentation.MapCameraGeometry, Assembly-CSharp",
+                false);
+            Assert.That(geometryType, Is.Not.Null);
+
+            owner = new GameObject("Perspective Map Coordinate Test");
+            var cameraOwner = new GameObject("Camera");
+            cameraOwner.transform.SetParent(owner.transform, false);
+            var camera = cameraOwner.AddComponent<Camera>();
+            camera.orthographic = false;
+            camera.fieldOfView = 45f;
+            camera.transform.position = new Vector3(0f, -10f, -10f);
+            camera.transform.LookAt(Vector3.zero);
+
+            var mapOwner = new GameObject("Map");
+            mapOwner.transform.SetParent(owner.transform, false);
+            var renderer = mapOwner.AddComponent<SpriteRenderer>();
+            var texture = new Texture2D(16, 16);
+            var sprite = Sprite.Create(texture, new Rect(0f, 0f, 16f, 16f), new Vector2(0.5f, 0.5f));
+            try
+            {
+                renderer.sprite = sprite;
+                var method = geometryType.GetMethod(
+                    "TryScreenToMapPlane",
+                    BindingFlags.Static | BindingFlags.Public);
+                Assert.That(method, Is.Not.Null);
+
+                var arguments = new object[]
+                {
+                    camera,
+                    (Vector2)camera.WorldToScreenPoint(Vector3.zero),
+                    renderer,
+                    Vector3.zero
+                };
+                Assert.That(method.Invoke(null, arguments), Is.True);
+                Assert.That(((Vector3)arguments[3] - Vector3.zero).sqrMagnitude, Is.LessThan(0.000001f));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(sprite);
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
+        }
+
         private Component CreateController(GameState state, RecordingCommandPort commands)
         {
             var controllerType = Type.GetType(

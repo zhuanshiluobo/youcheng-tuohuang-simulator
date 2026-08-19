@@ -34,6 +34,8 @@ namespace YC.EditorTools
         {
             var cardBoardVisualLayout =
                 YC.Editor.SpatialLayoutEditorAssetBuilder.LoadRequiredCardBoardLayout();
+            var cardInteractionLayoutProfile =
+                YC.Editor.SecondaryLayoutEditorAssetBuilder.LoadRequiredCardProfile();
             var cityBoardTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(CityBoardTexturePath);
             if (cityBoardTexture == null)
             {
@@ -144,6 +146,7 @@ namespace YC.EditorTools
                 ("cardBoardVisualLayout", cardBoardVisualLayout));
             SetReferences(
                 view,
+                ("cardInteractionLayoutProfile", cardInteractionLayoutProfile),
                 ("controller", controller),
                 ("root", root.GetComponent<RectTransform>()),
                 ("panelTransform", panelRect),

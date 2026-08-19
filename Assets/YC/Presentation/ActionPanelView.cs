@@ -5,6 +5,8 @@ namespace YC.Presentation
 {
     public sealed class ActionPanelView : MonoBehaviour
     {
+        [SerializeField] private ActionPanelLayoutProfile layoutProfile;
+
         [Header("Faces")]
         [SerializeField] private GameObject panelObject;
         [SerializeField] private GameObject mainFaceObject;
@@ -42,6 +44,7 @@ namespace YC.Presentation
         [SerializeField] private Button endRoundButton;
 
         public GameObject PanelObject => panelObject;
+        public ActionPanelLayoutProfile LayoutProfile => layoutProfile;
         public GameObject MainFaceObject => mainFaceObject;
         public GameObject CardFaceObject => cardFaceObject;
         public RectTransform CardImageContainer => cardImageContainer;
@@ -74,6 +77,13 @@ namespace YC.Presentation
 
         public bool TryValidateConfiguration(out string reason)
         {
+            reason = string.Empty;
+            if (layoutProfile == null || !layoutProfile.TryValidateConfiguration(out reason))
+            {
+                reason = "行动面板缺少有效的显式布局 Profile：" + reason;
+                return false;
+            }
+
             if (panelObject == null || mainFaceObject == null || cardFaceObject == null)
             {
                 reason = "行动面板固定面引用不完整。";

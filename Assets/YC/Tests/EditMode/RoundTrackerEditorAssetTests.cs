@@ -159,11 +159,50 @@ namespace YC.Tests.EditMode
 
             var promptSource = File.ReadAllText(Path.Combine(UnityEngine.Application.dataPath, "YC/Presentation/PromptPresenter.cs"));
             var declarationSource = File.ReadAllText(Path.Combine(UnityEngine.Application.dataPath, "YC/Presentation/CityStyleDeclarationPreviewDialog.cs"));
-            var utilitySource = File.ReadAllText(Path.Combine(UnityEngine.Application.dataPath, "YC/Presentation/UguiUtility.cs"));
             StringAssert.DoesNotContain("EnsureEventSystem", promptSource);
             StringAssert.DoesNotContain("EnsureEventSystem", declarationSource);
-            StringAssert.DoesNotContain("EnsureEventSystem", utilitySource);
-            StringAssert.DoesNotContain("new GameObject(\"EventSystem\"", utilitySource);
+            Assert.That(
+                File.Exists(Path.Combine(UnityEngine.Application.dataPath, "YC/Presentation/UguiUtility.cs")),
+                Is.False,
+                "UGUI Prefab 构建工具不得留在运行时 Presentation 边界。");
+        }
+
+        [Test]
+        public void ProductionPresentation_CreatesOnlyFiveApprovedDynamicGameObjects()
+        {
+            var presentationRoot = Path.Combine(UnityEngine.Application.dataPath, "YC/Presentation");
+            var sourcePaths = Directory.GetFiles(presentationRoot, "*.cs", SearchOption.AllDirectories);
+            var expectedCounts = new System.Collections.Generic.Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                { "CardPointerInteraction.cs", 2 },
+                { "FontHealthCheckRunner.cs", 2 },
+                { "GameLaunchContext.cs", 1 }
+            };
+            var actualCounts = new System.Collections.Generic.Dictionary<string, int>(StringComparer.Ordinal);
+            var total = 0;
+
+            for (var i = 0; i < sourcePaths.Length; i++)
+            {
+                var normalizedPath = sourcePaths[i].Replace('\\', '/');
+                if (normalizedPath.Contains("/Editor/") || normalizedPath.Contains("/Tests/"))
+                {
+                    continue;
+                }
+
+                var count = Regex.Matches(
+                    File.ReadAllText(sourcePaths[i]),
+                    @"new\s+GameObject\s*\(").Count;
+                if (count == 0)
+                {
+                    continue;
+                }
+
+                actualCounts.Add(Path.GetFileName(sourcePaths[i]), count);
+                total += count;
+            }
+
+            Assert.That(total, Is.EqualTo(5), "生产 Presentation 的动态 GameObject 构造总数发生漂移。");
+            Assert.That(actualCounts, Is.EquivalentTo(expectedCounts));
         }
 
         [Test]

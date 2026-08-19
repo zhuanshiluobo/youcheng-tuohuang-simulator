@@ -21,13 +21,18 @@ namespace YC.EditorTools
             "Assets/YC/Presentation/Sprites/Map/MapVisualSprites.asset";
         public const string PrefabPath =
             "Assets/YC/Presentation/Prefabs/Map/MapView.prefab";
+        public const string PieceMaterialPath =
+            "Assets/YC/Presentation/Materials/MapPiecePlayerColor.mat";
+        public const string MobileCityPiecePrefabPath =
+            "Assets/YC/Presentation/Prefabs/Map/Pieces/MobileCityPiece.prefab";
+        public const string InfluencePiecePrefabPath =
+            "Assets/YC/Presentation/Prefabs/Map/Pieces/InfluencePiece.prefab";
         public const string SampleScenePath = "Assets/Scenes/SampleScene.unity";
 
         private const string TargetChildName = "MapView";
-        private const float HotspotZ = -0.2f;
-        private const float ResourceTokenZ = -0.18f;
-        private const float LocationSlotZ = -0.25f;
-        private const float RouteSlotZ = -0.24f;
+        private const float MapPlaneZ = 0f;
+        private const float ScoreMarkerZ = -0.62f;
+        private const float PieceOverlayLocalZ = 0f;
 
         [MenuItem("Tools/YC/Rebuild Map View Editor Assets")]
         public static void Rebuild()
@@ -69,7 +74,19 @@ namespace YC.EditorTools
                 throw new InvalidOperationException(
                     "MapVisualSprites.asset could not be reloaded after Atlas packing.");
             }
-            var prefab = BuildPrefab(map, layout, library, feedbackVisuals);
+            var influencePiecePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(InfluencePiecePrefabPath);
+            var mobileCityPiecePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(MobileCityPiecePrefabPath);
+            if (influencePiecePrefab == null || mobileCityPiecePrefab == null)
+            {
+                throw new InvalidOperationException("缺少 InfluencePiece 或 MobileCityPiece Prefab。");
+            }
+            var prefab = BuildPrefab(
+                map,
+                layout,
+                library,
+                feedbackVisuals,
+                influencePiecePrefab,
+                mobileCityPiecePrefab);
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(SpriteLibraryPath, ImportAssetOptions.ForceUpdate);
             AssetDatabase.ImportAsset(PrefabPath, ImportAssetOptions.ForceUpdate);
@@ -139,7 +156,8 @@ namespace YC.EditorTools
                 errors.Add("MapRoot/MapView 未保持目标 Prefab connected。");
             var controller = mapRoot.GetComponent<MobileCityInteractionController>();
             var displayController = child.GetComponent<MapDisplayController>();
-            if (controller == null || displayController == null || view == null)
+            var navigationBounds = child.GetComponent<TabletopViewportNavigationBounds>();
+            if (controller == null || displayController == null || navigationBounds == null || view == null)
                 errors.Add("MapRoot 固定组件缺失。");
             else
             {
@@ -148,7 +166,8 @@ namespace YC.EditorTools
                     RequireProperty(controllerSerialized, "mapRenderer").objectReferenceValue != view.MapRenderer)
                     errors.Add("MobileCityInteractionController 地图引用未序列化到固定 MapView。");
                 var displaySerialized = new SerializedObject(displayController);
-                if (RequireProperty(displaySerialized, "mapRenderer").objectReferenceValue != view.MapRenderer)
+                if (RequireProperty(displaySerialized, "mapRenderer").objectReferenceValue != view.MapRenderer ||
+                    RequireProperty(displaySerialized, "navigationBoundsSource").objectReferenceValue != navigationBounds)
                     errors.Add("MapRoot MapCoordinateSpace 固定引用不完整。");
             }
             var mapRootComponents = mapRoot.GetComponents<Component>();
@@ -447,7 +466,9 @@ namespace YC.EditorTools
             GameMapDefinition map,
             MapDisplayLayout layout,
             MapVisualSpriteLibrary library,
-            YC.Editor.MapFeedbackVisualAssetSet feedbackVisuals)
+            YC.Editor.MapFeedbackVisualAssetSet feedbackVisuals,
+            GameObject influencePiecePrefab,
+            GameObject mobileCityPiecePrefab)
         {
             var root = new GameObject(TargetChildName);
             try
@@ -455,8 +476,12 @@ namespace YC.EditorTools
                 var coordinateRenderer = root.AddComponent<SpriteRenderer>();
                 coordinateRenderer.sprite = layout.MapSprite;
                 coordinateRenderer.enabled = true;
+                var navigationBounds = root.AddComponent<TabletopViewportNavigationBounds>();
                 var displayController = root.AddComponent<MapDisplayController>();
-                SetReferences(displayController, ("mapRenderer", coordinateRenderer));
+                SetReferences(
+                    displayController,
+                    ("mapRenderer", coordinateRenderer),
+                    ("navigationBoundsSource", navigationBounds));
                 var coordinateSpace = root.AddComponent<MapCoordinateSpace>();
                 coordinateSpace.Configure(coordinateRenderer, layout, root.transform);
                 var view = root.AddComponent<MapView>();
@@ -466,6 +491,7 @@ namespace YC.EditorTools
                 var slotsRoot = CreateGroup(root.transform, "Influence Slots");
                 var citiesRoot = CreateGroup(root.transform, "City Pool");
                 var scoresRoot = CreateGroup(root.transform, "Score Marker Pool");
+                BuildPieceLight(root.transform);
 
                 var locationBindings = BuildLocations(
                     layout,
@@ -478,10 +504,11 @@ namespace YC.EditorTools
                     layout,
                     library,
                     feedbackVisuals,
+                    influencePiecePrefab,
                     coordinateSpace,
                     slotsRoot);
-                var cityBindings = BuildCities(map, library, citiesRoot);
-                var scoreBindings = BuildScores(map, library, scoresRoot);
+                var cityBindings = BuildCities(map, library, mobileCityPiecePrefab, citiesRoot);
+                var scoreBindings = BuildScores(map, library, influencePiecePrefab, scoresRoot);
                 SetViewReferences(
                     view,
                     coordinateSpace,
@@ -514,7 +541,7 @@ namespace YC.EditorTools
                 var definition = layout.Locations[i];
                 var go = new GameObject("Hotspot " + definition.LocationId);
                 go.transform.SetParent(parent, false);
-                go.transform.position = space.ToWorldPosition(definition.NormalizedPosition, HotspotZ);
+                go.transform.position = space.ToWorldPosition(definition.NormalizedPosition, MapPlaneZ);
                 var renderer = go.AddComponent<SpriteRenderer>();
                 renderer.sprite = library.Hotspot;
                 renderer.sharedMaterial = feedbackVisuals.FeedbackMaterial;
@@ -549,7 +576,7 @@ namespace YC.EditorTools
                 var definition = definitions[i];
                 var go = new GameObject("ResourceToken " + definition.LocationId);
                 go.transform.SetParent(parent, false);
-                go.transform.position = space.ToWorldPosition(definition.ResourceTokenPosition, ResourceTokenZ);
+                go.transform.position = space.ToWorldPosition(definition.ResourceTokenPosition, MapPlaneZ);
                 var renderer = go.AddComponent<SpriteRenderer>();
                 renderer.sprite = library.EmptyInfluenceSlot;
                 renderer.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
@@ -563,6 +590,7 @@ namespace YC.EditorTools
             MapDisplayLayout layout,
             MapVisualSpriteLibrary library,
             YC.Editor.MapFeedbackVisualAssetSet feedbackVisuals,
+            GameObject influencePiecePrefab,
             MapCoordinateSpace space,
             Transform parent)
         {
@@ -576,9 +604,10 @@ namespace YC.EditorTools
                     result.Add(BuildSlot(
                         InfluenceService.GetLocationSlotId(definition.LocationId, slotIndex),
                         definition.InfluenceSlots[slotIndex],
-                        LocationSlotZ,
+                        MapPlaneZ,
                         library,
                         feedbackVisuals,
+                        influencePiecePrefab,
                         space,
                         parent));
                 }
@@ -592,9 +621,10 @@ namespace YC.EditorTools
                     result.Add(BuildSlot(
                         InfluenceService.GetRouteSlotId(definition.RouteId, slotIndex),
                         definition.InfluenceSlots[slotIndex],
-                        RouteSlotZ,
+                        MapPlaneZ,
                         library,
                         feedbackVisuals,
+                        influencePiecePrefab,
                         space,
                         parent));
                 }
@@ -608,6 +638,7 @@ namespace YC.EditorTools
             float z,
             MapVisualSpriteLibrary library,
             YC.Editor.MapFeedbackVisualAssetSet feedbackVisuals,
+            GameObject influencePiecePrefab,
             MapCoordinateSpace space,
             Transform parent)
         {
@@ -622,9 +653,20 @@ namespace YC.EditorTools
             var collider = go.AddComponent<CircleCollider2D>();
             collider.radius = definition.ColliderRadius;
             var click = go.AddComponent<InfluenceSlotClickTarget>();
+            var pieceVisual = InstantiatePiece(
+                influencePiecePrefab,
+                go.transform,
+                "Influence Piece",
+                Vector3.zero,
+                Vector3.one / definition.Size);
+            pieceVisual.SetVisible(false);
 
             var borderObject = new GameObject("MovableInfluenceBorder");
             borderObject.transform.SetParent(go.transform, false);
+            borderObject.transform.localPosition = new Vector3(
+                0f,
+                0f,
+                PieceOverlayLocalZ / definition.Size);
             var border = borderObject.AddComponent<SpriteRenderer>();
             border.sprite = library.MovableInfluenceBorder;
             border.sharedMaterial = feedbackVisuals.FeedbackMaterial;
@@ -637,13 +679,23 @@ namespace YC.EditorTools
                 go,
                 library.PlacementFeedbackRing,
                 feedbackVisuals,
-                17);
-            return new SlotBuildBinding(slotId, renderer, collider, click, border, pulse, feedback);
+                17,
+                PieceOverlayLocalZ / definition.Size);
+            return new SlotBuildBinding(
+                slotId,
+                renderer,
+                collider,
+                click,
+                border,
+                pulse,
+                feedback,
+                pieceVisual);
         }
 
         private static List<CityBuildBinding> BuildCities(
             GameMapDefinition map,
             MapVisualSpriteLibrary library,
+            GameObject mobileCityPiecePrefab,
             Transform parent)
         {
             var result = new List<CityBuildBinding>();
@@ -651,14 +703,22 @@ namespace YC.EditorTools
             {
                 var go = new GameObject("Mobile City P" + playerId);
                 go.transform.SetParent(parent, false);
-                go.transform.localScale = new Vector3(1.8f, 1.8f, 1f);
+                go.transform.localScale = Vector3.one;
                 var renderer = go.AddComponent<SpriteRenderer>();
                 renderer.sprite = library.MobileCity;
                 renderer.sortingOrder = 20 + playerId;
+                renderer.enabled = false;
                 var collider = go.AddComponent<BoxCollider2D>();
                 collider.size = new Vector2(0.95f, 1.35f);
                 var click = go.AddComponent<MobileCityClickTarget>();
-                result.Add(new CityBuildBinding(playerId, renderer, collider, click));
+                var pieceVisual = InstantiatePiece(
+                    mobileCityPiecePrefab,
+                    go.transform,
+                    "Mobile City Piece",
+                    Vector3.zero,
+                    Vector3.one);
+                pieceVisual.SetVisible(false);
+                result.Add(new CityBuildBinding(playerId, renderer, collider, click, pieceVisual));
                 go.SetActive(false);
             }
             return result;
@@ -667,6 +727,7 @@ namespace YC.EditorTools
         private static List<ScoreBuildBinding> BuildScores(
             GameMapDefinition map,
             MapVisualSpriteLibrary library,
+            GameObject influencePiecePrefab,
             Transform parent)
         {
             var result = new List<ScoreBuildBinding>();
@@ -674,17 +735,26 @@ namespace YC.EditorTools
             {
                 var go = new GameObject("ScoreMarker P" + playerId);
                 go.transform.SetParent(parent, false);
-                go.transform.localScale = Vector3.one * 0.42f;
+                go.transform.localScale = Vector3.one;
                 var renderer = go.AddComponent<SpriteRenderer>();
                 renderer.sprite = library.ScoreMarker;
                 renderer.sortingOrder = 31;
+                renderer.enabled = false;
                 var borderObject = new GameObject("ScoreMarker Border");
                 borderObject.transform.SetParent(go.transform, false);
                 var border = borderObject.AddComponent<SpriteRenderer>();
                 border.sprite = library.ScoreMarkerBorder;
                 border.color = new Color(0.04f, 0.025f, 0.015f, 0.95f);
                 border.sortingOrder = 30;
-                result.Add(new ScoreBuildBinding(playerId, renderer, border));
+                border.enabled = false;
+                var pieceVisual = InstantiatePiece(
+                    influencePiecePrefab,
+                    go.transform,
+                    "Score Influence Piece",
+                    new Vector3(0f, 0f, -ScoreMarkerZ),
+                    Vector3.one);
+                pieceVisual.SetVisible(false);
+                result.Add(new ScoreBuildBinding(playerId, renderer, border, pieceVisual));
                 go.SetActive(false);
             }
             return result;
@@ -694,7 +764,8 @@ namespace YC.EditorTools
             GameObject owner,
             Sprite sprite,
             YC.Editor.MapFeedbackVisualAssetSet feedbackVisuals,
-            int sortingOrder)
+            int sortingOrder,
+            float localZ = 0f)
         {
             var feedback = AddRuntimeComponent(owner, "YC.Presentation.MapPlacementFeedback");
             if (!(feedback is Behaviour feedbackBehaviour))
@@ -710,7 +781,7 @@ namespace YC.EditorTools
             animator.applyRootMotion = false;
             var flashObject = new GameObject("Placement Flash");
             flashObject.transform.SetParent(owner.transform, false);
-            flashObject.transform.localPosition = Vector3.zero;
+            flashObject.transform.localPosition = new Vector3(0f, 0f, localZ);
             flashObject.transform.localRotation = Quaternion.identity;
             flashObject.transform.localScale = Vector3.one;
             var flash = flashObject.AddComponent<SpriteRenderer>();
@@ -721,7 +792,7 @@ namespace YC.EditorTools
             flash.enabled = false;
             var ringObject = new GameObject("Placement Expanding Ring");
             ringObject.transform.SetParent(owner.transform, false);
-            ringObject.transform.localPosition = Vector3.zero;
+            ringObject.transform.localPosition = new Vector3(0f, 0f, localZ);
             ringObject.transform.localRotation = Quaternion.identity;
             ringObject.transform.localScale = Vector3.one;
             var ring = ringObject.AddComponent<SpriteRenderer>();
@@ -736,6 +807,49 @@ namespace YC.EditorTools
                 ("expandingRingRenderer", ring),
                 ("animator", animator));
             return feedback;
+        }
+
+        private static MapPieceVisual InstantiatePiece(
+            GameObject piecePrefab,
+            Transform parent,
+            string name,
+            Vector3 localPosition,
+            Vector3 localScale)
+        {
+            var instance = PrefabUtility.InstantiatePrefab(piecePrefab, parent) as GameObject;
+            if (instance == null)
+            {
+                throw new InvalidOperationException("无法实例化地图棋子 Prefab：" + piecePrefab.name);
+            }
+            instance.name = name;
+            instance.transform.localPosition = localPosition;
+            instance.transform.localRotation = Quaternion.identity;
+            instance.transform.localScale = localScale;
+            var visual = instance.GetComponent<MapPieceVisual>();
+            if (visual == null)
+            {
+                throw new InvalidOperationException("地图棋子 Prefab 缺少 MapPieceVisual：" + piecePrefab.name);
+            }
+            if (!visual.TryValidateConfiguration(out var reason))
+            {
+                throw new InvalidOperationException("地图棋子 Prefab 配置无效：" + reason);
+            }
+            return visual;
+        }
+
+        private static void BuildPieceLight(Transform parent)
+        {
+            var lightObject = new GameObject("Map Piece Key Light");
+            lightObject.transform.SetParent(parent, false);
+            lightObject.transform.localPosition = Vector3.zero;
+            lightObject.transform.localRotation = Quaternion.Euler(35f, -25f, 0f);
+            var light = lightObject.AddComponent<Light>();
+            light.type = LightType.Directional;
+            light.color = new Color(1f, 0.95f, 0.9f, 1f);
+            light.intensity = 0.85f;
+            light.shadows = LightShadows.Soft;
+            light.shadowStrength = 0.45f;
+            light.renderMode = LightRenderMode.ForcePixel;
         }
 
         private static Component AddRuntimeComponent(GameObject owner, string typeName)
@@ -781,6 +895,7 @@ namespace YC.EditorTools
                 element.FindPropertyRelative("borderRenderer").objectReferenceValue = binding.Border;
                 element.FindPropertyRelative("borderPulse").objectReferenceValue = binding.Pulse;
                 element.FindPropertyRelative("placementFeedback").objectReferenceValue = binding.Feedback;
+                element.FindPropertyRelative("pieceVisual").objectReferenceValue = binding.PieceVisual;
             });
             SetBindingArray(serialized, "cityPool", cities.Count, (element, i) =>
             {
@@ -789,6 +904,7 @@ namespace YC.EditorTools
                 element.FindPropertyRelative("renderer").objectReferenceValue = binding.Renderer;
                 element.FindPropertyRelative("collider").objectReferenceValue = binding.Collider;
                 element.FindPropertyRelative("clickTarget").objectReferenceValue = binding.Click;
+                element.FindPropertyRelative("pieceVisual").objectReferenceValue = binding.PieceVisual;
             });
             SetBindingArray(serialized, "scoreMarkerPool", scores.Count, (element, i) =>
             {
@@ -796,6 +912,7 @@ namespace YC.EditorTools
                 element.FindPropertyRelative("playerId").intValue = binding.PlayerId;
                 element.FindPropertyRelative("renderer").objectReferenceValue = binding.Renderer;
                 element.FindPropertyRelative("borderRenderer").objectReferenceValue = binding.Border;
+                element.FindPropertyRelative("pieceVisual").objectReferenceValue = binding.PieceVisual;
             });
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
@@ -869,9 +986,12 @@ namespace YC.EditorTools
                 }
                 var mapRenderer = root.GetComponent<SpriteRenderer>();
                 var displayController = root.GetComponent<MapDisplayController>();
+                var navigationBounds = root.GetComponent<TabletopViewportNavigationBounds>();
                 if (mapRenderer == null || !mapRenderer.enabled || view.MapRenderer != mapRenderer ||
+                    navigationBounds == null ||
                     displayController == null ||
-                    RequireProperty(new SerializedObject(displayController), "mapRenderer").objectReferenceValue != mapRenderer)
+                    RequireProperty(new SerializedObject(displayController), "mapRenderer").objectReferenceValue != mapRenderer ||
+                    RequireProperty(new SerializedObject(displayController), "navigationBoundsSource").objectReferenceValue != navigationBounds)
                 {
                     errors.Add("MapView Prefab 的地图渲染与相机适配组件接线不完整。");
                 }
@@ -890,11 +1010,18 @@ namespace YC.EditorTools
                 }
                 ValidateComponentCount<MapHotspot>(root, map.Locations.Count, errors);
                 ValidateComponentCount<MapDisplayController>(root, 1, errors);
+                ValidateComponentCount<TabletopViewportNavigationBounds>(root, 1, errors);
                 ValidateComponentCount<MobileCityClickTarget>(root, map.MaxPlayers, errors);
                 ValidateComponentCount<InfluenceSlotClickTarget>(root, locationSlots + routeSlots, errors);
                 ValidateComponentCount<MapHighlightPulse>(root, map.Locations.Count + locationSlots + routeSlots, errors);
                 ValidateComponentCount<MapPlacementFeedback>(root, map.Locations.Count + locationSlots + routeSlots, errors);
                 ValidateComponentCount<Animator>(root, map.Locations.Count + locationSlots + routeSlots, errors);
+                ValidateComponentCount<MapPieceVisual>(root, locationSlots + routeSlots + map.MaxPlayers * 2, errors);
+                ValidateComponentCount<MeshRenderer>(root, locationSlots + routeSlots + map.MaxPlayers * 2, errors);
+                ValidateComponentCount<Light>(root, 1, errors);
+                ValidateComponentCount<Collider>(root, 0, errors);
+                ValidateComponentCount<Rigidbody>(root, 0, errors);
+                ValidatePieceAssets(root, errors);
                 ValidateUniqueAndExactIds(map, layout, view, errors);
                 ValidateSerializedReferences(view, errors);
                 ValidateVisualSettings(map, layout, view, errors);
@@ -981,40 +1108,92 @@ namespace YC.EditorTools
                 var hotspot = view.Locations[i].Hotspot;
                 var collider = hotspot.GetComponent<CircleCollider2D>();
                 Check(hotspot.Renderer.sortingOrder == 10, "热点 sortingOrder", errors);
-                Check(Approximately(hotspot.transform.localPosition.z, HotspotZ), "热点 z", errors);
+                Check(Approximately(hotspot.transform.localPosition.z, MapPlaneZ), "热点 z", errors);
                 Check(collider != null && Approximately(collider.radius, 0.45f), "热点 collider", errors);
             }
             for (var i = 0; i < view.ResourceTokens.Count; i++)
             {
                 var renderer = view.ResourceTokens[i].Renderer;
                 Check(renderer.sortingOrder == 18, "资源 token sortingOrder", errors);
-                Check(Approximately(renderer.transform.localPosition.z, ResourceTokenZ), "资源 token z", errors);
+                Check(Approximately(renderer.transform.localPosition.z, MapPlaneZ), "资源 token z", errors);
             }
             var expectedSlots = BuildSlotSettings(layout);
             for (var i = 0; i < view.InfluenceSlots.Count; i++)
             {
                 var binding = view.InfluenceSlots[i];
                 var expected = expectedSlots[binding.SlotId];
+                Check(binding.PieceVisual != null, "影响力模型引用", errors);
+                if (binding.PieceVisual != null)
+                {
+                    var pieceBounds = CalculateBoundsRelativeTo(binding.PieceVisual, binding.Renderer.transform);
+                    Check(Mathf.Abs(pieceBounds.size.x - 0.7f) < 0.01f &&
+                          Mathf.Abs(pieceBounds.size.y - 0.7f) < 0.01f &&
+                          Mathf.Abs(pieceBounds.size.z - 0.7f) < 0.01f,
+                        "影响力模型尺寸", errors);
+                    Check(Mathf.Abs(pieceBounds.center.x) < 0.001f &&
+                          Mathf.Abs(pieceBounds.center.y) < 0.001f,
+                        "影响力模型中心对齐", errors);
+                    Check(Mathf.Abs(pieceBounds.max.z + expected.Z) < 0.01f &&
+                          pieceBounds.min.z + expected.Z < -0.69f,
+                        "影响力模型贴合地图平面", errors);
+                }
                 Check(binding.Renderer.sortingOrder == 15, "影响槽 sortingOrder", errors);
                 Check(binding.BorderRenderer.sortingOrder == 16, "影响槽边框 sortingOrder", errors);
                 Check(Approximately(binding.Renderer.transform.localPosition.z, expected.Z), "影响槽 z", errors);
+                Check(Approximately(binding.BorderRenderer.transform.localPosition.z, PieceOverlayLocalZ),
+                    "影响槽边框 z", errors);
                 Check(Approximately(binding.Collider.radius, expected.Radius), "影响槽 collider", errors);
                 var feedback = RequireProperty(
                     new SerializedObject(binding.Renderer.GetComponent(
                         typeof(MapView).Assembly.GetType("YC.Presentation.MapPlacementFeedback"))),
                     "flashRenderer").objectReferenceValue as SpriteRenderer;
                 Check(feedback != null && feedback.sortingOrder == 17, "影响槽反馈 sortingOrder", errors);
+                Check(feedback != null && Approximately(feedback.transform.localPosition.z, PieceOverlayLocalZ),
+                    "影响槽反馈 z", errors);
             }
             for (var i = 0; i < view.CityPool.Count; i++)
             {
                 var binding = view.CityPool[i];
+                Check(binding.PieceVisual != null, "移动城市模型引用", errors);
+                if (binding.PieceVisual != null)
+                {
+                    var pieceBounds = CalculateBoundsRelativeTo(binding.PieceVisual, binding.Renderer.transform);
+                    Check(Mathf.Abs(pieceBounds.size.x - 1.38f) < 0.02f &&
+                          Mathf.Abs(pieceBounds.size.y - 2.376f) < 0.02f,
+                        "移动城市模型投影尺寸", errors);
+                    Check(Mathf.Abs(pieceBounds.center.x) < 0.001f &&
+                          Mathf.Abs(pieceBounds.center.y) < 0.001f,
+                        "移动城市模型中心对齐", errors);
+                    Check(Mathf.Abs(pieceBounds.max.z) < 0.01f &&
+                          pieceBounds.min.z < -0.63f,
+                        "移动城市模型贴合地图平面", errors);
+                }
                 Check(binding.Renderer.sortingOrder == 20 + binding.PlayerId, "城市池 sortingOrder", errors);
+                Check(Approximately(binding.Renderer.transform.localPosition.z, MapPlaneZ), "城市池 z", errors);
                 Check(binding.Collider.size == new Vector2(0.95f, 1.35f), "城市池 collider", errors);
             }
             for (var i = 0; i < view.ScoreMarkerPool.Count; i++)
             {
-                Check(view.ScoreMarkerPool[i].Renderer.sortingOrder == 31, "计分池 sortingOrder", errors);
-                Check(view.ScoreMarkerPool[i].BorderRenderer.sortingOrder == 30, "计分池边框 sortingOrder", errors);
+                var binding = view.ScoreMarkerPool[i];
+                Check(binding.PieceVisual != null, "分数轨道影响力模型引用", errors);
+                if (binding.PieceVisual != null)
+                {
+                    var pieceBounds = CalculateBoundsRelativeTo(binding.PieceVisual, binding.Renderer.transform);
+                    Check(Mathf.Abs(pieceBounds.size.x - 0.7f) < 0.01f &&
+                          Mathf.Abs(pieceBounds.size.y - 0.7f) < 0.01f &&
+                          Mathf.Abs(pieceBounds.size.z - 0.7f) < 0.01f,
+                        "分数轨道影响力模型尺寸", errors);
+                    Check(Mathf.Abs(pieceBounds.center.x) < 0.001f &&
+                          Mathf.Abs(pieceBounds.center.y) < 0.001f,
+                        "分数轨道影响力模型中心对齐", errors);
+                    Check(Mathf.Abs(pieceBounds.max.z + ScoreMarkerZ) < 0.01f &&
+                          pieceBounds.min.z + ScoreMarkerZ < -0.69f,
+                        "分数轨道影响力模型贴合地图平面", errors);
+                }
+                Check(binding.Renderer.sortingOrder == 31, "计分池 sortingOrder", errors);
+                Check(binding.BorderRenderer.sortingOrder == 30, "计分池边框 sortingOrder", errors);
+                Check(!binding.Renderer.enabled && !binding.BorderRenderer.enabled,
+                    "分数轨道旧 Sprite 初始隐藏", errors);
             }
         }
 
@@ -1140,11 +1319,11 @@ namespace YC.EditorTools
             foreach (var definition in layout.CreateResourcePointDefinitions())
                 for (var i = 0; i < definition.InfluenceSlots.Count; i++)
                     result.Add(InfluenceService.GetLocationSlotId(definition.LocationId, i),
-                        new SlotSetting(LocationSlotZ, definition.InfluenceSlots[i].ColliderRadius));
+                        new SlotSetting(MapPlaneZ, definition.InfluenceSlots[i].ColliderRadius));
             foreach (var definition in layout.CreateRouteDefinitions())
                 for (var i = 0; i < definition.InfluenceSlots.Count; i++)
                     result.Add(InfluenceService.GetRouteSlotId(definition.RouteId, i),
-                        new SlotSetting(RouteSlotZ, definition.InfluenceSlots[i].ColliderRadius));
+                        new SlotSetting(MapPlaneZ, definition.InfluenceSlots[i].ColliderRadius));
             return result;
         }
 
@@ -1159,6 +1338,95 @@ namespace YC.EditorTools
                     property.name != "m_Script" && property.objectReferenceValue == null)
                     errors.Add(target.GetType().Name + " 缺少引用 " + property.name + "。");
             } while (property.NextVisible(false));
+        }
+
+        private static void ValidatePieceAssets(GameObject root, List<string> errors)
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(PieceMaterialPath);
+            if (material == null)
+            {
+                errors.Add("缺少共享地图棋子材质。");
+            }
+
+            foreach (var visual in root.GetComponentsInChildren<MapPieceVisual>(true))
+            {
+                if (!visual.TryValidateConfiguration(out var reason))
+                {
+                    errors.Add(visual.name + " 的 MapPieceVisual 配置无效：" + reason);
+                    continue;
+                }
+                foreach (var renderer in visual.Renderers)
+                {
+                    if (renderer.sharedMaterials.Length != 1 || renderer.sharedMaterial != material)
+                    {
+                        errors.Add(visual.name + " 未使用唯一的共享地图棋子材质。");
+                    }
+                    if (renderer.enabled)
+                    {
+                        errors.Add(visual.name + " 在 MapView Prefab 初始状态下应隐藏。");
+                    }
+                }
+            }
+
+            foreach (var path in new[] { InfluencePiecePrefabPath, MobileCityPiecePrefabPath })
+            {
+                var piecePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (piecePrefab == null || piecePrefab.GetComponent<MapPieceVisual>() == null)
+                {
+                    errors.Add("棋子 Prefab 缺失或没有 MapPieceVisual：" + path);
+                }
+                else if (piecePrefab.GetComponentsInChildren<Collider>(true).Length != 0 ||
+                         piecePrefab.GetComponentsInChildren<Collider2D>(true).Length != 0)
+                {
+                    errors.Add("棋子 Prefab 不应包含碰撞体：" + path);
+                }
+            }
+
+            var lights = root.GetComponentsInChildren<Light>(true);
+            if (lights.Length == 1)
+            {
+                var light = lights[0];
+                Check(light.type == LightType.Directional, "棋子灯光类型", errors);
+                Check(Approximately(light.intensity, 0.85f), "棋子灯光强度", errors);
+                Check(light.shadows == LightShadows.Soft, "棋子灯光阴影", errors);
+                Check(Approximately(light.shadowStrength, 0.45f), "棋子灯光阴影强度", errors);
+            }
+        }
+
+        private static Bounds CalculateBoundsRelativeTo(MapPieceVisual visual, Transform relativeRoot)
+        {
+            var filters = visual.GetComponentsInChildren<MeshFilter>(true);
+            var initialized = false;
+            var result = new Bounds();
+            foreach (var filter in filters)
+            {
+                if (filter.sharedMesh == null)
+                {
+                    continue;
+                }
+                var meshBounds = filter.sharedMesh.bounds;
+                var matrix = relativeRoot.worldToLocalMatrix * filter.transform.localToWorldMatrix;
+                for (var x = 0; x < 2; x++)
+                for (var y = 0; y < 2; y++)
+                for (var z = 0; z < 2; z++)
+                {
+                    var corner = new Vector3(
+                        x == 0 ? meshBounds.min.x : meshBounds.max.x,
+                        y == 0 ? meshBounds.min.y : meshBounds.max.y,
+                        z == 0 ? meshBounds.min.z : meshBounds.max.z);
+                    var point = matrix.MultiplyPoint3x4(corner);
+                    if (!initialized)
+                    {
+                        result = new Bounds(point, Vector3.zero);
+                        initialized = true;
+                    }
+                    else
+                    {
+                        result.Encapsulate(point);
+                    }
+                }
+            }
+            return result;
         }
 
         private static void ValidateComponentCount<T>(GameObject root, int expected, List<string> errors)
@@ -1272,24 +1540,30 @@ namespace YC.EditorTools
             public readonly string Id; public readonly SpriteRenderer Renderer; public readonly CircleCollider2D Collider;
             public readonly InfluenceSlotClickTarget Click; public readonly SpriteRenderer Border;
             public readonly Component Pulse; public readonly Component Feedback;
+            public readonly MapPieceVisual PieceVisual;
             public SlotBuildBinding(string id, SpriteRenderer renderer, CircleCollider2D collider,
-                InfluenceSlotClickTarget click, SpriteRenderer border, Component pulse, Component feedback)
-            { Id = id; Renderer = renderer; Collider = collider; Click = click; Border = border; Pulse = pulse; Feedback = feedback; }
+                InfluenceSlotClickTarget click, SpriteRenderer border, Component pulse, Component feedback,
+                MapPieceVisual pieceVisual)
+            { Id = id; Renderer = renderer; Collider = collider; Click = click; Border = border; Pulse = pulse; Feedback = feedback; PieceVisual = pieceVisual; }
         }
 
         private sealed class CityBuildBinding
         {
             public readonly int PlayerId; public readonly SpriteRenderer Renderer; public readonly BoxCollider2D Collider;
             public readonly MobileCityClickTarget Click;
-            public CityBuildBinding(int playerId, SpriteRenderer renderer, BoxCollider2D collider, MobileCityClickTarget click)
-            { PlayerId = playerId; Renderer = renderer; Collider = collider; Click = click; }
+            public readonly MapPieceVisual PieceVisual;
+            public CityBuildBinding(int playerId, SpriteRenderer renderer, BoxCollider2D collider,
+                MobileCityClickTarget click, MapPieceVisual pieceVisual)
+            { PlayerId = playerId; Renderer = renderer; Collider = collider; Click = click; PieceVisual = pieceVisual; }
         }
 
         private sealed class ScoreBuildBinding
         {
             public readonly int PlayerId; public readonly SpriteRenderer Renderer; public readonly SpriteRenderer Border;
-            public ScoreBuildBinding(int playerId, SpriteRenderer renderer, SpriteRenderer border)
-            { PlayerId = playerId; Renderer = renderer; Border = border; }
+            public readonly MapPieceVisual PieceVisual;
+            public ScoreBuildBinding(int playerId, SpriteRenderer renderer, SpriteRenderer border,
+                MapPieceVisual pieceVisual)
+            { PlayerId = playerId; Renderer = renderer; Border = border; PieceVisual = pieceVisual; }
         }
 
         private readonly struct SlotSetting

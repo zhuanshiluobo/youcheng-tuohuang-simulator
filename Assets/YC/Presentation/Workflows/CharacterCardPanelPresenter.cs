@@ -78,12 +78,21 @@ namespace YC.Presentation.Workflows
                                                 !player.UsedCharacterThisRound &&
                                                 (isSecondEffectDecision || isSecondEffectExecution);
 
+            // 规则层会在空手盖放时原子地把弃牌堆回收到手牌。展示层先投影同一结果，
+            // 让玩家能够选择要盖放的牌，但不提前修改 GameState。
+            var projectDiscardAsHand = canCover &&
+                                       (player.HandCardIds == null || player.HandCardIds.Count == 0) &&
+                                       player.DiscardCardIds != null &&
+                                       player.DiscardCardIds.Count > 0;
+            var displayedHandIds = projectDiscardAsHand
+                ? player.DiscardCardIds
+                : player.HandCardIds;
             var hand = new List<CharacterCardHandItemViewModel>();
-            if (player.HandCardIds != null)
+            if (displayedHandIds != null)
             {
-                for (var i = 0; i < player.HandCardIds.Count; i++)
+                for (var i = 0; i < displayedHandIds.Count; i++)
                 {
-                    var cardId = player.HandCardIds[i] ?? string.Empty;
+                    var cardId = displayedHandIds[i] ?? string.Empty;
                     hand.Add(new CharacterCardHandItemViewModel(
                         cardId,
                         ResolveCardDisplayName(cardId),
@@ -92,7 +101,7 @@ namespace YC.Presentation.Workflows
             }
 
             var discard = new List<CharacterCardHandItemViewModel>();
-            if (player.DiscardCardIds != null)
+            if (!projectDiscardAsHand && player.DiscardCardIds != null)
             {
                 for (var i = 0; i < player.DiscardCardIds.Count; i++)
                 {

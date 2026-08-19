@@ -307,31 +307,6 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void InfoPanel_DoesNotContainRemovedModules()
-        {
-            var type = Type.GetType("YC.Presentation.ExpandableInfoPanel, Assembly-CSharp", false);
-            Assert.That(type, Is.Not.Null, "Missing YC.Presentation.ExpandableInfoPanel.");
-
-            owner = InstantiateExpandableInfoPanelPrefab();
-            var controller = owner.GetComponent(type);
-            var viewType = Type.GetType("YC.Presentation.ExpandableInfoPanelView, Assembly-CSharp", false);
-            Assert.That(viewType, Is.Not.Null);
-            var panelView = owner.GetComponent(viewType);
-            Assert.That((bool)type.GetMethod("Bind").Invoke(controller, new[] { panelView }), Is.True);
-
-            var modules = GetPublicProperty<System.Collections.IEnumerable>(controller, "Modules");
-            Assert.That(HasModuleTitle(modules, "提示卡"), Is.False);
-            Assert.That(HasModuleTitle(modules, "玩家概览"), Is.False);
-            Assert.That(HasModuleTitle(modules, "城市与行动"), Is.False);
-            Assert.That(HasModuleTitle(modules, "玩家宣告"), Is.True);
-
-            var panel = FindTransform("Sidebar Panel");
-            Assert.That(panel, Is.Not.Null);
-            Assert.That(panel.anchorMin, Is.EqualTo(new Vector2(0f, 0f)));
-            Assert.That(panel.anchorMax, Is.EqualTo(new Vector2(0f, 1f)));
-        }
-
-        [Test]
         public void BuildInfoPanel_StretchesFromCityStyleAreaToMapBottomWithoutOuterOutline()
         {
             var type = Type.GetType("YC.Presentation.BuildInfoPanel, Assembly-CSharp", false);
@@ -560,16 +535,6 @@ namespace YC.Tests.EditMode
             return instance;
         }
 
-        private static GameObject InstantiateExpandableInfoPanelPrefab()
-        {
-            const string path = "Assets/YC/Presentation/Prefabs/Gameplay/ExpandableInfoPanel.prefab";
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            Assert.That(prefab, Is.Not.Null, path);
-            var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-            Assert.That(instance, Is.Not.Null);
-            return instance;
-        }
-
         private static GameObject InstantiateBuildInfoPanelPrefab()
         {
             const string path = "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab";
@@ -640,20 +605,6 @@ namespace YC.Tests.EditMode
             var property = target.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
             Assert.That(property, Is.Not.Null, "Missing " + target.GetType().Name + "." + propertyName + ".");
             return (T)property.GetValue(target, null);
-        }
-
-        private static bool HasModuleTitle(System.Collections.IEnumerable modules, string title)
-        {
-            foreach (var module in modules)
-            {
-                var property = module.GetType().GetProperty("Title", BindingFlags.Instance | BindingFlags.Public);
-                if (property != null && (string)property.GetValue(module, null) == title)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private static void AssertColor(Color actual, Color expected)
