@@ -10,6 +10,7 @@ using UnityEngine.UI;
 using YC.Domain.Cards;
 using YC.Domain.Facilities;
 using YC.Domain.Maps;
+using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Presentation;
 using YC.Presentation.Workflows;
@@ -575,6 +576,49 @@ namespace YC.Tests.EditMode
             Assert.That(FindChild(root, "Choice Panel").activeInHierarchy, Is.True);
             Assert.That(FindChild(root, "Title").activeInHierarchy, Is.True);
             Assert.That(FindChild(root, "Choice 1").activeInHierarchy, Is.True);
+        }
+
+        [Test]
+        public void AssetizedEventCard_ResourcePointRibbonFollowsEventColor()
+        {
+            var cardIds = new[] { "event_green_01", "event_red_01", "event_yellow_01" };
+            var eventColors = new[] { EventColor.Green, EventColor.Red, EventColor.Yellow };
+            var expectedColors = new[]
+            {
+                new Color(0.31f, 0.62f, 0.2f, 0.98f),
+                new Color(0.65f, 0.15f, 0.1f, 0.98f),
+                new Color(0.82f, 0.61f, 0.12f, 0.98f)
+            };
+
+            for (var i = 0; i < cardIds.Length; i++)
+            {
+                var card = new EventCardDefinition
+                {
+                    CardId = cardIds[i],
+                    Name = cardIds[i],
+                    Color = eventColors[i],
+                    Description = "测试事件说明",
+                    ChoiceDescriptions = new List<string> { "选择一", "选择二" },
+                    ChoiceRewards = new List<ResourceSet> { new ResourceSet(), new ResourceSet() }
+                };
+                Invoke(
+                    "ShowEventCardOptions",
+                    card,
+                    "所属资源点：G-01",
+                    new List<ExplorePaymentChoice>(),
+                    new Dictionary<string, int>(),
+                    new Func<int, string>(id => "玩家" + id),
+                    new Action<int>(_ => { }),
+                    new Action<string, int>((_, __) => { }));
+
+                var root = FindChild(canvas.gameObject, "Event Choice Overlay");
+                var runtimeView = root.GetComponent(viewType);
+                var ribbon = GetObjectReference<Image>(
+                    runtimeView,
+                    "eventCardMetadataRibbonImage");
+                AssertColorApproximately(ribbon.color, expectedColors[i]);
+                Assert.That(ribbon.transform.Find("Ribbon Wedge"), Is.Null);
+            }
         }
 
         [Test]

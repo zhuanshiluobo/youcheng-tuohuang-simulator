@@ -87,6 +87,7 @@ namespace YC.Tests.EditMode
                 Assert.That(display, Is.Not.Null);
                 Assert.That(navigationBounds, Is.Not.Null);
                 Assert.That(mapRenderer, Is.Not.Null);
+                Assert.That(root.transform.localScale, Is.EqualTo(Vector3.one * 1.5f));
                 Assert.That(mapRenderer.enabled, Is.True);
                 var displaySerialized = new SerializedObject(display);
                 Assert.That(displaySerialized.FindProperty("mapRenderer").objectReferenceValue,
@@ -95,9 +96,9 @@ namespace YC.Tests.EditMode
                     Is.SameAs(navigationBounds));
                 var navigationBoundsSerialized = new SerializedObject(navigationBounds);
                 Assert.That(navigationBoundsSerialized.FindProperty("horizontalMapMarginFraction").floatValue,
-                    Is.EqualTo(0.15f).Within(0.0001f));
+                    Is.Zero.Within(0.0001f));
                 Assert.That(navigationBoundsSerialized.FindProperty("verticalMapMarginFraction").floatValue,
-                    Is.EqualTo(0.15f).Within(0.0001f));
+                    Is.Zero.Within(0.0001f));
                 Assert.That(displaySerialized.FindProperty("minZoom").floatValue,
                     Is.EqualTo(0.9f).Within(0.0001f));
                 Assert.That(displaySerialized.FindProperty("maxZoom").floatValue,
@@ -322,9 +323,9 @@ namespace YC.Tests.EditMode
                 Is.SameAs(navigationBounds));
             var navigationBoundsSerialized = new SerializedObject(navigationBounds);
             Assert.That(navigationBoundsSerialized.FindProperty("horizontalMapMarginFraction").floatValue,
-                Is.EqualTo(0.15f).Within(0.0001f));
+                Is.Zero.Within(0.0001f));
             Assert.That(navigationBoundsSerialized.FindProperty("verticalMapMarginFraction").floatValue,
-                Is.EqualTo(0.15f).Within(0.0001f));
+                Is.Zero.Within(0.0001f));
             Assert.That(roots.SelectMany(root => root.GetComponentsInChildren<Transform>(true))
                 .Sum(transform => transform.gameObject.GetComponents<Component>().Count(component => component == null)),
                 Is.Zero);

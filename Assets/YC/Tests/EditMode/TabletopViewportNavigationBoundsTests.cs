@@ -15,10 +15,10 @@ namespace YC.Tests.EditMode
             "YC.Presentation.MapCameraGeometry, Assembly-CSharp",
             false);
 
-        [TestCase(1f)]
         [TestCase(0.9f)]
+        [TestCase(1f)]
         [TestCase(2f)]
-        public void FocusBounds_KeepViewportEdgesOnTheSameFixedWorldBoundary(float zoom)
+        public void FocusBounds_KeepFullCameraViewInsideCenteredMinimumZoomBoundary(float zoom)
         {
             Assert.That(BoundsType, Is.Not.Null);
             Assert.That(GeometryType, Is.Not.Null);
@@ -40,9 +40,19 @@ namespace YC.Tests.EditMode
                 var rotation = Quaternion.Euler(-30f, 0f, 0f);
                 var plane = new Plane(Vector3.forward, Vector3.zero);
                 var viewport = new Rect(0.02865f, 0f, 0.78385f, 1f);
+                var fullCameraViewport = new Rect(0f, 0f, 1f, 1f);
                 const float baseDistance = 20f;
+                const float minimumZoom = 0.9f;
+                var minimumZoomDistance = InvokeGeometry<float>(
+                    "CalculateZoomedDistance",
+                    baseDistance,
+                    minimumZoom);
                 camera.transform.SetPositionAndRotation(
-                    InvokeGeometry<Vector3>("CalculateCameraPosition", Vector3.zero, rotation, baseDistance),
+                    InvokeGeometry<Vector3>(
+                        "CalculateCameraPosition",
+                        Vector3.zero,
+                        rotation,
+                        minimumZoomDistance),
                     rotation);
 
                 var initializeArguments = new object[]
@@ -63,7 +73,6 @@ namespace YC.Tests.EditMode
                 var fixedWorldBounds = (Rect)BoundsType
                     .GetField("fixedWorldBounds", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(provider);
-
                 var currentDistance = InvokeGeometry<float>("CalculateZoomedDistance", baseDistance, zoom);
                 camera.transform.SetPositionAndRotation(
                     InvokeGeometry<Vector3>("CalculateCameraPosition", Vector3.zero, rotation, currentDistance),
@@ -83,9 +92,9 @@ namespace YC.Tests.EditMode
                     Is.True);
                 var focusBounds = (Rect)boundsArguments[6];
 
-                AssertAxisBoundariesReachable(
+                AssertAxisBoundariesConstrained(
                     camera,
-                    viewport,
+                    fullCameraViewport,
                     plane,
                     currentDistance,
                     focusBounds.xMin,
@@ -93,9 +102,9 @@ namespace YC.Tests.EditMode
                     fixedWorldBounds.xMin,
                     fixedWorldBounds.xMax,
                     true);
-                AssertAxisBoundariesReachable(
+                AssertAxisBoundariesConstrained(
                     camera,
-                    viewport,
+                    fullCameraViewport,
                     plane,
                     currentDistance,
                     focusBounds.yMin,
@@ -103,6 +112,14 @@ namespace YC.Tests.EditMode
                     fixedWorldBounds.yMin,
                     fixedWorldBounds.yMax,
                     false);
+
+                if (Mathf.Approximately(zoom, minimumZoom))
+                {
+                    Assert.That(focusBounds.xMin, Is.Zero.Within(0.001f));
+                    Assert.That(focusBounds.xMax, Is.Zero.Within(0.001f));
+                    Assert.That(focusBounds.yMin, Is.Zero.Within(0.001f));
+                    Assert.That(focusBounds.yMax, Is.Zero.Within(0.001f));
+                }
             }
             finally
             {
@@ -121,7 +138,7 @@ namespace YC.Tests.EditMode
             }
         }
 
-        private static void AssertAxisBoundariesReachable(
+        private static void AssertAxisBoundariesConstrained(
             Camera camera,
             Rect viewport,
             Plane plane,
@@ -151,12 +168,8 @@ namespace YC.Tests.EditMode
                 out var secondMinimum,
                 out var secondMaximum);
 
-            Assert.That(
-                Mathf.Min(Mathf.Abs(firstMinimum - expectedMinimum), Mathf.Abs(secondMinimum - expectedMinimum)),
-                Is.LessThanOrEqualTo(0.001f));
-            Assert.That(
-                Mathf.Min(Mathf.Abs(firstMaximum - expectedMaximum), Mathf.Abs(secondMaximum - expectedMaximum)),
-                Is.LessThanOrEqualTo(0.001f));
+            Assert.That(firstMinimum, Is.EqualTo(expectedMinimum).Within(0.001f));
+            Assert.That(secondMaximum, Is.EqualTo(expectedMaximum).Within(0.001f));
         }
 
         private static void GetVisibleAxisRange(

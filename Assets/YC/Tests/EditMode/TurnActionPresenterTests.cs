@@ -262,7 +262,7 @@ namespace YC.Tests.EditMode
             fixture.Context.State.FindPlayer(1).CoveredCharacterCardId = string.Empty;
 
             Assert.That(fixture.Presenter.BuildActionPanelViewModel().StatusText,
-                Is.EqualTo("入场阶段：请先盖放角色卡"));
+                Is.EqualTo("拖动手牌到右侧面板盖放"));
         }
 
         [Test]
@@ -345,6 +345,30 @@ namespace YC.Tests.EditMode
             Assert.That(interaction.IsActive, Is.False);
             Assert.That(interaction.BuildPresentation().IsEmpty, Is.True);
             Assert.That(fixture.View.Highlights, Is.Empty);
+        }
+
+        [Test]
+        public void MoveInteraction_HidesClosedRedZoneTargetUntilOpenRound()
+        {
+            var fixture = CreateFixture();
+            fixture.MapQuery.Map.MinPlayers = 4;
+            fixture.MapQuery.Map.MaxPlayers = 4;
+            fixture.MapQuery.GetLocation("B").IsRedZone = true;
+            fixture.Context.State.Round = 3;
+
+            fixture.Presenter.BeginMoveAction();
+
+            Assert.That(fixture.View.Highlights, Is.Empty);
+
+            fixture.Flow.ResetToChooseAction();
+            fixture.Context.State.Round = 4;
+            fixture.Presenter.BeginMoveAction();
+
+            Assert.That(fixture.View.Highlights, Has.Count.EqualTo(1));
+            Assert.That(fixture.View.Highlights[0].TargetId, Is.EqualTo("B"));
+            Assert.That(
+                fixture.View.Highlights[0].Semantic,
+                Is.EqualTo(WorkflowHighlightSemantic.MoveTarget));
         }
 
         [Test]
@@ -945,6 +969,39 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.Flow.IsActive(fixture.Influence), Is.True);
             Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
             Assert.That(fixture.Influence.IsSelectingDeployTarget, Is.True);
+        }
+
+        [Test]
+        public void MainActionButton_SecondClickCancelsItsActiveSelection()
+        {
+            var fixture = CreateFixture();
+
+            fixture.Presenter.BeginExploreAction();
+            fixture.Presenter.BeginExploreAction();
+            Assert.That(fixture.Exploration.IsSelectingExploreTarget, Is.False);
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.View.Highlights, Is.Empty);
+
+            fixture.Presenter.BeginMoveAction();
+            fixture.Presenter.BeginMoveAction();
+            Assert.That(fixture.Presenter.IsSelectingMoveTarget, Is.False);
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.View.Highlights, Is.Empty);
+
+            fixture.Presenter.BeginDeployAction();
+            fixture.Presenter.BeginDeployAction();
+            Assert.That(fixture.Influence.IsSelectingDeployTarget, Is.False);
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.View.Highlights, Is.Empty);
+
+            fixture.Presenter.BeginDispatchAction();
+            fixture.Presenter.BeginDispatchAction();
+            Assert.That(fixture.Influence.IsSelectingDispatchSource, Is.False);
+            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
+            Assert.That(fixture.View.Highlights, Is.Empty);
+            Assert.That(
+                fixture.Presenter.BuildActionPanelViewModel().StatusText,
+                Is.EqualTo("请选择一项主要行动"));
         }
 
         [Test]

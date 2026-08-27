@@ -54,7 +54,24 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.View.PaymentRecipients, Is.EqualTo(new[] { 2 }));
             Assert.That(fixture.Presenter.PaidRouteIds, Is.EquivalentTo(new[] { "R2" }));
             Assert.That(fixture.Presenter.SelectedLocationIds, Is.EquivalentTo(new[] { "B", "C" }));
-            Assert.That(fixture.View.Prompt, Does.Contain("\u73a9\u5bb62"));
+            Assert.That(fixture.View.Prompt, Does.StartWith("\u91c7\u96c6\u9636\u6bb5\uff1a"));
+        }
+
+        [Test]
+        public void ConfirmRoutePayment_ToBank_AddsVisualGhostWithoutMutatingInfluenceState()
+        {
+            var fixture = CreateFixture();
+            fixture.Presenter.Begin();
+            var influenceCount = fixture.Context.State.Map.Influences.Count;
+            var influenceSupply = fixture.Context.State.FindPlayer(1).InfluenceSupply;
+
+            fixture.Presenter.ConfirmRoutePayment("R2", -1);
+
+            Assert.That(
+                fixture.View.HasHighlight("R2", WorkflowHighlightSemantic.CollectionBankPaymentGhost),
+                Is.True);
+            Assert.That(fixture.Context.State.Map.Influences, Has.Count.EqualTo(influenceCount));
+            Assert.That(fixture.Context.State.FindPlayer(1).InfluenceSupply, Is.EqualTo(influenceSupply));
         }
 
         [Test]
@@ -65,9 +82,30 @@ namespace YC.Tests.EditMode
 
             fixture.Presenter.SelectLocation("B");
             Assert.That(fixture.Presenter.SelectedLocationIds, Is.Empty);
+            Assert.That(fixture.View.HasHighlight("B", WorkflowHighlightSemantic.CollectionCandidate), Is.False);
+            Assert.That(fixture.View.HasHighlight("B", WorkflowHighlightSemantic.CollectionSelected), Is.False);
+            Assert.That(fixture.View.Prompt, Does.StartWith("\u91c7\u96c6\u9636\u6bb5\uff1a"));
 
             fixture.Presenter.SelectLocation("B");
             Assert.That(fixture.Presenter.SelectedLocationIds, Is.EquivalentTo(new[] { "B" }));
+        }
+
+        [Test]
+        public void Begin_DoesNotHighlightMobileCityLocationDuringCollection()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.State.Map.ResourceTokens.Add(new ResourceTokenState
+            {
+                LocationId = "A",
+                ResourceType = ResourceType.Iron,
+                Amount = 1
+            });
+
+            fixture.Presenter.Begin();
+
+            Assert.That(fixture.Presenter.SelectedLocationIds, Does.Contain("A"));
+            Assert.That(fixture.View.HasHighlight("A", WorkflowHighlightSemantic.CollectionSelected), Is.False);
+            Assert.That(fixture.View.HasHighlight("A", WorkflowHighlightSemantic.CollectionCandidate), Is.False);
         }
 
         [Test]

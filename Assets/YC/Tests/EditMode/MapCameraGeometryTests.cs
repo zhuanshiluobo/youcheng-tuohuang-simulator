@@ -211,8 +211,30 @@ namespace YC.Tests.EditMode
                 Assert.That(Mathf.DeltaAngle(camera.transform.eulerAngles.x, -30f),
                     Is.Zero.Within(0.0001f));
                 var mapCenterViewport = camera.WorldToViewportPoint(Vector3.zero);
-                Assert.That(mapCenterViewport.x, Is.EqualTo((0.02865f + 0.8125f) * 0.5f).Within(0.001f));
+                Assert.That(mapCenterViewport.x, Is.EqualTo(0.5f).Within(0.001f));
                 Assert.That(mapCenterViewport.y, Is.EqualTo(0.5f).Within(0.001f));
+                var focusPoint = (Vector3)controllerType
+                    .GetField("focusPoint", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(controller);
+                var panOrigin = (Vector3)controllerType
+                    .GetField("panOrigin", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(controller);
+                Assert.That(focusPoint, Is.EqualTo(Vector3.zero));
+                Assert.That(panOrigin, Is.EqualTo(Vector3.zero));
+                AssertField(controllerType, controller, "currentZoom", 1f);
+                AssertField(controllerType, controller, "targetZoom", 1f);
+
+                controllerType.GetField("currentZoom", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .SetValue(controller, 0.9f);
+                controllerType.GetMethod("ApplyCameraTransform", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(controller, null);
+                var minimumPanBounds = (Rect)controllerType
+                    .GetMethod("GetCurrentPanBounds", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(controller, null);
+                Assert.That(minimumPanBounds.xMin, Is.Zero.Within(0.001f));
+                Assert.That(minimumPanBounds.xMax, Is.Zero.Within(0.001f));
+                Assert.That(minimumPanBounds.yMin, Is.Zero.Within(0.001f));
+                Assert.That(minimumPanBounds.yMax, Is.Zero.Within(0.001f));
 
                 controllerType.GetField("currentZoom", BindingFlags.Instance | BindingFlags.NonPublic)
                     .SetValue(controller, 2f);
@@ -221,10 +243,10 @@ namespace YC.Tests.EditMode
                 var zoomedPanBounds = (Rect)controllerType
                     .GetMethod("GetCurrentPanBounds", BindingFlags.Instance | BindingFlags.NonPublic)
                     .Invoke(controller, null);
-                Assert.That(zoomedPanBounds.xMin, Is.LessThan(-2.5f));
-                Assert.That(zoomedPanBounds.xMax, Is.GreaterThan(2.5f));
-                Assert.That(zoomedPanBounds.yMin, Is.LessThan(-1.5f));
-                Assert.That(zoomedPanBounds.yMax, Is.GreaterThan(1.5f));
+                Assert.That(zoomedPanBounds.xMin, Is.LessThan(0f));
+                Assert.That(zoomedPanBounds.xMax, Is.GreaterThan(0f));
+                Assert.That(zoomedPanBounds.yMin, Is.LessThan(0f));
+                Assert.That(zoomedPanBounds.yMax, Is.GreaterThan(0f));
             }
             finally
             {

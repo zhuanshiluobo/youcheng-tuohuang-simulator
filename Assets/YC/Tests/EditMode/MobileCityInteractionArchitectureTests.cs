@@ -483,6 +483,12 @@ namespace YC.Tests.EditMode
             var destroyBody = ExtractMethodBody(source, "private void OnDestroy()");
 
             StringAssert.Contains("interactionRouter.BuildActivePresentation()", refreshBody);
+            Assert.That(
+                refreshBody.IndexOf("BeginResourceCollectionSelection();", StringComparison.Ordinal),
+                Is.LessThan(refreshBody.IndexOf("interactionRouter.BuildActivePresentation()", StringComparison.Ordinal)));
+            StringAssert.Contains(
+                "!flowCoordinator.IsActive(resourceCollectionPresenter)",
+                refreshBody);
             StringAssert.DoesNotContain("characterMapInteraction.Synchronize()", refreshBody);
             StringAssert.DoesNotContain("specialActionInteraction.Synchronize()", refreshBody);
             StringAssert.DoesNotContain("characterCardEffectInteraction.SynchronizePending()", refreshBody);

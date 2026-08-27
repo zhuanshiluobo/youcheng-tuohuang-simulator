@@ -32,7 +32,8 @@ namespace YC.Tests.EditMode
             Assert.That(GetProperty<int>(catalog, "CityStyleCount"), Is.EqualTo(6));
             Assert.That(GetProperty<int>(catalog, "CharacterFrontCount"), Is.EqualTo(5));
             Assert.That(GetProperty<int>(catalog, "CharacterBackCount"), Is.EqualTo(4));
-            Assert.That(GetProperty<int>(catalog, "TextureCount"), Is.EqualTo(62));
+            Assert.That(GetProperty<int>(catalog, "EventCount"), Is.EqualTo(22));
+            Assert.That(GetProperty<int>(catalog, "TextureCount"), Is.EqualTo(84));
 
             var serialized = new SerializedObject(catalog);
             var ids = new HashSet<string>(StringComparer.Ordinal);
@@ -40,13 +41,14 @@ namespace YC.Tests.EditMode
             CheckIdEntries(serialized.FindProperty("facilityTextures"), "facility", ids, ref persistentTextures);
             CheckIdEntries(serialized.FindProperty("cityStyleTextures"), "cityStyle", ids, ref persistentTextures);
             CheckIdEntries(serialized.FindProperty("characterFrontTextures"), "characterFront", ids, ref persistentTextures);
+            CheckIdEntries(serialized.FindProperty("eventTextures"), "event", ids, ref persistentTextures);
             CheckCharacterBackEntries(
                 serialized.FindProperty("characterBackTextures"),
                 ref persistentTextures);
             AssertPersistent(
                 serialized.FindProperty("cityBoardTexture").objectReferenceValue as Texture2D);
             persistentTextures++;
-            Assert.That(persistentTextures, Is.EqualTo(62));
+            Assert.That(persistentTextures, Is.EqualTo(84));
 
             for (var i = 1; i <= 41; i++)
             {
@@ -73,6 +75,18 @@ namespace YC.Tests.EditMode
             Assert.That(InvokeTexture(catalog, "GetCharacterBack", PlayerColor.Yellow), Is.Not.Null);
             Assert.That(InvokeTexture(catalog, "GetCharacterBack", PlayerColor.Green), Is.Not.Null);
             Assert.That(InvokeTexture(catalog, "GetCharacterBack", PlayerColor.Blue), Is.Not.Null);
+            foreach (var eventCardId in EventCardDatabase.GreenCardIds)
+            {
+                Assert.That(InvokeTexture(catalog, "GetEvent", eventCardId), Is.Not.Null, eventCardId);
+            }
+            foreach (var eventCardId in EventCardDatabase.RedCardIds)
+            {
+                Assert.That(InvokeTexture(catalog, "GetEvent", eventCardId), Is.Not.Null, eventCardId);
+            }
+            foreach (var eventCardId in EventCardDatabase.YellowCardIds)
+            {
+                Assert.That(InvokeTexture(catalog, "GetEvent", eventCardId), Is.Not.Null, eventCardId);
+            }
             Assert.That(catalog.GetType().GetMethod("GetCityBoard").Invoke(catalog, null), Is.Not.Null);
         }
 

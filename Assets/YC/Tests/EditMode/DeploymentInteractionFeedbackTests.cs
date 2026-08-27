@@ -120,12 +120,20 @@ namespace YC.Tests.EditMode
                 var outline = owner.GetComponent<Outline>();
                 var restingColor = new Color(0.4f, 0.3f, 0.2f, 0.8f);
                 outline.effectColor = restingColor;
-                feedbackType.GetMethod("Configure").Invoke(feedback, new object[] { button, outline });
+                feedbackType.GetMethod(
+                    "Configure",
+                    new[] { typeof(Button), typeof(Outline) })
+                    .Invoke(feedback, new object[] { button, outline });
 
                 Assert.That(ReadConstant(feedbackType, "PressDuration"), Is.EqualTo(0.08f));
                 Assert.That(ReadConstant(feedbackType, "PressedScale"), Is.EqualTo(0.92f));
 
                 var pointer = CreateLeftPointer();
+                ((IPointerEnterHandler)feedback).OnPointerEnter(pointer);
+                AssertColor(outline.effectColor, 0.12f, 0.88f, 1f, 1f);
+                ((IPointerExitHandler)feedback).OnPointerExit(pointer);
+                Assert.That(outline.effectColor, Is.EqualTo(restingColor));
+
                 ((IPointerDownHandler)feedback).OnPointerDown(pointer);
                 Assert.That(owner.transform.localScale.x, Is.EqualTo(0.92f).Within(0.001f));
                 AssertColor(outline.effectColor, 0.12f, 0.88f, 1f, 1f);
@@ -138,6 +146,69 @@ namespace YC.Tests.EditMode
                 ((IPointerDownHandler)feedback).OnPointerDown(pointer);
                 Assert.That(owner.transform.localScale, Is.EqualTo(Vector3.one));
                 Assert.That(outline.effectColor, Is.EqualTo(restingColor));
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void ActionButtonFeedback_UsesHollowBorderGraphicsWithConfiguredPlayerColor()
+        {
+            var owner = new GameObject(
+                "Hollow Choice Feedback Test",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(Button),
+                typeof(Outline));
+            try
+            {
+                var feedbackType = RequireType("YC.Presentation.ActionButtonPressFeedback");
+                var feedback = owner.AddComponent(feedbackType);
+                var button = owner.GetComponent<Button>();
+                var background = owner.GetComponent<Image>();
+                background.color = Color.clear;
+                var borders = new Graphic[4];
+                for (var i = 0; i < borders.Length; i++)
+                {
+                    var edge = new GameObject(
+                        "Border " + i,
+                        typeof(RectTransform),
+                        typeof(Image));
+                    edge.transform.SetParent(owner.transform, false);
+                    borders[i] = edge.GetComponent<Image>();
+                    borders[i].color = Color.clear;
+                    borders[i].raycastTarget = false;
+                }
+
+                var playerColor = new Color(0.78f, 0.2f, 0.35f, 1f);
+                feedbackType.GetMethod(
+                        "Configure",
+                        new[]
+                        {
+                            typeof(Button),
+                            typeof(Outline),
+                            typeof(Graphic[]),
+                            typeof(Color)
+                        })
+                    .Invoke(
+                        feedback,
+                        new object[] { button, null, borders, playerColor });
+
+                var pointer = CreateLeftPointer();
+                ((IPointerEnterHandler)feedback).OnPointerEnter(pointer);
+                Assert.That(background.color, Is.EqualTo(Color.clear));
+                for (var i = 0; i < borders.Length; i++)
+                {
+                    Assert.That(borders[i].color, Is.EqualTo(playerColor));
+                }
+
+                ((IPointerExitHandler)feedback).OnPointerExit(pointer);
+                for (var i = 0; i < borders.Length; i++)
+                {
+                    Assert.That(borders[i].color, Is.EqualTo(Color.clear));
+                }
             }
             finally
             {

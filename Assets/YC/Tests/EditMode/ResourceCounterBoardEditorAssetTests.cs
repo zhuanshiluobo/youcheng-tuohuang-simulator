@@ -23,6 +23,8 @@ namespace YC.Tests.EditMode
             "Assets/YC/Presentation/Content/ResourceCounterBoardLayoutProfile.asset";
         private const string VisualsPath =
             "Assets/YC/Presentation/Sprites/ResourceCounterVisuals.asset";
+        private const string NumberedGearSpritePath =
+            "Assets/YC/Presentation/Sprites/ResourceCounterGear.png";
 
         [Test]
         public void Prefab_HasFixedOrderPersistentVisualsTopLeftAnchorAndNoRaycastBlockers()
@@ -64,6 +66,7 @@ namespace YC.Tests.EditMode
             Assert.That(prefab.transform.Find("Resource Board Title"), Is.Null);
             var rulebookBoard = prefab.transform.Find("Rulebook Resource Counter");
             Assert.That(rulebookBoard, Is.Not.Null);
+            Assert.That(rulebookBoard.localScale, Is.EqualTo(Vector3.one * 1.31f));
             Assert.That(rulebookBoard.GetComponent<Outline>(), Is.Null);
             Assert.That(rulebookBoard.GetComponent<Shadow>(), Is.Null);
             foreach (var label in new[] { "源岩", "源石", "异铁" })
@@ -90,8 +93,8 @@ namespace YC.Tests.EditMode
                 Assert.That(onesGear, Is.Not.Null, label);
                 Assert.That(tensCover, Is.Not.Null, label);
                 Assert.That(onesCover, Is.Not.Null, label);
-                Assert.That(tensRing.GetComponent<RectTransform>().sizeDelta, Is.EqualTo(new Vector2(14f, 14f)), label);
-                Assert.That(onesRing.GetComponent<RectTransform>().sizeDelta, Is.EqualTo(new Vector2(14f, 14f)), label);
+                Assert.That(tensRing.GetComponent<RectTransform>().sizeDelta, Is.EqualTo(new Vector2(16f, 16f)), label);
+                Assert.That(onesRing.GetComponent<RectTransform>().sizeDelta, Is.EqualTo(new Vector2(16f, 16f)), label);
                 Assert.That(tensGear.GetComponent<RectTransform>().pivot, Is.EqualTo(Vector2.one * 0.5f), label);
                 Assert.That(onesGear.GetComponent<RectTransform>().pivot, Is.EqualTo(Vector2.one * 0.5f), label);
                 Assert.That(tensGear.GetComponent<RectTransform>().sizeDelta, Is.EqualTo(new Vector2(54f, 54f)), label);
@@ -120,7 +123,9 @@ namespace YC.Tests.EditMode
                 var sprite = GetProperty<Sprite>(visuals, property);
                 Assert.That(sprite, Is.Not.Null, property);
                 Assert.That(EditorUtility.IsPersistent(sprite), Is.True, property);
-                Assert.That(AssetDatabase.GetAssetPath(sprite), Is.EqualTo(VisualsPath));
+                Assert.That(
+                    AssetDatabase.GetAssetPath(sprite),
+                    Is.EqualTo(property == "NumberedGear" ? NumberedGearSpritePath : VisualsPath));
             }
 
             foreach (var transform in prefab.GetComponentsInChildren<Transform>(true))
@@ -176,52 +181,34 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void NumberedGear_EachPrintedDigitRotatesIntoTheSameFixedWindow()
+        public void NumberedGear_UsesImportedReferenceSpriteAndMatchingRotation()
         {
             var visuals = AssetDatabase.LoadAssetAtPath(VisualsPath,
                 GetRuntimeType("YC.Presentation.ResourceCounterVisualLibrary"));
             var sprite = GetProperty<Sprite>(visuals, "NumberedGear");
-            var texture = sprite.texture;
-            Assert.That(texture.filterMode, Is.EqualTo(FilterMode.Point));
-            Assert.That(GetProperty<Sprite>(visuals, "DialCover").texture.filterMode, Is.EqualTo(FilterMode.Point));
-            Assert.That(GetProperty<Sprite>(visuals, "ReadoutRing").texture.filterMode, Is.EqualTo(FilterMode.Point));
-            var center = (texture.width - 1) * 0.5f;
-            const float windowY = 84f;
+            Assert.That(AssetDatabase.GetAssetPath(sprite), Is.EqualTo(NumberedGearSpritePath));
+            Assert.That(sprite.texture.width, Is.EqualTo(1254));
+            Assert.That(sprite.texture.height, Is.EqualTo(1254));
+            Assert.That(sprite.texture.filterMode, Is.EqualTo(FilterMode.Bilinear));
+            Assert.That(sprite.pivot.x, Is.EqualTo(sprite.rect.width * 0.5f).Within(0.01f));
+            Assert.That(sprite.pivot.y, Is.EqualTo(sprite.rect.height * 0.5f).Within(0.01f));
 
-            for (var y = 0; y < texture.height; y++)
-            for (var x = 0; x < texture.width; x++)
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            var instance = Object.Instantiate(prefab);
+            try
             {
-                var color = texture.GetPixel(x, y);
-                if (color.a <= 0.5f) continue;
-                Assert.That(Mathf.Max(color.r, Mathf.Max(color.g, color.b)), Is.GreaterThan(0.35f),
-                    "编号齿轮不应包含黑色轴孔、凹槽或阴影装饰。");
+                var board = instance.GetComponent(GetRuntimeType("YC.Presentation.ResourceCounterBoard"));
+                Render(board, Resources(0, 27, 0, 0, 0), false);
+                var view = GetProperty<Component>(board, "View");
+                var gears = GetProperty<Array>(view, "GearCounters");
+                Assert.That(GetProperty<RectTransform>(gears.GetValue(1), "MainGear").localEulerAngles.z,
+                    Is.EqualTo(72f).Within(0.01f));
+                Assert.That(GetProperty<RectTransform>(gears.GetValue(1), "IdlerGear").localEulerAngles.z,
+                    Is.EqualTo(252f).Within(0.01f));
             }
-
-            for (var digit = 0; digit < 10; digit++)
+            finally
             {
-                var angle = -digit * 36f * Mathf.Deg2Rad;
-                var cosine = Mathf.Cos(angle);
-                var sine = Mathf.Sin(angle);
-                var printedPixelsInWindow = 0;
-                for (var y = 0; y < texture.height; y++)
-                for (var x = 0; x < texture.width; x++)
-                {
-                    var color = texture.GetPixel(x, y);
-                    if (color.r < 0.55f || color.r < color.g * 2f) continue;
-
-                    var localX = x - center;
-                    var localY = y - center;
-                    var rotatedX = localX * cosine - localY * sine;
-                    var rotatedY = localX * sine + localY * cosine;
-                    var windowOffset = new Vector2(rotatedX, rotatedY - windowY);
-                    if (windowOffset.sqrMagnitude <= 22f * 22f)
-                    {
-                        printedPixelsInWindow++;
-                    }
-                }
-
-                Assert.That(printedPixelsInWindow, Is.GreaterThan(80),
-                    "齿轮旋转到数字 " + digit + " 时，固定圆形开口没有露出该数字。");
+                Object.DestroyImmediate(instance);
             }
         }
 
