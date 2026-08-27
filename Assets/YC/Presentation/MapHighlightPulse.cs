@@ -12,11 +12,22 @@ namespace YC.Presentation
         [SerializeField] private SpriteRenderer border;
         private Coroutine pulse;
         private bool highlighted;
+        private float pulseDuration = PulseDuration;
+        private bool preserveTargetRgb;
         public bool IsHighlighted => highlighted;
 
         public bool Bind(SpriteRenderer borderRenderer, out string reason)
         {
-            if (borderRenderer == null)
+            return BindWithDuration(borderRenderer, PulseDuration, out reason);
+        }
+
+        public bool BindWithDuration(
+            SpriteRenderer borderRenderer,
+            float duration,
+            out string reason,
+            bool preserveRgb = false)
+        {
+            if (borderRenderer == null || duration <= 0f)
             {
                 reason = "Map highlight pulse requires a fixed SpriteRenderer binding.";
                 return false;
@@ -24,6 +35,8 @@ namespace YC.Presentation
             highlighted = false;
             StopPulse();
             border = borderRenderer;
+            pulseDuration = duration;
+            preserveTargetRgb = preserveRgb;
             ApplyAlpha(0f);
             border.enabled = false;
             reason = string.Empty;
@@ -48,7 +61,12 @@ namespace YC.Presentation
 
         public static float EvaluateAlpha(float elapsedSeconds)
         {
-            var phase = elapsedSeconds / PulseDuration * Mathf.PI * 2f;
+            return EvaluateAlpha(elapsedSeconds, PulseDuration);
+        }
+
+        private static float EvaluateAlpha(float elapsedSeconds, float duration)
+        {
+            var phase = elapsedSeconds / duration * Mathf.PI * 2f;
             var wave = (Mathf.Sin(phase) + 1f) * 0.5f;
             return Mathf.Lerp(MinimumAlpha, MaximumAlpha, wave);
         }
@@ -59,7 +77,7 @@ namespace YC.Presentation
             while (highlighted)
             {
                 elapsed += Time.unscaledDeltaTime;
-                ApplyAlpha(EvaluateAlpha(elapsed));
+                ApplyAlpha(EvaluateAlpha(elapsed, pulseDuration));
                 yield return null;
             }
             pulse = null;
@@ -77,7 +95,8 @@ namespace YC.Presentation
         private void ApplyAlpha(float alpha)
         {
             if (border == null) return;
-            border.color = new Color(UiTheme.CyanAccent.r, UiTheme.CyanAccent.g, UiTheme.CyanAccent.b, alpha);
+            var color = preserveTargetRgb ? border.color : UiTheme.CyanAccent;
+            border.color = new Color(color.r, color.g, color.b, alpha);
         }
 
         private void StopPulse()

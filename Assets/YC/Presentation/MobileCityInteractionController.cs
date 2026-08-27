@@ -605,6 +605,12 @@ namespace YC.Presentation
             {
                 ClearCollectionSelection();
             }
+            else if (!flowCoordinator.IsActive(resourceCollectionPresenter))
+            {
+                // 采集交互本身会按阶段报告为 Active，因此必须先完成查询初始化，
+                // 否则空的展示状态会以 Busy 提前返回，路费航道也永远不会高亮。
+                BeginResourceCollectionSelection();
+            }
 
             var interactionPresentation = interactionRouter == null
                 ? InteractionPresentation.Empty
@@ -636,12 +642,6 @@ namespace YC.Presentation
             if (turnActionPresenter.IsAwaitingInitialPlacement)
             {
                 ShowInitialPlacementChoices();
-                return;
-            }
-
-            if (session.State.Phase == GamePhase.ResourceCollection)
-            {
-                BeginResourceCollectionSelection();
                 return;
             }
 

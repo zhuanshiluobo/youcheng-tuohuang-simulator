@@ -17,6 +17,8 @@ namespace YC.EditorTools
             "Assets/YC/Presentation/Content/ResourceCounterBoardLayoutProfile.asset";
         public const string VisualLibraryPath =
             "Assets/YC/Presentation/Sprites/ResourceCounterVisuals.asset";
+        public const string NumberedGearSpritePath =
+            "Assets/YC/Presentation/Sprites/ResourceCounterGear.png";
 
         private const string OriginiumIconPath = "Assets/YC/Data/ResourceIcons/源岩.png";
         private const string ShardIconPath = "Assets/YC/Data/ResourceIcons/源石碎片.png";
@@ -95,10 +97,7 @@ namespace YC.EditorTools
             var largeGear = BuildSprite(assets, "Resource Large Gear", 128, PaintGear);
             assets = AssetDatabase.LoadAllAssetsAtPath(VisualLibraryPath);
             var smallGear = BuildSprite(assets, "Resource Small Gear", 64, PaintGear);
-            assets = AssetDatabase.LoadAllAssetsAtPath(VisualLibraryPath);
-            var numberedGear = BuildSprite(assets, "Resource Numbered Gear", 256, PaintNumberedGear);
-            numberedGear.texture.filterMode = FilterMode.Point;
-            EditorUtility.SetDirty(numberedGear.texture);
+            var numberedGear = LoadReferenceGearSprite();
             assets = AssetDatabase.LoadAllAssetsAtPath(VisualLibraryPath);
             var dialCover = BuildSprite(assets, "Resource Dial Cover", 128, PaintDialCover);
             dialCover.texture.filterMode = FilterMode.Point;
@@ -166,7 +165,9 @@ namespace YC.EditorTools
                 "Rulebook Resource Counter",
                 root.transform,
                 typeof(Image));
-            SetTopLeft(physicalBoard.GetComponent<RectTransform>(), new Vector2(432f, 140f), Vector2.zero);
+            var physicalBoardRect = physicalBoard.GetComponent<RectTransform>();
+            SetTopLeft(physicalBoardRect, new Vector2(432f, 140f), new Vector2(15f, 18f));
+            physicalBoardRect.localScale = Vector3.one * 1.31f;
             physicalBoard.GetComponent<Image>().color = new Color(0.105f, 0.085f, 0.07f, 0.985f);
             physicalBoard.GetComponent<Image>().raycastTarget = false;
 
@@ -313,9 +314,9 @@ namespace YC.EditorTools
                 prefix + " Numbered Gear",
                 visuals.NumberedGear,
                 Color.white);
-            // The printed-number radius is 84/256 of the texture. A 54px gear
-            // centred at -117 aligns that radius with the fixed -99 window.
-            SetTopCenterPivoted(gearImage.rectTransform, new Vector2(54f, 54f), new Vector2(x, -117f));
+            // The imported 1254px gear places its number centres about 487px
+            // from the pivot. At 54px this aligns with the -99 window at y=-120.
+            SetTopCenterPivoted(gearImage.rectTransform, new Vector2(54f, 54f), new Vector2(x, -120f));
             gear = gearImage.rectTransform;
 
             cover = BuildImage(
@@ -330,7 +331,7 @@ namespace YC.EditorTools
                 prefix + " Readout Ring",
                 visuals.ReadoutRing,
                 new Color(0.82f, 0.73f, 0.55f, 1f));
-            SetTopCenterPivoted(readoutRing.rectTransform, new Vector2(14f, 14f), new Vector2(x, -99f));
+            SetTopCenterPivoted(readoutRing.rectTransform, new Vector2(16f, 16f), new Vector2(x, -99f));
 
             var pointer = CreateText(parent, prefix + " Fixed Pointer", "▼", 7, FontStyle.Bold, TextAnchor.MiddleCenter);
             SetTopCentered(pointer.rectTransform, new Vector2(12f, 8f), new Vector2(x, -85f));
@@ -473,58 +474,15 @@ namespace YC.EditorTools
             texture.Apply(false, false);
         }
 
-        private static void PaintNumberedGear(Texture2D texture)
-        {
-            var size = texture.width;
-            var center = (size - 1) * 0.5f;
-            for (var y = 0; y < size; y++)
-            for (var x = 0; x < size; x++)
-            {
-                var dx = (x - center) / center;
-                var dy = (y - center) / center;
-                var radius = Mathf.Sqrt(dx * dx + dy * dy);
-                var angle = Mathf.Atan2(dy, dx);
-                var toothEdge = Mathf.Cos(angle * 18f) > 0.18f ? 0.96f : 0.88f;
-                if (radius > toothEdge)
-                {
-                    texture.SetPixel(x, y, Color.clear);
-                    continue;
-                }
-
-                // Keep the darker tooth edge outside the number-window band.
-                // The window can sample up to roughly radius 0.85.
-                var edge = radius > 0.87f;
-                var color = edge
-                    ? new Color(0.67f, 0.57f, 0.40f, 1f)
-                    : new Color(0.88f, 0.82f, 0.68f, 1f);
-                texture.SetPixel(x, y, color);
-            }
-
-            const float numberRadius = 84f;
-            for (var digit = 0; digit < 10; digit++)
-            {
-                var angle = digit * 36f * Mathf.Deg2Rad;
-                // The counter rotates the gear by -digit * 36 degrees. Place each
-                // digit counter-clockwise from the fixed window so that this
-                // rotation brings the printed digit (not a separate Text) into it.
-                var x = center - Mathf.Sin(angle) * numberRadius;
-                var y = center + Mathf.Cos(angle) * numberRadius;
-                DrawRotatedDigit(texture, digit, x, y, digit * 36f, 5, new Color(0.66f, 0.16f, 0.10f, 1f));
-            }
-
-            texture.Apply(false, false);
-        }
-
         private static void PaintDialCover(Texture2D texture)
         {
             var centerX = (texture.width - 1) * 0.5f;
             var holeCenterY = texture.height * 0.625f;
-            // This sprite is displayed in a 64x40 rect. The non-uniform radii
-            // The visible opening is still limited to ~10px by the 14px ring.
-            // Make the underlying transparent aperture ~12px so the dark cover
-            // cannot bleed through the ring's transparent centre.
-            var holeRadiusX = texture.width * 0.094f;
-            var holeRadiusY = texture.height * 0.15f;
+            // This sprite is displayed in a 64x40 rect. Keep a roughly circular
+            // 14px aperture behind the 16px ring so the complete printed digit
+            // remains visible without exposing its neighbours.
+            var holeRadiusX = texture.width * 0.11f;
+            var holeRadiusY = texture.height * 0.175f;
             for (var y = 0; y < texture.height; y++)
             for (var x = 0; x < texture.width; x++)
             {
@@ -542,60 +500,9 @@ namespace YC.EditorTools
             for (var x = 0; x < texture.width; x++)
             {
                 var radius = Vector2.Distance(new Vector2(x, y), Vector2.one * center) / texture.width;
-                texture.SetPixel(x, y, radius >= 0.37f && radius <= 0.48f ? Color.white : Color.clear);
+                texture.SetPixel(x, y, radius >= 0.41f && radius <= 0.48f ? Color.white : Color.clear);
             }
             texture.Apply(false, false);
-        }
-
-        private static void DrawRotatedDigit(
-            Texture2D texture,
-            int digit,
-            float centerX,
-            float centerY,
-            float rotationDegrees,
-            int scale,
-            Color color)
-        {
-            var pattern = GetDigitPattern(digit);
-            var radians = rotationDegrees * Mathf.Deg2Rad;
-            var cosine = Mathf.Cos(radians);
-            var sine = Mathf.Sin(radians);
-            for (var row = 0; row < pattern.Length; row++)
-            for (var column = 0; column < pattern[row].Length; column++)
-            {
-                if (pattern[row][column] != '1') continue;
-                for (var offsetY = 0; offsetY < scale; offsetY++)
-                for (var offsetX = 0; offsetX < scale; offsetX++)
-                {
-                    var localX = (column - 2f) * scale + offsetX - (scale - 1) * 0.5f;
-                    var localY = (3f - row) * scale + offsetY - (scale - 1) * 0.5f;
-                    var rotatedX = localX * cosine - localY * sine;
-                    var rotatedY = localX * sine + localY * cosine;
-                    var pixelX = Mathf.RoundToInt(centerX + rotatedX);
-                    var pixelY = Mathf.RoundToInt(centerY + rotatedY);
-                    if (pixelX >= 0 && pixelX < texture.width && pixelY >= 0 && pixelY < texture.height)
-                    {
-                        texture.SetPixel(pixelX, pixelY, color);
-                    }
-                }
-            }
-        }
-
-        private static string[] GetDigitPattern(int digit)
-        {
-            switch (digit)
-            {
-                case 0: return new[] { "01110", "10001", "10011", "10101", "11001", "10001", "01110" };
-                case 1: return new[] { "00100", "01100", "00100", "00100", "00100", "00100", "01110" };
-                case 2: return new[] { "01110", "10001", "00001", "00010", "00100", "01000", "11111" };
-                case 3: return new[] { "11110", "00001", "00001", "01110", "00001", "00001", "11110" };
-                case 4: return new[] { "00010", "00110", "01010", "10010", "11111", "00010", "00010" };
-                case 5: return new[] { "11111", "10000", "10000", "11110", "00001", "00001", "11110" };
-                case 6: return new[] { "01110", "10000", "10000", "11110", "10001", "10001", "01110" };
-                case 7: return new[] { "11111", "00001", "00010", "00100", "01000", "01000", "01000" };
-                case 8: return new[] { "01110", "10001", "10001", "01110", "10001", "10001", "01110" };
-                default: return new[] { "01110", "10001", "10001", "01111", "00001", "00001", "01110" };
-            }
         }
 
         private static void PaintRivet(Texture2D texture)
@@ -630,6 +537,31 @@ namespace YC.EditorTools
                 texture.SetPixel(x, y, new Color(value, value, value, alpha));
             }
             texture.Apply(false, false);
+        }
+
+        private static Sprite LoadReferenceGearSprite()
+        {
+            AssetDatabase.ImportAsset(
+                NumberedGearSpritePath,
+                ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+            var importer = AssetImporter.GetAtPath(NumberedGearSpritePath) as TextureImporter;
+            if (importer == null)
+                throw new InvalidOperationException("无法导入指定齿轮贴图：" + NumberedGearSpritePath);
+
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.alphaIsTransparency = true;
+            importer.mipmapEnabled = false;
+            importer.filterMode = FilterMode.Bilinear;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.maxTextureSize = 2048;
+            importer.SaveAndReimport();
+
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(NumberedGearSpritePath);
+            if (sprite == null)
+                throw new InvalidOperationException("指定齿轮贴图未生成 Sprite：" + NumberedGearSpritePath);
+            return sprite;
         }
 
         private static Sprite LoadRequiredSprite(string path)

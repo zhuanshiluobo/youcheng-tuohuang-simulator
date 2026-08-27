@@ -166,12 +166,22 @@ namespace YC.Presentation.Workflows
                     view.ShowPrompt("\u8bf7\u5148\u652f\u4ed8\u901a\u5f80\u8be5\u8d44\u6e90\u70b9\u6240\u9700\u7684\u822a\u9053\u8def\u8d39\u3002");
                     break;
                 case CollectionToggleResult.Removed:
-                    view.ShowPrompt("\u5df2\u4ece\u672c\u6b21\u91c7\u96c6\u4e2d\u79fb\u9664\u8d44\u6e90\u70b9 " + locationId + "\u3002");
-                    break;
                 case CollectionToggleResult.Added:
-                    view.ShowPrompt("\u5df2\u52a0\u5165\u672c\u6b21\u91c7\u96c6\u8d44\u6e90\u70b9 " + locationId + "\u3002");
+                    view.ShowPrompt(BuildStatus());
                     break;
             }
+        }
+
+        public bool CanToggleLocation(string locationId)
+        {
+            if (!selection.HasCandidateLocation(locationId))
+            {
+                return false;
+            }
+
+            var state = context.CurrentState;
+            var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
+            return player == null || player.CityLocationId != locationId;
         }
 
         public void SelectRoutePayment(string routeId)
@@ -207,10 +217,7 @@ namespace YC.Presentation.Workflows
 
             selection.ConfirmRoutePayment(routeId, receiverPlayerId);
             RefreshPresentation();
-            view.ShowPrompt(receiverPlayerId > 0
-                ? "\u822a\u9053 " + routeId + " \u7684\u8def\u8d39\u5c06\u652f\u4ed8\u7ed9" +
-                  view.GetPlayerDisplayName(receiverPlayerId) + "\u3002"
-                : "\u822a\u9053 " + routeId + " \u7684\u8def\u8d39\u5c06\u652f\u4ed8\u7ed9\u94f6\u884c\u3002");
+            view.ShowPrompt(BuildStatus());
         }
 
         public void CancelRoutePayment()
@@ -301,10 +308,27 @@ namespace YC.Presentation.Workflows
                 }
             }
 
+            foreach (var routeId in selection.PaidRouteIds)
+            {
+                if (selection.IsRoutePaidToBank(routeId))
+                {
+                    highlights.Add(new WorkflowHighlight(
+                        WorkflowHighlightTargetKind.Route,
+                        routeId,
+                        WorkflowHighlightSemantic.CollectionBankPaymentGhost));
+                }
+            }
+
+            var state = context.CurrentState;
+            var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
+
             for (var i = 0; i < mapQuery.Map.Locations.Count; i++)
             {
                 var locationId = mapQuery.Map.Locations[i].LocationId;
-                if (!selection.HasCandidateLocation(locationId) || !IsLocationAvailable(locationId))
+                if (!selection.HasCandidateLocation(locationId) ||
+                    selection.HasDeselectedLocation(locationId) ||
+                    !IsLocationAvailable(locationId) ||
+                    (player != null && player.CityLocationId == locationId))
                 {
                     continue;
                 }

@@ -64,6 +64,11 @@ namespace YC.Presentation
             return candidateLocationIds.Contains(locationId);
         }
 
+        public bool HasDeselectedLocation(string locationId)
+        {
+            return deselectedLocationIds.Contains(locationId);
+        }
+
         public void SetPathForLocation(string locationId, MapPath path)
         {
             if (!string.IsNullOrEmpty(locationId) && path != null)
@@ -154,6 +159,11 @@ namespace YC.Presentation
             }
 
             return owners[nextIndex];
+        }
+
+        public bool IsRoutePaidToBank(string routeId)
+        {
+            return paidRouteIds.Contains(routeId) && !paymentRecipients.ContainsKey(routeId);
         }
 
         public CollectionToggleResult ToggleLocation(string locationId, Func<string, bool> isLocationAvailable)

@@ -25,6 +25,7 @@ namespace YC.Editor
             var cityStyles = BuildCityStyleEntries();
             var characterFronts = BuildCharacterFrontEntries();
             var characterBacks = BuildCharacterBackEntries();
+            var events = BuildEventEntries();
             var cityBoard = LoadTexture(CardImageRoot + "Boards/city_board.png");
 
             EnsureFolder("Assets/YC/Presentation/Content");
@@ -41,6 +42,7 @@ namespace YC.Editor
                 cityStyles,
                 characterFronts,
                 characterBacks,
+                events,
                 cityBoard);
 
             if (isNew)
@@ -55,7 +57,7 @@ namespace YC.Editor
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[CardVisualCatalogEditorAssetBuilder] Rebuilt 62 persistent card textures.");
+            Debug.Log("[CardVisualCatalogEditorAssetBuilder] Rebuilt 84 persistent card textures.");
         }
 
         public static CardVisualCatalog LoadRequiredCatalog()
@@ -133,6 +135,35 @@ namespace YC.Editor
                 CharacterBack(PlayerColor.Green, "back-green.jpg"),
                 CharacterBack(PlayerColor.Blue, "back-blue.jpg")
             };
+        }
+
+        private static List<CardVisualCatalog.IdTextureEntry> BuildEventEntries()
+        {
+            var result = new List<CardVisualCatalog.IdTextureEntry>(
+                CardVisualCatalog.ExpectedEventCount);
+            AddEventEntries(result, EventCardDatabase.GreenCardIds);
+            AddEventEntries(result, EventCardDatabase.RedCardIds);
+            AddEventEntries(result, EventCardDatabase.YellowCardIds);
+            if (result.Count != CardVisualCatalog.ExpectedEventCount)
+            {
+                throw new InvalidOperationException(
+                    "Event texture entry count mismatch: " + result.Count);
+            }
+
+            return result;
+        }
+
+        private static void AddEventEntries(
+            ICollection<CardVisualCatalog.IdTextureEntry> entries,
+            IReadOnlyList<string> cardIds)
+        {
+            for (var i = 0; i < cardIds.Count; i++)
+            {
+                var cardId = cardIds[i];
+                entries.Add(new CardVisualCatalog.IdTextureEntry(
+                    cardId,
+                    LoadTexture(CardImageRoot + "Events/" + cardId + ".jpg")));
+            }
         }
 
         private static void AddFacility(

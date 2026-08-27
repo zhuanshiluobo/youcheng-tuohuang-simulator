@@ -15,9 +15,9 @@ namespace YC.Editor
     public static class EventChoiceDialogLayoutBuildReadiness
     {
         internal const string EventChoiceDialogSourceSha256 =
-            "3814CBEE3719C2897E39A1B382876296C3E523ED766BC36DF9C7718B229B8125";
+            "2D670E08B267028DFE07309B311565391A8ACAFB09558791C62435292F36BBA8";
         internal const string EventChoiceDialogViewSourceSha256 =
-            "BFBF8A3489F8B71A21F5B808CFAF8AD7042935C0EE1859CE10C0743B18847971";
+            "704B21837E8619C5BBD3583D41761C809B52F1FCF39F18E3468089A09AFA694F";
 
         public const string EventChoiceDialogPrefabPath =
             "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/EventChoiceDialog.prefab";
@@ -382,12 +382,65 @@ namespace YC.Editor
             SerializedObject serialized,
             GameObject[] modes)
         {
+            var eventArtwork = GetReference<RawImage>(serialized, "eventCardArtworkImage");
+            var eventMetadataRibbon = GetReference<GameObject>(serialized, "eventCardMetadataRibbon");
+            var eventMetadataRibbonImage = GetReference<Image>(
+                serialized,
+                "eventCardMetadataRibbonImage");
+            var eventMetadataRibbonLabel = GetReference<Text>(serialized, "eventCardMetadataRibbonLabel");
             var eventPaymentHost = GetReference<RectTransform>(serialized, "eventPaymentRouteHost");
             var eventChoiceHost = GetReference<RectTransform>(serialized, "eventChoiceHost");
             var explorePathHost = GetReference<RectTransform>(serialized, "explorePathHost");
             var explorePaymentHost = GetReference<RectTransform>(serialized, "explorePaymentRouteHost");
             var exploreConfirm = GetReference<Button>(serialized, "exploreConfirmButton");
             var exploreConfirmLabel = GetReference<Text>(serialized, "exploreConfirmLabel");
+
+            AssertDirectChild(eventArtwork, modes[0].transform, "Event Card Artwork");
+            AssertStretched(eventArtwork.rectTransform, "Event Card Artwork");
+            AssertExactComponentTypes(
+                eventArtwork.gameObject,
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(RawImage));
+            if (eventArtwork.gameObject.activeSelf || eventArtwork.texture != null ||
+                eventArtwork.raycastTarget)
+            {
+                throw new InvalidOperationException(
+                    "Event Card Artwork 必须在 Prefab 初始隐藏、无贴图且不拦截射线。");
+            }
+
+            AssertDirectChild(eventMetadataRibbon.transform, modes[0].transform, "Resource Point Ribbon");
+            AssertDirectChild(eventMetadataRibbonLabel, eventMetadataRibbon.transform, "Resource Point Label");
+            AssertExactComponentTypes(
+                eventMetadataRibbon,
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image));
+            var ribbonRect = eventMetadataRibbon.GetComponent<RectTransform>();
+            if (eventMetadataRibbonImage != eventMetadataRibbon.GetComponent<Image>() ||
+                eventMetadataRibbonImage.sprite == null ||
+                AssetDatabase.GetAssetPath(eventMetadataRibbonImage.sprite) !=
+                YC.EditorTools.GameplayDialogEditorAssetBuilder.EventResourcePointRibbonSpritePath ||
+                eventMetadataRibbonImage.type != Image.Type.Simple ||
+                eventMetadataRibbonImage.preserveAspect ||
+                !Approximately(ribbonRect.sizeDelta, new Vector2(380f, 42f)) ||
+                !Approximately(ribbonRect.anchoredPosition, new Vector2(56f, 0f)))
+            {
+                throw new InvalidOperationException(
+                    "资源点飘带必须使用单一 380x42 梯形 Sprite，不得恢复箭头拼接。");
+            }
+            AssertExactTextComponents(eventMetadataRibbonLabel, false, false);
+            AssertExactDirectChildren(
+                eventMetadataRibbon.transform,
+                eventMetadataRibbonLabel.transform);
+            if (eventMetadataRibbon.activeSelf ||
+                eventMetadataRibbonImage.raycastTarget ||
+                eventMetadataRibbonLabel.raycastTarget)
+            {
+                throw new InvalidOperationException(
+                    "资源点飘带必须在 Prefab 初始隐藏且不拦截射线。");
+            }
+
             AssertDirectChild(exploreConfirm, modes[2].transform, "Confirm Explore");
             AssertDirectChild(exploreConfirmLabel, exploreConfirm.transform, "Label");
             AssertActiveSelf(exploreConfirm.gameObject, true, "Confirm Explore");
@@ -560,6 +613,8 @@ namespace YC.Editor
 
             AssertExactDirectChildren(
                 modes[0].transform,
+                eventArtwork.transform,
+                eventMetadataRibbon.transform,
                 eventPaymentHost,
                 eventChoiceHost);
             AssertExactDirectChildren(modes[1].transform, explorePathHost);
@@ -605,7 +660,12 @@ namespace YC.Editor
             AssertUniqueDescendantName(root, "Dynamic Templates", templateHost);
             AssertActiveSelf(templateHost.gameObject, true, "Dynamic Templates");
 
-            var choiceRoot = AssertButtonRowTopology(serialized, "choiceRowTemplate", templateHost, "ChoiceRow");
+            var choiceRoot = AssertButtonRowTopology(
+                serialized,
+                "choiceRowTemplate",
+                templateHost,
+                "ChoiceRow",
+                "Hover Border");
             var pathRoot = AssertButtonRowTopology(serialized, "pathRowTemplate", templateHost, "PathRow");
             var recipientRoot = AssertButtonRowTopology(
                 serialized,
@@ -874,11 +934,18 @@ namespace YC.Editor
             SerializedObject serialized,
             EventChoiceDialogLayoutProfile profile)
         {
-            AssertButton(
-                GetNestedReference<Button>(serialized, "choiceRowTemplate", "button"),
+            var choiceButton = GetNestedReference<Button>(
+                serialized,
+                "choiceRowTemplate",
+                "button");
+            var choiceHoverBorder = choiceButton.transform.Find("Hover Border") as RectTransform;
+            AssertChoiceButton(
+                choiceButton,
                 GetNestedReference<Text>(serialized, "choiceRowTemplate", "label"),
                 profile.ChoiceRowTemplateLayout,
-                profile.ChoiceRowButtonStyle);
+                profile.ChoiceRowButtonStyle,
+                choiceHoverBorder);
+            AssertChoiceHoverBorder(choiceHoverBorder);
             AssertButton(
                 GetNestedReference<Button>(serialized, "pathRowTemplate", "button"),
                 GetNestedReference<Text>(serialized, "pathRowTemplate", "label"),
@@ -1180,21 +1247,27 @@ namespace YC.Editor
             var dialogSource = File.ReadAllText(dialogPath);
             var viewSource = File.ReadAllText(viewPath);
             var builderSource = File.ReadAllText(builderPath);
-            if (Count(dialogSource, "new Vector2") != 14 ||
+            if (Count(dialogSource, "new Vector2") != 34 ||
                 Count(viewSource, "new Vector2") != 0 ||
                 dialogSource.Contains("Stretch(view.") ||
-                dialogSource.Contains("outline.effectDistance") ||
                 dialogSource.Contains("private static void SetRect") ||
                 dialogSource.Contains("private static void Stretch") ||
                 dialogSource.Contains("private const float EventCard") ||
                 viewSource.Contains("panel.anchorMin = panel.anchorMax") ||
                 !viewSource.Contains(
                     "[SerializeField] private EventChoiceDialogLayoutProfile layoutProfile;") ||
+                !viewSource.Contains(
+                    "[SerializeField] private Image eventCardMetadataRibbonImage;") ||
                 !viewSource.Contains("public EventChoiceDialogLayoutProfile LayoutProfile => layoutProfile;") ||
                 !dialogSource.Contains("dialogRegistry.EventChoiceDialogPrefab") ||
+                !dialogSource.Contains("CardVisualCatalog.GetEvent(card.CardId)") ||
                 !builderSource.Contains(
                     "EventChoiceDialogLayoutEditorAssetBuilder.LoadRequiredProfile()") ||
                 !builderSource.Contains("(\"layoutProfile\", layoutProfile)") ||
+                !builderSource.Contains(
+                    "(\"eventCardMetadataRibbonImage\", metadataRibbonImage)") ||
+                !builderSource.Contains("EventResourcePointRibbonSpritePath") ||
+                builderSource.Contains("\"Ribbon Wedge\"") ||
                 !builderSource.Contains(
                     "EnsureControlledMetaGuid(EventChoiceDialogPrefabPath, EventChoiceDialogPrefabGuid)") ||
                 !builderSource.Contains(
@@ -1210,7 +1283,8 @@ namespace YC.Editor
                 !viewSource.Contains("layoutProfile.OverlayAlpha"))
             {
                 throw new InvalidOperationException(
-                    "EventChoiceDialog 必须只保留 14 处数据量驱动 Vector2，且不得恢复固定布局覆盖。");
+                    "EventChoiceDialog 必须只保留 34 处通用数据量与资产化卡图热区 Vector2，" +
+                    "且不得恢复其他固定布局覆盖。");
             }
 
             ValidateConsumerSourceContract(dialogSource, viewSource);
@@ -1244,11 +1318,11 @@ namespace YC.Editor
                 throw new InvalidOperationException("EventChoiceDialog consumer 源码为空。");
             }
 
-            if (Count(dialogSource, "new Vector2") != 14 ||
+            if (Count(dialogSource, "new Vector2") != 34 ||
                 Count(viewSource, "new Vector2") != 0)
             {
                 throw new InvalidOperationException(
-                    "EventChoiceDialog consumer 必须保持 new Vector2 计数 14/0。");
+                    "EventChoiceDialog consumer 必须保持 new Vector2 计数 34/0。");
             }
 
             var dialogSha256 = ComputeNormalizedSourceSha256(dialogSource);
@@ -1504,7 +1578,8 @@ namespace YC.Editor
             SerializedObject serialized,
             string containerName,
             Transform parent,
-            string expectedName)
+            string expectedName,
+            string expectedAdditionalChildName = null)
         {
             var root = GetNestedReference<RectTransform>(serialized, containerName, "root");
             var button = GetNestedReference<Button>(serialized, containerName, "button");
@@ -1516,7 +1591,15 @@ namespace YC.Editor
             }
 
             AssertDirectChild(label, root, "Label");
-            AssertExactDirectChildren(root, label.transform);
+            if (string.IsNullOrEmpty(expectedAdditionalChildName))
+            {
+                AssertExactDirectChildren(root, label.transform);
+            }
+            else
+            {
+                var additionalChild = FindDirectRequired(root, expectedAdditionalChildName);
+                AssertExactDirectChildren(root, label.transform, additionalChild);
+            }
             return root;
         }
 
@@ -1903,7 +1986,99 @@ namespace YC.Editor
                 expectedLayout,
                 expectedStyle,
                 false,
+                false,
                 expectedAdditionalChildren);
+        }
+
+        private static void AssertChoiceButton(
+            Button button,
+            Text label,
+            EventChoiceDialogRectLayout expectedLayout,
+            EventChoiceDialogButtonStyle expectedStyle,
+            RectTransform hoverBorder)
+        {
+            AssertButtonCore(
+                button,
+                label,
+                expectedLayout,
+                expectedStyle,
+                false,
+                true,
+                new Transform[] { hoverBorder });
+        }
+
+        private static void AssertChoiceHoverBorder(RectTransform border)
+        {
+            if (border == null)
+            {
+                throw new InvalidOperationException("ChoiceRow 缺少空心悬停边框。");
+            }
+
+            AssertExactComponentTypes(border.gameObject, typeof(RectTransform));
+            AssertActiveSelf(border.gameObject, true, "ChoiceRow Hover Border");
+            AssertStretched(border, "ChoiceRow Hover Border");
+            var top = border.Find("Top") as RectTransform;
+            var bottom = border.Find("Bottom") as RectTransform;
+            var left = border.Find("Left") as RectTransform;
+            var right = border.Find("Right") as RectTransform;
+            AssertExactDirectChildren(border, top, bottom, left, right);
+            AssertChoiceHoverBorderEdge(
+                top,
+                new Vector2(0f, 1f),
+                new Vector2(1f, 1f),
+                new Vector2(0.5f, 1f),
+                new Vector2(0f, 3f));
+            AssertChoiceHoverBorderEdge(
+                bottom,
+                new Vector2(0f, 0f),
+                new Vector2(1f, 0f),
+                new Vector2(0.5f, 0f),
+                new Vector2(0f, 3f));
+            AssertChoiceHoverBorderEdge(
+                left,
+                new Vector2(0f, 0f),
+                new Vector2(0f, 1f),
+                new Vector2(0f, 0.5f),
+                new Vector2(3f, 0f));
+            AssertChoiceHoverBorderEdge(
+                right,
+                new Vector2(1f, 0f),
+                new Vector2(1f, 1f),
+                new Vector2(1f, 0.5f),
+                new Vector2(3f, 0f));
+        }
+
+        private static void AssertChoiceHoverBorderEdge(
+            RectTransform edgeRect,
+            Vector2 anchorMin,
+            Vector2 anchorMax,
+            Vector2 pivot,
+            Vector2 sizeDelta)
+        {
+            if (edgeRect == null)
+            {
+                throw new InvalidOperationException("ChoiceRow 空心悬停边框缺边。");
+            }
+
+            var image = edgeRect.GetComponent<Image>();
+            AssertExactComponentTypes(
+                edgeRect.gameObject,
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image));
+            AssertEnabled(image, edgeRect.name + " Image");
+            AssertExactDirectChildren(edgeRect);
+            if (!Approximately(edgeRect.anchorMin, anchorMin) ||
+                !Approximately(edgeRect.anchorMax, anchorMax) ||
+                !Approximately(edgeRect.pivot, pivot) ||
+                !Approximately(edgeRect.sizeDelta, sizeDelta) ||
+                !Approximately(edgeRect.anchoredPosition, Vector2.zero) ||
+                image.raycastTarget ||
+                !Approximately(image.color, Color.clear))
+            {
+                throw new InvalidOperationException(
+                    "ChoiceRow 空心悬停边框样式漂移：" + edgeRect.name);
+            }
         }
 
         private static void AssertCloseButton(
@@ -1919,6 +2094,7 @@ namespace YC.Editor
                 expectedLayout,
                 expectedStyle,
                 true,
+                false,
                 Array.Empty<Transform>());
         }
 
@@ -1943,6 +2119,7 @@ namespace YC.Editor
             EventChoiceDialogRectLayout expectedLayout,
             EventChoiceDialogButtonStyle expectedStyle,
             bool isCloseButtonLabel,
+            bool expectsActionFeedback,
             Transform[] expectedAdditionalChildren)
         {
             if (button == null || label == null || button.gameObject != label.transform.parent.gameObject)
@@ -1956,13 +2133,30 @@ namespace YC.Editor
             AssertSingleComponent(button.gameObject, button, button.name + " Button");
             AssertSingleComponent(button.gameObject, image, button.name + " Image");
             AssertSingleComponent(button.gameObject, outline, button.name + " Outline");
-            AssertExactComponentTypes(
-                button.gameObject,
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(Image),
-                typeof(Button),
-                typeof(Outline));
+            if (expectsActionFeedback)
+            {
+                var feedback = button.GetComponent<ActionButtonPressFeedback>();
+                AssertSingleComponent(button.gameObject, feedback, button.name + " ActionButtonPressFeedback");
+                AssertEnabled(feedback, button.name + " ActionButtonPressFeedback");
+                AssertExactComponentTypes(
+                    button.gameObject,
+                    typeof(RectTransform),
+                    typeof(CanvasRenderer),
+                    typeof(Image),
+                    typeof(Button),
+                    typeof(Outline),
+                    typeof(ActionButtonPressFeedback));
+            }
+            else
+            {
+                AssertExactComponentTypes(
+                    button.gameObject,
+                    typeof(RectTransform),
+                    typeof(CanvasRenderer),
+                    typeof(Image),
+                    typeof(Button),
+                    typeof(Outline));
+            }
             AssertActiveSelf(label.gameObject, true, button.name + " Label");
             AssertEnabled(button, button.name + " Button");
             AssertEnabled(image, button.name + " Image");

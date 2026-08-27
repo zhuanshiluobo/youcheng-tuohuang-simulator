@@ -452,6 +452,7 @@ namespace YC.Presentation.Workflows
         CollectionCandidate,
         CollectionSelected,
         CollectionPaymentRequired,
+        CollectionBankPaymentGhost,
         InitialPlacement
     }
 

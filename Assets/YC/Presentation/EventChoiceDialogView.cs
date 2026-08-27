@@ -138,6 +138,10 @@ namespace YC.Presentation
         [SerializeField] private GameObject characterSecondEffectDecisionMode;
 
         [Header("模式内容")]
+        [SerializeField] private RawImage eventCardArtworkImage;
+        [SerializeField] private GameObject eventCardMetadataRibbon;
+        [SerializeField] private Image eventCardMetadataRibbonImage;
+        [SerializeField] private Text eventCardMetadataRibbonLabel;
         [SerializeField] private RectTransform eventChoiceHost;
         [SerializeField] private RectTransform eventPaymentRouteHost;
         [SerializeField] private RectTransform explorePathHost;
@@ -201,6 +205,10 @@ namespace YC.Presentation
         public EffectDialogDragHandle DragHandle => dragHandle;
         public WindowCloseInputHandler CloseInputHandler => closeInputHandler;
         public EventChoiceDialogLayoutProfile LayoutProfile => layoutProfile;
+        public RawImage EventCardArtworkImage => eventCardArtworkImage;
+        public GameObject EventCardMetadataRibbon => eventCardMetadataRibbon;
+        public Image EventCardMetadataRibbonImage => eventCardMetadataRibbonImage;
+        public Text EventCardMetadataRibbonLabel => eventCardMetadataRibbonLabel;
         public RectTransform EventChoiceHost => eventChoiceHost;
         public RectTransform EventPaymentRouteHost => eventPaymentRouteHost;
         public RectTransform ExplorePathHost => explorePathHost;
@@ -263,7 +271,10 @@ namespace YC.Presentation
                 }
             }
 
-            if (eventChoiceHost == null || eventPaymentRouteHost == null || explorePathHost == null ||
+            if (eventCardArtworkImage == null || eventCardMetadataRibbon == null ||
+                eventCardMetadataRibbonImage == null || eventCardMetadataRibbonLabel == null ||
+                eventChoiceHost == null ||
+                eventPaymentRouteHost == null || explorePathHost == null ||
                 explorePaymentRouteHost == null || exploreConfirmButton == null || exploreConfirmLabel == null ||
                 resourcePaymentReceiverText == null || resourcePaymentRecipientHost == null ||
                 resourcePaymentBankButton == null || resourcePaymentBankLabel == null ||
@@ -391,6 +402,10 @@ namespace YC.Presentation
             expandedContent.gameObject.SetActive(true);
             dragHandle.enabled = false;
             collapsiblePanel.Configure(null);
+            eventCardArtworkImage.texture = null;
+            eventCardArtworkImage.gameObject.SetActive(false);
+            eventCardMetadataRibbonLabel.text = string.Empty;
+            eventCardMetadataRibbon.SetActive(false);
             facilityPreviewImage.texture = null;
             facilityPreviewImage.gameObject.SetActive(false);
             facilityPreviewFallback.text = string.Empty;

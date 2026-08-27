@@ -6,6 +6,7 @@ using UnityEngine.UI;
 namespace YC.Presentation
 {
     public sealed class ActionButtonPressFeedback : MonoBehaviour,
+        IPointerEnterHandler,
         IPointerDownHandler,
         IPointerUpHandler,
         IPointerExitHandler
@@ -16,19 +17,64 @@ namespace YC.Presentation
 
         private Button button;
         private Outline outline;
+        [SerializeField] private Graphic[] hoverBorderGraphics = new Graphic[0];
+        [SerializeField] private Color highlightColor;
         private Vector3 restingScale = Vector3.one;
         private Color restingOutlineColor;
+        private Color[] restingHoverBorderColors = new Color[0];
         private Coroutine scaleAnimation;
         private bool configured;
+        private bool hovered;
         private bool pressed;
 
         public void Configure(Button configuredButton, Outline configuredOutline)
         {
+            Configure(
+                configuredButton,
+                configuredOutline,
+                hoverBorderGraphics,
+                UiTheme.CyanAccent);
+        }
+
+        public void Configure(
+            Button configuredButton,
+            Outline configuredOutline,
+            Color configuredHighlightColor)
+        {
+            Configure(
+                configuredButton,
+                configuredOutline,
+                hoverBorderGraphics,
+                configuredHighlightColor);
+        }
+
+        public void Configure(
+            Button configuredButton,
+            Outline configuredOutline,
+            Graphic[] configuredHoverBorderGraphics,
+            Color configuredHighlightColor)
+        {
             button = configuredButton;
             outline = configuredOutline;
+            hoverBorderGraphics = configuredHoverBorderGraphics ?? new Graphic[0];
+            highlightColor = configuredHighlightColor;
             restingScale = transform.localScale;
             restingOutlineColor = outline == null ? Color.clear : outline.effectColor;
+            CaptureRestingHoverBorderColors();
+            hovered = false;
+            pressed = false;
             configured = true;
+            RestoreVisuals();
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            EnsureConfigured();
+            hovered = true;
+            if (!pressed)
+            {
+                ApplyIdleVisuals();
+            }
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -40,10 +86,7 @@ namespace YC.Presentation
             }
 
             pressed = true;
-            if (outline != null)
-            {
-                outline.effectColor = UiTheme.CyanAccent;
-            }
+            SetHighlighted(true);
 
             StopAnimation();
             var targetScale = restingScale * PressedScale;
@@ -66,10 +109,14 @@ namespace YC.Presentation
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            hovered = false;
             if (pressed)
             {
                 Release();
+                return;
             }
+
+            ApplyIdleVisuals();
         }
 
         private void Awake()
@@ -93,7 +140,8 @@ namespace YC.Presentation
             StopAnimation();
             if (!UnityEngine.Application.isPlaying)
             {
-                ResetImmediately();
+                transform.localScale = restingScale;
+                ApplyIdleVisuals();
                 return;
             }
 
@@ -105,7 +153,7 @@ namespace YC.Presentation
             var raisedScale = restingScale * 1.04f;
             yield return ScaleTo(transform.localScale, raisedScale, ReleaseDuration * 0.42f);
             yield return ScaleTo(raisedScale, restingScale, ReleaseDuration * 0.58f);
-            RestoreOutline();
+            ApplyIdleVisuals();
             scaleAnimation = null;
         }
 
@@ -130,25 +178,75 @@ namespace YC.Presentation
             }
 
             button = GetComponent<Button>();
-            outline = GetComponent<Outline>();
+            outline = hoverBorderGraphics != null && hoverBorderGraphics.Length > 0
+                ? null
+                : GetComponent<Outline>();
+            if (highlightColor.a <= 0f)
+            {
+                highlightColor = UiTheme.CyanAccent;
+            }
             restingScale = transform.localScale;
             restingOutlineColor = outline == null ? Color.clear : outline.effectColor;
+            CaptureRestingHoverBorderColors();
             configured = true;
         }
 
         private void ResetImmediately()
         {
+            hovered = false;
             pressed = false;
             StopAnimation();
             transform.localScale = restingScale;
-            RestoreOutline();
+            RestoreVisuals();
         }
 
-        private void RestoreOutline()
+        private void ApplyIdleVisuals()
+        {
+            SetHighlighted(hovered && button != null && button.IsInteractable());
+        }
+
+        private void SetHighlighted(bool highlighted)
+        {
+            if (outline != null)
+            {
+                outline.effectColor = highlighted ? highlightColor : restingOutlineColor;
+            }
+
+            for (var i = 0; i < hoverBorderGraphics.Length; i++)
+            {
+                if (hoverBorderGraphics[i] != null)
+                {
+                    hoverBorderGraphics[i].color = highlighted
+                        ? highlightColor
+                        : restingHoverBorderColors[i];
+                }
+            }
+        }
+
+        private void CaptureRestingHoverBorderColors()
+        {
+            restingHoverBorderColors = new Color[hoverBorderGraphics.Length];
+            for (var i = 0; i < hoverBorderGraphics.Length; i++)
+            {
+                restingHoverBorderColors[i] = hoverBorderGraphics[i] == null
+                    ? Color.clear
+                    : hoverBorderGraphics[i].color;
+            }
+        }
+
+        private void RestoreVisuals()
         {
             if (outline != null)
             {
                 outline.effectColor = restingOutlineColor;
+            }
+
+            for (var i = 0; i < hoverBorderGraphics.Length; i++)
+            {
+                if (hoverBorderGraphics[i] != null)
+                {
+                    hoverBorderGraphics[i].color = restingHoverBorderColors[i];
+                }
             }
         }
 

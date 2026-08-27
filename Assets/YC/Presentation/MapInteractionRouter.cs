@@ -88,6 +88,15 @@ namespace YC.Presentation
                 exploration.SelectInfluenceAtLocation(locationId, Time.frameCount);
                 return;
             }
+
+            // 采集取消后按规则不再显示高亮，但该资源点仍必须保留点击入口，
+            // 否则用户无法把它重新加入本次采集。
+            if (coordinator.IsActive(collection) && collection.CanToggleLocation(locationId))
+            {
+                collection.SelectLocation(locationId);
+                return;
+            }
+
             if (!mapView.ContainsHighlightedLocation(locationId)) { CancelConfirmation(true); return; }
 
             if (coordinator.IsActive(collection))

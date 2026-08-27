@@ -138,4 +138,49 @@ MonoBehaviour:
     texture: {fileID: 2800000, guid: f00f4e9a391a10d49a69d0f324e6ddc5, type: 3}
   - color: 1
     texture: {fileID: 2800000, guid: b2b74655e2e2f754aae40144b8b4bdbc, type: 3}
+  eventTextures:
+  - id: event_green_01
+    texture: {fileID: 2800000, guid: 8d2de57a255c0814685c60c43c4f44c6, type: 3}
+  - id: event_green_02
+    texture: {fileID: 2800000, guid: d35c51b4eeae8d848899e4f6e3dc899a, type: 3}
+  - id: event_green_03
+    texture: {fileID: 2800000, guid: c54232ffe73f8d54bb4738379f543cc0, type: 3}
+  - id: event_green_04
+    texture: {fileID: 2800000, guid: 0375f823b23b65541b3431c4f497abd4, type: 3}
+  - id: event_green_05
+    texture: {fileID: 2800000, guid: 116dfe9b4bc5d8e498de6a63bfc51a31, type: 3}
+  - id: event_green_06
+    texture: {fileID: 2800000, guid: 8c3aa612e315c6c4d8d30c07d4a8a386, type: 3}
+  - id: event_red_01
+    texture: {fileID: 2800000, guid: be85e97bb3933d047b7c8d0b414bd18b, type: 3}
+  - id: event_red_02
+    texture: {fileID: 2800000, guid: e8c6ef9e5e17bda4aad16c7ff23dd640, type: 3}
+  - id: event_red_03
+    texture: {fileID: 2800000, guid: 0a6c86cbc9180fc4f84bef3496a79668, type: 3}
+  - id: event_red_04
+    texture: {fileID: 2800000, guid: 30177c79a6b244141a0434c8d2a8e840, type: 3}
+  - id: event_red_05
+    texture: {fileID: 2800000, guid: 3bf9b65d8f0da034d8ecfedf0df94a15, type: 3}
+  - id: event_red_06
+    texture: {fileID: 2800000, guid: 790093cde0c1ef249a7ca274fac38087, type: 3}
+  - id: event_yellow_01
+    texture: {fileID: 2800000, guid: e87615c0b3d2bab408a76569720d8850, type: 3}
+  - id: event_yellow_02
+    texture: {fileID: 2800000, guid: 7ad8d88e967058e498c92b6c6bb20da1, type: 3}
+  - id: event_yellow_03
+    texture: {fileID: 2800000, guid: 7e79a6fbe12647c47b8c6a710ec8dfb5, type: 3}
+  - id: event_yellow_04
+    texture: {fileID: 2800000, guid: 58806cf3878a0194993994c1e25beb73, type: 3}
+  - id: event_yellow_05
+    texture: {fileID: 2800000, guid: 27d154faf39d5a049a60407fc1476b73, type: 3}
+  - id: event_yellow_06
+    texture: {fileID: 2800000, guid: 7df87fcf0115fb247abca5648505501b, type: 3}
+  - id: event_yellow_07
+    texture: {fileID: 2800000, guid: 22d09d5e908c58d4cb9b27978fb94935, type: 3}
+  - id: event_yellow_08
+    texture: {fileID: 2800000, guid: 1ccca5f2c7e065e4caaf7293bb2709f5, type: 3}
+  - id: event_yellow_09
+    texture: {fileID: 2800000, guid: 72122abd68526a14699e3f7fce77a705, type: 3}
+  - id: event_yellow_10
+    texture: {fileID: 2800000, guid: b9b9fa70818a3a64d9dbe3314b591ffb, type: 3}
   cityBoardTexture: {fileID: 2800000, guid: cfbcd3b26b03e954999a7fd904f94250, type: 3}

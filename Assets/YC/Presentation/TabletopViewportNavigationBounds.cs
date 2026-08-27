@@ -27,9 +27,9 @@ namespace YC.Presentation
     [DisallowMultipleComponent]
     public sealed class TabletopViewportNavigationBounds : MonoBehaviour, ITabletopNavigationBoundsProvider
     {
-        [Header("100% View Boundary")]
-        [SerializeField, Range(0f, 1f)] private float horizontalMapMarginFraction = 0.15f;
-        [SerializeField, Range(0f, 1f)] private float verticalMapMarginFraction = 0.15f;
+        [Header("0.9 倍中心相机最终边框")]
+        [SerializeField, Range(0f, 1f)] private float horizontalMapMarginFraction;
+        [SerializeField, Range(0f, 1f)] private float verticalMapMarginFraction;
 
         private Rect fixedWorldBounds;
         private bool isInitialized;
@@ -56,14 +56,14 @@ namespace YC.Presentation
 
             if (!TryGetViewportFootprint(
                     targetCamera,
-                    tabletopViewport,
+                    new Rect(0f, 0f, 1f, 1f),
                     tabletopPlane,
                     origin,
                     planeAxisX,
                     planeAxisY,
-                    out var baselineFootprint))
+                    out var minimumZoomFootprint))
             {
-                reason = "无法取得 100% 缩放时安全视口在桌面平面上的投影。";
+                reason = "无法取得中心点 0.9 倍缩放时完整相机视口在桌面平面上的投影。";
                 return false;
             }
 
@@ -76,10 +76,10 @@ namespace YC.Presentation
             var verticalMargin = mapHeight * Mathf.Clamp01(verticalMapMarginFraction);
 
             fixedWorldBounds = Rect.MinMaxRect(
-                baselineFootprint.xMin - horizontalMargin,
-                baselineFootprint.yMin - verticalMargin,
-                baselineFootprint.xMax + horizontalMargin,
-                baselineFootprint.yMax + verticalMargin);
+                minimumZoomFootprint.xMin - horizontalMargin,
+                minimumZoomFootprint.yMin - verticalMargin,
+                minimumZoomFootprint.xMax + horizontalMargin,
+                minimumZoomFootprint.yMax + verticalMargin);
             isInitialized = true;
             reason = string.Empty;
             return true;
@@ -98,7 +98,7 @@ namespace YC.Presentation
             if (!isInitialized ||
                 !TryGetViewportFootprint(
                     targetCamera,
-                    tabletopViewport,
+                    new Rect(0f, 0f, 1f, 1f),
                     tabletopPlane,
                     currentFocus,
                     planeAxisX,
@@ -112,11 +112,17 @@ namespace YC.Presentation
             var secondHorizontalEndpoint = fixedWorldBounds.xMax - currentFootprint.xMax;
             var firstVerticalEndpoint = fixedWorldBounds.yMin - currentFootprint.yMin;
             var secondVerticalEndpoint = fixedWorldBounds.yMax - currentFootprint.yMax;
+            if (firstHorizontalEndpoint > secondHorizontalEndpoint ||
+                firstVerticalEndpoint > secondVerticalEndpoint)
+            {
+                return false;
+            }
+
             focusBounds = Rect.MinMaxRect(
-                Mathf.Min(firstHorizontalEndpoint, secondHorizontalEndpoint),
-                Mathf.Min(firstVerticalEndpoint, secondVerticalEndpoint),
-                Mathf.Max(firstHorizontalEndpoint, secondHorizontalEndpoint),
-                Mathf.Max(firstVerticalEndpoint, secondVerticalEndpoint));
+                firstHorizontalEndpoint,
+                firstVerticalEndpoint,
+                secondHorizontalEndpoint,
+                secondVerticalEndpoint);
             return true;
         }
 

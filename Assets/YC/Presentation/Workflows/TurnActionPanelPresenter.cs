@@ -339,7 +339,7 @@ namespace YC.Presentation.Workflows
                 return player != null &&
                        state.CurrentPlayerId == context.LocalPlayerId &&
                        string.IsNullOrEmpty(player.CoveredCharacterCardId)
-                    ? "入场阶段：请先盖放角色卡"
+                    ? "拖动手牌到右侧面板盖放"
                     : "入场阶段：等待当前玩家盖放角色卡";
             }
 

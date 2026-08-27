@@ -52,7 +52,10 @@ namespace YC.Presentation
             {
                 var binding = influenceSlots[i];
                 if (!binding.ClickTarget.Bind(controller, binding.SlotId, out reason) ||
-                    !binding.BorderPulse.Bind(binding.BorderRenderer, out reason) ||
+                    !binding.BorderPulse.BindWithDuration(
+                        binding.BorderRenderer,
+                        MapHotspot.HighlightPulseDuration,
+                        out reason) ||
                     !binding.PlacementFeedback.Bind(out reason))
                 {
                     return false;

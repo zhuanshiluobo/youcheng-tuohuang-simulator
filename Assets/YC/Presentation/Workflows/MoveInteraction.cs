@@ -286,13 +286,17 @@ namespace YC.Presentation.Workflows
             var adjacent = mapQuery.GetAdjacentLocations(player.CityLocationId);
             for (var i = 0; i < adjacent.Count; i++)
             {
-                if (!IsOccupiedByAnotherCity(adjacent[i].LocationId))
+                var target = adjacent[i];
+                if (IsOccupiedByAnotherCity(target.LocationId) ||
+                    RedZoneAccessRule.IsClosed(state, mapQuery.Map, target))
                 {
-                    highlights.Add(new WorkflowHighlight(
-                        WorkflowHighlightTargetKind.Location,
-                        adjacent[i].LocationId,
-                        WorkflowHighlightSemantic.MoveTarget));
+                    continue;
                 }
+
+                highlights.Add(new WorkflowHighlight(
+                    WorkflowHighlightTargetKind.Location,
+                    target.LocationId,
+                    WorkflowHighlightSemantic.MoveTarget));
             }
 
             return highlights;

@@ -4,10 +4,14 @@ namespace YC.Presentation
 {
     public sealed class MapHotspot : MonoBehaviour
     {
+        public const float HighlightScaleMultiplier = 2f;
+        public const float HighlightPulseDuration = MapHighlightPulse.PulseDuration * 2f;
+
         [SerializeField] private SpriteRenderer spriteRenderer;
         [SerializeField] private MapHighlightPulse highlightPulse;
         [SerializeField] private MapPlacementFeedback placementFeedback;
         private MobileCityInteractionController controller;
+        private Vector3 restingScale = Vector3.one;
 
         public string LocationId { get; private set; }
         public SpriteRenderer Renderer => spriteRenderer;
@@ -22,7 +26,9 @@ namespace YC.Presentation
             }
             controller = owner;
             LocationId = locationId;
-            if (!highlightPulse.Bind(spriteRenderer, out reason) || !placementFeedback.Bind(out reason))
+            restingScale = spriteRenderer.transform.localScale;
+            if (!highlightPulse.BindWithDuration(spriteRenderer, HighlightPulseDuration, out reason) ||
+                !placementFeedback.Bind(out reason))
             {
                 return false;
             }
@@ -34,11 +40,21 @@ namespace YC.Presentation
         {
             if (spriteRenderer == null) return;
             highlightPulse?.SetHighlighted(false);
+            spriteRenderer.transform.localScale = restingScale;
             spriteRenderer.color = color;
             spriteRenderer.enabled = color.a > 0f;
         }
 
-        public void SetHighlighted(bool highlighted) => highlightPulse?.SetHighlighted(highlighted);
+        public void SetHighlighted(bool highlighted)
+        {
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.transform.localScale = highlighted
+                    ? restingScale * HighlightScaleMultiplier
+                    : restingScale;
+            }
+            highlightPulse?.SetHighlighted(highlighted);
+        }
         public void PlayPlacementFeedback() => placementFeedback?.Play();
 
         private void OnMouseDown()

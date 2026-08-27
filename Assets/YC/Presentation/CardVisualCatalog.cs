@@ -14,7 +14,8 @@ namespace YC.Presentation
         public const int ExpectedCityStyleCount = 6;
         public const int ExpectedCharacterFrontCount = 5;
         public const int ExpectedCharacterBackCount = 4;
-        public const int ExpectedTextureCount = 62;
+        public const int ExpectedEventCount = EventCardDatabase.ExpectedDefinitionCount;
+        public const int ExpectedTextureCount = 84;
 
         [Serializable]
         public sealed class IdTextureEntry
@@ -53,6 +54,7 @@ namespace YC.Presentation
         [SerializeField] private IdTextureEntry[] characterFrontTextures = new IdTextureEntry[0];
         [SerializeField] private CharacterBackTextureEntry[] characterBackTextures =
             new CharacterBackTextureEntry[0];
+        [SerializeField] private IdTextureEntry[] eventTextures = new IdTextureEntry[0];
         [SerializeField] private Texture2D cityBoardTexture;
 
         private IReadOnlyDictionary<string, Texture2D> facilities =
@@ -63,13 +65,17 @@ namespace YC.Presentation
             new ReadOnlyDictionary<string, Texture2D>(new Dictionary<string, Texture2D>());
         private IReadOnlyDictionary<PlayerColor, Texture2D> characterBacks =
             new ReadOnlyDictionary<PlayerColor, Texture2D>(new Dictionary<PlayerColor, Texture2D>());
+        private IReadOnlyDictionary<string, Texture2D> events =
+            new ReadOnlyDictionary<string, Texture2D>(new Dictionary<string, Texture2D>());
 
         public int FacilityCount => facilityTextures == null ? 0 : facilityTextures.Length;
         public int CityStyleCount => cityStyleTextures == null ? 0 : cityStyleTextures.Length;
         public int CharacterFrontCount => characterFrontTextures == null ? 0 : characterFrontTextures.Length;
         public int CharacterBackCount => characterBackTextures == null ? 0 : characterBackTextures.Length;
+        public int EventCount => eventTextures == null ? 0 : eventTextures.Length;
         public int TextureCount => FacilityCount + CityStyleCount + CharacterFrontCount +
-                                   CharacterBackCount + (cityBoardTexture == null ? 0 : 1);
+                                   CharacterBackCount + EventCount +
+                                   (cityBoardTexture == null ? 0 : 1);
 
         private void OnEnable()
         {
@@ -102,12 +108,14 @@ namespace YC.Presentation
             IReadOnlyList<IdTextureEntry> configuredCityStyles,
             IReadOnlyList<IdTextureEntry> configuredCharacterFronts,
             IReadOnlyList<CharacterBackTextureEntry> configuredCharacterBacks,
+            IReadOnlyList<IdTextureEntry> configuredEvents,
             Texture2D configuredCityBoardTexture)
         {
             facilityTextures = Copy(configuredFacilities);
             cityStyleTextures = Copy(configuredCityStyles);
             characterFrontTextures = Copy(configuredCharacterFronts);
             characterBackTextures = Copy(configuredCharacterBacks);
+            eventTextures = Copy(configuredEvents);
             cityBoardTexture = configuredCityBoardTexture;
             RebuildDictionaries(true);
             UnityEditor.EditorUtility.SetDirty(this);
@@ -157,6 +165,11 @@ namespace YC.Presentation
             return characterBacks.TryGetValue(color, out texture) ? texture : null;
         }
 
+        public Texture2D GetEvent(string cardId)
+        {
+            return Get(events, cardId);
+        }
+
         public Texture2D GetCityBoard()
         {
             return cityBoardTexture;
@@ -171,6 +184,7 @@ namespace YC.Presentation
                 "character front",
                 strict);
             var characterBackDictionary = BuildCharacterBackDictionary(characterBackTextures, strict);
+            var eventDictionary = BuildIdDictionary(eventTextures, "event", strict);
 
             if (strict)
             {
@@ -178,6 +192,7 @@ namespace YC.Presentation
                 RequireCount("city style", cityStyleDictionary.Count, ExpectedCityStyleCount);
                 RequireCount("character front", characterFrontDictionary.Count, ExpectedCharacterFrontCount);
                 RequireCount("character back", characterBackDictionary.Count, ExpectedCharacterBackCount);
+                RequireCount("event", eventDictionary.Count, ExpectedEventCount);
                 RequirePersistentTexture(cityBoardTexture, "city board");
             }
 
@@ -185,6 +200,7 @@ namespace YC.Presentation
             cityStyles = new ReadOnlyDictionary<string, Texture2D>(cityStyleDictionary);
             characterFronts = new ReadOnlyDictionary<string, Texture2D>(characterFrontDictionary);
             characterBacks = new ReadOnlyDictionary<PlayerColor, Texture2D>(characterBackDictionary);
+            events = new ReadOnlyDictionary<string, Texture2D>(eventDictionary);
         }
 
         private static Dictionary<string, Texture2D> BuildIdDictionary(

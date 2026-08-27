@@ -218,6 +218,12 @@ namespace YC.Presentation.Workflows
 
         public void BeginMoveAction()
         {
+            if (flowCoordinator.IsActive(this) && MoveInteraction.IsSelectingMoveTarget)
+            {
+                CancelActiveMainActionSelection();
+                return;
+            }
+
             MoveInteraction.Begin();
         }
 
@@ -233,6 +239,12 @@ namespace YC.Presentation.Workflows
 
         public void BeginExploreAction()
         {
+            if (flowCoordinator.IsActive(explorationEventPresenter))
+            {
+                CancelActiveMainActionSelection();
+                return;
+            }
+
             if (CanStartMainAction())
             {
                 explorationEventPresenter.PrepareNormalExplore();
@@ -256,6 +268,13 @@ namespace YC.Presentation.Workflows
 
         public void BeginDeployAction()
         {
+            if (flowCoordinator.IsActive(influenceActionPresenter) &&
+                influenceActionPresenter.IsSelectingDeployTarget)
+            {
+                CancelActiveMainActionSelection();
+                return;
+            }
+
             if (CanStartMainAction())
             {
                 flowCoordinator.Activate(influenceActionPresenter);
@@ -264,6 +283,15 @@ namespace YC.Presentation.Workflows
 
         public void BeginDispatchAction()
         {
+            if (flowCoordinator.IsActive(influenceActionPresenter) &&
+                (influenceActionPresenter.IsSelectingDispatchSource ||
+                 influenceActionPresenter.IsSelectingDispatchTarget ||
+                 influenceActionPresenter.IsChoosingDispatchContinuation))
+            {
+                CancelActiveMainActionSelection();
+                return;
+            }
+
             if (!influenceActionPresenter.HasPendingFirstMove && !CanStartMainAction())
             {
                 return;
@@ -390,6 +418,12 @@ namespace YC.Presentation.Workflows
         private string GetQuickActionUnavailableReason()
         {
             return ActionPanelPresenter.GetQuickActionUnavailableReason();
+        }
+
+        private void CancelActiveMainActionSelection()
+        {
+            flowCoordinator.ResetToChooseAction();
+            view.RefreshActionPanel();
         }
 
         public static string BuildCompletedMainActionMessage(string actionName)

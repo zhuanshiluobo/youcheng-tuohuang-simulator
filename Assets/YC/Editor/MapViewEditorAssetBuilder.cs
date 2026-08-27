@@ -210,7 +210,7 @@ namespace YC.EditorTools
             var retainedTextures = new List<Texture2D>();
             var retainedSprites = new List<Sprite>();
             var hotspot = EnsureCircleSprite(library, "MapHotspot", 96, 40f, 8f, retainedTextures, retainedSprites);
-            var empty = EnsureCircleSprite(library, "MapInfluenceEmpty", 24, 8f, 2f, retainedTextures, retainedSprites);
+            var empty = EnsureSquareSprite(library, "MapInfluenceEmpty", 24, 20f, 3f, true, retainedTextures, retainedSprites);
             var occupied = EnsureSquareSprite(library, "MapInfluenceOccupied", 24, 16f, 0f, false, retainedTextures, retainedSprites);
             var border = EnsureSquareSprite(library, "MapInfluenceBorder", 32, 12f, 2f, true, retainedTextures, retainedSprites);
             var feedback = EnsureCircleSprite(library, "MapPlacementRing", 64, 27f, 3f, retainedTextures, retainedSprites);

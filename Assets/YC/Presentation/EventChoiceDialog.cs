@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using YC.Domain.Cards;
 using YC.Domain.Facilities;
+using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
 using UnityEngine;
@@ -16,6 +17,7 @@ namespace YC.Presentation
         private readonly Func<RectTransform> getParent;
         private EventChoiceDialogView view;
         private bool callbackDispatched;
+        private Color choiceHighlightColor;
 
         public EventChoiceDialog(GameplayDialogRegistry configuredRegistry, Func<RectTransform> configuredParent)
         {
@@ -35,6 +37,12 @@ namespace YC.Presentation
         public bool IsShowing
         {
             get { return view != null; }
+        }
+
+        public void SetChoiceHighlightColor(Color color)
+        {
+            color.a = 1f;
+            choiceHighlightColor = color;
         }
 
         private EventChoiceDialogLayoutProfile GetLayoutProfile()
@@ -67,6 +75,17 @@ namespace YC.Presentation
         {
             if (card == null || card.ChoiceRewards.Count == 0)
             {
+                return;
+            }
+
+            var eventArtwork = dialogRegistry.CardVisualCatalog.GetEvent(card.CardId);
+            if (eventArtwork != null)
+            {
+                ShowAssetizedEventCardOptions(
+                    card,
+                    metadataLabel,
+                    eventArtwork,
+                    onChoiceSelected);
                 return;
             }
 
@@ -161,6 +180,180 @@ namespace YC.Presentation
                 StartCollapsed = false
             });
             view.CollapseButton.onClick.AddListener(view.CollapsiblePanel.Toggle);
+        }
+
+        private void ShowAssetizedEventCardOptions(
+            EventCardDefinition card,
+            string metadataLabel,
+            Texture2D artwork,
+            Action<int> onChoiceSelected)
+        {
+            var layout = GetLayoutProfile();
+            var eventCardExpandedSize = new Vector2(artwork.width, artwork.height);
+            if (!PrepareView(
+                    EventChoiceDialogMode.EventCard,
+                    "Event Choice Overlay",
+                    "Choice Panel",
+                    eventCardExpandedSize,
+                    layout.EventCardPanelPosition,
+                    false))
+            {
+                return;
+            }
+
+            view.EventCardArtworkImage.texture = artwork;
+            view.EventCardArtworkImage.gameObject.SetActive(true);
+            view.EventCardArtworkImage.transform.SetAsFirstSibling();
+
+            var resourcePointLabel = GetResourcePointSummary(metadataLabel);
+            ConfigureEventCardMetadataRibbon(card.Color, resourcePointLabel);
+
+            view.TitleText.text = string.Empty;
+            view.TitleText.color = Color.clear;
+            view.TitleText.raycastTarget = true;
+            var dragRect = view.TitleText.rectTransform;
+            dragRect.anchorMin = new Vector2(0f, 1f);
+            dragRect.anchorMax = new Vector2(1f, 1f);
+            dragRect.pivot = new Vector2(0.5f, 1f);
+            dragRect.sizeDelta = new Vector2(0f, 120f);
+            dragRect.anchoredPosition = Vector2.zero;
+            view.MetadataText.gameObject.SetActive(false);
+            view.DescriptionText.gameObject.SetActive(false);
+            view.EventPaymentRouteHost.gameObject.SetActive(false);
+            var hoverColor = choiceHighlightColor.a > 0f
+                ? choiceHighlightColor
+                : UiTheme.CyanAccent;
+
+            for (var i = 0; i < card.ChoiceRewards.Count; i++)
+            {
+                var capturedIndex = i;
+                var row = view.CreateChoiceRow(view.EventChoiceHost);
+                row.Root.gameObject.name = "Choice " + (i + 1);
+                ConfigureAssetizedChoiceRow(
+                    row,
+                    i,
+                    card.ChoiceRewards.Count,
+                    hoverColor);
+                row.Button.onClick.AddListener(() => InvokeStep(
+                    () => onChoiceSelected?.Invoke(capturedIndex)));
+            }
+
+            view.CollapsedSummaryText.text = BuildCardSummary(card, metadataLabel);
+            ConfigureAssetizedCollapseButton();
+            view.DragHandle.enabled = true;
+            view.DragHandle.Configure(view.Panel);
+
+            var collapseSpec = new EffectDialogCollapseSpec(effectDialogLayoutProfile)
+            {
+                Panel = view.Panel,
+                Canvas = view.OverlayCanvas,
+                OverlayImage = view.OverlayImage,
+                ExpandedContent = view.ExpandedContent.gameObject,
+                CollapsedSummaryText = view.CollapsedSummaryText,
+                ToggleRect = view.CollapseButton.GetComponent<RectTransform>(),
+                ToggleText = view.CollapseButtonLabel,
+                ToggleIcon = view.CollapseButtonIcon,
+                ExpandedSize = eventCardExpandedSize,
+                CollapsedHeight = layout.EventCardCollapsedHeight,
+                CollapseLabel = string.Empty,
+                ExpandLabel = string.Empty,
+                ExpandedToggleLayout = new EffectDialogRectLayout
+                {
+                    AnchorMin = new Vector2(1f, 0.5f),
+                    AnchorMax = new Vector2(1f, 0.5f),
+                    Pivot = new Vector2(0.5f, 0.5f),
+                    SizeDelta = new Vector2(36f, 220f),
+                    AnchoredPosition = new Vector2(-18f, 0f)
+                },
+                StartCollapsed = false
+            };
+            view.CollapsiblePanel.Configure(collapseSpec);
+            view.CollapseButton.onClick.AddListener(view.CollapsiblePanel.Toggle);
+        }
+
+        private static void ConfigureAssetizedChoiceRow(
+            EventChoiceDialogView.ButtonRow row,
+            int choiceIndex,
+            int choiceCount,
+            Color hoverColor)
+        {
+            var rect = row.Root;
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            var usesThreeChoiceLayout = choiceCount >= 3;
+            var choiceTop = usesThreeChoiceLayout
+                ? choiceIndex == 0 ? 380f : choiceIndex == 1 ? 458f : 508f
+                : choiceIndex == 0 ? 385f : 462f;
+            var choiceHeight = usesThreeChoiceLayout
+                ? choiceIndex == 0 ? 78f : choiceIndex == 1 ? 50f : 56f
+                : choiceIndex == 0 ? 72f : 84f;
+            rect.sizeDelta = new Vector2(670f, choiceHeight);
+            rect.anchoredPosition = new Vector2(90f, -choiceTop);
+
+            var image = row.Root.GetComponent<Image>();
+            image.color = Color.clear;
+            image.raycastTarget = true;
+            var outline = row.Root.GetComponent<Outline>();
+            outline.enabled = false;
+            outline.effectColor = Color.clear;
+            row.Label.text = string.Empty;
+            row.Label.gameObject.SetActive(false);
+            row.Button.targetGraphic = image;
+            row.Button.transition = Selectable.Transition.None;
+            row.Button.navigation = new Navigation { mode = Navigation.Mode.None };
+            var feedback = row.Root.GetComponent<ActionButtonPressFeedback>();
+            if (feedback == null)
+            {
+                throw new InvalidOperationException("资产化事件选项缺少行动按钮反馈组件。");
+            }
+            feedback.Configure(row.Button, null, hoverColor);
+        }
+
+        private void ConfigureEventCardMetadataRibbon(
+            EventColor eventColor,
+            string resourcePointLabel)
+        {
+            var ribbonColor = GetEventCardMetadataRibbonColor(eventColor);
+            view.EventCardMetadataRibbonImage.color = ribbonColor;
+            view.EventCardMetadataRibbonLabel.text = resourcePointLabel;
+            view.EventCardMetadataRibbon.SetActive(!string.IsNullOrEmpty(resourcePointLabel));
+        }
+
+        private static Color GetEventCardMetadataRibbonColor(EventColor eventColor)
+        {
+            switch (eventColor)
+            {
+                case EventColor.Green:
+                    return new Color(0.31f, 0.62f, 0.2f, 0.98f);
+                case EventColor.Red:
+                    return new Color(0.65f, 0.15f, 0.1f, 0.98f);
+                case EventColor.Yellow:
+                    return new Color(0.82f, 0.61f, 0.12f, 0.98f);
+                default:
+                    throw new InvalidOperationException(
+                        "事件卡资源点标牌缺少颜色映射：" + eventColor);
+            }
+        }
+
+        private void ConfigureAssetizedCollapseButton()
+        {
+            view.CollapseButton.gameObject.SetActive(true);
+            var image = view.CollapseButton.GetComponent<Image>();
+            image.color = new Color(1f, 0.74f, 0f, 1f);
+            var outline = view.CollapseButton.GetComponent<Outline>();
+            outline.effectColor = new Color(0.2f, 0.16f, 0.04f, 1f);
+            outline.effectDistance = new Vector2(2f, -2f);
+            outline.useGraphicAlpha = false;
+            view.CollapseButtonLabel.text = string.Empty;
+            view.CollapseButtonLabel.gameObject.SetActive(false);
+            view.CollapseButtonIcon.color = Color.white;
+            view.CollapseButtonIcon.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            view.CollapseButtonIcon.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            view.CollapseButtonIcon.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            view.CollapseButtonIcon.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            view.CollapseButtonIcon.rectTransform.sizeDelta = new Vector2(20f, 28f);
+            view.CollapseButtonIcon.rectTransform.anchoredPosition = Vector2.zero;
         }
 
         public void ShowExplorePathOptions(

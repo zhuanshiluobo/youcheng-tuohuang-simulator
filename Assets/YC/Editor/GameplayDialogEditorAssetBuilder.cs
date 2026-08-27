@@ -16,6 +16,8 @@ namespace YC.EditorTools
         public const string DispatchDecisionPrefabPath = DialogFolder + "/DispatchDecisionDialog.prefab";
         public const string EventChoiceDialogPrefabPath = DialogFolder + "/EventChoiceDialog.prefab";
         public const string EventChoiceDialogPrefabGuid = "3fe2d5d7571d9e4488d62bd519017c21";
+        public const string EventResourcePointRibbonSpritePath =
+            "Assets/YC/Presentation/Sprites/EventResourcePointRibbon.png";
         public const string SharedUiVisualsAssetPath =
             SharedUiVisualEditorAssetBuilder.AssetPath;
         public const string SharedUiVisualsAssetGuid = "accc4ac362a0a4b4b824d05cbff434f8";
@@ -488,6 +490,14 @@ namespace YC.EditorTools
             EnsureControlledMetaGuid(EventChoiceDialogPrefabPath, EventChoiceDialogPrefabGuid);
             var layoutProfile = YC.Editor.EventChoiceDialogLayoutEditorAssetBuilder.LoadRequiredProfile();
             var sharedVisuals = LoadRequiredSharedUiVisuals();
+            var resourcePointRibbonSprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+                EventResourcePointRibbonSpritePath);
+            if (resourcePointRibbonSprite == null)
+            {
+                throw new InvalidOperationException(
+                    "Missing event resource point ribbon sprite: " +
+                    EventResourcePointRibbonSpritePath);
+            }
             var root = CreateUiObject(
                 "Event Choice Overlay",
                 null,
@@ -582,6 +592,48 @@ namespace YC.EditorTools
                 collapseButton.gameObject.SetActive(false);
 
                 var eventCardMode = CreateModeBlock("EventCard Mode", actionArea);
+                var eventArtworkObject = CreateUiObject(
+                    "Event Card Artwork",
+                    eventCardMode.transform,
+                    typeof(RawImage));
+                var eventArtwork = eventArtworkObject.GetComponent<RawImage>();
+                Stretch(eventArtwork.rectTransform);
+                eventArtwork.color = Color.white;
+                eventArtwork.raycastTarget = false;
+                eventArtworkObject.SetActive(false);
+
+                var metadataRibbon = CreateUiObject(
+                    "Resource Point Ribbon",
+                    eventCardMode.transform,
+                    typeof(Image));
+                var metadataRibbonRect = metadataRibbon.GetComponent<RectTransform>();
+                metadataRibbonRect.anchorMin = new Vector2(0f, 1f);
+                metadataRibbonRect.anchorMax = new Vector2(0f, 1f);
+                metadataRibbonRect.pivot = new Vector2(0f, 1f);
+                metadataRibbonRect.sizeDelta = new Vector2(380f, 42f);
+                metadataRibbonRect.anchoredPosition = new Vector2(56f, 0f);
+                var metadataRibbonImage = metadataRibbon.GetComponent<Image>();
+                metadataRibbonImage.sprite = resourcePointRibbonSprite;
+                metadataRibbonImage.type = Image.Type.Simple;
+                metadataRibbonImage.preserveAspect = false;
+                metadataRibbonImage.color = new Color(0.31f, 0.62f, 0.2f, 0.98f);
+                metadataRibbonImage.raycastTarget = false;
+
+                var metadataRibbonLabel = CreateText(
+                    metadataRibbonRect,
+                    "Resource Point Label",
+                    string.Empty,
+                    22,
+                    FontStyle.Normal,
+                    TextAnchor.MiddleLeft);
+                Stretch(metadataRibbonLabel.rectTransform);
+                metadataRibbonLabel.rectTransform.offsetMin = new Vector2(16f, 0f);
+                metadataRibbonLabel.rectTransform.offsetMax = new Vector2(-4f, 0f);
+                metadataRibbonLabel.color = Color.white;
+                metadataRibbonLabel.resizeTextMinSize = 14;
+                metadataRibbonLabel.resizeTextMaxSize = 22;
+                metadataRibbon.SetActive(false);
+
                 var eventPaymentHost = CreateStretchedHost(
                     eventCardMode.transform,
                     "Event Payment Route Host");
@@ -745,7 +797,8 @@ namespace YC.EditorTools
                     templateHost,
                     "ChoiceRow",
                     layoutProfile.ChoiceRowTemplateLayout,
-                    layoutProfile.ChoiceRowButtonStyle);
+                    layoutProfile.ChoiceRowButtonStyle,
+                    true);
                 var pathTemplate = BuildSimpleButtonRowTemplate(
                     templateHost,
                     "PathRow",
@@ -803,7 +856,11 @@ namespace YC.EditorTools
                     ("buildFacilityFocusMode", buildFocusMode),
                     ("buildFacilityConfirmationMode", buildConfirmationMode),
                     ("legacyCityStyleOptionsMode", legacyMode),
-                    ("characterSecondEffectDecisionMode", characterMode),
+                     ("characterSecondEffectDecisionMode", characterMode),
+                    ("eventCardArtworkImage", eventArtwork),
+                    ("eventCardMetadataRibbon", metadataRibbon),
+                    ("eventCardMetadataRibbonImage", metadataRibbonImage),
+                    ("eventCardMetadataRibbonLabel", metadataRibbonLabel),
                     ("eventChoiceHost", eventChoiceHost),
                     ("eventPaymentRouteHost", eventPaymentHost),
                     ("explorePathHost", explorePathHost),
@@ -883,9 +940,19 @@ namespace YC.EditorTools
             RectTransform parent,
             string name,
             EventChoiceDialogRectLayout layout,
-            EventChoiceDialogButtonStyle style)
+            EventChoiceDialogButtonStyle style,
+            bool includeActionFeedback = false)
         {
             var button = CreateProfileButton(parent, name, string.Empty, layout, style);
+            if (includeActionFeedback)
+            {
+                var feedback = button.gameObject.AddComponent<ActionButtonPressFeedback>();
+                feedback.Configure(
+                    button,
+                    null,
+                    BuildChoiceHoverBorder(button.transform),
+                    UiTheme.CyanAccent);
+            }
             button.gameObject.SetActive(false);
             return new[]
             {
@@ -893,6 +960,62 @@ namespace YC.EditorTools
                 ("button", (Object)button),
                 ("label", (Object)button.GetComponentInChildren<Text>())
             };
+        }
+
+        private static Graphic[] BuildChoiceHoverBorder(Transform parent)
+        {
+            var borderRoot = CreateUiObject("Hover Border", parent, Array.Empty<Type>())
+                .GetComponent<RectTransform>();
+            Stretch(borderRoot);
+            var top = CreateChoiceHoverBorderEdge(
+                borderRoot,
+                "Top",
+                new Vector2(0f, 1f),
+                new Vector2(1f, 1f),
+                new Vector2(0.5f, 1f),
+                new Vector2(0f, 3f));
+            var bottom = CreateChoiceHoverBorderEdge(
+                borderRoot,
+                "Bottom",
+                new Vector2(0f, 0f),
+                new Vector2(1f, 0f),
+                new Vector2(0.5f, 0f),
+                new Vector2(0f, 3f));
+            var left = CreateChoiceHoverBorderEdge(
+                borderRoot,
+                "Left",
+                new Vector2(0f, 0f),
+                new Vector2(0f, 1f),
+                new Vector2(0f, 0.5f),
+                new Vector2(3f, 0f));
+            var right = CreateChoiceHoverBorderEdge(
+                borderRoot,
+                "Right",
+                new Vector2(1f, 0f),
+                new Vector2(1f, 1f),
+                new Vector2(1f, 0.5f),
+                new Vector2(3f, 0f));
+            return new Graphic[] { top, bottom, left, right };
+        }
+
+        private static Image CreateChoiceHoverBorderEdge(
+            RectTransform parent,
+            string name,
+            Vector2 anchorMin,
+            Vector2 anchorMax,
+            Vector2 pivot,
+            Vector2 sizeDelta)
+        {
+            var edge = CreateUiObject(name, parent, typeof(Image)).GetComponent<Image>();
+            var rect = edge.rectTransform;
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.pivot = pivot;
+            rect.sizeDelta = sizeDelta;
+            rect.anchoredPosition = Vector2.zero;
+            edge.color = Color.clear;
+            edge.raycastTarget = false;
+            return edge;
         }
 
         private static (string property, Object value)[] BuildPaymentRouteRowTemplate(

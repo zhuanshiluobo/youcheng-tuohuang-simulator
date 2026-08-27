@@ -12,6 +12,7 @@ namespace YC.Presentation
     {
         private static readonly Vector3 ResourceTokenIconScale = Vector3.one;
         private const float MapPlaneZ = 0f;
+        private const float HotspotOverlayZ = -0.05f;
         private const float ScoreMarkerZ = -0.62f;
         private readonly MobileCityInteractionController controller;
         private readonly MapView view;
@@ -27,7 +28,11 @@ namespace YC.Presentation
         private readonly Dictionary<string, SpriteRenderer> influenceSlotBorderRenderers = new Dictionary<string, SpriteRenderer>();
         private readonly Dictionary<string, MapPieceVisual> influencePieceVisuals =
             new Dictionary<string, MapPieceVisual>();
+        private readonly Dictionary<string, int> influenceSlotPreviewPlayerIds =
+            new Dictionary<string, int>();
         private readonly Dictionary<string, MapHighlightPulse> influenceSlotPulses =
+            new Dictionary<string, MapHighlightPulse>();
+        private readonly Dictionary<string, MapHighlightPulse> influenceSlotEmptyPulses =
             new Dictionary<string, MapHighlightPulse>();
         private readonly Dictionary<string, MapPlacementFeedback> influenceSlotPlacementFeedbacks =
             new Dictionary<string, MapPlacementFeedback>();
@@ -104,6 +109,31 @@ namespace YC.Presentation
             SetInfluenceSlotBorderVisible(slotId, true);
         }
 
+        public bool PreviewInfluenceSlot(string slotId, int playerId, GameState state)
+        {
+            SpriteRenderer renderer;
+            MapPieceVisual pieceVisual;
+            if (string.IsNullOrEmpty(slotId) ||
+                playerId <= 0 ||
+                state == null ||
+                !influenceSlotRenderers.TryGetValue(slotId, out renderer) ||
+                !influencePieceVisuals.TryGetValue(slotId, out pieceVisual) ||
+                influenceService.FindInfluence(state, slotId) != null)
+            {
+                return false;
+            }
+
+            influenceSlotPreviewPlayerIds[slotId] = playerId;
+            RefreshInfluenceSlotRenderer(
+                state,
+                renderer,
+                pieceVisual,
+                slotId,
+                null,
+                playerId);
+            return true;
+        }
+
         public void PlayLocationConfirmation(string locationId)
         {
             MapHotspot hotspot;
@@ -126,6 +156,16 @@ namespace YC.Presentation
         {
             highlightedLocationIds.Clear();
             highlightedInfluenceSlotIds.Clear();
+            foreach (var pair in influenceSlotPreviewPlayerIds)
+            {
+                MapPieceVisual preview;
+                if (influencePieceVisuals.TryGetValue(pair.Key, out preview))
+                {
+                    preview.SetGhosted(false);
+                    preview.SetVisible(false);
+                }
+            }
+            influenceSlotPreviewPlayerIds.Clear();
             foreach (var pair in hotspotsById)
             {
                 pair.Value.SetHighlighted(false);
@@ -133,6 +173,10 @@ namespace YC.Presentation
             foreach (var pair in influenceSlotBorderRenderers)
             {
                 SetInfluenceSlotBorderVisible(pair.Key, false);
+            }
+            foreach (var pair in influenceSlotRenderers)
+            {
+                pair.Value.enabled = false;
             }
         }
 
@@ -205,10 +249,8 @@ namespace YC.Presentation
         {
             foreach (var pair in resourceTokenRenderers)
             {
-                pair.Value.sprite = sprites.EmptyInfluenceSlot;
-                pair.Value.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
-                pair.Value.transform.localScale = Vector3.one;
-                pair.Value.gameObject.SetActive(true);
+                pair.Value.enabled = false;
+                pair.Value.gameObject.SetActive(false);
             }
 
             if (state == null || state.Map == null)
@@ -228,13 +270,14 @@ namespace YC.Presentation
                 Sprite sprite;
                 if (!sprites.TryGetResourceTokenSprite(token.ResourceType, token.Amount, out sprite))
                 {
-                    renderer.gameObject.SetActive(false);
                     continue;
                 }
 
                 renderer.sprite = sprite;
                 renderer.color = Color.white;
                 renderer.transform.localScale = ResourceTokenIconScale;
+                renderer.enabled = true;
+                renderer.gameObject.SetActive(true);
             }
         }
 
@@ -258,13 +301,16 @@ namespace YC.Presentation
                     hasPendingDispatchFirstMove,
                     pendingDispatchFirstSourceSlotId,
                     pendingDispatchFirstTargetSlotId);
+                int previewPlayerId;
+                influenceSlotPreviewPlayerIds.TryGetValue(slotId, out previewPlayerId);
                 SetInfluenceSlotBorderVisible(slotId, highlightedInfluenceSlotIds.Contains(slotId));
                 RefreshInfluenceSlotRenderer(
                     state,
                     pair.Value,
                     influencePieceVisuals[slotId],
                     slotId,
-                    placement);
+                    placement,
+                    previewPlayerId);
             }
         }
 
@@ -361,7 +407,9 @@ namespace YC.Presentation
             influenceSlotRenderers.Clear();
             influenceSlotBorderRenderers.Clear();
             influencePieceVisuals.Clear();
+            influenceSlotPreviewPlayerIds.Clear();
             influenceSlotPulses.Clear();
+            influenceSlotEmptyPulses.Clear();
             influenceSlotPlacementFeedbacks.Clear();
             cityBindingsByPlayerId.Clear();
             scoreMarkerBindings.Clear();
@@ -370,7 +418,7 @@ namespace YC.Presentation
             {
                 var binding = view.Locations[i];
                 var location = locationsById[binding.LocationId];
-                binding.Hotspot.transform.position = ToWorldPosition(location.NormalizedPosition, MapPlaneZ);
+                binding.Hotspot.transform.position = ToWorldPosition(location.NormalizedPosition, HotspotOverlayZ);
                 binding.Hotspot.Renderer.sprite = sprites.Hotspot;
                 binding.Hotspot.SetColor(new Color(0.25f, 0.95f, 0.45f, 0f));
                 hotspotsById.Add(binding.LocationId, binding.Hotspot);
@@ -392,7 +440,8 @@ namespace YC.Presentation
                 renderer.transform.localScale = Vector3.one;
                 renderer.sprite = sprites.EmptyInfluenceSlot;
                 renderer.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
-                renderer.gameObject.SetActive(true);
+                renderer.enabled = false;
+                renderer.gameObject.SetActive(false);
                 resourceTokenRenderers.Add(binding.LocationId, renderer);
             }
 
@@ -407,17 +456,32 @@ namespace YC.Presentation
                     presentation.LocalZ);
                 binding.Renderer.transform.localScale = Vector3.one * definition.Size;
                 binding.Renderer.sprite = sprites.EmptyInfluenceSlot;
-                binding.Renderer.enabled = true;
+                binding.Renderer.enabled = false;
                 binding.Renderer.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
                 binding.Collider.radius = definition.ColliderRadius;
                 binding.PieceVisual.SetVisible(false);
                 binding.BorderRenderer.sprite = sprites.MovableInfluenceBorder;
                 binding.BorderRenderer.color = UiTheme.CyanAccent;
                 binding.BorderPulse.SetHighlighted(false);
+                var emptyPulse = binding.Renderer.GetComponent<MapHighlightPulse>();
+                if (emptyPulse == null)
+                {
+                    emptyPulse = binding.Renderer.gameObject.AddComponent<MapHighlightPulse>();
+                }
+                string pulseReason;
+                if (!emptyPulse.BindWithDuration(
+                        binding.Renderer,
+                        MapHotspot.HighlightPulseDuration,
+                        out pulseReason,
+                        true))
+                {
+                    throw new System.InvalidOperationException(pulseReason);
+                }
                 influenceSlotRenderers.Add(binding.SlotId, binding.Renderer);
                 influenceSlotBorderRenderers.Add(binding.SlotId, binding.BorderRenderer);
                 influencePieceVisuals.Add(binding.SlotId, binding.PieceVisual);
                 influenceSlotPulses.Add(binding.SlotId, binding.BorderPulse);
+                influenceSlotEmptyPulses.Add(binding.SlotId, emptyPulse);
                 influenceSlotPlacementFeedbacks.Add(binding.SlotId, binding.PlacementFeedback);
             }
 
@@ -492,20 +556,31 @@ namespace YC.Presentation
             SpriteRenderer renderer,
             MapPieceVisual pieceVisual,
             string slotId,
-            InfluencePlacement placement)
+            InfluencePlacement placement,
+            int previewPlayerId)
         {
             if (placement != null)
             {
                 renderer.sprite = sprites.EmptyInfluenceSlot;
                 renderer.enabled = false;
+                pieceVisual.SetGhosted(false);
                 pieceVisual.SetPlayerColor(GetPlayerColor(state, placement.PlayerId, 1f));
+                pieceVisual.SetVisible(true);
+            }
+            else if (previewPlayerId > 0)
+            {
+                renderer.sprite = sprites.EmptyInfluenceSlot;
+                renderer.enabled = false;
+                pieceVisual.SetGhosted(true);
+                pieceVisual.SetPlayerColor(new Color(0.28f, 0.78f, 1f, 0.5f));
                 pieceVisual.SetVisible(true);
             }
             else
             {
                 renderer.sprite = sprites.EmptyInfluenceSlot;
-                renderer.enabled = true;
-                renderer.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
+                renderer.enabled = highlightedInfluenceSlotIds.Contains(slotId);
+                renderer.color = GetPlayerColor(state, state.CurrentPlayerId, 1f);
+                pieceVisual.SetGhosted(false);
                 pieceVisual.SetVisible(false);
             }
         }
@@ -539,6 +614,11 @@ namespace YC.Presentation
             if (influenceSlotPulses.TryGetValue(slotId, out pulse) && pulse != null)
             {
                 pulse.SetHighlighted(visible);
+            }
+            MapHighlightPulse emptyPulse;
+            if (influenceSlotEmptyPulses.TryGetValue(slotId, out emptyPulse) && emptyPulse != null)
+            {
+                emptyPulse.SetHighlighted(visible);
             }
         }
 

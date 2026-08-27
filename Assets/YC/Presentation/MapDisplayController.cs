@@ -112,7 +112,7 @@ namespace YC.Presentation
                 return;
             }
 
-            CollectTabletopCorners(tabletopCorners);
+            CollectMapCorners(tabletopCorners);
             if (tabletopCorners.Count == 0)
             {
                 hasCameraLayout = false;
@@ -126,12 +126,7 @@ namespace YC.Presentation
             tabletopPlane = new Plane(mapRenderer.transform.forward.normalized, mapCenter);
             cameraRotation = Quaternion.Euler(-cameraPitch, 0f, 0f);
 
-            var tabletopCenter = MapCameraGeometry.CalculatePlanarCenter(
-                tabletopCorners,
-                mapCenter,
-                panAxisX,
-                panAxisY);
-            focusPoint = tabletopCenter;
+            focusPoint = mapCenter;
 
             targetCamera.orthographic = false;
             targetCamera.fieldOfView = fieldOfView;
@@ -155,31 +150,24 @@ namespace YC.Presentation
             hasCameraLayout = baseDistance > 0f;
             ApplyCameraTransform();
 
-            var safeCenterX = tabletopViewport.x + tabletopViewport.width * 0.5f;
-            var initialFocus = focusPoint;
-            var initialViewportX = targetCamera.WorldToViewportPoint(tabletopCenter).x;
-            focusPoint = initialFocus + panAxisX;
-            ApplyCameraTransform();
-            var viewportResponse = targetCamera.WorldToViewportPoint(tabletopCenter).x - initialViewportX;
-            focusPoint = initialFocus;
-            if (Mathf.Abs(viewportResponse) > InputEpsilon)
-            {
-                focusPoint += panAxisX *
-                              ((safeCenterX - initialViewportX) / viewportResponse);
-            }
-
             panOrigin = focusPoint;
+            var initialZoom = currentZoom;
+            currentZoom = minZoom;
             ApplyCameraTransform();
-            if (!ResolveNavigationBounds(out var reason) ||
-                !navigationBounds.Initialize(
-                targetCamera,
-                tabletopViewport,
-                tabletopPlane,
-                panOrigin,
-                panAxisX,
-                panAxisY,
-                mapRenderer,
-                out reason))
+            var hasNavigationBounds = ResolveNavigationBounds(out var reason) &&
+                                      navigationBounds.Initialize(
+                                          targetCamera,
+                                          tabletopViewport,
+                                          tabletopPlane,
+                                          panOrigin,
+                                          panAxisX,
+                                          panAxisY,
+                                          mapRenderer,
+                                          out reason);
+            currentZoom = initialZoom;
+            targetZoom = initialZoom;
+            ApplyCameraTransform();
+            if (!hasNavigationBounds)
             {
                 hasCameraLayout = false;
                 Debug.LogError("[MapDisplayController] 桌面导航边界配置失败：" + reason, this);
@@ -240,7 +228,7 @@ namespace YC.Presentation
             }
         }
 
-        private void CollectTabletopCorners(List<Vector3> corners)
+        private void CollectMapCorners(List<Vector3> corners)
         {
             corners.Clear();
 
@@ -251,27 +239,6 @@ namespace YC.Presentation
             corners.Add(mapRenderer.transform.TransformPoint(new Vector3(min.x, max.y, spriteBounds.center.z)));
             corners.Add(mapRenderer.transform.TransformPoint(new Vector3(max.x, max.y, spriteBounds.center.z)));
             corners.Add(mapRenderer.transform.TransformPoint(new Vector3(max.x, min.y, spriteBounds.center.z)));
-
-            var contributors = FindObjectsOfType<TabletopBoundsContributor>(true);
-            for (var i = 0; i < contributors.Length; i++)
-            {
-                var contributor = contributors[i];
-                if (contributor == null ||
-                    !contributor.isActiveAndEnabled ||
-                    contributor.gameObject.scene != gameObject.scene)
-                {
-                    continue;
-                }
-
-                var layout = contributor.GetComponentInParent<TabletopCanvasLayout>();
-                if (layout != null &&
-                    (layout.Canvas == null || layout.Canvas.worldCamera != targetCamera))
-                {
-                    continue;
-                }
-
-                contributor.AppendWorldCorners(corners);
-            }
         }
 
         private void ReadNavigationInput()

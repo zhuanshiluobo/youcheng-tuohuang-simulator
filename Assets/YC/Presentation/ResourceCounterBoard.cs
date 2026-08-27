@@ -148,8 +148,8 @@ namespace YC.Presentation
                 animation.CurrentValue = target;
                 animation.TargetValue = target;
                 SetDisplayedValue(animation.View, target);
-                SetZRotation(animation.View.MainGear, -TensDigit(target) * layoutProfile.DegreesPerStep);
-                SetZRotation(animation.View.IdlerGear, -OnesDigit(target) * layoutProfile.DegreesPerStep);
+                SetZRotation(animation.View.MainGear, TensDigit(target) * layoutProfile.DegreesPerStep);
+                SetZRotation(animation.View.IdlerGear, OnesDigit(target) * layoutProfile.DegreesPerStep);
                 return;
             }
 
@@ -273,16 +273,16 @@ namespace YC.Presentation
             float degreesPerStep)
         {
             if (signedStepCount == 0) return startAngle;
-            var targetAngle = -targetDigit * degreesPerStep;
+            var targetAngle = targetDigit * degreesPerStep;
             if (signedStepCount > 0)
-            {
-                while (targetAngle >= startAngle - 0.001f) targetAngle -= 360f;
-                targetAngle -= 360f * Mathf.Clamp(Mathf.Abs(signedStepCount) / 10 - 1, 0, 1);
-            }
-            else
             {
                 while (targetAngle <= startAngle + 0.001f) targetAngle += 360f;
                 targetAngle += 360f * Mathf.Clamp(Mathf.Abs(signedStepCount) / 10 - 1, 0, 1);
+            }
+            else
+            {
+                while (targetAngle >= startAngle - 0.001f) targetAngle -= 360f;
+                targetAngle -= 360f * Mathf.Clamp(Mathf.Abs(signedStepCount) / 10 - 1, 0, 1);
             }
             return targetAngle;
         }

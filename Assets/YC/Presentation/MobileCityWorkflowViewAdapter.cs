@@ -20,6 +20,7 @@ namespace YC.Presentation
         private readonly Func<RectTransform> getCanvas;
         private readonly Func<MapViewPresenter> getMapView;
         private readonly IMapQueryService mapQuery;
+        private readonly InfluenceService mapInfluenceService;
         private readonly EventChoiceDialog eventChoiceDialog;
         private readonly CityStyleDeclarationPreviewDialog cityStyleDeclarationDialog;
         private readonly DispatchDecisionView dispatchDecisionView;
@@ -62,6 +63,7 @@ namespace YC.Presentation
                 getCanvas ?? throw new ArgumentNullException(nameof(getCanvas)));
             this.getMapView = getMapView;
             this.mapQuery = mapQuery;
+            mapInfluenceService = new InfluenceService(mapQuery);
             this.eventChoiceDialog = eventChoiceDialog;
             dispatchDecisionView = new DispatchDecisionView(dialogRegistry, getCanvas);
             this.showPrompt = showPrompt;
@@ -111,6 +113,12 @@ namespace YC.Presentation
                 else if (highlight.TargetKind == WorkflowHighlightTargetKind.Route)
                 {
                     var route = mapQuery.GetRoute(highlight.TargetId);
+                    if (highlight.Semantic == WorkflowHighlightSemantic.CollectionBankPaymentGhost)
+                    {
+                        PreviewBankPaymentInfluence(mapView, route);
+                        continue;
+                    }
+
                     for (var slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
                     {
                         mapView.HighlightInfluenceSlot(InfluenceService.GetRouteSlotId(highlight.TargetId, slotIndex));
@@ -118,6 +126,32 @@ namespace YC.Presentation
                 }
             }
             refreshInfluence();
+        }
+
+        private void PreviewBankPaymentInfluence(MapViewPresenter mapView, MapRouteDefinition route)
+        {
+            var state = getState();
+            if (state == null || route == null)
+            {
+                return;
+            }
+
+            var previewPlayerId = getLocalPlayerId();
+            if (previewPlayerId <= 0)
+            {
+                previewPlayerId = state.CurrentPlayerId;
+            }
+
+            for (var slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
+            {
+                var slotId = InfluenceService.GetRouteSlotId(route.RouteId, slotIndex);
+                // 只登记展示虚影，不写入 GameState，也不会消耗玩家影响力库存。
+                if (mapInfluenceService.FindInfluence(state, slotId) == null &&
+                    mapView.PreviewInfluenceSlot(slotId, previewPlayerId, state))
+                {
+                    return;
+                }
+            }
         }
 
         public void ClearHighlights()
@@ -169,9 +203,40 @@ namespace YC.Presentation
         }
         public void ShowEventCardOptions(EventCardOptionsViewModel model)
         {
-            if (model != null) eventChoiceDialog.ShowEventCardOptions(
-                model.Card, model.MetadataLabel, model.PaymentChoices, model.RecipientsByRouteId,
-                getPlayerDisplayName, model.SelectChoice, model.SelectRecipient);
+            if (model == null)
+            {
+                return;
+            }
+
+            eventChoiceDialog.SetChoiceHighlightColor(ResolveEventChoiceHighlightColor());
+            eventChoiceDialog.ShowEventCardOptions(
+                model.Card,
+                model.MetadataLabel,
+                model.PaymentChoices,
+                model.RecipientsByRouteId,
+                getPlayerDisplayName,
+                model.SelectChoice,
+                model.SelectRecipient);
+        }
+
+        private Color ResolveEventChoiceHighlightColor()
+        {
+            var state = getState();
+            if (state == null)
+            {
+                return UiTheme.CyanAccent;
+            }
+
+            var playerId = getLocalPlayerId();
+            if (playerId <= 0)
+            {
+                playerId = state.CurrentPlayerId;
+            }
+
+            var player = state.FindPlayer(playerId);
+            return player == null
+                ? UiTheme.CyanAccent
+                : UiTheme.GetPlayerColor(player.Color, 1f);
         }
         public void CollapseEventOptions() => eventChoiceDialog.CollapseForMapInteraction();
         public void HideEventOptions() => eventChoiceDialog.Hide();
