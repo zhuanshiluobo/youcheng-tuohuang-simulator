@@ -395,7 +395,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void SceneController_RegistersActiveWorkflowsBeforeLegacyFallback()
+        public void SceneController_RegistersActiveWorkflowsBeforeDefaultMapRoute()
         {
             var controllerPath = Path.Combine(
                 AssetsPath,
@@ -408,8 +408,8 @@ namespace YC.Tests.EditMode
             var routingBody = ExtractMethodBody(
                 controllerSource,
                 "private void BuildInteractionRouting()");
-            var legacyRegistration =
-                "interactionRouter.Register(new LegacyMapInteractionAdapter(mapInteractionRouter));";
+            var defaultMapRouteRegistration =
+                "interactionRouter.Register(mapInteractionRouter);";
             var workflowRegistrations = new[]
             {
                 "interactionRouter.Register(turnActionPresenter.BuildInteraction);",
@@ -420,13 +420,13 @@ namespace YC.Tests.EditMode
                 "interactionRouter.Register(resourceCollectionPresenter);"
             };
 
-            StringAssert.Contains(legacyRegistration, routingBody);
+            StringAssert.Contains(defaultMapRouteRegistration, routingBody);
             for (var i = 0; i < workflowRegistrations.Length; i++)
             {
                 StringAssert.Contains(workflowRegistrations[i], routingBody);
                 Assert.That(
                     routingBody.IndexOf(workflowRegistrations[i], StringComparison.Ordinal),
-                    Is.LessThan(routingBody.IndexOf(legacyRegistration, StringComparison.Ordinal)),
+                    Is.LessThan(routingBody.IndexOf(defaultMapRouteRegistration, StringComparison.Ordinal)),
                     workflowRegistrations[i]);
             }
             StringAssert.DoesNotContain(

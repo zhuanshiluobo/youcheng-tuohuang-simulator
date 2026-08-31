@@ -4,15 +4,8 @@ using YC.Domain.Rules;
 
 namespace YC.Domain.Commands
 {
-    public interface IGameCommand
-    {
-        string CommandId { get; }
-        GameCommandKind Kind { get; }
-        int PlayerId { get; }
-    }
-
     [Serializable]
-    public sealed class GameCommand : IGameCommand
+    public sealed class GameCommand
     {
         public string CommandId = Guid.NewGuid().ToString("N");
         public GameCommandKind Kind;
@@ -21,20 +14,5 @@ namespace YC.Domain.Commands
         public string TargetId = string.Empty;
         public List<string> OptionIds = new List<string>();
         public Dictionary<string, string> Parameters = new Dictionary<string, string>();
-
-        string IGameCommand.CommandId
-        {
-            get { return CommandId; }
-        }
-
-        GameCommandKind IGameCommand.Kind
-        {
-            get { return Kind; }
-        }
-
-        int IGameCommand.PlayerId
-        {
-            get { return PlayerId; }
-        }
     }
 }

@@ -10,7 +10,7 @@ using YC.Presentation.Workflows;
 namespace YC.Presentation
 {
     /// <summary>Routes map input by workflow mode and owns transient second-click confirmation state.</summary>
-    internal sealed class MapInteractionRouter
+    internal sealed class MapInteractionRouter : InteractionBase
     {
         private readonly Func<MapViewPresenter> getMapView;
         private readonly Func<Camera> getCamera;
@@ -62,7 +62,46 @@ namespace YC.Presentation
 
         public bool HasPendingConfirmation => confirmation.HasPending || influence.HasPendingConfirmation;
 
-        public void OnLocationClicked(string locationId)
+        public override string Id => "default.map-route";
+
+        public override InteractionPriority Priority => InteractionPriority.DefaultRoute;
+
+        public override bool IsActive => true;
+
+        public override InteractionResult OnLocationClicked(string locationId)
+        {
+            RouteLocationClick(locationId);
+            return InteractionResult.Consumed;
+        }
+
+        public override InteractionResult OnInfluenceSlotClicked(string slotId)
+        {
+            RouteInfluenceSlotClick(slotId);
+            return InteractionResult.Consumed;
+        }
+
+        public override InteractionResult OnMobileCityClicked()
+        {
+            RouteMobileCityClick();
+            return InteractionResult.Consumed;
+        }
+
+        public override InteractionResult OnEscape()
+        {
+            return InteractionResult.Passthrough;
+        }
+
+        public override InteractionPresentation BuildPresentation()
+        {
+            return InteractionPresentation.Empty;
+        }
+
+        public override void Cancel()
+        {
+            ClearConfirmation(false);
+        }
+
+        private void RouteLocationClick(string locationId)
         {
             if (HandleDebugClick()) return;
             if (turn.IsAwaitingInitialPlacement)
@@ -128,7 +167,7 @@ namespace YC.Presentation
             }
         }
 
-        public void OnInfluenceSlotClicked(string slotId)
+        private void RouteInfluenceSlotClick(string slotId)
         {
             if (HandleDebugClick()) return;
             var mapView = getMapView();
@@ -170,7 +209,7 @@ namespace YC.Presentation
             }
         }
 
-        public void OnMobileCityClicked()
+        private void RouteMobileCityClick()
         {
             if (HandleDebugClick() || turn.IsAwaitingInitialPlacement) return;
             if (!turn.IsLocalPlayersTurn())

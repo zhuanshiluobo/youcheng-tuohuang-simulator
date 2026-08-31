@@ -18,6 +18,40 @@ namespace YC.Tests.EditMode
     public sealed class MapInteractionRouterTests
     {
         [Test]
+        public void DefaultRoute_PreservesFallbackInteractionContract()
+        {
+            var fixture = CreateFixture(GamePhase.ActionRound1);
+            var interaction = (IInteraction)fixture.Router;
+
+            Assert.That(interaction.Id, Is.EqualTo("default.map-route"));
+            Assert.That(interaction.Priority, Is.EqualTo(InteractionPriority.DefaultRoute));
+            Assert.That(interaction.IsActive, Is.True);
+            Assert.That(interaction.OnLocationClicked("missing").Kind,
+                Is.EqualTo(InteractionResultKind.Consumed));
+            Assert.That(interaction.OnInfluenceSlotClicked("missing").Kind,
+                Is.EqualTo(InteractionResultKind.Consumed));
+            Assert.That(interaction.OnMobileCityClicked().Kind,
+                Is.EqualTo(InteractionResultKind.Consumed));
+            Assert.That(interaction.OnEscape().Kind,
+                Is.EqualTo(InteractionResultKind.Passthrough));
+            Assert.That(interaction.BuildPresentation().IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void Cancel_ClearsPendingMapConfirmation()
+        {
+            var fixture = CreateFixture(GamePhase.ActionRound1);
+            fixture.Coordinator.Activate(fixture.Turn);
+            fixture.HighlightLocation("B");
+            fixture.ClickLocation("B");
+            Assert.That(fixture.HasPendingConfirmation, Is.True);
+
+            ((IInteraction)fixture.Router).Cancel();
+
+            Assert.That(fixture.HasPendingConfirmation, Is.False);
+        }
+
+        [Test]
         public void OnLocationClicked_ActiveTurnMoveStage_CreatesMoveConfirmation()
         {
             var fixture = CreateFixture(GamePhase.ActionRound1);

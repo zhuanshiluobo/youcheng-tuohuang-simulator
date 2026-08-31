@@ -514,7 +514,7 @@ namespace YC.Presentation
             interactionRouter.Register(turnActionPresenter.DispatchInteraction);
             interactionRouter.Register(turnActionPresenter.ExploreInteraction);
             interactionRouter.Register(resourceCollectionPresenter);
-            interactionRouter.Register(new LegacyMapInteractionAdapter(mapInteractionRouter));
+            interactionRouter.Register(mapInteractionRouter);
         }
         private bool HasLocalPendingCharacterResolution()
         {

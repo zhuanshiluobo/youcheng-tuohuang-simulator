@@ -15,11 +15,15 @@ namespace YC.Tests.EditMode
         [Test]
         public void ScoreTrackPositions_FollowBottomThenRightEdgeAndClampToPrintedTrack()
         {
-            var minusTwo = FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(-2);
-            var zero = FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(0);
-            var twentyThree = FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(23);
-            var twentyFour = FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(24);
-            var fifty = FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(50);
+            var layout = MapDisplayLayoutCatalog.Load(StaticMapDefinitions.FourPlayerMapId);
+            Assert.That(layout, Is.Not.Null);
+            Assert.That(layout.TryValidateScoreTrack(out var reason), Is.True, reason);
+
+            var minusTwo = layout.GetScoreTrackNormalizedPosition(-2);
+            var zero = layout.GetScoreTrackNormalizedPosition(0);
+            var twentyThree = layout.GetScoreTrackNormalizedPosition(23);
+            var twentyFour = layout.GetScoreTrackNormalizedPosition(24);
+            var fifty = layout.GetScoreTrackNormalizedPosition(50);
 
             Assert.That(minusTwo.x, Is.EqualTo(0.1013f).Within(0.0001f));
             Assert.That(zero.x, Is.GreaterThan(minusTwo.x));
@@ -27,8 +31,8 @@ namespace YC.Tests.EditMode
             Assert.That(twentyFour.x, Is.EqualTo(twentyThree.x).Within(0.0001f));
             Assert.That(twentyFour.y, Is.LessThan(twentyThree.y));
             Assert.That(fifty.y, Is.EqualTo(0.02535f).Within(0.0001f));
-            Assert.That(FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(-99), Is.EqualTo(minusTwo));
-            Assert.That(FourPlayerScoreTrackDisplayDefinition.GetNormalizedPosition(99), Is.EqualTo(fifty));
+            Assert.That(layout.GetScoreTrackNormalizedPosition(-99), Is.EqualTo(minusTwo));
+            Assert.That(layout.GetScoreTrackNormalizedPosition(99), Is.EqualTo(fifty));
         }
 
         [Test]
