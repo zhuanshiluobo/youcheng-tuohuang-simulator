@@ -13,6 +13,7 @@ namespace YC.Presentation
         [SerializeField] private GameObject actionLogButtonObject;
         [SerializeField] private GameObject generalContentObject;
         [SerializeField] private GameObject futureContentObject;
+        [SerializeField] private WindowCloseInputHandler closeInputHandler;
 
         [Header("Buttons")]
         [SerializeField] private Button gearButton;
@@ -37,6 +38,7 @@ namespace YC.Presentation
         public GameObject ActionLogButtonObject => actionLogButtonObject;
         public GameObject GeneralContentObject => generalContentObject;
         public GameObject FutureContentObject => futureContentObject;
+        public WindowCloseInputHandler CloseInputHandler => closeInputHandler;
         public Button GearButton => gearButton;
         public Button ActionLogButton => actionLogButton;
         public Button OverlayCloseButton => overlayCloseButton;
@@ -53,7 +55,7 @@ namespace YC.Presentation
         {
             if (canvasTransform == null || menuPanel == null || overlayObject == null ||
                 confirmationObject == null || returnButtonObject == null || actionLogButtonObject == null ||
-                generalContentObject == null || futureContentObject == null)
+                generalContentObject == null || futureContentObject == null || closeInputHandler == null)
             {
                 reason = "设置菜单层级引用不完整。";
                 return false;

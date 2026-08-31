@@ -11,6 +11,14 @@ namespace YC.EditorTools
 {
     public static class ResourceCounterBoardEditorAssetBuilder
     {
+        private const float BoardScale = 1.31f;
+        private const float BoardWidth = 432f;
+        private const float BoardHeight = 140f;
+        private const float BoardLeft = 15f;
+        private const float AuxiliaryGap = 8f;
+        private const float AuxiliaryHeight = 50f;
+        private const float BoardTopBelowAuxiliaries = -58f;
+
         public const string PrefabPath =
             "Assets/YC/Presentation/Prefabs/Gameplay/ResourceCounterBoard.prefab";
         public const string LayoutProfilePath =
@@ -67,11 +75,11 @@ namespace YC.EditorTools
                     AnchorMin = new Vector2(0f, 1f),
                     AnchorMax = new Vector2(0f, 1f),
                     Pivot = new Vector2(0f, 1f),
-                    SizeDelta = new Vector2(432f, 222f),
+                    SizeDelta = new Vector2(596f, 250f),
                     AnchoredPosition = new Vector2(18f, -18f)
                 },
                 new Vector2(134f, 132f),
-                new Vector2(212f, 50f),
+                new Vector2((BoardWidth * BoardScale - AuxiliaryGap) * 0.5f, AuxiliaryHeight),
                 0.46f,
                 0.32f,
                 36f);
@@ -166,8 +174,11 @@ namespace YC.EditorTools
                 root.transform,
                 typeof(Image));
             var physicalBoardRect = physicalBoard.GetComponent<RectTransform>();
-            SetTopLeft(physicalBoardRect, new Vector2(432f, 140f), new Vector2(15f, 18f));
-            physicalBoardRect.localScale = Vector3.one * 1.31f;
+            SetTopLeft(
+                physicalBoardRect,
+                new Vector2(BoardWidth, BoardHeight),
+                new Vector2(BoardLeft, BoardTopBelowAuxiliaries));
+            physicalBoardRect.localScale = Vector3.one * BoardScale;
             physicalBoard.GetComponent<Image>().color = new Color(0.105f, 0.085f, 0.07f, 0.985f);
             physicalBoard.GetComponent<Image>().raycastTarget = false;
 
@@ -204,14 +215,14 @@ namespace YC.EditorTools
                     ResourceType.PureOriginium,
                     "至纯源石",
                     icons[3],
-                    new Vector2(0f, -166f)),
+                    new Vector2(BoardLeft, 0f)),
                 BuildAuxiliaryCounter(
                     root.transform,
                     profile,
                     ResourceType.GoldVoucher,
                     "金券",
                     visuals.Banknote,
-                    new Vector2(220f, -166f))
+                    new Vector2(BoardLeft + profile.AuxiliaryCounterSize.x + AuxiliaryGap, 0f))
             };
 
             var controller = root.GetComponent<ResourceCounterBoard>();

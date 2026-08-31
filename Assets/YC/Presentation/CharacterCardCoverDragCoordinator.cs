@@ -10,23 +10,33 @@ namespace YC.Presentation
         private readonly Func<ActionPanelController> getActionPanel;
         private readonly Action<string> submitCover;
         private readonly Action<string> showPrompt;
+        private readonly Action<bool> resolvePendingCover;
         private string draggedCardId = string.Empty;
         private string pendingCardId = string.Empty;
 
         public CharacterCardCoverDragCoordinator(
             Func<ActionPanelController> getActionPanel,
             Action<string> submitCover,
-            Action<string> showPrompt)
+            Action<string> showPrompt,
+            Action<bool> resolvePendingCover)
         {
             this.getActionPanel = getActionPanel;
             this.submitCover = submitCover;
             this.showPrompt = showPrompt;
+            this.resolvePendingCover = resolvePendingCover;
         }
 
         public void Begin(string cardId, Vector2 screenPosition)
         {
+            if (!string.IsNullOrEmpty(pendingCardId))
+            {
+                pendingCardId = string.Empty;
+                resolvePendingCover?.Invoke(false);
+                var actionPanel = getActionPanel == null ? null : getActionPanel();
+                actionPanel?.ShowMainFace();
+            }
+
             draggedCardId = cardId ?? string.Empty;
-            pendingCardId = string.Empty;
             Update(screenPosition);
         }
 
@@ -49,7 +59,7 @@ namespace YC.Presentation
             }
         }
 
-        public void End(string cardId, Vector2 screenPosition)
+        public RectTransform End(string cardId, Vector2 screenPosition)
         {
             var actionPanel = getActionPanel == null ? null : getActionPanel();
             var matchesDrag = !string.IsNullOrEmpty(cardId) && cardId == draggedCardId;
@@ -64,14 +74,14 @@ namespace YC.Presentation
                     pendingCardId,
                     Confirm,
                     Cancel);
-            }
-            else
-            {
-                pendingCardId = string.Empty;
-                actionPanel?.ShowMainFace();
+                draggedCardId = string.Empty;
+                return actionPanel.CharacterCoverDropTarget;
             }
 
+            pendingCardId = string.Empty;
+            actionPanel?.ShowMainFace();
             draggedCardId = string.Empty;
+            return null;
         }
 
         private void Confirm()
@@ -84,6 +94,7 @@ namespace YC.Presentation
 
             var cardId = pendingCardId;
             pendingCardId = string.Empty;
+            resolvePendingCover?.Invoke(true);
             var actionPanel = getActionPanel == null ? null : getActionPanel();
             actionPanel?.ShowMainFace();
             submitCover?.Invoke(cardId);
@@ -92,6 +103,7 @@ namespace YC.Presentation
         private void Cancel()
         {
             pendingCardId = string.Empty;
+            resolvePendingCover?.Invoke(false);
             var actionPanel = getActionPanel == null ? null : getActionPanel();
             actionPanel?.ShowMainFace();
         }

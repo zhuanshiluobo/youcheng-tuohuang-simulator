@@ -50,6 +50,7 @@ namespace YC.Tests.EditMode
                 "actionLogButtonObject",
                 "generalContentObject",
                 "futureContentObject",
+                "closeInputHandler",
                 "gearButton",
                 "actionLogButton",
                 "overlayCloseButton",
@@ -79,6 +80,18 @@ namespace YC.Tests.EditMode
             Assert.That(Find(prefab.transform, "Action Log Button"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Settings Overlay"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Settings Panel"), Is.Not.Null);
+            Assert.That(
+                Find(prefab.transform, "Settings Panel").GetComponent(
+                    GetRuntimeType("YC.Presentation.WindowCloseInputHandler")),
+                Is.Not.Null);
+            var title = Find(prefab.transform, "Settings Title") as RectTransform;
+            var separator = Find(prefab.transform, "Header Separator") as RectTransform;
+            Assert.That(title, Is.Not.Null);
+            Assert.That(separator, Is.Not.Null);
+            Assert.That(
+                title.anchoredPosition.y - title.rect.height,
+                Is.GreaterThan(separator.anchoredPosition.y),
+                "设置标题不应与标题分隔线重叠。");
             Assert.That(Find(prefab.transform, "通用 Button"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "规则书 Button"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "占位 Button"), Is.Not.Null);

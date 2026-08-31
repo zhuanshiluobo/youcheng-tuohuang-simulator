@@ -25,6 +25,7 @@ namespace YC.EditorTools
         public static void Rebuild()
         {
             YC.Editor.UiThemeBuildReadiness.InitializeRequiredTheme();
+            LoadingSceneEditorAssetBuilder.RebuildScene();
             EnsureFolder("Assets/YC/Presentation/Prefabs");
             EnsureFolder("Assets/YC/Presentation/Prefabs/StartMenu");
 
@@ -72,20 +73,36 @@ namespace YC.EditorTools
                 coverImage.color = Color.white;
                 coverImage.raycastTarget = false;
 
-                var joinRoomButton = CreateButton(coverFrame, "加入房间 Button", "加入房间", new Vector2(2f, -337f), new Vector2(476f, 105f));
-                var createRoomButton = CreateButton(coverFrame, "创建房间 Button", "创建房间", new Vector2(2f, -212f), new Vector2(476f, 105f));
-                var startGameButton = CreateButton(coverFrame, "单机开始 Button", "单机开始", new Vector2(2f, -87f), new Vector2(476f, 105f));
-                var steamButton = CreateButton(coverFrame, "Steam 双人验证 Button", "Steam 双人验证", new Vector2(2f, 38f), new Vector2(476f, 105f));
+                var achievementsButton = CreateMainMenuButton(
+                    coverFrame,
+                    "成就 Button",
+                    "成就",
+                    new Vector2(-266f, 98f));
+                var onlineModeButton = CreateMainMenuButton(
+                    coverFrame,
+                    "联机模式 Button",
+                    "联机模式",
+                    new Vector2(-266f, 198f));
+                var startGameButton = CreateMainMenuButton(
+                    coverFrame,
+                    "本地游戏 Button",
+                    "本地游戏",
+                    new Vector2(-266f, 298f));
 
                 var wikiButton = CreateButton(coverFrame, "Wiki Link Button", "W  进入 wiki", new Vector2(130f, 52f), new Vector2(210f, 56f), Anchor.BottomLeft);
                 var officialButton = CreateButton(coverFrame, "Official Link Button", "官  官方网站", new Vector2(130f, 120f), new Vector2(210f, 56f), Anchor.BottomLeft);
+                var creatorButton = CreateButton(coverFrame, "Creator Link Button", "制  制作者主页", new Vector2(130f, 188f), new Vector2(210f, 56f), Anchor.BottomLeft);
 
                 var roomLayer = CreateUiObject("Room Panel Layer", coverFrame);
                 Stretch(roomLayer.GetComponent<RectTransform>());
 
+                var onlineModePanel = BuildOnlineModePanel(roomLayer.transform);
+                var achievementsPanel = BuildAchievementsPanel(roomLayer.transform);
+                var mapSelectionPanel = BuildMapSelectionPanel(roomLayer.transform);
                 var joinPanel = BuildJoinPanel(roomLayer.transform);
                 var waitingPanel = BuildWaitingRoomPanel(roomLayer.transform);
                 var messagePanel = BuildMessagePanel(roomLayer.transform);
+                var loadingPanel = BuildLoadingPanel(canvasObject.transform);
 
                 var view = canvasObject.GetComponent<StartMenuView>();
                 SetReferences(
@@ -93,14 +110,18 @@ namespace YC.EditorTools
                     ("coverFrame", coverFrame),
                     ("coverImage", coverImage),
                     ("startGameButton", startGameButton),
-                    ("createRoomButton", createRoomButton),
-                    ("joinRoomButton", joinRoomButton),
-                    ("steamTwoPlayerButton", steamButton),
+                    ("onlineModeButton", onlineModeButton),
+                    ("achievementsButton", achievementsButton),
+                    ("creatorSiteButton", creatorButton),
                     ("officialSiteButton", officialButton),
                     ("wikiButton", wikiButton),
+                    ("onlineModePanel", onlineModePanel),
+                    ("achievementsPanel", achievementsPanel),
+                    ("mapSelectionPanel", mapSelectionPanel),
                     ("joinPanel", joinPanel),
                     ("roomPanel", waitingPanel),
-                    ("messagePanel", messagePanel));
+                    ("messagePanel", messagePanel),
+                    ("loadingPanel", loadingPanel));
 
                 var controller = root.AddComponent<StartMenuController>();
                 SetReferences(
@@ -124,6 +145,131 @@ namespace YC.EditorTools
             PrefabUtility.SaveAsPrefabAsset(contents, PrefabPath);
             PrefabUtility.UnloadPrefabContents(contents);
             return AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+        }
+
+        private static StartMenuOnlineModePanelView BuildOnlineModePanel(Transform parent)
+        {
+            var panelObject = CreatePanel("Online Mode Panel", parent, new Vector2(620f, 300f));
+            var panel = panelObject.AddComponent<StartMenuOnlineModePanelView>();
+            CreateText(
+                panelObject.transform,
+                "Title",
+                "联机模式",
+                30,
+                new Vector2(0f, 94f),
+                new Vector2(540f, 42f),
+                FontStyle.Bold);
+            var createRoom = CreateButton(
+                panelObject.transform,
+                "创建联机 Button",
+                "创建联机",
+                new Vector2(-125f, 12f),
+                new Vector2(210f, 68f));
+            var joinRoom = CreateButton(
+                panelObject.transform,
+                "加入联机 Button",
+                "加入联机",
+                new Vector2(125f, 12f),
+                new Vector2(210f, 68f));
+            var back = CreateButton(
+                panelObject.transform,
+                "返回 Button",
+                "返回",
+                new Vector2(0f, -98f),
+                new Vector2(110f, 44f));
+
+            SetReferences(
+                panel,
+                ("createRoomButton", createRoom),
+                ("joinRoomButton", joinRoom),
+                ("backButton", back));
+            panelObject.SetActive(false);
+            return panel;
+        }
+
+        private static StartMenuAchievementsPanelView BuildAchievementsPanel(Transform parent)
+        {
+            var panelObject = CreatePanel("Achievements Panel", parent, new Vector2(720f, 460f));
+            var panel = panelObject.AddComponent<StartMenuAchievementsPanelView>();
+            CreateText(
+                panelObject.transform,
+                "Title",
+                "成就列表",
+                30,
+                new Vector2(0f, 174f),
+                new Vector2(300f, 42f),
+                FontStyle.Bold);
+            var collectionRoom = CreateButton(
+                panelObject.transform,
+                "进入收藏室 Button",
+                "进入收藏室",
+                new Vector2(-270f, 174f),
+                new Vector2(150f, 46f));
+            var achievementList = CreateText(
+                panelObject.transform,
+                "Achievement List",
+                "◆ 初来乍到    完成第一次本地游戏\n\n◆ 并肩拓荒    完成一次联机对局\n\n◆ 珍品鉴赏    进入收藏室查看藏品",
+                21,
+                new Vector2(0f, 5f),
+                new Vector2(600f, 250f),
+                FontStyle.Normal,
+                TextAnchor.UpperLeft);
+            achievementList.lineSpacing = 1.2f;
+            var back = CreateButton(
+                panelObject.transform,
+                "返回 Button",
+                "返回",
+                new Vector2(0f, -180f),
+                new Vector2(110f, 44f));
+
+            SetReferences(
+                panel,
+                ("achievementListText", achievementList),
+                ("collectionRoomButton", collectionRoom),
+                ("backButton", back));
+            panelObject.SetActive(false);
+            return panel;
+        }
+
+        private static StartMenuMapSelectionPanelView BuildMapSelectionPanel(Transform parent)
+        {
+            var panelObject = CreatePanel("Map Selection Panel", parent, new Vector2(620f, 310f));
+            var panel = panelObject.AddComponent<StartMenuMapSelectionPanelView>();
+            var title = CreateText(
+                panelObject.transform,
+                "Title",
+                "选择地图",
+                30,
+                new Vector2(0f, 102f),
+                new Vector2(540f, 42f),
+                FontStyle.Bold);
+            var threePlayer = CreateButton(
+                panelObject.transform,
+                "三人地图 Button",
+                "三人地图",
+                new Vector2(-120f, 12f),
+                new Vector2(190f, 64f));
+            var fourPlayer = CreateButton(
+                panelObject.transform,
+                "四人地图 Button",
+                "四人地图",
+                new Vector2(120f, 12f),
+                new Vector2(190f, 64f));
+            var back = CreateButton(
+                panelObject.transform,
+                "返回 Button",
+                "返回",
+                new Vector2(0f, -100f),
+                new Vector2(110f, 44f));
+
+            SetReferences(
+                panel,
+                ("titleText", title),
+                ("threePlayerButton", threePlayer),
+                ("fourPlayerButton", fourPlayer),
+                ("backButton", back));
+            panelObject.SetActive(false);
+            return panel;
         }
 
         private static StartMenuJoinPanelView BuildJoinPanel(Transform parent)
@@ -213,6 +359,29 @@ namespace YC.EditorTools
             return panel;
         }
 
+        private static StartMenuLoadingPanelView BuildLoadingPanel(Transform parent)
+        {
+            var overlay = CreateUiObject(
+                "Loading Overlay",
+                parent,
+                typeof(Image),
+                typeof(CanvasGroup),
+                typeof(StartMenuLoadingPanelView));
+            Stretch(overlay.GetComponent<RectTransform>());
+            var overlayImage = overlay.GetComponent<Image>();
+            overlayImage.color = Color.black;
+            overlayImage.raycastTarget = true;
+
+            var canvasGroup = overlay.GetComponent<CanvasGroup>();
+            canvasGroup.alpha = 0f;
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.interactable = false;
+            var loadingView = overlay.GetComponent<StartMenuLoadingPanelView>();
+            loadingView.ConfigureForEditor(canvasGroup, 0.8f, 0.8f);
+            overlay.SetActive(false);
+            return loadingView;
+        }
+
         private static GameObject CreatePanel(string name, Transform parent, Vector2 size)
         {
             var panel = CreateUiObject(name, parent, typeof(Image), typeof(Outline));
@@ -236,6 +405,44 @@ namespace YC.EditorTools
             Stretch(text.rectTransform);
             text.raycastTarget = false;
             return buttonObject.GetComponent<Button>();
+        }
+
+        private static Button CreateMainMenuButton(Transform parent, string name, string label, Vector2 position)
+        {
+            var buttonObject = CreateUiObject(name, parent, typeof(Image), typeof(Button));
+            var rect = buttonObject.GetComponent<RectTransform>();
+            SetAnchoredRect(rect, new Vector2(420f, 84f), position, Anchor.BottomRight);
+
+            var image = buttonObject.GetComponent<Image>();
+            image.color = Color.white;
+            image.raycastTarget = true;
+
+            var button = buttonObject.GetComponent<Button>();
+            button.transition = Selectable.Transition.ColorTint;
+            var colors = button.colors;
+            colors.normalColor = Color.clear;
+            colors.highlightedColor = new Color(0.78f, 0.63f, 0.38f, 0.22f);
+            colors.pressedColor = new Color(0.34f, 0.08f, 0.04f, 0.55f);
+            colors.selectedColor = new Color(0.78f, 0.63f, 0.38f, 0.30f);
+            colors.disabledColor = new Color(0.24f, 0.22f, 0.18f, 0.12f);
+            colors.colorMultiplier = 1f;
+            colors.fadeDuration = 0.08f;
+            button.colors = colors;
+
+            var text = CreateText(
+                buttonObject.transform,
+                "Text",
+                label,
+                32,
+                Vector2.zero,
+                Vector2.zero,
+                FontStyle.Bold);
+            Stretch(text.rectTransform);
+            text.raycastTarget = false;
+
+            var feedback = buttonObject.AddComponent<ActionButtonPressFeedback>();
+            feedback.Configure(button, null, AccentColor);
+            return button;
         }
 
         private static Text CreateText(Transform parent, string name, string value, int fontSize, Vector2 position, Vector2 size,
@@ -300,6 +507,11 @@ namespace YC.EditorTools
                 rect.anchorMin = Vector2.zero;
                 rect.anchorMax = Vector2.zero;
             }
+            else if (anchor == Anchor.BottomRight)
+            {
+                rect.anchorMin = new Vector2(1f, 0f);
+                rect.anchorMax = new Vector2(1f, 0f);
+            }
             else
             {
                 rect.anchorMin = new Vector2(0.5f, 0.5f);
@@ -363,7 +575,8 @@ namespace YC.EditorTools
         private enum Anchor
         {
             Center,
-            BottomLeft
+            BottomLeft,
+            BottomRight
         }
     }
 }

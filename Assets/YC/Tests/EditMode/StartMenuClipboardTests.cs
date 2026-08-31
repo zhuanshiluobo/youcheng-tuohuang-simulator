@@ -78,6 +78,7 @@ namespace YC.Tests.EditMode
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
                 "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab");
             Assert.That(prefab, Is.Not.Null);
+            Assert.That(FindChildRect(prefab.transform, "Creator Link Button"), Is.Not.Null);
             Assert.That(FindChildRect(prefab.transform, "Official Link Button"), Is.Not.Null);
             Assert.That(FindChildRect(prefab.transform, "Wiki Link Button"), Is.Not.Null);
         }

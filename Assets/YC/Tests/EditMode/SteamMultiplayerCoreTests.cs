@@ -198,24 +198,21 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void StartMenu_TwoPlayerSteamValidationIsExplicitAndDoesNotChangeStandardRoomSize()
+        public void StartMenu_RemovesTwoPlayerValidationEntryAndKeepsStandardRoomSize()
         {
             var source = ReadSource("YC/Presentation/StartMenuController.cs");
             var standardRoom = ExtractMethod(
                 source,
                 "public void CreateStandardRoom()",
-                "public void CreateSteamTwoPlayerVerificationRoom()");
-            var validationRoom = ExtractMethod(
-                source,
-                "public void CreateSteamTwoPlayerVerificationRoom()",
                 "public void JoinRoom()");
 
             StringAssert.Contains("selectedRoomPlayerCount = 4;", standardRoom);
-            StringAssert.Contains("selectedRoomPlayerCount = SteamTwoPlayerValidationCount;", validationRoom);
-            StringAssert.Contains("LocalMirrorTestMode.IsEnabled", validationRoom);
-            StringAssert.Contains(
-                "BindButton(view.SteamTwoPlayerButton, CreateSteamTwoPlayerVerificationRoom);",
-                source);
+            StringAssert.DoesNotContain("CreateSteamTwoPlayerVerificationRoom", source);
+            StringAssert.DoesNotContain("SteamTwoPlayerButton", source);
+            StringAssert.Contains("BindButton(view.StartGameButton, ShowLocalMapSelectionPanel);", source);
+            StringAssert.Contains("BindButton(view.OnlineModePanel.CreateRoomButton, ShowOnlineMapSelectionPanel);", source);
+            StringAssert.Contains("BindButton(view.MapSelectionPanel.FourPlayerButton, SelectFourPlayerMap);", source);
+            StringAssert.Contains("view.MapSelectionPanel.ThreePlayerButton.onClick.RemoveAllListeners();", source);
         }
 
         [Test]
@@ -478,14 +475,17 @@ namespace YC.Tests.EditMode
 
         [TestCase("YC/Presentation/GameSettingsMenuController.cs")]
         [TestCase("YC/Presentation/RoundTrackerController.cs")]
-        public void ReturnToStartScene_ShutsDownOnlineSessionBeforeLoadingScene(string relativePath)
+        public void ReturnToStartScene_ShutsDownOnlineSessionBeforeBlackTransition(string relativePath)
         {
             var source = File.ReadAllText(Path.Combine(UnityEngine.Application.dataPath, relativePath));
             var methodStart = source.IndexOf("ReturnToStartScene()", System.StringComparison.Ordinal);
             Assert.GreaterOrEqual(methodStart, 0, relativePath);
 
             var shutdown = source.IndexOf("GameLaunchContext.ShutdownOnlineSession();", methodStart, System.StringComparison.Ordinal);
-            var loadScene = source.IndexOf("SceneManager.LoadScene", methodStart, System.StringComparison.Ordinal);
+            var loadScene = source.IndexOf(
+                "SceneTransitionContext.TryBeginBlackTransition",
+                methodStart,
+                System.StringComparison.Ordinal);
             Assert.Greater(shutdown, methodStart, relativePath);
             Assert.Greater(loadScene, shutdown, relativePath);
         }

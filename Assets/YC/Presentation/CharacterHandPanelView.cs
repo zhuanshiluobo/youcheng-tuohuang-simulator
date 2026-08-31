@@ -33,6 +33,8 @@ namespace YC.Presentation
         public CharacterHandPanel Controller => controller;
         public RectTransform Root => root;
         public RectTransform HandCardsRoot => handCardsRoot;
+        public Animation HandCardsAnimation =>
+            handCardsRoot != null ? handCardsRoot.GetComponent<Animation>() : null;
         public RectTransform HandDropArea => handDropArea;
         public Button DiscardButton => discardButton;
         public Text DiscardCountText => discardCountText;
@@ -62,7 +64,9 @@ namespace YC.Presentation
 
         public bool TryValidateConfiguration(out string reason)
         {
-            if (controller == null || root == null || handCardsRoot == null || handDropArea == null ||
+            if (controller == null || root == null || handCardsRoot == null ||
+                HandCardsAnimation == null || HandCardsAnimation.clip == null ||
+                HandCardsAnimation.GetClip("CharacterHandReturn") == null || handDropArea == null ||
                 discardButton == null || discardCountText == null || discardOverlayObject == null ||
                 discardOverlayPanel == null || discardCloseButton == null || discardCloseInputHandler == null ||
                 overlayHandTitle == null || overlayDiscardTitle == null || overlayHandContent == null ||

@@ -16,10 +16,10 @@ MonoBehaviour:
     AnchorMin: {x: 0, y: 1}
     AnchorMax: {x: 0, y: 1}
     Pivot: {x: 0, y: 1}
-    SizeDelta: {x: 432, y: 222}
+    SizeDelta: {x: 596, y: 250}
     AnchoredPosition: {x: 18, y: -18}
   gearCounterSize: {x: 134, y: 132}
-  auxiliaryCounterSize: {x: 212, y: 50}
+  auxiliaryCounterSize: {x: 278.96, y: 50}
   gearAnimationDuration: 0.46
   auxiliaryAnimationDuration: 0.32
   degreesPerStep: 36

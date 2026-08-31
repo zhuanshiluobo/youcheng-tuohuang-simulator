@@ -61,7 +61,7 @@ namespace YC.Presentation
                 if (auxiliaryCounters[i] == null || auxiliaryCounters[i].ResourceType != AuxiliaryOrder[i] ||
                     !auxiliaryCounters[i].TryValidateConfiguration(out reason))
                 {
-                    reason = string.IsNullOrEmpty(reason) ? "底部资源槽顺序必须为至纯源石、金券。" : reason;
+                    reason = string.IsNullOrEmpty(reason) ? "顶部资源槽顺序必须为至纯源石、金券。" : reason;
                     return false;
                 }
             }

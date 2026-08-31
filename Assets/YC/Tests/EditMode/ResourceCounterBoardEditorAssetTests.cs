@@ -61,14 +61,23 @@ namespace YC.Tests.EditMode
             Assert.That(rect.anchorMin, Is.EqualTo(new Vector2(0f, 1f)));
             Assert.That(rect.anchorMax, Is.EqualTo(new Vector2(0f, 1f)));
             Assert.That(rect.pivot, Is.EqualTo(new Vector2(0f, 1f)));
-            Assert.That(rect.sizeDelta, Is.EqualTo(new Vector2(432f, 222f)));
+            Assert.That(rect.sizeDelta, Is.EqualTo(new Vector2(596f, 250f)));
             Assert.That(rect.anchoredPosition, Is.EqualTo(new Vector2(18f, -18f)));
             Assert.That(prefab.transform.Find("Resource Board Title"), Is.Null);
             var rulebookBoard = prefab.transform.Find("Rulebook Resource Counter");
             Assert.That(rulebookBoard, Is.Not.Null);
             Assert.That(rulebookBoard.localScale, Is.EqualTo(Vector3.one * 1.31f));
+            Assert.That(rulebookBoard.GetComponent<RectTransform>().anchoredPosition,
+                Is.EqualTo(new Vector2(15f, -58f)));
             Assert.That(rulebookBoard.GetComponent<Outline>(), Is.Null);
             Assert.That(rulebookBoard.GetComponent<Shadow>(), Is.Null);
+            var pureSlot = prefab.transform.Find("至纯源石 Entity Slot").GetComponent<RectTransform>();
+            var voucherSlot = prefab.transform.Find("金券 Entity Slot").GetComponent<RectTransform>();
+            Assert.That(pureSlot.anchoredPosition, Is.EqualTo(new Vector2(15f, 0f)));
+            Assert.That(voucherSlot.anchoredPosition.x,
+                Is.EqualTo(15f + pureSlot.sizeDelta.x + 8f).Within(0.001f));
+            Assert.That(pureSlot.sizeDelta.x + 8f + voucherSlot.sizeDelta.x,
+                Is.EqualTo(432f * 1.31f).Within(0.001f));
             foreach (var label in new[] { "源岩", "源石", "异铁" })
             {
                 var column = rulebookBoard.Find(label + " Mechanical Counter");

@@ -90,14 +90,19 @@ namespace YC.EditorTools
                 Stretch(overlayObject.GetComponent<RectTransform>());
                 overlayObject.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.38f);
 
-                var panelObject = CreateUiObject("Settings Panel", overlayObject.transform, typeof(Image), typeof(Outline));
+                var panelObject = CreateUiObject(
+                    "Settings Panel",
+                    overlayObject.transform,
+                    typeof(Image),
+                    typeof(Outline),
+                    typeof(WindowCloseInputHandler));
                 var menuPanel = panelObject.GetComponent<RectTransform>();
                 SetCenteredRect(menuPanel, new Vector2(640f, 430f), Vector2.zero);
                 panelObject.GetComponent<Image>().color = UiTheme.PanelBackground;
                 panelObject.GetComponent<Outline>().effectColor = UiTheme.GoldOutline;
                 panelObject.GetComponent<Outline>().effectDistance = new Vector2(3f, -3f);
 
-                CreateText(panelObject.transform, "Settings Title", "设置", 34, new Vector2(0f, -32f), new Vector2(640f, 64f), FontStyle.Bold, Anchor.TopCenter);
+                CreateText(panelObject.transform, "Settings Title", "设置", 30, new Vector2(0f, -8f), new Vector2(520f, 54f), FontStyle.Bold, Anchor.TopCenter);
                 var separator = CreateUiObject("Header Separator", panelObject.transform, typeof(Image));
                 SetAnchoredRect(separator.GetComponent<RectTransform>(), new Vector2(640f, 2f), new Vector2(0f, -64f), Anchor.TopCenter);
                 separator.GetComponent<Image>().color = UiTheme.GoldSeparator;
@@ -194,6 +199,7 @@ namespace YC.EditorTools
                     ("actionLogButtonObject", actionLog.gameObject),
                     ("generalContentObject", generalContent),
                     ("futureContentObject", futureContent),
+                    ("closeInputHandler", panelObject.GetComponent<WindowCloseInputHandler>()),
                     ("gearButton", gear),
                     ("actionLogButton", actionLog),
                     ("overlayCloseButton", overlayObject.GetComponent<Button>()),

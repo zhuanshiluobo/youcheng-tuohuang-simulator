@@ -15,6 +15,7 @@ namespace YC.Tests.EditMode
     {
         private const string PrefabPath = "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab";
         private const string ScenePath = "Assets/Scenes/StartScene.unity";
+        private const string LoadingScenePath = "Assets/Scenes/LoadingScene.unity";
 
         [Test]
         public void StartMenuPrefab_HasCompleteSerializedEditorReferences()
@@ -43,10 +44,157 @@ namespace YC.Tests.EditMode
 
             Assert.That(prefab.GetComponentInChildren<Canvas>(true), Is.Not.Null);
             Assert.That(prefab.GetComponentInChildren<UnityEngine.EventSystems.EventSystem>(true), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "Map Selection Panel"), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "Online Mode Panel"), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "Achievements Panel"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Join Room Panel"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Waiting Room Panel"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Message Panel"), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "Loading Overlay"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Seat Template"), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "Creator Link Button"), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "Steam 双人验证 Button"), Is.Null);
+        }
+
+        [Test]
+        public void StartMenuPrefab_LoadingOverlayIsCompleteHiddenAndTopmost()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            Assert.That(prefab, Is.Not.Null);
+
+            var loadingType = Type.GetType(
+                "YC.Presentation.StartMenuLoadingPanelView, Assembly-CSharp",
+                false);
+            Assert.That(loadingType, Is.Not.Null);
+
+            var loading = prefab.GetComponentInChildren(loadingType, true) as MonoBehaviour;
+            Assert.That(loading, Is.Not.Null);
+            Assert.That(loading.gameObject.activeSelf, Is.False);
+            Assert.That(loading.transform.GetSiblingIndex(), Is.EqualTo(loading.transform.parent.childCount - 1));
+            var group = loading.GetComponent<CanvasGroup>();
+            var image = loading.GetComponent<Image>();
+            Assert.That(group, Is.Not.Null);
+            Assert.That(group.alpha, Is.EqualTo(0f));
+            Assert.That(image, Is.Not.Null);
+            Assert.That(image.color, Is.EqualTo(Color.black));
+
+            var arguments = new object[] { null };
+            var validate = loadingType.GetMethod("TryValidateConfiguration", BindingFlags.Public | BindingFlags.Instance);
+            Assert.That(validate, Is.Not.Null);
+            Assert.That(validate.Invoke(loading, arguments), Is.EqualTo(true), arguments[0] as string);
+
+            var viewType = Type.GetType("YC.Presentation.StartMenuView, Assembly-CSharp", false);
+            var view = prefab.GetComponentInChildren(viewType, true) as MonoBehaviour;
+            var viewData = new SerializedObject(view);
+            Assert.That(viewData.FindProperty("loadingPanel").objectReferenceValue, Is.SameAs(loading));
+        }
+
+        [Test]
+        public void StartMenuLoadingPanel_ShowBlocksInputWithFullScreenMask()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var loadingType = Type.GetType(
+                    "YC.Presentation.StartMenuLoadingPanelView, Assembly-CSharp",
+                    true);
+                var loading = instance.GetComponentInChildren(loadingType, true) as MonoBehaviour;
+                Assert.That(loading, Is.Not.Null);
+
+                loadingType.GetMethod("ShowIndeterminate")?.Invoke(
+                    loading,
+                    new object[] { "正在创建房间", "正在初始化网络..." });
+                Assert.That(loading.gameObject.activeSelf, Is.True);
+                Assert.That(loading.GetComponent<CanvasGroup>().blocksRaycasts, Is.True);
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
+        }
+
+        [Test]
+        public void LoadingScene_HasOpaquePersistentTransitionCanvasAndBuildEntry()
+        {
+            var existing = SceneManager.GetSceneByPath(LoadingScenePath);
+            var openedForTest = !existing.IsValid() || !existing.isLoaded;
+            var scene = openedForTest
+                ? EditorSceneManager.OpenScene(LoadingScenePath, OpenSceneMode.Additive)
+                : existing;
+
+            try
+            {
+                var root = FindRoot(scene, "Scene Transition");
+                Assert.That(root, Is.Not.Null);
+                var controllerType = Type.GetType(
+                    "YC.Presentation.LoadingSceneController, Assembly-CSharp",
+                    false);
+                var controller = root.GetComponent(controllerType) as MonoBehaviour;
+                Assert.That(controller, Is.Not.Null);
+                var loadingCamera = Find(root.transform, "Loading Camera").GetComponent<Camera>();
+                Assert.That(loadingCamera, Is.Not.Null);
+                Assert.That(loadingCamera.clearFlags, Is.EqualTo(CameraClearFlags.SolidColor));
+                Assert.That(loadingCamera.backgroundColor, Is.EqualTo(new Color(0f, 0f, 0f, 0f)));
+                Assert.That(loadingCamera.cullingMask, Is.EqualTo(1 << 31));
+                Assert.That(loadingCamera.targetTexture, Is.Not.Null);
+                var modelPivot = Find(root.transform, "Originite Model Pivot");
+                Assert.That(modelPivot, Is.Not.Null);
+                Assert.That(modelPivot.GetComponentInChildren<Renderer>(true), Is.Not.Null);
+                var dragType = Type.GetType(
+                    "YC.Presentation.LoadingModelDragController, Assembly-CSharp",
+                    false);
+                Assert.That(dragType, Is.Not.Null);
+                var modelDisplay = Find(root.transform, "Originite Display");
+                Assert.That(modelDisplay, Is.Not.Null);
+                var dragController = modelDisplay.GetComponent(dragType) as MonoBehaviour;
+                Assert.That(dragController, Is.Not.Null);
+                var dragData = new SerializedObject(dragController);
+                Assert.That(dragData.FindProperty("rotationTarget").objectReferenceValue, Is.SameAs(modelPivot));
+                var group = root.GetComponentInChildren<CanvasGroup>(true);
+                Assert.That(group, Is.Not.Null);
+                Assert.That(group.alpha, Is.EqualTo(0f));
+                Assert.That(group.GetComponent<Canvas>().sortingOrder, Is.EqualTo(short.MaxValue));
+                Assert.That(Find(root.transform, "Black Screen").GetComponent<Image>().color, Is.EqualTo(Color.black));
+                var progressRoot = Find(root.transform, "Loading Progress") as RectTransform;
+                Assert.That(progressRoot, Is.Not.Null);
+                var progressGroup = progressRoot.GetComponent<CanvasGroup>();
+                var tipsText = Find(root.transform, "Tips Text").GetComponent<Text>();
+                var progressText = Find(root.transform, "Progress Text").GetComponent<Text>();
+                var progressFill = Find(root.transform, "Progress Fill") as RectTransform;
+                Assert.That(progressRoot.anchorMin.y, Is.EqualTo(0f));
+                Assert.That(progressRoot.anchoredPosition.y, Is.GreaterThan(0f));
+                Assert.That(progressGroup, Is.Not.Null);
+                Assert.That(progressGroup.alpha, Is.EqualTo(0f));
+                Assert.That(tipsText, Is.Not.Null);
+                StringAssert.StartsWith("拓荒提示：", tipsText.text);
+                Assert.That(progressText, Is.Not.Null);
+                Assert.That(progressFill, Is.Not.Null);
+                controllerType.GetMethod("SetProgress")?.Invoke(controller, new object[] { 0.5f });
+                Assert.That(progressText.text, Is.EqualTo("加载中 50%"));
+                Assert.That(progressFill.rect.width, Is.EqualTo(350f).Within(0.01f));
+                Assert.That(
+                    Array.Exists(EditorBuildSettings.scenes, entry => entry.path == LoadingScenePath && entry.enabled),
+                    Is.True);
+            }
+            finally
+            {
+                if (openedForTest)
+                {
+                    EditorSceneManager.CloseScene(scene, true);
+                }
+            }
+        }
+
+        [Test]
+        public void StartMenuPrefab_RightButtonsUseBottomRightTransparentBandStyle()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            Assert.That(prefab, Is.Not.Null);
+
+            AssertTransparentMainButton(prefab.transform, "本地游戏 Button");
+            AssertTransparentMainButton(prefab.transform, "联机模式 Button");
+            AssertTransparentMainButton(prefab.transform, "成就 Button");
         }
 
         [Test]
@@ -138,6 +286,27 @@ namespace YC.Tests.EditMode
             }
 
             return null;
+        }
+
+        private static void AssertTransparentMainButton(Transform root, string name)
+        {
+            var target = Find(root, name) as RectTransform;
+            Assert.That(target, Is.Not.Null, name);
+            Assert.That(target.anchorMin, Is.EqualTo(new Vector2(1f, 0f)), name);
+            Assert.That(target.anchorMax, Is.EqualTo(new Vector2(1f, 0f)), name);
+            Assert.That(target.sizeDelta, Is.EqualTo(new Vector2(420f, 84f)), name);
+            Assert.That(target.GetComponent<Outline>(), Is.Null, name);
+
+            var button = target.GetComponent<Button>();
+            Assert.That(button, Is.Not.Null, name);
+            Assert.That(button.colors.normalColor.a, Is.EqualTo(0f).Within(0.001f), name);
+            Assert.That(button.colors.highlightedColor.a, Is.EqualTo(0.22f).Within(0.001f), name);
+            Assert.That(button.colors.pressedColor.a, Is.EqualTo(0.55f).Within(0.001f), name);
+            var feedbackType = Type.GetType(
+                "YC.Presentation.ActionButtonPressFeedback, Assembly-CSharp",
+                false);
+            Assert.That(feedbackType, Is.Not.Null, name);
+            Assert.That(target.GetComponent(feedbackType), Is.Not.Null, name);
         }
     }
 

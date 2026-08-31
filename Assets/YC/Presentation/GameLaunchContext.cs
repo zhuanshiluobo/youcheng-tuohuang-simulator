@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using YC.Application.Sessions;
 using YC.Infrastructure.Multiplayer;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace YC.Presentation
 {
@@ -102,7 +101,7 @@ namespace YC.Presentation
             if (returningToStart) return;
             returningToStart = true;
             ShutdownOnlineSession();
-            SceneManager.LoadScene("StartScene");
+            SceneTransitionContext.TryBeginBlackTransition("StartScene");
         }
 
         private void OnLobbyJoinRequested(string lobbyId)

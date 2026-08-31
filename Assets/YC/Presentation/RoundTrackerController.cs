@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using YC.Application.Sessions;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -129,7 +128,7 @@ namespace YC.Presentation
         public void ReturnToStartScene()
         {
             GameLaunchContext.ShutdownOnlineSession();
-            SceneManager.LoadScene(startSceneName);
+            SceneTransitionContext.TryBeginBlackTransition(startSceneName);
         }
 
         public void Toggle()

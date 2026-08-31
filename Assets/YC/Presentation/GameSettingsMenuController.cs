@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using YC.Application.Sessions;
 
@@ -8,8 +7,6 @@ namespace YC.Presentation
 {
     public sealed class GameSettingsMenuController : MonoBehaviour
     {
-        private const float PanelHeight = 430f;
-        private const float AnimationSpeed = 14f;
         private const string DefaultStartSceneName = "StartScene";
         private const string ResolutionPreferenceKey = "YC.Settings.ResolutionIndex";
 
@@ -31,8 +28,6 @@ namespace YC.Presentation
 
         private bool initialized;
         private bool isOpen;
-        private bool isAnimating;
-        private Vector2 targetPosition;
 
         public bool IsOpen => isOpen;
 
@@ -43,38 +38,9 @@ namespace YC.Presentation
 
         private void Update()
         {
-            if (!initialized)
-            {
-                return;
-            }
-
-            if (Input.GetKeyDown(KeyCode.Escape))
+            if (initialized && Input.GetKeyDown(KeyCode.Escape))
             {
                 HandleEscapePressed();
-            }
-
-            if (!isAnimating)
-            {
-                return;
-            }
-
-            var panel = view.MenuPanel;
-            panel.anchoredPosition = Vector2.Lerp(
-                panel.anchoredPosition,
-                targetPosition,
-                Time.unscaledDeltaTime * AnimationSpeed);
-
-            if (Vector2.Distance(panel.anchoredPosition, targetPosition) > 0.5f)
-            {
-                return;
-            }
-
-            panel.anchoredPosition = targetPosition;
-            isAnimating = false;
-
-            if (!isOpen)
-            {
-                view.OverlayObject.SetActive(false);
             }
         }
 
@@ -107,7 +73,7 @@ namespace YC.Presentation
 
             if (isOpen)
             {
-                Close();
+                view.CloseInputHandler.RequestClose();
                 return;
             }
 
@@ -122,11 +88,10 @@ namespace YC.Presentation
             }
 
             isOpen = true;
-            isAnimating = true;
+            view.CloseInputHandler.Configure(Close);
             view.ConfirmationObject.SetActive(false);
+            view.MenuPanel.anchoredPosition = Vector2.zero;
             view.OverlayObject.SetActive(true);
-            view.MenuPanel.anchoredPosition = new Vector2(0f, GetHiddenPanelY());
-            targetPosition = Vector2.zero;
         }
 
         public void Close()
@@ -137,9 +102,9 @@ namespace YC.Presentation
             }
 
             isOpen = false;
-            isAnimating = true;
             view.ConfirmationObject.SetActive(false);
-            targetPosition = new Vector2(0f, GetHiddenPanelY());
+            view.MenuPanel.anchoredPosition = Vector2.zero;
+            view.OverlayObject.SetActive(false);
         }
 
         public void SetReturnToStartButtonVisible(bool visible)
@@ -208,7 +173,8 @@ namespace YC.Presentation
             view.ActionLogButtonObject.SetActive(false);
             view.ConfirmationObject.SetActive(false);
             view.OverlayObject.SetActive(false);
-            view.MenuPanel.anchoredPosition = new Vector2(0f, GetHiddenPanelY());
+            view.MenuPanel.anchoredPosition = Vector2.zero;
+            view.CloseInputHandler.Configure(Close);
             initialized = true;
             return true;
         }
@@ -217,8 +183,8 @@ namespace YC.Presentation
         {
             BindButton(view.GearButton, Open);
             BindButton(view.ActionLogButton, OpenActionLog);
-            BindButton(view.OverlayCloseButton, Close);
-            BindButton(view.HeaderCloseButton, Close);
+            view.OverlayCloseButton.onClick.RemoveAllListeners();
+            BindButton(view.HeaderCloseButton, view.CloseInputHandler.RequestClose);
             BindButton(view.GeneralTabButton, () => SelectTab(SettingsTab.General));
             BindButton(view.RulebookButton, SelectRulebookTab);
             BindButton(view.PlaceholderTabButton, () => SelectTab(SettingsTab.Placeholder));
@@ -348,16 +314,8 @@ namespace YC.Presentation
         private void ReturnToStartScene()
         {
             GameLaunchContext.ShutdownOnlineSession();
-            SceneManager.LoadScene(string.IsNullOrEmpty(startSceneName) ? DefaultStartSceneName : startSceneName);
-        }
-
-        private float GetHiddenPanelY()
-        {
-            var canvas = view == null ? null : view.CanvasTransform;
-            var canvasHeight = canvas == null || canvas.rect.height <= 0f
-                ? 1080f
-                : canvas.rect.height;
-            return canvasHeight * 0.5f + PanelHeight * 0.5f + 48f;
+            SceneTransitionContext.TryBeginBlackTransition(
+                string.IsNullOrEmpty(startSceneName) ? DefaultStartSceneName : startSceneName);
         }
 
         private enum SettingsTab

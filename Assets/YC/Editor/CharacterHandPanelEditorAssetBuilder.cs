@@ -22,6 +22,10 @@ namespace YC.EditorTools
             "Assets/YC/Presentation/Materials/UiGrayscale.mat";
         public const string GrayscaleShaderPath =
             "Assets/YC/Presentation/Shaders/UiGrayscale.shader";
+        public const string HandEntranceClipPath =
+            "Assets/YC/Presentation/Animations/CharacterHandEntrance/CharacterHandReveal.anim";
+        public const string HandReturnClipPath =
+            "Assets/YC/Presentation/Animations/CharacterHandEntrance/CharacterHandReturn.anim";
 
         [MenuItem("Tools/YC/Rebuild Character Hand Panel Editor Asset")]
         public static void Rebuild()
@@ -65,9 +69,20 @@ namespace YC.EditorTools
             var rootRect = root.GetComponent<RectTransform>();
             Stretch(rootRect);
 
-            var handCards = CreateUiObject("Hand Cards", root.transform);
+            var handCards = CreateUiObject("Hand Cards", root.transform, typeof(Animation));
             var handCardsRect = handCards.GetComponent<RectTransform>();
             Stretch(handCardsRect);
+            var handCardsAnimation = handCards.GetComponent<Animation>();
+            var handEntranceClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(HandEntranceClipPath);
+            var handReturnClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(HandReturnClipPath);
+            if (handEntranceClip == null || !handEntranceClip.legacy ||
+                handReturnClip == null || !handReturnClip.legacy)
+                throw new InvalidOperationException("缺少有效的手牌入场或收回 Animation Clip。");
+            handCardsAnimation.clip = handEntranceClip;
+            handCardsAnimation.AddClip(handEntranceClip, handEntranceClip.name);
+            handCardsAnimation.AddClip(handReturnClip, handReturnClip.name);
+            handCardsAnimation.playAutomatically = false;
+            handCardsAnimation.cullingType = AnimationCullingType.AlwaysAnimate;
 
             var handDropArea = CreateUiObject("Hand Reorder Drop Area", root.transform);
             var handDropRect = handDropArea.GetComponent<RectTransform>();

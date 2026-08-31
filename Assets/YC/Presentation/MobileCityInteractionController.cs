@@ -678,7 +678,8 @@ namespace YC.Presentation
             characterCardCoverDrag = new CharacterCardCoverDragCoordinator(
                 () => actionPanel,
                 SubmitCoverCharacterCard,
-                SetPrompt);
+                SetPrompt,
+                confirmed => characterHandPanel?.ResolvePendingCover(confirmed));
             if (characterHandPanel == null ||
                 !characterHandPanel.Configure(
                     gameplayInteractionHud.DialogRegistry.CardVisualCatalog,

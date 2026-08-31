@@ -1,7 +1,6 @@
 using System;
 using Steamworks;
 using UnityEngine;
-
 namespace YC.Infrastructure.Multiplayer
 {
     [DefaultExecutionOrder(-25000)]
@@ -10,7 +9,6 @@ namespace YC.Infrastructure.Multiplayer
         public static SteamBootstrap Instance { get; private set; }
         public static bool IsInitialized { get; private set; }
         public event Action<string> InitializationFailed;
-
         public static SteamBootstrap Ensure()
         {
             if (Instance == null)
@@ -18,10 +16,8 @@ namespace YC.Infrastructure.Multiplayer
                 throw new InvalidOperationException(
                     "缺少预接线的 SteamBootstrap。请重建 NetworkRuntimeRoot Prefab 并确认 StartScene 接线完整。");
             }
-
             return Instance;
         }
-
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -33,7 +29,6 @@ namespace YC.Infrastructure.Multiplayer
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-
         public bool Initialize()
         {
             if (IsInitialized) return true;
@@ -45,7 +40,6 @@ namespace YC.Infrastructure.Multiplayer
                     Fail("Steam 初始化失败。请先启动 Steam 客户端并登录，再重新启动游戏。");
                     return false;
                 }
-
                 if (SteamUtils.GetAppID().m_AppId != SteamLobbyPolicy.AppId)
                 {
                     SteamAPI.Shutdown();
@@ -62,14 +56,11 @@ namespace YC.Infrastructure.Multiplayer
                 return false;
             }
         }
-
         private void Update()
         {
             if (IsInitialized) SteamAPI.RunCallbacks();
         }
-
         private void OnApplicationQuit() => Shutdown();
-
         private void OnDestroy()
         {
             if (Instance == this)
@@ -78,14 +69,12 @@ namespace YC.Infrastructure.Multiplayer
                 Instance = null;
             }
         }
-
         public void Shutdown()
         {
             if (!IsInitialized) return;
             SteamAPI.Shutdown();
             IsInitialized = false;
         }
-
         private void Fail(string message)
         {
             Debug.LogWarning(message);

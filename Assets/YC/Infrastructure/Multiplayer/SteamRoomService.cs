@@ -5,13 +5,11 @@ using Steamworks;
 using YC.Application.Sessions;
 using YC.Domain.Rules;
 using UnityEngine;
-
 namespace YC.Infrastructure.Multiplayer
 {
     public sealed class SteamRoomService : IOnlineRoomService
     {
         public bool SupportsFriendInvites => true;
-
         private static readonly PlayerColor[] SeatColors = { PlayerColor.Blue, PlayerColor.Red, PlayerColor.Green, PlayerColor.Yellow };
         private Callback<LobbyCreated_t> lobbyCreated;
         private Callback<LobbyEnter_t> lobbyEntered;
@@ -33,7 +31,6 @@ namespace YC.Infrastructure.Multiplayer
         private bool acceptNetworkEvents;
         private MirrorNetworkRuntime subscribedRuntime;
         private RoomState currentRoom;
-
         public bool HasPendingLobbyJoinRequest => lobbyJoinRequests.HasPending;
         public event Action<RoomState> RoomUpdated;
         public event Action<RoomState> GameStarted;
@@ -44,16 +41,13 @@ namespace YC.Infrastructure.Multiplayer
             add => lobbyJoinRequests.LobbyJoinRequested += value;
             remove => lobbyJoinRequests.LobbyJoinRequested -= value;
         }
-
         public SteamRoomService() { }
-
         public void Initialize()
         {
             ThrowIfDisposed();
             EnsureSteam();
             EnsureCallbacks();
         }
-
         public Task<RoomState> CreateRoomAsync(string hostPlayerName, int playerCount)
         {
             ThrowIfDisposed();
@@ -69,7 +63,6 @@ namespace YC.Infrastructure.Multiplayer
             SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypePublic, playerCount);
             return pendingCreate.Task;
         }
-
         public Task<RoomState> JoinRoomAsync(string roomCode, string playerName)
         {
             ThrowIfDisposed();
@@ -82,7 +75,6 @@ namespace YC.Infrastructure.Multiplayer
             SteamMatchmaking.JoinLobby(pendingJoinLobbyId);
             return pendingJoin.Task;
         }
-
         public Task StartGameAsync()
         {
             ThrowIfDisposed();
@@ -92,14 +84,12 @@ namespace YC.Infrastructure.Multiplayer
                 throw new InvalidOperationException("只有原始房主可以开始游戏。");
             if (!string.Equals(GetData("roomStatus"), SteamLobbyPolicy.WaitingStatus, StringComparison.Ordinal))
                 throw new InvalidOperationException("房间不再处于等待状态。");
-
             RefreshRoom();
             var room = GetCurrentRoom();
             var reason = string.Empty;
             if (subscribedRuntime == null ||
                 !waitingRoomAuthority.TryValidateStart(room, subscribedRuntime.IsServerClientActive, out reason))
                 throw new InvalidOperationException(string.IsNullOrEmpty(reason) ? "等待所有玩家完成网络连接和身份校验。" : reason);
-
             if (!LobbyStartCommitPolicy.TryCommit(
                     joinable => SteamMatchmaking.SetLobbyJoinable(lobbyId, joinable),
                     status => SteamMatchmaking.SetLobbyData(lobbyId, "roomStatus", status),
@@ -108,9 +98,7 @@ namespace YC.Infrastructure.Multiplayer
             RefreshRoom();
             return Task.CompletedTask;
         }
-
         public void StartGame() => _ = StartGameSafelyAsync();
-
         public void InviteFriends()
         {
             ThrowIfDisposed();
@@ -118,18 +106,14 @@ namespace YC.Infrastructure.Multiplayer
                 throw new InvalidOperationException("请先进入 Steam Lobby，再邀请好友。");
             SteamFriends.ActivateGameOverlayInviteDialog(lobbyId);
         }
-
         public RoomState GetCurrentRoom() => currentRoom == null ? null : currentRoom.Clone();
-
         public bool TryConsumePendingLobbyJoinRequest(out string invitedLobbyId) =>
             lobbyJoinRequests.TryConsume(out invitedLobbyId);
-
         public void Shutdown()
         {
             if (disposed) return;
             ShutdownNetworkAndLobby();
         }
-
         public void Dispose()
         {
             if (disposed) return;
@@ -146,7 +130,6 @@ namespace YC.Infrastructure.Multiplayer
             lobbyJoinRequests.Clear();
             disposed = true;
         }
-
         private void OnLobbyCreated(LobbyCreated_t value)
         {
             if (pendingCreate == null)
@@ -155,13 +138,11 @@ namespace YC.Infrastructure.Multiplayer
                     SteamMatchmaking.LeaveLobby(new CSteamID(value.m_ulSteamIDLobby));
                 return;
             }
-
             if (value.m_eResult != EResult.k_EResultOK)
             {
                 FailPending(new InvalidOperationException("创建 Steam Lobby 失败：" + value.m_eResult));
                 return;
             }
-
             try
             {
                 lobbyId = new CSteamID(value.m_ulSteamIDLobby);
@@ -193,7 +174,6 @@ namespace YC.Infrastructure.Multiplayer
                 FailPending(new InvalidOperationException("初始化 Steam 房主网络失败：" + ex.Message, ex));
             }
         }
-
         private void OnLobbyEntered(LobbyEnter_t value)
         {
             var enteredLobbyId = new CSteamID(value.m_ulSteamIDLobby);
@@ -203,25 +183,21 @@ namespace YC.Infrastructure.Multiplayer
                 if (lobbyId == enteredLobbyId) lobbyId = CSteamID.Nil;
                 return;
             }
-
             if (pendingJoin != null && enteredLobbyId != pendingJoinLobbyId)
             {
                 if (enteredLobbyId.IsValid()) SteamMatchmaking.LeaveLobby(enteredLobbyId);
                 return;
             }
-
             if (pendingCreate != null && lobbyId.IsValid() && enteredLobbyId != lobbyId)
             {
                 if (enteredLobbyId.IsValid()) SteamMatchmaking.LeaveLobby(enteredLobbyId);
                 return;
             }
-
             if ((EChatRoomEnterResponse)value.m_EChatRoomEnterResponse != EChatRoomEnterResponse.k_EChatRoomEnterResponseSuccess)
             {
                 FailPending(new InvalidOperationException("加入 Steam Lobby 失败：" + (EChatRoomEnterResponse)value.m_EChatRoomEnterResponse));
                 return;
             }
-
             try
             {
                 lobbyId = enteredLobbyId;
@@ -258,7 +234,6 @@ namespace YC.Infrastructure.Multiplayer
                 FailPending(new InvalidOperationException("初始化 Steam 房间失败：" + ex.Message, ex));
             }
         }
-
         private void OnLobbyJoinRequested(GameLobbyJoinRequested_t value)
         {
             var invitedLobbyId = value.m_steamIDLobby.m_SteamID.ToString();
@@ -267,10 +242,8 @@ namespace YC.Infrastructure.Multiplayer
                 ErrorOccurred?.Invoke("收到的 Steam Lobby 邀请无效，已安全忽略。");
                 return;
             }
-
             lobbyJoinRequests.Record(invitedLobbyId);
         }
-
         private void RefreshRoom()
         {
             if (!lobbyId.IsValid()) return;
@@ -296,7 +269,6 @@ namespace YC.Infrastructure.Multiplayer
             }
             else RoomUpdated?.Invoke(room.Clone());
         }
-
         private void AssignStableSeats()
         {
             var members = new List<ulong>();
@@ -316,7 +288,6 @@ namespace YC.Infrastructure.Multiplayer
                     SetData(SteamLobbyPolicy.SeatKey(seat), value);
             }
         }
-
         private RoomState BuildRoomState()
         {
             var room = BuildPresenceRoom();
@@ -338,7 +309,6 @@ namespace YC.Infrastructure.Multiplayer
             }
             return room;
         }
-
         private RoomState BuildPresenceRoom()
         {
             var localSteamId = SteamUser.GetSteamID().m_SteamID;
@@ -346,7 +316,6 @@ namespace YC.Infrastructure.Multiplayer
             var memberCount = SteamMatchmaking.GetNumLobbyMembers(lobbyId);
             for (var i = 0; i < memberCount; i++)
                 members.Add(SteamMatchmaking.GetLobbyMemberByIndex(lobbyId, i).m_SteamID);
-
             var room = new RoomState
             {
                 RoomId = lobbyId.m_SteamID.ToString(),
@@ -377,7 +346,6 @@ namespace YC.Infrastructure.Multiplayer
             }
             return room;
         }
-
         private void SynchronizeAuthorityRoster()
         {
             var presenceRoom = BuildPresenceRoom();
@@ -390,7 +358,6 @@ namespace YC.Infrastructure.Multiplayer
             for (var i = 0; i < removedConnections.Count; i++)
                 subscribedRuntime?.RequestServerDisconnect(removedConnections[i]);
         }
-
         private void PublishAuthorityReadiness(RoomState room)
         {
             if (room == null || !isHost) return;
@@ -405,7 +372,6 @@ namespace YC.Infrastructure.Multiplayer
                     seat.IdentityVerified ? "1" : "0");
             }
         }
-
         private Dictionary<string, string> ReadCompatibilityData() => new Dictionary<string, string>
         {
             ["gameKey"] = GetData("gameKey"), ["protocolVersion"] = GetData("protocolVersion"),
@@ -445,7 +411,6 @@ namespace YC.Infrastructure.Multiplayer
             joinCompletion?.TrySetException(ex);
             ErrorOccurred?.Invoke(ex.Message);
         }
-
         private void SubscribeToRuntime(MirrorNetworkRuntime runtime)
         {
             if (subscribedRuntime == runtime) return;
@@ -460,14 +425,12 @@ namespace YC.Infrastructure.Multiplayer
             subscribedRuntime.ServerClientDisconnected -= OnServerClientDisconnected;
             subscribedRuntime.ServerClientDisconnected += OnServerClientDisconnected;
         }
-
         private void UnsubscribeFromRuntime(MirrorNetworkRuntime runtime)
         {
             runtime.ClientDisconnected -= OnNetworkDisconnected;
             runtime.ServerClientConnected -= OnServerClientConnected;
             runtime.ServerClientDisconnected -= OnServerClientDisconnected;
         }
-
         private void ShutdownNetworkAndLobby()
         {
             CancelPending();
@@ -483,7 +446,6 @@ namespace YC.Infrastructure.Multiplayer
             lobbyId = CSteamID.Nil; currentRoom = null; originalHostSteamId = 0; requestedPlayerCount = 0;
             isHost = false; gameStartedRaised = false;
         }
-
         private void CancelPending()
         {
             pendingCreate?.TrySetCanceled();
@@ -492,14 +454,12 @@ namespace YC.Infrastructure.Multiplayer
             pendingJoin = null;
             pendingJoinLobbyId = CSteamID.Nil;
         }
-
         private void OnNetworkDisconnected()
         {
             if (disposed || !acceptNetworkEvents || isHost) return;
             ShutdownNetworkAndLobby();
             RoomDisbanded?.Invoke();
         }
-
         private void OnServerClientConnected(MirrorServerConnectionInfo connection)
         {
             if (disposed || !acceptNetworkEvents || !isHost || !lobbyId.IsValid())
@@ -507,11 +467,9 @@ namespace YC.Infrastructure.Multiplayer
                 subscribedRuntime?.RequestServerDisconnect(connection.ConnectionId);
                 return;
             }
-
             AssignStableSeats();
             SynchronizeAuthorityRoster();
             waitingRoomAuthority.ObserveTransportConnection(connection.ConnectionId);
-
             ulong steamId;
             var claimedPlayerId = -1;
             if (connection.IsLocal)
@@ -529,7 +487,6 @@ namespace YC.Infrastructure.Multiplayer
                 RejectServerConnection(connection.ConnectionId, "拒绝无法解析 SteamID 的连接：" + connection.Address);
                 return;
             }
-
             if (!waitingRoomAuthority.TryVerifyIdentity(
                     connection.ConnectionId,
                     steamId,
@@ -539,16 +496,13 @@ namespace YC.Infrastructure.Multiplayer
                 RejectServerConnection(connection.ConnectionId, "拒绝非 Lobby 成员、重复或席位不匹配的 Steam 连接。");
                 return;
             }
-
             RefreshRoom();
         }
-
         private void OnServerClientDisconnected(int connectionId)
         {
             if (disposed || !acceptNetworkEvents || !isHost) return;
             if (waitingRoomAuthority.Disconnect(connectionId, out _)) RefreshRoom();
         }
-
         private void RejectServerConnection(int connectionId, string reason)
         {
             waitingRoomAuthority.Disconnect(connectionId, out _);

@@ -55,6 +55,8 @@ namespace YC.Presentation
 
         public bool IsReady => view != null;
         public ActionPanelFace CurrentFace => currentFace;
+        public RectTransform CharacterCoverDropTarget =>
+            view == null || view.CardImage == null ? null : view.CardImage.rectTransform;
 
         public static ActionPanelController Bind(
             ActionPanelView view,

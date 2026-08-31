@@ -45,16 +45,34 @@ namespace YC.Tests.EditMode
             Assert.That(overlay, Is.Not.Null);
             Assert.That(overlay.gameObject.activeSelf, Is.True);
             Assert.That(GetPublicProperty<bool>(controller, "IsOpen"), Is.True);
+            Assert.That(
+                root.transform.Find("Game Settings Canvas/Settings Overlay/Settings Panel")
+                    .GetComponent<RectTransform>().anchoredPosition,
+                Is.EqualTo(Vector2.zero));
         }
 
         [Test]
-        public void HandleEscapePressed_WhenOpen_StartsClosingSettings()
+        public void HandleEscapePressed_WhenOpen_ClosesSettingsImmediately()
         {
+            var overlay = root.transform.Find("Game Settings Canvas/Settings Overlay");
             InvokePublic(controller, "HandleEscapePressed");
 
             InvokePublic(controller, "HandleEscapePressed");
 
             Assert.That(GetPublicProperty<bool>(controller, "IsOpen"), Is.False);
+            Assert.That(overlay.gameObject.activeSelf, Is.False);
+        }
+
+        [Test]
+        public void ClickingOutsidePanel_DoesNotCloseSettings()
+        {
+            var overlay = root.transform.Find("Game Settings Canvas/Settings Overlay");
+            InvokePublic(controller, "Open");
+
+            overlay.GetComponent<Button>().onClick.Invoke();
+
+            Assert.That(GetPublicProperty<bool>(controller, "IsOpen"), Is.True);
+            Assert.That(overlay.gameObject.activeSelf, Is.True);
         }
 
         [Test]
