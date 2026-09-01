@@ -28,7 +28,7 @@ namespace YC.Tests.EditMode
             "Assets/YC/Editor/Data/event_choice_dialog_layout_manifest.json";
         private const string LayoutManifestGuid = "c2a9bc63da0f4d5ba412ef8b93d671e4";
         private const string LayoutManifestSha256 =
-            "0594CCEF465B749522FB09747D601645D65B69958495DA7FAF0DB02D2FB64760";
+            "71345F8231F0ADFAB117E66EF749CD48B52719AC005E04A7EBC29214425AE476";
         private const string EventChoiceDialogPrefabPath =
             "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/EventChoiceDialog.prefab";
         private const string EventChoiceDialogPrefabGuid = "3fe2d5d7571d9e4488d62bd519017c21";
@@ -290,7 +290,6 @@ namespace YC.Tests.EditMode
                     "resourceCollectionPaymentMode",
                     "buildFacilityFocusMode",
                     "buildFacilityConfirmationMode",
-                    "legacyCityStyleOptionsMode",
                     "characterSecondEffectDecisionMode"
                 };
                 for (var i = 0; i < modeFields.Length; i++)
@@ -362,11 +361,6 @@ namespace YC.Tests.EditMode
             AssertPrefabGateRejects(root =>
             {
                 FindChild(root, "Build Details").GetComponent<RectTransform>().anchorMin = Vector2.zero;
-            });
-            AssertPrefabGateRejects(root =>
-            {
-                FindChild(root, "LegacyCityStyleRow").transform.Find("Summary")
-                    .GetComponent<RectTransform>().anchorMax = Vector2.one;
             });
             AssertPrefabGateRejects(root =>
             {
@@ -518,21 +512,6 @@ namespace YC.Tests.EditMode
 
             Invoke("ShowBuildFacilityConfirmation", CreateBuildModel(BuildFacilityDraftPhase.Confirming, _ => { }));
             AssertMode("Build Facility Confirmation Overlay", "buildFacilityConfirmationMode", true);
-
-            Invoke(
-                "ShowCityStyleOptions",
-                new List<CityStyleOptionViewModel>
-                {
-                    new CityStyleOptionViewModel
-                    {
-                        CityStyleId = "style-1",
-                        Name = "兼容样式",
-                        CanDeclare = true
-                    }
-                },
-                new Action<string>(_ => { }),
-                new Action(() => { }));
-            AssertMode("City Style Overlay", "legacyCityStyleOptionsMode", true);
 
             Invoke(
                 "ShowCharacterSecondEffectDecision",
@@ -784,53 +763,6 @@ namespace YC.Tests.EditMode
                 LayoutVector("BuildFacilityConfirmationPanelPosition"));
 
             Invoke(
-                "ShowCityStyleOptions",
-                new List<CityStyleOptionViewModel>
-                {
-                    new CityStyleOptionViewModel { CityStyleId = "style-1", Name = "样式一", CanDeclare = true },
-                    new CityStyleOptionViewModel { CityStyleId = "style-2", Name = "样式二", CanDeclare = true }
-                },
-                new Action<string>(_ => { }),
-                new Action(() => { }));
-            var cityRoot = FindChild(canvas.gameObject, "City Style Overlay");
-            AssertRectSizeAndPosition(
-                FindChild(cityRoot, "City Style Panel").GetComponent<RectTransform>(),
-                new Vector2(
-                    LayoutFloat("LegacyCityStylePanelWidth"),
-                    LayoutFloat("LegacyCityStylePanelBaseHeight") +
-                    2f * LayoutFloat("LegacyCityStylePanelRowStep")),
-                LayoutVector("LegacyCityStylePanelPosition"));
-            AssertVectorApproximately(
-                FindChild(cityRoot, "City Style 1").GetComponent<RectTransform>().anchoredPosition,
-                new Vector2(
-                    LayoutVector("LegacyCityStyleTemplateLayout.AnchoredPosition").x,
-                    -LayoutFloat("LegacyCityStyleFirstRowOffset") -
-                    LayoutFloat("LegacyCityStylePanelRowStep")));
-            var cityPanel = FindChild(cityRoot, "City Style Panel").GetComponent<RectTransform>();
-            var cityRow = FindChild(cityRoot, "City Style 1").GetComponent<RectTransform>();
-            var citySummary = cityRow.Find("Summary").GetComponent<RectTransform>();
-            var cityReason = cityRow.Find("Reason").GetComponent<RectTransform>();
-            var cityDeclare = FindChild(cityRow.gameObject, "Declare City Style 1")
-                .GetComponent<RectTransform>();
-            Assert.That(
-                (citySummary.anchorMax.x - citySummary.anchorMin.x) * cityPanel.sizeDelta.x,
-                Is.EqualTo(510.4f).Within(0.001f));
-            Assert.That(
-                ((citySummary.anchorMin.x + citySummary.anchorMax.x) * 0.5f - 0.5f) *
-                cityPanel.sizeDelta.x,
-                Is.EqualTo(-132f).Within(0.001f));
-            Assert.That(
-                ((cityReason.anchorMin.x + cityReason.anchorMax.x) * 0.5f - 0.5f) *
-                cityPanel.sizeDelta.x,
-                Is.EqualTo(211.2f).Within(0.001f));
-            Assert.That(
-                ((cityDeclare.anchorMin.x + cityDeclare.anchorMax.x) * 0.5f - 0.5f) *
-                cityPanel.sizeDelta.x,
-                Is.EqualTo(343.2f).Within(0.001f));
-            Assert.That(citySummary.anchoredPosition.y + cityRow.anchoredPosition.y,
-                Is.EqualTo(-176f).Within(0.001f));
-
-            Invoke(
                 "ShowCharacterSecondEffectDecision",
                 "角色牌",
                 "第二效果",
@@ -1009,31 +941,6 @@ namespace YC.Tests.EditMode
             Assert.That(characterCount, Is.EqualTo(1));
             Assert.That(characterHidden, Is.True);
 
-            var styleCount = 0;
-            var styleHidden = false;
-            Invoke(
-                "ShowCityStyleOptions",
-                new List<CityStyleOptionViewModel>
-                {
-                    new CityStyleOptionViewModel
-                    {
-                        CityStyleId = "style-1",
-                        Name = "兼容样式",
-                        CanDeclare = true
-                    }
-                },
-                new Action<string>(_ =>
-                {
-                    styleCount++;
-                    styleHidden = FindChild(canvas.gameObject, "City Style Overlay") == null;
-                }),
-                new Action(() => { }));
-            var styleRoot = FindChild(canvas.gameObject, "City Style Overlay");
-            var declareClick = FindChild(styleRoot, "Declare City Style 0").GetComponent<Button>().onClick;
-            declareClick.Invoke();
-            declareClick.Invoke();
-            Assert.That(styleCount, Is.EqualTo(1));
-            Assert.That(styleHidden, Is.True);
         }
 
         [Test]
@@ -1216,7 +1123,6 @@ namespace YC.Tests.EditMode
                 "resourceCollectionPaymentMode",
                 "buildFacilityFocusMode",
                 "buildFacilityConfirmationMode",
-                "legacyCityStyleOptionsMode",
                 "characterSecondEffectDecisionMode"
             };
             var activeCount = 0;
@@ -1244,8 +1150,7 @@ namespace YC.Tests.EditMode
 
             var closeButton = GetObjectReference<Button>(view, "closeButton");
             var closeLabel = GetObjectReference<Text>(view, "closeButtonLabel");
-            if (selectedProperty == "resourceCollectionPaymentMode" ||
-                selectedProperty == "legacyCityStyleOptionsMode")
+            if (selectedProperty == "resourceCollectionPaymentMode")
             {
                 Assert.That(closeButton.gameObject.activeSelf, Is.True);
                 Assert.That(closeLabel.text, Is.EqualTo("X"));
@@ -1282,8 +1187,6 @@ namespace YC.Tests.EditMode
                     return "BuildFocus";
                 case "buildFacilityConfirmationMode":
                     return "BuildConfirmation";
-                case "legacyCityStyleOptionsMode":
-                    return "LegacyCityStyle";
                 case "characterSecondEffectDecisionMode":
                     return "Character";
                 default:

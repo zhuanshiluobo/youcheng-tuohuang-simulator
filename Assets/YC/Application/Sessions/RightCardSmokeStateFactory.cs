@@ -119,7 +119,6 @@ namespace YC.Application.Sessions
                 }
 
                 player.InfluenceSupply = Math.Max(0, player.InfluenceSupply - 1);
-                player.DeclaredCityStyleIds.Add(SharedCityStyleId);
                 player.DeclaredCityStyles.Add(new CityStyleDeclarationState
                 {
                     InfluenceMarkerId = SharedCityStyleId + ":" + player.PlayerId + ":1",

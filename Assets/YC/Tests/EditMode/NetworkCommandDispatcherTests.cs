@@ -320,7 +320,6 @@ namespace YC.Tests.EditMode
                     new PlayerState
                     {
                         PlayerId = 1,
-                        DeclaredCityStyleIds = { CityStyleDatabase.CompositePowerSystem },
                         DeclaredCityStyles =
                         {
                             new CityStyleDeclarationState
@@ -418,10 +417,6 @@ namespace YC.Tests.EditMode
         {
             var player = state.FindPlayer(1);
             Assert.That(player, Is.Not.Null);
-            Assert.That(player.DeclaredCityStyleIds, Is.EqualTo(new[]
-            {
-                CityStyleDatabase.CompositePowerSystem
-            }));
             Assert.That(player.DeclaredCityStyles, Has.Count.EqualTo(1));
             var declaration = player.DeclaredCityStyles[0];
             Assert.That(declaration.InfluenceMarkerId, Is.EqualTo("style-marker-1"));

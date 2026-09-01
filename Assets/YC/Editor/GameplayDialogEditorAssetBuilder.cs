@@ -763,19 +763,6 @@ namespace YC.EditorTools
                     layoutProfile.BuildConfirmButtonLayout,
                     layoutProfile.BuildConfirmButtonStyle);
 
-                var legacyMode = CreateModeBlock("LegacyCityStyleOptions Mode", actionArea);
-                var legacyHost = CreateStretchedHost(
-                    legacyMode.transform,
-                    "Legacy City Style Host");
-                var legacyEmpty = CreateProfileText(
-                    legacyMode.transform,
-                    "Empty",
-                    "当前没有城市样式牌。",
-                    layoutProfile.LegacyCityStyleEmptyLayout,
-                    layoutProfile.LegacyCityStyleEmptyTextStyle,
-                    UiTheme.ValueText);
-                legacyEmpty.gameObject.SetActive(false);
-
                 var characterMode = CreateModeBlock("CharacterSecondEffectDecision Mode", actionArea);
                 var continueButton = CreateProfileButton(
                     characterMode.transform,
@@ -817,10 +804,6 @@ namespace YC.EditorTools
                     "ResourceCollectionRecipientButton",
                     layoutProfile.ResourceRecipientTemplateLayout,
                     layoutProfile.ResourceRecipientButtonStyle);
-                var legacyTemplate = BuildLegacyCityStyleRowTemplate(
-                    templateHost,
-                    layoutProfile);
-
                 var collapsiblePanel = panelObject.GetComponent<EffectDialogCollapsiblePanel>();
                 SetReferences(
                     collapsiblePanel,
@@ -855,7 +838,6 @@ namespace YC.EditorTools
                     ("resourceCollectionPaymentMode", resourcePaymentMode),
                     ("buildFacilityFocusMode", buildFocusMode),
                     ("buildFacilityConfirmationMode", buildConfirmationMode),
-                    ("legacyCityStyleOptionsMode", legacyMode),
                      ("characterSecondEffectDecisionMode", characterMode),
                     ("eventCardArtworkImage", eventArtwork),
                     ("eventCardMetadataRibbon", metadataRibbon),
@@ -888,8 +870,6 @@ namespace YC.EditorTools
                     ("buildBackLabel", backButton.GetComponentInChildren<Text>()),
                     ("buildConfirmButton", confirmBuildButton),
                     ("buildConfirmLabel", confirmBuildButton.GetComponentInChildren<Text>()),
-                    ("legacyCityStyleHost", legacyHost),
-                    ("legacyCityStyleEmptyText", legacyEmpty),
                     ("characterContinueButton", continueButton),
                     ("characterContinueLabel", continueButton.GetComponentInChildren<Text>()),
                     ("characterFinishButton", finishButton),
@@ -899,7 +879,6 @@ namespace YC.EditorTools
                 SetNestedReferences(view, "paymentRouteRowTemplate", paymentRouteTemplate);
                 SetNestedReferences(view, "paymentRecipientButtonTemplate", recipientTemplate);
                 SetNestedReferences(view, "resourceCollectionRecipientButtonTemplate", resourceRecipientTemplate);
-                SetNestedReferences(view, "legacyCityStyleRowTemplate", legacyTemplate);
 
                 if (!view.TryValidateConfiguration(out var reason))
                 {
@@ -1039,45 +1018,6 @@ namespace YC.EditorTools
                 ("root", (Object)rect),
                 ("label", (Object)label),
                 ("recipientHost", (Object)recipientHost)
-            };
-        }
-
-        private static (string property, Object value)[] BuildLegacyCityStyleRowTemplate(
-            RectTransform parent,
-            EventChoiceDialogLayoutProfile profile)
-        {
-            var root = CreateUiObject("LegacyCityStyleRow", parent, Array.Empty<Type>());
-            var rect = root.GetComponent<RectTransform>();
-            profile.LegacyCityStyleTemplateLayout.ApplyTo(rect);
-            var summary = CreateProfileText(
-                rect,
-                "Summary",
-                string.Empty,
-                profile.LegacyCityStyleSummaryLayout,
-                profile.LegacyCityStyleSummaryTextStyle,
-                UiTheme.ValueText);
-            var reason = CreateProfileText(
-                rect,
-                "Reason",
-                string.Empty,
-                profile.LegacyCityStyleReasonLayout,
-                profile.LegacyCityStyleReasonTextStyle,
-                UiTheme.ValueText);
-            var declare = CreateProfileButton(
-                rect,
-                "Declare",
-                string.Empty,
-                profile.LegacyCityStyleDeclareLayout,
-                profile.LegacyCityStyleDeclareButtonStyle);
-            declare.GetComponentInChildren<Text>().gameObject.name = "Declare Label";
-            root.SetActive(false);
-            return new[]
-            {
-                ("root", (Object)rect),
-                ("summary", (Object)summary),
-                ("reason", (Object)reason),
-                ("declareButton", (Object)declare),
-                ("declareLabel", (Object)declare.GetComponentInChildren<Text>())
             };
         }
 

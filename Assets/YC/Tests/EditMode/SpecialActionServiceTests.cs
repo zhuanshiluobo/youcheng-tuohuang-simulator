@@ -504,7 +504,6 @@ namespace YC.Tests.EditMode
             string markerArea,
             int remainingUses)
         {
-            player.DeclaredCityStyleIds.Add(cityStyleId);
             player.DeclaredCityStyles.Add(new CityStyleDeclarationState
             {
                 InfluenceMarkerId = "marker",

@@ -272,7 +272,6 @@ namespace YC.Presentation.Workflows
                     continue;
                 }
 
-                var formalCounts = new Dictionary<string, int>(StringComparer.Ordinal);
                 if (player.DeclaredCityStyles != null)
                 {
                     for (var declarationIndex = 0;
@@ -286,9 +285,6 @@ namespace YC.Presentation.Workflows
                             continue;
                         }
 
-                        int count;
-                        formalCounts.TryGetValue(declaration.CityStyleId, out count);
-                        formalCounts[declaration.CityStyleId] = count + 1;
                         var specialActionOption = player.PlayerId == localPlayerId
                             ? specialActionOptions.Find(
                                 declaration.UnlockedSpecialActionId,
@@ -325,36 +321,6 @@ namespace YC.Presentation.Workflows
                     }
                 }
 
-                if (player.DeclaredCityStyleIds == null)
-                {
-                    continue;
-                }
-
-                var legacyCounts = new Dictionary<string, int>(StringComparer.Ordinal);
-                for (var declarationIndex = 0;
-                     declarationIndex < player.DeclaredCityStyleIds.Count;
-                     declarationIndex++)
-                {
-                    var cityStyleId = player.DeclaredCityStyleIds[declarationIndex];
-                    if (string.IsNullOrEmpty(cityStyleId))
-                    {
-                        continue;
-                    }
-
-                    int legacyCount;
-                    legacyCounts.TryGetValue(cityStyleId, out legacyCount);
-                    legacyCounts[cityStyleId] = legacyCount + 1;
-                    int formalCount;
-                    formalCounts.TryGetValue(cityStyleId, out formalCount);
-                    if (legacyCount >= formalCount)
-                    {
-                        result.Add(new CityStyleMarkerViewModel(
-                            cityStyleId,
-                            player.PlayerId,
-                            player.Color,
-                            CityStyleMarkerAreas.Declared));
-                    }
-                }
             }
 
             return result.AsReadOnly();

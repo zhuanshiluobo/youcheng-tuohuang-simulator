@@ -139,7 +139,6 @@ namespace YC.Presentation
         public bool ResourcePaymentOverlayRaycastTarget;
         public bool BuildFocusOverlayRaycastTarget;
         public bool BuildConfirmationOverlayRaycastTarget;
-        public bool LegacyCityStyleOverlayRaycastTarget;
         public bool CharacterOverlayRaycastTarget;
 
         public float EventCardPanelWidth;
@@ -232,16 +231,6 @@ namespace YC.Presentation
         public EventChoiceDialogRectLayout BuildCloseButtonLayout;
         public EventChoiceDialogButtonStyle BuildCloseButtonStyle;
 
-        public float LegacyCityStylePanelWidth;
-        public float LegacyCityStylePanelBaseHeight;
-        public float LegacyCityStylePanelRowStep;
-        public Vector2 LegacyCityStylePanelPosition;
-        public float LegacyCityStyleFirstRowOffset;
-        public EventChoiceDialogRectLayout LegacyCityStyleTitleLayout;
-        public EventChoiceDialogTextStyle LegacyCityStyleTitleTextStyle;
-        public EventChoiceDialogRectLayout LegacyCityStyleEmptyLayout;
-        public EventChoiceDialogTextStyle LegacyCityStyleEmptyTextStyle;
-
         public Vector2 CharacterSecondEffectPanelSize;
         public Vector2 CharacterSecondEffectPanelPosition;
         public EventChoiceDialogRectLayout CharacterTitleLayout;
@@ -261,13 +250,6 @@ namespace YC.Presentation
         public EventChoiceDialogButtonStyle ExploreConfirmButtonStyle;
         public EventChoiceDialogRectLayout ResourceRecipientTemplateLayout;
         public EventChoiceDialogButtonStyle ResourceRecipientButtonStyle;
-        public EventChoiceDialogRectLayout LegacyCityStyleTemplateLayout;
-        public EventChoiceDialogRectLayout LegacyCityStyleSummaryLayout;
-        public EventChoiceDialogTextStyle LegacyCityStyleSummaryTextStyle;
-        public EventChoiceDialogRectLayout LegacyCityStyleReasonLayout;
-        public EventChoiceDialogTextStyle LegacyCityStyleReasonTextStyle;
-        public EventChoiceDialogRectLayout LegacyCityStyleDeclareLayout;
-        public EventChoiceDialogButtonStyle LegacyCityStyleDeclareButtonStyle;
         public EventChoiceDialogRectLayout PaymentRouteTemplateLayout;
         public EventChoiceDialogRectLayout PaymentRouteLabelLayout;
         public EventChoiceDialogTextStyle PaymentRouteLabelTextStyle;
@@ -305,7 +287,6 @@ namespace YC.Presentation
         public bool ResourcePaymentOverlayRaycastTarget => values.ResourcePaymentOverlayRaycastTarget;
         public bool BuildFocusOverlayRaycastTarget => values.BuildFocusOverlayRaycastTarget;
         public bool BuildConfirmationOverlayRaycastTarget => values.BuildConfirmationOverlayRaycastTarget;
-        public bool LegacyCityStyleOverlayRaycastTarget => values.LegacyCityStyleOverlayRaycastTarget;
         public bool CharacterOverlayRaycastTarget => values.CharacterOverlayRaycastTarget;
         public float EventCardPanelWidth => values.EventCardPanelWidth;
         public Vector2 EventCardPanelPosition => values.EventCardPanelPosition;
@@ -393,15 +374,6 @@ namespace YC.Presentation
         public EventChoiceDialogButtonStyle BuildConfirmButtonStyle => values.BuildConfirmButtonStyle;
         public EventChoiceDialogRectLayout BuildCloseButtonLayout => values.BuildCloseButtonLayout;
         public EventChoiceDialogButtonStyle BuildCloseButtonStyle => values.BuildCloseButtonStyle;
-        public float LegacyCityStylePanelWidth => values.LegacyCityStylePanelWidth;
-        public float LegacyCityStylePanelBaseHeight => values.LegacyCityStylePanelBaseHeight;
-        public float LegacyCityStylePanelRowStep => values.LegacyCityStylePanelRowStep;
-        public Vector2 LegacyCityStylePanelPosition => values.LegacyCityStylePanelPosition;
-        public float LegacyCityStyleFirstRowOffset => values.LegacyCityStyleFirstRowOffset;
-        public EventChoiceDialogRectLayout LegacyCityStyleTitleLayout => values.LegacyCityStyleTitleLayout;
-        public EventChoiceDialogTextStyle LegacyCityStyleTitleTextStyle => values.LegacyCityStyleTitleTextStyle;
-        public EventChoiceDialogRectLayout LegacyCityStyleEmptyLayout => values.LegacyCityStyleEmptyLayout;
-        public EventChoiceDialogTextStyle LegacyCityStyleEmptyTextStyle => values.LegacyCityStyleEmptyTextStyle;
         public Vector2 CharacterSecondEffectPanelSize => values.CharacterSecondEffectPanelSize;
         public Vector2 CharacterSecondEffectPanelPosition => values.CharacterSecondEffectPanelPosition;
         public EventChoiceDialogRectLayout CharacterTitleLayout => values.CharacterTitleLayout;
@@ -420,13 +392,6 @@ namespace YC.Presentation
         public EventChoiceDialogButtonStyle ExploreConfirmButtonStyle => values.ExploreConfirmButtonStyle;
         public EventChoiceDialogRectLayout ResourceRecipientTemplateLayout => values.ResourceRecipientTemplateLayout;
         public EventChoiceDialogButtonStyle ResourceRecipientButtonStyle => values.ResourceRecipientButtonStyle;
-        public EventChoiceDialogRectLayout LegacyCityStyleTemplateLayout => values.LegacyCityStyleTemplateLayout;
-        public EventChoiceDialogRectLayout LegacyCityStyleSummaryLayout => values.LegacyCityStyleSummaryLayout;
-        public EventChoiceDialogTextStyle LegacyCityStyleSummaryTextStyle => values.LegacyCityStyleSummaryTextStyle;
-        public EventChoiceDialogRectLayout LegacyCityStyleReasonLayout => values.LegacyCityStyleReasonLayout;
-        public EventChoiceDialogTextStyle LegacyCityStyleReasonTextStyle => values.LegacyCityStyleReasonTextStyle;
-        public EventChoiceDialogRectLayout LegacyCityStyleDeclareLayout => values.LegacyCityStyleDeclareLayout;
-        public EventChoiceDialogButtonStyle LegacyCityStyleDeclareButtonStyle => values.LegacyCityStyleDeclareButtonStyle;
         public EventChoiceDialogRectLayout PaymentRouteTemplateLayout => values.PaymentRouteTemplateLayout;
         public EventChoiceDialogRectLayout PaymentRouteLabelLayout => values.PaymentRouteLabelLayout;
         public EventChoiceDialogTextStyle PaymentRouteLabelTextStyle => values.PaymentRouteLabelTextStyle;
@@ -483,10 +448,6 @@ namespace YC.Presentation
                     values.ResourcePaymentPanelBaseHeight,
                     values.ResourcePaymentPanelRowStep,
                     values.ResourcePaymentFirstRowOffset,
-                    values.LegacyCityStylePanelWidth,
-                    values.LegacyCityStylePanelBaseHeight,
-                    values.LegacyCityStylePanelRowStep,
-                    values.LegacyCityStyleFirstRowOffset,
                     values.PaymentRecipientStepX,
                     values.TextCharacterWidthScale,
                     values.TextLineHeightScale,
@@ -509,7 +470,6 @@ namespace YC.Presentation
                 !IsFinite(values.ExplorePathPanelPosition) ||
                 !IsFinite(values.ExplorePaymentPanelPosition) ||
                 !IsFinite(values.ResourcePaymentPanelPosition) ||
-                !IsFinite(values.LegacyCityStylePanelPosition) ||
                 !IsPositive(values.BuildFacilityFocusPanelSize) ||
                 !IsPositive(values.BuildFacilityConfirmationPanelSize) ||
                 !IsPositive(values.CharacterSecondEffectPanelSize) ||
@@ -574,8 +534,6 @@ namespace YC.Presentation
                 candidate.BuildBackButtonLayout,
                 candidate.BuildConfirmButtonLayout,
                 candidate.BuildCloseButtonLayout,
-                candidate.LegacyCityStyleTitleLayout,
-                candidate.LegacyCityStyleEmptyLayout,
                 candidate.CharacterTitleLayout,
                 candidate.CharacterDescriptionLayout,
                 candidate.CharacterContinueButtonLayout,
@@ -584,10 +542,6 @@ namespace YC.Presentation
                 candidate.PathRowTemplateLayout,
                 candidate.ExploreConfirmTemplateLayout,
                 candidate.ResourceRecipientTemplateLayout,
-                candidate.LegacyCityStyleTemplateLayout,
-                candidate.LegacyCityStyleSummaryLayout,
-                candidate.LegacyCityStyleReasonLayout,
-                candidate.LegacyCityStyleDeclareLayout,
                 candidate.PaymentRouteTemplateLayout,
                 candidate.PaymentRouteLabelLayout,
                 candidate.PaymentRecipientTemplateLayout
@@ -627,12 +581,8 @@ namespace YC.Presentation
                 candidate.BuildConfirmationTitleTextStyle,
                 candidate.BuildConfirmationSummaryTextStyle,
                 candidate.BuildConfirmationErrorTextStyle,
-                candidate.LegacyCityStyleTitleTextStyle,
-                candidate.LegacyCityStyleEmptyTextStyle,
                 candidate.CharacterTitleTextStyle,
                 candidate.CharacterDescriptionTextStyle,
-                candidate.LegacyCityStyleSummaryTextStyle,
-                candidate.LegacyCityStyleReasonTextStyle,
                 candidate.PaymentRouteLabelTextStyle
             };
             for (var i = 0; i < styles.Length; i++)
@@ -668,7 +618,6 @@ namespace YC.Presentation
                 candidate.PathRowButtonStyle,
                 candidate.ExploreConfirmButtonStyle,
                 candidate.ResourceRecipientButtonStyle,
-                candidate.LegacyCityStyleDeclareButtonStyle,
                 candidate.PaymentRecipientButtonStyle
             };
             for (var i = 0; i < styles.Length; i++)

@@ -52,8 +52,14 @@ namespace YC.Tests.EditMode
             player.Score = 14;
             player.BuiltFacilityIds.Add(FacilityCardDatabase.BoroughAdministrativeDistrict);
             player.BuiltFacilityIds.Add(FacilityCardDatabase.UrbanizedArea);
-            player.DeclaredCityStyleIds.Add(CityStyleDatabase.SourceStoneIndustrialHub);
-            player.DeclaredCityStyleIds.Add("unknown-city-style");
+            player.DeclaredCityStyles.Add(new CityStyleDeclarationState
+            {
+                CityStyleId = CityStyleDatabase.SourceStoneIndustrialHub
+            });
+            player.DeclaredCityStyles.Add(new CityStyleDeclarationState
+            {
+                CityStyleId = "unknown-city-style"
+            });
             var service = CreateService();
 
             var result = service.Resolve(state);

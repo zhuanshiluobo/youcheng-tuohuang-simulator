@@ -34,8 +34,8 @@ namespace YC.Tests.EditMode
 
             Assert.That(result.Succeeded, Is.True);
             var player = state.FindPlayer(1);
-            Assert.That(player.DeclaredCityStyleIds, Is.EqualTo(new[] { cityStyleId }));
             Assert.That(player.DeclaredCityStyles, Has.Count.EqualTo(1));
+            Assert.That(player.DeclaredCityStyles[0].CityStyleId, Is.EqualTo(cityStyleId));
             Assert.That(player.DeclaredCityStyles[0].UsedCityBoardSlotIndexes, Has.Count.EqualTo(expectedUsedSlotCount));
             Assert.That(player.DeclaredCityStyles[0].InfluenceMarkerId, Is.Not.Empty);
             Assert.That(
@@ -73,7 +73,6 @@ namespace YC.Tests.EditMode
             Assert.That(result.Succeeded, Is.False);
             Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
             var player = state.FindPlayer(1);
-            Assert.That(player.DeclaredCityStyleIds, Is.Empty);
             Assert.That(player.DeclaredCityStyles, Is.Empty);
             Assert.That(player.Score, Is.Zero);
             Assert.That(player.InfluenceSupply, Is.EqualTo(30));
@@ -148,7 +147,6 @@ namespace YC.Tests.EditMode
 
             Assert.That(result.Succeeded, Is.False);
             Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
-            Assert.That(player.DeclaredCityStyleIds, Is.Empty);
             Assert.That(player.DeclaredCityStyles, Is.Empty);
             Assert.That(player.Score, Is.Zero);
             Assert.That(player.InfluenceSupply, Is.EqualTo(30));
@@ -249,7 +247,7 @@ namespace YC.Tests.EditMode
 
             Assert.That(first.Succeeded, Is.True);
             Assert.That(second.Succeeded, Is.True);
-            Assert.That(state.FindPlayer(1).DeclaredCityStyleIds, Has.Count.EqualTo(2));
+            Assert.That(state.FindPlayer(1).DeclaredCityStyles, Has.Count.EqualTo(2));
             Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(28));
             Assert.That(state.FindPlayer(1).DeclaredCityStyles[0].MarkerArea, Is.EqualTo(CityStyleMarkerAreas.Unused));
             Assert.That(state.FindPlayer(1).DeclaredCityStyles[1].MarkerArea, Is.EqualTo(CityStyleMarkerAreas.Declared));
@@ -274,7 +272,7 @@ namespace YC.Tests.EditMode
 
             Assert.That(first.Succeeded, Is.True);
             Assert.That(second.Succeeded, Is.True);
-            Assert.That(state.FindPlayer(1).DeclaredCityStyleIds, Has.Count.EqualTo(2));
+            Assert.That(state.FindPlayer(1).DeclaredCityStyles, Has.Count.EqualTo(2));
             Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(28));
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(2));
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(2));

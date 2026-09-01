@@ -602,69 +602,6 @@ namespace YC.Presentation
                 false);
         }
 
-        public void ShowCityStyleOptions(
-            IReadOnlyList<CityStyleOptionViewModel> cityStyleOptions,
-            Action<string> onCityStyleSelected,
-            Action onCancel)
-        {
-            var layout = GetLayoutProfile();
-            var optionCount = cityStyleOptions == null ? 0 : cityStyleOptions.Count;
-            var rowCount = Math.Max(1, optionCount);
-            if (!PrepareView(
-                    EventChoiceDialogMode.LegacyCityStyleOptions,
-                    "City Style Overlay",
-                    "City Style Panel",
-                    new Vector2(
-                        layout.LegacyCityStylePanelWidth,
-                        layout.LegacyCityStylePanelBaseHeight +
-                        rowCount * layout.LegacyCityStylePanelRowStep),
-                    layout.LegacyCityStylePanelPosition,
-                    true))
-            {
-                return;
-            }
-
-            view.TitleText.text = "宣告城市样式";
-            ConfigureClose(onCancel, true);
-
-            if (optionCount <= 0)
-            {
-                view.LegacyCityStyleEmptyText.gameObject.SetActive(true);
-                return;
-            }
-
-            for (var i = 0; i < optionCount; i++)
-            {
-                var option = cityStyleOptions[i];
-                if (option == null)
-                {
-                    continue;
-                }
-
-                var rowY = -layout.LegacyCityStyleFirstRowOffset -
-                           i * layout.LegacyCityStylePanelRowStep;
-                var label = option.Name + "  分数 " + option.Score;
-                if (!string.IsNullOrEmpty(option.Description))
-                {
-                    label += "  " + option.Description;
-                }
-
-                var row = view.CreateLegacyCityStyleRow(view.LegacyCityStyleHost);
-                row.Root.gameObject.name = "City Style " + i;
-                row.Summary.text = label;
-                row.Reason.text = option.Reason ?? string.Empty;
-                row.Root.anchoredPosition = new Vector2(
-                    layout.LegacyCityStyleTemplateLayout.AnchoredPosition.x,
-                    rowY);
-                var cityStyleId = option.CityStyleId;
-                row.DeclareButton.gameObject.name = "Declare City Style " + i;
-                row.DeclareLabel.text = option.CanDeclare ? "宣告" : "不可宣告";
-                SetBuildPaymentButtonState(row.DeclareButton, option.CanDeclare);
-                row.DeclareButton.onClick.AddListener(() => InvokeTerminal(
-                    () => onCityStyleSelected?.Invoke(cityStyleId)));
-            }
-        }
-
         public void ShowCharacterSecondEffectDecision(
             string cardName,
             string remainingEffectName,

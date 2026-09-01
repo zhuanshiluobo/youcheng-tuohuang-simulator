@@ -52,7 +52,7 @@ namespace YC.Presentation
 
             try
             {
-                commandTransport = NetworkCommandTransportProvider.Ensure();
+                commandTransport = MirrorCommandTransport.Ensure();
                 commandTransport.InitialStateApplied += OnInitialNetworkStateApplied;
                 commandTransport.ConfirmedCommandApplied += OnConfirmedNetworkCommandApplied;
                 commandTransport.CommandRejected += OnNetworkCommandRejected;

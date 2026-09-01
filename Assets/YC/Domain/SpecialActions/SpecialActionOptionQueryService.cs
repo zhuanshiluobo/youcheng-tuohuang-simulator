@@ -351,19 +351,7 @@ namespace YC.Domain.SpecialActions
 
         private static int CountDeclarations(PlayerState player, string cityStyleId)
         {
-            var legacyCount = 0;
-            if (player.DeclaredCityStyleIds != null)
-            {
-                for (var i = 0; i < player.DeclaredCityStyleIds.Count; i++)
-                {
-                    if (player.DeclaredCityStyleIds[i] == cityStyleId)
-                    {
-                        legacyCount += 1;
-                    }
-                }
-            }
-
-            var formalCount = 0;
+            var count = 0;
             if (player.DeclaredCityStyles != null)
             {
                 for (var i = 0; i < player.DeclaredCityStyles.Count; i++)
@@ -371,12 +359,12 @@ namespace YC.Domain.SpecialActions
                     var declaration = player.DeclaredCityStyles[i];
                     if (declaration != null && declaration.CityStyleId == cityStyleId)
                     {
-                        formalCount += 1;
+                        count += 1;
                     }
                 }
             }
 
-            return Math.Max(legacyCount, formalCount);
+            return count;
         }
     }
 }

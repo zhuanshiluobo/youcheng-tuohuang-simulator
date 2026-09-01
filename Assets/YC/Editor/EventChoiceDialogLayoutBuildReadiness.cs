@@ -15,9 +15,9 @@ namespace YC.Editor
     public static class EventChoiceDialogLayoutBuildReadiness
     {
         internal const string EventChoiceDialogSourceSha256 =
-            "2D670E08B267028DFE07309B311565391A8ACAFB09558791C62435292F36BBA8";
+            "52252B6D29E2B8E61B0EF84D62DACD944D8F0D006F2BBE5C76D6EC5FB0C08E76";
         internal const string EventChoiceDialogViewSourceSha256 =
-            "704B21837E8619C5BBD3583D41761C809B52F1FCF39F18E3468089A09AFA694F";
+            "7391E322A2476C6DB51A0BCBD785E6D27F464624019DDE507193540BC15A7E78";
 
         public const string EventChoiceDialogPrefabPath =
             "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/EventChoiceDialog.prefab";
@@ -245,7 +245,6 @@ namespace YC.Editor
                 "resourceCollectionPaymentMode",
                 "buildFacilityFocusMode",
                 "buildFacilityConfirmationMode",
-                "legacyCityStyleOptionsMode",
                 "characterSecondEffectDecisionMode"
             };
             var modeNames = new[]
@@ -256,7 +255,6 @@ namespace YC.Editor
                 "ResourceCollectionPayment Mode",
                 "BuildFacilityFocus Mode",
                 "BuildFacilityConfirmation Mode",
-                "LegacyCityStyleOptions Mode",
                 "CharacterSecondEffectDecision Mode"
             };
             if (Enum.GetValues(typeof(EventChoiceDialogMode)).Length != modeFields.Length)
@@ -278,22 +276,20 @@ namespace YC.Editor
                 }
             }
 
-            AssertDistinct(modes, "8 个模式块");
+            AssertDistinct(modes, "7 个模式块");
 
             var eventChoiceHost = GetReference<RectTransform>(serialized, "eventChoiceHost");
             var eventPaymentHost = GetReference<RectTransform>(serialized, "eventPaymentRouteHost");
             var explorePathHost = GetReference<RectTransform>(serialized, "explorePathHost");
             var explorePaymentHost = GetReference<RectTransform>(serialized, "explorePaymentRouteHost");
             var resourceRecipientHost = GetReference<RectTransform>(serialized, "resourcePaymentRecipientHost");
-            var legacyHost = GetReference<RectTransform>(serialized, "legacyCityStyleHost");
             var hosts = new[]
             {
                 eventChoiceHost,
                 eventPaymentHost,
                 explorePathHost,
                 explorePaymentHost,
-                resourceRecipientHost,
-                legacyHost
+                resourceRecipientHost
             };
             var hostParents = new[]
             {
@@ -301,8 +297,7 @@ namespace YC.Editor
                 modes[0].transform,
                 modes[1].transform,
                 modes[2].transform,
-                modes[3].transform,
-                modes[6].transform
+                modes[3].transform
             };
             var hostNames = new[]
             {
@@ -310,8 +305,7 @@ namespace YC.Editor
                 "Event Payment Route Host",
                 "Explore Path Host",
                 "Explore Payment Route Host",
-                "Resource Collection Recipient Host",
-                "Legacy City Style Host"
+                "Resource Collection Recipient Host"
             };
             for (var i = 0; i < hosts.Length; i++)
             {
@@ -558,28 +552,17 @@ namespace YC.Editor
                 modes[5].transform,
                 "Confirm Build Facility");
 
-            var legacyEmpty = AssertDirectField<Text>(
-                serialized,
-                "legacyCityStyleEmptyText",
-                modes[6].transform,
-                "Empty");
-            if (legacyEmpty.gameObject.activeSelf)
-            {
-                throw new InvalidOperationException("Legacy City Style Empty 必须初始 inactive。");
-            }
-
-            var legacyHost = GetReference<RectTransform>(serialized, "legacyCityStyleHost");
             var continueButton = AssertButtonAndLabel(
                 serialized,
                 "characterContinueButton",
                 "characterContinueLabel",
-                modes[7].transform,
+                modes[6].transform,
                 "Continue Character Second Effect");
             var finishButton = AssertButtonAndLabel(
                 serialized,
                 "characterFinishButton",
                 "characterFinishLabel",
-                modes[7].transform,
+                modes[6].transform,
                 "Finish Character Use");
 
             var activeModeContent = new[]
@@ -594,7 +577,6 @@ namespace YC.Editor
                 confirmationError.gameObject,
                 backButton.gameObject,
                 confirmButton.gameObject,
-                legacyHost.gameObject,
                 continueButton.gameObject,
                 finishButton.gameObject
             };
@@ -642,9 +624,8 @@ namespace YC.Editor
                 confirmationError.transform,
                 backButton.transform,
                 confirmButton.transform);
-            AssertExactDirectChildren(modes[6].transform, legacyHost, legacyEmpty.transform);
             AssertExactDirectChildren(
-                modes[7].transform,
+                modes[6].transform,
                 continueButton.transform,
                 finishButton.transform);
         }
@@ -704,53 +685,15 @@ namespace YC.Editor
             AssertActiveSelf(paymentLabel.gameObject, true, "Payment Route Label");
             AssertActiveSelf(paymentRecipientHost.gameObject, true, "Payment Recipient Host");
 
-            var legacyRoot = GetNestedReference<RectTransform>(
-                serialized,
-                "legacyCityStyleRowTemplate",
-                "root");
-            var legacySummary = GetNestedReference<Text>(
-                serialized,
-                "legacyCityStyleRowTemplate",
-                "summary");
-            var legacyReason = GetNestedReference<Text>(
-                serialized,
-                "legacyCityStyleRowTemplate",
-                "reason");
-            var legacyDeclare = GetNestedReference<Button>(
-                serialized,
-                "legacyCityStyleRowTemplate",
-                "declareButton");
-            var legacyDeclareLabel = GetNestedReference<Text>(
-                serialized,
-                "legacyCityStyleRowTemplate",
-                "declareLabel");
-            AssertDirectChild(legacyRoot, templateHost, "LegacyCityStyleRow");
-            AssertDirectChild(legacySummary, legacyRoot, "Summary");
-            AssertDirectChild(legacyReason, legacyRoot, "Reason");
-            AssertDirectChild(legacyDeclare, legacyRoot, "Declare");
-            AssertDirectChild(legacyDeclareLabel, legacyDeclare.transform, "Declare Label");
-            AssertExactComponentTypes(legacyRoot.gameObject, typeof(RectTransform));
-            AssertExactDirectChildren(
-                legacyRoot,
-                legacySummary.transform,
-                legacyReason.transform,
-                legacyDeclare.transform);
-            AssertExactDirectChildren(legacyDeclare.transform, legacyDeclareLabel.transform);
-            AssertActiveSelf(legacySummary.gameObject, true, "Legacy Summary");
-            AssertActiveSelf(legacyReason.gameObject, true, "Legacy Reason");
-            AssertActiveSelf(legacyDeclare.gameObject, true, "Legacy Declare");
-            AssertActiveSelf(legacyDeclareLabel.gameObject, true, "Legacy Declare Label");
-
             var roots = new[]
             {
                 choiceRoot,
                 pathRoot,
                 paymentRoot,
                 recipientRoot,
-                resourceRoot,
-                legacyRoot
+                resourceRoot
             };
-            AssertDistinct(roots, "6 个动态模板根");
+            AssertDistinct(roots, "5 个动态模板根");
             for (var i = 0; i < roots.Length; i++)
             {
                 if (roots[i].gameObject.activeSelf)
@@ -910,11 +853,6 @@ namespace YC.Editor
                 profile.BuildConfirmButtonLayout,
                 profile.BuildConfirmButtonStyle);
 
-            AssertText(
-                view.LegacyCityStyleEmptyText,
-                profile.LegacyCityStyleEmptyLayout,
-                profile.LegacyCityStyleEmptyTextStyle,
-                UiTheme.ValueText);
             AssertButton(
                 view.CharacterContinueButton,
                 view.CharacterContinueLabel,
@@ -989,27 +927,6 @@ namespace YC.Editor
                 profile.ResourceRecipientTemplateLayout,
                 profile.ResourceRecipientButtonStyle);
 
-            var legacyRoot = GetNestedReference<RectTransform>(
-                serialized,
-                "legacyCityStyleRowTemplate",
-                "root");
-            AssertLayout(legacyRoot, profile.LegacyCityStyleTemplateLayout);
-            AssertText(
-                GetNestedReference<Text>(serialized, "legacyCityStyleRowTemplate", "summary"),
-                profile.LegacyCityStyleSummaryLayout,
-                profile.LegacyCityStyleSummaryTextStyle,
-                UiTheme.ValueText);
-            AssertText(
-                GetNestedReference<Text>(serialized, "legacyCityStyleRowTemplate", "reason"),
-                profile.LegacyCityStyleReasonLayout,
-                profile.LegacyCityStyleReasonTextStyle,
-                UiTheme.ValueText);
-            AssertButton(
-                GetNestedReference<Button>(serialized, "legacyCityStyleRowTemplate", "declareButton"),
-                GetNestedReference<Text>(serialized, "legacyCityStyleRowTemplate", "declareLabel"),
-                profile.LegacyCityStyleDeclareLayout,
-                profile.LegacyCityStyleDeclareButtonStyle);
-
             if (profile.PaymentRecipientFirstOffsetX != 0f ||
                 profile.PaymentRecipientStepX != 110f ||
                 !Approximately(profile.PaymentRouteTemplateLayout.AnchorMin, new Vector2(0f, 1f)) ||
@@ -1042,7 +959,6 @@ namespace YC.Editor
                     "resourceCollectionPaymentMode",
                     "buildFacilityFocusMode",
                     "buildFacilityConfirmationMode",
-                    "legacyCityStyleOptionsMode",
                     "characterSecondEffectDecisionMode"
                 };
                 for (var modeIndex = 0; modeIndex < modeFields.Length; modeIndex++)
@@ -1167,10 +1083,6 @@ namespace YC.Editor
                     layout = profile.BuildConfirmationTitleLayout;
                     style = profile.BuildConfirmationTitleTextStyle;
                     return;
-                case EventChoiceDialogMode.LegacyCityStyleOptions:
-                    layout = profile.LegacyCityStyleTitleLayout;
-                    style = profile.LegacyCityStyleTitleTextStyle;
-                    return;
                 case EventChoiceDialogMode.CharacterSecondEffectDecision:
                     layout = profile.CharacterTitleLayout;
                     style = profile.CharacterTitleTextStyle;
@@ -1198,8 +1110,6 @@ namespace YC.Editor
                     return profile.BuildFocusOverlayRaycastTarget;
                 case EventChoiceDialogMode.BuildFacilityConfirmation:
                     return profile.BuildConfirmationOverlayRaycastTarget;
-                case EventChoiceDialogMode.LegacyCityStyleOptions:
-                    return profile.LegacyCityStyleOverlayRaycastTarget;
                 case EventChoiceDialogMode.CharacterSecondEffectDecision:
                     return profile.CharacterOverlayRaycastTarget;
                 default:
@@ -1217,7 +1127,6 @@ namespace YC.Editor
             switch (mode)
             {
                 case EventChoiceDialogMode.ResourceCollectionPayment:
-                case EventChoiceDialogMode.LegacyCityStyleOptions:
                     layout = profile.ManualCloseButtonLayout;
                     style = profile.ManualCloseButtonStyle;
                     label = "X";
@@ -1247,7 +1156,7 @@ namespace YC.Editor
             var dialogSource = File.ReadAllText(dialogPath);
             var viewSource = File.ReadAllText(viewPath);
             var builderSource = File.ReadAllText(builderPath);
-            if (Count(dialogSource, "new Vector2") != 34 ||
+            if (Count(dialogSource, "new Vector2") != 32 ||
                 Count(viewSource, "new Vector2") != 0 ||
                 dialogSource.Contains("Stretch(view.") ||
                 dialogSource.Contains("private static void SetRect") ||
@@ -1283,7 +1192,7 @@ namespace YC.Editor
                 !viewSource.Contains("layoutProfile.OverlayAlpha"))
             {
                 throw new InvalidOperationException(
-                    "EventChoiceDialog 必须只保留 34 处通用数据量与资产化卡图热区 Vector2，" +
+                    "EventChoiceDialog 必须只保留 32 处通用数据量与资产化卡图热区 Vector2，" +
                     "且不得恢复其他固定布局覆盖。");
             }
 
@@ -1318,11 +1227,11 @@ namespace YC.Editor
                 throw new InvalidOperationException("EventChoiceDialog consumer 源码为空。");
             }
 
-            if (Count(dialogSource, "new Vector2") != 34 ||
+            if (Count(dialogSource, "new Vector2") != 32 ||
                 Count(viewSource, "new Vector2") != 0)
             {
                 throw new InvalidOperationException(
-                    "EventChoiceDialog consumer 必须保持 new Vector2 计数 34/0。");
+                    "EventChoiceDialog consumer 必须保持 new Vector2 计数 32/0。");
             }
 
             var dialogSha256 = ComputeNormalizedSourceSha256(dialogSource);

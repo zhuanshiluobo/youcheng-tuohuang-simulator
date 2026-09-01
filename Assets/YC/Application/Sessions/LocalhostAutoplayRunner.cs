@@ -1427,7 +1427,8 @@ namespace YC.Application.DevTools
         {
             var cityStyleId = ResolveAutoplayCityStyleId(player.PlayerId);
             if (string.IsNullOrEmpty(cityStyleId) ||
-                player.DeclaredCityStyleIds.Contains(cityStyleId))
+                player.DeclaredCityStyles.Exists(declaration =>
+                    declaration != null && declaration.CityStyleId == cityStyleId))
             {
                 return true;
             }

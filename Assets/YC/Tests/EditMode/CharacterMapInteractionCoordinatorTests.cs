@@ -181,8 +181,7 @@ namespace YC.Tests.EditMode
                         PlayerId = 1,
                         Color = PlayerColor.Red,
                         InfluenceSupply = 30,
-                        CoveredCharacterCardId = cardId,
-                        CoveredCharacterCardIds = { cardId }
+                        CoveredCharacterCardId = cardId
                     }
                 }
             };

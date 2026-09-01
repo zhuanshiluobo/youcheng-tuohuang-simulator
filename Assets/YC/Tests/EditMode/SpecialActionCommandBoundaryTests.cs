@@ -385,7 +385,6 @@ namespace YC.Tests.EditMode
             string cityStyleId,
             string specialActionId)
         {
-            player.DeclaredCityStyleIds.Add(cityStyleId);
             player.DeclaredCityStyles.Add(new CityStyleDeclarationState
             {
                 InfluenceMarkerId = markerId,

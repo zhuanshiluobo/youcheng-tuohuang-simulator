@@ -355,7 +355,6 @@ namespace YC.Tests.EditMode
             player.UsedCharacterThisRound = false;
             player.DiscardCardIds.Remove(cardId);
             player.CoveredCharacterCardId = cardId;
-            player.CoveredCharacterCardIds.Add(cardId);
             var secondUse = new GameCommand
             {
                 CommandId = "tin-man-use-second",
@@ -520,7 +519,6 @@ namespace YC.Tests.EditMode
             Assert.That(state.PendingCharacterEffect.OptionIds,
                 Is.EqualTo(new[] { CharacterEffectChoiceIds.FinishCharacterUse }));
             Assert.That(player.CoveredCharacterCardId, Is.EqualTo(cardId));
-            Assert.That(player.CoveredCharacterCardIds, Does.Contain(cardId));
             Assert.That(player.DiscardCardIds, Does.Not.Contain(cardId));
             Assert.That(player.UsedCharacterThisRound, Is.False);
             Assert.That(continueTactic.Events, Is.Empty);
@@ -537,7 +535,6 @@ namespace YC.Tests.EditMode
             Assert.That(flipToFinish.Succeeded, Is.True);
             Assert.That(state.PendingCharacterEffect, Is.Null);
             Assert.That(player.CoveredCharacterCardId, Is.Empty);
-            Assert.That(player.CoveredCharacterCardIds, Is.Empty);
             Assert.That(player.DiscardCardIds, Does.Contain(cardId));
             Assert.That(player.UsedCharacterThisRound, Is.True);
             Assert.That(flipToFinish.Events, Has.Count.EqualTo(1));
@@ -610,7 +607,6 @@ namespace YC.Tests.EditMode
             Assert.That(result.Succeeded, Is.True);
             Assert.That(player.HandCardIds, Does.Not.Contain(cardId));
             Assert.That(player.CoveredCharacterCardId, Is.Empty);
-            Assert.That(player.CoveredCharacterCardIds, Is.Empty);
             Assert.That(player.DiscardCardIds, Is.EqualTo(new[] { cardId }));
         }
 
@@ -1041,7 +1037,6 @@ namespace YC.Tests.EditMode
             var player = new PlayerState { PlayerId = 1, Color = PlayerColor.Red };
             var cardId = "character.red.p1." + templateId;
             player.CoveredCharacterCardId = cardId;
-            player.CoveredCharacterCardIds.Add(cardId);
             return new GameState
             {
                 Phase = GamePhase.ActionRound1,

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f4e78c3a1d24c2f9b7e5160d8a3c642, type: 3}
   m_Name: EventChoiceDialogLayoutProfile
   m_EditorClassIdentifier: 
-  sourceManifestSha256: 0594CCEF465B749522FB09747D601645D65B69958495DA7FAF0DB02D2FB64760
+  sourceManifestSha256: 71345F8231F0ADFAB117E66EF749CD48B52719AC005E04A7EBC29214425AE476
   values:
     PanelLayout:
       AnchorMin: {x: 0.5, y: 0.5}
@@ -28,7 +28,6 @@ MonoBehaviour:
     ResourcePaymentOverlayRaycastTarget: 0
     BuildFocusOverlayRaycastTarget: 1
     BuildConfirmationOverlayRaycastTarget: 1
-    LegacyCityStyleOverlayRaycastTarget: 1
     CharacterOverlayRaycastTarget: 1
     EventCardPanelWidth: 760
     EventCardPanelPosition: {x: 0, y: -40}
@@ -509,43 +508,6 @@ MonoBehaviour:
       OutlineDistance: {x: 2, y: -2}
       LabelHasOutline: 1
       LabelOutlineDistance: {x: 1, y: -1}
-    LegacyCityStylePanelWidth: 880
-    LegacyCityStylePanelBaseHeight: 136
-    LegacyCityStylePanelRowStep: 70
-    LegacyCityStylePanelPosition: {x: 0, y: -30}
-    LegacyCityStyleFirstRowOffset: 106
-    LegacyCityStyleTitleLayout:
-      AnchorMin: {x: 0, y: 1}
-      AnchorMax: {x: 1, y: 1}
-      Pivot: {x: 0.5, y: 0.5}
-      SizeDelta: {x: 0, y: 44}
-      AnchoredPosition: {x: 0, y: -30}
-    LegacyCityStyleTitleTextStyle:
-      FontSize: 22
-      ResizeMinSize: 18
-      ResizeMaxSize: 22
-      FontStyle: 1
-      Alignment: 4
-      HorizontalOverflow: 0
-      VerticalOverflow: 0
-      ResizeTextForBestFit: 1
-      RaycastTarget: 1
-    LegacyCityStyleEmptyLayout:
-      AnchorMin: {x: 0.08, y: 1}
-      AnchorMax: {x: 0.92, y: 1}
-      Pivot: {x: 0.5, y: 0.5}
-      SizeDelta: {x: 0, y: 42}
-      AnchoredPosition: {x: 0, y: -112}
-    LegacyCityStyleEmptyTextStyle:
-      FontSize: 16
-      ResizeMinSize: 12
-      ResizeMaxSize: 16
-      FontStyle: 1
-      Alignment: 4
-      HorizontalOverflow: 0
-      VerticalOverflow: 0
-      ResizeTextForBestFit: 1
-      RaycastTarget: 1
     CharacterSecondEffectPanelSize: {x: 620, y: 290}
     CharacterSecondEffectPanelPosition: {x: 0, y: 0}
     CharacterTitleLayout:
@@ -701,66 +663,6 @@ MonoBehaviour:
         FontSize: 15
         ResizeMinSize: 12
         ResizeMaxSize: 15
-        FontStyle: 1
-        Alignment: 4
-        HorizontalOverflow: 0
-        VerticalOverflow: 0
-        ResizeTextForBestFit: 1
-        RaycastTarget: 1
-      LabelOffsetMin: {x: 12, y: 0}
-      LabelOffsetMax: {x: -12, y: 0}
-      OutlineDistance: {x: 1, y: -1}
-      LabelHasOutline: 0
-      LabelOutlineDistance: {x: 0, y: 0}
-    LegacyCityStyleTemplateLayout:
-      AnchorMin: {x: 0, y: 1}
-      AnchorMax: {x: 1, y: 1}
-      Pivot: {x: 0.5, y: 0.5}
-      SizeDelta: {x: 0, y: 70}
-      AnchoredPosition: {x: 0, y: 0}
-    LegacyCityStyleSummaryLayout:
-      AnchorMin: {x: 0.06, y: 0.5}
-      AnchorMax: {x: 0.64, y: 0.5}
-      Pivot: {x: 0.5, y: 0.5}
-      SizeDelta: {x: 0, y: 50}
-      AnchoredPosition: {x: 0, y: 0}
-    LegacyCityStyleSummaryTextStyle:
-      FontSize: 14
-      ResizeMinSize: 10
-      ResizeMaxSize: 14
-      FontStyle: 1
-      Alignment: 3
-      HorizontalOverflow: 0
-      VerticalOverflow: 0
-      ResizeTextForBestFit: 1
-      RaycastTarget: 1
-    LegacyCityStyleReasonLayout:
-      AnchorMin: {x: 0.66, y: 0.5}
-      AnchorMax: {x: 0.82, y: 0.5}
-      Pivot: {x: 0.5, y: 0.5}
-      SizeDelta: {x: 0, y: 46}
-      AnchoredPosition: {x: 0, y: 0}
-    LegacyCityStyleReasonTextStyle:
-      FontSize: 13
-      ResizeMinSize: 10
-      ResizeMaxSize: 13
-      FontStyle: 0
-      Alignment: 4
-      HorizontalOverflow: 0
-      VerticalOverflow: 0
-      ResizeTextForBestFit: 1
-      RaycastTarget: 1
-    LegacyCityStyleDeclareLayout:
-      AnchorMin: {x: 0.84, y: 0.5}
-      AnchorMax: {x: 0.94, y: 0.5}
-      Pivot: {x: 0.5, y: 0.5}
-      SizeDelta: {x: 0, y: 40}
-      AnchoredPosition: {x: 0, y: 0}
-    LegacyCityStyleDeclareButtonStyle:
-      LabelStyle:
-        FontSize: 13
-        ResizeMinSize: 10
-        ResizeMaxSize: 13
         FontStyle: 1
         Alignment: 4
         HorizontalOverflow: 0

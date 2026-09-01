@@ -14,12 +14,4 @@ namespace YC.Infrastructure.Multiplayer
         CommandResult SubmitOrSend(GameCommand command, out bool appliedLocally);
         void Shutdown();
     }
-
-    public static class NetworkCommandTransportProvider
-    {
-        public static INetworkCommandTransport Ensure()
-        {
-            return MirrorCommandTransport.Ensure();
-        }
-    }
 }

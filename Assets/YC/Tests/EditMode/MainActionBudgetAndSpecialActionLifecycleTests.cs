@@ -165,7 +165,6 @@ namespace YC.Tests.EditMode
             var player = new PlayerState { PlayerId = 1, Color = PlayerColor.Red };
             var cardId = "character.red.p1." + templateId;
             player.CoveredCharacterCardId = cardId;
-            player.CoveredCharacterCardIds.Add(cardId);
             return new GameState
             {
                 Phase = GamePhase.ActionRound1,

@@ -45,7 +45,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void EventChoicePrefab_HasEightInactiveModesAndSixInactiveDynamicTemplates()
+        public void EventChoicePrefab_HasSevenInactiveModesAndFiveInactiveDynamicTemplates()
         {
             var prefab = LoadPrefab(EventChoicePrefabPath);
             var view = prefab.GetComponent(GetRuntimeType("YC.Presentation.EventChoiceDialogView"));
@@ -58,7 +58,6 @@ namespace YC.Tests.EditMode
                 "resourceCollectionPaymentMode",
                 "buildFacilityFocusMode",
                 "buildFacilityConfirmationMode",
-                "legacyCityStyleOptionsMode",
                 "characterSecondEffectDecisionMode"
             };
             for (var i = 0; i < modeProperties.Length; i++)
@@ -73,8 +72,7 @@ namespace YC.Tests.EditMode
                 "pathRowTemplate",
                 "paymentRouteRowTemplate",
                 "paymentRecipientButtonTemplate",
-                "resourceCollectionRecipientButtonTemplate",
-                "legacyCityStyleRowTemplate"
+                "resourceCollectionRecipientButtonTemplate"
             };
             for (var i = 0; i < templateProperties.Length; i++)
             {

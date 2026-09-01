@@ -65,10 +65,6 @@ namespace YC.Tests.EditMode
                 evidence => evidence.Contains("cityStyle=" + CityStyleDatabase.SourceStoneIndustrialHub) &&
                             evidence.Contains("score=6") &&
                             evidence.Contains("slots=0,3,4,6,7,8")), Is.True, result.Snapshot);
-            Assert.That(result.FinalState.FindPlayer(4).DeclaredCityStyleIds,
-                Does.Contain(CityStyleDatabase.MilitaryIndustrialArea), result.Snapshot);
-            Assert.That(result.FinalState.FindPlayer(3).DeclaredCityStyleIds,
-                Does.Contain(CityStyleDatabase.SourceStoneIndustrialHub), result.Snapshot);
             var levelOneDeclaration = result.FinalState.FindPlayer(4).DeclaredCityStyles.Find(
                 declaration => declaration.CityStyleId == CityStyleDatabase.MilitaryIndustrialArea);
             var levelTwoDeclaration = result.FinalState.FindPlayer(3).DeclaredCityStyles.Find(

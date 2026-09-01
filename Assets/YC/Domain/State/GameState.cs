@@ -227,10 +227,8 @@ namespace YC.Domain.State
         public bool CharacterCardLockedThisTurn;
         public ResourceSet Resources = new ResourceSet();
         public List<string> HandCardIds = new List<string>();
-        public List<string> CoveredCharacterCardIds = new List<string>();
         public List<string> DiscardCardIds = new List<string>();
         public List<string> BuiltFacilityIds = new List<string>();
-        public List<string> DeclaredCityStyleIds = new List<string>();
         public List<CityStyleDeclarationState> DeclaredCityStyles = new List<CityStyleDeclarationState>();
         public List<string> UsedSpecialActionIdsThisRound = new List<string>();
         public string CoveredCharacterCardId = string.Empty;

@@ -104,8 +104,6 @@ namespace YC.Tests.EditMode
             for (var i = 0; i < state.Players.Count; i++)
             {
                 var player = state.Players[i];
-                Assert.That(player.DeclaredCityStyleIds,
-                    Does.Contain(RightCardSmokeStateFactory.SharedCityStyleId));
                 Assert.That(player.DeclaredCityStyles, Has.Count.EqualTo(1));
                 Assert.That(
                     player.DeclaredCityStyles[0].CityStyleId,

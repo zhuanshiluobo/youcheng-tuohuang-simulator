@@ -114,8 +114,6 @@ namespace YC.Domain.Cards
 
             player.HandCardIds.Remove(cardId);
             player.CoveredCharacterCardId = cardId;
-            player.CoveredCharacterCardIds.Clear();
-            player.CoveredCharacterCardIds.Add(cardId);
 
             if (AllPlayersCovered(state))
             {
@@ -313,7 +311,6 @@ namespace YC.Domain.Cards
                 }
 
                 player.CoveredCharacterCardId = string.Empty;
-                player.CoveredCharacterCardIds.Clear();
                 player.UsedCharacterThisRound = false;
                 player.UsedCharacterThisTurn = false;
                 player.CharacterCardLockedThisTurn = false;
@@ -1156,7 +1153,6 @@ namespace YC.Domain.Cards
             }
 
             player.CoveredCharacterCardId = string.Empty;
-            player.CoveredCharacterCardIds.Clear();
             if (!player.DiscardCardIds.Contains(cardId))
             {
                 player.DiscardCardIds.Add(cardId);
@@ -1451,10 +1447,8 @@ namespace YC.Domain.Cards
                     CharacterCardLockedThisTurn = player.CharacterCardLockedThisTurn,
                     Resources = player.Resources.Clone(),
                     HandCardIds = new List<string>(player.HandCardIds),
-                    CoveredCharacterCardIds = new List<string>(player.CoveredCharacterCardIds),
                     DiscardCardIds = new List<string>(player.DiscardCardIds),
                     BuiltFacilityIds = new List<string>(player.BuiltFacilityIds),
-                    DeclaredCityStyleIds = new List<string>(player.DeclaredCityStyleIds),
                     DeclaredCityStyles = CloneCityStyleDeclarations(player.DeclaredCityStyles),
                     UsedSpecialActionIdsThisRound = new List<string>(player.UsedSpecialActionIdsThisRound),
                     CoveredCharacterCardId = player.CoveredCharacterCardId
@@ -1554,8 +1548,6 @@ namespace YC.Domain.Cards
                 targetPlayer.Resources = sourcePlayer.Resources.Clone();
                 targetPlayer.HandCardIds.Clear();
                 targetPlayer.HandCardIds.AddRange(sourcePlayer.HandCardIds);
-                targetPlayer.CoveredCharacterCardIds.Clear();
-                targetPlayer.CoveredCharacterCardIds.AddRange(sourcePlayer.CoveredCharacterCardIds);
                 targetPlayer.DiscardCardIds.Clear();
                 targetPlayer.DiscardCardIds.AddRange(sourcePlayer.DiscardCardIds);
                 targetPlayer.CoveredCharacterCardId = sourcePlayer.CoveredCharacterCardId;

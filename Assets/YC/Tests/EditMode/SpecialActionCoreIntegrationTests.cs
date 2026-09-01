@@ -476,7 +476,6 @@ namespace YC.Tests.EditMode
                         PlayerId = 1,
                         CityLocationId = "A-01",
                         InfluenceSupply = 1,
-                        DeclaredCityStyleIds = { CityStyleDatabase.MilitaryIndustrialArea },
                         DeclaredCityStyles =
                         {
                             new CityStyleDeclarationState

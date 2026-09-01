@@ -77,10 +77,6 @@ namespace YC.Domain.CityStyles
                 ? new ResourceSet()
                 : player.Resources.Clone();
             settledResources.Add(cityStyle.DeclarationReward ?? new ResourceSet());
-            var settledStyleIds = player.DeclaredCityStyleIds == null
-                ? new List<string>()
-                : new List<string>(player.DeclaredCityStyleIds);
-            settledStyleIds.Add(cityStyle.CityStyleId);
             var settledDeclarations = player.DeclaredCityStyles == null
                 ? new List<CityStyleDeclarationState>()
                 : new List<CityStyleDeclarationState>(player.DeclaredCityStyles);
@@ -89,7 +85,6 @@ namespace YC.Domain.CityStyles
             player.InfluenceSupply -= 1;
             player.Score += cityStyle.Score;
             player.Resources = settledResources;
-            player.DeclaredCityStyleIds = settledStyleIds;
             player.DeclaredCityStyles = settledDeclarations;
 
             return DeclareCityStyleResult.Success(cityStyle, match);
@@ -191,19 +186,7 @@ namespace YC.Domain.CityStyles
                 return 0;
             }
 
-            var legacyCount = 0;
-            if (player.DeclaredCityStyleIds != null)
-            {
-                for (var i = 0; i < player.DeclaredCityStyleIds.Count; i++)
-                {
-                    if (player.DeclaredCityStyleIds[i] == cityStyleId)
-                    {
-                        legacyCount += 1;
-                    }
-                }
-            }
-
-            var formalCount = 0;
+            var count = 0;
             if (player.DeclaredCityStyles != null)
             {
                 for (var i = 0; i < player.DeclaredCityStyles.Count; i++)
@@ -211,12 +194,12 @@ namespace YC.Domain.CityStyles
                     var declaration = player.DeclaredCityStyles[i];
                     if (declaration != null && declaration.CityStyleId == cityStyleId)
                     {
-                        formalCount += 1;
+                        count += 1;
                     }
                 }
             }
 
-            return Math.Max(legacyCount, formalCount);
+            return count;
         }
     }
 }

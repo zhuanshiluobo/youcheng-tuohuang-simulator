@@ -13,7 +13,6 @@ namespace YC.Presentation
         ResourceCollectionPayment,
         BuildFacilityFocus,
         BuildFacilityConfirmation,
-        LegacyCityStyleOptions,
         CharacterSecondEffectDecision
     }
 
@@ -70,43 +69,6 @@ namespace YC.Presentation
             }
         }
 
-        [Serializable]
-        public sealed class LegacyCityStyleRow
-        {
-            [SerializeField] private RectTransform root;
-            [SerializeField] private Text summary;
-            [SerializeField] private Text reason;
-            [SerializeField] private Button declareButton;
-            [SerializeField] private Text declareLabel;
-
-            public RectTransform Root => root;
-            public Text Summary => summary;
-            public Text Reason => reason;
-            public Button DeclareButton => declareButton;
-            public Text DeclareLabel => declareLabel;
-
-            public bool IsValid => root != null && summary != null && reason != null &&
-                                   declareButton != null && declareLabel != null;
-
-            public LegacyCityStyleRow()
-            {
-            }
-
-            internal LegacyCityStyleRow(
-                RectTransform configuredRoot,
-                Text configuredSummary,
-                Text configuredReason,
-                Button configuredDeclareButton,
-                Text configuredDeclareLabel)
-            {
-                root = configuredRoot;
-                summary = configuredSummary;
-                reason = configuredReason;
-                declareButton = configuredDeclareButton;
-                declareLabel = configuredDeclareLabel;
-            }
-        }
-
         [SerializeField] private Canvas overlayCanvas;
         [SerializeField] private RectTransform overlayRect;
         [SerializeField] private Image overlayImage;
@@ -134,7 +96,6 @@ namespace YC.Presentation
         [SerializeField] private GameObject resourceCollectionPaymentMode;
         [SerializeField] private GameObject buildFacilityFocusMode;
         [SerializeField] private GameObject buildFacilityConfirmationMode;
-        [SerializeField] private GameObject legacyCityStyleOptionsMode;
         [SerializeField] private GameObject characterSecondEffectDecisionMode;
 
         [Header("模式内容")]
@@ -169,8 +130,6 @@ namespace YC.Presentation
         [SerializeField] private Text buildBackLabel;
         [SerializeField] private Button buildConfirmButton;
         [SerializeField] private Text buildConfirmLabel;
-        [SerializeField] private RectTransform legacyCityStyleHost;
-        [SerializeField] private Text legacyCityStyleEmptyText;
         [SerializeField] private Button characterContinueButton;
         [SerializeField] private Text characterContinueLabel;
         [SerializeField] private Button characterFinishButton;
@@ -182,7 +141,6 @@ namespace YC.Presentation
         [SerializeField] private PaymentRouteRow paymentRouteRowTemplate = new PaymentRouteRow();
         [SerializeField] private ButtonRow paymentRecipientButtonTemplate = new ButtonRow();
         [SerializeField] private ButtonRow resourceCollectionRecipientButtonTemplate = new ButtonRow();
-        [SerializeField] private LegacyCityStyleRow legacyCityStyleRowTemplate = new LegacyCityStyleRow();
 
         private readonly List<GameObject> dynamicInstances = new List<GameObject>();
 
@@ -236,8 +194,6 @@ namespace YC.Presentation
         public Text BuildBackLabel => buildBackLabel;
         public Button BuildConfirmButton => buildConfirmButton;
         public Text BuildConfirmLabel => buildConfirmLabel;
-        public RectTransform LegacyCityStyleHost => legacyCityStyleHost;
-        public Text LegacyCityStyleEmptyText => legacyCityStyleEmptyText;
         public Button CharacterContinueButton => characterContinueButton;
         public Text CharacterContinueLabel => characterContinueLabel;
         public Button CharacterFinishButton => characterFinishButton;
@@ -284,7 +240,7 @@ namespace YC.Presentation
                 buildGoldReasonText == null || buildFocusErrorText == null ||
                 buildConfirmationSummaryText == null || buildConfirmationErrorText == null ||
                 buildBackButton == null || buildBackLabel == null || buildConfirmButton == null ||
-                buildConfirmLabel == null || legacyCityStyleHost == null || legacyCityStyleEmptyText == null ||
+                buildConfirmLabel == null ||
                 characterContinueButton == null || characterContinueLabel == null ||
                 characterFinishButton == null || characterFinishLabel == null)
             {
@@ -297,8 +253,7 @@ namespace YC.Presentation
                 paymentRouteRowTemplate == null || !paymentRouteRowTemplate.IsValid ||
                 paymentRecipientButtonTemplate == null || !paymentRecipientButtonTemplate.IsValid ||
                 resourceCollectionRecipientButtonTemplate == null ||
-                !resourceCollectionRecipientButtonTemplate.IsValid ||
-                legacyCityStyleRowTemplate == null || !legacyCityStyleRowTemplate.IsValid)
+                !resourceCollectionRecipientButtonTemplate.IsValid)
             {
                 reason = "事件选择窗口动态模板引用不完整。";
                 return false;
@@ -360,17 +315,6 @@ namespace YC.Presentation
         public ButtonRow CreateResourceCollectionRecipientButton(RectTransform parent) =>
             CloneButtonRow(resourceCollectionRecipientButtonTemplate, parent);
 
-        public LegacyCityStyleRow CreateLegacyCityStyleRow(RectTransform parent)
-        {
-            var row = CloneRoot(legacyCityStyleRowTemplate.Root, parent);
-            return new LegacyCityStyleRow(
-                row,
-                FindRequired<Text>(row, "Summary"),
-                FindRequired<Text>(row, "Reason"),
-                FindRequired<Button>(row, "Declare"),
-                FindRequired<Text>(row, "Declare Label"));
-        }
-
         public void ClearForReuse()
         {
             ClearCallbacks();
@@ -411,7 +355,6 @@ namespace YC.Presentation
             facilityPreviewFallback.text = string.Empty;
             facilityPreviewFallback.gameObject.SetActive(false);
             resourcePaymentBankButton.gameObject.SetActive(false);
-            legacyCityStyleEmptyText.gameObject.SetActive(false);
         }
 
         public void ClearCallbacks()
@@ -515,16 +458,6 @@ namespace YC.Presentation
                         layoutProfile.BuildCloseButtonStyle);
                     titleText.gameObject.name = "Title";
                     break;
-                case EventChoiceDialogMode.LegacyCityStyleOptions:
-                    titleLayout = layoutProfile.LegacyCityStyleTitleLayout;
-                    titleStyle = layoutProfile.LegacyCityStyleTitleTextStyle;
-                    ConfigureClosePresentation(
-                        "Close City Style",
-                        "X",
-                        layoutProfile.ManualCloseButtonLayout,
-                        layoutProfile.ManualCloseButtonStyle);
-                    titleText.gameObject.name = "Title";
-                    break;
                 case EventChoiceDialogMode.CharacterSecondEffectDecision:
                     titleLayout = layoutProfile.CharacterTitleLayout;
                     titleStyle = layoutProfile.CharacterTitleTextStyle;
@@ -558,8 +491,6 @@ namespace YC.Presentation
                     return layoutProfile.BuildFocusOverlayRaycastTarget;
                 case EventChoiceDialogMode.BuildFacilityConfirmation:
                     return layoutProfile.BuildConfirmationOverlayRaycastTarget;
-                case EventChoiceDialogMode.LegacyCityStyleOptions:
-                    return layoutProfile.LegacyCityStyleOverlayRaycastTarget;
                 case EventChoiceDialogMode.CharacterSecondEffectDecision:
                     return layoutProfile.CharacterOverlayRaycastTarget;
                 default:
@@ -640,7 +571,6 @@ namespace YC.Presentation
                 resourceCollectionPaymentMode,
                 buildFacilityFocusMode,
                 buildFacilityConfirmationMode,
-                legacyCityStyleOptionsMode,
                 characterSecondEffectDecisionMode
             };
         }

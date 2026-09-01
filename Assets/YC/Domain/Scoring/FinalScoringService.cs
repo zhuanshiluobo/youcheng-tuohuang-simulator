@@ -156,16 +156,17 @@ namespace YC.Domain.Scoring
 
         public static int CalculateCityStyleScore(PlayerState player)
         {
-            if (player == null || player.DeclaredCityStyleIds == null)
+            if (player == null || player.DeclaredCityStyles == null)
             {
                 return 0;
             }
 
             var score = 0;
-            for (var i = 0; i < player.DeclaredCityStyleIds.Count; i++)
+            for (var i = 0; i < player.DeclaredCityStyles.Count; i++)
             {
+                var declaration = player.DeclaredCityStyles[i];
                 CityStyleDefinition cityStyle;
-                if (CityStyleDatabase.TryGet(player.DeclaredCityStyleIds[i], out cityStyle))
+                if (declaration != null && CityStyleDatabase.TryGet(declaration.CityStyleId, out cityStyle))
                 {
                     score += cityStyle.Score;
                 }

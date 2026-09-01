@@ -13,7 +13,7 @@ namespace YC.Editor
             "Assets/YC/Editor/Data/event_choice_dialog_layout_manifest.json";
         public const string SourceJsonGuid = "c2a9bc63da0f4d5ba412ef8b93d671e4";
         public const string ExpectedManifestSha256 =
-            "0594CCEF465B749522FB09747D601645D65B69958495DA7FAF0DB02D2FB64760";
+            "71345F8231F0ADFAB117E66EF749CD48B52719AC005E04A7EBC29214425AE476";
         public const string ProfileAssetPath =
             "Assets/YC/Presentation/Content/EventChoiceDialogLayoutProfile.asset";
         public const string ProfileAssetGuid = "f6b125d7c0934eb2a8405c6e7d19f438";

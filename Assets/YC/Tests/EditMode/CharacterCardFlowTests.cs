@@ -218,7 +218,6 @@ namespace YC.Tests.EditMode
             Assert.That(result.Succeeded, Is.True);
             Assert.That(player.HandCardIds, Does.Not.Contain(cardId));
             Assert.That(player.CoveredCharacterCardId, Is.Empty);
-            Assert.That(player.CoveredCharacterCardIds, Is.Empty);
             Assert.That(player.DiscardCardIds, Is.EqualTo(new[] { cardId }));
             Assert.That(player.UsedCharacterThisRound, Is.True);
 

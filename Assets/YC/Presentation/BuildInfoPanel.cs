@@ -746,7 +746,6 @@ namespace YC.Presentation
                     continue;
                 }
 
-                var formalDeclarationCount = 0;
                 if (player.DeclaredCityStyles != null)
                 {
                     for (var declarationIndex = 0; declarationIndex < player.DeclaredCityStyles.Count; declarationIndex++)
@@ -757,7 +756,6 @@ namespace YC.Presentation
                             continue;
                         }
 
-                        formalDeclarationCount += 1;
                         AddCityStyleInfluenceMarker(
                             cardRect,
                             player,
@@ -769,27 +767,6 @@ namespace YC.Presentation
                     }
                 }
 
-                var declaredIdCount = 0;
-                if (player.DeclaredCityStyleIds != null)
-                {
-                    for (var declarationIndex = 0; declarationIndex < player.DeclaredCityStyleIds.Count; declarationIndex++)
-                    {
-                        if (player.DeclaredCityStyleIds[declarationIndex] == cityStyleId)
-                        {
-                            declaredIdCount += 1;
-                        }
-                    }
-                }
-
-                for (var legacyIndex = formalDeclarationCount; legacyIndex < declaredIdCount; legacyIndex++)
-                {
-                    AddCityStyleInfluenceMarker(
-                        cardRect,
-                        player,
-                        cityStyleId,
-                        CityStyleMarkerAreas.Declared,
-                        markerLayout);
-                }
             }
         }
 

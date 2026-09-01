@@ -948,7 +948,6 @@ namespace YC.Tests.EditMode
                         {
                             PlayerId = 1,
                             Color = PlayerColor.Blue,
-                            DeclaredCityStyleIds = { CityStyleDatabase.SourceStoneIndustrialHub },
                             DeclaredCityStyles =
                             {
                                 new CityStyleDeclarationState
@@ -962,7 +961,6 @@ namespace YC.Tests.EditMode
                         {
                             PlayerId = 2,
                             Color = PlayerColor.Red,
-                            DeclaredCityStyleIds = { CityStyleDatabase.MilitaryIndustrialArea },
                             DeclaredCityStyles =
                             {
                                 new CityStyleDeclarationState
@@ -1434,7 +1432,6 @@ namespace YC.Tests.EditMode
                 Assert.That(CountTexts(canvasObject, "已使用"), Is.EqualTo(0));
 
                 var player = state.FindPlayer(1);
-                player.DeclaredCityStyleIds.Add(CityStyleDatabase.SourceStoneIndustrialHub);
                 player.DeclaredCityStyles.Add(new CityStyleDeclarationState
                 {
                     CityStyleId = CityStyleDatabase.SourceStoneIndustrialHub,
@@ -1670,7 +1667,6 @@ namespace YC.Tests.EditMode
                         PlayerId = 1,
                         Name = "玩家一",
                         Color = PlayerColor.Blue,
-                        DeclaredCityStyleIds = { CityStyleDatabase.SourceStoneIndustrialHub },
                         DeclaredCityStyles =
                         {
                             new CityStyleDeclarationState
@@ -1687,7 +1683,6 @@ namespace YC.Tests.EditMode
                         PlayerId = 2,
                         Name = "玩家二",
                         Color = PlayerColor.Red,
-                        DeclaredCityStyleIds = { CityStyleDatabase.SourceStoneIndustrialHub },
                         DeclaredCityStyles =
                         {
                             new CityStyleDeclarationState
