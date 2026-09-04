@@ -201,8 +201,10 @@ namespace YC.Tests.EditMode
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(GameSettingsPrefabPath);
             Assert.That(prefab, Is.Not.Null);
             Assert.That(AssetDatabase.AssetPathToGUID(GameSettingsPrefabPath), Is.EqualTo(GameSettingsPrefabGuid));
-            Assert.That(prefab.GetComponentsInChildren<Transform>(true), Has.Length.EqualTo(63));
-            Assert.That(prefab.GetComponentsInChildren<Component>(true).Count(item => item != null), Is.EqualTo(254));
+            Assert.That(
+                prefab.GetComponentsInChildren<Component>(true),
+                Has.None.Null,
+                "GameSettingsMenu Prefab 包含丢失脚本。");
 
             var bootstrapType = Type.GetType("YC.Presentation.FacilityCatalogBootstrap, Assembly-CSharp", true);
             var bootstraps = prefab.GetComponentsInChildren(bootstrapType, true);

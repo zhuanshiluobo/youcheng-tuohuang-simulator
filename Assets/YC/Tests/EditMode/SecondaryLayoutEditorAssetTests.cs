@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
+
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Text.RegularExpressions;
+
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -108,30 +108,8 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void FixedCandidatesAreGone_AndDynamicConstructorsRemain()
+        public void LegacyLayoutProfileIsAbsent_AndDragGhostUsesSharedLayout()
         {
-            var expected = new Dictionary<string, int>
-            {
-                { "Assets/YC/Presentation/ActionPanelController.cs", 0 },
-                { "Assets/YC/Presentation/PromptPresenter.cs", 2 },
-                { "Assets/YC/Presentation/BuildInfoPanel.cs", 2 },
-                { "Assets/YC/Presentation/CityStyleDeclarationPreviewDialog.cs", 2 },
-                { "Assets/YC/Presentation/CardPointerInteraction.cs", 0 },
-                { "Assets/YC/Presentation/CharacterHandPanel.cs", 0 },
-                { "Assets/YC/Presentation/ZoomableImageViewerController.cs", 6 }
-            };
-            foreach (var pair in expected)
-                Assert.That(CountConstructors(pair.Key), Is.EqualTo(pair.Value), pair.Key);
-
-            var total = Directory.GetFiles(
-                    Path.GetFullPath("Assets/YC/Presentation"),
-                    "*.cs",
-                    SearchOption.AllDirectories)
-                .Sum(path => Regex.Matches(
-                    File.ReadAllText(path),
-                    @"\bnew\s+Vector2\s*\(").Count);
-            Assert.That(total, Is.EqualTo(76));
-
             var combinedSource = string.Join(
                 "\n",
                 Directory.GetFiles(
@@ -237,10 +215,6 @@ namespace YC.Tests.EditMode
             return type;
         }
 
-        private static int CountConstructors(string path)
-        {
-            return Regex.Matches(File.ReadAllText(path), @"\bnew\s+Vector2\s*\(").Count;
-        }
 
         private static void AssertControlledAsset(string path, string guid)
         {

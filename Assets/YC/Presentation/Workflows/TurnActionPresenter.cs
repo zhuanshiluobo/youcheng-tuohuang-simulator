@@ -103,15 +103,9 @@ namespace YC.Presentation.Workflows
             get { return MoveInteraction.IsAwaitingInitialPlacement; }
         }
 
-        public void Activate()
-        {
-            MoveInteraction.Activate();
-        }
+        public void Activate() { MoveInteraction.Activate(); }
 
-        public void Cancel()
-        {
-            MoveInteraction.Cancel();
-        }
+        public void Cancel() { MoveInteraction.Cancel(); }
 
         public void SynchronizeFromState()
         {
@@ -133,10 +127,7 @@ namespace YC.Presentation.Workflows
                 BuildInteraction.Cancel();
             }
         }
-        public bool IsLocalPlayersTurn()
-        {
-            return MoveInteraction.IsLocalPlayersTurn();
-        }
+        public bool IsLocalPlayersTurn() { return MoveInteraction.IsLocalPlayersTurn(); }
 
         public bool CanEndCurrentAction()
         {
@@ -206,36 +197,15 @@ namespace YC.Presentation.Workflows
             EndCurrentAction();
         }
 
-        public void PlaceInitialCity(string locationId)
-        {
-            MoveInteraction.PlaceInitialCity(locationId);
-        }
+        public void PlaceInitialCity(string locationId) { MoveInteraction.PlaceInitialCity(locationId); }
 
-        public IReadOnlyList<WorkflowHighlight> BuildInitialPlacementHighlights()
-        {
-            return MoveInteraction.BuildInitialPlacementHighlights();
-        }
+        public IReadOnlyList<WorkflowHighlight> BuildInitialPlacementHighlights() { return MoveInteraction.BuildInitialPlacementHighlights(); }
 
-        public void BeginMoveAction()
-        {
-            if (flowCoordinator.IsActive(this) && MoveInteraction.IsSelectingMoveTarget)
-            {
-                CancelActiveMainActionSelection();
-                return;
-            }
+        public void BeginMoveAction() { MoveInteraction.Begin(); }
 
-            MoveInteraction.Begin();
-        }
+        public void MoveCity(string locationId) { MoveInteraction.Move(locationId); }
 
-        public void MoveCity(string locationId)
-        {
-            MoveInteraction.Move(locationId);
-        }
-
-        public void RestoreMovePresentation()
-        {
-            MoveInteraction.RestorePresentation();
-        }
+        public void RestoreMovePresentation() { MoveInteraction.RestorePresentation(); }
 
         public void BeginExploreAction()
         {
@@ -318,15 +288,9 @@ namespace YC.Presentation.Workflows
             flowCoordinator.Activate(resourceCollectionPresenter);
         }
 
-        public void BeginBuildAction()
-        {
-            BuildInteraction.Begin();
-        }
+        public void BeginBuildAction() { BuildInteraction.Begin(); }
 
-        public void BeginBuildFacilityDrag(string facilityId)
-        {
-            BuildInteraction.BeginDrag(facilityId);
-        }
+        public void BeginBuildFacilityDrag(string facilityId) { BuildInteraction.BeginDrag(facilityId); }
 
         public void DropBuildFacility(int cityBoardSlotIndex)
         {

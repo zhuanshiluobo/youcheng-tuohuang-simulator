@@ -13,8 +13,8 @@ namespace YC.Domain.Harvest
 {
     public sealed class ResourceCollectionService
     {
-        // 同一航道分组只支付一次，但影响力免付与接收方归属只看本次实际经过的航道。
-        private const RouteTollPaymentKeyMode CollectionPaymentKeyMode = RouteTollPaymentKeyMode.SharedRegion;
+        // 采集阶段按具体航道记录支付；同一区域的其他航道仍需分别满足路费条件。
+        private const RouteTollPaymentKeyMode CollectionPaymentKeyMode = RouteTollPaymentKeyMode.RouteId;
         private const RouteTollPaymentKeyMode CollectionInfluenceKeyMode = RouteTollPaymentKeyMode.RouteId;
 
         private readonly IMapQueryService mapQuery;

@@ -166,6 +166,13 @@ namespace YC.Presentation.Workflows
 
         public void Begin()
         {
+            if (IsActive)
+            {
+                flowCoordinator.ResetToChooseAction();
+                view.RefreshActionPanel();
+                return;
+            }
+
             if (!canStartMainAction())
             {
                 return;

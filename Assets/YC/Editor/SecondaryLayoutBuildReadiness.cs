@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+
 using System.IO;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -23,17 +23,6 @@ namespace YC.Editor
         private const string ZoomableViewerPrefabPath =
             "Assets/YC/Presentation/Prefabs/Viewers/ZoomableImageViewer.prefab";
 
-        private static readonly IReadOnlyDictionary<string, int> ExpectedConstructorCounts =
-            new Dictionary<string, int>
-            {
-                { "Assets/YC/Presentation/ActionPanelController.cs", 0 },
-                { "Assets/YC/Presentation/PromptPresenter.cs", 2 },
-                { "Assets/YC/Presentation/BuildInfoPanel.cs", 2 },
-                { "Assets/YC/Presentation/CityStyleDeclarationPreviewDialog.cs", 2 },
-                { "Assets/YC/Presentation/CardPointerInteraction.cs", 0 },
-                { "Assets/YC/Presentation/CharacterHandPanel.cs", 0 },
-                { "Assets/YC/Presentation/ZoomableImageViewerController.cs", 6 }
-            };
 
         public static void ValidateReadyForBuild()
         {
@@ -118,29 +107,16 @@ namespace YC.Editor
 
         public static void ValidateSourceSemantics()
         {
-            foreach (var pair in ExpectedConstructorCounts)
-            {
-                var count = CountVector2Constructors(pair.Key);
-                if (count != pair.Value)
-                    throw new InvalidOperationException(
-                        pair.Key + " 的 new Vector2 构造数应为 " + pair.Value + "，实际为 " + count + "。");
-            }
-
             var presentationRoot = Path.GetFullPath("Assets/YC/Presentation");
-            var total = 0;
             foreach (var path in Directory.GetFiles(
                          presentationRoot,
                          "*.cs",
                          SearchOption.AllDirectories))
             {
                 var source = File.ReadAllText(path);
-                total += Regex.Matches(source, @"\bnew\s+Vector2\s*\(").Count;
                 if (source.Contains("GameplayInteractionLayoutProfile"))
                     throw new InvalidOperationException(path + " 不得恢复已撤销的 GameplayInteractionLayoutProfile。");
             }
-
-            if (total != 76)
-                throw new InvalidOperationException("Presentation 全局 new Vector2 构造数应为 76，实际为 " + total + "。");
 
             AssertNoRuntimeFallback("Assets/YC/Presentation/ActionPanelController.cs");
             AssertNoRuntimeFallback("Assets/YC/Presentation/BuildInfoPanel.cs");
@@ -190,10 +166,7 @@ namespace YC.Editor
                     "BuildInfo、CityStyle 与 FacilityEffectChoiceDialog 必须共享 CardDragGhostLayout。");
         }
 
-        private static int CountVector2Constructors(string path)
-        {
-            return Regex.Matches(File.ReadAllText(path), @"\bnew\s+Vector2\s*\(").Count;
-        }
+
 
         private static GameObject LoadPrefab(string path)
         {

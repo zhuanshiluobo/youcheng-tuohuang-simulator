@@ -162,10 +162,10 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void CollectResource_WithSameRegionRoutes_PaysSharedPaymentKeyOnce()
+        public void CollectResource_WithSameRegionRoutes_PaysEachRouteSeparately()
         {
             var state = CreateCollectionStateOnFourPlayerMap();
-            state.FindPlayer(1).Resources.GoldVoucher = 2;
+            state.FindPlayer(1).Resources.GoldVoucher = 4;
             state.Map.ResourceTokens.Add(new ResourceTokenState
             {
                 LocationId = "A-02",
@@ -202,8 +202,52 @@ namespace YC.Tests.EditMode
             Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(0));
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(2));
-            Assert.That(result.Payments, Has.Count.EqualTo(1));
+            Assert.That(result.Payments, Has.Count.EqualTo(2));
             Assert.That(result.Payments[0].RouteId, Is.EqualTo("A1"));
+            Assert.That(result.Payments[1].RouteId, Is.EqualTo("A2"));
+        }
+
+        [Test]
+        public void QuerySelection_AfterPayingF2_DoesNotUnlockOtherFRoutes()
+        {
+            var state = CreateCollectionStateOnFourPlayerMap();
+            var player = state.FindPlayer(1);
+            player.CityLocationId = "F-01";
+            player.Resources.GoldVoucher = 4;
+            state.Map.ResourceTokens.Add(new ResourceTokenState
+            {
+                LocationId = "F-02",
+                ResourceType = ResourceType.OriginiumShard,
+                Amount = 1
+            });
+            state.Map.ResourceTokens.Add(new ResourceTokenState
+            {
+                LocationId = "F-03",
+                ResourceType = ResourceType.OriginiumShard,
+                Amount = 1
+            });
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = InfluenceService.GetLocationSlotId("F-02", 0),
+                LocationId = "F-02"
+            });
+            state.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1,
+                SlotId = InfluenceService.GetLocationSlotId("F-03", 0),
+                LocationId = "F-03"
+            });
+            var service = new ResourceCollectionService(
+                new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
+
+            var afterPayingF2 = service.QuerySelection(state, 1, new[] { "F2" });
+
+            Assert.That(afterPayingF2.IsValid, Is.True, afterPayingF2.Validation.Reason);
+            Assert.That(afterPayingF2.PathsByLocationId.ContainsKey("F-02"), Is.True);
+            Assert.That(afterPayingF2.PathsByLocationId.ContainsKey("F-03"), Is.False);
+            Assert.That(afterPayingF2.TryGetRouteOption("F3", out _), Is.True);
+            Assert.That(afterPayingF2.ConfirmedTollCost, Is.EqualTo(2));
         }
 
         [Test]

@@ -904,9 +904,10 @@ namespace YC.Presentation
             panelTarget.GetWorldCorners(corners);
             var bottomLeft = view.Root.InverseTransformPoint(corners[0]);
             var topRight = view.Root.InverseTransformPoint(corners[2]);
-            instance.sizeDelta = new Vector2(
-                Mathf.Abs(topRight.x - bottomLeft.x),
-                Mathf.Abs(topRight.y - bottomLeft.y));
+            var instanceSize = instance.sizeDelta;
+            instanceSize.x = Mathf.Abs(topRight.x - bottomLeft.x);
+            instanceSize.y = Mathf.Abs(topRight.y - bottomLeft.y);
+            instance.sizeDelta = instanceSize;
             instance.GetComponent<RawImage>().texture = cardVisualCatalog.GetCharacterFront(cardId);
             instance.GetComponent<CanvasGroup>().alpha = 0.82f;
             dragGhost = instance;
@@ -1014,19 +1015,18 @@ namespace YC.Presentation
                 target.GetWorldCorners(corners);
                 var bottomLeft = view.Root.InverseTransformPoint(corners[0]);
                 var topRight = view.Root.InverseTransformPoint(corners[2]);
-                var targetSize = new Vector2(
-                    Mathf.Abs(topRight.x - bottomLeft.x),
-                    Mathf.Abs(topRight.y - bottomLeft.y));
+                var targetWidth = Mathf.Abs(topRight.x - bottomLeft.x);
+                var targetHeight = Mathf.Abs(topRight.y - bottomLeft.y);
                 dragGhostReturnClip.SetCurve(
                     string.Empty,
                     typeof(RectTransform),
                     "m_SizeDelta.x",
-                    CreateFastOutCurve(dragGhost.sizeDelta.x, targetSize.x, duration));
+                    CreateFastOutCurve(dragGhost.sizeDelta.x, targetWidth, duration));
                 dragGhostReturnClip.SetCurve(
                     string.Empty,
                     typeof(RectTransform),
                     "m_SizeDelta.y",
-                    CreateFastOutCurve(dragGhost.sizeDelta.y, targetSize.y, duration));
+                    CreateFastOutCurve(dragGhost.sizeDelta.y, targetHeight, duration));
             }
 
             var animation = dragGhost.gameObject.AddComponent<Animation>();
