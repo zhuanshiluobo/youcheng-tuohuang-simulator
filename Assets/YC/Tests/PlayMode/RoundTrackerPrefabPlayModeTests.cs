@@ -30,12 +30,18 @@ namespace YC.Tests.PlayMode
                 Players =
                 {
                     new PlayerState { PlayerId = 1, Name = "甲", Color = PlayerColor.Red },
-                    new PlayerState { PlayerId = 2, Name = "乙", Color = PlayerColor.Blue }
+                    new PlayerState { PlayerId = 2, Name = "乙", Color = PlayerColor.Blue },
+                    new PlayerState { PlayerId = 3, Name = "丙", Color = PlayerColor.Green },
+                    new PlayerState { PlayerId = 4, Name = "丁", Color = PlayerColor.Yellow }
                 }
             };
             controller.RefreshFromState(state);
-            RequireChild(controller.transform, "Round Marker P1");
-            RequireChild(controller.transform, "Round Marker P2");
+            AssertSingleRoundMarker(controller);
+
+            state.Round = 4;
+            controller.RefreshFromState(state);
+            AssertSingleRoundMarker(controller);
+
             if (RequireChild(controller.transform, "Game Over Overlay").gameObject.activeSelf)
             {
                 throw new InvalidOperationException("非终局状态不应打开 GameOver Overlay。");
@@ -54,6 +60,7 @@ namespace YC.Tests.PlayMode
                 }
             };
             controller.RefreshFromState(state);
+            AssertSingleRoundMarker(controller);
             if (!RequireChild(controller.transform, "Game Over Overlay").gameObject.activeSelf)
             {
                 throw new InvalidOperationException("终局状态应打开 GameOver Overlay。");
@@ -82,6 +89,30 @@ namespace YC.Tests.PlayMode
             }
 
             throw new InvalidOperationException("缺少运行时对象：" + name);
+        }
+
+        private static void AssertSingleRoundMarker(RoundTrackerController controller)
+        {
+            RequireChild(controller.transform, "Round Marker");
+            if (CountChildren(controller.transform, "Round Marker") != 1)
+            {
+                throw new InvalidOperationException("四人游戏连续刷新时必须共用一个全局回合标记。");
+            }
+        }
+
+        private static int CountChildren(Transform root, string name)
+        {
+            var count = 0;
+            var transforms = root.GetComponentsInChildren<Transform>(true);
+            for (var i = 0; i < transforms.Length; i++)
+            {
+                if (transforms[i].name == name)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
     }
 }

@@ -135,27 +135,21 @@ namespace YC.Presentation
         {
         }
 
-        private void BuildPlayerMarkers(GameState state)
+        private void BuildPlayerMarkers(GameState _)
         {
-            ClearDynamicChildren(view.MarkerContainer);
-            playerMarkers.Clear();
-            markerTransform = null;
-
-            if (state == null || state.Players == null || state.Players.Count == 0)
+            if (playerMarkers.Count == 1 &&
+                playerMarkers[0] != null &&
+                playerMarkers[0].MarkerTransform != null)
             {
-                AddPlayerMarker("Round Marker", Color.white, 0f);
+                markerTransform = playerMarkers[0].MarkerTransform;
+                playerMarkers[0].Bind("Round Marker", Color.white, GetSlotX(currentIndex), 0f);
                 return;
             }
 
-            var center = (state.Players.Count - 1) * 0.5f;
-            for (var i = 0; i < state.Players.Count; i++)
-            {
-                var player = state.Players[i];
-                AddPlayerMarker(
-                    "Round Marker P" + player.PlayerId,
-                    UiTheme.GetPlayerColor(player.Color, 1f),
-                    (i - center) * 7f);
-            }
+            ClearDynamicChildren(view.MarkerContainer);
+            playerMarkers.Clear();
+            markerTransform = null;
+            AddPlayerMarker("Round Marker", Color.white, 0f);
         }
 
         private void AddPlayerMarker(string objectName, Color color, float y)
