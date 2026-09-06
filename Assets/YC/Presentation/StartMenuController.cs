@@ -658,6 +658,7 @@ namespace YC.Presentation
                 var row = Instantiate(panel.SeatTemplate, panel.SeatListRoot, false);
                 row.name = "Seat " + seat.PlayerId;
                 row.text = line;
+                row.color = UiTheme.GetPlayerColor(seat.Color, seat.LobbyMemberPresent ? 1f : 0.55f);
                 row.gameObject.SetActive(true);
                 roomSeatRows.Add(row);
             }

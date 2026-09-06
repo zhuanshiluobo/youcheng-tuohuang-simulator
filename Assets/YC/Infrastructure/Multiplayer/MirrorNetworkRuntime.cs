@@ -25,6 +25,11 @@ namespace YC.Infrastructure.Multiplayer
         public string Ticket;
     }
 
+    public struct WaitingRoomStateMessage : NetworkMessage
+    {
+        public string Json;
+    }
+
     [DefaultExecutionOrder(-24000)]
     public sealed class MirrorNetworkRuntime : MonoBehaviour
     {
@@ -49,6 +54,7 @@ namespace YC.Infrastructure.Multiplayer
         public event Action LocalClientConnected;
         public event Action LocalClientDisconnected;
         public event Action<int, string> ServerLocalIdentityPresented;
+        public event Action<RoomState> WaitingRoomStateReceived;
         public static MirrorNetworkRuntime Instance { get; private set; }
         public NetworkManager Manager => networkManager;
         public FizzySteamworks Transport => steamTransport;
@@ -244,10 +250,22 @@ namespace YC.Infrastructure.Multiplayer
                    !disconnectingServerConnections.Contains(connectionId);
         }
 
+        public void BroadcastWaitingRoomState(RoomState room)
+        {
+            if (!NetworkServer.active || room == null) return;
+            var message = new WaitingRoomStateMessage { Json = JsonUtility.ToJson(room) };
+            foreach (var connection in NetworkServer.connections.Values)
+            {
+                if (connection == null || connection is LocalConnectionToClient) continue;
+                connection.Send(message, Channels.Reliable);
+            }
+        }
+
         public void ShutdownNetwork()
         {
             if (NetworkServer.active && IsLocalTestMode)
                 NetworkServer.UnregisterHandler<WaitingRoomLocalIdentityMessage>();
+            NetworkClient.UnregisterHandler<WaitingRoomStateMessage>();
             UnsubscribeMirrorCallbacks();
             if (NetworkServer.active && NetworkClient.active) Manager.StopHost();
             else if (NetworkClient.active) Manager.StopClient();
@@ -340,6 +358,7 @@ namespace YC.Infrastructure.Multiplayer
             disconnectingServerConnections.Clear();
             localClientConnectedPublished = false;
             localClientDisconnectedPublished = false;
+            NetworkClient.RegisterHandler<WaitingRoomStateMessage>(OnWaitingRoomState, false);
             lock (disconnectQueueLock) pendingServerDisconnects.Clear();
         }
 
@@ -362,6 +381,13 @@ namespace YC.Infrastructure.Multiplayer
         {
             if (!IsLocalTestMode || connection == null) return;
             ServerLocalIdentityPresented?.Invoke(connection.connectionId, message.Ticket);
+        }
+
+        private void OnWaitingRoomState(WaitingRoomStateMessage message)
+        {
+            if (NetworkServer.active || string.IsNullOrEmpty(message.Json)) return;
+            var room = JsonUtility.FromJson<RoomState>(message.Json);
+            if (room != null) WaitingRoomStateReceived?.Invoke(room);
         }
 
         private void SendWaitingRoomLocalIdentity()

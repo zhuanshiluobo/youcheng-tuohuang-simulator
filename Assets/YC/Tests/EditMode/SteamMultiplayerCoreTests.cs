@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using YC.Application.Sessions;
+using YC.Domain.Rules;
 using YC.Infrastructure.Multiplayer;
 
 namespace YC.Tests.EditMode
@@ -360,6 +362,83 @@ namespace YC.Tests.EditMode
             Assert.That(lobbyId, Is.EqualTo("200"));
             Assert.That(inbox.TryConsume(out _), Is.False);
             Assert.That(inbox.HasPending, Is.False);
+        }
+
+        [Test]
+        public void AuthoritativeRoomSnapshot_LocalizesClientAndPreservesSeatColors()
+        {
+            var snapshot = new RoomState
+            {
+                RoomId = "480-room",
+                HostPlayerId = 1,
+                LocalPlayerId = 1,
+                PlayerCount = 4,
+                Seats = new List<PlayerSeat>
+                {
+                    new PlayerSeat { PlayerId = 1, SteamId = 101, Color = PlayerColor.Blue },
+                    new PlayerSeat { PlayerId = 2, SteamId = 202, Color = PlayerColor.Red },
+                    new PlayerSeat { PlayerId = 3, SteamId = 303, Color = PlayerColor.Green },
+                    new PlayerSeat { PlayerId = 4, SteamId = 404, Color = PlayerColor.Yellow }
+                }
+            };
+
+            Assert.That(RoomState.TryLocalizeAuthoritativeSnapshot(
+                snapshot,
+                "480-room",
+                303,
+                out var localized), Is.True);
+            Assert.That(localized.LocalPlayerId, Is.EqualTo(3));
+            Assert.That(localized.Seats.ConvertAll(seat => seat.Color), Is.EqualTo(new[]
+            {
+                PlayerColor.Blue,
+                PlayerColor.Red,
+                PlayerColor.Green,
+                PlayerColor.Yellow
+            }));
+            Assert.That(snapshot.LocalPlayerId, Is.EqualTo(1), "不得改写 Host 原始快照");
+
+            var wireSnapshot = UnityEngine.JsonUtility.FromJson<RoomState>(
+                UnityEngine.JsonUtility.ToJson(snapshot));
+            Assert.That(wireSnapshot.Seats.ConvertAll(seat => seat.Color), Is.EqualTo(new[]
+            {
+                PlayerColor.Blue,
+                PlayerColor.Red,
+                PlayerColor.Green,
+                PlayerColor.Yellow
+            }), "Mirror JSON 载荷必须保留每个座位的颜色");
+        }
+
+        [Test]
+        public void AuthoritativeRoomSnapshot_RejectsOtherRoomOrUnknownSteamIdentity()
+        {
+            var snapshot = new RoomState
+            {
+                RoomId = "expected",
+                Seats = new List<PlayerSeat>
+                {
+                    new PlayerSeat { PlayerId = 1, SteamId = 101, Color = PlayerColor.Blue }
+                }
+            };
+
+            Assert.That(RoomState.TryLocalizeAuthoritativeSnapshot(snapshot, "other", 101, out _), Is.False);
+            Assert.That(RoomState.TryLocalizeAuthoritativeSnapshot(snapshot, "expected", 999, out _), Is.False);
+        }
+
+        [Test]
+        public void SteamWaitingRoom_BroadcastsHostSnapshotAndRendersSeatColors()
+        {
+            var runtimeSource = ReadSource("YC/Infrastructure/Multiplayer/MirrorNetworkRuntime.cs");
+            StringAssert.Contains("NetworkClient.RegisterHandler<WaitingRoomStateMessage>", runtimeSource);
+            StringAssert.Contains("connection.Send(message, Channels.Reliable);", runtimeSource);
+            StringAssert.Contains("WaitingRoomStateReceived?.Invoke(room);", runtimeSource);
+
+            var serviceSource = ReadSource("YC/Infrastructure/Multiplayer/SteamRoomService.cs");
+            StringAssert.Contains("subscribedRuntime?.BroadcastWaitingRoomState(room);", serviceSource);
+            StringAssert.Contains("RoomState.TryLocalizeAuthoritativeSnapshot", serviceSource);
+            StringAssert.Contains("runtime.WaitingRoomStateReceived -= OnWaitingRoomStateReceived;", serviceSource);
+
+            var menuSource = ReadSource("YC/Presentation/StartMenuController.cs");
+            StringAssert.Contains("row.color = UiTheme.GetPlayerColor(seat.Color", menuSource);
         }
 
         [Test]

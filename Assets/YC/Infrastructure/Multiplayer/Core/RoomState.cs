@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using YC.Application.Sessions;
 
 namespace YC.Infrastructure.Multiplayer
 {
+    [Serializable]
     public sealed class RoomState
     {
         public string RoomId = string.Empty;
@@ -42,6 +44,46 @@ namespace YC.Infrastructure.Multiplayer
             }
 
             return clone;
+        }
+
+        public static bool TryLocalizeAuthoritativeSnapshot(
+            RoomState snapshot,
+            string expectedRoomId,
+            ulong localSteamId,
+            out RoomState localized)
+        {
+            localized = null;
+            if (snapshot == null || snapshot.Seats == null || localSteamId == 0 ||
+                string.IsNullOrEmpty(expectedRoomId) ||
+                !string.Equals(snapshot.RoomId, expectedRoomId, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            var localPlayerId = -1;
+            for (var i = 0; i < snapshot.Seats.Count; i++)
+            {
+                var seat = snapshot.Seats[i];
+                if (seat == null)
+                {
+                    return false;
+                }
+
+                if (seat.SteamId == localSteamId)
+                {
+                    localPlayerId = seat.PlayerId;
+                    break;
+                }
+            }
+
+            if (localPlayerId <= 0)
+            {
+                return false;
+            }
+
+            localized = snapshot.Clone();
+            localized.LocalPlayerId = localPlayerId;
+            return true;
         }
     }
 }

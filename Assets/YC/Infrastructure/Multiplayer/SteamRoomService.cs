@@ -29,6 +29,7 @@ namespace YC.Infrastructure.Multiplayer
         private bool callbacksInitialized;
         private bool gameStartedRaised;
         private bool acceptNetworkEvents;
+        private bool authoritySnapshotReceived;
         private MirrorNetworkRuntime subscribedRuntime;
         private RoomState currentRoom;
         public bool HasPendingLobbyJoinRequest => lobbyJoinRequests.HasPending;
@@ -259,8 +260,17 @@ namespace YC.Infrastructure.Multiplayer
                 AssignStableSeats();
                 SynchronizeAuthorityRoster();
             }
+            else if (authoritySnapshotReceived)
+            {
+                return;
+            }
             var room = BuildRoomState();
             if (isHost) PublishAuthorityReadiness(room);
+            if (isHost) subscribedRuntime?.BroadcastWaitingRoomState(room);
+            PublishRoom(room);
+        }
+        private void PublishRoom(RoomState room)
+        {
             currentRoom = room;
             if (room.HasStarted && !gameStartedRaised)
             {
@@ -424,12 +434,15 @@ namespace YC.Infrastructure.Multiplayer
             subscribedRuntime.ServerClientConnected += OnServerClientConnected;
             subscribedRuntime.ServerClientDisconnected -= OnServerClientDisconnected;
             subscribedRuntime.ServerClientDisconnected += OnServerClientDisconnected;
+            subscribedRuntime.WaitingRoomStateReceived -= OnWaitingRoomStateReceived;
+            subscribedRuntime.WaitingRoomStateReceived += OnWaitingRoomStateReceived;
         }
         private void UnsubscribeFromRuntime(MirrorNetworkRuntime runtime)
         {
             runtime.ClientDisconnected -= OnNetworkDisconnected;
             runtime.ServerClientConnected -= OnServerClientConnected;
             runtime.ServerClientDisconnected -= OnServerClientDisconnected;
+            runtime.WaitingRoomStateReceived -= OnWaitingRoomStateReceived;
         }
         private void ShutdownNetworkAndLobby()
         {
@@ -444,7 +457,7 @@ namespace YC.Infrastructure.Multiplayer
             MirrorNetworkRuntime.Instance?.ShutdownNetwork();
             if (lobbyId.IsValid()) SteamMatchmaking.LeaveLobby(lobbyId);
             lobbyId = CSteamID.Nil; currentRoom = null; originalHostSteamId = 0; requestedPlayerCount = 0;
-            isHost = false; gameStartedRaised = false;
+            isHost = false; gameStartedRaised = false; authoritySnapshotReceived = false;
         }
         private void CancelPending()
         {
@@ -459,6 +472,21 @@ namespace YC.Infrastructure.Multiplayer
             if (disposed || !acceptNetworkEvents || isHost) return;
             ShutdownNetworkAndLobby();
             RoomDisbanded?.Invoke();
+        }
+        private void OnWaitingRoomStateReceived(RoomState authoritativeRoom)
+        {
+            if (disposed || !acceptNetworkEvents || isHost || !lobbyId.IsValid()) return;
+            if (!RoomState.TryLocalizeAuthoritativeSnapshot(
+                    authoritativeRoom,
+                    lobbyId.m_SteamID.ToString(),
+                    SteamUser.GetSteamID().m_SteamID,
+                    out var localizedRoom))
+            {
+                return;
+            }
+
+            authoritySnapshotReceived = true;
+            PublishRoom(localizedRoom);
         }
         private void OnServerClientConnected(MirrorServerConnectionInfo connection)
         {
