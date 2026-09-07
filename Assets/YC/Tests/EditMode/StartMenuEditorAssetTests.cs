@@ -52,6 +52,7 @@ namespace YC.Tests.EditMode
             Assert.That(Find(prefab.transform, "Message Panel"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Seat Template"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Creator Link Button"), Is.Not.Null);
+            Assert.That(Find(prefab.transform, "断开连接 Button"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Steam 双人验证 Button"), Is.Null);
         }
 
@@ -136,6 +137,12 @@ namespace YC.Tests.EditMode
             AssertTransparentMainButton(prefab.transform, "本地游戏 Button");
             AssertTransparentMainButton(prefab.transform, "联机模式 Button");
             AssertTransparentMainButton(prefab.transform, "成就 Button");
+            AssertTransparentMainButton(prefab.transform, "断开连接 Button");
+
+            Assert.That(((RectTransform)Find(prefab.transform, "本地游戏 Button")).anchoredPosition.y, Is.EqualTo(398f));
+            Assert.That(((RectTransform)Find(prefab.transform, "联机模式 Button")).anchoredPosition.y, Is.EqualTo(298f));
+            Assert.That(((RectTransform)Find(prefab.transform, "成就 Button")).anchoredPosition.y, Is.EqualTo(198f));
+            Assert.That(((RectTransform)Find(prefab.transform, "断开连接 Button")).anchoredPosition.y, Is.EqualTo(98f));
         }
 
         [Test]
@@ -237,6 +244,11 @@ namespace YC.Tests.EditMode
             Assert.That(target.anchorMax, Is.EqualTo(new Vector2(1f, 0f)), name);
             Assert.That(target.sizeDelta, Is.EqualTo(new Vector2(420f, 84f)), name);
             Assert.That(target.GetComponent<Outline>(), Is.Null, name);
+
+            var text = target.Find("Text").GetComponent<Text>();
+            Assert.That(text.alignment, Is.EqualTo(TextAnchor.MiddleRight), name);
+            Assert.That(text.rectTransform.offsetMin, Is.EqualTo(Vector2.zero), name);
+            Assert.That(text.rectTransform.offsetMax, Is.EqualTo(new Vector2(-32f, 0f)), name);
 
             var button = target.GetComponent<Button>();
             Assert.That(button, Is.Not.Null, name);

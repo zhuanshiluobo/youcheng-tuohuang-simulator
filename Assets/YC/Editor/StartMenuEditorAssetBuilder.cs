@@ -77,17 +77,22 @@ namespace YC.EditorTools
                     coverFrame,
                     "成就 Button",
                     "成就",
-                    new Vector2(-266f, 98f));
+                    new Vector2(-266f, 198f));
                 var onlineModeButton = CreateMainMenuButton(
                     coverFrame,
                     "联机模式 Button",
                     "联机模式",
-                    new Vector2(-266f, 198f));
+                    new Vector2(-266f, 298f));
                 var startGameButton = CreateMainMenuButton(
                     coverFrame,
                     "本地游戏 Button",
                     "本地游戏",
-                    new Vector2(-266f, 298f));
+                    new Vector2(-266f, 398f));
+                var quitGameButton = CreateMainMenuButton(
+                    coverFrame,
+                    "断开连接 Button",
+                    "断开连接",
+                    new Vector2(-266f, 98f));
 
                 var wikiButton = CreateButton(coverFrame, "Wiki Link Button", "W  进入 wiki", new Vector2(130f, 52f), new Vector2(210f, 56f), Anchor.BottomLeft);
                 var officialButton = CreateButton(coverFrame, "Official Link Button", "官  官方网站", new Vector2(130f, 120f), new Vector2(210f, 56f), Anchor.BottomLeft);
@@ -111,6 +116,7 @@ namespace YC.EditorTools
                     ("startGameButton", startGameButton),
                     ("onlineModeButton", onlineModeButton),
                     ("achievementsButton", achievementsButton),
+                    ("quitGameButton", quitGameButton),
                     ("creatorSiteButton", creatorButton),
                     ("officialSiteButton", officialButton),
                     ("wikiButton", wikiButton),
@@ -411,8 +417,10 @@ namespace YC.EditorTools
                 32,
                 Vector2.zero,
                 Vector2.zero,
-                FontStyle.Bold);
+                FontStyle.Bold,
+                TextAnchor.MiddleRight);
             Stretch(text.rectTransform);
+            text.rectTransform.offsetMax = new Vector2(-32f, 0f);
             text.raycastTarget = false;
 
             var feedback = buttonObject.AddComponent<ActionButtonPressFeedback>();

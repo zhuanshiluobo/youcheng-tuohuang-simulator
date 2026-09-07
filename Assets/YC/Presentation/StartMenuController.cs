@@ -402,6 +402,7 @@ namespace YC.Presentation
             BindButton(view.StartGameButton, ShowLocalMapSelectionPanel);
             BindButton(view.OnlineModeButton, ShowOnlineModePanel);
             BindButton(view.AchievementsButton, ShowAchievementsPanel);
+            BindButton(view.QuitGameButton, QuitGame);
             BindButton(view.CreatorSiteButton, () => UnityEngine.Application.OpenURL(CreatorSiteUrl));
             BindButton(view.OfficialSiteButton, () => UnityEngine.Application.OpenURL(OfficialSiteUrl));
             BindButton(view.WikiButton, () => UnityEngine.Application.OpenURL(WikiUrl));
@@ -429,6 +430,16 @@ namespace YC.Presentation
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(action);
         }
+
+        private static void QuitGame()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            UnityEngine.Application.Quit();
+#endif
+        }
+
 
         private void ShowLocalMapSelectionPanel()
         {
