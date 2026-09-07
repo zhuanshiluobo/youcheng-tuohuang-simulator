@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
@@ -597,6 +597,80 @@ namespace YC.Tests.EditMode
                     "eventCardMetadataRibbonImage");
                 AssertColorApproximately(ribbon.color, expectedColors[i]);
                 Assert.That(ribbon.transform.Find("Ribbon Wedge"), Is.Null);
+            }
+        }
+
+        [Test]
+        public void AllEventArtworkChoices_ClickMatchesPrintedRewardAndDoesNotOverlap()
+        {
+            var catalogType = GetRuntimeType("YC.Presentation.EventCharacterCardCatalog");
+            var catalog = AssetDatabase.LoadAssetAtPath(
+                "Assets/YC/Presentation/Content/EventCharacterCardCatalog.asset", catalogType);
+            var cards = (IReadOnlyList<EventCardDefinition>)catalogType
+                .GetMethod("CreateEventDefinitions").Invoke(catalog, null);
+            // 按原图从上到下记录：源岩、源石碎片、异铁、至纯源石、金券。
+            var printedRewards = new[]
+            {
+                "0,3,0,0,0;0,0,2,0,2", "0,0,0,0,7;0,3,0,0,0",
+                "4,0,0,0,0;0,3,0,0,0", "4,0,0,0,0;0,3,0,0,0",
+                "0,3,0,0,0;0,0,0,0,7", "0,0,2,0,2;4,0,0,0,0",
+                "0,6,0,0,0;7,0,0,0,0;0,0,0,0,6",
+                "0,0,1,1,0;3,3,0,0,0", "0,0,4,0,5;4,3,0,0,0",
+                "2,2,2,0,0;0,0,0,0,18;0,0,0,1,4",
+                "1,0,0,1,0;0,3,2,0,0;0,0,0,0,18",
+                "0,1,0,1,0;3,0,3,0,0",
+                "5,0,0,0,0;0,0,0,0,4", "5,0,0,0,0;0,0,0,0,10",
+                "3,0,1,0,0;0,4,0,0,0", "0,0,0,0,0;0,0,0,0,10;0,4,0,0,0",
+                "0,0,0,0,0;1,3,0,0,0;0,0,3,0,0", "0,0,3,0,0;0,4,0,0,0",
+                "3,0,1,0,0;0,0,0,0,13", "0,0,3,0,0;2,0,0,0,0",
+                "0,0,3,0,0;0,2,0,0,5", "0,0,3,0,0;0,4,0,0,0"
+            };
+            // 各选项在原图中的文字/奖励中心；多行选项额外检查奖励行。
+            var printedCenters = new[]
+            {
+                "435;505", "435;505", "435;505", "435;505", "435;505", "420;470,530",
+                "410;460;505,550", "420,460;510", "430;490,530",
+                "410;460;515", "420;470;510,545", "420,455;490,530",
+                "435;505", "435;505", "435;505", "420,455;490;540",
+                "430;480;530", "435;505", "435;500,540", "435;505", "435;505", "435;505"
+            };
+            Assert.That(cards.Count, Is.EqualTo(printedRewards.Length));
+            for (var cardIndex = 0; cardIndex < cards.Count; cardIndex++)
+            {
+                var card = cards[cardIndex];
+                var rewards = printedRewards[cardIndex].Split(';');
+                var centers = printedCenters[cardIndex].Split(';');
+                Assert.That(card.ChoiceRewards.Count, Is.EqualTo(rewards.Length), card.CardId);
+                for (var visualIndex = 0; visualIndex < rewards.Length; visualIndex++)
+                {
+                    var selectedIndex = -1;
+                    Invoke("ShowEventCardOptions", card, "所属资源点：F-03",
+                        new List<ExplorePaymentChoice>(), new Dictionary<string, int>(),
+                        new Func<int, string>(id => "玩家" + id),
+                        new Action<int>(index => selectedIndex = index),
+                        new Action<string, int>((_, __) => { }));
+                    var root = FindChild(canvas.gameObject, "Event Choice Overlay");
+                    var row = FindChild(root, "Choice " + (visualIndex + 1));
+                    var rect = row.GetComponent<RectTransform>();
+                    var top = -rect.anchoredPosition.y;
+                    var bottom = top + rect.sizeDelta.y;
+                    foreach (var center in centers[visualIndex].Split(','))
+                    {
+                        Assert.That(float.Parse(center), Is.InRange(top, bottom),
+                            card.CardId + " 第 " + (visualIndex + 1) + " 项文字/奖励应在触发框内");
+                    }
+                    if (visualIndex + 1 < rewards.Length)
+                    {
+                        var next = FindChild(root, "Choice " + (visualIndex + 2)).GetComponent<RectTransform>();
+                        Assert.That(bottom, Is.LessThanOrEqualTo(-next.anchoredPosition.y), card.CardId);
+                    }
+                    row.GetComponent<Button>().onClick.Invoke();
+                    Assert.That(selectedIndex, Is.InRange(0, rewards.Length - 1), card.CardId);
+                    var reward = card.ChoiceRewards[selectedIndex];
+                    var actual = string.Join(",", reward.Originium, reward.OriginiumShard,
+                        reward.Iron, reward.PureOriginium, reward.GoldVoucher);
+                    Assert.That(actual, Is.EqualTo(rewards[visualIndex]), card.CardId + " 图片选项 " + visualIndex);
+                }
             }
         }
 

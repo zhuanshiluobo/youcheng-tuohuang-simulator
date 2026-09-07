@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using YC.Domain.Cards;
 using YC.Domain.Facilities;
@@ -226,11 +226,13 @@ namespace YC.Presentation
 
             for (var i = 0; i < card.ChoiceRewards.Count; i++)
             {
-                var capturedIndex = i;
+                // 图片顺序不等于规则编号；仅转换图片按钮，保留原待选会话编号。
+                var capturedIndex = GetArtworkChoiceIndex(card.CardId, i);
                 var row = view.CreateChoiceRow(view.EventChoiceHost);
                 row.Root.gameObject.name = "Choice " + (i + 1);
                 ConfigureAssetizedChoiceRow(
                     row,
+                    card.CardId,
                     i,
                     card.ChoiceRewards.Count,
                     hoverColor);
@@ -271,8 +273,52 @@ namespace YC.Presentation
             view.CollapseButton.onClick.AddListener(view.CollapsiblePanel.Toggle);
         }
 
+        private static int GetArtworkChoiceIndex(string cardId, int visualIndex)
+        {
+            // 险中净土、采集平台残骸的前两项在原图中与目录顺序相反。
+            if ((cardId == "event_red_01" || cardId == "event_red_03") && visualIndex < 2)
+            {
+                return 1 - visualIndex;
+            }
+
+            return visualIndex;
+        }
+
+        private static Vector4 GetArtworkChoiceBounds(string cardId, int choiceCount)
+        {
+            // 原图为 850×600，边界按图片顶部向下计量。
+            // 多行描述和奖励归属同一框；分界位于选项之间，各框不重叠。
+            switch (cardId)
+            {
+                case "event_green_06":
+                case "event_red_03":
+                    return new Vector4(395f, 455f, 565f, 0f);
+                case "event_red_02":
+                    return new Vector4(395f, 485f, 555f, 0f);
+                case "event_red_06":
+                    return new Vector4(395f, 475f, 555f, 0f);
+                case "event_yellow_07":
+                    return new Vector4(400f, 475f, 570f, 0f);
+                case "event_red_01":
+                    return new Vector4(390f, 438f, 483f, 580f);
+                case "event_red_04":
+                    return new Vector4(385f, 435f, 488f, 555f);
+                case "event_red_05":
+                    return new Vector4(395f, 448f, 495f, 570f);
+                case "event_yellow_04":
+                    return new Vector4(390f, 475f, 515f, 570f);
+                case "event_yellow_05":
+                    return new Vector4(400f, 455f, 505f, 560f);
+                default:
+                    return choiceCount >= 3
+                        ? new Vector4(390f, 450f, 505f, 570f)
+                        : new Vector4(400f, 475f, 555f, 0f);
+            }
+        }
+
         private static void ConfigureAssetizedChoiceRow(
             EventChoiceDialogView.ButtonRow row,
+            string cardId,
             int choiceIndex,
             int choiceCount,
             Color hoverColor)
@@ -281,14 +327,10 @@ namespace YC.Presentation
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
-            var usesThreeChoiceLayout = choiceCount >= 3;
-            var choiceTop = usesThreeChoiceLayout
-                ? choiceIndex == 0 ? 380f : choiceIndex == 1 ? 458f : 508f
-                : choiceIndex == 0 ? 385f : 462f;
-            var choiceHeight = usesThreeChoiceLayout
-                ? choiceIndex == 0 ? 78f : choiceIndex == 1 ? 50f : 56f
-                : choiceIndex == 0 ? 72f : 84f;
-            rect.sizeDelta = new Vector2(670f, choiceHeight);
+            var bounds = GetArtworkChoiceBounds(cardId, choiceCount);
+            var choiceTop = bounds[choiceIndex];
+            var choiceHeight = bounds[choiceIndex + 1] - choiceTop;
+            rect.sizeDelta = new Vector2(720f, choiceHeight);
             rect.anchoredPosition = new Vector2(90f, -choiceTop);
 
             var image = row.Root.GetComponent<Image>();
