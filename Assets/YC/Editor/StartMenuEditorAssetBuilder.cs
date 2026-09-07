@@ -102,7 +102,6 @@ namespace YC.EditorTools
                 var joinPanel = BuildJoinPanel(roomLayer.transform);
                 var waitingPanel = BuildWaitingRoomPanel(roomLayer.transform);
                 var messagePanel = BuildMessagePanel(roomLayer.transform);
-                var loadingPanel = BuildLoadingPanel(canvasObject.transform);
 
                 var view = canvasObject.GetComponent<StartMenuView>();
                 SetReferences(
@@ -120,8 +119,7 @@ namespace YC.EditorTools
                     ("mapSelectionPanel", mapSelectionPanel),
                     ("joinPanel", joinPanel),
                     ("roomPanel", waitingPanel),
-                    ("messagePanel", messagePanel),
-                    ("loadingPanel", loadingPanel));
+                    ("messagePanel", messagePanel));
 
                 var controller = root.AddComponent<StartMenuController>();
                 SetReferences(
@@ -357,29 +355,6 @@ namespace YC.EditorTools
             SetReferences(panel, ("titleText", title), ("messageText", message), ("actionButton", action), ("actionButtonText", actionText));
             panelObject.SetActive(false);
             return panel;
-        }
-
-        private static StartMenuLoadingPanelView BuildLoadingPanel(Transform parent)
-        {
-            var overlay = CreateUiObject(
-                "Loading Overlay",
-                parent,
-                typeof(Image),
-                typeof(CanvasGroup),
-                typeof(StartMenuLoadingPanelView));
-            Stretch(overlay.GetComponent<RectTransform>());
-            var overlayImage = overlay.GetComponent<Image>();
-            overlayImage.color = Color.black;
-            overlayImage.raycastTarget = true;
-
-            var canvasGroup = overlay.GetComponent<CanvasGroup>();
-            canvasGroup.alpha = 0f;
-            canvasGroup.blocksRaycasts = false;
-            canvasGroup.interactable = false;
-            var loadingView = overlay.GetComponent<StartMenuLoadingPanelView>();
-            loadingView.ConfigureForEditor(canvasGroup, 0.8f, 0.8f);
-            overlay.SetActive(false);
-            return loadingView;
         }
 
         private static GameObject CreatePanel(string name, Transform parent, Vector2 size)

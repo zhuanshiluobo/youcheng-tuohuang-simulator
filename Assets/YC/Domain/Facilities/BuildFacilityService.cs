@@ -157,16 +157,6 @@ namespace YC.Domain.Facilities
             return ValidationResult.Success;
         }
 
-        public static void RefillFacilitySupply(GameState state)
-        {
-            if (state == null || state.Decks == null)
-            {
-                return;
-            }
-
-            FacilitySupplyService.Refill(state.Decks.FacilitySupply, state.Decks.FacilityDeck);
-        }
-
         private static void ReplaceBuiltFacilityInSupply(GameState state, string facilityId)
         {
             FacilitySupplyService.ReplaceBuiltCard(

@@ -25,9 +25,6 @@ namespace YC.Presentation
         [SerializeField] private StartMenuRoomPanelView roomPanel;
         [SerializeField] private StartMenuMessagePanelView messagePanel;
 
-        [Header("Loading")]
-        [SerializeField] private StartMenuLoadingPanelView loadingPanel;
-
         public RectTransform CoverFrame => coverFrame;
         public RawImage CoverImage => coverImage;
         public Button StartGameButton => startGameButton;
@@ -42,7 +39,6 @@ namespace YC.Presentation
         public StartMenuJoinPanelView JoinPanel => joinPanel;
         public StartMenuRoomPanelView RoomPanel => roomPanel;
         public StartMenuMessagePanelView MessagePanel => messagePanel;
-        public StartMenuLoadingPanelView LoadingPanel => loadingPanel;
 
         public bool TryValidateConfiguration(out string reason)
         {
@@ -121,17 +117,6 @@ namespace YC.Presentation
             }
 
             if (!messagePanel.TryValidateConfiguration(out reason))
-            {
-                return false;
-            }
-
-            if (loadingPanel == null)
-            {
-                reason = "加载面板引用缺失。";
-                return false;
-            }
-
-            if (!loadingPanel.TryValidateConfiguration(out reason))
             {
                 return false;
             }

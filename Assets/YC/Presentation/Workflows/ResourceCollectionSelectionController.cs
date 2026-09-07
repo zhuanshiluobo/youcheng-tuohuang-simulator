@@ -77,12 +77,6 @@ namespace YC.Presentation
             }
         }
 
-        public void ClearRoutesAndPaths()
-        {
-            routeIds.Clear();
-            pathsByLocationId.Clear();
-        }
-
         public void ApplyQuery(ResourceCollectionSelectionQuery query)
         {
             candidateLocationIds.Clear();
@@ -138,27 +132,6 @@ namespace YC.Presentation
             {
                 paymentRecipients.Remove(routeId);
             }
-        }
-
-        public int GetNextPaymentRecipient(string routeId, IReadOnlyList<int> owners)
-        {
-            if (owners == null || owners.Count <= 0)
-            {
-                return -1;
-            }
-
-            var nextIndex = 0;
-            int currentReceiver;
-            if (paymentRecipients.TryGetValue(routeId, out currentReceiver))
-            {
-                var currentIndex = IndexOf(owners, currentReceiver);
-                if (currentIndex >= 0)
-                {
-                    nextIndex = (currentIndex + 1) % owners.Count;
-                }
-            }
-
-            return owners[nextIndex];
         }
 
         public bool IsRoutePaidToBank(string routeId)
@@ -305,11 +278,6 @@ namespace YC.Presentation
             return "采集阶段：已选择 " + selectedLocationIds.Count + " 个资源点。点击航道支付或切换接收方，结束本回合后结算";
         }
 
-        public bool IsRouteSatisfied(string routeId, Func<string, bool> hasLocalRouteInfluence)
-        {
-            return (hasLocalRouteInfluence != null && hasLocalRouteInfluence(routeId)) || paidRouteIds.Contains(routeId);
-        }
-
         private bool IsLocationAvailableByPath(string locationId, Func<string, bool> isRoutePayable)
         {
             MapPath path;
@@ -328,19 +296,6 @@ namespace YC.Presentation
             }
 
             return true;
-        }
-
-        private static int IndexOf(IReadOnlyList<int> values, int target)
-        {
-            for (var i = 0; i < values.Count; i++)
-            {
-                if (values[i] == target)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
         }
     }
 

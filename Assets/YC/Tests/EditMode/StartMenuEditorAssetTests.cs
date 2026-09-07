@@ -50,68 +50,9 @@ namespace YC.Tests.EditMode
             Assert.That(Find(prefab.transform, "Join Room Panel"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Waiting Room Panel"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Message Panel"), Is.Not.Null);
-            Assert.That(Find(prefab.transform, "Loading Overlay"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Seat Template"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Creator Link Button"), Is.Not.Null);
             Assert.That(Find(prefab.transform, "Steam 双人验证 Button"), Is.Null);
-        }
-
-        [Test]
-        public void StartMenuPrefab_LoadingOverlayIsCompleteHiddenAndTopmost()
-        {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
-            Assert.That(prefab, Is.Not.Null);
-
-            var loadingType = Type.GetType(
-                "YC.Presentation.StartMenuLoadingPanelView, Assembly-CSharp",
-                false);
-            Assert.That(loadingType, Is.Not.Null);
-
-            var loading = prefab.GetComponentInChildren(loadingType, true) as MonoBehaviour;
-            Assert.That(loading, Is.Not.Null);
-            Assert.That(loading.gameObject.activeSelf, Is.False);
-            Assert.That(loading.transform.GetSiblingIndex(), Is.EqualTo(loading.transform.parent.childCount - 1));
-            var group = loading.GetComponent<CanvasGroup>();
-            var image = loading.GetComponent<Image>();
-            Assert.That(group, Is.Not.Null);
-            Assert.That(group.alpha, Is.EqualTo(0f));
-            Assert.That(image, Is.Not.Null);
-            Assert.That(image.color, Is.EqualTo(Color.black));
-
-            var arguments = new object[] { null };
-            var validate = loadingType.GetMethod("TryValidateConfiguration", BindingFlags.Public | BindingFlags.Instance);
-            Assert.That(validate, Is.Not.Null);
-            Assert.That(validate.Invoke(loading, arguments), Is.EqualTo(true), arguments[0] as string);
-
-            var viewType = Type.GetType("YC.Presentation.StartMenuView, Assembly-CSharp", false);
-            var view = prefab.GetComponentInChildren(viewType, true) as MonoBehaviour;
-            var viewData = new SerializedObject(view);
-            Assert.That(viewData.FindProperty("loadingPanel").objectReferenceValue, Is.SameAs(loading));
-        }
-
-        [Test]
-        public void StartMenuLoadingPanel_ShowBlocksInputWithFullScreenMask()
-        {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
-            var instance = Object.Instantiate(prefab);
-            try
-            {
-                var loadingType = Type.GetType(
-                    "YC.Presentation.StartMenuLoadingPanelView, Assembly-CSharp",
-                    true);
-                var loading = instance.GetComponentInChildren(loadingType, true) as MonoBehaviour;
-                Assert.That(loading, Is.Not.Null);
-
-                loadingType.GetMethod("ShowIndeterminate")?.Invoke(
-                    loading,
-                    new object[] { "正在创建房间", "正在初始化网络..." });
-                Assert.That(loading.gameObject.activeSelf, Is.True);
-                Assert.That(loading.GetComponent<CanvasGroup>().blocksRaycasts, Is.True);
-            }
-            finally
-            {
-                Object.DestroyImmediate(instance);
-            }
         }
 
         [Test]

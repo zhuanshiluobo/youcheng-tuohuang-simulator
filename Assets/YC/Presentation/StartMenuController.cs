@@ -247,11 +247,6 @@ namespace YC.Presentation
             {
                 var wasJoiningRoom = joiningRoom;
                 joiningRoom = false;
-                if (wasJoiningRoom)
-                {
-                    view.LoadingPanel.Hide();
-                }
-
                 if (wasJoiningRoom && roomStatusText == view.MessagePanel.MessageText)
                 {
                     ShowOperationError("联机操作失败", networkError);
@@ -362,7 +357,6 @@ namespace YC.Presentation
             {
                 if (this == null) return;
                 joiningRoom = false;
-                view.LoadingPanel.Hide();
                 ShowOperationError("创建房间失败", ex.Message);
             }
         }
@@ -400,7 +394,6 @@ namespace YC.Presentation
             view.CoverImage.texture = coverTexture;
             BindStaticUi();
             view.HideRoomPanels();
-            view.LoadingPanel.Hide();
             return true;
         }
 
@@ -549,7 +542,6 @@ namespace YC.Presentation
             {
                 if (this == null) return;
                 joiningRoom = false;
-                view.LoadingPanel.Hide();
                 SetRoomStatus("加入房间失败：" + ex.Message);
             }
         }
@@ -585,13 +577,11 @@ namespace YC.Presentation
                         result.Room != null && result.Room.LocalPlayerId == result.Room.HostPlayerId);
                     break;
                 case LobbyJoinRequestStatus.Failed:
-                    view.LoadingPanel.Hide();
                     ShowOperationError("加入受邀房间失败", result.Message);
                     break;
                 case LobbyJoinRequestStatus.Canceled:
                 case LobbyJoinRequestStatus.Deferred:
                 case LobbyJoinRequestStatus.None:
-                    view.LoadingPanel.Hide();
                     view.HideRoomPanels();
                     roomPanel = null;
                     roomStatusText = null;
@@ -606,12 +596,10 @@ namespace YC.Presentation
         {
             if (room == null)
             {
-                view.LoadingPanel.Hide();
                 ShowOperationError("房间状态不可用", "没有收到有效的房间信息，请重试。");
                 return;
             }
 
-            view.LoadingPanel.Hide();
             view.HideRoomPanels();
             var panel = view.RoomPanel;
             panel.gameObject.SetActive(true);
@@ -835,7 +823,6 @@ namespace YC.Presentation
         {
             loadingGame = false;
             SceneTransitionContext.Clear();
-            view.LoadingPanel.Hide();
             ShowOperationError(title, message);
         }
 
@@ -859,7 +846,6 @@ namespace YC.Presentation
 
         private void HideRoomPanel()
         {
-            view.LoadingPanel.Hide();
             view.HideRoomPanels();
             roomPanel = null;
             ClearRoomSeatRows();
@@ -871,7 +857,6 @@ namespace YC.Presentation
 
         private void ShowOperationError(string title, string message)
         {
-            view.LoadingPanel.Hide();
             view.HideRoomPanels();
             var panel = view.MessagePanel;
             panel.gameObject.SetActive(true);
@@ -887,7 +872,6 @@ namespace YC.Presentation
 
         private void ShowRoomDisbandedPanel()
         {
-            view.LoadingPanel.Hide();
             view.HideRoomPanels();
             var panel = view.MessagePanel;
             panel.gameObject.SetActive(true);

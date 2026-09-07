@@ -162,11 +162,6 @@ namespace YC.Domain.Facilities
             return false;
         }
 
-        public bool HasLegalRemoveOrExplore(GameState state, int playerId)
-        {
-            return GetRemoveOrExploreOptions(state, playerId).Count > 0;
-        }
-
         public List<string> GetRemoveOrExploreOptions(GameState state, int playerId)
         {
             ValidateState(state);
