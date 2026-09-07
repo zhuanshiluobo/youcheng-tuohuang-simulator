@@ -350,6 +350,8 @@ namespace YC.EditorTools
                 var layout = contentObject.GetComponent<VerticalLayoutGroup>();
                 layout.spacing = 10f;
                 layout.padding = new RectOffset(8, 8, 8, 8);
+                layout.childControlWidth = true;
+                layout.childForceExpandWidth = true;
                 layout.childControlHeight = true;
                 layout.childForceExpandHeight = false;
                 contentObject.GetComponent<ContentSizeFitter>().verticalFit =

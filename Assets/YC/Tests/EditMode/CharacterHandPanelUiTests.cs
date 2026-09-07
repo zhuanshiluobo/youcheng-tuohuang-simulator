@@ -83,7 +83,7 @@ namespace YC.Tests.EditMode
             Assert.That(hoverHitArea, Is.Not.Null);
             Assert.That(hoverHitArea.GetComponent<Image>().raycastTarget, Is.True);
             Assert.That(((RectTransform)hoverHitArea).offsetMax.y,
-                Is.EqualTo(97.25f).Within(0.01f));
+                Is.EqualTo(0f).Within(0.01f), "悬停命中范围不得延伸到卡牌弹出后的区域。");
             Assert.That(prefabPanel.View.HandCardsAnimation, Is.Not.Null);
             Assert.That(prefabPanel.View.HandCardsAnimation.clip.name,
                 Is.EqualTo("CharacterHandReveal"));
