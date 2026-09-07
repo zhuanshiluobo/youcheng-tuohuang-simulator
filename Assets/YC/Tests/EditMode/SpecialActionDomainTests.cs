@@ -8,6 +8,33 @@ namespace YC.Tests.EditMode
     public sealed class SpecialActionDomainTests
     {
         [Test]
+        public void MilitaryGroup_AllMarkersMoveAndResetTogether()
+        {
+            var state = CreateStateWithUnlockedMarker(SpecialActionDatabase.MilitaryIndustrialArea,
+                CityStyleDatabase.MilitaryIndustrialArea, CityStyleMarkerAreas.Unused, 1);
+            var player = state.Players[0];
+            player.DeclaredCityStyles.Add(new CityStyleDeclarationState {
+                InfluenceMarkerId = "marker-2", CityStyleId = CityStyleDatabase.MilitaryIndustrialArea,
+                MarkerArea = CityStyleMarkerAreas.Declared,
+                UnlockedSpecialActionId = string.Empty,
+                RemainingSpecialActionUses = 0 });
+            var lifecycle = new SpecialActionLifecycleService();
+            lifecycle.MarkActivated(player, SpecialActionDatabase.Get(SpecialActionDatabase.MilitaryIndustrialArea), "marker");
+            foreach (var marker in player.DeclaredCityStyles)
+            {
+                Assert.That(marker.MarkerArea, Is.EqualTo(CityStyleMarkerAreas.Used));
+                Assert.That(marker.RemainingSpecialActionUses, Is.Zero);
+            }
+            lifecycle.CleanupRound(state);
+            foreach (var marker in player.DeclaredCityStyles)
+            {
+                var isActionMarker = !string.IsNullOrEmpty(marker.UnlockedSpecialActionId);
+                Assert.That(marker.MarkerArea, Is.EqualTo(isActionMarker ? CityStyleMarkerAreas.Unused : CityStyleMarkerAreas.Declared));
+                Assert.That(marker.RemainingSpecialActionUses, Is.EqualTo(isActionMarker ? 1 : 0));
+            }
+        }
+
+        [Test]
         public void Database_DefinesFiveCardActionsAndFrozenCosts()
         {
             Assert.That(SpecialActionDatabase.All.Count, Is.EqualTo(5));

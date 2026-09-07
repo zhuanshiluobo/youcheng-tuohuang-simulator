@@ -32,6 +32,34 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void MilitaryMarkerGroup_DragsAllMarkersAndSubmitsOnce()
+        {
+            var submissions = 0;
+            ShowDialog(string.Empty, (action, marker, a, b) => { submissions++; return true; },
+                CityStyleDatabase.MilitaryIndustrialArea, SpecialActionDatabase.MilitaryIndustrialArea,
+                0, 0, 3);
+            var canvas = GameObject.Find("City Style Declaration Preview Canvas");
+            var markerTransform = FindTransform(canvas, "样式预览影响力 玩家1 标记1");
+            var pointer = markerTransform.GetComponent(
+                Type.GetType("YC.Presentation.CardPointerInteraction, Assembly-CSharp", true));
+            InvokePointer(pointer, "OnBeginDrag", CreatePointerEvent(canvas));
+            var ghost = GameObject.Find("特殊行动影响力拖动虚影");
+            Assert.That(ghost.GetComponentsInChildren<Image>().Length, Is.EqualTo(3));
+            var images = ghost.GetComponentsInChildren<Image>();
+            Assert.That(images[0].sprite, Is.Null);
+            Assert.That(ghost.GetComponentsInChildren(Type.GetType("YC.Presentation.MapPieceVisual, Assembly-CSharp", true)).Length, Is.EqualTo(3));
+            Assert.That(images[0].rectTransform.anchoredPosition,
+                Is.Not.EqualTo(images[1].rectTransform.anchoredPosition));
+            var invalid = CreatePointerEvent(canvas);
+            invalid.position = new Vector2(-1000f, -1000f);
+            InvokePointer(pointer, "OnEndDrag", invalid);
+            Assert.That(submissions, Is.Zero);
+            Assert.That(markerTransform.GetComponentInChildren(Type.GetType("YC.Presentation.MapPieceVisual, Assembly-CSharp", true)), Is.Not.Null);
+            DropMarkerOnLegalTarget(canvas);
+            Assert.That(submissions, Is.EqualTo(1));
+        }
+
+        [Test]
         public void MarkerDrag_RejectsInvalidDropAndSubmitsOnlyOnItsLegalHighlightedArea()
         {
             var submissionCount = 0;
@@ -322,7 +350,8 @@ namespace YC.Tests.EditMode
             string cityStyleId,
             string specialActionId,
             int maximumOriginium,
-            int maximumIron)
+            int maximumIron,
+            int markerCount = 1)
         {
             host = new GameObject("Special Action Preview Test Host", typeof(RectTransform));
             var marker = new CityStyleMarkerViewModel(
@@ -338,6 +367,12 @@ namespace YC.Tests.EditMode
                 warning,
                 maximumOriginium,
                 maximumIron);
+            var markers = new List<CityStyleMarkerViewModel> { marker };
+            for (var i = 1; i < markerCount; i++)
+                markers.Add(new CityStyleMarkerViewModel(cityStyleId, 1, PlayerColor.Red,
+                    CityStyleMarkerAreas.Declared, "marker-1", specialActionId,
+                    true, CityStyleMarkerAreas.Used, string.Empty, warning,
+                    maximumOriginium, maximumIron));
             var model = new CityStyleOptionsViewModel(
                 new List<CityStyleOptionViewModel>
                 {
@@ -357,7 +392,7 @@ namespace YC.Tests.EditMode
                     }
                 }.AsReadOnly(),
                 new List<CityBoardSlotViewModel>().AsReadOnly(),
-                new List<CityStyleMarkerViewModel> { marker }.AsReadOnly(),
+                markers.AsReadOnly(),
                 cityStyleId,
                 null,
                 null,

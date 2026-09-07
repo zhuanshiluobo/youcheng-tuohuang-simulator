@@ -35,6 +35,9 @@ namespace YC.Presentation
         [SerializeField] private float buildInfoMarkerSizePixels;
         [SerializeField] private float declarationPreviewMarkerSizePixels;
 
+        [SerializeField] private GameObject influencePiecePrefab;
+        public GameObject InfluencePiecePrefab => influencePiecePrefab;
+
         public string SourceManifestSha256 => sourceManifestSha256;
         public int CityBoardSlotCount => cityBoardSlotCenters == null ? 0 : cityBoardSlotCenters.Length;
         public float CityBoardSlotWidthRatio => cityBoardSlotWidthRatio;

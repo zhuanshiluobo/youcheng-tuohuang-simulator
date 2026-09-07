@@ -738,6 +738,13 @@ namespace YC.Presentation
             }
 
             var markerLayout = new CityStyleMarkerLayoutTracker(cardBoardVisualLayout);
+            foreach (var player in currentState.Players)
+            {
+                if (player == null || player.DeclaredCityStyles == null) continue;
+                foreach (var declaration in player.DeclaredCityStyles)
+                    if (declaration != null && declaration.CityStyleId == cityStyleId)
+                        markerLayout.Register(cityStyleId, declaration.MarkerArea, player.PlayerId);
+            }
             for (var playerIndex = 0; playerIndex < currentState.Players.Count; playerIndex++)
             {
                 var player = currentState.Players[playerIndex];

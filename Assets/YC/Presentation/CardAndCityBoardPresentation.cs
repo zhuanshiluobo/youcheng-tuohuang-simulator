@@ -95,6 +95,7 @@ namespace YC.Presentation
             AreaMarkerIndex = areaMarkerIndex;
             PlayerLaneIndex = playerLaneIndex;
             PlayerMarkerIndex = playerMarkerIndex;
+            PlayerMarkerCount = 3;
         }
 
         public string MarkerArea { get; private set; }
@@ -104,6 +105,8 @@ namespace YC.Presentation
         public int PlayerLaneIndex { get; private set; }
 
         public int PlayerMarkerIndex { get; private set; }
+
+        public int PlayerMarkerCount { get; set; }
     }
 
     internal sealed class CityStyleMarkerLayoutTracker
@@ -126,6 +129,15 @@ namespace YC.Presentation
             }
 
             this.layout = layout;
+        }
+
+        private readonly Dictionary<string, int> totals = new Dictionary<string, int>();
+
+        public void Register(string cityStyleId, string markerArea, int playerId)
+        {
+            var key = cityStyleId + ":" + CityStyleMarkerRenderer.ResolveDisplayArea(cityStyleId, markerArea) + ":" + playerId;
+            totals.TryGetValue(key, out var count);
+            totals[key] = count + 1;
         }
 
         public CityStyleMarkerPlacement Next(string cityStyleId, string markerArea, int playerId)
@@ -154,11 +166,12 @@ namespace YC.Presentation
             }
 
             countsForPlayer[displayArea] = playerMarkerIndex + 1;
+            totals.TryGetValue(cityStyleId + ":" + displayArea + ":" + playerId, out var total);
             return new CityStyleMarkerPlacement(
                 displayArea,
                 areaMarkerIndex,
                 CityStyleMarkerRenderer.ResolvePlayerLaneIndex(layout, playerId),
-                playerMarkerIndex);
+                playerMarkerIndex) { PlayerMarkerCount = Mathf.Max(1, total) };
         }
     }
 
@@ -166,6 +179,9 @@ namespace YC.Presentation
     {
         public static string ResolveDisplayArea(string cityStyleId, string markerArea)
         {
+            if (cityStyleId == CityStyleDatabase.MilitaryIndustrialArea &&
+                (string.IsNullOrEmpty(markerArea) || markerArea == CityStyleMarkerAreas.Declared))
+                return CityStyleMarkerAreas.Unused;
             return string.IsNullOrEmpty(markerArea)
                 ? CityStyleMarkerAreas.Declared
                 : markerArea;
@@ -212,40 +228,34 @@ namespace YC.Presentation
         }
 
         public static Vector2 ResolveAnchor(
-            CardBoardVisualLayout layout,
-            string cityStyleId,
-            string markerArea,
-            int areaMarkerIndex,
-            int playerLaneIndex,
-            int playerMarkerIndex)
+            CardBoardVisualLayout layout, string cityStyleId, string markerArea,
+            int areaMarkerIndex, int playerLaneIndex, int playerMarkerIndex)
+        {
+            return ResolveGroupAnchor(layout, cityStyleId, markerArea,
+                areaMarkerIndex, playerLaneIndex, playerMarkerIndex, 3);
+        }
+
+        private static Vector2 ResolveGroupAnchor(
+            CardBoardVisualLayout layout, string cityStyleId, string markerArea,
+            int areaMarkerIndex, int playerLaneIndex, int playerMarkerIndex,
+            int playerMarkerCount)
         {
             RequireLayout(layout);
-            if (cityStyleId == CityStyleDatabase.MilitaryIndustrialArea &&
-                markerArea == CityStyleMarkerAreas.Unused)
+            var definition = CityStyleDatabase.Get(cityStyleId);
+            var isLevelOne = definition != null && definition.Level < 2;
+            // 同一玩家固定在同一列；移入已使用区不会横向跳位。
+            var lane = Mathf.Clamp(playerLaneIndex, 0, layout.MilitaryUnusedPlayerLaneCount - 1);
+            var x = layout.MilitaryUnusedFirstLaneX + lane * layout.MilitaryUnusedLaneSpacingX;
+            if (isLevelOne)
             {
-                // Four player lanes and three marker rows fit the compact 143x91 card preview.
-                var laneIndex = Mathf.Clamp(
-                    playerLaneIndex,
-                    0,
-                    layout.MilitaryUnusedPlayerLaneCount - 1);
-                var rowIndex = Mathf.Clamp(
-                    playerMarkerIndex,
-                    0,
-                    layout.MilitaryUnusedMarkerRowCount - 1);
-                return new Vector2(
-                    layout.MilitaryUnusedFirstLaneX + laneIndex * layout.MilitaryUnusedLaneSpacingX,
-                    layout.MilitaryUnusedFirstMarkerY - rowIndex * layout.MilitaryUnusedMarkerSpacingY);
+                var top = markerArea == CityStyleMarkerAreas.Used ? 0.40f : 0.84f;
+                var spacing = 0.28f / Mathf.Max(2, playerMarkerCount - 1);
+                return new Vector2(x, top - Mathf.Clamp(playerMarkerIndex, 0, Mathf.Max(2, playerMarkerCount - 1)) * spacing);
             }
 
             var baseAnchor = layout.GetMarkerAreaAnchor(markerArea);
-
-            return new Vector2(
-                baseAnchor.x +
-                (areaMarkerIndex % layout.RegularMarkerColumnCount) *
-                layout.RegularMarkerColumnSpacingX,
-                baseAnchor.y -
-                (areaMarkerIndex / layout.RegularMarkerColumnCount) *
-                layout.RegularMarkerRowSpacingY);
+            return new Vector2(x,
+                baseAnchor.y + 0.025f - playerMarkerIndex * 0.05f / Mathf.Max(1, playerMarkerCount - 1));
         }
 
         public static void Configure(
@@ -260,26 +270,37 @@ namespace YC.Presentation
         {
             RequireLayout(layout);
             var rect = marker.rectTransform;
-            var anchor = ResolveAnchor(
+            var anchor = ResolveGroupAnchor(
                 layout,
                 cityStyleId,
                 placement.MarkerArea,
                 placement.AreaMarkerIndex,
                 placement.PlayerLaneIndex,
-                placement.PlayerMarkerIndex);
+                placement.PlayerMarkerIndex,
+                placement.PlayerMarkerCount);
             rect.anchorMin = anchor;
             rect.anchorMax = anchor;
             rect.pivot = new Vector2(0.5f, 0.5f);
+            var definition = CityStyleDatabase.Get(cityStyleId);
+            var parentRect = rect.parent as RectTransform;
+            var isLevelOne = definition != null && definition.Level < 2;
+            var rowSpacing = isLevelOne
+                ? 0.28f / Mathf.Max(2, placement.PlayerMarkerCount - 1)
+                : 0.05f / Mathf.Max(1, placement.PlayerMarkerCount - 1);
+            if (parentRect != null && parentRect.rect.height > 0f)
+                size *= Mathf.Min(1f, parentRect.rect.height * rowSpacing * 0.85f / size.y);
             rect.sizeDelta = size;
             rect.anchoredPosition = Vector2.zero;
             rect.anchoredPosition3D = Vector3.zero;
             rect.localRotation = Quaternion.identity;
             rect.localScale = Vector3.one;
             marker.gameObject.name = objectName;
-            marker.sprite = sprite;
+            marker.sprite = null;
+            marker.preserveAspect = true;
             marker.color = color;
             marker.raycastTarget = false;
             marker.gameObject.SetActive(true);
+            InfluenceModelUiAnchor.Configure(marker, layout.InfluencePiecePrefab, color);
             var outline = marker.GetComponent<Outline>();
             if (outline != null)
             {

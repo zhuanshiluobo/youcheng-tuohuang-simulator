@@ -572,7 +572,10 @@ namespace YC.Presentation
                 renderer.sprite = sprites.EmptyInfluenceSlot;
                 renderer.enabled = false;
                 pieceVisual.SetGhosted(true);
-                pieceVisual.SetPlayerColor(new Color(0.28f, 0.78f, 1f, 0.5f));
+                // 临时支付沿用玩家阵营色，提亮并保持半透明。
+                var previewColor = Color.Lerp(GetPlayerColor(state, previewPlayerId, 1f), Color.white, 0.35f);
+                previewColor.a = 0.5f;
+                pieceVisual.SetPlayerColor(previewColor);
                 pieceVisual.SetVisible(true);
             }
             else

@@ -202,6 +202,10 @@ namespace YC.Editor
                     "由 manifest 生成的 CardBoardVisualLayout 无效：" + reason);
             }
 
+            var serializedLayout = new SerializedObject(layout);
+            serializedLayout.FindProperty("influencePiecePrefab").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<GameObject>(YC.EditorTools.MapViewEditorAssetBuilder.InfluencePiecePrefabPath);
+            serializedLayout.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(layout);
         }
 

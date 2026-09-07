@@ -211,7 +211,8 @@ namespace YC.Tests.EditMode
                 null,
                 new object[] { layout, "style.test", CityStyleMarkerAreas.UsesZero, 0, 0, 0 });
             Assert.That(unused.y, Is.GreaterThan(used.y));
-            Assert.That(secondInArea.x - used.x, Is.EqualTo(0.055f).Within(0.0001f));
+            Assert.That(secondInArea.x, Is.EqualTo(used.x).Within(0.0001f));
+            Assert.That(secondInArea.y, Is.LessThan(used.y));
             Assert.That(usesTwo.y, Is.GreaterThan(usedFromTwo.y));
             Assert.That(usedFromTwo.y, Is.GreaterThan(usesOne.y));
             Assert.That(usesOne.y, Is.GreaterThan(usedFromOne.y));
@@ -481,14 +482,14 @@ namespace YC.Tests.EditMode
 
             Assert.That(
                 GetPublicProperty<string>(playerOneFirst, "MarkerArea"),
-                Is.EqualTo(CityStyleMarkerAreas.Declared));
+                Is.EqualTo(CityStyleMarkerAreas.Unused));
             Assert.That(GetPublicProperty<int>(playerOneFirst, "PlayerLaneIndex"), Is.Zero);
             Assert.That(GetPublicProperty<int>(playerOneFirst, "PlayerMarkerIndex"), Is.Zero);
             Assert.That(GetPublicProperty<int>(playerOneSecond, "PlayerLaneIndex"), Is.Zero);
             Assert.That(
                 GetPublicProperty<int>(playerOneSecond, "PlayerMarkerIndex"),
-                Is.Zero,
-                "军工化区域的已宣告区与未使用区应分别布局，不再把后续宣告标记重映射到未使用区。");
+                Is.EqualTo(1),
+                "军工化的行动标记与后续数量标记应共用一列，避免位置重叠。");
             Assert.That(GetPublicProperty<int>(playerTwoFirst, "PlayerLaneIndex"), Is.EqualTo(1));
             Assert.That(GetPublicProperty<int>(playerTwoFirst, "PlayerMarkerIndex"), Is.Zero);
 

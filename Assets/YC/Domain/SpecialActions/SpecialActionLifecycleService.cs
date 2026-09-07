@@ -86,6 +86,22 @@ namespace YC.Domain.SpecialActions
             {
                 declaration.MarkerArea = CityStyleMarkerAreas.Used;
                 declaration.RemainingSpecialActionUses = 0;
+                // 军工化按整张卡的宣告数量结算，全部己方可用标记共同发动一次。
+                if (definition.SpecialActionId == SpecialActionDatabase.MilitaryIndustrialArea)
+                {
+                    foreach (var marker in player.DeclaredCityStyles)
+                    {
+                        if (marker != null && marker.CityStyleId == definition.CityStyleId &&
+                            (marker.MarkerArea == CityStyleMarkerAreas.Declared ||
+                             (marker.UnlockedSpecialActionId == definition.SpecialActionId &&
+                              marker.MarkerArea == CityStyleMarkerAreas.Unused &&
+                              marker.RemainingSpecialActionUses > 0)))
+                        {
+                            marker.MarkerArea = CityStyleMarkerAreas.Used;
+                            marker.RemainingSpecialActionUses = 0;
+                        }
+                    }
+                }
             }
         }
 
@@ -117,6 +133,11 @@ namespace YC.Domain.SpecialActions
                 for (var declarationIndex = 0; declarationIndex < player.DeclaredCityStyles.Count; declarationIndex++)
                 {
                     var declaration = player.DeclaredCityStyles[declarationIndex];
+                    // 后续宣告只是军工数量标记，不额外解锁一次行动。
+                    if (declaration != null && declaration.CityStyleId == CityStyleDatabase.MilitaryIndustrialArea &&
+                        string.IsNullOrEmpty(declaration.UnlockedSpecialActionId) &&
+                        declaration.MarkerArea == CityStyleMarkerAreas.Used)
+                        declaration.MarkerArea = CityStyleMarkerAreas.Declared;
                     if (declaration == null || string.IsNullOrEmpty(declaration.UnlockedSpecialActionId))
                     {
                         continue;

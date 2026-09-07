@@ -25,6 +25,10 @@ namespace YC.Presentation
             new List<SpecialActionDropTargetBinding>();
         private readonly SpecialActionChoiceDialog specialActionPaymentDialog;
 
+        private readonly Dictionary<Image, CityStyleMarkerViewModel> markerModels =
+            new Dictionary<Image, CityStyleMarkerViewModel>();
+        private readonly List<Image> draggedMarkerImages = new List<Image>();
+
         private CityStyleOptionsViewModel model;
         private CityStyleDeclarationPreviewView view;
         private GameObject previewCanvasObject;
@@ -268,11 +272,16 @@ namespace YC.Presentation
 
         private void RenderCityStyleInfluenceMarkers(string cityStyleId)
         {
+            CancelSpecialActionDrag();
+            markerModels.Clear();
             var displayIndex = 0;
             var markerLayout = new CityStyleMarkerLayoutTracker(view.CardBoardVisualLayout);
             var markers = model == null ? null : model.CityStyleMarkers;
             if (!string.IsNullOrEmpty(cityStyleId) && markers != null)
             {
+                foreach (var marker in markers)
+                    if (marker != null && marker.CityStyleId == cityStyleId)
+                        markerLayout.Register(marker.CityStyleId, marker.MarkerArea, marker.PlayerId);
                 for (var markerIndex = 0; markerIndex < markers.Count; markerIndex++)
                 {
                     var marker = markers[markerIndex];
@@ -317,6 +326,7 @@ namespace YC.Presentation
                 view.CardBoardVisualLayout.DeclarationPreviewMarkerSize,
                 markerModel.CityStyleId,
                 placement);
+            markerModels[marker] = markerModel;
             marker.raycastTarget = markerModel.CanDragForSpecialAction;
             var markerButton = marker.GetComponent<Button>();
             markerButton.transition = Selectable.Transition.None;
@@ -499,16 +509,32 @@ namespace YC.Presentation
             if (specialActionDragGhost != null)
             {
                 specialActionDragGhost.gameObject.name = "特殊行动影响力拖动虚影";
-                var ghostImage = specialActionDragGhost.GetComponent<RawImage>();
-                if (ghostImage != null)
+                specialActionDragGhost.GetComponent<RawImage>().enabled = false;
+                foreach (var pair in markerModels)
                 {
-                    ghostImage.color = markerImage.color;
-                }
-
-                var fallback = specialActionDragGhost.GetComponentInChildren<Text>();
-                if (fallback != null)
-                {
-                    fallback.gameObject.SetActive(false);
+                    var candidate = pair.Value;
+                    var sameGroup = candidate == markerModel ||
+                        (markerModel.SpecialActionId == SpecialActionDatabase.MilitaryIndustrialArea &&
+                         candidate.SpecialActionId == markerModel.SpecialActionId &&
+                         candidate.CityStyleId == markerModel.CityStyleId &&
+                         candidate.PlayerId == markerModel.PlayerId &&
+                         candidate.CanDragForSpecialAction);
+                    if (!sameGroup) continue;
+                    var source = pair.Key;
+                    var ghostObject = new GameObject("影响力拖动组成员", typeof(RectTransform), typeof(Image));
+                    var image = ghostObject.GetComponent<Image>();
+                    image.transform.SetParent(specialActionDragGhost, false);
+                    image.rectTransform.sizeDelta = source.rectTransform.rect.size;
+                    image.rectTransform.anchoredPosition =
+                        canvasRect.InverseTransformPoint(source.transform.position) -
+                        canvasRect.InverseTransformPoint(markerImage.transform.position);
+                    image.sprite = source.sprite;
+                    image.color = source.color;
+                    image.preserveAspect = true;
+                    image.raycastTarget = false;
+                    InfluenceModelUiAnchor.Configure(image, view.CardBoardVisualLayout.InfluencePiecePrefab, source.color);
+                    source.GetComponent<InfluenceModelUiAnchor>().SetVisible(false);
+                    draggedMarkerImages.Add(source);
                 }
 
                 FacilityCardDragUtility.MoveDragGhost(specialActionDragGhost, eventData);
@@ -737,6 +763,11 @@ namespace YC.Presentation
 
         private void CancelSpecialActionDrag()
         {
+            foreach (var image in draggedMarkerImages)
+            {
+                if (image != null) image.GetComponent<InfluenceModelUiAnchor>().SetVisible(true);
+            }
+            draggedMarkerImages.Clear();
             FacilityCardDragUtility.DestroyDragGhost(ref specialActionDragGhost);
             draggedSpecialActionMarker = null;
             SetSpecialActionDropTargetsVisible(string.Empty, false);

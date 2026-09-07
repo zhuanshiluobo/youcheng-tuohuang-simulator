@@ -285,13 +285,25 @@ namespace YC.Presentation.Workflows
                             continue;
                         }
 
+                        var actionDeclaration = declaration;
+                        if (declaration.CityStyleId == CityStyleDatabase.MilitaryIndustrialArea)
+                        {
+                            // 军工数量标记共用首次宣告的行动入口，拖动任一枚仍只发动一次。
+                            foreach (var candidate in player.DeclaredCityStyles)
+                                if (candidate != null && candidate.CityStyleId == declaration.CityStyleId &&
+                                    candidate.UnlockedSpecialActionId == SpecialActionDatabase.MilitaryIndustrialArea)
+                                {
+                                    actionDeclaration = candidate;
+                                    break;
+                                }
+                        }
                         var specialActionOption = player.PlayerId == localPlayerId
                             ? specialActionOptions.Find(
-                                declaration.UnlockedSpecialActionId,
-                                declaration.InfluenceMarkerId)
+                                actionDeclaration.UnlockedSpecialActionId,
+                                actionDeclaration.InfluenceMarkerId)
                             : null;
                         var specialActionDefinition = SpecialActionDatabase.Get(
-                            declaration.UnlockedSpecialActionId);
+                            actionDeclaration.UnlockedSpecialActionId);
                         result.Add(new CityStyleMarkerViewModel(
                             declaration.CityStyleId,
                             player.PlayerId,
@@ -299,14 +311,14 @@ namespace YC.Presentation.Workflows
                             string.IsNullOrEmpty(declaration.MarkerArea)
                                 ? CityStyleMarkerAreas.Declared
                                 : declaration.MarkerArea,
-                            declaration.InfluenceMarkerId,
-                            declaration.UnlockedSpecialActionId,
+                            actionDeclaration.InfluenceMarkerId,
+                            actionDeclaration.UnlockedSpecialActionId,
                             specialActionOption != null &&
                             specialActionOption.CanUse &&
                             string.IsNullOrEmpty(interactionUnavailableReason),
                             ResolveSpecialActionDropArea(
                                 specialActionDefinition,
-                                declaration.RemainingSpecialActionUses),
+                                actionDeclaration.RemainingSpecialActionUses),
                             !string.IsNullOrEmpty(interactionUnavailableReason) &&
                             specialActionOption != null
                                 ? interactionUnavailableReason
