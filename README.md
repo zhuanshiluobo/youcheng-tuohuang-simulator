@@ -1,83 +1,157 @@
 # 游城拓荒模拟器
 
-《游城拓荒：铸基者》2D Unity 模拟器项目。项目将基础版规则转化为可运行、可验证、可扩展的数字规则系统；仅用于学习、研究和开发实践，不涉及商业用途。
+《游城拓荒：铸基者》的 2D Unity 模拟器，面向基础版规则模拟与开发实践。项目将地图、卡牌、行动和计分规则转化为可运行的数字对局，支持本地四人热座，以及仍待完整验收的联机流程。
 
-## 版本信息
+> **当前为 Alpha 开发阶段，并非已完成发布验收的成品。** 正式规则范围为标准四人地图与四人基础版流程；三人地图仅预留入口，不支持正式对局。本项目仅用于学习、研究和开发实践，不涉及商业用途。
 
-- 当前 Alpha：`v0.4.2-alpha`；Unity `Application.version` / `PlayerSettings.bundleVersion` 为 `0.4.2-alpha`。
-- 产品名称：`游城拓荒模拟器`。
-- 公司/组织标识：`zhuanshiluobo`。
-- Windows Release 目录：`Builds/v0.4.2-alpha/`，主程序为 `tuohuang.exe`。
-- Windows Development 验收目录：`Builds/LocalhostDevelopment/`，不作为另一套版本号。
-- 本版本说明：[发布说明 v0.4.2-alpha](docs/概览/发布说明_v0.4.2-alpha.md)。
+## 项目概况
 
-## 当前状态
+| 项目 | 说明 |
+| --- | --- |
+| 项目版本 | `0.4.2-alpha`（取自 `ProjectSettings/ProjectSettings.asset`） |
+| Unity 版本 | `2022.3.62f2c1` |
+| 开发与验证平台 | Windows |
+| 本地模式 | 四人热座，无需 Steam |
+| Steam 联机 | Steam Lobby + Mirror + FizzySteamworks，Host 权威结算；真实多账号验收尚未完成 |
+| 本地联机测试 | Mirror + Telepathy，同一台电脑可运行多个实例，无需多个 Steam 账号 |
+| 当前状态文档 | [项目总览](docs/概览/项目总览.md)与[发布检查清单](docs/概览/发布检查清单.md) |
 
-- Unity：`2022.3.62f2c1`
-- **当前规则支持范围：标准四人地图与四人基础版流程。** 三人地图仍是 placeholder，不能作为已支持的正式模式。
-- 五种基础城市样式特殊行动已完成 Host 权威规则结算、待处理会话与自动化交互闭环；人工 UI、三/四席多进程和真实 Steam P2P/Relay 验收尚未完成。
-- Steam Lobby + Mirror/FizzySteamworks 联机 MVP 已接入；Mirror/Telepathy 可用于本地多实例命令同步验证。
-- 2026-09-03 已重新运行完整 Unity EditMode：**`1014/1014 Passed`**，失败 `0`、跳过 `0`，耗时约 `28.9` 秒（任务 `06d770a182c540868e93d1ad9557373a`）。
-- 保留日志中最近一次完整 Windows Player 构建证据为 2026-08-11 的 `Release030Alpha` 成功构建；它早于当前工作树，**不构成当前版本发布验收**。
+## 快速开始
 
-## 当前能力
+### 1. 获取并打开工程
 
-- 分层规则核心：`Domain`、`Application`、`Infrastructure`、`Presentation` 与 EditMode 测试程序集。
-- 固定阶段流、命令校验、初始入场、四人地图、路线/路费、红区、影响力、移动、部署、调度、探索、建设、采集、收尾与最终计分。
-- 41 张正式建设牌数据、设施待选结算、五张标准角色牌、城市样式旋转匹配及五种特殊行动。
-- 城市样式/特殊行动、事件、角色、主题、网络运行时根和地图反馈均已接入持久化资产与生产 Prefab/Bootstrap。
-- Host 权威命令、状态快照同步、等待房间开局门禁，以及本地多实例验证模式。
+准备 Git 和 Unity `2022.3.62f2c1`；如需生成 Windows 程序，还需安装对应的 Windows 构建支持模块。
 
-## 已知限制
-
-- 三人地图缺少真实规则数据。
-- 特殊行动的人工 UI 冒烟、Host + 两个 Client 专项三席、Host + 三个 Client 标准四席，以及真实 Steam 多账号 P2P/Relay 验收未执行。
-- 存档、完整回放、日志详情、多人入场体验、企业扩展角色与正式对局 UI 未完成。
-
-## 文档入口
-
-当前状态只维护在以下三个入口；不要从历史工作记录、旧测试数字、静态行数或构造数量推断当前实现。
-
-1. [项目总览](docs/概览/项目总览.md)：唯一当前事实源，记录能力范围、验证基线、构建状态和已知限制。
-2. [发布检查清单](docs/概览/发布检查清单.md)：发布前的测试、构建、人工验收和已知问题收口项。
-3. [文档索引](docs/README.md)：文档分类、事实源优先级和历史资料使用规则。
-
-常用辅助资料：
-
-- [项目术语表](docs/规则/项目术语表.md)
-- [规则总结](docs/规则/规则总结.md)
-- [总体架构](docs/架构/总体架构.md)
-- [EditMode 命令行跑测](docs/指南/EditMode命令行跑测.md)
-- [联机手册](docs/指南/联机手册.md)
-
-## 工程目录
-
-```text
-Assets/YC/
-  Domain/          纯规则、纯状态、纯查询，不依赖 UnityEngine
-  Application/     GameSession、命令分发、流程编排
-  Infrastructure/  联网、回放、后续存档与数据加载
-  Presentation/    Unity UI、地图显示、输入适配
-  Data/            地图、图片、图标和后续数据资产
-  Editor/          编辑器导入与辅助工具
-  Tests/EditMode/  规则和流程测试
-
-docs/
-  README.md        文档总入口与维护规则
-  概览/            当前事实源与发布检查清单
-  规则/            规则总结、术语和牌面文字
-  架构/            总体架构与程序模块设计
-  设计/            交互与流程设计目标
-  指南/            测试、诊断、自动跑局和联机操作
-  工作记录/        按日期归档的历史实现和验收记录
+```powershell
+git clone https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator.git
+cd youcheng-tuohuang-simulator
 ```
 
-## 测试
+在 Unity Hub 中添加并打开**仓库根目录**，即同时包含 `Assets/`、`Packages/` 和 `ProjectSettings/` 的目录。
 
-统一使用仓库脚本运行 Unity EditMode 测试：
+首次打开时等待依赖解析、资源导入和脚本编译完成。部分依赖通过 GitHub 与 OpenUPM 获取，需要能够访问这些服务；具体依赖以 `Packages/manifest.json` 为准。
+
+### 2. 启动本地对局
+
+1. 打开 `Assets/Scenes/StartScene.unity`。
+2. 点击 Unity 的运行按钮，进入 Play Mode。
+3. 在开始页点击“本地游戏”，然后选择“四人地图”。
+4. 按界面提示完成初始入场并推进对局。
+
+本地游戏不会初始化 Steam，也不会启动 Mirror。“三人地图”只预留入口，不会进入正式对局。
+
+### 3. 选择联机方式
+
+| 方式 | 使用流程 | 注意事项 |
+| --- | --- | --- |
+| Steam 联机 | 各玩家登录不同 Steam 账号；房主点击“创建联机”并选择“四人地图”，其他玩家通过 Lobby ID 加入或接受邀请 | 使用开发测试 AppID `480`；可执行文件旁需有对应的 `steam_appid.txt`；Editor 中须关闭 Mirror 本地测试模式 |
+| 本地多实例测试 | Editor 中启用 `YC/联机测试/启用 Mirror 本地测试模式`，创建四人房；另外启动三个带本地测试参数的 Development Build Client 加入 | 仅用于开发验证，不需要 Steam；结束后关闭本地测试开关，以恢复 Steam 模式 |
+
+房主需要等待所有席位完成 Lobby 加入、传输连接和身份验证后才能开始，**人数已满不等于已就绪**。房主退出或连接中断时，Client 返回开始场景；当前不支持房主迁移。
+
+详细配置、启动参数、端口和排障见[联机手册](docs/指南/联机手册.md)；自动化验证见[本地联机自动跑局验证](docs/指南/本地联机自动跑局验证.md)。
+
+## 已接入的功能
+
+### 基础规则与对局流程
+
+- 固定阶段流、命令合法性校验、起始玩家与初始入场。
+- 标准四人地图、地图查询、路径搜索、路线与路费、红区限制、影响力统计。
+- 城市移动、部署、调度、探索、建设、采集、结束行动、收尾和最终计分。
+- 41 张正式建设牌数据、设施待选结算与供应槽位补牌。
+- 五张标准角色牌的盖放、策略/计谋、待选结算和回收。
+- 城市样式四方向旋转匹配、轨迹选块、宣告结算、即时奖励与分数轨显示。
+
+### 城市样式特殊行动
+
+军工化区域、动员配套体系、复合动力系统、源石工业中枢和高效移动管理体系的规则效果均已接入 Host 权威结算，包含标记生命周期、额外主要行动和多步待处理状态。
+
+地图高亮、事件弹窗、待处理会话恢复与自动跑局已覆盖程序链路；**人工 UI 冒烟与真实多进程、多账号验收仍未完成**。
+
+### 界面与联网
+
+- 开始页、地图交互、行动与信息面板、设置与规则书入口。
+- 角色手牌/弃牌预览、事件弹窗与卡牌查看器。
+- 持久化 UI 主题、事件、角色、城市样式、特殊行动、网络运行时根与地图反馈资产。
+- Host 权威命令、状态快照同步、等待房间开局门禁和本地多实例验证模式。
+
+以上表示功能已接入，不表示正式对局 UI 或联机交付验收已经完成。
+
+## 技术栈与工程结构
+
+- **引擎与界面**：Unity 2D、uGUI、TextMeshPro。
+- **规则架构**：`Domain`、`Application`、`Infrastructure`、`Presentation` 分层；规则核心不依赖 `UnityEngine`。
+- **联网**：Mirror `96.6.4`、Steamworks.NET `2025.163.0`、FizzySteamworks `6.0.1`；本地测试使用 Telepathy。
+- **测试**：Unity Test Framework，包含 EditMode 测试与部分 PlayMode 测试/探针。
+
+```text
+Assets/
+  Scenes/          开始、加载、对局与收藏室场景
+  YC/
+    Domain/        纯规则、状态与查询
+    Application/   GameSession、命令分发与流程编排
+    Infrastructure/ 联网、回放等基础设施（不代表完整回放已完成）
+    Presentation/  Unity UI、地图显示、输入与交互
+    Data/          地图、卡牌、图片与图标等数据资产
+    Resources/     运行时加载资源
+    Editor/        编辑器资产构建、导入与辅助工具
+    Tests/         EditMode、PlayMode 测试与探针
+Packages/          依赖清单与包锁定文件
+ProjectSettings/   Unity 版本、产品、场景与工程配置
+tools/             测试入口、验证脚本与素材提取工具
+docs/              项目概览、规则、架构、设计、指南与历史记录
+```
+
+## 测试与构建
+
+### 运行 EditMode 测试
+
+先关闭打开了本工程的 Unity Editor，再从仓库根目录运行统一入口：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\Run-EditModeTests.ps1
 ```
 
-发布前还必须按[发布检查清单](docs/概览/发布检查清单.md)重新构建 Player，并完成相应的人工验收；自动化测试通过不能替代该流程。
+脚本会查找对应版本的 Unity；如未找到，可通过 `-UnityPath` 或环境变量 `UNITY_EDITOR_PATH` 指定。默认日志和 NUnit XML 结果写入 `Logs/EditModeTests/`。更多参数和结果判定见[EditMode 命令行跑测](docs/指南/EditMode命令行跑测.md)。
+
+### Windows 构建约定
+
+- Release 目标目录：`Builds/v0.4.2-alpha/`，主程序名 `tuohuang.exe`。
+- Development 验证目录：`Builds/LocalhostDevelopment/`，不使用另一套版本号。
+- 场景列表以 `ProjectSettings/EditorBuildSettings.asset` 为准，开始场景为 `StartScene`。
+- 发布状态与待验收事项见[发布检查清单](docs/概览/发布检查清单.md)。
+
+上述是构建路径约定，**不代表仓库已附带可下载、且通过当前版本验收的安装包**。发布前需重新构建 Player，并逐项完成[发布检查清单](docs/概览/发布检查清单.md)。
+
+### 已记录的验证结果
+
+以下摘自项目总览，不是本次 README 更新时重新执行的结果：
+
+| 检查 | 已记录结果 | 适用范围 |
+| --- | --- | --- |
+| 完整 Unity EditMode | 2026-09-03：`1014/1014 Passed`，失败 `0`、跳过 `0`，约 `28.9` 秒 | 对应当时的代码；此后仍有提交，不能当作当前 HEAD 的重新验收结果 |
+| Windows Player 完整构建 | 保留日志中的成功记录为 2026-08-11 的 `Release030Alpha` | 历史构建，早于当前代码，不构成 `0.4.2-alpha` 发布验收 |
+
+自动化测试通过不能替代 Player 构建、实际输入交互或真实 Steam 联机验收。
+
+## 已知限制
+
+- 三人地图缺少真实规则数据；双人、三席开发验证不等于对应人数的正式规则支持。
+- 特殊行动仍缺人工 UI 冒烟、专项三席、标准四席多进程与真实多 Steam 账号 P2P/Relay 验收。
+- 多人依次入场体验、日志详情、存档、完整回放、按玩家裁剪的私有联机状态与正式对局 UI 尚未完成。
+- 企业扩展角色与规则暂未录入。
+
+## 文档导航
+
+| 文档 | 用途 |
+| --- | --- |
+| [项目总览](docs/概览/项目总览.md) | 当前事实源：功能范围、验证记录与限制 |
+| [发布检查清单](docs/概览/发布检查清单.md) | 测试、构建与人工验收待办 |
+| [文档索引](docs/README.md) | 分类导航与事实源优先级 |
+| [项目术语表](docs/规则/项目术语表.md) | 规则与代码术语对照 |
+| [规则总结](docs/规则/规则总结.md) | 基础版规则说明 |
+| [总体架构](docs/架构/总体架构.md) | 模块职责与分层约束 |
+| [联机手册](docs/指南/联机手册.md) | 本地、Steam 与多实例操作指南 |
+| [UI 诊断日志流程](docs/指南/UI诊断日志流程.md) | UI 问题定位与诊断日志 |
+
+新开发者建议先阅读项目总览，再查看相关规则、架构和操作指南。`docs/工作记录/` 是按日期归档的历史快照，不应使用其中的旧测试数字或“已完成”描述推断当前版本状态。
