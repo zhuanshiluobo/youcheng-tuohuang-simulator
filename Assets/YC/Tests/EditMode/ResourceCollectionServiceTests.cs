@@ -401,6 +401,47 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void QuerySelection_WithoutOwnedTarget_DoesNotOfferOpponentRoutePayment()
+        {
+            var state = CreateCollectionQueryState();
+            state.Map.Influences.Find(influence => influence.LocationId == "C").PlayerId = 2;
+            var service = new ResourceCollectionService(new MapQueryService(CreateCollectionQueryMap()));
+
+            var result = service.QuerySelection(state, 1, null);
+
+            Assert.That(result.CandidateLocationIds, Is.EquivalentTo(new[] { "B" }));
+            Assert.That(result.RouteOptionsById, Is.Empty);
+            var collection = service.Collect(state, 1, new[] { "C" }, new[] { "R1", "R2" },
+                new Dictionary<string, int> { { "R2", 2 } });
+            Assert.That(collection.Succeeded, Is.False);
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void QuerySelection_UnrelatedBranchIsHiddenWhileRouteToOwnedTargetRemains()
+        {
+            var state = CreateCollectionQueryState();
+            var map = CreateCollectionQueryMap();
+            map.Locations.Add(new MapLocationDefinition { LocationId = "D", InfluenceSlotCount = 1 });
+            map.Routes.Add(new MapRouteDefinition
+            {
+                RouteId = "R3", FromLocationId = "A", ToLocationId = "D", InfluenceSlotCount = 1
+            });
+            state.Map.ResourceTokens.Add(new ResourceTokenState
+            {
+                LocationId = "D", ResourceType = ResourceType.Iron, Amount = 1
+            });
+            var service = new ResourceCollectionService(new MapQueryService(map));
+
+            var result = service.QuerySelection(state, 1, null);
+
+            Assert.That(result.RouteOptionsById.Keys, Is.EquivalentTo(new[] { "R2" }));
+            Assert.That(result.CandidateLocationIds, Does.Not.Contain("D"));
+            var paid = service.QuerySelection(state, 1, new[] { "R2" });
+            Assert.That(paid.RouteOptionsById, Is.Empty);
+        }
+
+        [Test]
         public void QuerySelection_WhenTollIsUnaffordable_ReportsBoundaryRouteButNotReachableTarget()
         {
             var state = CreateCollectionQueryState();

@@ -308,11 +308,33 @@ namespace YC.Domain.Harvest
                 }
             }
 
+            // 只为通向合法采集目标的航道提供支付选项，不能从城市周围任意扩张。
+            // 排除已可达范围再从待采集目标反向查找，避免无关支路绕回城市也被当作有效路线。
+            var pendingTargetLocations = new HashSet<string>(StringComparer.Ordinal);
+            var remainingRouteIds = new List<string>();
+            for (var i = 0; i < mapQuery.Map.Routes.Count; i++)
+            {
+                var route = mapQuery.Map.Routes[i];
+                if (!RouteTouchesReachableLocation(route, reachablePaths))
+                {
+                    remainingRouteIds.Add(route.RouteId);
+                }
+            }
+
+            foreach (var locationId in result.CandidateLocationIds)
+            {
+                if (!reachablePaths.ContainsKey(locationId))
+                {
+                    pendingTargetLocations.UnionWith(BuildReachableLocations(locationId, remainingRouteIds));
+                }
+            }
+
             for (var routeIndex = 0; routeIndex < mapQuery.Map.Routes.Count; routeIndex++)
             {
                 var route = mapQuery.Map.Routes[routeIndex];
                 if (IsCollectionRouteSatisfied(state, playerId, route.RouteId, confirmedPaymentKeys) ||
-                    !RouteTouchesReachableLocation(route, reachablePaths))
+                    !RouteTouchesReachableLocation(route, reachablePaths) ||
+                    !RouteTouchesPendingTarget(route, pendingTargetLocations))
                 {
                     continue;
                 }
@@ -357,6 +379,20 @@ namespace YC.Domain.Harvest
                 routeId,
                 CollectionPaymentKeyMode);
             return confirmedPaymentKeys.Contains(paymentKey);
+        }
+
+        private static bool RouteTouchesPendingTarget(MapRouteDefinition route, ISet<string> pendingTargetLocations)
+        {
+            var coveredLocationIds = GetRouteCoveredLocationIds(route);
+            for (var i = 0; i < coveredLocationIds.Count; i++)
+            {
+                if (pendingTargetLocations.Contains(coveredLocationIds[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool RouteTouchesReachableLocation(
