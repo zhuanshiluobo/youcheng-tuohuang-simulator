@@ -88,6 +88,18 @@ namespace YC.Presentation.Workflows
 
         public InteractionPresentation BuildActivePresentation()
         {
+            // 待结算弹窗的清理不能被 Busy 提前返回截断。
+            // 普通动作由各自工作流结束，不能在此延迟 Cancel，误清新动作高亮。
+            for (var i = 0; i < registrations.Count; i++)
+            {
+                var registration = registrations[i];
+                var active = registration.Interaction.IsActive;
+                if (registration.Priority == InteractionPriority.PendingResolution &&
+                    registration.WasActive && !active)
+                    registration.Interaction.Cancel();
+                registration.WasActive = active;
+            }
+
             for (var i = 0; i < registrations.Count; i++)
             {
                 var registration = registrations[i];
@@ -229,6 +241,8 @@ namespace YC.Presentation.Workflows
             }
 
             public IInteraction Interaction { get; private set; }
+
+            public bool WasActive { get; set; }
 
             public string Id { get; private set; }
 

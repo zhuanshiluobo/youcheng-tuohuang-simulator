@@ -496,6 +496,39 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void CompletedSettlement_DetachesWithoutResettingLocalResultOrChangingScene()
+        {
+            var source = ReadSource("YC/Presentation/GameLaunchContext.cs");
+            var detach = ExtractMethod(source, "private void DetachCompletedSession", "public static void ReturnToStartScene");
+            StringAssert.Contains("UnsubscribeDisconnect();", detach);
+            StringAssert.Contains("MirrorCommandTransport.Instance?.Shutdown();", detach);
+            StringAssert.Contains("OnlineRoomServiceProvider.ShutdownActive();", detach);
+            StringAssert.DoesNotContain("Players.Clear", detach);
+            StringAssert.DoesNotContain("Mode = LaunchMode.Local", detach);
+            StringAssert.DoesNotContain("TryBeginBlackTransition", detach);
+            StringAssert.Contains("!string.IsNullOrEmpty(pendingReturnScene)", detach);
+            var disconnect = ExtractMethod(source, "private void OnNetworkDisconnected", "private void OnLobbyJoinRequested");
+            Assert.Less(disconnect.IndexOf("HasCompletedSettlement"), disconnect.IndexOf("ShutdownOnlineSession();"));
+            StringAssert.Contains("DetachCompletedSession();", disconnect);
+        }
+
+        [Test]
+        public void CompletedSettlement_HostWaitsForClientsAndBothExitButtonsUseSafeReturn()
+        {
+            var source = ReadSource("YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs");
+            StringAssert.Contains("!awaitingInitialState", source);
+            StringAssert.Contains("session.State.FinalScoring.IsResolved", source);
+            var detach = ExtractMethod(source, "public bool CanDetachCompletedSession", "public static MirrorCommandTransport Ensure");
+            StringAssert.Contains("if (mode != LaunchMode.Host) return true;", detach);
+            StringAssert.Contains("NetworkServer.connections.Values", detach);
+            StringAssert.Contains("!(connection is LocalConnectionToClient)", detach);
+            var broadcast = ExtractMethod(source, "private void BroadcastAccepted", "private void SendRejected");
+            Assert.Less(broadcast.IndexOf("connection.Send"), broadcast.IndexOf("ConfirmedCommandApplied?.Invoke"));
+            StringAssert.Contains("GameLaunchContext.ReturnToStartScene", ReadSource("YC/Presentation/RoundTrackerController.cs"));
+            StringAssert.Contains("GameLaunchContext.ReturnToStartScene", ReadSource("YC/Presentation/GameSettingsMenuController.cs"));
+        }
+
+        [Test]
         public void HostAndClientLocalDisconnectsShareTheSameReturnProtection()
         {
             var runtimeSource = ReadSource("YC/Infrastructure/Multiplayer/MirrorNetworkRuntime.cs");
@@ -560,13 +593,15 @@ namespace YC.Tests.EditMode
             var methodStart = source.IndexOf("ReturnToStartScene()", System.StringComparison.Ordinal);
             Assert.GreaterOrEqual(methodStart, 0, relativePath);
 
-            var shutdown = source.IndexOf("GameLaunchContext.ShutdownOnlineSession();", methodStart, System.StringComparison.Ordinal);
-            var loadScene = source.IndexOf(
-                "SceneTransitionContext.TryBeginBlackTransition",
-                methodStart,
-                System.StringComparison.Ordinal);
-            Assert.Greater(shutdown, methodStart, relativePath);
-            Assert.Greater(loadScene, shutdown, relativePath);
+            var safeReturn = source.IndexOf("GameLaunchContext.ReturnToStartScene(", methodStart, System.StringComparison.Ordinal);
+            Assert.Greater(safeReturn, methodStart, relativePath);
+            var contextSource = ReadSource("YC/Presentation/GameLaunchContext.cs");
+            var returnMethod = ExtractMethod(contextSource, "public static void ReturnToStartScene", "private void OnNetworkDisconnected");
+            var shutdown = returnMethod.IndexOf("ShutdownOnlineSession();", System.StringComparison.Ordinal);
+            var loadScene = returnMethod.IndexOf("SceneTransitionContext.TryBeginBlackTransition", System.StringComparison.Ordinal);
+            Assert.GreaterOrEqual(shutdown, 0);
+            Assert.Greater(loadScene, shutdown);
+            StringAssert.Contains("Instance.pendingReturnScene = sceneName;", returnMethod);
         }
 
         private static ulong[] Values(IReadOnlyDictionary<int, ulong> seats)

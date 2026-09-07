@@ -42,7 +42,9 @@ namespace YC.Presentation
 
         public override InteractionResult OnEscape()
         {
-            return InteractionResult.Passthrough;
+            return coordinator.TryHandleEscape()
+                ? InteractionResult.Consumed
+                : InteractionResult.Passthrough;
         }
 
         public override InteractionPresentation BuildPresentation()
@@ -60,6 +62,8 @@ namespace YC.Presentation
         public override void NotifyCommandSettled(string commandId)
         {
             coordinator.NotifyCommandSettled(commandId);
+            // 广播可能先于下一次刷新到达，失效会话必须立即收尾。
+            if (!coordinator.IsActive) coordinator.Dispose();
         }
     }
 }

@@ -270,6 +270,13 @@ namespace YC.Infrastructure.Multiplayer
             if (NetworkServer.active && NetworkClient.active) Manager.StopHost();
             else if (NetworkClient.active) Manager.StopClient();
             else if (NetworkServer.active) Manager.StopServer();
+            if (ActiveTransport != null)
+            {
+                // 必须在 Steam API 释放前关闭传输层，并取消尚未执行的 Relay 初始化。
+                ActiveTransport.CancelInvoke();
+                ActiveTransport.Shutdown();
+                ActiveTransport.enabled = false;
+            }
             publishedServerConnections.Clear();
             disconnectingServerConnections.Clear();
             localClientConnectedPublished = false;

@@ -15,6 +15,8 @@ namespace YC.Presentation
         public string RoomId = string.Empty;
         public List<PlayerSeat> Players = new List<PlayerSeat>();
         private bool returningToStart;
+        private bool completedSessionDetached;
+        private string pendingReturnScene;
         private MirrorNetworkRuntime subscribedRuntime;
         private IOnlineRoomService subscribedRoomService;
         private string pendingOnlineSessionNotice;
@@ -49,6 +51,8 @@ namespace YC.Presentation
             UnsubscribeDisconnect();
             UnsubscribeRoomService();
             returningToStart = false;
+            completedSessionDetached = false;
+            pendingReturnScene = null;
             pendingOnlineSessionNotice = null;
             Mode = mode;
             LocalPlayerId = localPlayerId;
@@ -96,9 +100,52 @@ namespace YC.Presentation
             Instance = null;
         }
 
+        private void Update()
+        {
+            if (returningToStart || completedSessionDetached || Mode == LaunchMode.Local) return;
+            var transport = MirrorCommandTransport.Instance;
+            if (transport != null && transport.CanDetachCompletedSession)
+                DetachCompletedSession();
+        }
+
+        private void DetachCompletedSession()
+        {
+            if (completedSessionDetached) return;
+            completedSessionDetached = true;
+            // 保留本机玩家身份和结算状态，仅切断联机；不切场景，也不重建单人对局。
+            UnsubscribeDisconnect();
+            UnsubscribeRoomService();
+            pendingOnlineSessionNotice = null;
+            MirrorCommandTransport.Instance?.Shutdown();
+            OnlineRoomServiceProvider.ShutdownActive();
+            if (!string.IsNullOrEmpty(pendingReturnScene)) ReturnToStartScene(pendingReturnScene);
+        }
+
+        public static void ReturnToStartScene(string sceneName)
+        {
+            var transport = MirrorCommandTransport.Instance;
+            if (Instance != null && !Instance.completedSessionDetached &&
+                transport != null && transport.HasCompletedSettlement &&
+                !transport.CanDetachCompletedSession)
+            {
+                // 房主提前关闭时，等最终结果送达其余玩家再退出。
+                Instance.pendingReturnScene = sceneName;
+                return;
+            }
+            ShutdownOnlineSession();
+            SceneTransitionContext.TryBeginBlackTransition(sceneName);
+        }
+
         private void OnNetworkDisconnected()
         {
-            if (returningToStart) return;
+            if (returningToStart || completedSessionDetached) return;
+            if (MirrorCommandTransport.Instance != null &&
+                MirrorCommandTransport.Instance.HasCompletedSettlement)
+            {
+                // 最终结果已在本机，即使断线先于 Update 到达也不能自动返回主页。
+                DetachCompletedSession();
+                return;
+            }
             returningToStart = true;
             ShutdownOnlineSession();
             SceneTransitionContext.TryBeginBlackTransition("StartScene");
@@ -134,6 +181,7 @@ namespace YC.Presentation
                 Instance.Players.Clear();
             }
 
+            MirrorCommandTransport.Instance?.Shutdown();
             OnlineRoomServiceProvider.ShutdownActive();
         }
 

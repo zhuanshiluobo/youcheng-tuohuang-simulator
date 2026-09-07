@@ -21,10 +21,14 @@ namespace YC.Infrastructure.Multiplayer
     {
         private readonly SteamIdentityBindingRegistry bindings = new SteamIdentityBindingRegistry();
         private AuthoritativeCommandDispatcher dispatcher;
+        private GameSession session;
         private LaunchMode mode;
         private bool initialized;
         private bool awaitingInitialState;
         private float nextInitialStateRequestTime;
+        private string pendingCommandId;
+        private float commandConfirmationDeadline;
+        private const float CommandConfirmationTimeout = 10f;
         private int localPlayerId;
         private IList<PlayerSeat> launchSeats;
 
@@ -32,6 +36,25 @@ namespace YC.Infrastructure.Multiplayer
         public event Action<InitialGameStateDto> InitialStateApplied;
         public event Action<RejectedGameCommandDto> CommandRejected;
         public static MirrorCommandTransport Instance { get; private set; }
+
+        public bool HasCompletedSettlement => initialized && !awaitingInitialState && session != null &&
+            RoundTrackRule.IsFinalState(session.State) &&
+            session.State.FinalScoring != null && session.State.FinalScoring.IsResolved;
+
+        public bool CanDetachCompletedSession
+        {
+            get
+            {
+                if (!HasCompletedSettlement) return false;
+                if (mode != LaunchMode.Host) return true;
+                // 客户端仅在成功应用最终结果后主动断开；房主必须继续发送/补同步，
+                // 不能在最后一条可靠消息仍在发送队列时关闭服务端。
+                foreach (var connection in NetworkServer.connections.Values)
+                    if (connection != null && !(connection is LocalConnectionToClient)) return false;
+                return true;
+            }
+        }
+
 
         public static MirrorCommandTransport Ensure()
         {
@@ -59,6 +82,7 @@ namespace YC.Infrastructure.Multiplayer
         public void Initialize(GameSession session, LaunchMode launchMode, int playerId, IList<PlayerSeat> seats)
         {
             Shutdown();
+            this.session = session;
             mode = launchMode;
             localPlayerId = playerId;
             launchSeats = seats;
@@ -94,9 +118,16 @@ namespace YC.Infrastructure.Multiplayer
 
         private void Update()
         {
-            if (!initialized || mode != LaunchMode.Client || !awaitingInitialState || !NetworkClient.isConnected)
+            if (!initialized || mode != LaunchMode.Client || !NetworkClient.isConnected)
                 return;
-            if (Time.unscaledTime < nextInitialStateRequestTime) return;
+            if (!awaitingInitialState && !string.IsNullOrEmpty(pendingCommandId) &&
+                Time.unscaledTime >= commandConfirmationDeadline)
+            {
+                // 只补同步状态，不重发原命令，避免重复支付或重复结算。
+                awaitingInitialState = true;
+                nextInitialStateRequestTime = 0f;
+            }
+            if (!awaitingInitialState || Time.unscaledTime < nextInitialStateRequestTime) return;
             RequestInitialState();
         }
 
@@ -113,7 +144,12 @@ namespace YC.Infrastructure.Multiplayer
                 return result;
             }
             if (mode != LaunchMode.Client || !NetworkClient.isConnected) return dispatcher.RejectClientLocalSubmit(dto);
-            if (!dispatcher.IsInitialStateSynchronized) return Invalid("客户端初始状态尚未同步。");
+            if (awaitingInitialState || !dispatcher.IsInitialStateSynchronized)
+                return Invalid("正在同步对局状态，请稍候。");
+            if (!string.IsNullOrEmpty(pendingCommandId))
+                return Invalid("上一条命令尚未确认，请等待同步结果。");
+            pendingCommandId = dto.CommandId;
+            commandConfirmationDeadline = Time.unscaledTime + CommandConfirmationTimeout;
             NetworkClient.Send(new SubmitCommandMessage { Json = JsonUtility.ToJson(dto) });
             return CommandResult.SuccessResult(new List<GameEvent>(), "命令已发送给房主。");
         }
@@ -141,8 +177,10 @@ namespace YC.Infrastructure.Multiplayer
                 NetworkClient.UnregisterHandler<InitialStateMessage>();
             }
             dispatcher = null;
+            session = null;
             initialized = false;
             awaitingInitialState = false;
+            pendingCommandId = null;
             localPlayerId = -1;
             launchSeats = null;
         }
@@ -232,12 +270,12 @@ namespace YC.Infrastructure.Multiplayer
 
         private void BroadcastAccepted(ConfirmedGameCommandDto confirmed)
         {
-            ConfirmedCommandApplied?.Invoke(confirmed);
             var message = new AcceptedCommandMessage { Json = JsonUtility.ToJson(confirmed) };
             foreach (var connection in NetworkServer.connections.Values)
             {
                 if (!(connection is LocalConnectionToClient)) connection.Send(message, Channels.Reliable);
             }
+            ConfirmedCommandApplied?.Invoke(confirmed);
         }
 
         private void SendRejected(ulong recipient, RejectedGameCommandDto rejected)
@@ -254,6 +292,7 @@ namespace YC.Infrastructure.Multiplayer
             if (result.Succeeded)
             {
                 awaitingInitialState = false;
+                pendingCommandId = null;
                 MarkGameStateSynchronized(localPlayerId, true);
                 if (NetworkClient.isConnected)
                     NetworkClient.Send(new InitialStateAppliedMessage { PlayerId = localPlayerId });
@@ -266,7 +305,12 @@ namespace YC.Infrastructure.Multiplayer
             if (NetworkServer.active) return;
             var confirmed = JsonUtility.FromJson<ConfirmedGameCommandDto>(message.Json);
             var result = dispatcher.ApplyConfirmedCommand(confirmed);
-            if (result.Succeeded) ConfirmedCommandApplied?.Invoke(confirmed);
+            if (result.Succeeded)
+            {
+                if (confirmed.Command != null && confirmed.Command.CommandId == pendingCommandId)
+                    pendingCommandId = null;
+                ConfirmedCommandApplied?.Invoke(confirmed);
+            }
             else
             {
                 awaitingInitialState = true;
@@ -276,7 +320,11 @@ namespace YC.Infrastructure.Multiplayer
 
         private void OnRejected(RejectedCommandMessage message)
         {
-            if (!NetworkServer.active) CommandRejected?.Invoke(JsonUtility.FromJson<RejectedGameCommandDto>(message.Json));
+            if (NetworkServer.active) return;
+            var rejected = JsonUtility.FromJson<RejectedGameCommandDto>(message.Json);
+            if (rejected != null && rejected.Command != null && rejected.Command.CommandId == pendingCommandId)
+                pendingCommandId = null;
+            CommandRejected?.Invoke(rejected);
         }
 
         private void RequestInitialState()

@@ -79,6 +79,19 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void Escape_ExplainsMandatoryResolutionWithoutCancellingOrSubmitting()
+        {
+            var state = CreateState(SpecialActionDatabase.EfficientMobileManagementSystem,
+                SpecialActionPendingSteps.AwaitFreeMoveTarget);
+            var fixture = CreateCoordinator(state);
+            Assert.That(Synchronize(), Is.True);
+            Assert.That((bool)Invoke(coordinator, "TryHandleEscape"), Is.True);
+            Assert.That(fixture.LastPrompt, Does.Contain("必须完成"));
+            Assert.That(state.PendingSpecialAction, Is.Not.Null);
+            Assert.That(fixture.SubmissionCount, Is.Zero);
+        }
+
+        [Test]
         public void PendingMapSubmission_BlocksDuplicateClicksUntilMatchingCommandSettles()
         {
             var state = CreateState(

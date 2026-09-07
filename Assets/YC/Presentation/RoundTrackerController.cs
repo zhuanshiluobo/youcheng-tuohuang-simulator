@@ -127,8 +127,7 @@ namespace YC.Presentation
 
         public void ReturnToStartScene()
         {
-            GameLaunchContext.ShutdownOnlineSession();
-            SceneTransitionContext.TryBeginBlackTransition(startSceneName);
+            GameLaunchContext.ReturnToStartScene(startSceneName);
         }
 
         public void Toggle()

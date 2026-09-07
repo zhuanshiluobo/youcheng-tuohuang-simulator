@@ -10,6 +10,22 @@ namespace YC.Tests.EditMode
     public sealed class CommandGatewayTests
     {
         [Test]
+        public void Submit_MissingResult_RunsRecoveryCallbacks()
+        {
+            var steps = new List<string>();
+            var gateway = new CommandGateway(new FakeCommandPort());
+            var outcome = gateway.Submit(
+                new GameCommand { Kind = GameCommandKind.EndAction, PlayerId = 1 },
+                new SubmitCallbacks(_ => steps.Add("prompt"), "waiting")
+                {
+                    BeforeRejectedPrompt = result => { Assert.That(result.Succeeded, Is.False); steps.Add("before"); },
+                    AfterRejectedPrompt = _ => steps.Add("after")
+                });
+            Assert.That(outcome.Kind, Is.EqualTo(SubmitOutcomeKind.NoResult));
+            Assert.That(steps, Is.EqualTo(new[] { "before", "prompt", "after" }));
+        }
+
+        [Test]
         public void Submit_WhenAppliedLocally_InvokesSuccessCallbackAndReturnsOutcome()
         {
             var commandPort = new FakeCommandPort

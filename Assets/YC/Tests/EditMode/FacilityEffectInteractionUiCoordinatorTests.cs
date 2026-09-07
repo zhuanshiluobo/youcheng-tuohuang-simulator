@@ -269,6 +269,21 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.SubmittedCommand, Is.Null);
         }
 
+        [TestCase(0)]
+        [TestCase(1)]
+        public void MercenaryHeadquarters_EscapeReturnsToBranchChoiceWithoutSubmitting(int branch)
+        {
+            string opponentSlot, ownSlot, emptySlot;
+            var fixture = CreateMercenaryCoordinator(out opponentSlot, out ownSlot, out emptySlot);
+            Assert.That(Synchronize(fixture.Coordinator), Is.True);
+            ClickButton(GetOverlay(fixture.Dialog), "Option " + branch);
+
+            Assert.That(InvokeBool(fixture.Coordinator, "TryHandleEscape"), Is.True);
+            Assert.That(GetText(GetOverlay(fixture.Dialog), "Title"), Is.EqualTo("佣兵指挥部"));
+            Assert.That(fixture.Highlights, Is.Empty);
+            Assert.That(fixture.SubmittedCommand, Is.Null);
+        }
+
         [Test]
         public void MercenaryHeadquarters_ReplaceBranchHighlightsOnlyOpponentAndSubmitsBranchAndTarget()
         {

@@ -765,7 +765,6 @@ namespace YC.Presentation
             string effectOrder,
             IReadOnlyDictionary<string, string> effectParameters)
         {
-            characterSettlementInProgress = true;
             var player = session.State.FindPlayer(localPlayerId);
             if (player == null || string.IsNullOrEmpty(player.CoveredCharacterCardId))
             {
@@ -773,6 +772,7 @@ namespace YC.Presentation
                 return;
             }
 
+            characterSettlementInProgress = true;
             var command = characterCardPresenter.CreateUseCommand(
                 localPlayerId,
                 player.CoveredCharacterCardId,
@@ -795,7 +795,7 @@ namespace YC.Presentation
                 command,
                 new SubmitCallbacks(
                     SetPrompt,
-                    CommandGateway.BuildWaitingForHostPrompt("待结算选择"))
+                    "你的选择已提交，正在同步结算结果，无需主机代选。")
                 {
                     BeforeRejectedPrompt = _ => interactionRouter?.NotifyCommandSettled(commandId),
                     AfterRejectedPrompt = _ =>
@@ -827,6 +827,7 @@ namespace YC.Presentation
                     },
                     remotePrompt)
                 {
+                    BeforeRejectedPrompt = _ => characterSettlementInProgress = false,
                     OnAppliedLocally = _ => CompleteLocalCharacterCardCommand(
                         command,
                         localSuccessPrompt)

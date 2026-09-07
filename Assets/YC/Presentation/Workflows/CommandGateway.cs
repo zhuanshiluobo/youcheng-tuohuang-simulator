@@ -1,5 +1,6 @@
 using System;
 using YC.Domain.Commands;
+using YC.Domain.Rules;
 
 namespace YC.Presentation.Workflows
 {
@@ -81,7 +82,11 @@ namespace YC.Presentation.Workflows
             var submission = commandPort.Submit(command);
             if (submission == null || submission.CommandResult == null)
             {
+                var failure = CommandResult.Invalid(ValidationResult.Failure(
+                    CommandErrorCode.UnknownCommand, callbacks.MissingResultPrompt));
+                callbacks.BeforeRejectedPrompt?.Invoke(failure);
                 callbacks.ShowPrompt(callbacks.MissingResultPrompt);
+                callbacks.AfterRejectedPrompt?.Invoke(failure);
                 return new SubmitOutcome(SubmitOutcomeKind.NoResult, submission);
             }
 

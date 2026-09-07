@@ -192,6 +192,23 @@ namespace YC.Presentation
             return true;
         }
 
+        public bool TryHandleEscape()
+        {
+            PendingSpecialActionState pending;
+            if (!TryGetPending(out pending) || pending.Step == SpecialActionPendingSteps.AwaitMoveEvent)
+                return false;
+            if (RejectWhileSubmissionInFlight(pending)) return true;
+            if (selectedMilitarySlotIds.Count > 0)
+            {
+                selectedMilitarySlotIds.Clear();
+                Render(pending);
+                setPrompt("已清空尚未提交的槽位选择，请重新选择高亮目标。");
+                return true;
+            }
+            setPrompt("当前特殊行动已生效，必须完成后续选择；不能取消已结算的步骤。");
+            return true;
+        }
+
         public void NotifyCommandSettled(string commandId)
         {
             if (string.IsNullOrEmpty(inFlightCommandId) ||
@@ -473,6 +490,7 @@ namespace YC.Presentation
 
         private void ResetAndHide()
         {
+            var hadPresentation = !string.IsNullOrEmpty(sessionId) || dialog.IsShowing;
             ClearSubmissionInFlight();
             sessionId = string.Empty;
             renderedStep = string.Empty;
@@ -480,7 +498,7 @@ namespace YC.Presentation
             renderedRouteId = string.Empty;
             selectedMilitarySlotIds.Clear();
             dialog.Hide();
-            clearHighlights();
+            if (hadPresentation) clearHighlights();
         }
     }
 }

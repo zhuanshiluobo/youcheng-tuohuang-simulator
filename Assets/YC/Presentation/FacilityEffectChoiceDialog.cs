@@ -31,6 +31,7 @@ namespace YC.Presentation
         private readonly EffectDialogLayoutProfile layoutProfile;
         private readonly CardInteractionLayoutProfile cardInteractionLayoutProfile;
         private EffectDialogCollapsiblePanel collapsiblePanel;
+        private Action backAction;
         private RectTransform facilityCardDragGhost;
         private ZoomableImageViewerController facilityCardImageViewer;
 
@@ -241,6 +242,7 @@ namespace YC.Presentation
                         isCollapsible
                             ? layoutProfile.OptionsBackButtonCollapsibleY
                             : layoutProfile.OptionsBackButtonNormalY));
+                backAction = back;
                 BindOnce(backButton, back);
             }
         }
@@ -345,12 +347,22 @@ namespace YC.Presentation
                         isCollapsible
                             ? layoutProfile.MapButtonCollapsibleY
                             : layoutProfile.MapButtonNormalY));
+                backAction = back;
                 BindOnce(backButton, back);
             }
         }
 
+        public bool TryGoBack()
+        {
+            if (!IsShowing || backAction == null) return false;
+            var action = backAction;
+            action();
+            return true;
+        }
+
         public void Hide()
         {
+            backAction = null;
             DestroyFacilityCardDragGhost();
             facilityCardImageViewer?.Close();
             shell.Hide();
@@ -363,6 +375,7 @@ namespace YC.Presentation
             string collapseSummary = null,
             bool startCollapsed = false)
         {
+            backAction = null;
             DestroyFacilityCardDragGhost();
             facilityCardImageViewer?.Close();
             collapsiblePanel = null;

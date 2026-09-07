@@ -313,8 +313,7 @@ namespace YC.Presentation
 
         private void ReturnToStartScene()
         {
-            GameLaunchContext.ShutdownOnlineSession();
-            SceneTransitionContext.TryBeginBlackTransition(
+            GameLaunchContext.ReturnToStartScene(
                 string.IsNullOrEmpty(startSceneName) ? DefaultStartSceneName : startSceneName);
         }
 

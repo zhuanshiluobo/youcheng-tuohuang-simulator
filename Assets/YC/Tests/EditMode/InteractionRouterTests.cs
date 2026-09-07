@@ -8,6 +8,36 @@ namespace YC.Tests.EditMode
     public sealed class InteractionRouterTests
     {
         [Test]
+        public void BuildPresentation_CleansInactivePendingInteractionBeforeBusy()
+        {
+            var router = CreateRouter();
+            var old = new RecordingInteraction("old", InteractionPriority.PendingResolution);
+            var next = new RecordingInteraction("next", InteractionPriority.PendingResolution)
+            { Active = false, Presentation = InteractionPresentation.Busy };
+            router.Register(next);
+            router.Register(old);
+            router.BuildActivePresentation();
+            old.Active = false;
+            next.Active = true;
+            router.BuildActivePresentation();
+            router.BuildActivePresentation();
+            Assert.That(old.CancelCount, Is.EqualTo(1));
+            Assert.That(next.CancelCount, Is.Zero);
+        }
+
+        [Test]
+        public void BuildPresentation_DoesNotCancelFinishedActionAndClearNewHighlights()
+        {
+            var router = CreateRouter();
+            var action = new RecordingInteraction("action", InteractionPriority.ActiveAction);
+            router.Register(action);
+            router.BuildActivePresentation();
+            action.Active = false;
+            router.BuildActivePresentation();
+            Assert.That(action.CancelCount, Is.Zero);
+        }
+
+        [Test]
         public void Constructor_RequiresPromptCallback()
         {
             Assert.That(

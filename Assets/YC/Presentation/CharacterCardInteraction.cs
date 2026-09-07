@@ -86,6 +86,11 @@ namespace YC.Presentation
             return InteractionPresentation.Empty;
         }
 
+        public override void NotifyCommandSettled(string commandId)
+        {
+            if (!hasPendingCharacterResolution()) effectCoordinator.SynchronizePending();
+        }
+
         public override void Cancel()
         {
             mapCoordinator.Cancel();

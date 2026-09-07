@@ -346,6 +346,16 @@ namespace YC.Presentation
             return true;
         }
 
+        public bool TryHandleEscape()
+        {
+            PendingCardSessionState pending;
+            if (!presenter.TryGetPending(getState(), getLocalPlayerId(), out pending)) return false;
+            if (RejectWhileSubmissionInFlight(pending)) return true;
+            if (TryHandleAdditionalBuildEscape() || dialog.TryGoBack()) return true;
+            setPrompt("当前入场效果必须完成；请选择合法目标，不能取消已经生效的建设。");
+            return true;
+        }
+
         public void NotifyCommandSettled(string commandId)
         {
             if (string.IsNullOrEmpty(inFlightCommandId) ||
@@ -356,6 +366,8 @@ namespace YC.Presentation
             }
 
             ClearSubmissionInFlight();
+            // 拒绝或重同步后允许重新选择全部槽位。
+            deployInfluenceSlotIds.Clear();
         }
 
         public void Dispose()
@@ -836,7 +848,12 @@ namespace YC.Presentation
                 "护航调度中心 · 放置两个影响力",
                 string.Empty,
                 null,
-                null,
+                () =>
+                {
+                    deployInfluenceSlotIds.Clear();
+                    Render(pending);
+                    setPrompt("已清除尚未提交的槽位选择，请重新选择两个空槽位。");
+                },
                 true);
         }
 

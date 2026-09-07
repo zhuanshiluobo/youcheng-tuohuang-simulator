@@ -114,11 +114,19 @@ namespace YC.Infrastructure.Multiplayer
         {
             if (disposed) return;
             ShutdownNetworkAndLobby();
+            // 正式退出联机才释放 Steam；创建/加入前的内部清理不能关闭 API。
+            ReleaseCallbacks();
+            SteamBootstrap.Instance?.Shutdown();
         }
         public void Dispose()
         {
             if (disposed) return;
-            ShutdownNetworkAndLobby();
+            Shutdown();
+            lobbyJoinRequests.Clear();
+            disposed = true;
+        }
+        private void ReleaseCallbacks()
+        {
             if (callbacksInitialized)
             {
                 lobbyCreated.Dispose();
@@ -128,8 +136,6 @@ namespace YC.Infrastructure.Multiplayer
                 lobbyJoinRequested.Dispose();
                 callbacksInitialized = false;
             }
-            lobbyJoinRequests.Clear();
-            disposed = true;
         }
         private void OnLobbyCreated(LobbyCreated_t value)
         {
@@ -455,7 +461,7 @@ namespace YC.Infrastructure.Multiplayer
                 subscribedRuntime = null;
             }
             MirrorNetworkRuntime.Instance?.ShutdownNetwork();
-            if (lobbyId.IsValid()) SteamMatchmaking.LeaveLobby(lobbyId);
+            if (SteamBootstrap.IsInitialized && lobbyId.IsValid()) SteamMatchmaking.LeaveLobby(lobbyId);
             lobbyId = CSteamID.Nil; currentRoom = null; originalHostSteamId = 0; requestedPlayerCount = 0;
             isHost = false; gameStartedRaised = false; authoritySnapshotReceived = false;
         }
