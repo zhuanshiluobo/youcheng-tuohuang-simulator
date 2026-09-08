@@ -40,9 +40,7 @@ namespace YC.Domain.Facilities
                 throw new ArgumentNullException(nameof(state));
             }
 
-            var map = state.MapId == StaticMapDefinitions.ThreePlayerMapId
-                ? StaticMapDefinitions.CreateThreePlayerPlaceholder()
-                : StaticMapDefinitions.CreateFourPlayerMap();
+            var map = StaticMapDefinitions.Resolve(state.MapId);
             var mapQuery = new MapQueryService(map);
             var influenceService = new InfluenceService(mapQuery);
             var eventDeckService = new EventDeckService();

@@ -1,0 +1,91 @@
+《游城拓荒：铸基者》三人地图路线数据
+核对日期：2026-09-08
+事实源：游城拓荒/地图/三人.jpg，5000×5000原图；已查看全图及B-01、中央分叉高清局部。
+状态：主agent重新对照原图，补回此前漏录的R5（E-01/C-02），Unity专项12/12通过。
+
+【正式接口与测试隔离】
+MapId = map-three-players；CreateThreePlayerMap()返回18地点正式图。
+Resolve(string mapId)仅接受map-three-players/map-four-players；未知、空、测试夹具ID抛ArgumentException。
+ForPlayerCount(int playerCount)仅接受3/4，其余抛ArgumentOutOfRangeException。
+CreateThreePlayerPlaceholder()仅作显式注入的测试夹具，MapId=test-fixture-3p，不进入Resolve。
+GetEventColor(mapId, locationId)严格解析正式图；GetEventColor(GameMapDefinition, locationId)读地图地点字段；旧单参数入口仍为四人语义。
+
+【地点】
+共18个，A/B/C/D/E/F各3个；所有地点可停靠城市、2影响力槽、1资源槽、1事件槽。
+事件颜色依据地点左上罗盘，不是区块底色。
+地点     区块  事件颜色  红区
+A-01     A     绿       否
+A-02     A     绿       否
+A-03     A     黄       否
+B-01     B     绿       否
+B-02     B     绿       否
+B-03     B     黄       否
+C-01     C     绿       否
+C-02     C     黄       否
+C-03     C     黄       否
+D-01     D     黄       否
+D-02     D     黄       否
+D-03     D     黄       否
+E-01     E     黄       否
+E-02     E     红       是
+E-03     E     红       是
+F-01     F     红       是
+F-02     F     红       是
+F-03     F     红       是
+
+原图未给地点固定产出资源种类；正式资源标记由事件牌产生。
+模型既有ResourceType保持同名四人地点值（A/D Iron，B/E/F OriginiumShard，C PureOriginium），
+仅为既有字段填充，不宣称它们来自原图，也不应绕过事件资源标记发资源。
+
+【航道：同一航道覆盖的任意两地点互为相邻】
+航道不是仅连接FromLocationId/ToLocationId；完整拓扑在CoveredLocationIds。
+编号沿用同类四人路线：R4为左侧三叉双槽白线；R5为E-01/C-02单槽白线。
+全部BaseCost字段沿用2；实际收费沿用现有规则服务，不从图中臆造收费差异。
+ID  区块  影响力槽  覆盖地点
+A1   A     1       A-01, A-02
+A2   A     2       A-02, A-03, B-03
+B1   B     1       A-02, B-02
+B2   B     2       B-01, B-02, C-01
+C1   C     1       C-02, C-03
+C2   C     2       B-02, B-03, C-01, C-02
+D1   D     2       A-03, D-01, D-02, D-03
+D2   D     2       D-02, D-03, F-02
+E1   E     2       E-01, E-02, F-02
+E2   E     2       C-03, E-02, E-03
+F1   F     1       D-02, F-01
+F2   F     1       F-01, F-02
+F3   F     1       F-01, F-03
+R1   R     1       A-01, D-01
+R2   R     1       A-01, B-01
+R3   R     1       C-03, E-01
+R4   R     2       E-03, F-02, F-03
+R5   R     1       C-02, E-01
+R6   R     1       A-02, B-01
+R7   R     2       B-03, D-03, E-01
+
+总计20航道、29航道影响力槽、36地点影响力槽。
+
+【区块与原图显示配色】
+A 深蓝：3分，A1/A2；A-01/A-02/A-03
+B 橙：3分，B1/B2；B-01/B-02/B-03
+C 青绿：3分，C1/C2；C-01/C-02/C-03
+D 紫：3分，D1/D2；D-01/D-02/D-03
+E 金黄：4分，E1/E2；E-01/E-02/E-03
+F 暗红：4分，F1/F2/F3；F-01/F-02/F-03
+R 浅蓝白：3分，R1/R2/R3/R4/R5/R6/R7；没有R地点。
+
+【B-01额外入场奖励】
+原文：入场时获得 2[源岩] 2[异铁] 2[源石]。
+高清核对：灰棕块状源岩、蓝色异铁、黑红色源石；没有金券/至纯源石图标。
+MapLocationDefinition.InitialEntranceReward : ResourceSet
+仅正式三人B-01为 Originium=2, Iron=2, OriginiumShard=2，GoldVoucher=0, PureOriginium=0。
+其他地点及四人图为空奖励；地图定义仅提供数据，B负责Setup一次性入场结算。
+奖励不替代人数基础金券，也不替代抽取事件牌奖励；普通移动不重复发入场奖励。
+
+【复核重点/边界】
+D1中央四叉覆盖A-03/D-01/D-02/D-03；D2另一三叉覆盖D-02/D-03/F-02。
+R4左侧共用航道覆盖E-03/F-02/F-03，双槽；F3仅F-01/F-03，单槽。
+R3是C-03/E-01斜向航道；C-02/E-01之间为R5，原图C-02上方单槽R框及纵向白线，不应遗漏。
+红区第5回合开放规则由B维护，不能把红区邻接航道一起封禁。
+布局坐标和轨迹由C负责，不在本文复制另一套坐标。
+本任务不执行Unity导入、EditMode运行、构建或meta生成；专项测试交主agent统一执行。

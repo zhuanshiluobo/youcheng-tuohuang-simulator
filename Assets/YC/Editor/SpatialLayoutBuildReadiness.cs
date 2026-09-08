@@ -31,6 +31,22 @@ namespace YC.Editor
                 SpatialLayoutEditorAssetBuilder.LoadRequiredFourPlayerMapLayout();
             ValidateCardBoardPrefabs(cardBoardLayout);
             ValidateMapPrefabAndScene(mapLayout);
+            var threeLayout = SpatialLayoutEditorAssetBuilder.LoadRequiredThreePlayerMapLayout();
+            var threePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(YC.EditorTools.MapViewEditorAssetBuilder.ThreePlayerPrefabPath);
+            var threeView = threePrefab == null ? null : threePrefab.GetComponent<MapView>();
+            var threeSpace = threePrefab == null ? null : threePrefab.GetComponent<MapCoordinateSpace>();
+            if (threeView == null || threeSpace == null || threeSpace.Layout != threeLayout)
+                throw new InvalidOperationException("三人 MapView Prefab 缺失或布局引用不一致。");
+            const string threeScenePath = "Assets/Scenes/ThreePlayerScene.unity";
+            if (!EditorBuildSettings.scenes.Any(scene => scene.enabled && scene.path == threeScenePath))
+                throw new InvalidOperationException("独立三人场景必须加入 Build Settings 并启用。");
+            var threeSceneYaml = File.ReadAllText(threeScenePath);
+            var threePrefabGuid = AssetDatabase.AssetPathToGUID(YC.EditorTools.MapViewEditorAssetBuilder.ThreePlayerPrefabPath);
+            var fourPrefabGuid = AssetDatabase.AssetPathToGUID(MapViewPrefabPath);
+            if (!threeSceneYaml.Contains("guid: " + threePrefabGuid) || threeSceneYaml.Contains("guid: " + fourPrefabGuid))
+                throw new InvalidOperationException("三人场景必须固定引用三人地图，不能残留四人 MapView。");
+            if (!threeView.TryValidateConfiguration(StaticMapDefinitions.CreateThreePlayerMap(), out var threeReason))
+                throw new InvalidOperationException("三人 MapView Prefab 无效：" + threeReason);
         }
 
         public static void ValidateManifest()

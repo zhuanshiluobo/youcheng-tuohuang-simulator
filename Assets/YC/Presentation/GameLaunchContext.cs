@@ -12,6 +12,7 @@ namespace YC.Presentation
 
         public LaunchMode Mode = LaunchMode.Local;
         public int LocalPlayerId = 1;
+        public string MapId = YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId;
         public string RoomId = string.Empty;
         public List<PlayerSeat> Players = new List<PlayerSeat>();
         private bool returningToStart;
@@ -46,7 +47,7 @@ namespace YC.Presentation
             return contextObject.AddComponent<GameLaunchContext>();
         }
 
-        public void Configure(LaunchMode mode, int localPlayerId, string roomId, IList<PlayerSeat> players)
+        public void Configure(LaunchMode mode, int localPlayerId, string roomId, IList<PlayerSeat> players, string mapId = null)
         {
             UnsubscribeDisconnect();
             UnsubscribeRoomService();
@@ -54,6 +55,8 @@ namespace YC.Presentation
             completedSessionDetached = false;
             pendingReturnScene = null;
             pendingOnlineSessionNotice = null;
+            MapId = mapId ?? (mode != LaunchMode.Local && players != null && players.Count == 3
+                ? YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId : YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId);
             Mode = mode;
             LocalPlayerId = localPlayerId;
             RoomId = roomId ?? string.Empty;

@@ -1,0 +1,1010 @@
+{
+  "schemaVersion": 1,
+  "mapId": "map-three-players",
+  "mapSpritePath": "Assets/YC/Data/Maps/Textures/Map_3Players.jpg",
+  "locations": [
+    {
+      "locationId": "A-01",
+      "normalizedPosition": {
+        "x": 0.90875,
+        "y": 0.22375
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.0425,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.0425,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "A-02",
+      "normalizedPosition": {
+        "x": 0.86375,
+        "y": 0.44375
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "A-03",
+      "normalizedPosition": {
+        "x": 0.70875,
+        "y": 0.37875
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "B-01",
+      "normalizedPosition": {
+        "x": 0.915,
+        "y": 0.663125
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "B-02",
+      "normalizedPosition": {
+        "x": 0.78375,
+        "y": 0.73375
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "B-03",
+      "normalizedPosition": {
+        "x": 0.659375,
+        "y": 0.63875
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "C-01",
+      "normalizedPosition": {
+        "x": 0.754375,
+        "y": 0.89875
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "C-02",
+      "normalizedPosition": {
+        "x": 0.511875,
+        "y": 0.85625
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "C-03",
+      "normalizedPosition": {
+        "x": 0.194375,
+        "y": 0.86625
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "D-01",
+      "normalizedPosition": {
+        "x": 0.6825,
+        "y": 0.20625
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "D-02",
+      "normalizedPosition": {
+        "x": 0.49375,
+        "y": 0.22
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "D-03",
+      "normalizedPosition": {
+        "x": 0.5025,
+        "y": 0.45375
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "E-01",
+      "normalizedPosition": {
+        "x": 0.49875,
+        "y": 0.66625
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "E-02",
+      "normalizedPosition": {
+        "x": 0.2625,
+        "y": 0.67625
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "E-03",
+      "normalizedPosition": {
+        "x": 0.12625,
+        "y": 0.61875
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "F-01",
+      "normalizedPosition": {
+        "x": 0.285625,
+        "y": 0.25875
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "F-02",
+      "normalizedPosition": {
+        "x": 0.31,
+        "y": 0.465625
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "locationId": "F-03",
+      "normalizedPosition": {
+        "x": 0.1225,
+        "y": 0.40625
+      },
+      "resourceTokenOffset": {
+        "x": -0.0492,
+        "y": -0.0307
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.02625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": -0.041875,
+            "y": 0.00625
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "routeId": "A1",
+      "normalizedPosition": {
+        "x": 0.86875,
+        "y": 0.346875
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "A2",
+      "normalizedPosition": {
+        "x": 0.72625,
+        "y": 0.50375
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": 0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "B1",
+      "normalizedPosition": {
+        "x": 0.789375,
+        "y": 0.615625
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "B2",
+      "normalizedPosition": {
+        "x": 0.87,
+        "y": 0.86875
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": 0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "C1",
+      "normalizedPosition": {
+        "x": 0.34875,
+        "y": 0.910625
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "C2",
+      "normalizedPosition": {
+        "x": 0.64875,
+        "y": 0.81875
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": 0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "D1",
+      "normalizedPosition": {
+        "x": 0.59875,
+        "y": 0.28125
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": 0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "D2",
+      "normalizedPosition": {
+        "x": 0.405625,
+        "y": 0.354375
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": 0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "E1",
+      "normalizedPosition": {
+        "x": 0.315625,
+        "y": 0.578125
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": 0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "E2",
+      "normalizedPosition": {
+        "x": 0.14625,
+        "y": 0.775
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": 0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "F1",
+      "normalizedPosition": {
+        "x": 0.38125,
+        "y": 0.234375
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "F2",
+      "normalizedPosition": {
+        "x": 0.300625,
+        "y": 0.369375
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "F3",
+      "normalizedPosition": {
+        "x": 0.18125,
+        "y": 0.31625
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "R1",
+      "normalizedPosition": {
+        "x": 0.78625,
+        "y": 0.190625
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "R2",
+      "normalizedPosition": {
+        "x": 0.93,
+        "y": 0.37875
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "R3",
+      "normalizedPosition": {
+        "x": 0.350625,
+        "y": 0.78375
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "R4",
+      "normalizedPosition": {
+        "x": 0.109375,
+        "y": 0.523125
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": 0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "R6",
+      "normalizedPosition": {
+        "x": 0.89125,
+        "y": 0.5475
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "R7",
+      "normalizedPosition": {
+        "x": 0.553125,
+        "y": 0.5675
+      },
+      "influenceSlots": [
+        {
+          "offset": {
+            "x": -0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        },
+        {
+          "offset": {
+            "x": 0.009375,
+            "y": 0.0
+          },
+          "size": 1,
+          "colliderRadius": 0.22
+        }
+      ]
+    },
+    {
+      "routeId": "R5",
+      "normalizedPosition": {
+        "y": 0.7725,
+        "x": 0.509375
+      },
+      "influenceSlots": [
+        {
+          "colliderRadius": 0.22,
+          "size": 1,
+          "offset": {
+            "y": 0.0,
+            "x": 0.0
+          }
+        }
+      ]
+    }
+  ],
+  "scoreTrackSegments": [
+    {
+      "minimumScore": -2,
+      "maximumScore": 23,
+      "start": {
+        "x": 0.1,
+        "y": 0.9775
+      },
+      "end": {
+        "x": 0.97875,
+        "y": 0.9775
+      }
+    },
+    {
+      "minimumScore": 24,
+      "maximumScore": 50,
+      "start": {
+        "x": 0.97875,
+        "y": 0.9425
+      },
+      "end": {
+        "x": 0.97875,
+        "y": 0.033125
+      }
+    }
+  ],
+  "scoreMarkerOffsets": [
+    {
+      "markerCount": 1,
+      "offsets": [
+        {
+          "x": 0.0,
+          "y": 0.0
+        }
+      ]
+    },
+    {
+      "markerCount": 2,
+      "offsets": [
+        {
+          "x": -0.0055,
+          "y": 0.0
+        },
+        {
+          "x": 0.0055,
+          "y": 0.0
+        }
+      ]
+    },
+    {
+      "markerCount": 3,
+      "offsets": [
+        {
+          "x": -0.0055,
+          "y": -0.0045
+        },
+        {
+          "x": 0.0055,
+          "y": -0.0045
+        },
+        {
+          "x": 0.0,
+          "y": 0.005
+        }
+      ]
+    }
+  ]
+}

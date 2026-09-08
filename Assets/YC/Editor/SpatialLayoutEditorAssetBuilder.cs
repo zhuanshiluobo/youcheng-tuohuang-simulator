@@ -76,6 +76,7 @@ namespace YC.Editor
             var source = ParseSource();
             RebuildCardBoardLayout(source);
             UpdateMapScoreTrackFields(source);
+            RebuildThreePlayerMapLayout();
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(
                 CardBoardLayoutAssetPath,
@@ -144,6 +145,82 @@ namespace YC.Editor
             return layout;
         }
 
+        public const string ThreePlayerSourceJsonPath = "Assets/YC/Editor/Data/three_player_map_layout.json";
+        public const string ThreePlayerMapLayoutAssetPath = "Assets/Resources/MapLayouts/map-three-players.asset";
+
+        private static void ValidateThreePlayerLayout(YC.Domain.Maps.GameMapDefinition map, MapDisplayLayout layout)
+        {
+            var errors = MapDisplayLayoutValidator.Validate(map, layout);
+            if (errors.Count > 0) throw new InvalidOperationException(string.Join("\n", errors));
+        }
+        private static void ApplyThreePlayerSource(MapDisplayLayout layout)
+        {
+            var source = JObject.Parse(File.ReadAllText(ThreePlayerSourceJsonPath));
+            if ((int)source["schemaVersion"] != 1 ||
+                (string)source["mapId"] != YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId)
+                throw new InvalidOperationException("三人地图布局源版本或地图 ID 无效。");
+            layout.MapId = (string)source["mapId"];
+            layout.MapSprite = AssetDatabase.LoadAssetAtPath<Sprite>((string)source["mapSpritePath"]);
+            layout.Locations = source["locations"].ToObject<List<MapLocationLayoutDefinition>>();
+            layout.Routes = source["routes"].ToObject<List<MapRouteLayoutDefinition>>();
+            var serialized = new SerializedObject(layout);
+            serialized.FindProperty("spatialLayoutManifestSha256").stringValue = ComputeSha256(ThreePlayerSourceJsonPath);
+            var segments = serialized.FindProperty("scoreTrackSegments");
+            var segmentValues = source["scoreTrackSegments"].ToObject<List<MapScoreTrackSegmentDefinition>>();
+            segments.arraySize = segmentValues.Count;
+            for (var i = 0; i < segmentValues.Count; i++)
+            {
+                var item = segments.GetArrayElementAtIndex(i);
+                var value = segmentValues[i];
+                item.FindPropertyRelative("MinimumScore").intValue = value.MinimumScore;
+                item.FindPropertyRelative("MaximumScore").intValue = value.MaximumScore;
+                item.FindPropertyRelative("Start").vector2Value = value.Start;
+                item.FindPropertyRelative("End").vector2Value = value.End;
+            }
+            var groups = serialized.FindProperty("scoreMarkerOffsets");
+            var groupValues = source["scoreMarkerOffsets"].ToObject<List<MapScoreMarkerOffsetDefinition>>();
+            groups.arraySize = groupValues.Count;
+            for (var i = 0; i < groupValues.Count; i++)
+            {
+                var item = groups.GetArrayElementAtIndex(i);
+                item.FindPropertyRelative("MarkerCount").intValue = groupValues[i].MarkerCount;
+                var offsets = item.FindPropertyRelative("Offsets");
+                offsets.arraySize = groupValues[i].Offsets.Count;
+                for (var j = 0; j < offsets.arraySize; j++)
+                    offsets.GetArrayElementAtIndex(j).vector2Value = groupValues[i].Offsets[j];
+            }
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+        public static void RebuildThreePlayerMapLayout()
+        {
+            var layout = AssetDatabase.LoadAssetAtPath<MapDisplayLayout>(ThreePlayerMapLayoutAssetPath);
+            if (layout == null)
+            {
+                layout = ScriptableObject.CreateInstance<MapDisplayLayout>();
+                AssetDatabase.CreateAsset(layout, ThreePlayerMapLayoutAssetPath);
+            }
+            ApplyThreePlayerSource(layout);
+            ValidateThreePlayerLayout(
+                YC.Domain.Maps.StaticMapDefinitions.CreateThreePlayerMap(), layout);
+            EditorUtility.SetDirty(layout);
+        }
+
+        public static MapDisplayLayout LoadRequiredThreePlayerMapLayout()
+        {
+            var layout = AssetDatabase.LoadAssetAtPath<MapDisplayLayout>(ThreePlayerMapLayoutAssetPath);
+            if (layout == null) throw new InvalidOperationException("缺少正式三人地图布局资产。");
+            var expected = ScriptableObject.CreateInstance<MapDisplayLayout>();
+            try
+            {
+                ApplyThreePlayerSource(expected);
+                expected.name = layout.name;
+                if (EditorJsonUtility.ToJson(layout) != EditorJsonUtility.ToJson(expected))
+                    throw new InvalidOperationException("三人地图布局未精确匹配源 JSON，请重建空间布局资产。");
+                ValidateThreePlayerLayout(YC.Domain.Maps.StaticMapDefinitions.CreateThreePlayerMap(), layout);
+                return layout;
+            }
+            finally { UnityEngine.Object.DestroyImmediate(expected); }
+        }
         internal static string ComputeCurrentSourceSha256()
         {
             return ComputeSha256(SourceJsonPath);

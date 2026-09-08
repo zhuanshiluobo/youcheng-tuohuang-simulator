@@ -1240,7 +1240,7 @@ namespace YC.Presentation.Workflows
                 return null;
             }
 
-            var color = StaticMapDefinitions.GetEventColor(locationId);
+            var color = StaticMapDefinitions.GetEventColor(mapQuery.Map, locationId);
             var cardId = new EventDeckService().Peek(state.Decks, color);
             return EventCardDatabase.Get(cardId);
         }

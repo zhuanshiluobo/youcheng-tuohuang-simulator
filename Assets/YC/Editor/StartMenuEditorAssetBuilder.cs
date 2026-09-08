@@ -237,41 +237,32 @@ namespace YC.EditorTools
 
         private static StartMenuMapSelectionPanelView BuildMapSelectionPanel(Transform parent)
         {
-            var panelObject = CreatePanel("Map Selection Panel", parent, new Vector2(620f, 310f));
+            var panelObject = CreatePanel("Map Selection Panel", parent, new Vector2(684f, 390f));
             var panel = panelObject.AddComponent<StartMenuMapSelectionPanelView>();
-            var title = CreateText(
-                panelObject.transform,
-                "Title",
-                "选择地图",
-                30,
-                new Vector2(0f, 102f),
-                new Vector2(540f, 42f),
-                FontStyle.Bold);
-            var threePlayer = CreateButton(
-                panelObject.transform,
-                "三人地图 Button",
-                "三人地图",
-                new Vector2(-120f, 12f),
-                new Vector2(190f, 64f));
-            var fourPlayer = CreateButton(
-                panelObject.transform,
-                "四人地图 Button",
-                "四人地图",
-                new Vector2(120f, 12f),
-                new Vector2(190f, 64f));
-            var back = CreateButton(
-                panelObject.transform,
-                "返回 Button",
-                "返回",
-                new Vector2(0f, -100f),
-                new Vector2(110f, 44f));
-
-            SetReferences(
-                panel,
-                ("titleText", title),
-                ("threePlayerButton", threePlayer),
-                ("fourPlayerButton", fourPlayer),
-                ("backButton", back));
+            var title = CreateText(panelObject.transform, "Title", "单机模式", 30, new Vector2(-15f, 145f), new Vector2(300f, 52f));
+            CreateText(panelObject.transform, "Count Label", "人数选择:", 20, new Vector2(-223f, 52f), new Vector2(110f, 40f));
+            CreateText(panelObject.transform, "Map Label", "地图选择:", 20, new Vector2(-223f, -47f), new Vector2(110f, 40f));
+            var countFrame = CreatePanel("Count Frame", panelObject.transform, new Vector2(320f, 62f));
+            countFrame.GetComponent<RectTransform>().anchoredPosition = new Vector2(45f, 55f);
+            var mapFrame = CreatePanel("Map Frame", panelObject.transform, new Vector2(322f, 63f));
+            mapFrame.GetComponent<RectTransform>().anchoredPosition = new Vector2(44f, -44f);
+            var previousCount = CreateButton(countFrame.transform, "Previous Count", "◀", new Vector2(-134f, 0f), new Vector2(52f, 62f));
+            var nextCount = CreateButton(countFrame.transform, "Next Count", "▶", new Vector2(134f, 0f), new Vector2(52f, 62f));
+            var count = CreateText(countFrame.transform, "Count", "1", 20, Vector2.zero, new Vector2(210f, 60f));
+            var previousMap = CreateButton(mapFrame.transform, "Previous Map", "◀", new Vector2(-135f, 0f), new Vector2(52f, 63f));
+            var nextMap = CreateButton(mapFrame.transform, "Next Map", "▶", new Vector2(135f, 0f), new Vector2(52f, 63f));
+            var map = CreateText(mapFrame.transform, "Map", "四人地图", 20, Vector2.zero, new Vector2(210f, 60f));
+            var back = CreateButton(panelObject.transform, "Close", "×", new Vector2(299f, 158f), new Vector2(42f, 42f));
+            back.GetComponent<Image>().color = Color.clear;
+            back.GetComponent<Outline>().enabled = false;
+            back.GetComponentInChildren<Text>().fontSize = 40;
+            // CJK 字体行高大于关闭按钮，允许字形绘制但保持点击区域不变。
+            back.GetComponentInChildren<Text>().verticalOverflow = VerticalWrapMode.Overflow;
+            var start = CreateButton(panelObject.transform, "Start Game", "开始游戏", new Vector2(238f, -138f), new Vector2(159f, 54f));
+            SetReferences(panel, ("titleText", title), ("countText", count), ("mapText", map),
+                ("previousCountButton", previousCount), ("nextCountButton", nextCount),
+                ("previousMapButton", previousMap), ("nextMapButton", nextMap),
+                ("startButton", start), ("backButton", back));
             panelObject.SetActive(false);
             return panel;
         }
@@ -311,7 +302,10 @@ namespace YC.EditorTools
         {
             var panelObject = CreatePanel("Waiting Room Panel", parent, new Vector2(620f, 430f));
             var panel = panelObject.AddComponent<StartMenuRoomPanelView>();
-            var roomCode = CreateText(panelObject.transform, "Room Code", "房间号", 28, new Vector2(-58f, 170f), new Vector2(410f, 34f), FontStyle.Bold);
+            var roomCode = CreateText(panelObject.transform, "Room Code", "房间号", 26, new Vector2(-58f, 170f), new Vector2(410f, 48f), FontStyle.Bold);
+            roomCode.resizeTextForBestFit = true;
+            roomCode.resizeTextMinSize = 18;
+            roomCode.resizeTextMaxSize = 26;
             var copy = CreateButton(panelObject.transform, "复制 Button", "复制", new Vector2(235f, 170f), new Vector2(96f, 44f));
             var validation = CreateText(panelObject.transform, "Validation Notice", string.Empty, 14, new Vector2(0f, 132f), new Vector2(560f, 34f), FontStyle.Bold);
 

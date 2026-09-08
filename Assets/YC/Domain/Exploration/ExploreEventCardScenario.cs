@@ -35,7 +35,7 @@ namespace YC.Domain.Exploration
 
         public string ResolvePoolId(GameState state, CardFlowStartRequest request)
         {
-            var eventColor = StaticMapDefinitions.GetEventColor(request.TargetId);
+            var eventColor = explorationService.GetEventColor(request.TargetId);
             return EventCardPoolIds.FromColor(eventColor);
         }
 

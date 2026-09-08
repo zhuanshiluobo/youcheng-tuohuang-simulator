@@ -387,6 +387,29 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void InitialPlacement_ThreePlayerMapHighlightsOnlyGreenUnoccupiedDocks()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.State.Phase = GamePhase.Entrance;
+            fixture.Context.State.FindPlayer(1).CityLocationId = string.Empty;
+            fixture.MapQuery.Map.MapId = StaticMapDefinitions.ThreePlayerMapId;
+            fixture.MapQuery.Map.Locations[0].EventColor = EventColor.Green;
+
+            var highlights = fixture.Presenter.BuildInitialPlacementHighlights();
+            Assert.That(highlights, Has.Count.EqualTo(1));
+            Assert.That(highlights[0].TargetId, Is.EqualTo("A"));
+
+            fixture.MapQuery.Map.Locations[1].EventColor = EventColor.Red;
+            Assert.That(fixture.Presenter.BuildInitialPlacementHighlights(), Has.Count.EqualTo(1));
+
+            fixture.MapQuery.Map.Locations[0].CanDockCity = false;
+            Assert.That(fixture.Presenter.BuildInitialPlacementHighlights(), Is.Empty);
+            fixture.MapQuery.Map.Locations[0].CanDockCity = true;
+            fixture.Context.State.FindPlayer(2).CityLocationId = "A";
+            Assert.That(fixture.Presenter.BuildInitialPlacementHighlights(), Is.Empty);
+        }
+
+        [Test]
         public void MoveCity_SuccessFailureAndHostWaitUseDistinctOutcomes()
         {
             var fixture = CreateFixture();
@@ -1159,6 +1182,25 @@ namespace YC.Tests.EditMode
             Assert.That(panel.CanMoveCity, Is.False);
             Assert.That(fixture.View.Prompt, Is.EqualTo(panel.StatusText));
             Assert.That(fixture.View.Prompt, Does.Contain("等待玩家 2 行动"));
+        }
+
+        [TestCase(1, false)]
+        [TestCase(2, true)]
+        public void Panel_CharacterCleanupWaitsOnlyForOtherOwner(int ownerId, bool waiting)
+        {
+            var fixture = CreateFixture();
+            fixture.Context.ControlsCurrentPlayerLocally = false;
+            fixture.Context.State.Phase = GamePhase.Cleanup;
+            fixture.Context.State.PendingCharacterEffect = new PendingCharacterEffectState
+            {
+                PlayerId = ownerId, CardId = CharacterCardDatabase.Liskarm,
+                ChoiceType = CharacterPendingChoiceTypes.LiskarmCleanupRemoval,
+                OptionIds = { "route:A1:0" }
+            };
+            var panel = fixture.Presenter.BuildActionPanelViewModel();
+            Assert.That(panel.IsWaitingForOtherPlayers, Is.EqualTo(waiting));
+            Assert.That(panel.Mode, Is.EqualTo(waiting ? InteractionMode.WaitingForNextPlayer : InteractionMode.Busy));
+            Assert.That(panel.CanEndAction, Is.False);
         }
 
         private static void ApplyEndActionCommandsLocally(Fixture fixture)

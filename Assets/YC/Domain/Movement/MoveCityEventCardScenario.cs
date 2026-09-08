@@ -30,7 +30,7 @@ namespace YC.Domain.Movement
 
         public string ResolvePoolId(GameState state, CardFlowStartRequest request)
         {
-            var eventColor = StaticMapDefinitions.GetEventColor(request.TargetId);
+            var eventColor = cityMovementService.GetEventColor(request.TargetId);
             return EventCardPoolIds.FromColor(eventColor);
         }
 

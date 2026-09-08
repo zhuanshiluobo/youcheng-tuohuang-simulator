@@ -422,7 +422,7 @@ namespace YC.Domain.Cards
             var mapQuery = ResolveMapQuery(state);
             return new CityMovementService(mapQuery, ResolveInfluenceService(state), new TravelCostService(mapQuery), new EventDeckService(), new ResourceTokenService());
         }
-        private static MapQueryService CreateMapQuery(GameState state) => new MapQueryService(state.MapId == StaticMapDefinitions.ThreePlayerMapId ? StaticMapDefinitions.CreateThreePlayerPlaceholder() : StaticMapDefinitions.CreateFourPlayerMap());
+        private static MapQueryService CreateMapQuery(GameState state) => new MapQueryService(StaticMapDefinitions.Resolve(state.MapId));
         private static string Get(IReadOnlyDictionary<string, string> values, string key) { string value; return values != null && values.TryGetValue(key, out value) ? value : string.Empty; }
         private static string MoveSourceKey(int step) => step == 1 ? CharacterEffectParameterKeys.MoveSourceSlotId1 : CharacterEffectParameterKeys.MoveSourceSlotId2;
         private static string MoveTargetKey(int step) => step == 1 ? CharacterEffectParameterKeys.MoveTargetSlotId1 : CharacterEffectParameterKeys.MoveTargetSlotId2;

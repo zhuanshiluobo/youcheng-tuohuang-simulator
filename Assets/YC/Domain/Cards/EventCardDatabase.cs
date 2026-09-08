@@ -9,6 +9,13 @@ namespace YC.Domain.Cards
     {
         public const int ExpectedDefinitionCount = 22;
 
+        // 原始牌面标题右上角标“4”的四人专用牌；不依赖 Unity 目录加载或显示名称。
+        public static bool IsFourPlayerOnly(string cardId)
+        {
+            return cardId == "event_green_06" || cardId == "event_red_05" ||
+                   cardId == "event_yellow_05" || cardId == "event_yellow_08";
+        }
+
         private static readonly string[] CanonicalGreenCardIds =
         {
             "event_green_01", "event_green_02", "event_green_03",

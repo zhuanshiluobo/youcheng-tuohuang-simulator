@@ -14,6 +14,22 @@ namespace YC.Tests.EditMode
         private GameObject owner;
         private Component controller;
 
+        [TestCase(1, 4, "map-four-players")]
+        [TestCase(3, 5)]
+        [TestCase(4, 4)]
+        public void RefreshFromState_RedBandMatchesPlayerCount(int playerCount, int openRound, string mapId = "")
+        {
+            controller = CreateController();
+            var state = new GameState { MapId = mapId };
+            for (var i = 0; i < playerCount; i++) state.Players.Add(new PlayerState { PlayerId = i + 1 });
+            InvokePublic("RefreshFromState", state);
+            var slots = GetPrivateField<RectTransform>("trackSlotsTransform");
+            var danger = (RectTransform)slots.parent.Find("Danger Band");
+            Assert.That(danger.sizeDelta.x, Is.EqualTo((10 - openRound) * 65f + 22f));
+            Assert.That(slots.Find("Round Label 4").GetComponent<Text>().color,
+                Is.EqualTo(openRound == 5 ? Color.black : Color.white));
+            Assert.That(slots.Find("Round Label 5").GetComponent<Text>().color, Is.EqualTo(Color.white));
+        }
         [TearDown]
         public void TearDown()
         {

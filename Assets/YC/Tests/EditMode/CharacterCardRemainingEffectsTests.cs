@@ -1032,6 +1032,62 @@ namespace YC.Tests.EditMode
                     .And.Contain("\u6536\u56de\u4e86\u89d2\u8272\u724c"));
         }
 
+        [TestCase(2, false, false)]
+        [TestCase(3, false, false)]
+        [TestCase(4, false, false)]
+        [TestCase(4, true, false)]
+        [TestCase(4, false, true)]
+        public void LiskarmCleanup_HotseatResolvesAllOwnersThenAdvances(
+            int playerCount, bool noInfluence, bool finalRound)
+        {
+            var state = CreateActionState(CharacterCardDatabase.Liskarm);
+            state.Phase = GamePhase.Cleanup;
+            state.MaxRounds = finalRound ? 1 : 8;
+            state.MapId = StaticMapDefinitions.FourPlayerMapId;
+            var map = StaticMapDefinitions.Resolve(state.MapId);
+            for (var id = 2; id <= playerCount; id++)
+                state.Players.Add(new PlayerState { PlayerId = id });
+            // 起始玩家先收尾，随后轮到非当前行动玩家，复现多人连续结算。
+            for (var id = 1; id <= playerCount; id++)
+            {
+                state.DelayedCharacterEffects.Add(new DelayedCharacterEffectState
+                {
+                    PlayerId = id, CardId = CharacterCardDatabase.Liskarm,
+                    EffectType = CharacterPendingChoiceTypes.LiskarmCleanupRemoval
+                });
+                if (!noInfluence)
+                    state.Map.Influences.Add(InfluenceAt(id,
+                        InfluenceService.GetRouteSlotId(map.Routes[id - 1].RouteId, 0), string.Empty, map.Routes[id - 1].RouteId));
+            }
+            var resolver = new YC.Presentation.Workflows.LocalPlayerResolver();
+            var end = new EndActionCommandHandler();
+            var resolve = new UseCharacterCardCommandHandler();
+            var localId = 1;
+            for (var id = 1; id <= playerCount && !noInfluence; id++)
+            {
+                localId = resolver.Resolve(state, localId, true);
+                Assert.That(end.Handle(state, new GameCommand
+                {
+                    Kind = GameCommandKind.EndAction, PlayerId = localId
+                }).Succeeded, Is.True);
+                localId = resolver.Resolve(state, localId, true);
+                Assert.That(localId, Is.EqualTo(id));
+                var command = new GameCommand { Kind = GameCommandKind.ResolvePendingChoice, PlayerId = localId };
+                command.Parameters[CharacterEffectParameterKeys.TargetInfluenceSlotId] =
+                    state.PendingCharacterEffect.OptionIds[0];
+                Assert.That(resolve.Handle(state, command).Succeeded, Is.True);
+                Assert.That(state.PendingCharacterEffect, Is.Null);
+                Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            }
+            Assert.That(end.Handle(state, new GameCommand
+            {
+                Kind = GameCommandKind.EndAction, PlayerId = resolver.Resolve(state, localId, true)
+            }).Succeeded, Is.True);
+            Assert.That(state.HasPendingChoice(), Is.False);
+            Assert.That(state.DelayedCharacterEffects, Is.Empty);
+            Assert.That(state.Phase, Is.EqualTo(finalRound ? GamePhase.FinalScoring : GamePhase.CharacterCover));
+        }
+
         private static GameState CreateActionState(string templateId)
         {
             var player = new PlayerState { PlayerId = 1, Color = PlayerColor.Red };

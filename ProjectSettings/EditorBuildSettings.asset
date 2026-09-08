@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/CollectionRoom.unity
     guid: 1ff6a64bdd07e034e8ed5b5ee714babf
+  - enabled: 1
+    path: Assets/Scenes/ThreePlayerScene.unity
+    guid: d7cac0f032ca3d5428528a09f4b83a70
   m_configObjects: {}

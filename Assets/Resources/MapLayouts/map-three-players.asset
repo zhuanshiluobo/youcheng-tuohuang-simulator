@@ -1,0 +1,368 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a57cd8eeadcb43fdacf97d506c24e6f3, type: 3}
+  m_Name: map-three-players
+  m_EditorClassIdentifier: 
+  MapId: map-three-players
+  MapSprite: {fileID: 21300000, guid: 9756ed9c18ed9c64a8d957a9068c595f, type: 3}
+  Locations:
+  - LocationId: A-01
+    NormalizedPosition: {x: 0.90875, y: 0.22375}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.0425, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.0425, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: A-02
+    NormalizedPosition: {x: 0.86375, y: 0.44375}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: A-03
+    NormalizedPosition: {x: 0.70875, y: 0.37875}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: B-01
+    NormalizedPosition: {x: 0.915, y: 0.663125}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: B-02
+    NormalizedPosition: {x: 0.78375, y: 0.73375}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: B-03
+    NormalizedPosition: {x: 0.659375, y: 0.63875}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: C-01
+    NormalizedPosition: {x: 0.754375, y: 0.89875}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: C-02
+    NormalizedPosition: {x: 0.511875, y: 0.85625}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: C-03
+    NormalizedPosition: {x: 0.194375, y: 0.86625}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: D-01
+    NormalizedPosition: {x: 0.6825, y: 0.20625}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: D-02
+    NormalizedPosition: {x: 0.49375, y: 0.22}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: D-03
+    NormalizedPosition: {x: 0.5025, y: 0.45375}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: E-01
+    NormalizedPosition: {x: 0.49875, y: 0.66625}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: E-02
+    NormalizedPosition: {x: 0.2625, y: 0.67625}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: E-03
+    NormalizedPosition: {x: 0.12625, y: 0.61875}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: F-01
+    NormalizedPosition: {x: 0.285625, y: 0.25875}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: F-02
+    NormalizedPosition: {x: 0.31, y: 0.465625}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  - LocationId: F-03
+    NormalizedPosition: {x: 0.1225, y: 0.40625}
+    ResourceTokenOffset: {x: -0.0492, y: -0.0307}
+    InfluenceSlots:
+    - Offset: {x: -0.041875, y: 0.02625}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: -0.041875, y: 0.00625}
+      Size: 1
+      ColliderRadius: 0.22
+  Routes:
+  - RouteId: A1
+    NormalizedPosition: {x: 0.86875, y: 0.346875}
+    InfluenceSlots:
+    - Offset: {x: 0, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: A2
+    NormalizedPosition: {x: 0.72625, y: 0.50375}
+    InfluenceSlots:
+    - Offset: {x: -0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: 0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: B1
+    NormalizedPosition: {x: 0.789375, y: 0.615625}
+    InfluenceSlots:
+    - Offset: {x: 0, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: B2
+    NormalizedPosition: {x: 0.87, y: 0.86875}
+    InfluenceSlots:
+    - Offset: {x: -0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: 0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: C1
+    NormalizedPosition: {x: 0.34875, y: 0.910625}
+    InfluenceSlots:
+    - Offset: {x: 0, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: C2
+    NormalizedPosition: {x: 0.64875, y: 0.81875}
+    InfluenceSlots:
+    - Offset: {x: -0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: 0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: D1
+    NormalizedPosition: {x: 0.59875, y: 0.28125}
+    InfluenceSlots:
+    - Offset: {x: -0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: 0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: D2
+    NormalizedPosition: {x: 0.405625, y: 0.354375}
+    InfluenceSlots:
+    - Offset: {x: -0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: 0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: E1
+    NormalizedPosition: {x: 0.315625, y: 0.578125}
+    InfluenceSlots:
+    - Offset: {x: -0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: 0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: E2
+    NormalizedPosition: {x: 0.14625, y: 0.775}
+    InfluenceSlots:
+    - Offset: {x: -0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: 0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: F1
+    NormalizedPosition: {x: 0.38125, y: 0.234375}
+    InfluenceSlots:
+    - Offset: {x: 0, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: F2
+    NormalizedPosition: {x: 0.300625, y: 0.369375}
+    InfluenceSlots:
+    - Offset: {x: 0, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: F3
+    NormalizedPosition: {x: 0.18125, y: 0.31625}
+    InfluenceSlots:
+    - Offset: {x: 0, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: R1
+    NormalizedPosition: {x: 0.78625, y: 0.190625}
+    InfluenceSlots:
+    - Offset: {x: 0, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: R2
+    NormalizedPosition: {x: 0.93, y: 0.37875}
+    InfluenceSlots:
+    - Offset: {x: 0, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: R3
+    NormalizedPosition: {x: 0.350625, y: 0.78375}
+    InfluenceSlots:
+    - Offset: {x: 0, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: R4
+    NormalizedPosition: {x: 0.109375, y: 0.523125}
+    InfluenceSlots:
+    - Offset: {x: -0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: 0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: R6
+    NormalizedPosition: {x: 0.89125, y: 0.5475}
+    InfluenceSlots:
+    - Offset: {x: 0, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: R7
+    NormalizedPosition: {x: 0.553125, y: 0.5675}
+    InfluenceSlots:
+    - Offset: {x: -0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+    - Offset: {x: 0.009375, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  - RouteId: R5
+    NormalizedPosition: {x: 0.509375, y: 0.7725}
+    InfluenceSlots:
+    - Offset: {x: 0, y: 0}
+      Size: 1
+      ColliderRadius: 0.22
+  spatialLayoutManifestSha256: 1C1D1488A8EBBF35085CDE6FB4830F679D69EB40B63A4C4D38B64087FA186636
+  scoreTrackSegments:
+  - MinimumScore: -2
+    MaximumScore: 23
+    Start: {x: 0.1, y: 0.9775}
+    End: {x: 0.97875, y: 0.9775}
+  - MinimumScore: 24
+    MaximumScore: 50
+    Start: {x: 0.97875, y: 0.9425}
+    End: {x: 0.97875, y: 0.033125}
+  scoreMarkerOffsets:
+  - MarkerCount: 1
+    Offsets:
+    - {x: 0, y: 0}
+  - MarkerCount: 2
+    Offsets:
+    - {x: -0.0055, y: 0}
+    - {x: 0.0055, y: 0}
+  - MarkerCount: 3
+    Offsets:
+    - {x: -0.0055, y: -0.0045}
+    - {x: 0.0055, y: -0.0045}
+    - {x: 0, y: 0.005}

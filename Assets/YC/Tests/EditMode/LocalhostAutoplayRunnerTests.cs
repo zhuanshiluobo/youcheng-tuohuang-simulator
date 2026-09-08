@@ -181,6 +181,59 @@ namespace YC.Tests.EditMode
             TestContext.WriteLine(result.Snapshot);
         }
 
+        [Test]
+        public void RunToRound8Settlement_FillsThreeSeatsAndOutputsSnapshot()
+        {
+            var result = LocalhostAutoplayRunner.RunToRound8Settlement(3);
+
+            Assert.That(result.Succeeded, Is.True, result.Snapshot);
+            Assert.That(result.FinalState, Is.Not.Null, result.Snapshot);
+            Assert.That(result.FinalState.MapId, Is.EqualTo(YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId));
+            Assert.That(result.Seats, Has.Count.EqualTo(3));
+            Assert.That(result.Seats.TrueForAll(seat => seat.IsReady), Is.True);
+            Assert.That(result.Seats.ConvertAll(seat => seat.PlayerId), Is.EquivalentTo(new[] { 1, 2, 3 }));
+            Assert.That(result.FinalState.Players, Has.Count.EqualTo(3));
+            Assert.That(result.FinalState.Players.ConvertAll(player => player.PlayerId), Is.EquivalentTo(new[] { 1, 2, 3 }));
+            Assert.That(result.FinalState.Round, Is.EqualTo(8));
+            Assert.That(result.FinalState.Phase, Is.EqualTo(GamePhase.FinalScoring));
+            Assert.That(result.FinalState.PendingChoice, Is.Null, result.Snapshot);
+            Assert.That(result.FinalState.PendingCardSession, Is.Null, result.Snapshot);
+            Assert.That(result.FinalState.PendingSpecialAction, Is.Null, result.Snapshot);
+            Assert.That(result.FinalState.FinalScoring, Is.Not.Null, result.Snapshot);
+            Assert.That(result.FinalState.FinalScoring.IsResolved, Is.True);
+            Assert.That(result.FinalState.FinalScoring.PlayerScores, Has.Count.EqualTo(3));
+            Assert.That(result.FinalState.FinalScoring.RegionScores, Has.Count.EqualTo(7));
+            Assert.That(result.FinalState.FinalScoring.WinnerPlayerIds, Is.Not.Empty);
+            Assert.That(result.FinalState.FinalScoring.WinnerPlayerIds, Is.SubsetOf(new[] { 1, 2, 3 }));
+            Assert.That(RoundTrackRule.GetRoundIndex(result.FinalState), Is.EqualTo(RoundTrackRule.FinalIndex));
+            Assert.That(result.SubmittedCommands, Is.GreaterThan(0), result.Snapshot);
+            Assert.That(result.AcceptedCommands, Is.EqualTo(result.SubmittedCommands), result.Snapshot);
+            Assert.That(result.SpecialActionFixtures.Exists(evidence =>
+                evidence.StartsWith("P2 ") && evidence.Contains("purpose=level-one-formal-supply-build")),
+                Is.True, result.Snapshot);
+            Assert.That(result.FormalSupplyBuilds, Does.Contain("P2 facility=" + FacilityCardDatabase.TradeDistrict + " slot=0"), result.Snapshot);
+            Assert.That(result.FormalSupplyBuilds, Does.Contain("P2 facility=" + FacilityCardDatabase.EquipmentWarehouse + " slot=1"), result.Snapshot);
+            Assert.That(result.FinalState.FindPlayer(2).DeclaredCityStyles.Exists(declaration =>
+                declaration.CityStyleId == CityStyleDatabase.MilitaryIndustrialArea), Is.True, result.Snapshot);
+            Assert.That(result.FinalState.FindPlayer(3).DeclaredCityStyles.Exists(declaration =>
+                declaration.CityStyleId == CityStyleDatabase.SourceStoneIndustrialHub), Is.True, result.Snapshot);
+            Assert.That(result.SpecialActionExecutions.Exists(evidence =>
+                evidence.StartsWith("P2 ") &&
+                evidence.Contains("action=" + SpecialActionDatabase.MilitaryIndustrialArea) &&
+                evidence.Contains("pendingStep=None") && evidence.Contains("beginCommand=autoplay-use-special-")),
+                Is.True, result.Snapshot);
+            Assert.That(result.SpecialActionExecutions.Exists(evidence =>
+                evidence.StartsWith("P3 ") &&
+                evidence.Contains("action=" + SpecialActionDatabase.SourceStoneIndustrialHub) &&
+                evidence.Contains("pendingStep=None") && evidence.Contains("beginCommand=autoplay-use-special-")),
+                Is.True, result.Snapshot);
+            Assert.That(result.Snapshot, Does.Contain("MapId: map-three-players"));
+            Assert.That(result.Snapshot, Does.Contain("PlayerCount: 3"));
+            Assert.That(result.Snapshot, Does.Contain("FinalScoringResolved: True"));
+            Assert.That(result.Snapshot, Does.Contain("FinalScores:"));
+            TestContext.WriteLine(result.Snapshot);
+        }
+
         private static bool HasAnyFinalRegionScore(YC.Domain.State.GameState state)
         {
             for (var i = 0; i < state.FinalScoring.PlayerScores.Count; i++)

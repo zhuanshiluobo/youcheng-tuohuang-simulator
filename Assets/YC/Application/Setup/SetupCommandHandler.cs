@@ -164,6 +164,12 @@ namespace YC.Application.Setup
             }
 
             player.CityLocationId = command.TargetId;
+            // 地图额外入场奖励只在首次合法落位发放，独立于事件选项与基础金券。
+            // 上方已有城市检查阻止重复入场；默认空奖励保留四人现有语义。
+            if (location.InitialEntranceReward != null)
+            {
+                player.Resources.Add(location.InitialEntranceReward);
+            }
             BuildFacilityService.EnsureInitialCoreCommandTower(state, player);
             if (!state.Map.OpenLocationIds.Contains(command.TargetId))
             {
@@ -235,7 +241,7 @@ namespace YC.Application.Setup
                     SessionId = state.PendingCardSession == null ? string.Empty : state.PendingCardSession.SessionId,
                     OptionIndex = choiceIndex
                 },
-                new EntranceEventCardScenario(resourceTokenService));
+                new EntranceEventCardScenario(resourceTokenService, mapQueryService));
             if (!resolveResult.Succeeded)
             {
                 return CommandResult.Invalid(resolveResult.Validation);
@@ -282,7 +288,7 @@ namespace YC.Application.Setup
                     TargetId = command.TargetId,
                     SourceCommandId = command.CommandId
                 },
-                new EntranceEventCardScenario(resourceTokenService));
+                new EntranceEventCardScenario(resourceTokenService, mapQueryService));
             if (!startResult.Succeeded)
             {
                 return false;
@@ -310,6 +316,10 @@ namespace YC.Application.Setup
 
         private bool IsInitialLocationAllowed(string locationId)
         {
+            if (mapQueryService.Map.MapId == StaticMapDefinitions.ThreePlayerMapId)
+            {
+                return mapQueryService.GetLocation(locationId).EventColor == EventColor.Green;
+            }
             if (mapQueryService.Map.MapId != StaticMapDefinitions.FourPlayerMapId)
             {
                 return true;

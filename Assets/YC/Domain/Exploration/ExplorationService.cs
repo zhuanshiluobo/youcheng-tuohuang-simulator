@@ -18,6 +18,12 @@ namespace YC.Domain.Exploration
         private static readonly MainActionBudgetService MainActionBudgetService = new MainActionBudgetService();
 
         private readonly IMapQueryService mapQuery;
+
+        internal EventColor GetEventColor(string locationId)
+        {
+            return StaticMapDefinitions.GetEventColor(mapQuery.Map, locationId);
+        }
+
         private readonly InfluenceService influenceService;
         private readonly EventDeckService eventDeckService;
         private readonly ResourceTokenService resourceTokenService;
@@ -124,7 +130,7 @@ namespace YC.Domain.Exploration
                 return pathValidation;
             }
 
-            var eventColor = StaticMapDefinitions.GetEventColor(targetLocationId);
+            var eventColor = GetEventColor(targetLocationId);
             if (eventDeckService.RemainingCount(state.Decks, eventColor) <= 0)
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "对应颜色事件牌堆已空。");

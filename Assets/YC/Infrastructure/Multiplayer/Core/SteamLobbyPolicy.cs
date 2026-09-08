@@ -7,7 +7,7 @@ namespace YC.Infrastructure.Multiplayer
     {
         public const uint AppId = 480;
         public const string GameKey = "yc_nomad_city";
-        public const string ProtocolVersion = "2";
+        public const string ProtocolVersion = "3";
         public const string WaitingStatus = "waiting";
         public const string StartedStatus = "started";
         public const string SessionKindKey = "sessionKind";

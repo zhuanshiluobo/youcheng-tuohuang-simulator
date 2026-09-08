@@ -1,4 +1,5 @@
 using System;
+using YC.Domain.CardFlows;
 using YC.Domain.Rules;
 using YC.Domain.State;
 
@@ -17,7 +18,26 @@ namespace YC.Presentation.Workflows
             int configuredLocalPlayerId,
             bool controlsCurrentPlayerLocally)
         {
-            if (!controlsCurrentPlayerLocally || state == null || state.CurrentPlayerId <= 0)
+            if (!controlsCurrentPlayerLocally || state == null)
+            {
+                return configuredLocalPlayerId;
+            }
+
+            // 待选所属玩家可能不是当前行动玩家（例如多人雷蛇收尾）。
+            // 只切换同机控制权，不改动共享回合顺序；联机身份在上方保持不变。
+            var pendingChoice = CardFlowStateAdapter.GetPendingChoiceView(state);
+            if (pendingChoice != null)
+            {
+                return pendingChoice.PlayerId;
+            }
+
+            var pendingCharacter = state.PendingCharacterEffect;
+            if (pendingCharacter != null && pendingCharacter.IsValid())
+            {
+                return pendingCharacter.PlayerId;
+            }
+
+            if (state.CurrentPlayerId <= 0)
             {
                 return configuredLocalPlayerId;
             }

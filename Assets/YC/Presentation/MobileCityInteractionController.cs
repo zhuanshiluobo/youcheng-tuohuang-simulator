@@ -114,10 +114,29 @@ namespace YC.Presentation
 
             if (targetCamera == null) targetCamera = Camera.main;
 
-            if (!TabletopRuntimeBootstrap.TryConfigure(gameplayInteractionHud.TabletopCanvas, targetCamera, mapRenderer, this)) return;
+
 
             ReadRightCardSmokeCommandLine();
+            // 三人场景固定绑定三人视图；直接从编辑器运行时创建单城上下文。
+            var sceneMapId = mapViewBinding.CoordinateSpace.Layout.MapId;
+            if (sceneMapId == StaticMapDefinitions.ThreePlayerMapId &&
+                (GameLaunchContext.Instance == null || GameLaunchContext.Instance.Players.Count == 0))
+            {
+                var seats = new List<PlayerSeat>();
+                var colors = new[] { PlayerColor.Blue, PlayerColor.Red, PlayerColor.Green };
+                for (var i = 0; i < 1; i++)
+                    seats.Add(new PlayerSeat { PlayerId = i + 1, PlayerName = "玩家" + (i + 1),
+                        Color = colors[i], IsReady = true });
+                GameLaunchContext.Ensure().Configure(LaunchMode.Local, 1, "three-player-editor", seats, sceneMapId);
+            }
             BuildSession();
+            if (mapQuery.Map.MapId != sceneMapId)
+            {
+                Debug.LogError("场景地图与启动人数不一致，请从开始菜单选择对应地图。", this);
+                enabled = false;
+                return;
+            }
+            if (!TabletopRuntimeBootstrap.TryConfigure(gameplayInteractionHud.TabletopCanvas, targetCamera, mapRenderer, this)) return;
             flowCoordinator = new InteractionFlowCoordinator();
             gameplayAdapter = new MobileCityGameplayAdapter(
                 () => session == null ? null : session.State,
@@ -257,6 +276,7 @@ namespace YC.Presentation
             BuildInteractionRouting();
             BuildCommandSubmission(GameLaunchContext.Instance);
             RefreshPendingChoiceOrHighlights();
+            RefreshRoundTrackerFromState();
             PrepareRightCardSmokePresentation();
         }
 
@@ -349,6 +369,7 @@ namespace YC.Presentation
             mapInteractionRouter.ClearConfirmation(false);
             ClearPendingDispatch();
             workflowView.ClearHighlights();
+            RefreshCityViewsFromState();
             RefreshResourceDisplay();
             RefreshInfluenceDisplay();
             RefreshActionPanel();

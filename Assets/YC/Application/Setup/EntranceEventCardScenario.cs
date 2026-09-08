@@ -10,10 +10,12 @@ namespace YC.Application.Setup
     internal sealed class EntranceEventCardScenario : IEventCardScenario
     {
         private readonly ResourceTokenService resourceTokenService;
+        private readonly IMapQueryService mapQuery;
 
-        public EntranceEventCardScenario(ResourceTokenService resourceTokenService)
+        public EntranceEventCardScenario(ResourceTokenService resourceTokenService, IMapQueryService mapQuery)
         {
             this.resourceTokenService = resourceTokenService;
+            this.mapQuery = mapQuery ?? throw new System.ArgumentNullException(nameof(mapQuery));
         }
 
         public string ScenarioId
@@ -28,7 +30,7 @@ namespace YC.Application.Setup
 
         public string ResolvePoolId(GameState state, CardFlowStartRequest request)
         {
-            var eventColor = StaticMapDefinitions.GetEventColor(request.TargetId);
+            var eventColor = StaticMapDefinitions.GetEventColor(mapQuery.Map, request.TargetId);
             return EventCardPoolIds.FromColor(eventColor);
         }
 

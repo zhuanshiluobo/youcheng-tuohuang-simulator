@@ -584,9 +584,7 @@ namespace YC.Domain.Cards
 
         private static IMapQueryService CreateMapQuery(GameState state)
         {
-            return new MapQueryService(state.MapId == StaticMapDefinitions.ThreePlayerMapId
-                ? StaticMapDefinitions.CreateThreePlayerPlaceholder()
-                : StaticMapDefinitions.CreateFourPlayerMap());
+            return new MapQueryService(StaticMapDefinitions.Resolve(state.MapId));
         }
 
         private static Dictionary<int, ResourceSet> ReferencePlayerResources(GameState state)

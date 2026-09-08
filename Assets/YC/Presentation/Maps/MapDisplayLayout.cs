@@ -91,9 +91,10 @@ namespace YC.Presentation.Maps
                 return false;
             }
 
-            if (scoreMarkerOffsets == null || scoreMarkerOffsets.Count != 4)
+            var supportedPlayerCount = MapId == StaticMapDefinitions.ThreePlayerMapId ? 3 : 4;
+            if (scoreMarkerOffsets == null || scoreMarkerOffsets.Count != supportedPlayerCount)
             {
-                reason = "MapDisplayLayout 必须包含 1/2/3/4 人同分偏移数组。";
+                reason = "MapDisplayLayout 必须包含 1 至 " + supportedPlayerCount + " 人同分偏移数组。";
                 return false;
             }
 
@@ -453,7 +454,9 @@ namespace YC.Presentation.Maps
 
         private static void ValidatePoint(string label, Vector2 point, List<string> errors)
         {
-            if (point.x < 0f || point.x > 1f || point.y < 0f || point.y > 1f)
+            if (float.IsNaN(point.x) || float.IsInfinity(point.x) ||
+                float.IsNaN(point.y) || float.IsInfinity(point.y) ||
+                point.x < 0f || point.x > 1f || point.y < 0f || point.y > 1f)
             {
                 errors.Add(label + " is outside normalized map bounds.");
             }

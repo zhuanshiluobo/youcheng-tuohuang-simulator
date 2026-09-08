@@ -16,6 +16,12 @@ namespace YC.Domain.Movement
         public const string ConsumeMainActionArgument = "consumeMainAction";
         private static readonly MainActionBudgetService MainActionBudgetService = new MainActionBudgetService();
         private readonly IMapQueryService mapQuery;
+
+        internal EventColor GetEventColor(string locationId)
+        {
+            return StaticMapDefinitions.GetEventColor(mapQuery.Map, locationId);
+        }
+
         private readonly InfluenceService influenceService;
         private readonly TravelCostService travelCostService;
         private readonly EventDeckService eventDeckService;
@@ -694,7 +700,7 @@ namespace YC.Domain.Movement
                 return ValidationResult.Success;
             }
 
-            var eventColor = StaticMapDefinitions.GetEventColor(targetLocationId);
+            var eventColor = GetEventColor(targetLocationId);
             if (eventDeckService.RemainingCount(state.Decks, eventColor) <= 0)
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "No cards remain in the matching event deck.");

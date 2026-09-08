@@ -21,6 +21,7 @@ namespace YC.EditorTools
             "Assets/YC/Presentation/Sprites/Map/MapVisualSprites.asset";
         public const string PrefabPath =
             "Assets/YC/Presentation/Prefabs/Map/MapView.prefab";
+        public const string ThreePlayerPrefabPath = "Assets/Resources/MapViews/map-three-players.prefab";
         public const string PieceMaterialPath =
             "Assets/YC/Presentation/Materials/MapPiecePlayerColor.mat";
         public const string MobileCityPiecePrefabPath =
@@ -51,6 +52,24 @@ namespace YC.EditorTools
             Debug.Log("[MapViewEditorAssetBuilder] 已生成并验证 MapVisualSprites 与 MapView Prefab；未修改场景。");
         }
 
+        [MenuItem("Tools/YC/Rebuild Three Player Map Assets Only")]
+        public static void RebuildThreePlayerAssetsOnly()
+        {
+            YC.Editor.UiThemeBuildReadiness.InitializeRequiredTheme();
+            YC.Editor.SpatialLayoutEditorAssetBuilder.RebuildThreePlayerMapLayout();
+            var map = StaticMapDefinitions.CreateThreePlayerMap();
+            var layout = MapDisplayLayoutCatalog.Load(map.MapId);
+            var errors = MapDisplayLayoutValidator.Validate(map, layout);
+            if (errors.Count > 0) throw new InvalidOperationException(string.Join("\n", errors));
+            EnsureFolder("Assets/Resources/MapViews");
+            BuildPrefab(map, layout,
+                AssetDatabase.LoadAssetAtPath<MapVisualSpriteLibrary>(SpriteLibraryPath),
+                YC.Editor.MapFeedbackVisualEditorAssetBuilder.LoadRequiredAssets(),
+                AssetDatabase.LoadAssetAtPath<GameObject>(InfluencePiecePrefabPath),
+                AssetDatabase.LoadAssetAtPath<GameObject>(MobileCityPiecePrefabPath), ThreePlayerPrefabPath);
+            AssetDatabase.SaveAssets();
+            Debug.Log("三人地图布局与视图已重建；未修改四人资产或场景。");
+        }
         private static GameObject RebuildAssetsOnlyCore()
         {
             YC.Editor.UiThemeBuildReadiness.InitializeRequiredTheme();
@@ -87,6 +106,14 @@ namespace YC.EditorTools
                 feedbackVisuals,
                 influencePiecePrefab,
                 mobileCityPiecePrefab);
+            EnsureFolder("Assets/Resources/MapViews");
+            var threeMap = StaticMapDefinitions.CreateThreePlayerMap();
+            var threeLayout = MapDisplayLayoutCatalog.Load(threeMap.MapId);
+            var threeErrors = MapDisplayLayoutValidator.Validate(threeMap, threeLayout);
+            if (threeErrors.Count > 0)
+                throw new InvalidOperationException("三人地图布局无效：\n" + string.Join("\n", threeErrors));
+            BuildPrefab(threeMap, threeLayout, library, feedbackVisuals,
+                influencePiecePrefab, mobileCityPiecePrefab, ThreePlayerPrefabPath);
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(SpriteLibraryPath, ImportAssetOptions.ForceUpdate);
             AssetDatabase.ImportAsset(PrefabPath, ImportAssetOptions.ForceUpdate);
@@ -108,6 +135,8 @@ namespace YC.EditorTools
             var library = AssetDatabase.LoadAssetAtPath<MapVisualSpriteLibrary>(SpriteLibraryPath);
             ValidateLibrary(library, errors);
             ValidatePrefab(map, layout, errors);
+            var threeMap = StaticMapDefinitions.CreateThreePlayerMap();
+            ValidatePrefab(threeMap, MapDisplayLayoutCatalog.Load(threeMap.MapId), errors, ThreePlayerPrefabPath);
             return errors;
         }
 
@@ -468,9 +497,11 @@ namespace YC.EditorTools
             MapVisualSpriteLibrary library,
             YC.Editor.MapFeedbackVisualAssetSet feedbackVisuals,
             GameObject influencePiecePrefab,
-            GameObject mobileCityPiecePrefab)
+            GameObject mobileCityPiecePrefab, string outputPath = PrefabPath)
         {
             var root = new GameObject(TargetChildName);
+            var previousPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(outputPath);
+            root.transform.localScale = previousPrefab != null ? previousPrefab.transform.localScale : Vector3.one * 1.5f;
             try
             {
                 var coordinateRenderer = root.AddComponent<SpriteRenderer>();
@@ -519,13 +550,13 @@ namespace YC.EditorTools
                     cityBindings,
                     scoreBindings);
 
-                PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
+                PrefabUtility.SaveAsPrefabAsset(root, outputPath);
             }
             finally
             {
                 Object.DestroyImmediate(root);
             }
-            return AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            return AssetDatabase.LoadAssetAtPath<GameObject>(outputPath);
         }
 
         private static List<LocationBuildBinding> BuildLocations(
@@ -956,15 +987,15 @@ namespace YC.EditorTools
             }
         }
 
-        private static void ValidatePrefab(GameMapDefinition map, MapDisplayLayout layout, List<string> errors)
+        private static void ValidatePrefab(GameMapDefinition map, MapDisplayLayout layout, List<string> errors, string prefabPath = PrefabPath)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null)
             {
                 errors.Add("缺少 MapView.prefab。");
                 return;
             }
-            var root = PrefabUtility.LoadPrefabContents(PrefabPath);
+            var root = PrefabUtility.LoadPrefabContents(prefabPath);
             try
             {
                 var missing = root.GetComponentsInChildren<Transform>(true)
@@ -1000,11 +1031,12 @@ namespace YC.EditorTools
                 if (view.Locations.Count != map.Locations.Count ||
                     view.ResourceTokens.Count != layout.CreateResourcePointDefinitions().Count ||
                     view.InfluenceSlots.Count != locationSlots + routeSlots ||
-                    view.CityPool.Count != 4 || view.ScoreMarkerPool.Count != 4)
+                    view.CityPool.Count != map.MaxPlayers || view.ScoreMarkerPool.Count != map.MaxPlayers)
                 {
                     errors.Add("Prefab 绑定数量不符合真实布局：地点/资源/槽/城市/计分池。");
                 }
-                if (locationSlots != 44 || routeSlots != 33 || view.InfluenceSlots.Count != 77)
+                if (map.MapId == StaticMapDefinitions.FourPlayerMapId &&
+                    (locationSlots != 44 || routeSlots != 33 || view.InfluenceSlots.Count != 77))
                 {
                     errors.Add("四人地图槽位事实异常，预期地点44+路线33=77。");
                 }

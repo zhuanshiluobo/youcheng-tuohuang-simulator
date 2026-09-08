@@ -52,13 +52,34 @@ namespace YC.Domain.Cards
             DeckRuntimeState decks,
             IReadOnlyList<string> greenCardIds,
             IReadOnlyList<string> yellowCardIds,
-            IReadOnlyList<string> redCardIds)
+            IReadOnlyList<string> redCardIds,
+            int playerCount = 4)
         {
             if (decks == null) throw new ArgumentNullException(nameof(decks));
 
-            cardPoolService.InitializePool(decks, EventCardPoolIds.EventGreen, greenCardIds, random.Next());
-            cardPoolService.InitializePool(decks, EventCardPoolIds.EventYellow, yellowCardIds, random.Next());
-            cardPoolService.InitializePool(decks, EventCardPoolIds.EventRed, redCardIds, random.Next());
+            // 三人先过滤源列表再洗牌；不改共享目录，其他人数保持原牌池和随机序列。
+            cardPoolService.InitializePool(decks, EventCardPoolIds.EventGreen, FilterCardIds(greenCardIds, playerCount), random.Next());
+            cardPoolService.InitializePool(decks, EventCardPoolIds.EventYellow, FilterCardIds(yellowCardIds, playerCount), random.Next());
+            cardPoolService.InitializePool(decks, EventCardPoolIds.EventRed, FilterCardIds(redCardIds, playerCount), random.Next());
+        }
+
+        private static IReadOnlyList<string> FilterCardIds(IReadOnlyList<string> cardIds, int playerCount)
+        {
+            if (playerCount != 3 || cardIds == null)
+            {
+                return cardIds;
+            }
+
+            var filtered = new List<string>(cardIds.Count);
+            for (var i = 0; i < cardIds.Count; i++)
+            {
+                if (!EventCardDatabase.IsFourPlayerOnly(cardIds[i]))
+                {
+                    filtered.Add(cardIds[i]);
+                }
+            }
+
+            return filtered;
         }
 
         public string Draw(DeckRuntimeState decks, EventColor color)

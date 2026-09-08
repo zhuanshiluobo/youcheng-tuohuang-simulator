@@ -213,8 +213,8 @@ namespace YC.Tests.EditMode
             StringAssert.DoesNotContain("SteamTwoPlayerButton", source);
             StringAssert.Contains("BindButton(view.StartGameButton, ShowLocalMapSelectionPanel);", source);
             StringAssert.Contains("BindButton(view.OnlineModePanel.CreateRoomButton, ShowOnlineMapSelectionPanel);", source);
-            StringAssert.Contains("BindButton(view.MapSelectionPanel.FourPlayerButton, SelectFourPlayerMap);", source);
-            StringAssert.Contains("view.MapSelectionPanel.ThreePlayerButton.onClick.RemoveAllListeners();", source);
+            StringAssert.Contains("BindButton(view.MapSelectionPanel.NextMapButton, ToggleSelectedMap);", source);
+            StringAssert.Contains("BindButton(view.MapSelectionPanel.StartButton, ConfirmSelectedMap);", source);
         }
 
         [Test]

@@ -13,7 +13,7 @@ namespace YC.Infrastructure.Multiplayer
     public struct AcceptedCommandMessage : NetworkMessage { public string Json; }
     public struct RejectedCommandMessage : NetworkMessage { public string Json; }
     public struct InitialStateRequestMessage : NetworkMessage { }
-    public struct InitialStateMessage : NetworkMessage { public string Json; }
+    public struct InitialStateMessage : NetworkMessage { public string Json; public string ProtocolVersion; }
     public struct InitialStateAppliedMessage : NetworkMessage { public int PlayerId; }
 
     [DefaultExecutionOrder(-23000)]
@@ -266,7 +266,7 @@ namespace YC.Infrastructure.Multiplayer
         }
 
         private void SendInitialState(NetworkConnectionToClient connection) =>
-            connection.Send(new InitialStateMessage { Json = JsonUtility.ToJson(dispatcher.CreateInitialStateSynchronization()) });
+            connection.Send(new InitialStateMessage { Json = JsonUtility.ToJson(dispatcher.CreateInitialStateSynchronization()), ProtocolVersion = SteamLobbyPolicy.ProtocolVersion });
 
         private void BroadcastAccepted(ConfirmedGameCommandDto confirmed)
         {
@@ -287,7 +287,20 @@ namespace YC.Infrastructure.Multiplayer
         private void OnInitialState(InitialStateMessage message)
         {
             if (NetworkServer.active) return;
+            if (message.ProtocolVersion != SteamLobbyPolicy.ProtocolVersion)
+            {
+                Debug.LogError("对局协议版本不兼容，请所有玩家使用同一构建。");
+                NetworkClient.Disconnect();
+                return;
+            }
             var snapshot = JsonUtility.FromJson<InitialGameStateDto>(message.Json);
+            if (snapshot?.State == null || snapshot.State.MapId != session.State.MapId ||
+                snapshot.State.Players.Count != session.State.Players.Count)
+            {
+                Debug.LogError("权威开局地图或人数与当前房间不一致，已拒绝同步。");
+                NetworkClient.Disconnect();
+                return;
+            }
             var result = dispatcher.ApplyInitialStateSynchronization(snapshot);
             if (result.Succeeded)
             {

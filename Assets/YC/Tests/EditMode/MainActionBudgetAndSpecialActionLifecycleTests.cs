@@ -172,6 +172,7 @@ namespace YC.Tests.EditMode
                 ActionRound = 1,
                 StartPlayerId = 1,
                 CurrentPlayerId = 1,
+                MapId = StaticMapDefinitions.FourPlayerMapId,
                 Players = { player }
             };
         }

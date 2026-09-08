@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YC.Application.Sessions;
+using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
 
@@ -91,6 +92,25 @@ namespace YC.Presentation
             return true;
         }
 
+        private void RefreshRedZoneBands(GameState state)
+        {
+            // 与红区规则使用同一开放回合；只调整固定UI，不复制三人控制器。
+            var map = state.MapId == StaticMapDefinitions.FourPlayerMapId || state.MapId == StaticMapDefinitions.ThreePlayerMapId
+                ? StaticMapDefinitions.Resolve(state.MapId) : null;
+            var openRound = RedZoneAccessRule.GetOpenRound(map, state.Players.Count == 0 ? 4 : state.Players.Count);
+            var safe = trackSlotsTransform.parent.Find("Start Band") as RectTransform;
+            var danger = trackSlotsTransform.parent.Find("Danger Band") as RectTransform;
+            if (safe == null || danger == null) return;
+            safe.sizeDelta = new Vector2(openRound * 65f + 22f, safe.sizeDelta.y);
+            safe.anchoredPosition = new Vector2(((openRound - 1) * 0.5f - 4.5f) * 65f - 11f, 0f);
+            danger.sizeDelta = new Vector2((10 - openRound) * 65f + 22f, danger.sizeDelta.y);
+            danger.anchoredPosition = new Vector2(((openRound + 9) * 0.5f - 4.5f) * 65f + 11f, 0f);
+            for (var i = 0; i < RoundLabels.Length; i++)
+            {
+                var label = trackSlotsTransform.Find("Round Label " + RoundLabels[i]);
+                if (label != null) label.GetComponent<UnityEngine.UI.Text>().color = i >= openRound ? Color.white : Color.black;
+            }
+        }
         private void Update()
         {
         }
@@ -115,6 +135,7 @@ namespace YC.Presentation
                 return;
             }
 
+            RefreshRedZoneBands(state);
             currentIndex = RoundTrackRule.GetRoundIndex(state);
             BuildPlayerMarkers(state);
             MoveMarkerToCurrentIndex();

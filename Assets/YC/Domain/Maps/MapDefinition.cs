@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.Rules;
+using YC.Domain.State;
 
 namespace YC.Domain.Maps
 {
@@ -23,6 +24,8 @@ namespace YC.Domain.Maps
         public ResourceType ResourceType;
         public bool CanDockCity;
         public bool IsRedZone;
+        public EventColor EventColor = EventColor.Yellow;
+        public ResourceSet InitialEntranceReward = new ResourceSet();
         public int ResourceSlotCount;
         public int InfluenceSlotCount;
         public int EventSlotCount;
