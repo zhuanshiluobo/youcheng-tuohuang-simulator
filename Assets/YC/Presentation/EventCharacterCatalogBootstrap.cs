@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using YC.Domain.Cards;
 
@@ -13,15 +13,11 @@ namespace YC.Presentation
 
         private void Awake()
         {
-            if (!TryValidateConfiguration(out var reason))
-            {
-                Debug.LogError("[EventCharacterCatalogBootstrap] " + reason, this);
-                throw new InvalidOperationException(
-                    "EventCharacterCatalogBootstrap 初始化失败：" + reason);
-            }
 
-            EventCardDatabase.Initialize(catalog.CreateEventDefinitions());
-            CharacterCardDatabase.Initialize(catalog.CreateCharacterDefinitions());
+
+            var pack = ExternalContentRuntime.Pack;
+            EventCardDatabase.InitializeExternal(pack.CreateEvents());
+            CharacterCardDatabase.Initialize(pack.CreateCharacters());
         }
 
         public bool TryValidateConfiguration(out string reason)

@@ -57,7 +57,9 @@ namespace YC.Domain.Cards
                 next.Add(source.TemplateId, CloneTemplate(source));
             }
 
-            ValidateTemplateSet(orderedIds);
+            bool external = next.Count > 0;
+            foreach (var value in next.Values) external &= value.IsExternalDefinition;
+            if (!external) ValidateTemplateSet(orderedIds);
             lock (Gate)
             {
                 if (templatesById != null)
@@ -154,7 +156,8 @@ namespace YC.Domain.Cards
                 !Enum.IsDefined(typeof(CharacterCardEffectKind), definition.TacticEffect) ||
                 definition.StrategyEffect == CharacterCardEffectKind.Unsupported ||
                 definition.TacticEffect == CharacterCardEffectKind.Unsupported ||
-                definition.StrategyEffect == definition.TacticEffect)
+                (definition.StrategyEffect == definition.TacticEffect && !definition.IsExternalDefinition) ||
+                (definition.IsExternalDefinition && (string.IsNullOrEmpty(definition.ConfiguredStrategyAbilityId) || string.IsNullOrEmpty(definition.ConfiguredTacticAbilityId) || definition.StrategyAbilityId == definition.TacticAbilityId || definition.TemplateId.Contains("."))))
             {
                 throw new InvalidOperationException(
                     "角色卡模板字段无效：" + (definition.TemplateId ?? string.Empty));
@@ -188,6 +191,9 @@ namespace YC.Domain.Cards
                 CardId = source.CardId,
                 TemplateId = source.TemplateId,
                 Name = source.Name,
+                IsExternalDefinition = source.IsExternalDefinition,
+                ConfiguredStrategyAbilityId = source.ConfiguredStrategyAbilityId,
+                ConfiguredTacticAbilityId = source.ConfiguredTacticAbilityId,
                 StrategyEffect = source.StrategyEffect,
                 TacticEffect = source.TacticEffect
             };
@@ -231,6 +237,7 @@ namespace YC.Domain.Cards
             return left.CardId == right.CardId &&
                    left.TemplateId == right.TemplateId &&
                    left.Name == right.Name &&
+                   left.StrategyAbilityId == right.StrategyAbilityId && left.TacticAbilityId == right.TacticAbilityId &&
                    left.StrategyEffect == right.StrategyEffect &&
                    left.TacticEffect == right.TacticEffect;
         }

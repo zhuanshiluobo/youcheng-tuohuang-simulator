@@ -72,20 +72,23 @@ namespace YC.Tests.EditMode
                 !item.CanCover && !string.IsNullOrEmpty(item.CardId)));
         }
 
-        [TestCase(PlayerColor.Red)]
-        [TestCase(PlayerColor.Yellow)]
-        [TestCase(PlayerColor.Green)]
-        [TestCase(PlayerColor.Blue)]
-        public void BuildView_CoveredCardCarriesPlayerColor(PlayerColor color)
+        [Test]
+        public void BuildView_CoveredCardCarriesPlayerColor()
         {
-            var state = CreateState(GamePhase.ActionRound1);
-            var player = state.FindPlayer(1);
-            player.Color = color;
-            player.CoveredCharacterCardId = "character.red.p1.liskarm";
+            EditModeTestCaseRunner.Run(
+                new[] { PlayerColor.Red, PlayerColor.Yellow, PlayerColor.Green, PlayerColor.Blue },
+                color =>
+                {
+                    var state = CreateState(GamePhase.ActionRound1);
+                    var player = state.FindPlayer(1);
+                    player.Color = color;
+                    player.CoveredCharacterCardId = "character.red.p1.liskarm";
 
-            var view = new CharacterCardPanelPresenter().BuildView(state, 1);
+                    var view = new CharacterCardPanelPresenter().BuildView(state, 1);
 
-            Assert.That(view.CoveredCardBackColor, Is.EqualTo(color));
+                    Assert.That(view.CoveredCardBackColor, Is.EqualTo(color), "color=" + color);
+                },
+                color => "color=" + color);
         }
 
         [Test]
@@ -237,20 +240,25 @@ namespace YC.Tests.EditMode
             Assert.That(command.Parameters[CharacterEffectParameterKeys.ResourceType], Is.EqualTo("iron"));
         }
 
-        [TestCase("character-red-liskarm")]
-        [TestCase("unknown-character-card")]
-        public void UnsupportedOrUnknownCoveredCard_HasNoUsableEffectEntry(string cardId)
+        [Test]
+        public void UnsupportedOrUnknownCoveredCard_HasNoUsableEffectEntry()
         {
-            var state = CreateState(GamePhase.ActionRound1);
-            state.FindPlayer(1).CoveredCharacterCardId = cardId;
+            EditModeTestCaseRunner.Run(
+                new[] { "character-red-liskarm", "unknown-character-card" },
+                cardId =>
+                {
+                    var state = CreateState(GamePhase.ActionRound1);
+                    state.FindPlayer(1).CoveredCharacterCardId = cardId;
 
-            var view = new CharacterCardPanelPresenter().BuildView(state, 1);
+                    var view = new CharacterCardPanelPresenter().BuildView(state, 1);
 
-            Assert.That(view.CanUse, Is.False);
-            Assert.That(view.CanUseStrategy, Is.False);
-            Assert.That(view.CanUseTactic, Is.False);
-            Assert.That(view.CanUseBoth, Is.False);
-            Assert.That(view.InteractionStatus, Is.EqualTo("效果尚未接入"));
+                    Assert.That(view.CanUse, Is.False, cardId);
+                    Assert.That(view.CanUseStrategy, Is.False, cardId);
+                    Assert.That(view.CanUseTactic, Is.False, cardId);
+                    Assert.That(view.CanUseBoth, Is.False, cardId);
+                    Assert.That(view.InteractionStatus, Is.EqualTo("效果尚未接入"), cardId);
+                },
+                cardId => "cardId=" + cardId);
         }
 
         [Test]

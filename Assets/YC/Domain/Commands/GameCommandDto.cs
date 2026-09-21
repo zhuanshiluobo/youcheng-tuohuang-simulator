@@ -89,6 +89,9 @@ namespace YC.Domain.Commands
     {
         public int Sequence;
         public GameCommandDto Command = new GameCommandDto();
+        // 仅供网络迁移期的内存通知使用；网络 JSON 使用 ConfirmedGameStateViewDto，
+        // 不会序列化下面的完整 State。
+        public YC.Domain.State.GameStateView View;
         public GameState State;
     }
 

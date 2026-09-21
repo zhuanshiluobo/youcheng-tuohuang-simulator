@@ -84,44 +84,89 @@ namespace YC.Tests.EditMode
             }));
         }
 
-        [TestCase("building_019", FacilityPendingChoiceTypes.SellResources)]
-        [TestCase("building_025", FacilityPendingChoiceTypes.FreeCityMove)]
-        [TestCase("building_029", FacilityPendingChoiceTypes.ChooseFiveBasicResources)]
-        [TestCase("building_034", FacilityPendingChoiceTypes.ReplaceOneInfluence)]
-        [TestCase("building_037", FacilityPendingChoiceTypes.DeployTwoInfluences)]
-        [TestCase("building_039", FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore)]
-        public void ChoiceFacility_OpensExpectedFacilitySession(string facilityId, string choiceType)
+        [Test]
+        public void ChoiceFacility_OpensExpectedFacilitySession()
         {
-            var state = CreateState();
-            var player = state.FindPlayer(1);
-            player.CityLocationId = "A-01";
-            state.Map.ResourceTokens.Add(new ResourceTokenState
-            {
-                LocationId = "A-02",
-                ResourceType = ResourceType.Iron
-            });
-            state.Map.Influences.Add(new InfluencePlacement
-            {
-                PlayerId = 2,
-                SlotId = "location:A-02:0",
-                LocationId = "A-02"
-            });
-            state.Map.Influences.Add(new InfluencePlacement
-            {
-                PlayerId = 1,
-                SlotId = InfluenceService.GetRouteSlotId("B1", 0),
-                RouteId = "B1"
-            });
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    new ChoiceFacilityCase
+                    {
+                        FacilityId = "building_019",
+                        ChoiceType = FacilityPendingChoiceTypes.SellResources
+                    },
+                    new ChoiceFacilityCase
+                    {
+                        FacilityId = "building_025",
+                        ChoiceType = FacilityPendingChoiceTypes.FreeCityMove
+                    },
+                    new ChoiceFacilityCase
+                    {
+                        FacilityId = "building_029",
+                        ChoiceType = FacilityPendingChoiceTypes.ChooseFiveBasicResources
+                    },
+                    new ChoiceFacilityCase
+                    {
+                        FacilityId = "building_034",
+                        ChoiceType = FacilityPendingChoiceTypes.ReplaceOneInfluence
+                    },
+                    new ChoiceFacilityCase
+                    {
+                        FacilityId = "building_037",
+                        ChoiceType = FacilityPendingChoiceTypes.DeployTwoInfluences
+                    },
+                    new ChoiceFacilityCase
+                    {
+                        FacilityId = "building_039",
+                        ChoiceType = FacilityPendingChoiceTypes.RemoveThenDispatchOrExplore
+                    }
+                },
+                testCase =>
+                {
+                    var state = CreateState();
+                    var player = state.FindPlayer(1);
+                    player.CityLocationId = "A-01";
+                    state.Map.ResourceTokens.Add(new ResourceTokenState
+                    {
+                        LocationId = "A-02",
+                        ResourceType = ResourceType.Iron
+                    });
+                    state.Map.Influences.Add(new InfluencePlacement
+                    {
+                        PlayerId = 2,
+                        SlotId = "location:A-02:0",
+                        LocationId = "A-02"
+                    });
+                    state.Map.Influences.Add(new InfluencePlacement
+                    {
+                        PlayerId = 1,
+                        SlotId = InfluenceService.GetRouteSlotId("B1", 0),
+                        RouteId = "B1"
+                    });
 
-            new FacilityEntryEffectService().Resolve(
-                state,
-                player,
-                FacilityCardDatabase.Get(facilityId),
-                0);
+                    new FacilityEntryEffectService().Resolve(
+                        state,
+                        player,
+                        FacilityCardDatabase.Get(testCase.FacilityId),
+                        0);
 
-            Assert.That(state.PendingCardSession, Is.Not.Null);
-            Assert.That(state.PendingCardSession.ScenarioId, Is.EqualTo(FacilityPendingChoiceTypes.ScenarioId));
-            Assert.That(state.PendingCardSession.ChoiceType, Is.EqualTo(choiceType));
+                    Assert.That(state.PendingCardSession, Is.Not.Null, testCase.FacilityId);
+                    Assert.That(
+                        state.PendingCardSession.ScenarioId,
+                        Is.EqualTo(FacilityPendingChoiceTypes.ScenarioId),
+                        testCase.FacilityId);
+                    Assert.That(
+                        state.PendingCardSession.ChoiceType,
+                        Is.EqualTo(testCase.ChoiceType),
+                        testCase.FacilityId);
+                },
+                testCase => testCase.FacilityId);
+        }
+
+        private sealed class ChoiceFacilityCase
+        {
+            public string FacilityId;
+            public string ChoiceType;
         }
 
         [Test]

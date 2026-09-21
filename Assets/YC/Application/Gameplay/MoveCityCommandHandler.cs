@@ -5,6 +5,7 @@ using YC.Domain.Cards;
 using YC.Domain.CardFlows;
 using YC.Domain.Commands;
 using YC.Domain.Events;
+using YC.Domain.Effects;
 using YC.Domain.Movement;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -20,6 +21,8 @@ namespace YC.Application.Gameplay
 
         private readonly CityMovementService cityMovementService;
         private readonly RoundAdvanceService roundAdvanceService;
+        private readonly EffectRegistry effectRegistry;
+        private readonly bool useEffectPipeline;
 
         public MoveCityCommandHandler(CityMovementService cityMovementService)
             : this(cityMovementService, new RoundAdvanceService())
@@ -28,8 +31,20 @@ namespace YC.Application.Gameplay
 
         public MoveCityCommandHandler(CityMovementService cityMovementService, RoundAdvanceService roundAdvanceService)
         {
-            this.cityMovementService = cityMovementService;
-            this.roundAdvanceService = roundAdvanceService;
+            this.cityMovementService = cityMovementService ?? throw new ArgumentNullException(nameof(cityMovementService));
+            this.roundAdvanceService = roundAdvanceService ?? throw new ArgumentNullException(nameof(roundAdvanceService));
+            effectRegistry = null;
+            useEffectPipeline = false;
+        }
+
+        public MoveCityCommandHandler(
+            CityMovementService cityMovementService,
+            RoundAdvanceService roundAdvanceService,
+            EffectRegistry effectRegistry)
+            : this(cityMovementService, roundAdvanceService)
+        {
+            this.effectRegistry = effectRegistry ?? throw new ArgumentNullException(nameof(effectRegistry));
+            useEffectPipeline = true;
         }
 
         public bool CanHandle(GameCommand command)
@@ -41,6 +56,11 @@ namespace YC.Application.Gameplay
 
         public CommandResult Handle(GameState state, GameCommand command)
         {
+            if (useEffectPipeline && command.Kind == GameCommandKind.MoveCity)
+            {
+                return HandleEffectMove(state, command);
+            }
+
             if (command.Kind == GameCommandKind.ResolvePendingChoice || IsResolvingMoveCityEvent(state, command))
             {
                 return HandleResolveMoveCityEvent(state, command);
@@ -114,6 +134,54 @@ namespace YC.Application.Gameplay
             }
 
             return CommandResult.SuccessResult(events, "Player " + command.PlayerId + " moved city to " + result.TargetLocationId + ".");
+        }
+
+        private CommandResult HandleEffectMove(GameState state, GameCommand command)
+        {
+            if (state == null || command == null || string.IsNullOrEmpty(command.TargetId))
+            {
+                return Invalid(CommandErrorCode.InvalidTarget, "城市移动必须提交稳定的目标地块 ID。");
+            }
+
+            string targetLocationId = ResolveSubmittedTargetLocationId(command.TargetId);
+            if (string.IsNullOrEmpty(targetLocationId))
+            {
+                return Invalid(CommandErrorCode.InvalidTarget, "城市移动候选 ID 无效。");
+            }
+
+            var executor = new EffectTreeExecutor(state, effectRegistry);
+            string nodeId;
+            var moveSpec = CityMoveEffectSpecFactory.Move(
+                command.PlayerId,
+                targetLocationId,
+                false,
+                true,
+                command.CommandId);
+            if (!executor.TryCreatePlayerActionEffect(
+                    command.PlayerId,
+                    moveSpec,
+                    string.Empty,
+                    command.CommandId,
+                    out nodeId))
+            {
+                return Invalid(CommandErrorCode.InvalidTarget, executor.LastDiagnostic);
+            }
+
+            EffectRunReport report = executor.RunUntilQuiescent();
+            if (report.Faulted)
+            {
+                return Invalid(CommandErrorCode.InvalidTarget, "城市移动 Effect 无法继续：" + report.FaultCode);
+            }
+
+            return CommandResult.SuccessResult(
+                new List<GameEvent>(),
+                report.WaitingForInput ? "城市移动已提交，等待事件牌选择。" : "城市移动已完成。");
+        }
+
+        private static string ResolveSubmittedTargetLocationId(string submittedTargetId)
+        {
+            string candidateTargetId = CityMoveCandidateQueryService.GetTargetLocationId(submittedTargetId);
+            return string.IsNullOrEmpty(candidateTargetId) ? submittedTargetId : candidateTargetId;
         }
 
         private CommandResult HandleResolveMoveCityEvent(GameState state, GameCommand command)

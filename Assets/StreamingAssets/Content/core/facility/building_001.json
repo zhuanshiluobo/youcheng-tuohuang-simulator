@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_001",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "城邦行政区",
+  "artwork": "artwork/facility/building_001.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_001",
+    "manifestId": "building_001"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/unique_only.json"
+}

@@ -43,7 +43,9 @@ namespace YC.Presentation.Workflows
                                           pendingCharacter.ChoiceType == CharacterPendingChoiceTypes.SecondEffectDecision;
             var canContinueSecondEffect = !isSecondEffectDecision ||
                                           pendingCharacter.OptionIds.Contains(CharacterEffectChoiceIds.ContinueSecondEffect);
-            var inputBlocked = state.HasPendingChoice() && !isSecondEffectDecision && !isSecondEffectExecution;
+            var inputBlocked = HasBlockingPendingChoice(state, localPlayerId) &&
+                               !isSecondEffectDecision &&
+                               !isSecondEffectExecution;
             var canCover = state.Phase == GamePhase.CharacterCover &&
                            isLocalTurn &&
                            !inputBlocked &&
@@ -294,6 +296,54 @@ namespace YC.Presentation.Workflows
             if (cardId.Contains("锡人") || normalized.Contains("tin-man") || normalized.Contains("tinman") || normalized.Contains("xiren")) return "锡人";
             return cardId;
         }
+
+        private static bool HasBlockingPendingChoice(GameState state, int localPlayerId)
+        {
+            if (state == null)
+            {
+                return false;
+            }
+
+            if (state.PendingChoice != null && state.PendingChoice.IsValid())
+            {
+                return true;
+            }
+
+            if (state.PendingCardSession != null && state.PendingCardSession.IsValid())
+            {
+                return true;
+            }
+
+            if (state.PendingCharacterEffect != null && state.PendingCharacterEffect.IsValid())
+            {
+                return true;
+            }
+
+            if (state.EffectRuntime == null || state.EffectRuntime.InteractionRequests == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < state.EffectRuntime.InteractionRequests.Count; i++)
+            {
+                var request = state.EffectRuntime.InteractionRequests[i];
+                if (request == null || request.Status != "open" || request.IsInternalMainlineInteraction())
+                {
+                    continue;
+                }
+
+                if (request.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId &&
+                    request.AnsweringPlayerId == localPlayerId)
+                {
+                    continue;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
     }
 
     public sealed class CharacterCardPanelViewModel

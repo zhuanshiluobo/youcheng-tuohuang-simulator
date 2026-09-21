@@ -151,7 +151,8 @@ namespace YC.Presentation
             {
                 var capturedIndex = i;
                 var row = view.CreateChoiceRow(view.EventChoiceHost);
-                row.Root.gameObject.name = "Choice " + (i + 1);
+                  row.Root.gameObject.name = "Choice " + (i + 1);
+                  YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject, "event.option." + i);
                 row.Label.text = card.ChoiceDescriptions[i];
                 row.Root.anchoredPosition = new Vector2(
                     layout.ChoiceRowTemplateLayout.AnchoredPosition.x,
@@ -229,6 +230,7 @@ namespace YC.Presentation
                 // 图片顺序不等于规则编号；仅转换图片按钮，保留原待选会话编号。
                 var capturedIndex = GetArtworkChoiceIndex(card.CardId, i);
                 var row = view.CreateChoiceRow(view.EventChoiceHost);
+                YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject, "event.option." + i);
                 row.Root.gameObject.name = "Choice " + (i + 1);
                 ConfigureAssetizedChoiceRow(
                     row,

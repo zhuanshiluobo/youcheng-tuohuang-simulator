@@ -12,7 +12,8 @@ namespace YC.Domain.Cards
         TexasSpecialDelivery,
         TexasRemoveAndDoubleMove,
         TinManEstablishPrestige,
-        TinManDeepPlanning
+        TinManDeepPlanning,
+        External
     }
 
     public sealed class CharacterCardDefinition
@@ -20,8 +21,29 @@ namespace YC.Domain.Cards
         public string CardId = string.Empty;
         public string TemplateId = string.Empty;
         public string Name = string.Empty;
+        public bool IsExternalDefinition;
+        public string ConfiguredStrategyAbilityId = string.Empty;
+        public string ConfiguredTacticAbilityId = string.Empty;
         public CharacterCardEffectKind StrategyEffect;
         public CharacterCardEffectKind TacticEffect;
+
+        // 能力 ID 是数据目录的稳定脚本路由，不是角色卡实例 ID 的 C# 分支。
+        public string StrategyAbilityId
+        {
+            get { return string.IsNullOrEmpty(ConfiguredStrategyAbilityId) ? CreateAbilityId(TemplateId, CharacterEffectModes.Strategy) : ConfiguredStrategyAbilityId; }
+        }
+
+        public string TacticAbilityId
+        {
+            get { return string.IsNullOrEmpty(ConfiguredTacticAbilityId) ? CreateAbilityId(TemplateId, CharacterEffectModes.Tactic) : ConfiguredTacticAbilityId; }
+        }
+
+        private static string CreateAbilityId(string templateId, string mode)
+        {
+            return string.IsNullOrEmpty(templateId) || string.IsNullOrEmpty(mode)
+                ? string.Empty
+                : "character." + templateId + "." + mode;
+        }
     }
 
     public static class CharacterEffectModes

@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NoMadCity 外部内容定义",
+  "type": "object",
+  "required": [
+    "definitionId",
+    "contentType",
+    "version",
+    "displayName",
+    "artwork",
+    "abilities",
+    "data",
+    "expansionId",
+    "replaces"
+  ],
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "definitionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contentType": {
+      "enum": [
+        "character",
+        "facility",
+        "event",
+        "city_style",
+        "enterprise_board",
+        "entrepreneur_ability",
+        "entrepreneur_round"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artwork": {
+      "type": "string",
+      "description": "相对于内容包根目录的 PNG/JPEG 路径"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "playerMarkerZones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "zoneId",
+          "capacity"
+        ],
+        "properties": {
+          "zoneId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "abilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "abilityId",
+          "mode",
+          "subscriptionId",
+          "script",
+          "version",
+          "skillType"
+        ],
+        "properties": {
+          "abilityId": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "subscriptionId": {
+            "type": "string"
+          },
+          "script": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "completionHandlerId": {
+            "type": "string"
+          },
+          "cleanupScript": {
+            "type": "string"
+          },
+          "skillType": {
+            "enum": [
+              "normal",
+              "persistent",
+              "one_shot"
+            ]
+          },
+          "hasSpecialZone": {
+            "type": "boolean"
+          },
+          "specialZoneId": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "skillType": {
+                  "const": "persistent"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "hasSpecialZone"
+              ]
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "hasSpecialZone"
+              ],
+              "properties": {
+                "hasSpecialZone": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "specialZoneId"
+              ],
+              "properties": {
+                "skillType": {
+                  "const": "persistent"
+                },
+                "specialZoneId": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "specialZoneId": {
+                  "const": ""
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "data": {
+      "type": "object"
+    },
+    "expansionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "replaces": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "expansionId",
+            "contentType",
+            "definitionId"
+          ],
+          "properties": {
+            "expansionId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "contentType": {
+              "type": "string",
+              "minLength": 1
+            },
+            "definitionId": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "dataTemplate": {
+      "type": "string",
+      "description": "设施共用数据模板的包内 JSON 相对路径；data 保存本实体差异。"
+    }
+  }
+}

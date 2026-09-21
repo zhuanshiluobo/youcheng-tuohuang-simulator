@@ -348,9 +348,8 @@ namespace YC.Tests.EditMode
                 new MainActionBudgetService(),
                 lifecycle);
 
-            var result = service.EndCompletedAction(state, 1);
-
-            Assert.That(result.IsValid, Is.True);
+            var round = RoundLifecycleTestDriver.EnterCollection(state, service.Execution);
+            RoundLifecycleTestDriver.FinishCollection(state, round);
             Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
             Assert.That(state.Round, Is.EqualTo(2));
             Assert.That(state.Players[0].DeclaredCityStyles[0].MarkerArea, Is.EqualTo(CityStyleMarkerAreas.Unused));

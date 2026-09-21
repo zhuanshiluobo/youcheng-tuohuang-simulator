@@ -47,6 +47,9 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(paymentRecipientsValidation);
             }
 
+            var prepared = roundAdvanceService.Execution.PrepareCollectionSubmission(state, command.PlayerId);
+            if (!prepared.IsValid) return CommandResult.Invalid(prepared);
+
             var result = resourceCollectionService.Collect(
                 state,
                 command.PlayerId,
@@ -58,9 +61,10 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(result.Validation);
             }
 
-            if (roundAdvanceService.AllPlayersCollectedResources(state))
+            var roundCompletion = roundAdvanceService.CompleteResourceCollection(state, command.PlayerId);
+            if (!roundCompletion.IsValid)
             {
-                roundAdvanceService.AdvanceResourceCollectionToCleanup(state);
+                return CommandResult.Invalid(roundCompletion);
             }
 
             var message = "Player " + command.PlayerId + " collected resources.";

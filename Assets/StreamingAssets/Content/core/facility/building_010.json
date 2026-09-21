@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_010",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "简陋工程营",
+  "artwork": "artwork/facility/building_010.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_010",
+    "manifestId": "building_010"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/build_additional_facility.json"
+}

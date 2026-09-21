@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace YC.Presentation
 {
-    public sealed class MapHotspot : MonoBehaviour
+    public sealed class MapHotspot : MonoBehaviour, UnityEngine.EventSystems.IPointerClickHandler
     {
         public const float HighlightScaleMultiplier = 2f;
         public const float HighlightPulseDuration = MapHighlightPulse.PulseDuration * 2f;
@@ -26,6 +26,9 @@ namespace YC.Presentation
             }
             controller = owner;
             LocationId = locationId;
+            YC.PlayerJourney.PlayerAutomationId.Attach(gameObject, "map.location." + locationId);
+            if (Camera.main != null && Camera.main.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() == null)
+                Camera.main.gameObject.AddComponent<UnityEngine.EventSystems.Physics2DRaycaster>();
             restingScale = spriteRenderer.transform.localScale;
             if (!highlightPulse.BindWithDuration(spriteRenderer, HighlightPulseDuration, out reason) ||
                 !placementFeedback.Bind(out reason))
@@ -47,6 +50,7 @@ namespace YC.Presentation
 
         public void SetHighlighted(bool highlighted)
         {
+            YC.PlayerJourney.PlayerAutomationId.Attach(gameObject, "map.location." + LocationId, highlighted);
             if (spriteRenderer != null)
             {
                 spriteRenderer.transform.localScale = highlighted
@@ -59,7 +63,13 @@ namespace YC.Presentation
 
         private void OnMouseDown()
         {
+            if (Camera.main != null && Camera.main.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() != null) return;
             if (controller != null) controller.OnHotspotClicked(LocationId);
+        }
+        public void OnPointerClick(UnityEngine.EventSystems.PointerEventData eventData)
+        {
+            if (eventData.button == UnityEngine.EventSystems.PointerEventData.InputButton.Left && controller != null)
+                controller.OnHotspotClicked(LocationId);
         }
     }
 }

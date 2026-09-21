@@ -386,45 +386,39 @@ namespace YC.Tests.EditMode
         public void LiskarmStrategy_PlacesTwoThenCleanupWaitsForRemovalAndAdvancesAfterResolve()
         {
             var state = CreateActionState(CharacterCardDatabase.Liskarm);
-            var player = state.FindPlayer(1);
-            var firstSlot = InfluenceService.GetRouteSlotId("A1", 0);
-            var secondSlot = InfluenceService.GetRouteSlotId("B1", 0);
-
-            var use = Use(state, CharacterEffectModes.Strategy, command =>
-            {
-                command.Parameters[CharacterEffectParameterKeys.PlacementSlotId1] = firstSlot;
-                command.Parameters[CharacterEffectParameterKeys.PlacementSlotId2] = secondSlot;
-            });
-
+            var registry = new YC.Domain.Effects.EffectRegistry();
+            var round = new RoundExecutionService(registry);
+            YC.Domain.Effects.InfluenceEffectExecutor.Register(registry,
+                new InfluenceService(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap())));
+            YC.Infrastructure.Lua.CharacterCardLuaCatalog.Register(registry);
+            Assert.That(round.PrepareActionWindowForSmoke(state, 1).IsValid, Is.True);
+            var command = new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = 1 };
+            command.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = state.FindPlayer(1).CoveredCharacterCardId;
+            command.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] = CharacterEffectModes.Strategy;
+            var use = new UseCharacterCardCommandHandler(new CharacterCardService(), registry).Handle(state, command);
             Assert.That(use.Succeeded, Is.True);
+            for (int i = 0; i < 2; i++)
+            {
+                var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.place.target");
+                Assert.That(request, Is.Not.Null);
+                var answer = YC.Application.Interactions.EffectInteractionCommands.Answer(
+                    YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1), 1, new[] { request.CandidateIds[0] });
+                Assert.That(new YC.Application.Interactions.AnswerInteractionCommandHandler(registry, round).Handle(state, answer).Succeeded, Is.True);
+            }
             Assert.That(state.Map.Influences, Has.Count.EqualTo(2));
-            Assert.That(player.InfluenceSupply, Is.EqualTo(28));
-            Assert.That(state.DelayedCharacterEffects, Has.Count.EqualTo(1));
-
-            state.Phase = GamePhase.Cleanup;
-            state.MaxRounds = 8;
-            var endActionHandler = new EndActionCommandHandler();
-            var firstCleanup = endActionHandler.Handle(state, new GameCommand
-            {
-                Kind = GameCommandKind.EndAction,
-                PlayerId = 1
-            });
-            Assert.That(firstCleanup.Succeeded, Is.True, "创建收尾待选属于成功写入状态，必须能够被权威命令广播。");
-            Assert.That(state.Phase, Is.EqualTo(GamePhase.Cleanup));
-            Assert.That(state.PendingCharacterEffect.ChoiceType, Is.EqualTo(CharacterPendingChoiceTypes.LiskarmCleanupRemoval));
-
-            var resolve = ResolveRemoval(state, secondSlot);
-            Assert.That(resolve.Succeeded, Is.True);
-            Assert.That(state.Map.Influences, Has.Count.EqualTo(1));
-            Assert.That(player.InfluenceSupply, Is.EqualTo(29));
+            Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(28));
             Assert.That(state.DelayedCharacterEffects, Is.Empty);
-
-            var secondCleanup = endActionHandler.Handle(state, new GameCommand
-            {
-                Kind = GameCommandKind.EndAction,
-                PlayerId = 1
-            });
-            Assert.That(secondCleanup.Succeeded, Is.True);
+            Assert.That(round.CompleteMainAction(state, 1).IsValid, Is.True);
+            Assert.That(round.CompleteMainAction(state, 1).IsValid, Is.True);
+            RoundLifecycleTestDriver.FinishCollection(state, round);
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.Cleanup));
+            var removal = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.remove.target");
+            Assert.That(removal, Is.Not.Null);
+            var resolve = YC.Application.Interactions.EffectInteractionCommands.Answer(
+                YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(removal, 1), 1, new[] { removal.CandidateIds[1] });
+            Assert.That(new YC.Application.Interactions.AnswerInteractionCommandHandler(registry, round).Handle(state, resolve).Succeeded, Is.True);
+            Assert.That(state.Map.Influences, Has.Count.EqualTo(1));
+            Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(29));
             Assert.That(state.Round, Is.EqualTo(2));
             Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
         }

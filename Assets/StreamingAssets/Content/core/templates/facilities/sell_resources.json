@@ -1,0 +1,36 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "贸易街区",
+    "color": "blue",
+    "score": 0,
+    "resourceCost": {
+      "originium": 1,
+      "originiumShard": 0,
+      "iron": 1,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 6,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry"
+    ],
+    "effectId": "sell_resources",
+    "effectType": "special_action",
+    "description": "“在这不一定能寻到最好的价格，但一定可以解你燃眉之急。”",
+    "effectText": "你可以将任何资源用以下单价出售：源岩 3 金券、源石碎片 3 金券、异铁 4 金券、至纯源石 15 金券。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/sell_resources.lua"
+  }
+}

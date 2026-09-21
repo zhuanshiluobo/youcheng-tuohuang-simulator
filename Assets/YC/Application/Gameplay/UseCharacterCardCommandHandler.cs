@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
+using YC.Domain.Effects;
 using YC.Domain.Events;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -24,15 +25,24 @@ namespace YC.Application.Gameplay
         public const string TargetInfluenceSlotIdParameter = CharacterEffectParameterKeys.TargetInfluenceSlotId;
 
         private readonly CharacterCardService service;
+        private readonly EffectRegistry effectRegistry;
 
         public UseCharacterCardCommandHandler()
-            : this(new CharacterCardService())
+            : this(new CharacterCardService(), null)
         {
         }
 
         public UseCharacterCardCommandHandler(CharacterCardService service)
+            : this(service, null)
         {
-            this.service = service;
+        }
+
+        public UseCharacterCardCommandHandler(
+            CharacterCardService service,
+            EffectRegistry effectRegistry)
+        {
+            this.service = service ?? throw new ArgumentNullException(nameof(service));
+            this.effectRegistry = effectRegistry;
         }
 
         public bool CanHandle(GameCommand command)
@@ -57,6 +67,19 @@ namespace YC.Application.Gameplay
 
             var mode = GetParameter(command, EffectModeParameter);
             var order = GetParameter(command, EffectOrderParameter);
+
+            CommandResult unifiedResult;
+            if (TryHandleUnifiedAbility(
+                    state,
+                    command,
+                    cardId,
+                    mode,
+                    order,
+                    out unifiedResult))
+            {
+                return unifiedResult;
+            }
+
             var validation = service.Use(state, command.PlayerId, cardId, mode, order, command.Parameters);
             if (!validation.IsValid)
             {
@@ -75,6 +98,155 @@ namespace YC.Application.Gameplay
             {
                 new GameEvent { Kind = GameEventKind.CardMoved, PlayerId = command.PlayerId, SubjectId = cardId, Message = message }
             }, message);
+        }
+
+        private bool TryHandleUnifiedAbility(
+            GameState state,
+            GameCommand command,
+            string cardId,
+            string mode,
+            string order,
+            out CommandResult result)
+        {
+            result = null;
+            if (effectRegistry == null || state == null || command == null ||
+                (mode != CharacterEffectModes.Strategy && mode != CharacterEffectModes.Tactic &&
+                 mode != CharacterEffectModes.Both) ||
+                (mode != CharacterEffectModes.Both && !string.IsNullOrEmpty(order)) ||
+                string.IsNullOrEmpty(cardId))
+            {
+                return false;
+            }
+
+            var definition = CharacterCardDatabase.Get(cardId);
+            string strategyAbilityId = definition == null ? string.Empty : definition.StrategyAbilityId;
+            string tacticAbilityId = definition == null ? string.Empty : definition.TacticAbilityId;
+            string abilityId = mode == CharacterEffectModes.Strategy
+                ? strategyAbilityId
+                : tacticAbilityId;
+            if (definition == null ||
+                (mode == CharacterEffectModes.Both
+                    ? !effectRegistry.CharacterActivationSubscriptions.ContainsKey(strategyAbilityId) ||
+                      !effectRegistry.CharacterActivationSubscriptions.ContainsKey(tacticAbilityId)
+                    : !effectRegistry.CharacterActivationSubscriptions.ContainsKey(abilityId)))
+            {
+                return false;
+            }
+
+            if (mode == CharacterEffectModes.Both &&
+                order != CharacterEffectOrders.StrategyFirst &&
+                order != CharacterEffectOrders.TacticFirst)
+            {
+                result = CommandResult.Invalid(ValidationResult.Failure(
+                    CommandErrorCode.UnknownCommand,
+                    "同时执行角色牌效果时必须明确 effectOrder。"));
+                return true;
+            }
+
+            var player = state.FindPlayer(command.PlayerId);
+            var validation = ValidateUnifiedActivation(state, player, cardId);
+            if (!validation.IsValid)
+            {
+                result = CommandResult.Invalid(validation);
+                return true;
+            }
+
+            string stableKey = "command:" + (string.IsNullOrEmpty(command.CommandId)
+                ? cardId + ":" + state.EffectRuntime.StateRevision
+                : command.CommandId);
+            EffectSpec spec;
+            if (mode == CharacterEffectModes.Both)
+            {
+                string firstAbilityId = order == CharacterEffectOrders.StrategyFirst
+                    ? strategyAbilityId
+                    : tacticAbilityId;
+                string secondAbilityId = order == CharacterEffectOrders.StrategyFirst
+                    ? tacticAbilityId
+                    : strategyAbilityId;
+                spec = CharacterAbilityEffectExecutor.CreateSequenceSpec(
+                    cardId,
+                    firstAbilityId,
+                    secondAbilityId,
+                    order,
+                    command.PlayerId,
+                    stableKey);
+            }
+            else
+            {
+                spec = CharacterAbilityEffectExecutor.CreateActivationSpec(
+                    cardId,
+                    abilityId,
+                    mode,
+                    order,
+                    command.PlayerId,
+                    stableKey);
+            }
+            var executor = new EffectTreeExecutor(state, effectRegistry);
+            string effectId;
+            if (!executor.TryCreatePlayerActionEffect(
+                    command.PlayerId,
+                    spec,
+                    state.EffectRuntime.CurrentRoundExecutionId ?? string.Empty,
+                    command.CommandId ?? string.Empty,
+                    out effectId))
+            {
+                result = CommandResult.Invalid(ValidationResult.Failure(
+                    CommandErrorCode.UnknownCommand,
+                    "角色牌 Effect 创建失败：" + executor.LastDiagnostic));
+                return true;
+            }
+
+            var report = executor.RunUntilQuiescent();
+            if (report.Faulted)
+            {
+                result = CommandResult.Invalid(ValidationResult.Failure(
+                    CommandErrorCode.UnknownCommand,
+                    "角色牌 Lua/Effect 无法继续：" + report.FaultCode));
+                return true;
+            }
+
+            result = CommandResult.SuccessResult(
+                new List<GameEvent>(),
+                report.WaitingForInput ? "角色牌效果已进入交互。" : "角色牌效果已完成。");
+            return true;
+        }
+
+        private static ValidationResult ValidateUnifiedActivation(
+            GameState state,
+            PlayerState player,
+            string cardId)
+        {
+            if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
+            {
+                return ValidationResult.Failure(CommandErrorCode.WrongPhase, "只能在行动轮使用角色牌。");
+            }
+
+            if (player == null)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "使用角色牌的玩家不存在。");
+            }
+
+            if (state.CurrentPlayerId != player.PlayerId)
+            {
+                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "只能在自己的行动窗口使用角色牌。");
+            }
+
+            if (state.HasPendingChoice() || state.HasOpenActionableInteraction())
+            {
+                return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择效果。");
+            }
+
+            if (player.CharacterCardLockedThisTurn || player.UsedCharacterThisRound)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "当前行动轮不能再次使用角色牌。");
+            }
+
+            if (player.CoveredCharacterCardId != cardId)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "只能使用本回合盖放的角色牌。");
+            }
+
+            return ValidationResult.Success;
         }
 
         private CommandResult HandleResolvePendingCharacterEffect(GameState state, GameCommand command)

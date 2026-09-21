@@ -209,72 +209,98 @@ namespace YC.Tests.EditMode
             Assert.That(state.Map.Influences.Exists(item => item.SlotId == routeSlots[0] && item.PlayerId == 1), Is.True);
         }
 
-        [TestCase(0, 3)]
-        [TestCase(1, 2)]
-        [TestCase(2, 1)]
-        [TestCase(3, 0)]
-        public void CompositePower_BeginAtomicallyPaysSelectedCombinationAndOpensMove(
-            int originiumAmount,
-            int ironAmount)
+        [Test]
+        public void CompositePower_BeginAtomicallyPaysSelectedCombinationAndOpensMove()
         {
-            var context = CreateContext();
-            var state = CreateState();
-            var player = state.FindPlayer(1);
-            player.Resources.OriginiumShard = 1;
-            player.Resources.Originium = 3;
-            player.Resources.Iron = 3;
-            AddUnlockedMarker(
-                player,
-                SpecialActionDatabase.CompositePowerSystem,
-                CityStyleDatabase.CompositePowerSystem,
-                CityStyleMarkerAreas.Unused,
-                1);
-            var handler = CreateHandler(context);
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    new CompositePaymentCase { OriginiumAmount = 0, IronAmount = 3 },
+                    new CompositePaymentCase { OriginiumAmount = 1, IronAmount = 2 },
+                    new CompositePaymentCase { OriginiumAmount = 2, IronAmount = 1 },
+                    new CompositePaymentCase { OriginiumAmount = 3, IronAmount = 0 }
+                },
+                testCase =>
+                {
+                    var context = CreateContext();
+                    var state = CreateState();
+                    var player = state.FindPlayer(1);
+                    player.Resources.OriginiumShard = 1;
+                    player.Resources.Originium = 3;
+                    player.Resources.Iron = 3;
+                    AddUnlockedMarker(
+                        player,
+                        SpecialActionDatabase.CompositePowerSystem,
+                        CityStyleDatabase.CompositePowerSystem,
+                        CityStyleMarkerAreas.Unused,
+                        1);
+                    var handler = CreateHandler(context);
 
-            var result = handler.Handle(
-                state,
-                CreateCompositeBeginCommand(originiumAmount.ToString(), ironAmount.ToString()));
+                    var result = handler.Handle(
+                        state,
+                        CreateCompositeBeginCommand(
+                            testCase.OriginiumAmount.ToString(),
+                            testCase.IronAmount.ToString()));
 
-            Assert.That(result.Succeeded, Is.True);
-            Assert.That(state.PendingSpecialAction, Is.Not.Null);
-            Assert.That(state.PendingSpecialAction.Step, Is.EqualTo(SpecialActionPendingSteps.AwaitFreeMoveTarget));
-            Assert.That(state.PendingSpecialAction.PaidOriginium, Is.EqualTo(originiumAmount));
-            Assert.That(state.PendingSpecialAction.PaidOriginiumShard, Is.EqualTo(1));
-            Assert.That(state.PendingSpecialAction.PaidIron, Is.EqualTo(ironAmount));
-            Assert.That(player.Resources.Originium, Is.EqualTo(3 - originiumAmount));
-            Assert.That(player.Resources.OriginiumShard, Is.Zero);
-            Assert.That(player.Resources.Iron, Is.EqualTo(3 - ironAmount));
-            Assert.That(player.DeclaredCityStyles[0].MarkerArea, Is.EqualTo(CityStyleMarkerAreas.Used));
-            Assert.That(player.RemainingMainActionsThisTurn, Is.EqualTo(1));
+                    var description = testCase.Describe();
+                    Assert.That(result.Succeeded, Is.True, description);
+                    Assert.That(state.PendingSpecialAction, Is.Not.Null, description);
+                    Assert.That(state.PendingSpecialAction.Step,
+                        Is.EqualTo(SpecialActionPendingSteps.AwaitFreeMoveTarget), description);
+                    Assert.That(state.PendingSpecialAction.PaidOriginium,
+                        Is.EqualTo(testCase.OriginiumAmount), description);
+                    Assert.That(state.PendingSpecialAction.PaidOriginiumShard, Is.EqualTo(1), description);
+                    Assert.That(state.PendingSpecialAction.PaidIron,
+                        Is.EqualTo(testCase.IronAmount), description);
+                    Assert.That(player.Resources.Originium,
+                        Is.EqualTo(3 - testCase.OriginiumAmount), description);
+                    Assert.That(player.Resources.OriginiumShard, Is.Zero, description);
+                    Assert.That(player.Resources.Iron,
+                        Is.EqualTo(3 - testCase.IronAmount), description);
+                    Assert.That(player.DeclaredCityStyles[0].MarkerArea,
+                        Is.EqualTo(CityStyleMarkerAreas.Used), description);
+                    Assert.That(player.RemainingMainActionsThisTurn, Is.EqualTo(1), description);
+                },
+                testCase => testCase.Describe());
         }
 
-        [TestCase("-1", "4")]
-        [TestCase("2", "0")]
-        [TestCase("4", "0")]
-        public void CompositePower_InvalidInitialPayment_IsRejectedWithoutWriteBack(
-            string originiumAmount,
-            string ironAmount)
+        [Test]
+        public void CompositePower_InvalidInitialPayment_IsRejectedWithoutWriteBack()
         {
-            var context = CreateContext();
-            var state = CreateState();
-            var player = state.FindPlayer(1);
-            player.Resources.OriginiumShard = 1;
-            player.Resources.Originium = 4;
-            player.Resources.Iron = 4;
-            AddUnlockedMarker(
-                player,
-                SpecialActionDatabase.CompositePowerSystem,
-                CityStyleDatabase.CompositePowerSystem,
-                CityStyleMarkerAreas.Unused,
-                1);
-            var before = JsonUtility.ToJson(state);
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    new CompositePaymentCase { OriginiumAmountText = "-1", IronAmountText = "4" },
+                    new CompositePaymentCase { OriginiumAmountText = "2", IronAmountText = "0" },
+                    new CompositePaymentCase { OriginiumAmountText = "4", IronAmountText = "0" }
+                },
+                testCase =>
+                {
+                    var context = CreateContext();
+                    var state = CreateState();
+                    var player = state.FindPlayer(1);
+                    player.Resources.OriginiumShard = 1;
+                    player.Resources.Originium = 4;
+                    player.Resources.Iron = 4;
+                    AddUnlockedMarker(
+                        player,
+                        SpecialActionDatabase.CompositePowerSystem,
+                        CityStyleDatabase.CompositePowerSystem,
+                        CityStyleMarkerAreas.Unused,
+                        1);
+                    var before = JsonUtility.ToJson(state);
 
-            var result = CreateHandler(context).Handle(
-                state,
-                CreateCompositeBeginCommand(originiumAmount, ironAmount));
+                    var result = CreateHandler(context).Handle(
+                        state,
+                        CreateCompositeBeginCommand(
+                            testCase.OriginiumAmountText,
+                            testCase.IronAmountText));
 
-            Assert.That(result.Succeeded, Is.False);
-            Assert.That(JsonUtility.ToJson(state), Is.EqualTo(before));
+                    var description = testCase.Describe();
+                    Assert.That(result.Succeeded, Is.False, description);
+                    Assert.That(JsonUtility.ToJson(state), Is.EqualTo(before), description);
+                },
+                testCase => testCase.Describe());
         }
 
         [Test]
@@ -512,6 +538,21 @@ namespace YC.Tests.EditMode
                 UnlockedSpecialActionId = specialActionId,
                 RemainingSpecialActionUses = remainingUses
             });
+        }
+
+        private sealed class CompositePaymentCase
+        {
+            public int OriginiumAmount;
+            public int IronAmount;
+            public string OriginiumAmountText;
+            public string IronAmountText;
+
+            public string Describe()
+            {
+                return OriginiumAmountText == null
+                    ? "originium=" + OriginiumAmount + ", iron=" + IronAmount
+                    : "originium=" + OriginiumAmountText + ", iron=" + IronAmountText;
+            }
         }
 
         private sealed class TestContext

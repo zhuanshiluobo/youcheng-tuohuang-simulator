@@ -17,6 +17,16 @@ namespace YC.Presentation
         private static readonly Color CardBackground = new Color(0.09f, 0.07f, 0.045f, 0.72f);
         private const int MinimumDragSortingOrder = 140;
 
+        // 拖动成员只需要空的显示锚点，不能复制来源按钮的子模型或输入组件。
+        public static Image CreateDragMemberImage(RectTransform parent)
+        {
+            var member = new GameObject("拖动成员", typeof(RectTransform), typeof(Image));
+            member.transform.SetParent(parent, false);
+            var image = member.GetComponent<Image>();
+            image.raycastTarget = false;
+            return image;
+        }
+
         public static RectTransform CreateDragGhost(
             RectTransform canvas,
             RectTransform source,

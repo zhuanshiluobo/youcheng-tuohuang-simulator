@@ -4,6 +4,7 @@
   "references": [
     "YC.Domain",
     "YC.Application",
+    "YC.Infrastructure.Lua",
     "YC.Multiplayer.Core",
     "YC.Presentation.Workflows",
     "YC.Presentation.Maps",

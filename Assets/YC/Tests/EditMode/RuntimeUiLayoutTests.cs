@@ -171,7 +171,7 @@ namespace YC.Tests.EditMode
             var container = FindTransform("Action Card Image Container");
             var image = FindTransform("Action Card Image");
             Assert.That(container.sizeDelta, Is.EqualTo(new Vector2(222f, 310f)));
-            Assert.That(image.GetComponent<RawImage>().texture.name, Is.EqualTo("back-red"));
+            Assert.That(image.GetComponent<RawImage>().texture.name, Is.EqualTo("artwork/character_back_" + ((int)PlayerColor.Red) + ".jpg"));
             Assert.That(image.GetComponent<Button>().interactable, Is.True);
             Assert.That(FindTransform("Action Card Title").GetComponent<Text>().text,
                 Is.EqualTo("已盖放角色牌（雷蛇）"));

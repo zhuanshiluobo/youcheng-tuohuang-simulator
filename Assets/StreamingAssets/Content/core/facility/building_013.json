@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_013",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "物流枢纽",
+  "artwork": "artwork/facility/building_013.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_013",
+    "manifestId": "building_013"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/build_extension_hub.json"
+}

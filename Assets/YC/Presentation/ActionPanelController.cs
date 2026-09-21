@@ -38,6 +38,17 @@ namespace YC.Presentation
             Action onEndRound)
         {
             this.view = view;
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.PanelObject, "character.cover_slot");
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.DeployButton.gameObject, "action.deploy");
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.DispatchButton.gameObject, "action.dispatch");
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.ExploreButton.gameObject, "action.explore");
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.MoveCityButton.gameObject, "action.move");
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.EndRoundButton.gameObject, "action.end");
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.UseCharacterButton.gameObject, "action.character");
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.CardPrimaryButton.gameObject, "action.character.strategy");
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.CardSecondaryButton.gameObject, "action.character.tactic");
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.FlipButton.gameObject, "action.flip");
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.PhaseText.gameObject, "round.current");
             cardVisualCatalog = configuredCardVisualCatalog;
             BindButton(view.UseCharacterButton, onUseCharacter);
             BindButton(view.DeclareCityStyleButton, onDeclareCityStyle);

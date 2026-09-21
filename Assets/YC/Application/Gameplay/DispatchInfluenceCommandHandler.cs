@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using YC.Application.Sessions;
 using YC.Domain.Commands;
 using YC.Domain.Events;
+using YC.Domain.Effects;
 using YC.Domain.Influence;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -12,16 +13,27 @@ namespace YC.Application.Gameplay
     {
         private readonly InfluenceService influenceService;
         private readonly RoundAdvanceService roundAdvanceService;
+        private readonly EffectRegistry effectRegistry;
 
         public DispatchInfluenceCommandHandler(InfluenceService influenceService)
-            : this(influenceService, new RoundAdvanceService())
+            : this(influenceService, new RoundAdvanceService(), new EffectRegistry())
         {
         }
 
         public DispatchInfluenceCommandHandler(InfluenceService influenceService, RoundAdvanceService roundAdvanceService)
+            : this(influenceService, roundAdvanceService, new EffectRegistry())
+        {
+        }
+
+        public DispatchInfluenceCommandHandler(
+            InfluenceService influenceService,
+            RoundAdvanceService roundAdvanceService,
+            EffectRegistry effectRegistry)
         {
             this.influenceService = influenceService;
             this.roundAdvanceService = roundAdvanceService;
+            this.effectRegistry = effectRegistry ?? throw new System.ArgumentNullException(nameof(effectRegistry));
+            InfluenceEffectExecutor.Register(this.effectRegistry, influenceService);
         }
 
         public bool CanHandle(GameCommand command)
@@ -63,26 +75,52 @@ namespace YC.Application.Gameplay
                 moves.Add(new InfluenceMoveRequest(source2, target2));
             }
 
-            var moveResult = influenceService.MoveAtomically(state, command.PlayerId, moves);
-            if (!moveResult.Succeeded)
+            var moveValidation = influenceService.CanMoveAtomically(state, command.PlayerId, moves);
+            if (!moveValidation.IsValid)
             {
-                return CommandResult.Invalid(moveResult.Validation);
+                return CommandResult.Invalid(moveValidation);
+            }
+
+            var moveIds = new List<KeyValuePair<string, string>>();
+            for (var i = 0; i < moves.Count; i++)
+            {
+                var source = influenceService.FindInfluence(state, moves[i].SourceSlotId);
+                if (source == null)
+                {
+                    return CommandResult.Invalid(ValidationResult.Failure(
+                        CommandErrorCode.InvalidSource,
+                        "要移动的影响力不存在。"));
+                }
+
+                var stableInfluenceId = InfluenceIdentity.GetStableId(state, source);
+                moveIds.Add(new KeyValuePair<string, string>(stableInfluenceId, moves[i].TargetSlotId));
+            }
+
+            var effect = InfluenceEffectSpecFactory.MoveInfluences(command.PlayerId, moveIds, InfluenceCauseKinds.MoveCity);
+            var executor = new EffectTreeExecutor(state, effectRegistry);
+            string effectId;
+            if (!executor.TryCreatePlayerActionEffect(
+                    command.PlayerId,
+                    effect,
+                    string.Empty,
+                    "command.dispatch_influence",
+                    out effectId))
+            {
+                return CommandResult.Invalid(ValidationResult.Failure(
+                    CommandErrorCode.WrongPhase, executor.LastDiagnostic));
+            }
+            executor.RunUntilQuiescent();
+            EffectNodeRuntimeState node = executor.GetNode(effectId);
+            if (node == null || node.Status != EffectNodeStatus.Completed)
+            {
+                return CommandResult.Invalid(InfluenceEffectFailureMapper.ToValidation(node));
             }
 
             roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
 
             var movedCount = moves.Count;
-            var message = "Player " + command.PlayerId + " dispatched influence " + movedCount + " time(s).";
-            return CommandResult.SuccessResult(new List<GameEvent>
-            {
-                new GameEvent
-                {
-                    Kind = GameEventKind.InfluenceMoved,
-                    PlayerId = command.PlayerId,
-                    SubjectId = command.TargetId,
-                    Message = message
-                }
-            }, message);
+            var message = "玩家 " + command.PlayerId + " 已调度影响力 " + movedCount + " 次。";
+            return CommandResult.SuccessResult(new List<GameEvent>(), message);
         }
     }
 }

@@ -1,0 +1,35 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "固源岩提纯厂",
+    "score": 0,
+    "resourceCost": {
+      "originium": 1,
+      "originiumShard": 1,
+      "iron": 1,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 10,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry"
+    ],
+    "effectId": "gain_originium_7",
+    "effectType": "entry",
+    "description": "假如精炼源石是移动城市不断流动的血液，那提纯源岩便是坚实的肌肉。",
+    "effectText": "获得 7 源岩。",
+    "onBuiltReward": {
+      "originium": 7,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/resource_reward.lua"
+  }
+}

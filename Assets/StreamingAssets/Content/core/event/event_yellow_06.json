@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_yellow_06",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "风险任务",
+  "artwork": "artwork/event/event_yellow_06.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_yellow_06",
+    "name": "风险任务",
+    "description": "源石干扰了电台的通信，“头儿……我们已经……发现了目标源石矿……源石尘浓度极高！车队暴露在活性源石环境中！”",
+    "color": 1,
+    "resourceType": 1,
+    "resourceAmount": 1,
+    "representativeResourceType": 1,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "在外围挖掘地址样本，谨慎点，我不需要死掉的手下！：获得 3 异铁",
+      "叫你的手下开始搭建矿井，他们之后会有很长的假期：获得 4 源石碎片"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 3,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 4,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

@@ -394,44 +394,35 @@ namespace YC.Presentation.Workflows
                     string.Empty);
             }
 
-            var pending = state.PendingCardSession;
-            var hasFacilitySpecialBuild = pending != null &&
-                                          pending.IsValid() &&
-                                          pending.PlayerId == context.LocalPlayerId &&
-                                          string.Equals(
-                                              pending.ScenarioId,
-                                              FacilityPendingChoiceTypes.ScenarioId,
-                                              StringComparison.Ordinal) &&
-                                          (pending.ChoiceType ==
-                                           FacilityPendingChoiceTypes.BuildAdditionalFacility ||
-                                           pending.ChoiceType ==
-                                           FacilityPendingChoiceTypes.BuildExtensionHub);
-            var usesAdditionalBuild = hasFacilitySpecialBuild &&
-                                      pending.ChoiceType ==
-                                      FacilityPendingChoiceTypes.BuildAdditionalFacility;
-            if (hasFacilitySpecialBuild)
-            {
-                if (usesAdditionalBuild)
-                {
-                    for (var i = 0; i < pending.OptionIds.Count; i++)
-                    {
-                        if (state.Decks.FacilitySupply.Contains(pending.OptionIds[i]))
-                        {
-                            draggableIds.Add(pending.OptionIds[i]);
-                        }
-                    }
-                }
-
-                AddEmptyCityBoardSlots(state, context.LocalPlayerId, legalSlotIndexes);
-                return new BuildFacilityAvailabilityViewModel(
-                    draggableIds.AsReadOnly(),
-                    legalSlotIndexes.AsReadOnly(),
-                    true,
-                    string.Empty);
-            }
-
             var isActionPhase = state.Phase == GamePhase.ActionRound1 ||
                                 state.Phase == GamePhase.ActionRound2;
+            var pending = state.PendingCardSession;
+            if (pending != null && pending.IsValid() && pending.PlayerId == context.LocalPlayerId &&
+                pending.ScenarioId == FacilityPendingChoiceTypes.ScenarioId &&
+                (pending.ChoiceType == FacilityPendingChoiceTypes.BuildAdditionalFacility ||
+                 pending.ChoiceType == FacilityPendingChoiceTypes.BuildExtensionHub))
+            {
+                var query = new BuildFacilityOptionQueryService();
+                foreach (var facilityId in pending.OptionIds)
+                {
+                    if (pending.ChoiceType == FacilityPendingChoiceTypes.BuildExtensionHub)
+                    {
+                        foreach (var slot in query.GetLegalReserveBuildSlots(state, context.LocalPlayerId, facilityId))
+                            if (!legalSlotIndexes.Contains(slot)) legalSlotIndexes.Add(slot);
+                    }
+                    else
+                    {
+                        var option = query.QueryForAdditionalBuild(state, context.LocalPlayerId, facilityId);
+                        if (!option.CanBuild) continue;
+                        draggableIds.Add(facilityId);
+                        foreach (var slot in option.SlotOptions)
+                            if (slot.IsLegal && !legalSlotIndexes.Contains(slot.CityBoardSlotIndex))
+                                legalSlotIndexes.Add(slot.CityBoardSlotIndex);
+                    }
+                }
+                return new BuildFacilityAvailabilityViewModel(draggableIds.AsReadOnly(),
+                    legalSlotIndexes.AsReadOnly(), true, string.Empty);
+            }
             var canUseMainBuild = isActionPhase &&
                                   state.CurrentPlayerId == context.LocalPlayerId &&
                                   !state.HasPendingChoice() &&
@@ -454,8 +445,7 @@ namespace YC.Presentation.Workflows
                                    state.CurrentPlayerId == context.LocalPlayerId &&
                                    !MainActionBudgetService.HasAvailableMainAction(
                                        state,
-                                       context.LocalPlayerId) &&
-                                   !hasFacilitySpecialBuild
+                                       context.LocalPlayerId)
                 ? "本行动轮行动次数已用尽。"
                 : string.Empty;
             return new BuildFacilityAvailabilityViewModel(

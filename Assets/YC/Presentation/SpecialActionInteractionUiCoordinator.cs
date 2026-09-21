@@ -1,9 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YC.Application.Gameplay;
+using YC.Application.Interactions;
+using YC.Domain.Interactions;
 using YC.Domain.Commands;
-using YC.Domain.Facilities;
+using YC.Domain.Effects;
 using YC.Domain.Rules;
 using YC.Domain.SpecialActions;
 using YC.Domain.State;
@@ -31,6 +33,8 @@ namespace YC.Presentation
         private string renderedRouteId = string.Empty;
         private string inFlightCommandId = string.Empty;
         private string inFlightSessionId = string.Empty;
+        private string genericInteractionId = string.Empty;
+        private int genericInteractionRevision = -1;
 
         public SpecialActionInteractionUiCoordinator(
             Func<GameState> getState,
@@ -59,6 +63,7 @@ namespace YC.Presentation
         {
             get
             {
+                if (TryGetGenericInteraction(out _)) return true;
                 PendingSpecialActionState ignored;
                 return TryGetPending(out ignored);
             }
@@ -68,6 +73,8 @@ namespace YC.Presentation
         {
             get
             {
+                InteractionRequest generic;
+                if (TryGetGenericInteraction(out generic)) return true;
                 PendingSpecialActionState pending;
                 return TryGetPending(out pending) && pending.Step != SpecialActionPendingSteps.AwaitMoveEvent;
             }
@@ -75,6 +82,45 @@ namespace YC.Presentation
 
         public bool Synchronize()
         {
+            InteractionRequest generic;
+            if (TryGetGenericInteraction(out generic))
+            {
+                if (generic.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId)
+                {
+                    if (!string.IsNullOrEmpty(inFlightCommandId)) return true;
+                    if (genericInteractionId == generic.GetStableInteractionId() && genericInteractionRevision == generic.StateRevision && dialog.IsShowing) return true;
+                    genericInteractionId = generic.GetStableInteractionId();
+                    genericInteractionRevision = generic.StateRevision;
+                    clearHighlights();
+                    var resources = getState().FindPlayer(getLocalPlayerId()).Resources;
+                    dialog.ShowCompositePayment(resources.Originium, resources.Iron, values =>
+                    {
+                        string prefix = "pay|" + values[0] + "|" + values[1] + "|";
+                        string candidate = generic.CandidateIds.Find(id => id.StartsWith(prefix, StringComparison.Ordinal));
+                        SubmitGenericCandidate(generic, candidate);
+                    }, () => SubmitGenericAnswer(generic, null, true));
+                    setPrompt("先选择并支付材料，支付成功后再选择城市移动目标。");
+                    return true;
+                }
+                genericInteractionId = generic.GetStableInteractionId();
+                genericInteractionRevision = generic.StateRevision;
+                clearHighlights();
+                var highlights = new List<WorkflowHighlight>();
+                if (generic.CandidateIds != null)
+                {
+                    for (int i = 0; i < generic.CandidateIds.Count; i++)
+                    {
+                        string candidate = generic.CandidateIds[i];
+                        highlights.Add(candidate.IndexOf("location", StringComparison.OrdinalIgnoreCase) >= 0
+                            ? new WorkflowHighlight(WorkflowHighlightTargetKind.Location, candidate, WorkflowHighlightSemantic.MoveTarget)
+                            : new WorkflowHighlight(WorkflowHighlightTargetKind.InfluenceSlot, candidate, WorkflowHighlightSemantic.DeployTarget));
+                    }
+                }
+                setHighlights(highlights.AsReadOnly());
+                setPrompt("请选择高亮的特殊行动目标。");
+                dialog.Hide();
+                return true;
+            }
             PendingSpecialActionState pending;
             if (!TryGetPending(out pending))
             {
@@ -126,6 +172,12 @@ namespace YC.Presentation
 
         public bool TryHandleInfluenceSlotClicked(string slotId)
         {
+            InteractionRequest generic;
+            if (TryGetGenericInteraction(out generic))
+            {
+                SubmitGenericCandidate(generic, slotId);
+                return true;
+            }
             PendingSpecialActionState pending;
             if (!TryGetPending(out pending) || pending.Step == SpecialActionPendingSteps.AwaitMoveEvent)
             {
@@ -161,6 +213,12 @@ namespace YC.Presentation
 
         public bool TryHandleLocationClicked(string locationId)
         {
+            InteractionRequest generic;
+            if (TryGetGenericInteraction(out generic))
+            {
+                SubmitGenericCandidate(generic, locationId);
+                return true;
+            }
             PendingSpecialActionState pending;
             if (!TryGetPending(out pending) || pending.Step == SpecialActionPendingSteps.AwaitMoveEvent)
             {
@@ -194,6 +252,17 @@ namespace YC.Presentation
 
         public bool TryHandleEscape()
         {
+            InteractionRequest generic;
+            if (TryGetGenericInteraction(out generic))
+            {
+                if (generic.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId && generic.AllowDecline)
+                {
+                    SubmitGenericAnswer(generic, null, true);
+                    return true;
+                }
+                setPrompt("特殊行动选择已开放，必须提交一个合法目标。");
+                return true;
+            }
             PendingSpecialActionState pending;
             if (!TryGetPending(out pending) || pending.Step == SpecialActionPendingSteps.AwaitMoveEvent)
                 return false;
@@ -462,30 +531,64 @@ namespace YC.Presentation
             inFlightSessionId = string.Empty;
         }
 
+        private void SubmitGenericCandidate(InteractionRequest request, string candidateId) => SubmitGenericAnswer(request, candidateId, false);
+
+        private void SubmitGenericAnswer(InteractionRequest request, string candidateId, bool decline)
+        {
+            if (request == null || (decline ? !request.AllowDecline :
+                string.IsNullOrEmpty(candidateId) || request.CandidateIds == null || !request.CandidateIds.Contains(candidateId)))
+            {
+                setPrompt("请选择高亮的特殊行动目标。");
+                return;
+            }
+            if (!string.IsNullOrEmpty(inFlightCommandId))
+            {
+                setPrompt("特殊行动选择已发送，请等待主机确认。");
+                return;
+            }
+            var command = EffectInteractionCommands.Answer(
+                InteractionRequestProjector.ProjectForPlayer(request, getLocalPlayerId()),
+                getLocalPlayerId(), decline ? null : new[] { candidateId }, decline);
+            dialog.Hide();
+            inFlightCommandId = command.CommandId;
+            inFlightSessionId = request.GetStableInteractionId();
+            try
+            {
+                submit(command);
+            }
+            catch
+            {
+                ClearSubmissionInFlight();
+                throw;
+            }
+        }
+
+        private bool TryGetGenericInteraction(out InteractionRequest request)
+        {
+            request = null;
+            GameState state = getState();
+            if (state == null || state.EffectRuntime == null || state.EffectRuntime.InteractionRequests == null) return false;
+            for (int i = 0; i < state.EffectRuntime.InteractionRequests.Count; i++)
+            {
+                InteractionRequest candidate = state.EffectRuntime.InteractionRequests[i];
+                if (candidate != null && candidate.Status == "open" && candidate.AnsweringPlayerId == getLocalPlayerId() &&
+                    (candidate.InteractionTypeId.StartsWith("city_style.special_action", StringComparison.Ordinal) || candidate.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId))
+                {
+                    if (!InteractionRequestProjector.ProjectForPlayer(candidate, getLocalPlayerId()).VisibleToViewer) continue;
+                    request = candidate;
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private bool TryGetPending(out PendingSpecialActionState pending)
         {
             var state = getState();
             pending = state == null ? null : state.PendingSpecialAction;
-            if (HasActiveFacilityPendingChoice(state))
-            {
-                pending = null;
-                return false;
-            }
-
             return pending != null &&
                    pending.IsValid(state) &&
                    pending.PlayerId == getLocalPlayerId();
-        }
-
-        private static bool HasActiveFacilityPendingChoice(GameState state)
-        {
-            var pending = state == null ? null : state.PendingCardSession;
-            return pending != null &&
-                   pending.IsValid() &&
-                   string.Equals(
-                       pending.ScenarioId,
-                       FacilityPendingChoiceTypes.ScenarioId,
-                       StringComparison.Ordinal);
         }
 
         private void ResetAndHide()
@@ -496,6 +599,8 @@ namespace YC.Presentation
             renderedStep = string.Empty;
             renderedRemainingRepetitions = -1;
             renderedRouteId = string.Empty;
+            genericInteractionId = string.Empty;
+            genericInteractionRevision = -1;
             selectedMilitarySlotIds.Clear();
             dialog.Hide();
             if (hadPresentation) clearHighlights();

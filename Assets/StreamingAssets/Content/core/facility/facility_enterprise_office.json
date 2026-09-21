@@ -1,0 +1,17 @@
+{
+  "definitionId": "facility_enterprise_office",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "企业办事处",
+  "artwork": "artwork/facility/facility_enterprise_office.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "facility_enterprise_office",
+    "manifestId": "facility_enterprise_office"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/enterprise_office.json"
+}

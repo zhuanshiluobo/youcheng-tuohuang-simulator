@@ -1,0 +1,35 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "源石精炼厂",
+    "score": 0,
+    "resourceCost": {
+      "originium": 1,
+      "originiumShard": 1,
+      "iron": 1,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 10,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry"
+    ],
+    "effectId": "gain_originium_shard_6",
+    "effectType": "entry",
+    "description": "现在，移动城市有了跳动的心脏。",
+    "effectText": "获得 6 源石碎片。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 6,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/resource_reward.lua"
+  }
+}

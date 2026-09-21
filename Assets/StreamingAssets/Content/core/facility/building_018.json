@@ -1,0 +1,18 @@
+{
+  "definitionId": "building_018",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "异铁冶炼厂",
+  "artwork": "artwork/facility/building_018.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_018",
+    "manifestId": "building_018",
+    "color": "blue"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/gain_iron_4.json"
+}

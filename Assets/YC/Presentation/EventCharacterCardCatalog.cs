@@ -286,7 +286,7 @@ namespace YC.Presentation
                     !Enum.IsDefined(typeof(ResourceType), resourceType) || resourceAmount <= 0 ||
                     !Enum.IsDefined(typeof(ResourceType), representativeResourceType) ||
                     representativeResourceAmount <= 0 || choices == null ||
-                    choices.Length < 2 || choices.Length > 3)
+                    choices.Length > 3)
                 {
                     reason = cardId + " 的事件卡字段无效。";
                     return false;

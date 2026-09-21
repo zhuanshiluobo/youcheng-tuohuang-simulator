@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using YC.Domain.Commands;
 using YC.Domain.Economy;
+using YC.Domain.Effects;
 using YC.Domain.Facilities;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
@@ -71,6 +72,12 @@ namespace YC.Domain.Cards
                 return Failure(CommandErrorCode.WrongPhase, "只能在角色牌盖放阶段盖放角色牌。");
             }
 
+            ValidationResult unified = TryCoverThroughMainline(state, playerId, cardId);
+            if (unified != null)
+            {
+                return unified;
+            }
+
             if (state.HasPendingChoice())
             {
                 return Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择效果。");
@@ -115,17 +122,60 @@ namespace YC.Domain.Cards
             player.HandCardIds.Remove(cardId);
             player.CoveredCharacterCardId = cardId;
 
-            if (AllPlayersCovered(state))
+            // 盖放完成只改变角色牌领域状态；主链节点和兼容字段由回合执行器/投影器推进。
+            return new RoundExecutionService(turnOrderService).CompleteCharacterCover(state, playerId);
+        }
+
+        private ValidationResult TryCoverThroughMainline(GameState state, int playerId, string cardId)
+        {
+            if (state.EffectRuntime == null || state.EffectRuntime.MainNodes == null ||
+                string.IsNullOrEmpty(state.EffectRuntime.ActiveMainNodeId))
             {
-                state.Phase = GamePhase.ActionRound1;
-                state.ActionRound = 1;
-                state.CurrentPlayerId = GetFirstTurnPlayerId(state);
-            }
-            else
-            {
-                state.CurrentPlayerId = FindNextUncoveredPlayerId(state, playerId);
+                return null;
             }
 
+            MainlineNodeRuntimeState mainNode = state.EffectRuntime.MainNodes.Find(node =>
+                node != null && node.NodeId == state.EffectRuntime.ActiveMainNodeId);
+            if (mainNode == null || mainNode.NodeTypeId != RoundMainlineNodeTypeIds.CharacterCover)
+            {
+                return null;
+            }
+
+            var registry = new EffectRegistry();
+            var round = new RoundExecutionService(registry);
+            InteractionRequest request = state.EffectRuntime.InteractionRequests.Find(candidate =>
+                candidate != null && candidate.Status == "open" &&
+                candidate.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId &&
+                candidate.AnsweringPlayerId == playerId);
+            if (request == null)
+            {
+                return Failure(CommandErrorCode.NotCurrentPlayer, "当前没有属于该玩家的角色牌盖放交互。");
+            }
+
+            if (string.IsNullOrEmpty(cardId))
+            {
+                return Failure(CommandErrorCode.InvalidTarget, "请选择一张角色牌盖放。");
+            }
+
+            var executor = round.CreateCommandExecutor(state);
+            string diagnostic;
+            if (!executor.TrySubmitInteraction(
+                    request.InteractionId,
+                    playerId,
+                    request.StateRevision,
+                    NormalizedValue.CreateStableReference("candidate", cardId),
+                    out diagnostic))
+            {
+                return Failure(CommandErrorCode.InvalidTarget, diagnostic);
+            }
+
+            var report = executor.RunUntilQuiescent();
+            if (report.Faulted)
+            {
+                return Failure(CommandErrorCode.UnknownCommand, "统一盖放 Effect 无法继续：" + report.FaultCode);
+            }
+
+            new RoundExecutionProjector().Project(state);
             return ValidationResult.Success;
         }
 
@@ -319,6 +369,11 @@ namespace YC.Domain.Cards
 
         public ValidationResult BeginCleanupEffects(GameState state)
         {
+            return BeginCleanupEffects(state, -1);
+        }
+
+        public ValidationResult BeginCleanupEffects(GameState state, int playerId)
+        {
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
@@ -328,6 +383,11 @@ namespace YC.Domain.Cards
             {
                 var delayed = state.DelayedCharacterEffects[i];
                 if (delayed.EffectType != CharacterPendingChoiceTypes.LiskarmCleanupRemoval)
+                {
+                    continue;
+                }
+
+                if (playerId > 0 && delayed.PlayerId != playerId)
                 {
                     continue;
                 }
@@ -448,12 +508,6 @@ namespace YC.Domain.Cards
                         return placement.Validation;
                     }
 
-                    state.DelayedCharacterEffects.Add(new DelayedCharacterEffectState
-                    {
-                        EffectType = CharacterPendingChoiceTypes.LiskarmCleanupRemoval,
-                        PlayerId = playerId,
-                        CardId = cardId
-                    });
                     return ValidationResult.Success;
                 }
                 case CharacterCardEffectKind.LiskarmControlPosition:
@@ -1408,129 +1462,7 @@ namespace YC.Domain.Cards
 
         private static GameState CloneForCharacterEffect(GameState source)
         {
-            var clone = new GameState
-            {
-                GameId = source.GameId,
-                Phase = source.Phase,
-                Round = source.Round,
-                MaxRounds = source.MaxRounds,
-                StartPlayerId = source.StartPlayerId,
-                CurrentPlayerId = source.CurrentPlayerId,
-                ActionRound = source.ActionRound,
-                UseSeatTurnOrder = source.UseSeatTurnOrder,
-                MapId = source.MapId,
-                EventDeckSeed = source.EventDeckSeed
-            };
-
-            for (var i = 0; i < source.Players.Count; i++)
-            {
-                var player = source.Players[i];
-                clone.Players.Add(new PlayerState
-                {
-                    PlayerId = player.PlayerId,
-                    Name = player.Name,
-                    Color = player.Color,
-                    Score = player.Score,
-                    InfluenceSupply = player.InfluenceSupply,
-                    HasScoreTrackMarker = player.HasScoreTrackMarker,
-                    CityLocationId = player.CityLocationId,
-                    HasMovedCityThisRound = player.HasMovedCityThisRound,
-                    HasCollectedResourcesThisRound = player.HasCollectedResourcesThisRound,
-                    ResourceCollectionStartGoldVoucher = player.ResourceCollectionStartGoldVoucher,
-                    ActedMainActionThisTurn = player.ActedMainActionThisTurn,
-                    RemainingMainActionsThisTurn = player.RemainingMainActionsThisTurn,
-                    CompletedMainActionsThisTurn = player.CompletedMainActionsThisTurn,
-                    UsedCharacterThisRound = player.UsedCharacterThisRound,
-                    UsedCharacterThisTurn = player.UsedCharacterThisTurn,
-                    CharacterCardLockedThisTurn = player.CharacterCardLockedThisTurn,
-                    Resources = player.Resources.Clone(),
-                    HandCardIds = new List<string>(player.HandCardIds),
-                    DiscardCardIds = new List<string>(player.DiscardCardIds),
-                    BuiltFacilityIds = new List<string>(player.BuiltFacilityIds),
-                    DeclaredCityStyles = CloneCityStyleDeclarations(player.DeclaredCityStyles),
-                    UsedSpecialActionIdsThisRound = new List<string>(player.UsedSpecialActionIdsThisRound),
-                    CoveredCharacterCardId = player.CoveredCharacterCardId
-                });
-            }
-
-            clone.Map.OpenLocationIds.AddRange(source.Map.OpenLocationIds);
-            clone.Map.RoadRouteIds.AddRange(source.Map.RoadRouteIds);
-            clone.Map.RemovedFromGameCardIds.AddRange(source.Map.RemovedFromGameCardIds);
-            for (var i = 0; i < source.Map.Influences.Count; i++)
-            {
-                var influence = source.Map.Influences[i];
-                clone.Map.Influences.Add(new InfluencePlacement
-                {
-                    PlayerId = influence.PlayerId,
-                    SlotId = influence.SlotId,
-                    LocationId = influence.LocationId,
-                    RouteId = influence.RouteId
-                });
-            }
-
-            for (var i = 0; i < source.Map.ResourceTokens.Count; i++)
-            {
-                var token = source.Map.ResourceTokens[i];
-                clone.Map.ResourceTokens.Add(new ResourceTokenState
-                {
-                    LocationId = token.LocationId,
-                    ResourceType = token.ResourceType,
-                    Amount = token.Amount
-                });
-            }
-
-            clone.Decks.FacilitySupply.AddRange(source.Decks.FacilitySupply);
-            clone.Decks.FacilityDeck.AddRange(source.Decks.FacilityDeck);
-            for (var i = 0; i < source.DelayedCharacterEffects.Count; i++)
-            {
-                var delayed = source.DelayedCharacterEffects[i];
-                clone.DelayedCharacterEffects.Add(new DelayedCharacterEffectState
-                {
-                    EffectType = delayed.EffectType,
-                    PlayerId = delayed.PlayerId,
-                    CardId = delayed.CardId
-                });
-            }
-
-            clone.PendingCharacterEffect = ClonePendingCharacterEffect(source.PendingCharacterEffect);
-
-            return clone;
-        }
-
-        private static List<CityStyleDeclarationState> CloneCityStyleDeclarations(
-            IList<CityStyleDeclarationState> declarations)
-        {
-            var result = new List<CityStyleDeclarationState>();
-            if (declarations == null)
-            {
-                return result;
-            }
-
-            for (var i = 0; i < declarations.Count; i++)
-            {
-                var declaration = declarations[i];
-                if (declaration == null)
-                {
-                    continue;
-                }
-
-                result.Add(new CityStyleDeclarationState
-                {
-                    InfluenceMarkerId = declaration.InfluenceMarkerId,
-                    CityStyleId = declaration.CityStyleId,
-                    MarkerArea = declaration.MarkerArea,
-                    UnlockedSpecialActionId = declaration.UnlockedSpecialActionId,
-                    RemainingSpecialActionUses = declaration.RemainingSpecialActionUses,
-                    UsedFacilityIds = declaration.UsedFacilityIds == null
-                        ? new List<string>()
-                        : new List<string>(declaration.UsedFacilityIds),
-                    UsedCityBoardSlotIndexes = declaration.UsedCityBoardSlotIndexes == null
-                        ? new List<int>()
-                        : new List<int>(declaration.UsedCityBoardSlotIndexes)
-                });
-            }
-
-            return result;
+            return GameStateCloneService.DeepClone(source);
         }
 
         private static void CommitCharacterEffectProjection(GameState target, GameState projection)
@@ -1563,10 +1495,13 @@ namespace YC.Domain.Cards
                 var influence = projection.Map.Influences[i];
                 target.Map.Influences.Add(new InfluencePlacement
                 {
+                    InfluenceId = influence.InfluenceId,
                     PlayerId = influence.PlayerId,
                     SlotId = influence.SlotId,
                     LocationId = influence.LocationId,
-                    RouteId = influence.RouteId
+                    RouteId = influence.RouteId,
+                    OwnerSubject = InfluenceIdentity.CloneSubject(influence.OwnerSubject),
+                    Source = InfluenceIdentity.CloneSource(influence.Source)
                 });
             }
 
@@ -1581,27 +1516,7 @@ namespace YC.Domain.Cards
 
         private static PendingCharacterEffectState ClonePendingCharacterEffect(PendingCharacterEffectState source)
         {
-            if (source == null)
-            {
-                return null;
-            }
-
-            return new PendingCharacterEffectState
-            {
-                ChoiceType = source.ChoiceType,
-                PlayerId = source.PlayerId,
-                CardId = source.CardId,
-                SourceCommandId = source.SourceCommandId,
-                RemainingCardIds = new List<string>(source.RemainingCardIds),
-                ResolvedCardIds = new List<string>(source.ResolvedCardIds),
-                OptionIds = new List<string>(source.OptionIds),
-                ResolveTinManStrategyAfterRecall = source.ResolveTinManStrategyAfterRecall,
-                ResolveTinManTacticAfterStrategy = source.ResolveTinManTacticAfterStrategy,
-                TinManPurchasePureOriginium12 = source.TinManPurchasePureOriginium12,
-                TinManPurchasePureOriginium15 = source.TinManPurchasePureOriginium15,
-                RemainingEffectMode = source.RemainingEffectMode,
-                IsSecondEffect = source.IsSecondEffect
-            };
+            return GameStateCloneService.DeepClone(source);
         }
 
         private bool AllPlayersCovered(GameState state)

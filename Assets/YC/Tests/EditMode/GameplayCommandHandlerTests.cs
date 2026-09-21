@@ -13,6 +13,42 @@ namespace YC.Tests.EditMode
     public sealed class GameplayCommandHandlerTests
     {
         [Test]
+        public void DeployDraft_CancelRetryAndConfirm_UsesKernelAndSpendsExactlyOnce()
+        {
+            var state = CreateActionState();
+            AddResourceToken(state, "city-a");
+            var registry = new YC.Domain.Effects.EffectRegistry();
+            var handler = new DeployInfluenceCommandHandler(CreateInfluenceService(), new RoundAdvanceService(), registry);
+            var command = new GameCommand { Kind = GameCommandKind.DeployInfluence, PlayerId = 1 };
+            Assert.That(handler.Handle(state, command).Succeeded, Is.True);
+            var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.place.target");
+            Assert.That(request, Is.Not.Null);
+            Assert.That(request.AllowDecline, Is.True);
+            Assert.That(state.Map.Influences, Is.Empty);
+            Assert.That(state.FindPlayer(1).CompletedMainActionsThisTurn, Is.Zero);
+            Assert.That(handler.Handle(state, command).Succeeded, Is.False, "选择期间不得再次挂载主要行动");
+            var executor = new YC.Domain.Effects.EffectTreeExecutor(state, registry);
+            string reason;
+            Assert.That(executor.TrySubmitInteraction(request.InteractionId, 2, request.StateRevision,
+                NormalizedValue.CreateBoolean(false), out reason), Is.False, "其他玩家不得取消");
+            Assert.That(executor.TrySubmitInteraction(request.InteractionId, 1, request.StateRevision,
+                NormalizedValue.CreateBoolean(false), out reason), Is.True, reason);
+            Assert.That(executor.RunUntilQuiescent().Faulted, Is.False);
+            Assert.That(state.FindPlayer(1).CompletedMainActionsThisTurn, Is.Zero);
+            Assert.That(state.Map.Influences, Is.Empty);
+            Assert.That(state.HasPendingChoice(), Is.False);
+            Assert.That(handler.Handle(state, command).Succeeded, Is.True);
+            request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.place.target");
+            Assert.That(executor.TrySubmitInteraction(request.InteractionId, 1, request.StateRevision,
+                NormalizedValue.CreateStableReference("candidate", request.CandidateIds[0]), out reason), Is.True, reason);
+            Assert.That(executor.RunUntilQuiescent().Faulted, Is.False);
+            executor.RunUntilQuiescent();
+            Assert.That(state.Map.Influences, Has.Count.EqualTo(1));
+            Assert.That(state.FindPlayer(1).CompletedMainActionsThisTurn, Is.EqualTo(1));
+            Assert.That(state.HasPendingChoice(), Is.False);
+        }
+
+        [Test]
         public void DeployInfluence_SucceedsAndMarksMainActionComplete()
         {
             var state = CreateActionState();
@@ -363,7 +399,7 @@ namespace YC.Tests.EditMode
             Assert.That(state.Round, Is.EqualTo(1));
             Assert.That(state.Phase, Is.EqualTo(GamePhase.ResourceCollection));
             Assert.That(state.ActionRound, Is.EqualTo(0));
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(-1));
             Assert.That(state.FindPlayer(1).ResourceCollectionStartGoldVoucher, Is.EqualTo(0));
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
             Assert.That(state.FindPlayer(2).ActedMainActionThisTurn, Is.False);
@@ -391,7 +427,7 @@ namespace YC.Tests.EditMode
             Assert.That(state.Round, Is.EqualTo(1));
             Assert.That(state.Phase, Is.EqualTo(GamePhase.ResourceCollection));
             Assert.That(state.ActionRound, Is.EqualTo(0));
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(-1));
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
             Assert.That(state.FindPlayer(1).ResourceCollectionStartGoldVoucher, Is.EqualTo(0));
 
@@ -606,14 +642,7 @@ namespace YC.Tests.EditMode
 
         private static void EndResourceCollectionAndCleanup(GameState state, RoundAdvanceService service)
         {
-            for (var i = 0; i < state.Players.Count; i++)
-            {
-                state.Players[i].HasCollectedResourcesThisRound = true;
-            }
-
-            service.AdvanceResourceCollectionToCleanup(state);
-            var result = service.EndCompletedAction(state, state.CurrentPlayerId);
-            Assert.That(result.IsValid, Is.True, result.Reason);
+            RoundLifecycleTestDriver.FinishCollection(state, service.Execution);
         }
     }
 }

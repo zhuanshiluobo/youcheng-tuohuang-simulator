@@ -1,0 +1,679 @@
+{
+  "groups": [
+    {
+      "idPrefix": "unique_only",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "城邦行政区",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/unique_only.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "rainbow",
+          "count": 3,
+          "artwork": "artwork/facility/building_001.jpg",
+          "instances": [
+            {
+              "id": "building_001",
+              "artwork": "artwork/facility/building_001.jpg"
+            },
+            {
+              "id": "building_002",
+              "artwork": "artwork/facility/building_002.jpg"
+            },
+            {
+              "id": "building_003",
+              "artwork": "artwork/facility/building_003.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "copy_adjacent_entry_effect",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "附属能源设施",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/copy_adjacent_entry_effect.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "rainbow",
+          "count": 3,
+          "artwork": "artwork/facility/building_004.jpg",
+          "instances": [
+            {
+              "id": "building_004",
+              "artwork": "artwork/facility/building_004.jpg"
+            },
+            {
+              "id": "building_005",
+              "artwork": "artwork/facility/building_005.jpg"
+            },
+            {
+              "id": "building_006",
+              "artwork": "artwork/facility/building_006.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "claim_start_marker_at_cleanup",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "联邦理事处",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/claim_start_marker_at_cleanup.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "rainbow",
+          "count": 3,
+          "artwork": "artwork/facility/building_007.jpg",
+          "instances": [
+            {
+              "id": "building_007",
+              "artwork": "artwork/facility/building_007.jpg"
+            },
+            {
+              "id": "building_008",
+              "artwork": "artwork/facility/building_008.jpg"
+            },
+            {
+              "id": "building_009",
+              "artwork": "artwork/facility/building_009.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "build_additional_facility",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "简陋工程营",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/build_additional_facility.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "rainbow",
+          "count": 2,
+          "artwork": "artwork/facility/building_010.jpg",
+          "instances": [
+            {
+              "id": "building_010",
+              "artwork": "artwork/facility/building_010.jpg"
+            },
+            {
+              "id": "building_011",
+              "artwork": "artwork/facility/building_011.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "build_extension_hub",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "物流枢纽",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/build_extension_hub.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "blue",
+          "count": 2,
+          "artwork": "artwork/facility/building_012.jpg",
+          "instances": [
+            {
+              "id": "building_012",
+              "artwork": "artwork/facility/building_012.jpg"
+            },
+            {
+              "id": "building_013",
+              "artwork": "artwork/facility/building_013.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "gain_originium_shard_6",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "源石精炼厂",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/gain_originium_shard_6.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "blue",
+          "count": 1,
+          "artwork": "artwork/facility/building_014.jpg",
+          "instances": [
+            {
+              "id": "building_014",
+              "artwork": "artwork/facility/building_014.jpg"
+            }
+          ]
+        },
+        {
+          "color": "yellow",
+          "count": 1,
+          "artwork": "artwork/facility/building_028.jpg",
+          "instances": [
+            {
+              "id": "building_028",
+              "artwork": "artwork/facility/building_028.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "gain_gold_per_core_adjacent_facility",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "城市化区域",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/gain_gold_per_core_adjacent_facility.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "blue",
+          "count": 3,
+          "artwork": "artwork/facility/building_015.jpg",
+          "instances": [
+            {
+              "id": "building_015",
+              "artwork": "artwork/facility/building_015.jpg"
+            },
+            {
+              "id": "building_016",
+              "artwork": "artwork/facility/building_016.jpg"
+            },
+            {
+              "id": "building_017",
+              "artwork": "artwork/facility/building_017.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "gain_iron_4",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "异铁冶炼厂",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/gain_iron_4.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "blue",
+          "count": 1,
+          "artwork": "artwork/facility/building_018.jpg",
+          "instances": [
+            {
+              "id": "building_018",
+              "artwork": "artwork/facility/building_018.jpg"
+            }
+          ]
+        },
+        {
+          "color": "red",
+          "count": 1,
+          "artwork": "artwork/facility/building_032.jpg",
+          "instances": [
+            {
+              "id": "building_032",
+              "artwork": "artwork/facility/building_032.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "sell_resources",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "贸易街区",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/sell_resources.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "blue",
+          "count": 3,
+          "artwork": "artwork/facility/building_019.jpg",
+          "instances": [
+            {
+              "id": "building_019",
+              "artwork": "artwork/facility/building_019.jpg"
+            },
+            {
+              "id": "building_020",
+              "artwork": "artwork/facility/building_020.jpg"
+            },
+            {
+              "id": "building_021",
+              "artwork": "artwork/facility/building_021.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "discount_originium_by_facility_color",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "城邦工业区",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/discount_originium_by_facility_color.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "yellow",
+          "count": 3,
+          "artwork": "artwork/facility/building_022.jpg",
+          "instances": [
+            {
+              "id": "building_022",
+              "artwork": "artwork/facility/building_022.jpg"
+            },
+            {
+              "id": "building_023",
+              "artwork": "artwork/facility/building_023.jpg"
+            },
+            {
+              "id": "building_024",
+              "artwork": "artwork/facility/building_024.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "free_city_move_and_deploy_route_influence",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "高性能动力设施",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/free_city_move_and_deploy_route_influence.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "yellow",
+          "count": 2,
+          "artwork": "artwork/facility/building_025.jpg",
+          "instances": [
+            {
+              "id": "building_025",
+              "artwork": "artwork/facility/building_025.jpg"
+            },
+            {
+              "id": "building_026",
+              "artwork": "artwork/facility/building_026.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "gain_originium_7",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "固源岩提纯厂",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/gain_originium_7.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "yellow",
+          "count": 1,
+          "artwork": "artwork/facility/building_027.jpg",
+          "instances": [
+            {
+              "id": "building_027",
+              "artwork": "artwork/facility/building_027.jpg"
+            }
+          ]
+        },
+        {
+          "color": "red",
+          "count": 1,
+          "artwork": "artwork/facility/building_033.jpg",
+          "instances": [
+            {
+              "id": "building_033",
+              "artwork": "artwork/facility/building_033.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "choose_five_basic_resources",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "开采电铲",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/choose_five_basic_resources.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "yellow",
+          "count": 3,
+          "artwork": "artwork/facility/building_029.jpg",
+          "instances": [
+            {
+              "id": "building_029",
+              "artwork": "artwork/facility/building_029.jpg"
+            },
+            {
+              "id": "building_030",
+              "artwork": "artwork/facility/building_030.jpg"
+            },
+            {
+              "id": "building_031",
+              "artwork": "artwork/facility/building_031.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "replace_one_influence",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "佣兵指挥部",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/replace_one_influence.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "red",
+          "count": 3,
+          "artwork": "artwork/facility/building_034.jpg",
+          "instances": [
+            {
+              "id": "building_034",
+              "artwork": "artwork/facility/building_034.jpg"
+            },
+            {
+              "id": "building_035",
+              "artwork": "artwork/facility/building_035.jpg"
+            },
+            {
+              "id": "building_036",
+              "artwork": "artwork/facility/building_036.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "deploy_two_influences",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "护航调度中心",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/deploy_two_influences.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "red",
+          "count": 2,
+          "artwork": "artwork/facility/building_037.jpg",
+          "instances": [
+            {
+              "id": "building_037",
+              "artwork": "artwork/facility/building_037.jpg"
+            },
+            {
+              "id": "building_038",
+              "artwork": "artwork/facility/building_038.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "remove_then_dispatch_or_explore",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "载具仓库",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/remove_then_dispatch_or_explore.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "red",
+          "count": 3,
+          "artwork": "artwork/facility/building_039.jpg",
+          "instances": [
+            {
+              "id": "building_039",
+              "artwork": "artwork/facility/building_039.jpg"
+            },
+            {
+              "id": "building_040",
+              "artwork": "artwork/facility/building_040.jpg"
+            },
+            {
+              "id": "building_041",
+              "artwork": "artwork/facility/building_041.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "enterprise_office",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "企业办事处",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/enterprise_office.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "rainbow",
+          "count": 1,
+          "artwork": "artwork/facility/facility_enterprise_office.jpg",
+          "instances": [
+            {
+              "id": "facility_enterprise_office",
+              "artwork": "artwork/facility/facility_enterprise_office.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "setup_core_command_tower",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "核心指挥塔",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/setup_core_command_tower.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "rainbow",
+          "count": 1,
+          "artwork": "artwork/facility/reserve_001.jpg",
+          "instances": [
+            {
+              "id": "reserve_001",
+              "artwork": "artwork/facility/reserve_001.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idPrefix": "reserve_extension_hub",
+      "definition": {
+        "contentType": "facility",
+        "version": "1.0.0",
+        "displayName": "延伸枢纽",
+        "tags": [],
+        "playerMarkerZones": [],
+        "abilities": [],
+        "expansionId": "core",
+        "replaces": null,
+        "dataTemplate": "templates/facilities/reserve_extension_hub.json",
+        "data": {}
+      },
+      "variants": [
+        {
+          "color": "blue",
+          "count": 1,
+          "artwork": "artwork/facility/reserve_002.jpg",
+          "instances": [
+            {
+              "id": "reserve_002",
+              "artwork": "artwork/facility/reserve_002.jpg"
+            }
+          ]
+        },
+        {
+          "color": "yellow",
+          "count": 1,
+          "artwork": "artwork/facility/reserve_003.jpg",
+          "instances": [
+            {
+              "id": "reserve_003",
+              "artwork": "artwork/facility/reserve_003.jpg"
+            }
+          ]
+        },
+        {
+          "color": "red",
+          "count": 1,
+          "artwork": "artwork/facility/reserve_004.jpg",
+          "instances": [
+            {
+              "id": "reserve_004",
+              "artwork": "artwork/facility/reserve_004.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

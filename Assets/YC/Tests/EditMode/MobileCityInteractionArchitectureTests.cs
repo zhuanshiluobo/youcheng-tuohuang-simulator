@@ -18,24 +18,36 @@ namespace YC.Tests.EditMode
             StringAssert.Contains("\"noEngineReferences\": true", File.ReadAllText(path));
         }
 
-        [TestCase(typeof(ResourceCollectionPresenter))]
-        [TestCase(typeof(InfluenceActionPresenter))]
-        [TestCase(typeof(ExplorationEventPresenter))]
-        [TestCase(typeof(TurnActionPresenter))]
-        [TestCase(typeof(BuildInteraction))]
-        [TestCase(typeof(MoveInteraction))]
-        [TestCase(typeof(DeployInteraction))]
-        [TestCase(typeof(DispatchInteraction))]
-        [TestCase(typeof(ExploreInteraction))]
-        [TestCase(typeof(CityStyleInteraction))]
-        [TestCase(typeof(TurnActionPanelPresenter))]
-        public void WorkflowPresenter_IsNotAMonoBehaviour_AndHasNoUnityReference(Type presenterType)
+        [Test]
+        public void WorkflowPresenter_IsNotAMonoBehaviour_AndHasNoUnityReference()
         {
-            Assert.That(typeof(MonoBehaviour).IsAssignableFrom(presenterType), Is.False);
-            foreach (var reference in presenterType.Assembly.GetReferencedAssemblies())
-            {
-                Assert.That(reference.Name.StartsWith("UnityEngine", StringComparison.Ordinal), Is.False);
-            }
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    typeof(ResourceCollectionPresenter),
+                    typeof(InfluenceActionPresenter),
+                    typeof(ExplorationEventPresenter),
+                    typeof(TurnActionPresenter),
+                    typeof(BuildInteraction),
+                    typeof(MoveInteraction),
+                    typeof(DeployInteraction),
+                    typeof(DispatchInteraction),
+                    typeof(ExploreInteraction),
+                    typeof(CityStyleInteraction),
+                    typeof(TurnActionPanelPresenter)
+                },
+                presenterType =>
+                {
+                    Assert.That(typeof(MonoBehaviour).IsAssignableFrom(presenterType), Is.False);
+                    foreach (var reference in presenterType.Assembly.GetReferencedAssemblies())
+                    {
+                        Assert.That(
+                            reference.Name.StartsWith("UnityEngine", StringComparison.Ordinal),
+                            Is.False,
+                            presenterType.FullName);
+                    }
+                },
+                presenterType => presenterType.FullName);
         }
 
         [Test]
@@ -448,7 +460,7 @@ namespace YC.Tests.EditMode
             var path = Path.Combine(AssetsPath, "YC/Presentation/MobileCityInteractionController.cs");
             var source = File.ReadAllText(path);
             const string facilityConstruction =
-                "facilityEffectInteraction = new FacilityEffectInteractionUiCoordinator(";
+                "facilityInteraction = new FacilityInteractionUiCoordinator(";
             const string buildConstruction =
                 "buildFacilityInteraction = new BuildFacilityInteractionUiCoordinator(";
 
@@ -592,8 +604,8 @@ namespace YC.Tests.EditMode
             var source = File.ReadAllText(path);
             var body = ExtractMethodBody(source, "private void CompleteActionCommandUi(string actionName)");
 
-            StringAssert.Contains("facilityEffectInteraction.Synchronize()", body);
-            StringAssert.DoesNotContain("facilityEffectInteraction.IsActive", body);
+            StringAssert.Contains("facilityInteraction.Synchronize()", body);
+            StringAssert.DoesNotContain("facilityInteraction.IsActive", body);
         }
 
         private static void AssertDirectRouterForward(
@@ -652,6 +664,11 @@ namespace YC.Tests.EditMode
         {
             var start = source.IndexOf(signature, StringComparison.Ordinal);
             Assert.That(start, Is.GreaterThanOrEqualTo(0), signature);
+            var afterSignature = start + signature.Length;
+            var arrow = source.IndexOf("=>", afterSignature, StringComparison.Ordinal);
+            var brace = source.IndexOf('{', afterSignature);
+            if (arrow >= 0 && (brace < 0 || arrow < brace))
+                return "return " + source.Substring(arrow + 2, source.IndexOf(';', arrow) - arrow - 1);
             start = source.IndexOf('{', start) + 1;
             var depth = 1;
             for (var i = start; i < source.Length; i++)

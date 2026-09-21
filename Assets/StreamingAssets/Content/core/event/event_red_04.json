@@ -1,0 +1,55 @@
+{
+  "definitionId": "event_red_04",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "高污染环境",
+  "artwork": "artwork/event/event_red_04.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_red_04",
+    "name": "高污染环境",
+    "description": "“沙滩伞研究所的一项研究发现：富源石尘环境中，源岩层下有丰富的高纯度源石矿”——一派胡言！你的人手在危险的环境下挖掘了数天却一无所获，还加剧了不少人的矿石病病情，现在你需要找人转嫁你的风险。",
+    "color": 2,
+    "resourceType": 0,
+    "resourceAmount": 2,
+    "representativeResourceType": 0,
+    "representativeResourceAmount": 2,
+    "choiceDescriptions": [
+      "恳求赞助商协助建设矿区：获得 2 源岩、2 源石碎片、2 异铁",
+      "把报告给治安官看看，希望他也会中招：获得 18 金券",
+      "工人冒着风险为你提炼出了高纯度源石矿：获得 1 至纯源石、4 金券"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 2,
+        "originiumShard": 2,
+        "iron": 2,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 18
+      },
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 1,
+        "goldVoucher": 4
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_red_02",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "裂谷矿脉",
+  "artwork": "artwork/event/event_red_02.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_red_02",
+    "name": "裂谷矿脉",
+    "description": "勘测队深入拓荒区的边界。在那里，他们发现了一条深不见底的裂谷。“良好的源石技艺传导性，极高的矿核密度。我想我们已经找到了跋涉至此的目的。”",
+    "color": 2,
+    "resourceType": 3,
+    "resourceAmount": 1,
+    "representativeResourceType": 3,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "高纯度源石矿的发现将为你的城邦拉开新的篇章：获得 1 异铁、1 至纯源石",
+      "收集裂隙层的源石碎片：获得 3 源岩、3 源石碎片"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 1,
+        "pureOriginium": 1,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 3,
+        "originiumShard": 3,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

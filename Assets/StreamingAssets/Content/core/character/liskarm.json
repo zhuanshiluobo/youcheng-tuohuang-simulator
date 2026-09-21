@@ -1,0 +1,46 @@
+{
+  "definitionId": "liskarm",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "雷蛇",
+  "artwork": "artwork/character/liskarm.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "character.liskarm.strategy",
+      "mode": "strategy",
+      "subscriptionId": "characters.liskarm.strategy",
+      "script": "lua/characters/liskarm.strategy.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "",
+      "cleanupScript": "lua/characters/liskarm.cleanup.lua",
+      "skillType": "normal",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "character.liskarm.tactic",
+      "mode": "tactic",
+      "subscriptionId": "characters.liskarm.tactic",
+      "script": "lua/characters/liskarm.tactic.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "skillType": "normal",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "liskarm",
+    "cardId": "liskarm",
+    "name": "雷蛇",
+    "strategyEffect": 3,
+    "tacticEffect": 4,
+    "strategyAbilityId": "character.liskarm.strategy",
+    "tacticAbilityId": "character.liskarm.tactic"
+  },
+  "expansionId": "core",
+  "replaces": null
+}

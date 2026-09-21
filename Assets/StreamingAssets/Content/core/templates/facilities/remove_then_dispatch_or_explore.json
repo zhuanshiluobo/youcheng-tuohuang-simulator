@@ -1,0 +1,36 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "载具仓库",
+    "color": "red",
+    "score": 0,
+    "resourceCost": {
+      "originium": 1,
+      "originiumShard": 2,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 9,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry"
+    ],
+    "effectId": "remove_then_dispatch_or_explore",
+    "effectType": "special_action",
+    "description": "从矿区回收的探索车辆正在进行细致的清洗，等待它的下一任主人。",
+    "effectText": "入场时，移除 1 个影响力，然后调度 1 次；或者执行 1 次探索。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/remove_then_dispatch_or_explore.lua"
+  }
+}

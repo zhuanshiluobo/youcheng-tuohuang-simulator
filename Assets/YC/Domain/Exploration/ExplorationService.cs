@@ -614,7 +614,11 @@ namespace YC.Domain.Exploration
             return ValidationResult.Success;
         }
 
-        private string ResolveInfluenceSlotId(
+        /// <summary>
+        /// 解析探索默认影响力槽位。客户端不需要也不应被迫选择槽位；当命令未携带
+        /// 槽位时，按目标地块槽位索引的稳定顺序选择第一个合法空位。
+        /// </summary>
+        public string ResolveInfluenceSlotId(
             GameState state,
             int playerId,
             string targetLocationId,

@@ -1,43 +1,40 @@
 using System;
-using YC.Domain.Commands;
 using YC.Domain.Cards;
+using YC.Domain.Commands;
 using YC.Domain.Facilities;
 using YC.Domain.SpecialActions;
 using YC.Domain.State;
 
 namespace YC.Domain.Rules
 {
+    /// <summary>
+    /// 旧回合 API 的兼容适配器。所有推进都委托给 RoundExecutionService；本类型不再判断
+    /// 阶段、玩家顺序或自行写入任何兼容字段。
+    /// </summary>
     public sealed class RoundAdvanceService
     {
-        private readonly TurnOrderService turnOrderService;
-        private readonly CharacterCardService characterCardService;
-        private readonly MainActionBudgetService mainActionBudgetService;
-        private readonly SpecialActionLifecycleService specialActionLifecycleService;
+        private readonly RoundExecutionService roundExecutionService;
 
         public RoundAdvanceService()
-            : this(
-                new TurnOrderService(),
-                new CharacterCardService(),
-                new MainActionBudgetService(),
-                new SpecialActionLifecycleService())
+            : this(new RoundExecutionService())
         {
         }
 
         public RoundAdvanceService(TurnOrderService turnOrderService)
-            : this(
+            : this(new RoundExecutionService(
                 turnOrderService,
                 new CharacterCardService(turnOrderService),
                 new MainActionBudgetService(),
-                new SpecialActionLifecycleService())
+                new SpecialActionLifecycleService()))
         {
         }
 
         public RoundAdvanceService(TurnOrderService turnOrderService, CharacterCardService characterCardService)
-            : this(
+            : this(new RoundExecutionService(
                 turnOrderService,
                 characterCardService,
                 new MainActionBudgetService(),
-                new SpecialActionLifecycleService())
+                new SpecialActionLifecycleService()))
         {
         }
 
@@ -45,11 +42,11 @@ namespace YC.Domain.Rules
             TurnOrderService turnOrderService,
             CharacterCardService characterCardService,
             MainActionBudgetService mainActionBudgetService)
-            : this(
+            : this(new RoundExecutionService(
                 turnOrderService,
                 characterCardService,
                 mainActionBudgetService,
-                new SpecialActionLifecycleService())
+                new SpecialActionLifecycleService()))
         {
         }
 
@@ -58,276 +55,58 @@ namespace YC.Domain.Rules
             CharacterCardService characterCardService,
             MainActionBudgetService mainActionBudgetService,
             SpecialActionLifecycleService specialActionLifecycleService)
+            : this(new RoundExecutionService(
+                turnOrderService,
+                characterCardService,
+                mainActionBudgetService,
+                specialActionLifecycleService))
         {
-            this.turnOrderService = turnOrderService ?? throw new ArgumentNullException(nameof(turnOrderService));
-            this.characterCardService = characterCardService ?? throw new ArgumentNullException(nameof(characterCardService));
-            this.mainActionBudgetService = mainActionBudgetService ?? throw new ArgumentNullException(nameof(mainActionBudgetService));
-            this.specialActionLifecycleService = specialActionLifecycleService ?? throw new ArgumentNullException(nameof(specialActionLifecycleService));
+        }
+
+        public RoundAdvanceService(RoundExecutionService roundExecutionService)
+        {
+            this.roundExecutionService = roundExecutionService ??
+                throw new ArgumentNullException(nameof(roundExecutionService));
+        }
+
+        public RoundExecutionService Execution
+        {
+            get { return roundExecutionService; }
         }
 
         public void CompleteMainAction(GameState state, int playerId)
         {
-            MarkMainActionComplete(state, playerId);
-            EndCompletedAction(state, playerId);
+            roundExecutionService.CompleteMainAction(state, playerId);
         }
 
         public void MarkMainActionComplete(GameState state, int playerId)
         {
-            if (state == null)
-            {
-                throw new ArgumentNullException(nameof(state));
-            }
-
-            mainActionBudgetService.SpendCompletedMainAction(state, playerId);
+            roundExecutionService.MarkMainActionComplete(state, playerId);
         }
 
         public ValidationResult EndCompletedAction(GameState state, int playerId)
         {
-            if (state == null)
-            {
-                throw new ArgumentNullException(nameof(state));
-            }
-
-            if (state.Phase == GamePhase.Cleanup)
-            {
-                return EndCleanup(state, playerId);
-            }
-
-            if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
-            {
-                return ValidationResult.Failure(CommandErrorCode.WrongPhase, "End action is only available during action rounds.");
-            }
-
-            var player = state.FindPlayer(playerId);
-            if (player == null)
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "Player must exist before ending an action.");
-            }
-
-            if (state.CurrentPlayerId != playerId)
-            {
-                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "Only the current player can end their action.");
-            }
-
-            if (state.HasPendingChoice())
-            {
-                return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "Resolve the pending choice before ending the action.");
-            }
-
-            if (player.CompletedMainActionsThisTurn <= 0 && !player.ActedMainActionThisTurn)
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "Complete a main action before ending the action.");
-            }
-
-            mainActionBudgetService.EndActionTurn(state, playerId);
-
-            if (AllPlayersActed(state))
-            {
-                AdvanceActionRound(state);
-                return ValidationResult.Success;
-            }
-
-            state.CurrentPlayerId = FindNextUnactedPlayerId(state);
-            return ValidationResult.Success;
+            return roundExecutionService.EndCurrentPlayerWindow(state, playerId);
         }
 
         public void ResetActionFlags(GameState state)
         {
-            if (state == null)
-            {
-                throw new ArgumentNullException(nameof(state));
-            }
-
-            for (var i = 0; i < state.Players.Count; i++)
-            {
-                mainActionBudgetService.ResetForNewActionTurn(state, state.Players[i].PlayerId);
-            }
+            roundExecutionService.ResetActionFlags(state);
         }
 
         public bool AllPlayersCollectedResources(GameState state)
         {
-            if (state == null)
-            {
-                throw new ArgumentNullException(nameof(state));
-            }
-
-            if (state.Players.Count <= 0)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < state.Players.Count; i++)
-            {
-                if (!state.Players[i].HasCollectedResourcesThisRound)
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return roundExecutionService.AllPlayersCollectedResources(state);
         }
 
         public void AdvanceResourceCollectionToCleanup(GameState state)
         {
-            if (state == null)
-            {
-                throw new ArgumentNullException(nameof(state));
-            }
-
-            state.Phase = GamePhase.Cleanup;
-            state.ActionRound = 0;
-            state.CurrentPlayerId = state.StartPlayerId;
+            roundExecutionService.AdvanceResourceCollectionToCleanup(state);
         }
 
-        private void AdvanceActionRound(GameState state)
+        public ValidationResult CompleteResourceCollection(GameState state, int playerId)
         {
-            ResetActionFlags(state);
-
-            if (state.Phase == GamePhase.ActionRound1)
-            {
-                state.Phase = GamePhase.ActionRound2;
-                state.ActionRound = 2;
-                state.CurrentPlayerId = GetFirstTurnPlayerId(state);
-                return;
-            }
-
-            if (state.Phase == GamePhase.ActionRound2)
-            {
-                AdvanceToResourceCollection(state);
-            }
-        }
-
-        private void AdvanceToResourceCollection(GameState state)
-        {
-            state.Phase = GamePhase.ResourceCollection;
-            state.ActionRound = 0;
-            state.CurrentPlayerId = GetFirstTurnPlayerId(state);
-
-            for (var i = 0; i < state.Players.Count; i++)
-            {
-                state.Players[i].HasCollectedResourcesThisRound = false;
-                state.Players[i].ResourceCollectionStartGoldVoucher = state.Players[i].Resources.GoldVoucher;
-            }
-        }
-
-        private ValidationResult EndCleanup(GameState state, int playerId)
-        {
-            if (state.HasPendingChoice())
-            {
-                return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "Resolve the pending choice before cleanup.");
-            }
-
-            if (playerId != state.StartPlayerId && playerId != state.CurrentPlayerId)
-            {
-                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "Only the start player can end cleanup.");
-            }
-
-            var delayedEffect = characterCardService.BeginCleanupEffects(state);
-            if (!delayedEffect.IsValid)
-            {
-                return delayedEffect;
-            }
-
-            if (state.HasPendingChoice())
-            {
-                return ValidationResult.Success;
-            }
-
-            characterCardService.CleanupRound(state);
-            specialActionLifecycleService.CleanupRound(state);
-
-            var federalCouncilStartPlayerId = FederalCouncilEffectService.ConsumeLatestBuilder(state);
-
-            if (state.Round >= state.MaxRounds)
-            {
-                state.Phase = GamePhase.FinalScoring;
-                state.ActionRound = 0;
-                return ValidationResult.Success;
-            }
-
-            state.StartPlayerId = federalCouncilStartPlayerId > 0
-                ? federalCouncilStartPlayerId
-                : GetNextStartPlayerId(state);
-            state.CurrentPlayerId = state.StartPlayerId;
-            state.Round += 1;
-            state.Phase = GamePhase.CharacterCover;
-            state.ActionRound = 0;
-
-            for (var i = 0; i < state.Players.Count; i++)
-            {
-                mainActionBudgetService.ResetForNewActionTurn(state, state.Players[i].PlayerId);
-                state.Players[i].HasMovedCityThisRound = false;
-                state.Players[i].HasCollectedResourcesThisRound = false;
-                state.Players[i].ResourceCollectionStartGoldVoucher = -1;
-            }
-
-            return ValidationResult.Success;
-        }
-
-        private static bool AllPlayersActed(GameState state)
-        {
-            for (var i = 0; i < state.Players.Count; i++)
-            {
-                if (!state.Players[i].ActedMainActionThisTurn)
-                {
-                    return false;
-                }
-            }
-
-            return state.Players.Count > 0;
-        }
-
-        private int GetFirstTurnPlayerId(GameState state)
-        {
-            var order = turnOrderService.GetTurnOrder(state);
-            return order.Count > 0 ? order[0] : state.StartPlayerId;
-        }
-
-        private int GetNextStartPlayerId(GameState state)
-        {
-            var order = turnOrderService.GetTurnOrder(state);
-            if (order.Count <= 0)
-            {
-                return state.StartPlayerId;
-            }
-
-            var currentIndex = 0;
-            for (var i = 0; i < order.Count; i++)
-            {
-                if (order[i] == state.StartPlayerId)
-                {
-                    currentIndex = i;
-                    break;
-                }
-            }
-
-            return order[(currentIndex + 1) % order.Count];
-        }
-
-        private int FindNextUnactedPlayerId(GameState state)
-        {
-            var order = turnOrderService.GetTurnOrder(state);
-            var currentIndex = 0;
-            for (var i = 0; i < order.Count; i++)
-            {
-                if (order[i] == state.CurrentPlayerId)
-                {
-                    currentIndex = i;
-                    break;
-                }
-            }
-
-            for (var offset = 1; offset <= order.Count; offset++)
-            {
-                var playerId = order[(currentIndex + offset) % order.Count];
-                var player = state.FindPlayer(playerId);
-                if (player != null && !player.ActedMainActionThisTurn)
-                {
-                    return playerId;
-                }
-            }
-
-            return state.CurrentPlayerId;
+            return roundExecutionService.CompleteResourceCollection(state, playerId);
         }
     }
 }

@@ -1,0 +1,64 @@
+{
+  "definitionId": "event_yellow_04",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "锈锤领地",
+  "artwork": "artwork/event/event_yellow_04.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_yellow_04",
+    "name": "锈锤领地",
+    "description": "你的勘测队发现了一处隐藏的源石矿，还找到了一支锈锤聚落，你对这群武装分子的凶猛略有耳闻。若向当地治安官提供关于他们的具体情报应该能换来不少赏金，但不招惹他们也许才是上策。",
+    "color": 1,
+    "resourceType": 1,
+    "resourceAmount": 1,
+    "representativeResourceType": 1,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "名为岩蹄安保的组织愿意保护矿区，但价格低廉得可疑……：可以支付 4 金券来放置 1 个影响力标识",
+      "真是中了大奖！向治安官举报此事：获得 10 金券",
+      "别招惹这些硬茬，埋头做我们的事：获得 4 源石碎片"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 10
+      },
+      {
+        "originium": 0,
+        "originiumShard": 4,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      }
+    ],
+    "choicePendingEffects": [
+      [
+        {
+          "kind": 3,
+          "resourceType": 0,
+          "amount": 1,
+          "targetScope": 0,
+          "costResourceType": 4,
+          "costAmount": 4
+        }
+      ],
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

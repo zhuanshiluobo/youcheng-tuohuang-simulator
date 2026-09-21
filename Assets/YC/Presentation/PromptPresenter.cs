@@ -48,8 +48,10 @@ namespace YC.Presentation
             return new PromptPresenter(view);
         }
 
-        public void SetPrompt(string message)
+        public void SetPrompt(string message, string pendingPrompt = null)
         {
+            if (!string.IsNullOrEmpty(pendingPrompt) && (string.IsNullOrEmpty(message) || !message.Contains(pendingPrompt)))
+                message = string.IsNullOrEmpty(message) ? pendingPrompt : message + "\n" + pendingPrompt;
             if (string.IsNullOrWhiteSpace(message))
             {
                 Hide();

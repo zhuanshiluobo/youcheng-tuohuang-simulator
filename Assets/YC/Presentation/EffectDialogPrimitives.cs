@@ -67,6 +67,7 @@ namespace YC.Presentation
         public IReadOnlyList<int> Maximums;
         public IReadOnlyList<int> UnitPrices;
         public int ExactTotal = -1;
+        public int MinimumTotal;
         public string LabelNamePrefix = "Resource Label ";
         public string DecreaseNamePrefix = "Decrease ";
         public string ValueNamePrefix = "Value ";
@@ -351,7 +352,8 @@ namespace YC.Presentation
 
                 if (confirmButton != null)
                 {
-                    confirmButton.interactable = spec.ExactTotal < 0 || total == spec.ExactTotal;
+                    confirmButton.interactable = total >= spec.MinimumTotal &&
+                                                 (spec.ExactTotal < 0 || total == spec.ExactTotal);
                 }
 
                 if (summaryText != null && spec.FormatSummary != null)

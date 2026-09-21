@@ -1,0 +1,46 @@
+{
+  "definitionId": "elysium",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "极境",
+  "artwork": "artwork/character/elysium.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "character.elysium.strategy",
+      "mode": "strategy",
+      "subscriptionId": "characters.elysium.strategy",
+      "script": "lua/characters/elysium.strategy.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "characters.elysium.strategy.answer",
+      "cleanupScript": "",
+      "skillType": "normal",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "character.elysium.tactic",
+      "mode": "tactic",
+      "subscriptionId": "characters.elysium.tactic",
+      "script": "lua/characters/elysium.tactic.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "skillType": "normal",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "elysium",
+    "cardId": "elysium",
+    "name": "极境",
+    "strategyEffect": 5,
+    "tacticEffect": 6,
+    "strategyAbilityId": "character.elysium.strategy",
+    "tacticAbilityId": "character.elysium.tactic"
+  },
+  "expansionId": "core",
+  "replaces": null
+}

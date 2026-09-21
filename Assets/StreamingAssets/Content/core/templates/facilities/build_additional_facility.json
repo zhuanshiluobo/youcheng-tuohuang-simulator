@@ -1,0 +1,37 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "简陋工程营",
+    "color": "rainbow",
+    "score": -1,
+    "resourceCost": {
+      "originium": 2,
+      "originiumShard": 1,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 8,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry",
+      "unique"
+    ],
+    "effectId": "build_additional_facility",
+    "effectType": "special_action",
+    "description": "“我们提供高规格的防护，有效的抑制剂，并维护工人的个人利益。”",
+    "effectText": "唯一；入场时，执行 1 次建设（仍需支付建设费用）。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": true,
+    "uniqueGroupId": "简陋工程营",
+    "effectScript": "lua/facilities/build_additional_facility.lua"
+  }
+}

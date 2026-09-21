@@ -53,8 +53,8 @@ namespace YC.Presentation
             try
             {
                 commandTransport = MirrorCommandTransport.Ensure();
-                commandTransport.InitialStateApplied += OnInitialNetworkStateApplied;
-                commandTransport.ConfirmedCommandApplied += OnConfirmedNetworkCommandApplied;
+                commandTransport.InitialStateViewApplied += OnInitialNetworkStateApplied;
+                commandTransport.ConfirmedStateViewApplied += OnConfirmedNetworkCommandApplied;
                 commandTransport.CommandRejected += OnNetworkCommandRejected;
                 commandTransport.Initialize(session, launchContext.Mode, localPlayerId, launchContext.Players);
             }
@@ -99,8 +99,8 @@ namespace YC.Presentation
                 return;
             }
 
-            commandTransport.InitialStateApplied -= OnInitialNetworkStateApplied;
-            commandTransport.ConfirmedCommandApplied -= OnConfirmedNetworkCommandApplied;
+            commandTransport.InitialStateViewApplied -= OnInitialNetworkStateApplied;
+            commandTransport.ConfirmedStateViewApplied -= OnConfirmedNetworkCommandApplied;
             commandTransport.CommandRejected -= OnNetworkCommandRejected;
             commandTransport.Shutdown();
             commandTransport = null;
@@ -112,7 +112,7 @@ namespace YC.Presentation
             setPrompt(message);
         }
 
-        private void OnConfirmedNetworkCommandApplied(ConfirmedGameCommandDto confirmed)
+        private void OnConfirmedNetworkCommandApplied(ConfirmedGameStateViewDto confirmed)
         {
             commandSettled?.Invoke(confirmed == null || confirmed.Command == null
                 ? string.Empty
@@ -120,7 +120,7 @@ namespace YC.Presentation
             refreshFromState();
         }
 
-        private void OnInitialNetworkStateApplied(InitialGameStateDto snapshot)
+        private void OnInitialNetworkStateApplied(InitialGameStateViewDto snapshot)
         {
             commandSettled?.Invoke(string.Empty);
             refreshFromState();

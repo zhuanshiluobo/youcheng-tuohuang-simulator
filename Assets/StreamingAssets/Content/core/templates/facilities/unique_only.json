@@ -1,0 +1,36 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "城邦行政区",
+    "color": "rainbow",
+    "score": 3,
+    "resourceCost": {
+      "originium": 3,
+      "originiumShard": 3,
+      "iron": 3,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 30,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": false,
+    "keywords": [
+      "unique"
+    ],
+    "effectId": "unique_only",
+    "effectType": "unique",
+    "description": "行政体系的建立能够解决各种问题，特别是在这片正待开垦的荒原之上。",
+    "effectText": "唯一。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": true,
+    "uniqueGroupId": "城邦行政区",
+    "effectScript": "lua/facilities/no_entry.lua"
+  }
+}

@@ -23,6 +23,81 @@ namespace YC.Tests.EditMode
         private static readonly Color DisabledOptionColor = new Color(0.09f, 0.075f, 0.06f, 0.72f);
         private GameObject canvasObject;
 
+        [Test]
+        public void EffectRequest_MultipleTargetsRequiresExplicitSelectionAndConfirmation()
+        {
+            var state = CreateState("legacy-unused", FacilityPendingChoiceTypes.ScenarioId);
+            state.PendingCardSession = null;
+            var commands = new List<GameCommand>();
+            object dialog;
+            var coordinator = CreateEffectRequestCoordinator(state, commands, out dialog);
+            var request = new InteractionRequest
+            {
+                InteractionId = "facility.targets", InteractionTypeId = "facility.entry.choice",
+                Status = "open", Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 11,
+                MinSelections = 2, MaxSelections = 2, CandidateIds = new List<string> { "slot:a", "slot:b", "slot:c" }
+            };
+            state.EffectRuntime.InteractionRequests.Add(request);
+            Assert.That(Synchronize(coordinator), Is.True);
+            ClickButton(GetOverlay(dialog), "Option 2");
+            Assert.That(commands, Is.Empty, "不得自动补齐玩家未选择的目标。");
+            ClickButton(GetOverlay(dialog), "Option 0");
+            Assert.That(commands, Is.Empty);
+            ClickButton(GetOverlay(dialog), "Option 3");
+            Assert.That(commands, Has.Count.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "slot:c", "slot:a" }));
+            Assert.That(commands[0].Parameters[YC.Application.Interactions.AnswerInteractionCommandHandler.ExpectedRevisionParameter], Is.EqualTo("11"));
+            Assert.That(state.Map.Influences, Is.Empty);
+            Assert.That(request.CandidateIds, Has.Count.EqualTo(3));
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void EffectRequest_ResourceAllocationUsesAnswerProtocolWithoutChangingResources(bool sale)
+        {
+            var state = CreateState("legacy-unused", FacilityPendingChoiceTypes.ScenarioId);
+            state.PendingCardSession = null;
+            var commands = new List<GameCommand>();
+            object dialog;
+            var coordinator = CreateEffectRequestCoordinator(state, commands, out dialog);
+            state.EffectRuntime.InteractionRequests.Add(new InteractionRequest
+            {
+                InteractionId = "facility.resources", InteractionTypeId = "facility.entry.choice",
+                Status = "open", Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 12,
+                MinSelections = 1, MaxSelections = 1, AnswerSchema = "resource_allocation",
+                CandidateIds = sale ? new List<string> { "choice.confirm", "choice.skip" }
+                    : new List<string> { "Originium", "OriginiumShard", "Iron" }
+            });
+            Assert.That(Synchronize(coordinator), Is.True);
+            var overlay = GetOverlay(dialog);
+            for (var i = 0; i < (sale ? 1 : 5); i++) ClickButton(overlay, "Increase 0");
+            Assert.That(commands, Is.Empty);
+            ClickButton(overlay, "Confirm");
+            Assert.That(commands, Has.Count.EqualTo(1));
+            Assert.That(commands[0].Kind, Is.EqualTo(GameCommandKind.AnswerInteraction));
+            Assert.That(commands[0].Parameters[YC.Application.Interactions.AnswerInteractionCommandHandler.AnswerValueParameter],
+                Is.EqualTo(sale ? "Originium=1" : "Originium=5"));
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(3));
+        }
+
+        private object CreateEffectRequestCoordinator(GameState state, List<GameCommand> commands, out object dialog)
+        {
+            CreateCoordinator(state); // 复用现有 UI 预制体和画布夹具。
+            var registryType = Type.GetType("YC.Presentation.GameplayDialogRegistry, Assembly-CSharp", true);
+            var registry = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab").GetComponentInChildren(registryType, true);
+            var type = Type.GetType("YC.Presentation.FacilityInteractionUiCoordinator, Assembly-CSharp", true);
+            var coordinator = Activator.CreateInstance(type, new object[]
+            {
+                new Func<GameState>(() => state), new Func<int>(() => 1),
+                new Func<RectTransform>(() => canvasObject.GetComponent<RectTransform>()), registry,
+                new Action<IReadOnlyList<WorkflowHighlight>>(_ => { }), new Action(() => { }),
+                new Action<GameCommand>(commands.Add), new Action<string>(_ => { })
+            });
+            dialog = type.GetField("dialog", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(coordinator);
+            return coordinator;
+        }
+
         [SetUp]
         public void SetUpViewerPrefab()
         {
@@ -269,19 +344,24 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.SubmittedCommand, Is.Null);
         }
 
-        [TestCase(0)]
-        [TestCase(1)]
-        public void MercenaryHeadquarters_EscapeReturnsToBranchChoiceWithoutSubmitting(int branch)
+        [Test]
+        public void MercenaryHeadquarters_EscapeReturnsToBranchChoiceWithoutSubmitting()
         {
-            string opponentSlot, ownSlot, emptySlot;
-            var fixture = CreateMercenaryCoordinator(out opponentSlot, out ownSlot, out emptySlot);
-            Assert.That(Synchronize(fixture.Coordinator), Is.True);
-            ClickButton(GetOverlay(fixture.Dialog), "Option " + branch);
+            EditModeTestCaseRunner.Run(
+                new[] { 0, 1 },
+                branch =>
+                {
+                    string opponentSlot, ownSlot, emptySlot;
+                    var fixture = CreateMercenaryCoordinator(out opponentSlot, out ownSlot, out emptySlot);
+                    Assert.That(Synchronize(fixture.Coordinator), Is.True, "branch=" + branch);
+                    ClickButton(GetOverlay(fixture.Dialog), "Option " + branch);
 
-            Assert.That(InvokeBool(fixture.Coordinator, "TryHandleEscape"), Is.True);
-            Assert.That(GetText(GetOverlay(fixture.Dialog), "Title"), Is.EqualTo("佣兵指挥部"));
-            Assert.That(fixture.Highlights, Is.Empty);
-            Assert.That(fixture.SubmittedCommand, Is.Null);
+                    Assert.That(InvokeBool(fixture.Coordinator, "TryHandleEscape"), Is.True, "branch=" + branch);
+                    Assert.That(GetText(GetOverlay(fixture.Dialog), "Title"), Is.EqualTo("佣兵指挥部"), "branch=" + branch);
+                    Assert.That(fixture.Highlights, Is.Empty, "branch=" + branch);
+                    Assert.That(fixture.SubmittedCommand, Is.Null, "branch=" + branch);
+                },
+                branch => "branch=" + branch);
         }
 
         [Test]

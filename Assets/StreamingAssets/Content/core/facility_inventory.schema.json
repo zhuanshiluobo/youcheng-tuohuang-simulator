@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "设施颜色与数量清单",
+  "type": "object",
+  "required": [
+    "groups"
+  ],
+  "properties": {
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "idPrefix",
+          "definition",
+          "variants"
+        ],
+        "properties": {
+          "idPrefix": {
+            "type": "string",
+            "minLength": 1
+          },
+          "definition": {
+            "type": "object"
+          },
+          "variants": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "color",
+                "count"
+              ],
+              "properties": {
+                "color": {
+                  "enum": [
+                    "blue",
+                    "yellow",
+                    "red",
+                    "rainbow"
+                  ]
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 128
+                },
+                "artwork": {
+                  "type": "string"
+                },
+                "instances": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "artwork": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

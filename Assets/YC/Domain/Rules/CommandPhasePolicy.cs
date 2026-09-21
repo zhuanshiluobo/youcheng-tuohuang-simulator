@@ -29,6 +29,7 @@ namespace YC.Domain.Rules
                 case GameCommandKind.CollectResource:
                     return phase == GamePhase.ResourceCollection;
                 case GameCommandKind.ResolvePendingChoice:
+                case GameCommandKind.AnswerInteraction:
                     return true;
                 case GameCommandKind.EndAction:
                     return phase == GamePhase.ActionRound1

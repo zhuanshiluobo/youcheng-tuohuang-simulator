@@ -1,0 +1,36 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "开采电铲",
+    "color": "yellow",
+    "score": 0,
+    "resourceCost": {
+      "originium": 0,
+      "originiumShard": 2,
+      "iron": 1,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 10,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry"
+    ],
+    "effectId": "choose_five_basic_resources",
+    "effectType": "entry_choice",
+    "description": "当开采平台发展为移动城市，会有人想起它简陋的过往吗？",
+    "effectText": "合计获得 5 个源岩、源石碎片或异铁。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/choose_five_basic_resources.lua"
+  }
+}

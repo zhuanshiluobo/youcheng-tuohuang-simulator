@@ -206,6 +206,12 @@ namespace YC.Domain.Cards
 
         private bool HasCompleteLiskarmPlacement(GameState state, int playerId)
         {
+            var player = state.FindPlayer(playerId);
+            if (player == null || player.InfluenceSupply < 2)
+            {
+                return false;
+            }
+
             var firstOptions = Query(state, playerId, CharacterCardEffectKind.LiskarmSecurityProtocol)
                 .Get(CharacterEffectParameterKeys.PlacementSlotId1);
             for (var i = 0; i < firstOptions.Count; i++)
@@ -274,7 +280,7 @@ namespace YC.Domain.Cards
         private void QueryPlacementSlots(GameState state, int playerId, IReadOnlyDictionary<string, string> selected, CharacterCardOptionQueryResult result)
         {
             var player = state.FindPlayer(playerId);
-            if (player == null || player.InfluenceSupply < 2) return;
+            if (player == null || player.InfluenceSupply < 1) return;
             var service = ResolveInfluenceService(state);
             var allSlots = EnumerateSlots(ResolveMapQuery(state).Map);
             var first = Get(selected, CharacterEffectParameterKeys.PlacementSlotId1);

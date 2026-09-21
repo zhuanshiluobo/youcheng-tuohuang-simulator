@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_026",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "高性能动力设施",
+  "artwork": "artwork/facility/building_026.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_026",
+    "manifestId": "building_026"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/free_city_move_and_deploy_route_influence.json"
+}

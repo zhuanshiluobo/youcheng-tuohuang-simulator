@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using YC.Domain.CityStyles;
 using YC.Domain.SpecialActions;
@@ -14,16 +14,11 @@ namespace YC.Presentation
 
         private void Awake()
         {
-            if (!TryValidateConfiguration(out var reason))
-            {
-                Debug.LogError("[CityStyleSpecialActionCatalogBootstrap] " + reason, this);
-                throw new InvalidOperationException(
-                    "CityStyleSpecialActionCatalogBootstrap 初始化失败：" + reason);
-            }
 
-            var definitions = catalog.CreateDefinitions();
-            CityStyleDatabase.Initialize(definitions.CityStyles);
-            SpecialActionDatabase.Initialize(definitions.SpecialActions);
+
+            var pack = ExternalContentRuntime.Pack;
+            CityStyleDatabase.InitializeExternal(pack.CreateCityStyles());
+            SpecialActionDatabase.InitializeExternal(pack.CreateSpecialActions());
         }
 
         public bool TryValidateConfiguration(out string reason)

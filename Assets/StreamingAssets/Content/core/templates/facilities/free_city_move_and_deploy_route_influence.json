@@ -1,0 +1,38 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "高性能动力设施",
+    "color": "yellow",
+    "score": 0,
+    "resourceCost": {
+      "originium": 0,
+      "originiumShard": 4,
+      "iron": 2,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 20,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry",
+      "free"
+    ],
+    "effectId": "free_city_move_and_deploy_route_influence",
+    "effectType": "special_action",
+    "description": "下层动力区关乎所有人的存亡，有必要对其进行翻修和改良。",
+    "effectText": "免费执行牌面航道图标效果：在经过的航道上放置 1 影响力。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/free_city_move_and_deploy_route_influence.lua",
+    "completionHandlerId": "lua:facility:free_city_move_and_deploy_route_influence.after_move"
+  }
+}

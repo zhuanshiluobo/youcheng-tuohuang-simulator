@@ -1,0 +1,36 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "城市化区域",
+    "color": "blue",
+    "score": 1,
+    "resourceCost": {
+      "originium": 3,
+      "originiumShard": 0,
+      "iron": 2,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 16,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry"
+    ],
+    "effectId": "gain_gold_per_core_adjacent_facility",
+    "effectType": "scoring",
+    "description": "“哥伦比亚重视开拓与研究，当然也重视在其背后支持的贸易系统。”",
+    "effectText": "每有一个与核心指挥塔十字相邻的设施，获得 4 金券。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/gain_gold_per_core_adjacent_facility.lua"
+  }
+}

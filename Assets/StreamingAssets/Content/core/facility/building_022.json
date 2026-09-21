@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_022",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "城邦工业区",
+  "artwork": "artwork/facility/building_022.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_022",
+    "manifestId": "building_022"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/discount_originium_by_facility_color.json"
+}

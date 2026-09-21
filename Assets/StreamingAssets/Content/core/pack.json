@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 2,
+  "packId": "core",
+  "version": "1.0.0",
+  "definitions": [
+    "character/liskarm.json",
+    "character/elysium.json",
+    "character/texas.json",
+    "character/cannot.json",
+    "character/tin-man.json",
+    "city_style/city_style_military_industrial_area.json",
+    "city_style/city_style_mobilization_support_system.json",
+    "city_style/city_style_composite_power_system.json",
+    "city_style/city_style_material_relay_station.json",
+    "city_style/city_style_source_stone_industrial_hub.json",
+    "city_style/city_style_efficient_mobile_management_system.json",
+    "event/event_green_01.json",
+    "event/event_green_02.json",
+    "event/event_green_03.json",
+    "event/event_green_04.json",
+    "event/event_green_05.json",
+    "event/event_green_06.json",
+    "event/event_red_01.json",
+    "event/event_red_02.json",
+    "event/event_red_03.json",
+    "event/event_red_04.json",
+    "event/event_red_05.json",
+    "event/event_red_06.json",
+    "event/event_yellow_01.json",
+    "event/event_yellow_02.json",
+    "event/event_yellow_03.json",
+    "event/event_yellow_04.json",
+    "event/event_yellow_05.json",
+    "event/event_yellow_06.json",
+    "event/event_yellow_07.json",
+    "event/event_yellow_08.json",
+    "event/event_yellow_09.json",
+    "event/event_yellow_10.json"
+  ],
+  "sharedArtwork": {
+    "character_back_0": "artwork/character_back_0.jpg",
+    "character_back_3": "artwork/character_back_3.jpg",
+    "character_back_2": "artwork/character_back_2.jpg",
+    "character_back_1": "artwork/character_back_1.jpg",
+    "city_board": "artwork/city_board.png"
+  },
+  "enabledExpansionIds": [
+    "core"
+  ],
+  "facilityInventory": "facility_inventory.json"
+}

@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_006",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "附属能源设施",
+  "artwork": "artwork/facility/building_006.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_006",
+    "manifestId": "building_006"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/copy_adjacent_entry_effect.json"
+}

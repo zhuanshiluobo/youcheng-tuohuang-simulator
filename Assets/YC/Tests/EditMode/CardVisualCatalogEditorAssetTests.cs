@@ -117,7 +117,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void ProductionCardVisuals_DoNotDiscoverRelativePathsAtRuntime()
+        public void ProductionCardVisuals_OnlyContentLoaderDecodesExternalArtwork()
         {
             var presentationRoot = Path.Combine(UnityEngine.Application.dataPath, "YC/Presentation");
             foreach (var path in Directory.GetFiles(presentationRoot, "*.cs", SearchOption.AllDirectories))
@@ -126,7 +126,8 @@ namespace YC.Tests.EditMode
                 if (normalized.Contains("/Editor/") || normalized.Contains("/Tests/")) continue;
                 var source = File.ReadAllText(path);
                 StringAssert.DoesNotContain("Resources.Load<Texture2D>", source, normalized);
-                StringAssert.DoesNotContain("LoadImage(", source, normalized);
+                if (!normalized.EndsWith("/ExternalContentRuntime.cs", StringComparison.Ordinal))
+                    StringAssert.DoesNotContain("LoadImage(", source, normalized);
                 StringAssert.DoesNotContain("CardImages/", source, normalized);
                 StringAssert.DoesNotContain("FrontImageRelativePath", source, normalized);
                 StringAssert.DoesNotContain("CoveredBackImageRelativePath", source, normalized);

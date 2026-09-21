@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_021",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "贸易街区",
+  "artwork": "artwork/facility/building_021.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_021",
+    "manifestId": "building_021"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/sell_resources.json"
+}

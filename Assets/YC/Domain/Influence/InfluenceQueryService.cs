@@ -122,6 +122,16 @@ namespace YC.Domain.Influence
             var requestedSlotValid = InfluenceSlotReference.TryParse(
                 mapQuery, slotId, out requestedSlot, out ignoredReason);
 
+            // 迁移期参数仍叫 sourceInfluenceId，但优先按实例身份查找，避免槽位移动后寻址漂移。
+            for (var i = 0; i < state.Map.Influences.Count; i++)
+            {
+                var placement = state.Map.Influences[i];
+                if (placement != null && string.Equals(InfluenceIdentity.GetStableId(state, placement), slotId, StringComparison.Ordinal))
+                {
+                    return placement;
+                }
+            }
+
             for (var i = 0; i < state.Map.Influences.Count; i++)
             {
                 var placement = state.Map.Influences[i];

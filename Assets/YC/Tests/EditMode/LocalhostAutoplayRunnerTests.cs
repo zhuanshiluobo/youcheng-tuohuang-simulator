@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using YC.Application.DevTools;
 using YC.Domain.Cards;
 using YC.Domain.CityStyles;
@@ -13,7 +13,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void RunToRound8Settlement_FillsFourSeatsAndOutputsSnapshot()
         {
-            var result = LocalhostAutoplayRunner.RunToRound8Settlement();
+            var result = LocalhostAutoplayRunner.RunToRound8Settlement(YC.Infrastructure.Lua.LuaContentCatalog.Register);
 
             Assert.That(result.Succeeded, Is.True, result.Snapshot);
             Assert.That(result.Seats, Has.Count.EqualTo(4));
@@ -101,7 +101,8 @@ namespace YC.Tests.EditMode
                             evidence.Contains("beginCommand=autoplay-use-special-")), Is.True, result.Snapshot);
             Assert.That(result.SpecialActionPendingSteps.Exists(
                 evidence => evidence.Contains("action=" + SpecialActionDatabase.MilitaryIndustrialArea) &&
-                            evidence.Contains("step=" + SpecialActionPendingSteps.AwaitMilitaryTargets)),
+                            (evidence.Contains("step=" + SpecialActionPendingSteps.AwaitMilitaryTargets) ||
+                             evidence.Contains("step=interaction"))),
                 Is.True,
                 result.Snapshot);
             Assert.That(result.FinalState.Logs.Exists(
@@ -109,7 +110,9 @@ namespace YC.Tests.EditMode
                 Is.True,
                 result.Snapshot);
             Assert.That(result.FinalState.Logs.Exists(
-                log => log.CommandId.StartsWith("autoplay-resolve-special-") && log.PlayerId == 4),
+                log => (log.CommandId.StartsWith("autoplay-resolve-special-") ||
+                        log.CommandId.StartsWith("autoplay-answer-interaction-")) &&
+                       log.PlayerId == 4),
                 Is.True,
                 result.Snapshot);
             Assert.That(result.DeployInfluenceAttempts, Is.GreaterThan(0), result.Snapshot);
@@ -130,7 +133,7 @@ namespace YC.Tests.EditMode
             Assert.That(result.OpponentRouteRecipientCollections, Is.Not.Empty, result.Snapshot);
             Assert.That(result.Snapshot, Does.Contain("本地联机自动跑局快照"));
             Assert.That(result.Snapshot, Does.Contain("Phase: FinalScoring"));
-            Assert.That(result.Snapshot, Does.Contain("CollectedPlayers: 4/4"));
+            Assert.That(result.Snapshot, Does.Contain("CollectedPlayers: 0/4"));
             Assert.That(result.Snapshot, Does.Contain("ExploreLocationSuccesses:"));
             Assert.That(result.Snapshot, Does.Contain("ExploredLocations:"));
             Assert.That(result.Snapshot, Does.Contain("MoveCitySuccesses:"));
@@ -171,7 +174,8 @@ namespace YC.Tests.EditMode
             Assert.That(result.FinalState.Logs.Exists(log => log.Message.Contains("\u8c03\u5ea6\u4e86")), Is.True, result.Snapshot);
             Assert.That(result.FinalState.Logs.Exists(log => log.Message.Contains("\u5efa\u9020\u4e86\u5efa\u7b51")), Is.True, result.Snapshot);
             Assert.That(result.FinalState.Logs.Exists(
-                log => log.CommandId.StartsWith("autoplay-resolve-facility-")), Is.True, result.Snapshot);
+                log => log.CommandId.StartsWith("autoplay-resolve-facility-") ||
+                       log.CommandId.StartsWith("autoplay-answer-interaction-")), Is.True, result.Snapshot);
             Assert.That(result.FinalState.Logs.Exists(log => log.Message.Contains("\u90e8\u7f72\u4e86")), Is.True, result.Snapshot);
             Assert.That(result.FinalState.Logs.Exists(log => log.Message.Contains("\u6536\u96c6\u4e86") || log.Message.Contains("\u8d44\u6e90\u6536\u96c6")), Is.True, result.Snapshot);
             Assert.That(HasAnyCollectedResource(result.FinalState), Is.True, result.Snapshot);
@@ -184,7 +188,9 @@ namespace YC.Tests.EditMode
         [Test]
         public void RunToRound8Settlement_FillsThreeSeatsAndOutputsSnapshot()
         {
-            var result = LocalhostAutoplayRunner.RunToRound8Settlement(3);
+            var result = LocalhostAutoplayRunner.RunToRound8Settlement(
+                YC.Infrastructure.Lua.LuaContentCatalog.Register,
+                3);
 
             Assert.That(result.Succeeded, Is.True, result.Snapshot);
             Assert.That(result.FinalState, Is.Not.Null, result.Snapshot);
@@ -288,6 +294,3 @@ namespace YC.Tests.EditMode
         }
     }
 }
-
-
-

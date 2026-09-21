@@ -128,6 +128,47 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void ActionPanel_MainlineCompletionInteraction_DoesNotBlockActionOrLookLikeEventChoice()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.State.EffectRuntime.InteractionRequests.Add(new InteractionRequest
+            {
+                InteractionId = "mainline-completion",
+                RequestId = "mainline-completion",
+                InteractionTypeId = "round.mainline.complete:1",
+                AnsweringPlayerId = 1,
+                Status = "open"
+            });
+
+            var panel = fixture.Presenter.BuildActionPanelViewModel();
+
+            Assert.That(panel.CanMoveCity, Is.True);
+            Assert.That(panel.CanBuild, Is.True);
+            Assert.That(panel.StatusText, Does.Not.Contain("事件选择"));
+        }
+
+        [Test]
+        public void ActionPanel_CharacterAbilityInteraction_UsesCharacterPrompt()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.State.EffectRuntime.InteractionRequests.Add(new InteractionRequest
+            {
+                InteractionId = "ability-choice",
+                RequestId = "ability-choice",
+                InteractionTypeId = "character.ability.choice.awaiting",
+                PromptKey = "character.elysium.strategy.choose_resource",
+                AnsweringPlayerId = 1,
+                Status = "open"
+            });
+
+            var panel = fixture.Presenter.BuildActionPanelViewModel();
+
+            Assert.That(panel.CanMoveCity, Is.False);
+            Assert.That(panel.CanBuild, Is.False);
+            Assert.That(panel.StatusText, Is.EqualTo("请先处理角色能力选择"));
+        }
+
+        [Test]
         public void TurnActionPanelPresenter_DirectApiUsesBuildAndCompletionDependencies()
         {
             var fixture = CreateFixture();
@@ -931,11 +972,10 @@ namespace YC.Tests.EditMode
         {
             var fixture = CreateFixture();
             var markerState = AddMilitarySpecialActionMarker(fixture, "mode-marker");
-            fixture.Presenter.BeginDeployAction();
+            fixture.Presenter.BeginExploreAction();
             Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
-            Assert.That(fixture.Flow.IsActive(fixture.Influence), Is.True);
-            Assert.That(fixture.Influence.IsSelectingDeployTarget, Is.True);
-            Assert.That(fixture.View.Highlights, Is.Not.Empty);
+            Assert.That(fixture.Flow.IsActive(fixture.Exploration), Is.True);
+            Assert.That(fixture.Exploration.IsSelectingExploreTarget, Is.True);
             fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
             var marker = FindMarker(fixture.View.CityStyleOptions.CityStyleMarkers, markerState.InfluenceMarkerId);
             Assert.That(marker.CanDragForSpecialAction, Is.False, "旧选择模式中不应向玩家显示可拖标记。");
@@ -989,9 +1029,10 @@ namespace YC.Tests.EditMode
             fixture.Presenter.BeginDeployAction();
             Assert.That(fixture.Exploration.Mode, Is.EqualTo(InteractionMode.ChooseAction));
             Assert.That(fixture.Exploration.IsSelectingExploreTarget, Is.False);
-            Assert.That(fixture.Flow.IsActive(fixture.Influence), Is.True);
-            Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
-            Assert.That(fixture.Influence.IsSelectingDeployTarget, Is.True);
+            Assert.That(fixture.Flow.IsActive(fixture.Influence), Is.False, "部署目标由权威 Interaction 提供");
+            Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.DeployInfluence));
+            Assert.That(fixture.Commands.LastCommand.TargetId, Is.Null.Or.Empty);
+            Assert.That(fixture.Influence.IsSelectingDeployTarget, Is.False);
         }
 
         [Test]
@@ -1115,7 +1156,7 @@ namespace YC.Tests.EditMode
 
             var panel = fixture.Presenter.BuildActionPanelViewModel();
             Assert.That(fixture.Context.State.Phase, Is.EqualTo(GamePhase.ResourceCollection));
-            Assert.That(fixture.Context.State.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(fixture.Context.State.CurrentPlayerId, Is.EqualTo(-1));
             Assert.That(fixture.Context.LocalPlayerId, Is.EqualTo(1));
             Assert.That(fixture.Context.State.FindPlayer(1).HasCollectedResourcesThisRound, Is.False);
             Assert.That(fixture.Context.State.FindPlayer(2).HasCollectedResourcesThisRound, Is.False);

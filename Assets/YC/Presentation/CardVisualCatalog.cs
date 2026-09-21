@@ -139,40 +139,39 @@ namespace YC.Presentation
 
         public Texture2D GetFacility(string facilityId)
         {
-            return Get(facilities, facilityId);
+            return ExternalContentRuntime.GetArtwork("facility", facilityId);
         }
 
         public Texture2D GetCityStyle(string cityStyleId)
         {
-            return Get(cityStyles, cityStyleId);
+            return ExternalContentRuntime.GetArtwork("city_style", cityStyleId);
         }
 
         public Texture2D GetCharacterFront(string cardId)
         {
-            var directTemplateTexture = Get(characterFronts, cardId);
+            var directTemplateTexture = ExternalContentRuntime.GetArtwork("character", cardId);
             if (directTemplateTexture != null)
             {
                 return directTemplateTexture;
             }
 
             var definition = CharacterCardDatabase.Get(cardId);
-            return definition == null ? null : Get(characterFronts, definition.TemplateId);
+            return definition == null ? null : ExternalContentRuntime.GetArtwork("character", definition.TemplateId);
         }
 
         public Texture2D GetCharacterBack(PlayerColor color)
         {
-            Texture2D texture;
-            return characterBacks.TryGetValue(color, out texture) ? texture : null;
+            return ExternalContentRuntime.GetSharedArtwork("character_back_" + ((int)color).ToString());
         }
 
         public Texture2D GetEvent(string cardId)
         {
-            return Get(events, cardId);
+            return ExternalContentRuntime.GetArtwork("event", cardId);
         }
 
         public Texture2D GetCityBoard()
         {
-            return cityBoardTexture;
+            return ExternalContentRuntime.GetSharedArtwork("city_board");
         }
 
         private void RebuildDictionaries(bool strict)

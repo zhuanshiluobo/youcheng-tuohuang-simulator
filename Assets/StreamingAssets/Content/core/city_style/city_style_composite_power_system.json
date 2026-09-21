@@ -1,0 +1,83 @@
+{
+  "definitionId": "city_style_composite_power_system",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "复合动力系统",
+  "artwork": "artwork/city_style/city_style_composite_power_system.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cityStyleId": "city_style_composite_power_system",
+    "name": "复合动力系统",
+    "level": 1,
+    "score": 3,
+    "description": "2x2 局部布局：上方黄色；下方红色 + 黄色。",
+    "maxDeclarationsPerPlayer": 2147483647,
+    "specialActionId": "special_action.city_style.composite_power_system",
+    "declarationReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 3,
+      "requiredEffectTypes": [],
+      "requiredResourceTypes": [],
+      "requiredCityBoardSlotIndexes": [],
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        }
+      ],
+      "requireSameCityBoardRow": 0
+    },
+    "specialAction": {
+      "specialActionId": "special_action.city_style.composite_power_system",
+      "cityStyleId": "city_style_composite_power_system",
+      "name": "复合动力系统",
+      "description": "支付 1 源石碎片及合计 3 个源岩/异铁，免费移动一次，再在经过的航道放置影响力。",
+      "level": 1,
+      "effectKind": 2,
+      "fixedCost": {
+        "originium": 0,
+        "originiumShard": 1,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      "flexibleOriginiumAndIronCost": 3,
+      "maximumTargetCount": 1,
+      "freeMoveCount": 1,
+      "extraMainActionCount": 0,
+      "locksCharacterCard": 0
+    },
+    "effectScript": "lua/city_styles/composite_power_system.lua",
+    "luaSubscriptionId": "city-styles.composite",
+    "luaAbilityId": "city_styles.composite",
+    "luaCompletionHandlerId": "city-styles.composite.after_move",
+    "luaVersion": "1.1.0"
+  },
+  "expansionId": "core",
+  "replaces": null
+}

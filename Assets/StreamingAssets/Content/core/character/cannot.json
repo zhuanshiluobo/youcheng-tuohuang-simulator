@@ -1,0 +1,46 @@
+{
+  "definitionId": "cannot",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "坎诺特",
+  "artwork": "artwork/character/cannot.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "character.cannot.strategy",
+      "mode": "strategy",
+      "subscriptionId": "characters.cannot.strategy",
+      "script": "lua/characters/cannot.strategy.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "skillType": "normal",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "character.cannot.tactic",
+      "mode": "tactic",
+      "subscriptionId": "characters.cannot.tactic",
+      "script": "lua/characters/cannot.tactic.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "characters.cannot.tactic.answer",
+      "cleanupScript": "",
+      "skillType": "normal",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "cannot",
+    "cardId": "cannot",
+    "name": "坎诺特",
+    "strategyEffect": 1,
+    "tacticEffect": 2,
+    "strategyAbilityId": "character.cannot.strategy",
+    "tacticAbilityId": "character.cannot.tactic"
+  },
+  "expansionId": "core",
+  "replaces": null
+}

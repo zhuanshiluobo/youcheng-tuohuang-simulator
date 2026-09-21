@@ -9,7 +9,7 @@ namespace YC.Editor
         [MenuItem("YC/Dev/Run Localhost Autoplay")]
         public static void RunLocalhostAutoplay()
         {
-            var result = LocalhostAutoplayRunner.RunToRound8Settlement();
+            var result = LocalhostAutoplayRunner.RunToRound8Settlement(YC.Infrastructure.Lua.LuaContentCatalog.Register);
             if (result.Succeeded)
             {
                 Debug.Log(result.Snapshot);

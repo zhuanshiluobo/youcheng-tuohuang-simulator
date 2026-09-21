@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_039",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "载具仓库",
+  "artwork": "artwork/facility/building_039.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_039",
+    "manifestId": "building_039"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/remove_then_dispatch_or_explore.json"
+}

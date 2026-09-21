@@ -1,0 +1,53 @@
+{
+  "definitionId": "city_style_material_relay_station",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "物资中继站",
+  "artwork": "artwork/city_style/city_style_material_relay_station.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cityStyleId": "city_style_material_relay_station",
+    "name": "物资中继站",
+    "level": 1,
+    "score": 2,
+    "description": "同一横排相邻布局：蓝/红设施 + 黄色设施。",
+    "maxDeclarationsPerPlayer": 2147483647,
+    "specialActionId": "",
+    "declarationReward": {
+      "originium": 1,
+      "originiumShard": 1,
+      "iron": 1,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 2,
+      "requiredEffectTypes": [],
+      "requiredResourceTypes": [],
+      "requiredCityBoardSlotIndexes": [],
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "blue",
+            "red"
+          ]
+        },
+        {
+          "rowOffset": 0,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        }
+      ],
+      "requireSameCityBoardRow": 0
+    },
+    "specialAction": null
+  },
+  "expansionId": "core",
+  "replaces": null
+}

@@ -1,0 +1,17 @@
+{
+  "name": "YC.Infrastructure.Lua",
+  "rootNamespace": "YC.Infrastructure.Lua",
+  "references": [
+    "YC.Domain",
+    "MoonSharp.Interpreter"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

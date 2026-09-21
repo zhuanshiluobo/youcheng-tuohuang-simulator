@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_034",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "佣兵指挥部",
+  "artwork": "artwork/facility/building_034.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_034",
+    "manifestId": "building_034"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/replace_one_influence.json"
+}

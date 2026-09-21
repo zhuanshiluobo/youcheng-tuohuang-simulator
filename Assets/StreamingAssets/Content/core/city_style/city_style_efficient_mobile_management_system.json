@@ -1,0 +1,104 @@
+{
+  "definitionId": "city_style_efficient_mobile_management_system",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "高效移动管理体系",
+  "artwork": "artwork/city_style/city_style_efficient_mobile_management_system.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cityStyleId": "city_style_efficient_mobile_management_system",
+    "name": "高效移动管理体系",
+    "level": 2,
+    "score": 7,
+    "description": "3 行阶梯布局：上方黄色；中间红色 + 黄色；下方蓝色 + 蓝色 + 红色。",
+    "maxDeclarationsPerPlayer": 2,
+    "specialActionId": "special_action.city_style.efficient_mobile_management_system",
+    "declarationReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 6,
+      "requiredEffectTypes": [],
+      "requiredResourceTypes": [],
+      "requiredCityBoardSlotIndexes": [],
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 2,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        },
+        {
+          "rowOffset": 2,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        },
+        {
+          "rowOffset": 2,
+          "columnOffset": 2,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        }
+      ],
+      "requireSameCityBoardRow": 0
+    },
+    "specialAction": {
+      "specialActionId": "special_action.city_style.efficient_mobile_management_system",
+      "cityStyleId": "city_style_efficient_mobile_management_system",
+      "name": "高效移动管理体系",
+      "description": "支付 3 源石碎片，连续执行 2 次免费移动城市。",
+      "level": 2,
+      "effectKind": 4,
+      "fixedCost": {
+        "originium": 0,
+        "originiumShard": 3,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      "flexibleOriginiumAndIronCost": 0,
+      "maximumTargetCount": 0,
+      "freeMoveCount": 2,
+      "extraMainActionCount": 0,
+      "locksCharacterCard": 1
+    },
+    "effectScript": "lua/city_styles/efficient_mobile_management_system.lua",
+    "luaSubscriptionId": "city-styles.efficient",
+    "luaAbilityId": "city_styles.efficient",
+    "luaCompletionHandlerId": "",
+    "luaVersion": "1.1.0"
+  },
+  "expansionId": "core",
+  "replaces": null
+}

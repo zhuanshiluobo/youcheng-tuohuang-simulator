@@ -251,54 +251,77 @@ namespace YC.Tests.EditMode
                     "Assets/YC/Presentation/Content/EventCharacterCardCatalog.asset")));
         }
 
-        [TestCase("Assets/Scenes/StartScene.unity", 4)]
-        [TestCase("Assets/Scenes/SampleScene.unity", 6)]
-        public void Scenes_InheritConnectedBootstrapWithoutFileMutation(string scenePath, int expectedRoots)
+        [Test]
+        public void Scenes_InheritConnectedBootstrapWithoutFileMutation()
         {
-            var beforeHash = ComputeSha256(scenePath);
-            var scene = SceneManager.GetSceneByPath(scenePath);
-            var openedForTest = !scene.isLoaded;
-            if (openedForTest)
-            {
-                scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
-            }
-
-            try
-            {
-                Assert.That(scene.isDirty, Is.False);
-                var roots = scene.GetRootGameObjects();
-                Assert.That(roots, Has.Length.EqualTo(expectedRoots));
-                Assert.That(
-                    roots.Sum(root => root.GetComponentsInChildren<EventSystem>(true).Length),
-                    Is.EqualTo(1));
-
-                var bootstrapType = Type.GetType("YC.Presentation.FacilityCatalogBootstrap, Assembly-CSharp", true);
-                Assert.That(
-                    roots.Sum(root => root.GetComponentsInChildren(bootstrapType, true).Length),
-                    Is.EqualTo(1));
-                Assert.That(
-                    roots.Sum(root => root.GetComponentsInChildren<Component>(true).Count(item => item == null)),
-                    Is.Zero);
-
-                var gameSettingsRoots = roots.Where(root =>
-                    AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(root)) ==
-                    GameSettingsPrefabPath).ToArray();
-                Assert.That(gameSettingsRoots, Has.Length.EqualTo(1));
-                Assert.That(
-                    PrefabUtility.GetPrefabInstanceStatus(gameSettingsRoots[0]),
-                    Is.EqualTo(PrefabInstanceStatus.Connected));
-                Assert.That(PrefabUtility.GetPropertyModifications(gameSettingsRoots[0]), Has.Length.EqualTo(12));
-                Assert.That(scene.isDirty, Is.False);
-            }
-            finally
-            {
-                if (openedForTest)
+            EditModeTestCaseRunner.Run(
+                new[]
                 {
-                    EditorSceneManager.CloseScene(scene, true);
-                }
-            }
+                    new SceneBootstrapCase { ScenePath = "Assets/Scenes/StartScene.unity", ExpectedRoots = 4 },
+                    new SceneBootstrapCase { ScenePath = "Assets/Scenes/SampleScene.unity", ExpectedRoots = 6 }
+                },
+                testCase =>
+                {
+                    var scenePath = testCase.ScenePath;
+                    var beforeHash = ComputeSha256(scenePath);
+                    var scene = SceneManager.GetSceneByPath(scenePath);
+                    var openedForTest = !scene.isLoaded;
+                    if (openedForTest)
+                    {
+                        scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                    }
 
-            Assert.That(ComputeSha256(scenePath), Is.EqualTo(beforeHash));
+                    try
+                    {
+                        Assert.That(scene.isDirty, Is.False, scenePath);
+                        var roots = scene.GetRootGameObjects();
+                        Assert.That(roots, Has.Length.EqualTo(testCase.ExpectedRoots), scenePath);
+                        Assert.That(
+                            roots.Sum(root => root.GetComponentsInChildren<EventSystem>(true).Length),
+                            Is.EqualTo(1),
+                            scenePath);
+
+                        var bootstrapType = Type.GetType("YC.Presentation.FacilityCatalogBootstrap, Assembly-CSharp", true);
+                        Assert.That(
+                            roots.Sum(root => root.GetComponentsInChildren(bootstrapType, true).Length),
+                            Is.EqualTo(1),
+                            scenePath);
+                        Assert.That(
+                            roots.Sum(root => root.GetComponentsInChildren<Component>(true).Count(item => item == null)),
+                            Is.Zero,
+                            scenePath);
+
+                        var gameSettingsRoots = roots.Where(root =>
+                            AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(root)) ==
+                            GameSettingsPrefabPath).ToArray();
+                        Assert.That(gameSettingsRoots, Has.Length.EqualTo(1), scenePath);
+                        Assert.That(
+                            PrefabUtility.GetPrefabInstanceStatus(gameSettingsRoots[0]),
+                            Is.EqualTo(PrefabInstanceStatus.Connected),
+                            scenePath);
+                        Assert.That(
+                            PrefabUtility.GetPropertyModifications(gameSettingsRoots[0]),
+                            Has.Length.EqualTo(12),
+                            scenePath);
+                        Assert.That(scene.isDirty, Is.False, scenePath);
+                    }
+                    finally
+                    {
+                        if (openedForTest)
+                        {
+                            EditorSceneManager.CloseScene(scene, true);
+                        }
+                    }
+
+                    Assert.That(ComputeSha256(scenePath), Is.EqualTo(beforeHash), scenePath);
+                },
+                testCase => testCase.ScenePath);
+        }
+
+        private sealed class SceneBootstrapCase
+        {
+            public string ScenePath;
+            public int ExpectedRoots;
         }
 
         private static UnityEngine.Object LoadCatalog()

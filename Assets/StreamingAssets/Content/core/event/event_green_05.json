@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_green_05",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "矿业聚落",
+  "artwork": "artwork/event/event_green_05.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_green_05",
+    "name": "矿业聚落",
+    "description": "这里曾经是这片开拓区一处相对繁荣的源石矿区，但简陋的装备和未清理的源石让大部分矿工深陷于矿石病的危害之中，现在这里已经颓废衰败。",
+    "color": 0,
+    "resourceType": 1,
+    "resourceAmount": 1,
+    "representativeResourceType": 1,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "用约翰老妈提供的抑制剂换取开采合同：获得 3 源石碎片",
+      "收取费用，并为他们提供一片相对安全的聚居区：获得 7 金券"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 0,
+        "originiumShard": 3,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 7
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

@@ -31,34 +31,61 @@ namespace YC.Tests.EditMode
             Assert.That(resources.GoldVoucher, Is.EqualTo(32));
         }
 
-        [TestCase(-1, 0, ResourceSaleFailureKind.InvalidAmount)]
-        [TestCase(1, 2, ResourceSaleFailureKind.InsufficientResource)]
-        public void Sell_InvalidRequest_FailsAtomically(
-            int originium,
-            int pureOriginium,
-            ResourceSaleFailureKind expectedFailure)
+        [Test]
+        public void Sell_InvalidRequest_FailsAtomically()
         {
-            var resources = new ResourceSet
-            {
-                Originium = 1,
-                OriginiumShard = 2,
-                Iron = 3,
-                PureOriginium = 1,
-                GoldVoucher = 7
-            };
-            var before = resources.Clone();
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    new InvalidSaleCase
+                    {
+                        Originium = -1,
+                        PureOriginium = 0,
+                        ExpectedFailure = ResourceSaleFailureKind.InvalidAmount
+                    },
+                    new InvalidSaleCase
+                    {
+                        Originium = 1,
+                        PureOriginium = 2,
+                        ExpectedFailure = ResourceSaleFailureKind.InsufficientResource
+                    }
+                },
+                testCase =>
+                {
+                    var resources = new ResourceSet
+                    {
+                        Originium = 1,
+                        OriginiumShard = 2,
+                        Iron = 3,
+                        PureOriginium = 1,
+                        GoldVoucher = 7
+                    };
+                    var before = resources.Clone();
 
-            var result = new ResourceSaleService().Sell(
-                resources,
-                new ResourceSaleRequest(originium, 1, 1, pureOriginium));
+                    var result = new ResourceSaleService().Sell(
+                        resources,
+                        new ResourceSaleRequest(
+                            testCase.Originium,
+                            1,
+                            1,
+                            testCase.PureOriginium));
 
-            Assert.That(result.Succeeded, Is.False);
-            Assert.That(result.FailureKind, Is.EqualTo(expectedFailure));
-            Assert.That(resources.Originium, Is.EqualTo(before.Originium));
-            Assert.That(resources.OriginiumShard, Is.EqualTo(before.OriginiumShard));
-            Assert.That(resources.Iron, Is.EqualTo(before.Iron));
-            Assert.That(resources.PureOriginium, Is.EqualTo(before.PureOriginium));
-            Assert.That(resources.GoldVoucher, Is.EqualTo(before.GoldVoucher));
+                    Assert.That(result.Succeeded, Is.False, testCase.ExpectedFailure.ToString());
+                    Assert.That(result.FailureKind, Is.EqualTo(testCase.ExpectedFailure));
+                    Assert.That(resources.Originium, Is.EqualTo(before.Originium));
+                    Assert.That(resources.OriginiumShard, Is.EqualTo(before.OriginiumShard));
+                    Assert.That(resources.Iron, Is.EqualTo(before.Iron));
+                    Assert.That(resources.PureOriginium, Is.EqualTo(before.PureOriginium));
+                    Assert.That(resources.GoldVoucher, Is.EqualTo(before.GoldVoucher));
+                },
+                testCase => testCase.ExpectedFailure.ToString());
+        }
+
+        private sealed class InvalidSaleCase
+        {
+            public int Originium;
+            public int PureOriginium;
+            public ResourceSaleFailureKind ExpectedFailure;
         }
     }
 }

@@ -1,0 +1,37 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "物流枢纽",
+    "color": "blue",
+    "score": 2,
+    "resourceCost": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 1,
+      "goldVoucher": 2
+    },
+    "goldVoucherCost": 24,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry",
+      "unique"
+    ],
+    "effectId": "build_extension_hub",
+    "effectType": "entry",
+    "description": "“本城的第一座物流港，愿其能我们开辟一条……”",
+    "effectText": "唯一；可以从余下的延伸枢纽中选择 1 张并建设。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": true,
+    "uniqueGroupId": "物流枢纽",
+    "effectScript": "lua/facilities/build_extension_hub.lua"
+  }
+}

@@ -13,6 +13,16 @@ namespace YC.Domain.Rules
                 throw new ArgumentNullException(nameof(state));
             }
 
+            return GetTurnOrder(state, state.StartPlayerId);
+        }
+
+        public IReadOnlyList<int> GetTurnOrder(GameState state, int startPlayerId)
+        {
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
             var order = new List<int>();
             if (state.Players.Count == 0)
             {
@@ -27,13 +37,13 @@ namespace YC.Domain.Rules
                 }
 
                 order.Sort();
-                return RotateOrder(order, state.StartPlayerId).AsReadOnly();
+                return RotateOrder(order, startPlayerId).AsReadOnly();
             }
 
             var startIndex = 0;
             for (var i = 0; i < state.Players.Count; i++)
             {
-                if (state.Players[i].PlayerId == state.StartPlayerId)
+                if (state.Players[i].PlayerId == startPlayerId)
                 {
                     startIndex = i;
                     break;

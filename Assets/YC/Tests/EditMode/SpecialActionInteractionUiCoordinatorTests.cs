@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
@@ -23,6 +23,42 @@ namespace YC.Tests.EditMode
     {
         private GameObject canvasObject;
         private object coordinator;
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void EffectPayment_ReusesMaterialDialogAndSubmitsOneAnswerWithoutChangingResources(bool cancel)
+        {
+            var state = CreateState(SpecialActionDatabase.CompositePowerSystem, SpecialActionPendingSteps.AwaitFreeMoveTarget);
+            state.PendingSpecialAction = null;
+            state.EffectRuntime.InteractionRequests.Add(new InteractionRequest
+            {
+                InteractionId = "payment-test", InteractionTypeId = YC.Domain.Effects.ResourcePaymentChoiceEffectExecutor.InteractionTypeId,
+                Status = "open", Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 4,
+                PromptKey = "city_style.composite.payment", AllowDecline = true,
+                MinSelections = 1, MaxSelections = 1, CandidateIds = new List<string> { "pay|1|2|1|0|0", "pay|2|1|1|0|0" }
+            });
+            var fixture = CreateCoordinator(state);
+            Assert.That(Synchronize(), Is.True);
+            var overlay = FindChild(canvasObject, "Special Action Choice Overlay");
+            Assert.That(overlay, Is.Not.Null);
+            if (cancel) ClickButton(overlay, "Cancel Special Action Payment");
+            else
+            {
+                ClickButton(overlay, "Decrease 0");
+                ClickButton(overlay, "Increase 1");
+                ClickButton(overlay, "Increase 1");
+                ClickButton(overlay, "Confirm Special Action Payment");
+            }
+            Assert.That(fixture.SubmissionCount, Is.EqualTo(1));
+            Assert.That(fixture.SubmittedCommand.Kind, Is.EqualTo(GameCommandKind.AnswerInteraction));
+            if (cancel) Assert.That(fixture.SubmittedCommand.Parameters[YC.Application.Interactions.AnswerInteractionCommandHandler.AnswerValueParameter], Is.EqualTo("false"));
+            else Assert.That(fixture.SubmittedCommand.OptionIds, Is.EqualTo(new[] { "pay|1|2|1|0|0" }));
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(2));
+            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(4));
+            Assert.That(Synchronize(), Is.True);
+            Assert.That((bool)Invoke(coordinator, "TryHandleEscape"), Is.True);
+            Assert.That(fixture.SubmissionCount, Is.EqualTo(1), "网络确认前不得重开支付或重复取消");
+        }
 
         [TearDown]
         public void TearDown()

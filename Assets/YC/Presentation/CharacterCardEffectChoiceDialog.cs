@@ -98,6 +98,7 @@ namespace YC.Presentation
                 Labels = labels,
                 Maximums = maximums,
                 UnitPrices = unitPrices,
+                MinimumTotal = 0,
                 LabelNamePrefix = "Character Sale Label ",
                 DecreaseNamePrefix = "Character Sale Decrease ",
                 ValueNamePrefix = "Character Sale Value ",
@@ -124,6 +125,59 @@ namespace YC.Presentation
                 CloseBeforeConfirm = true,
                 CloseBeforeCancel = true
             });
+        }
+
+        public void ShowResourceSaleCandidates(
+            IReadOnlyList<string> candidateIds,
+            Action<IReadOnlyList<string>> confirm,
+            Action cancel)
+        {
+            var resourceIds = new[] { "originium", "originium-shard", "iron", "pure-originium" };
+            var labels = new[] { "源岩", "源石碎片", "异铁", "至纯源石" };
+            var maximums = new int[resourceIds.Length];
+            for (var i = 0; candidateIds != null && i < candidateIds.Count; i++)
+            {
+                var parts = (candidateIds[i] ?? string.Empty).Split('|');
+                if (parts.Length != 3 || parts[0] != "sale")
+                {
+                    continue;
+                }
+
+                var resourceIndex = Array.IndexOf(resourceIds, parts[1]);
+                int amount;
+                if (resourceIndex >= 0 &&
+                    int.TryParse(parts[2], out amount) &&
+                    amount > maximums[resourceIndex])
+                {
+                    maximums[resourceIndex] = amount;
+                }
+            }
+
+            ShowResourceSale(
+                labels,
+                maximums,
+                new[]
+                {
+                    YC.Domain.Economy.ResourceSaleService.OriginiumUnitPrice,
+                    YC.Domain.Economy.ResourceSaleService.OriginiumShardUnitPrice,
+                    YC.Domain.Economy.ResourceSaleService.IronUnitPrice,
+                    YC.Domain.Economy.ResourceSaleService.PureOriginiumUnitPrice
+                },
+                values =>
+                {
+                    var selected = new List<string>();
+                    for (var i = 0; i < values.Count && i < resourceIds.Length; i++)
+                    {
+                        if (values[i] > 0)
+                        {
+                            selected.Add("sale|" + resourceIds[i] + "|" + values[i]);
+                        }
+                    }
+
+                    if (selected.Count == 0) selected.Add("sale|originium|0");
+                    confirm(selected.AsReadOnly());
+                },
+                cancel);
         }
 
         public void Hide()

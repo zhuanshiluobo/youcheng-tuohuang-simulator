@@ -15,47 +15,91 @@ namespace YC.Tests.EditMode
         private const string YellowSourceStoneRefinery = "building_028";
         private const string RedIronRefinery = "building_032";
 
-        [TestCase(CityStyleDatabase.MilitaryIndustrialArea, 2, 2)]
-        [TestCase(CityStyleDatabase.MobilizationSupportSystem, 3, 3)]
-        [TestCase(CityStyleDatabase.CompositePowerSystem, 3, 3)]
-        [TestCase(CityStyleDatabase.MaterialRelayStation, 2, 2)]
-        [TestCase(CityStyleDatabase.SourceStoneIndustrialHub, 6, 6)]
-        [TestCase(CityStyleDatabase.EfficientMobileManagementSystem, 7, 6)]
-        public void DeclareCityStyle_WhenManifestPatternMet_SucceedsWritesStateAndKeepsMainActionAvailable(
-            string cityStyleId,
-            int expectedScore,
-            int expectedUsedSlotCount)
+        [Test]
+        public void DeclareCityStyle_WhenManifestPatternMet_SucceedsWritesStateAndKeepsMainActionAvailable()
         {
-            var state = CreateActionState();
-            AddFacilitiesForStyle(state, cityStyleId);
-            var handler = new DeclareCityStyleCommandHandler();
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    new CityStyleManifestCase
+                    {
+                        CityStyleId = CityStyleDatabase.MilitaryIndustrialArea,
+                        ExpectedScore = 2,
+                        ExpectedUsedSlotCount = 2
+                    },
+                    new CityStyleManifestCase
+                    {
+                        CityStyleId = CityStyleDatabase.MobilizationSupportSystem,
+                        ExpectedScore = 3,
+                        ExpectedUsedSlotCount = 3
+                    },
+                    new CityStyleManifestCase
+                    {
+                        CityStyleId = CityStyleDatabase.CompositePowerSystem,
+                        ExpectedScore = 3,
+                        ExpectedUsedSlotCount = 3
+                    },
+                    new CityStyleManifestCase
+                    {
+                        CityStyleId = CityStyleDatabase.MaterialRelayStation,
+                        ExpectedScore = 2,
+                        ExpectedUsedSlotCount = 2
+                    },
+                    new CityStyleManifestCase
+                    {
+                        CityStyleId = CityStyleDatabase.SourceStoneIndustrialHub,
+                        ExpectedScore = 6,
+                        ExpectedUsedSlotCount = 6
+                    },
+                    new CityStyleManifestCase
+                    {
+                        CityStyleId = CityStyleDatabase.EfficientMobileManagementSystem,
+                        ExpectedScore = 7,
+                        ExpectedUsedSlotCount = 6
+                    }
+                },
+                testCase =>
+                {
+                    var state = CreateActionState();
+                    AddFacilitiesForStyle(state, testCase.CityStyleId);
+                    var handler = new DeclareCityStyleCommandHandler();
 
-            var result = handler.Handle(state, CreateMatchedCommand(state, cityStyleId));
+                    var result = handler.Handle(state, CreateMatchedCommand(state, testCase.CityStyleId));
 
-            Assert.That(result.Succeeded, Is.True);
-            var player = state.FindPlayer(1);
-            Assert.That(player.DeclaredCityStyles, Has.Count.EqualTo(1));
-            Assert.That(player.DeclaredCityStyles[0].CityStyleId, Is.EqualTo(cityStyleId));
-            Assert.That(player.DeclaredCityStyles[0].UsedCityBoardSlotIndexes, Has.Count.EqualTo(expectedUsedSlotCount));
-            Assert.That(player.DeclaredCityStyles[0].InfluenceMarkerId, Is.Not.Empty);
-            Assert.That(
-                player.DeclaredCityStyles[0].MarkerArea,
-                Is.EqualTo(cityStyleId == CityStyleDatabase.MaterialRelayStation
-                    ? CityStyleMarkerAreas.Declared
-                    : CityStyleDatabase.Get(cityStyleId).Level >= 2
-                        ? CityStyleMarkerAreas.UsesTwo
-                        : CityStyleMarkerAreas.Unused));
-            Assert.That(
-                player.DeclaredCityStyles[0].UnlockedSpecialActionId,
-                Is.EqualTo(CityStyleDatabase.Get(cityStyleId).SpecialActionId));
-            Assert.That(CityStyleDatabase.Get(cityStyleId).Score, Is.EqualTo(expectedScore));
-            Assert.That(player.Score, Is.EqualTo(expectedScore));
-            Assert.That(player.InfluenceSupply, Is.EqualTo(29));
-            Assert.That(player.ActedMainActionThisTurn, Is.False);
-            var expectedReward = cityStyleId == CityStyleDatabase.MaterialRelayStation ? 1 : 0;
-            Assert.That(player.Resources.Originium, Is.EqualTo(expectedReward));
-            Assert.That(player.Resources.OriginiumShard, Is.EqualTo(expectedReward));
-            Assert.That(player.Resources.Iron, Is.EqualTo(expectedReward));
+                    Assert.That(result.Succeeded, Is.True, testCase.CityStyleId);
+                    var player = state.FindPlayer(1);
+                    Assert.That(player.DeclaredCityStyles, Has.Count.EqualTo(1), testCase.CityStyleId);
+                    Assert.That(player.DeclaredCityStyles[0].CityStyleId,
+                        Is.EqualTo(testCase.CityStyleId), testCase.CityStyleId);
+                    Assert.That(
+                        player.DeclaredCityStyles[0].UsedCityBoardSlotIndexes,
+                        Has.Count.EqualTo(testCase.ExpectedUsedSlotCount),
+                        testCase.CityStyleId);
+                    Assert.That(player.DeclaredCityStyles[0].InfluenceMarkerId,
+                        Is.Not.Empty, testCase.CityStyleId);
+                    Assert.That(
+                        player.DeclaredCityStyles[0].MarkerArea,
+                        Is.EqualTo(testCase.CityStyleId == CityStyleDatabase.MaterialRelayStation
+                            ? CityStyleMarkerAreas.Declared
+                            : CityStyleDatabase.Get(testCase.CityStyleId).Level >= 2
+                                ? CityStyleMarkerAreas.UsesTwo
+                                : CityStyleMarkerAreas.Unused),
+                        testCase.CityStyleId);
+                    Assert.That(
+                        player.DeclaredCityStyles[0].UnlockedSpecialActionId,
+                        Is.EqualTo(CityStyleDatabase.Get(testCase.CityStyleId).SpecialActionId),
+                        testCase.CityStyleId);
+                    Assert.That(CityStyleDatabase.Get(testCase.CityStyleId).Score,
+                        Is.EqualTo(testCase.ExpectedScore), testCase.CityStyleId);
+                    Assert.That(player.Score, Is.EqualTo(testCase.ExpectedScore), testCase.CityStyleId);
+                    Assert.That(player.InfluenceSupply, Is.EqualTo(29), testCase.CityStyleId);
+                    Assert.That(player.ActedMainActionThisTurn, Is.False, testCase.CityStyleId);
+                    var expectedReward = testCase.CityStyleId == CityStyleDatabase.MaterialRelayStation ? 1 : 0;
+                    Assert.That(player.Resources.Originium, Is.EqualTo(expectedReward), testCase.CityStyleId);
+                    Assert.That(player.Resources.OriginiumShard, Is.EqualTo(expectedReward), testCase.CityStyleId);
+                    Assert.That(player.Resources.Iron, Is.EqualTo(expectedReward), testCase.CityStyleId);
+                },
+                testCase => testCase.CityStyleId);
         }
 
         [Test]
@@ -105,27 +149,33 @@ namespace YC.Tests.EditMode
             Assert.That(declaration.UsedCityBoardSlotIndexes, Is.EqualTo(new[] { 0, 3 }));
         }
 
-        [TestCase(0, 0, 1)]
-        [TestCase(90, 0, 3)]
-        [TestCase(180, 1, 0)]
-        [TestCase(270, 3, 0)]
-        public void CityStylePatternMatcher_AllQuarterTurnsAreSupportedWithoutMirroring(
-            int expectedRotation,
-            int blueOrYellowSlot,
-            int redSlot)
+        [Test]
+        public void CityStylePatternMatcher_AllQuarterTurnsAreSupportedWithoutMirroring()
         {
-            var state = CreateActionState();
-            AddFacility(state, FacilityCardDatabase.SourceStoneRefinery, blueOrYellowSlot);
-            AddFacility(state, FacilityCardDatabase.EquipmentWarehouse, redSlot);
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    new RotationCase { ExpectedRotation = 0, BlueOrYellowSlot = 0, RedSlot = 1 },
+                    new RotationCase { ExpectedRotation = 90, BlueOrYellowSlot = 0, RedSlot = 3 },
+                    new RotationCase { ExpectedRotation = 180, BlueOrYellowSlot = 1, RedSlot = 0 },
+                    new RotationCase { ExpectedRotation = 270, BlueOrYellowSlot = 3, RedSlot = 0 }
+                },
+                testCase =>
+                {
+                    var state = CreateActionState();
+                    AddFacility(state, FacilityCardDatabase.SourceStoneRefinery, testCase.BlueOrYellowSlot);
+                    AddFacility(state, FacilityCardDatabase.EquipmentWarehouse, testCase.RedSlot);
 
-            var result = new CityStylePatternMatcher().MatchSelected(
-                state,
-                1,
-                CityStyleDatabase.Get(CityStyleDatabase.MilitaryIndustrialArea),
-                new[] { blueOrYellowSlot, redSlot });
+                    var result = new CityStylePatternMatcher().MatchSelected(
+                        state,
+                        1,
+                        CityStyleDatabase.Get(CityStyleDatabase.MilitaryIndustrialArea),
+                        new[] { testCase.BlueOrYellowSlot, testCase.RedSlot });
 
-            Assert.That(result.Succeeded, Is.True);
-            Assert.That(result.RotationDegrees, Is.EqualTo(expectedRotation));
+                    Assert.That(result.Succeeded, Is.True, testCase.ExpectedRotation.ToString());
+                    Assert.That(result.RotationDegrees, Is.EqualTo(testCase.ExpectedRotation));
+                },
+                testCase => "rotation=" + testCase.ExpectedRotation);
         }
 
         [Test]
@@ -438,6 +488,20 @@ namespace YC.Tests.EditMode
                     AddFacility(state, RedIronRefinery, 8);
                     break;
             }
+        }
+
+        private sealed class CityStyleManifestCase
+        {
+            public string CityStyleId;
+            public int ExpectedScore;
+            public int ExpectedUsedSlotCount;
+        }
+
+        private sealed class RotationCase
+        {
+            public int ExpectedRotation;
+            public int BlueOrYellowSlot;
+            public int RedSlot;
         }
     }
 }

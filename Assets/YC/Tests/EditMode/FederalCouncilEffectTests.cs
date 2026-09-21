@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using YC.Domain.Commands;
 using YC.Domain.Facilities;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -26,7 +27,7 @@ namespace YC.Tests.EditMode
             state.CurrentPlayerId = state.StartPlayerId;
             FederalCouncilEffectService.RecordLatestBuilder(state, 3);
 
-            var result = new RoundAdvanceService().EndCompletedAction(state, state.StartPlayerId);
+            var result = FinishCleanup(state);
 
             Assert.That(result.IsValid, Is.True, result.Reason);
             Assert.That(state.Round, Is.EqualTo(2));
@@ -43,7 +44,7 @@ namespace YC.Tests.EditMode
             state.Phase = GamePhase.Cleanup;
             state.CurrentPlayerId = state.StartPlayerId;
 
-            var result = new RoundAdvanceService().EndCompletedAction(state, state.StartPlayerId);
+            var result = FinishCleanup(state);
 
             Assert.That(result.IsValid, Is.True, result.Reason);
             Assert.That(state.StartPlayerId, Is.EqualTo(2));
@@ -60,7 +61,7 @@ namespace YC.Tests.EditMode
             state.CurrentPlayerId = state.StartPlayerId;
             FederalCouncilEffectService.RecordLatestBuilder(state, 3);
 
-            var result = new RoundAdvanceService().EndCompletedAction(state, state.StartPlayerId);
+            var result = FinishCleanup(state);
 
             Assert.That(result.IsValid, Is.True, result.Reason);
             Assert.That(state.Phase, Is.EqualTo(GamePhase.FinalScoring));
@@ -84,6 +85,15 @@ namespace YC.Tests.EditMode
                     new PlayerState { PlayerId = 3, Color = PlayerColor.Green }
                 }
             };
+        }
+
+        private static ValidationResult FinishCleanup(GameState state)
+        {
+            var round = RoundLifecycleTestDriver.EnterCollection(state);
+            RoundLifecycleTestDriver.FinishCollection(state, round);
+            var result = ValidationResult.Success;
+
+            return result;
         }
     }
 }

@@ -30,7 +30,7 @@ namespace YC.Tests.EditMode
                 seats,
                 StaticMapDefinitions.FourPlayerMapId,
                 EventDeckService.DefaultSeed);
-            var setupHandler = new SetupCommandHandler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
+            var setupHandler = PlayerEntranceMainlineTests.Handler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
 
             Assert.That(localPlayerId, Is.EqualTo(1));
             Assert.That(GameLaunchStateFactory.ContainsPlayer(seats, localPlayerId), Is.True);
@@ -153,7 +153,7 @@ namespace YC.Tests.EditMode
                 seats,
                 map.MapId,
                 EventDeckService.DefaultSeed);
-            var setupHandler = new SetupCommandHandler(new MapQueryService(map));
+            var setupHandler = PlayerEntranceMainlineTests.Handler(new MapQueryService(map));
 
             Assert.That(state.MapId, Is.EqualTo(StaticMapDefinitions.FourPlayerMapId));
             Assert.That(GetPlayerIds(state), Is.EqualTo(new[] { 1, 2 }));
@@ -192,7 +192,7 @@ namespace YC.Tests.EditMode
                 seats,
                 StaticMapDefinitions.FourPlayerMapId,
                 EventDeckService.DefaultSeed);
-            var setupHandler = new SetupCommandHandler(new MapQueryService(map));
+            var setupHandler = PlayerEntranceMainlineTests.Handler(new MapQueryService(map));
 
             AssertInitialPlacement(setupHandler, state, 1, "G-01", 2, GamePhase.Entrance);
             AssertInitialPlacement(setupHandler, state, 2, "A-01", 3, GamePhase.Entrance);
@@ -232,6 +232,8 @@ namespace YC.Tests.EditMode
             int expectedCurrentPlayerId,
             GamePhase expectedPhase)
         {
+            // 此夹具验证回合与座位顺序，入场点预有标记，不需要事件牌堆。
+            state.Map.ResourceTokens.Add(new ResourceTokenState { LocationId = locationId, ResourceType = ResourceType.Iron, Amount = 1 });
             var result = setupHandler.Handle(state, new GameCommand
             {
                 Kind = GameCommandKind.ChooseInitialLocation,
@@ -268,7 +270,9 @@ namespace YC.Tests.EditMode
 
             Assert.That(state.Phase, Is.EqualTo(expectedEndingPhase));
             Assert.That(state.ActionRound, Is.EqualTo(expectedEndingActionRound));
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(order[0]));
+            Assert.That(
+                state.CurrentPlayerId,
+                Is.EqualTo(expectedEndingPhase == GamePhase.ResourceCollection ? -1 : order[0]));
         }
 
         private static void AdvanceFullRound(GameState state)
@@ -304,14 +308,15 @@ namespace YC.Tests.EditMode
         private static void EndResourceCollectionAndCleanup(GameState state)
         {
             var roundAdvanceService = new RoundAdvanceService();
+            var finalRound = state.Round == state.MaxRounds;
             for (var i = 0; i < state.Players.Count; i++)
             {
                 state.Players[i].HasCollectedResourcesThisRound = true;
+                var result = roundAdvanceService.CompleteResourceCollection(state, state.Players[i].PlayerId);
+                Assert.That(result.IsValid, Is.True, result.Reason);
             }
-
-            roundAdvanceService.AdvanceResourceCollectionToCleanup(state);
-            var result = roundAdvanceService.EndCompletedAction(state, state.CurrentPlayerId);
-            Assert.That(result.IsValid, Is.True, result.Reason);
+            Assert.That(state.Phase, Is.EqualTo(finalRound
+                ? GamePhase.FinalScoring : GamePhase.CharacterCover));
         }
 
         private static void AssertRedZoneClosed(GameState state, GameMapDefinition map, bool expectedClosed)

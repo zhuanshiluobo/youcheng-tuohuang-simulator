@@ -81,16 +81,25 @@ namespace YC.Tests.EditMode
             AssertInvalid(mismatchedEntry, "HasEntryEffect");
         }
 
-        [TestCase(FacilityCardEffectIds.GainOriginiumShardSix)]
-        [TestCase(FacilityCardEffectIds.GainIronFour)]
-        [TestCase(FacilityCardEffectIds.GainOriginiumSeven)]
-        public void Initialize_RejectsIncorrectRequiredReward(string effectId)
+        [Test]
+        public void Initialize_RejectsIncorrectRequiredReward()
         {
-            var definitions = ExportDefinitions();
-            var definition = definitions.First(item => item.EffectId == effectId);
-            definition.OnBuiltReward = new ResourceSet();
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    FacilityCardEffectIds.GainOriginiumShardSix,
+                    FacilityCardEffectIds.GainIronFour,
+                    FacilityCardEffectIds.GainOriginiumSeven
+                },
+                effectId =>
+                {
+                    var definitions = ExportDefinitions();
+                    var definition = definitions.First(item => item.EffectId == effectId);
+                    definition.OnBuiltReward = new ResourceSet();
 
-            AssertInvalid(definitions, "OnBuiltReward");
+                    AssertInvalid(definitions, "OnBuiltReward");
+                },
+                effectId => effectId);
         }
 
         [Test]

@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using YC.Application.Sessions;
 using YC.Domain.Commands;
 using YC.Domain.Events;
+using YC.Domain.Effects;
 using YC.Domain.Movement;
 using YC.Domain.Rules;
 using YC.Domain.SpecialActions;
@@ -26,6 +27,7 @@ namespace YC.Application.Gameplay
         private readonly SpecialActionService specialActionService;
         private readonly SpecialActionOptionQueryService optionQuery;
         private readonly MoveCityCommandHandler moveCityCommandHandler;
+        private readonly EffectRegistry effectRegistry;
 
         public UseSpecialActionCommandHandler(
             SpecialActionService specialActionService,
@@ -37,11 +39,21 @@ namespace YC.Application.Gameplay
             this.moveCityCommandHandler = moveCityCommandHandler ?? throw new ArgumentNullException(nameof(moveCityCommandHandler));
         }
 
+        public UseSpecialActionCommandHandler(
+            EffectRegistry effectRegistry,
+            SpecialActionOptionQueryService optionQuery,
+            MoveCityCommandHandler moveCityCommandHandler)
+        {
+            this.effectRegistry = effectRegistry ?? throw new ArgumentNullException(nameof(effectRegistry));
+            this.optionQuery = optionQuery ?? throw new ArgumentNullException(nameof(optionQuery));
+            this.moveCityCommandHandler = moveCityCommandHandler;
+        }
+
         public bool CanHandle(GameCommand command)
         {
             return command != null &&
                    (command.Kind == GameCommandKind.UseSpecialAction ||
-                    command.Kind == GameCommandKind.ResolvePendingChoice);
+                    (effectRegistry == null && command.Kind == GameCommandKind.ResolvePendingChoice));
         }
 
         public CommandResult Handle(GameState state, GameCommand command)
@@ -56,9 +68,77 @@ namespace YC.Application.Gameplay
                 throw new ArgumentNullException(nameof(command));
             }
 
+            if (effectRegistry != null)
+            {
+                if (command.Kind != GameCommandKind.UseSpecialAction)
+                    return Invalid(CommandErrorCode.PendingChoiceRequired, "特殊行动答案必须通过 AnswerInteraction 提交。");
+                return HandleEffectTreeBegin(state, command);
+            }
+
             return command.Kind == GameCommandKind.UseSpecialAction
                 ? HandleBegin(state, command)
                 : HandleResolve(state, command);
+        }
+
+        private CommandResult HandleEffectTreeBegin(GameState state, GameCommand command)
+        {
+            string specialActionId = GetParameter(command, SpecialActionIdParameter);
+            if (string.IsNullOrEmpty(specialActionId)) specialActionId = command.TargetId;
+            string markerId = GetParameter(command, DeclarationMarkerIdParameter);
+            if (string.IsNullOrEmpty(markerId)) markerId = command.SourceId;
+            int originium = -1;
+            int iron = -1;
+            // 新链路由支付 Effect 收集组合；旧命令参数不代替权威交互。
+
+            var executor = new EffectTreeExecutor(state, effectRegistry);
+            string rootId;
+            var specialActionSpec = CityStyleSpecialActionEffectSpecFactory.Activate(
+                command.PlayerId, specialActionId, markerId, originium, iron, command.CommandId);
+            if (!executor.TryCreatePlayerActionEffect(
+                    command.PlayerId,
+                    specialActionSpec,
+                    string.Empty,
+                    command.CommandId,
+                    out rootId))
+                return Invalid(CommandErrorCode.InvalidTarget, executor.LastDiagnostic);
+            EffectRunReport report = executor.RunUntilQuiescent();
+            EffectNodeRuntimeState root = executor.GetNode(rootId);
+            if (report.Faulted)
+                return Invalid(CommandErrorCode.UnknownCommand, executor.LastDiagnostic);
+            if (root == null || root.Status == EffectNodeStatus.Failed || root.Status == EffectNodeStatus.Faulted)
+                return Invalid(CommandErrorCode.InvalidTarget, root == null ? executor.LastDiagnostic : root.FailureReason);
+
+            var events = new List<GameEvent>();
+            InteractionRequest request = state.EffectRuntime.InteractionRequests.Find(candidate =>
+                candidate != null && candidate.OwnerEffectId == rootId && candidate.Status == "open");
+            if (request != null)
+            {
+                events.Add(new GameEvent
+                {
+                    Kind = GameEventKind.ChoiceOpened,
+                    PlayerId = command.PlayerId,
+                    SubjectId = specialActionId,
+                    Message = request.PromptKey,
+                    Data =
+                    {
+                        { "interactionId", request.GetStableInteractionId() },
+                        { "candidateSetId", request.CandidateSetId ?? string.Empty },
+                        { "candidateSetVersion", request.CandidateSetVersion.ToString(CultureInfo.InvariantCulture) },
+                        { "candidateIds", string.Join(",", request.CandidateIds ?? new List<string>()) }
+                    }
+                });
+            }
+            else
+            {
+                events.Add(new GameEvent
+                {
+                    Kind = GameEventKind.LogOnly,
+                    PlayerId = command.PlayerId,
+                    SubjectId = specialActionId,
+                    Message = report.Completed ? "特殊行动已完成。" : "特殊行动已进入 Effect 结算。"
+                });
+            }
+            return CommandResult.SuccessResult(events, "特殊行动已交由通用 Effect 树结算。");
         }
 
         private CommandResult HandleBegin(GameState state, GameCommand command)

@@ -365,6 +365,7 @@ namespace YC.Presentation
             HandCardEntry handEntry)
         {
             var texture = cardVisualCatalog.GetCharacterFront(cardId);
+            if (!discard) YC.PlayerJourney.PlayerAutomationId.Attach(card.gameObject, "character.hand." + cardId);
             card.Image.texture = texture;
             card.Image.color = Color.white;
             card.Image.material = discard ? view.DiscardGrayscaleMaterial : null;

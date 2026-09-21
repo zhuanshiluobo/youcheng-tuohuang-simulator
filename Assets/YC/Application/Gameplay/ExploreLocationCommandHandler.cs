@@ -5,6 +5,7 @@ using YC.Domain.Cards;
 using YC.Domain.CardFlows;
 using YC.Domain.Commands;
 using YC.Domain.Events;
+using YC.Domain.Effects;
 using YC.Domain.Exploration;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -25,6 +26,8 @@ namespace YC.Application.Gameplay
 
         private readonly ExplorationService explorationService;
         private readonly RoundAdvanceService roundAdvanceService;
+        private readonly EffectRegistry effectRegistry;
+        private readonly bool useEffectPipeline;
 
         public ExploreLocationCommandHandler(ExplorationService explorationService)
             : this(explorationService, new RoundAdvanceService())
@@ -37,6 +40,18 @@ namespace YC.Application.Gameplay
         {
             this.explorationService = explorationService ?? throw new ArgumentNullException(nameof(explorationService));
             this.roundAdvanceService = roundAdvanceService ?? throw new ArgumentNullException(nameof(roundAdvanceService));
+            effectRegistry = null;
+            useEffectPipeline = false;
+        }
+
+        public ExploreLocationCommandHandler(
+            ExplorationService explorationService,
+            RoundAdvanceService roundAdvanceService,
+            EffectRegistry effectRegistry)
+            : this(explorationService, roundAdvanceService)
+        {
+            this.effectRegistry = effectRegistry ?? throw new ArgumentNullException(nameof(effectRegistry));
+            useEffectPipeline = true;
         }
 
         public bool CanHandle(GameCommand command)
@@ -48,6 +63,11 @@ namespace YC.Application.Gameplay
 
         public CommandResult Handle(GameState state, GameCommand command)
         {
+            if (useEffectPipeline && command.Kind == GameCommandKind.ExploreLocation)
+            {
+                return HandleEffectExplore(state, command);
+            }
+
             if (command.Kind == GameCommandKind.ResolvePendingChoice)
             {
                 return HandleResolveExploreEvent(state, command);
@@ -158,6 +178,55 @@ namespace YC.Application.Gameplay
             }
 
             return CommandResult.SuccessResult(events, message);
+        }
+
+        private CommandResult HandleEffectExplore(GameState state, GameCommand command)
+        {
+            if (state == null || command == null || string.IsNullOrEmpty(command.TargetId))
+            {
+                return Invalid(CommandErrorCode.InvalidTarget, "探索必须提交稳定的目标地块 ID。");
+            }
+
+            MapPath path;
+            ValidationResult pathValidation = ResolvePath(state, command, command.TargetId, out path);
+            if (!pathValidation.IsValid) return CommandResult.Invalid(pathValidation);
+
+            string influenceSlotId = GetParameter(command, InfluenceSlotIdParameter);
+
+            Dictionary<string, int> paymentRecipients;
+            ValidationResult paymentValidation = ResolvePaymentRecipients(command, out paymentRecipients);
+            if (!paymentValidation.IsValid) return CommandResult.Invalid(paymentValidation);
+
+            var executor = new EffectTreeExecutor(state, effectRegistry);
+            string nodeId;
+            var exploreSpec = ExplorationEffectSpecFactory.Explore(
+                command.PlayerId,
+                command.TargetId,
+                path,
+                influenceSlotId,
+                paymentRecipients,
+                false,
+                true,
+                command.CommandId);
+            if (!executor.TryCreatePlayerActionEffect(
+                    command.PlayerId,
+                    exploreSpec,
+                    string.Empty,
+                    command.CommandId,
+                    out nodeId))
+            {
+                return Invalid(CommandErrorCode.InvalidTarget, executor.LastDiagnostic);
+            }
+
+            EffectRunReport report = executor.RunUntilQuiescent();
+            if (report.Faulted)
+            {
+                return Invalid(CommandErrorCode.InvalidTarget, "探索 Effect 无法继续：" + report.FaultCode);
+            }
+
+            return CommandResult.SuccessResult(
+                new List<GameEvent>(),
+                report.WaitingForInput ? "探索已提交，等待事件牌选择。" : "探索已完成。");
         }
 
         /// <summary>

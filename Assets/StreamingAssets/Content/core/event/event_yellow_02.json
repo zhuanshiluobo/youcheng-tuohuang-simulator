@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_yellow_02",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "洞穴和遗迹",
+  "artwork": "artwork/event/event_yellow_02.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_yellow_02",
+    "name": "洞穴和遗迹",
+    "description": "“头儿，爆破小组炸开了一条隐藏的通道，后面竟然是一片……人造建筑的遗址，我们无法确认其年代，也无法确认其建造者。”——信使所带回的信息。",
+    "color": 1,
+    "resourceType": 0,
+    "resourceAmount": 1,
+    "representativeResourceType": 0,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "爆破！我们不是来考古的：获得 5 源岩",
+      "给“梅兰德历史协会”写一封信：获得 10 金券"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 5,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 10
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

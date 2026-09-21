@@ -7,7 +7,7 @@ namespace YC.Presentation
     public sealed partial class MobileCityInteractionController
     {
         private CharacterCardEffectChoiceDialog characterCardEffectChoiceDialog;
-        private CharacterCardEffectInteractionUiCoordinator characterCardEffectInteraction;
+        private CharacterCardEffectInteractionUiCoordinator characterCardEffectInteraction; private CharacterAbilityInteractionUiCoordinator characterAbilityInteraction;
         private string automaticSecondEffectMode = string.Empty;
         private bool submittingSecondEffectDecision;
 
@@ -21,20 +21,18 @@ namespace YC.Presentation
                 () => localPlayerId,
                 characterCardPresenter,
                 characterCardEffectChoiceDialog,
-                (mode, effect) => characterMapInteraction != null && characterMapInteraction.TryBeginEffect(mode, effect),
                 () => characterMapInteraction != null && characterMapInteraction.TryBeginTinManPendingMove(),
-                (facilityIds, select, cancel) => buildInfoPanel != null &&
-                                                 buildInfoPanel.BeginFacilityEffectSelection(facilityIds, select, cancel),
                 () => buildInfoPanel?.EndFacilityEffectSelection(),
                 (mode, parameters) => SubmitUseCharacterCard(mode, string.Empty, parameters),
                 SubmitResolvePendingCharacterChoice,
                 SetPrompt);
+            characterAbilityInteraction = new CharacterAbilityInteractionUiCoordinator(() => session == null ? null : session.State, () => localPlayerId, characterCardEffectChoiceDialog, highlights => workflowView.SetHighlights(highlights), () => workflowView.ClearHighlights(), SubmitPendingEffectCommand, SetPrompt);
         }
 
         private void DisposeCharacterCardEffectInteraction()
         {
-            characterCardEffectInteraction?.HideDialog();
-            characterCardEffectInteraction = null;
+            characterCardEffectInteraction?.HideDialog(); characterAbilityInteraction?.Dispose();
+            characterCardEffectInteraction = null; characterAbilityInteraction = null;
         }
 
         private bool TryCancelCharacterFacilityEffectSelection()
@@ -191,6 +189,5 @@ namespace YC.Presentation
 
             SetPrompt("该角色牌效果尚未接入结算流程。");
         }
-
     }
 }

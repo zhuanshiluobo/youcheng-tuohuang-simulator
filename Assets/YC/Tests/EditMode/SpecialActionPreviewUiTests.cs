@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
@@ -185,150 +185,54 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void CompositeDrop_WarningPrecedesCancelablePaymentAndConfirmCarriesAllocation()
+        public void CompositeDrop_WarningThenSubmitsActivationWithoutLocalPayment()
         {
-            var submissionCount = 0;
-            var submissionObservedHiddenDialog = false;
-            var submittedOriginium = -1;
-            var submittedIron = -1;
-            object dialog = null;
-            dialog = ShowDialog(
-                "当前没有可执行目标，发动后对应步骤会跳过。",
-                (actionId, markerId, originium, iron) =>
-                {
-                    submissionCount += 1;
-                    submissionObservedHiddenDialog = !GetProperty<bool>(dialog, "IsShowing");
-                    submittedOriginium = originium;
-                    submittedIron = iron;
-                    return true;
-                },
-                CityStyleDatabase.CompositePowerSystem,
-                SpecialActionDatabase.CompositePowerSystem,
-                2,
-                3);
-            var canvas = GameObject.Find("City Style Declaration Preview Canvas");
-            DropMarkerOnLegalTarget(canvas);
-
-            Assert.That(GameObject.Find("Special Action Warning Confirmation"), Is.Not.Null);
+            int count = 0;
+            int ore = 0, iron = 0;
+            var dialog = ShowDialog("当前没有可执行目标，发动后对应步骤会跳过。",
+                (action, marker, o, i) => { count++; ore = o; iron = i; return true; },
+                CityStyleDatabase.CompositePowerSystem, SpecialActionDatabase.CompositePowerSystem, 2, 3);
+            DropMarkerOnLegalTarget(GameObject.Find("City Style Declaration Preview Canvas"));
+            Assert.That(count, Is.Zero);
             Assert.That(GameObject.Find("Special Action Choice Overlay"), Is.Null);
-            Assert.That(submissionCount, Is.Zero);
-            FindButton(
-                GameObject.Find("Special Action Warning Confirmation"),
-                "Confirm Special Action Warning").onClick.Invoke();
-
-            var payment = GameObject.Find("Special Action Choice Overlay");
-            Assert.That(payment, Is.Not.Null);
-            Assert.That(submissionCount, Is.Zero, "支付确认前不得提交首条特殊行动命令。");
-            Assert.That(FindTransform(payment, "Value 0").GetComponent<Text>().text, Is.EqualTo("2"));
-            Assert.That(FindTransform(payment, "Value 1").GetComponent<Text>().text, Is.EqualTo("0"));
-            FindButton(payment, "Cancel Special Action Payment").onClick.Invoke();
-
-            Assert.That(GameObject.Find("Special Action Choice Overlay"), Is.Null);
-            Assert.That(GameObject.Find("City Style Declaration Preview Canvas"), Is.Not.Null);
-            Assert.That(submissionCount, Is.Zero, "取消支付必须返回预览且不提交。");
-
-            canvas = GameObject.Find("City Style Declaration Preview Canvas");
-            DropMarkerOnLegalTarget(canvas);
-            FindButton(
-                GameObject.Find("Special Action Warning Confirmation"),
-                "Confirm Special Action Warning").onClick.Invoke();
-            payment = GameObject.Find("Special Action Choice Overlay");
-            FindButton(payment, "Increase 1").onClick.Invoke();
-            var confirmPaymentEvent = FindButton(payment, "Confirm Special Action Payment").onClick;
-            confirmPaymentEvent.Invoke();
-            confirmPaymentEvent.Invoke();
-
-            Assert.That(submissionCount, Is.EqualTo(1));
-            Assert.That(submissionObservedHiddenDialog, Is.True, "支付确认回调触发前必须先隐藏预览。");
-            Assert.That(submittedOriginium, Is.EqualTo(2));
-            Assert.That(submittedIron, Is.EqualTo(1));
-            Assert.That(GameObject.Find("City Style Declaration Preview Canvas"), Is.Null);
+            var warning = GameObject.Find("Special Action Warning Confirmation");
+            Assert.That(warning, Is.Not.Null);
+            var confirm = FindButton(warning, "Confirm Special Action Warning").onClick;
+            confirm.Invoke();
+            confirm.Invoke();
+            Assert.That(count, Is.EqualTo(1));
+            Assert.That(ore, Is.EqualTo(-1));
+            Assert.That(iron, Is.EqualTo(-1));
+            Assert.That(GetProperty<bool>(dialog, "IsShowing"), Is.False);
+            Assert.That(GameObject.Find("Special Action Choice Overlay"), Is.Null,
+                "支付弹窗只能由权威 Effect 请求打开，预览不能预选支付或目标。");
         }
 
         [Test]
-        public void CompositePaymentDraft_BackNavigationAndPreviewCloseDoNotSubmit()
+        public void CompositePreview_CloseBeforeActivationDoesNotSubmit()
         {
-            var submissionCount = 0;
-            var dialog = ShowDialog(
-                string.Empty,
-                (actionId, markerId, originium, iron) =>
-                {
-                    submissionCount += 1;
-                    return true;
-                },
-                CityStyleDatabase.CompositePowerSystem,
-                SpecialActionDatabase.CompositePowerSystem,
-                2,
-                3);
-            var dialogType = dialog.GetType();
-
-            DropMarkerOnLegalTarget(GameObject.Find("City Style Declaration Preview Canvas"));
-            Assert.That(GameObject.Find("Special Action Choice Overlay"), Is.Not.Null);
-            dialogType.GetMethod(
-                    "HandleBackNavigation",
-                    BindingFlags.Instance | BindingFlags.NonPublic)
-                .Invoke(dialog, null);
-
-            Assert.That(submissionCount, Is.Zero, "Esc/返回仅取消本地支付草稿，不得提交命令。");
+            int count = 0;
+            var dialog = ShowDialog(string.Empty, (a, m, o, i) => { count++; return true; },
+                CityStyleDatabase.CompositePowerSystem, SpecialActionDatabase.CompositePowerSystem, 2, 3);
+            dialog.GetType().GetMethod("Hide").Invoke(dialog, null);
+            Assert.That(count, Is.Zero);
             Assert.That(GameObject.Find("Special Action Choice Overlay"), Is.Null);
-            Assert.That(GameObject.Find("City Style Declaration Preview Canvas"), Is.Not.Null);
-
-            DropMarkerOnLegalTarget(GameObject.Find("City Style Declaration Preview Canvas"));
-            Assert.That(GameObject.Find("Special Action Choice Overlay"), Is.Not.Null);
-            dialogType.GetMethod("Hide", BindingFlags.Instance | BindingFlags.Public)
-                .Invoke(dialog, null);
-
-            Assert.That(submissionCount, Is.Zero, "关闭样式预览也不得提交尚未确认的支付草稿。");
-            Assert.That(GameObject.Find("Special Action Choice Overlay"), Is.Null);
-            Assert.That(GameObject.Find("City Style Declaration Preview Canvas"), Is.Null);
+            Assert.That(GetProperty<bool>(dialog, "IsShowing"), Is.False);
         }
 
         [Test]
-        public void CompositePaymentModal_BlocksStylePageChangesUntilClosed()
+        public void CompositeActivation_RejectionKeepsPreviewUsableWithoutPaymentModal()
         {
-            var dialog = ShowDialog(
-                string.Empty,
-                (actionId, markerId, originium, iron) => true,
-                CityStyleDatabase.CompositePowerSystem,
-                SpecialActionDatabase.CompositePowerSystem,
-                2,
-                3);
-            var dialogType = dialog.GetType();
-            var changeCityStyle = dialogType.GetMethod(
-                "ChangeCityStyle",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            var dragGhostField = dialogType.GetField(
-                "specialActionDragGhost",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-
+            int count = 0;
+            var dialog = ShowDialog(string.Empty, (a, m, o, i) => { count++; return false; },
+                CityStyleDatabase.CompositePowerSystem, SpecialActionDatabase.CompositePowerSystem, 2, 3);
             DropMarkerOnLegalTarget(GameObject.Find("City Style Declaration Preview Canvas"));
-            var paymentOverlay = GameObject.Find("Special Action Choice Overlay");
-            Assert.That(paymentOverlay, Is.Not.Null);
-            Assert.That(paymentOverlay.GetComponent<Image>().raycastTarget, Is.True);
-
-            var canvas = GameObject.Find("City Style Declaration Preview Canvas");
-            var pointerType = Type.GetType(
-                "YC.Presentation.CardPointerInteraction, Assembly-CSharp",
-                true);
-            var pointerInteraction = canvas.GetComponentInChildren(pointerType, true);
-            Assert.That(pointerInteraction, Is.Not.Null);
-            InvokePointer(pointerInteraction, "OnBeginDrag", CreatePointerEvent(canvas));
-            Assert.That(dragGhostField.GetValue(dialog), Is.Null);
-
-            changeCityStyle.Invoke(dialog, new object[] { 1 });
-            Assert.That(
-                GetProperty<string>(dialog, "CurrentCityStyleId"),
-                Is.EqualTo(CityStyleDatabase.CompositePowerSystem));
-
-            FindButton(
-                GameObject.Find("Special Action Choice Overlay"),
-                "Cancel Special Action Payment").onClick.Invoke();
-            InvokePointer(pointerInteraction, "OnBeginDrag", CreatePointerEvent(canvas));
-            Assert.That(dragGhostField.GetValue(dialog), Is.Not.Null);
-            changeCityStyle.Invoke(dialog, new object[] { 1 });
-            Assert.That(
-                GetProperty<string>(dialog, "CurrentCityStyleId"),
-                Is.EqualTo(CityStyleDatabase.MaterialRelayStation));
+            Assert.That(count, Is.EqualTo(1));
+            Assert.That(GetProperty<bool>(dialog, "IsShowing"), Is.True);
+            Assert.That(GameObject.Find("Special Action Choice Overlay"), Is.Null);
+            dialog.GetType().GetMethod("ChangeCityStyle", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(dialog, new object[] { 1 });
+            Assert.That(GetProperty<string>(dialog, "CurrentCityStyleId"), Is.EqualTo(CityStyleDatabase.MaterialRelayStation));
         }
 
         private object ShowDialog(

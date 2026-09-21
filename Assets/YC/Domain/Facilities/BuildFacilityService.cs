@@ -53,6 +53,11 @@ namespace YC.Domain.Facilities
         {
         }
 
+        public static BuildFacilityService CreateForEffectTree()
+        {
+            return new BuildFacilityService(new NoEntryEffectResolver(), new FacilityBuildCostService());
+        }
+
         public BuildFacilityService(
             IFacilityEntryEffectResolver entryEffectResolver,
             FacilityBuildCostService buildCostService)
@@ -88,6 +93,38 @@ namespace YC.Domain.Facilities
             entryEffectResolver.Resolve(state, player, facility, cityBoardSlotIndex);
             ReplaceBuiltFacilityInSupply(state, facility.FacilityId);
 
+            return BuildFacilityResult.Success(facility, cityBoardSlotIndex, resolvedPaymentMode);
+        }
+
+        /// <summary>
+        /// Effect 主链使用的建设入口。支付、放置、得分和补充供应区仍由建设规则
+        /// 原子提交；入场奖励和选择统一由 FacilityEntryEffect 负责，避免同一奖励
+        /// 在建设服务与 Event handler 中重复结算。
+        /// </summary>
+        public BuildFacilityResult BuildForEffectTree(
+            GameState state,
+            int playerId,
+            string facilityId,
+            int cityBoardSlotIndex,
+            string paymentMode)
+        {
+            var validation = Validate(state, playerId, facilityId, cityBoardSlotIndex, paymentMode);
+            if (!validation.IsValid)
+            {
+                return BuildFacilityResult.Failure(validation);
+            }
+
+            var player = state.FindPlayer(playerId);
+            var facility = FacilityCardDatabase.Get(facilityId);
+            var effectiveResourceCost = buildCostService.GetEffectiveResourceCost(state, player, facility);
+            var resolvedPaymentMode = ResolvePaymentMode(player, facility, effectiveResourceCost, paymentMode);
+            var cost = resolvedPaymentMode == PaymentModeGold
+                ? new ResourceSet { GoldVoucher = facility.GoldVoucherCost }
+                : effectiveResourceCost;
+
+            player.Resources.TryPay(cost);
+            PlaceAndScore(state, player, facility, cityBoardSlotIndex);
+            ReplaceBuiltFacilityInSupply(state, facility.FacilityId);
             return BuildFacilityResult.Success(facility, cityBoardSlotIndex, resolvedPaymentMode);
         }
 
@@ -178,6 +215,7 @@ namespace YC.Domain.Facilities
                 FacilityCardId = facility.FacilityId,
                 CityBoardSlotIndex = cityBoardSlotIndex
             });
+            FacilityInstanceStateService.EnsureIdentity(state, state.Map.Facilities[state.Map.Facilities.Count - 1]);
             player.Score += facility.Score;
         }
 
@@ -217,6 +255,7 @@ namespace YC.Domain.Facilities
                 FacilityCardId = FacilityCardDatabase.CoreCommandTower,
                 CityBoardSlotIndex = CoreCommandTowerCityBoardSlotIndex
             });
+            FacilityInstanceStateService.EnsureIdentity(state, state.Map.Facilities[state.Map.Facilities.Count - 1]);
         }
 
         public ValidationResult Validate(
@@ -425,6 +464,15 @@ namespace YC.Domain.Facilities
             }
 
             return false;
+        }
+
+        private sealed class NoEntryEffectResolver : IFacilityEntryEffectResolver
+        {
+            public void Resolve(GameState state, PlayerState player, FacilityCardDefinition facility, int cityBoardSlotIndex)
+            {
+                // 生产路径由 FacilityEntryEffectExecutor 负责；该实现只保留
+                // 旧 Build API 的构造兼容性，不会被 Effect-tree 建设调用。
+            }
         }
     }
 }

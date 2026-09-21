@@ -1,0 +1,36 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "核心指挥塔",
+    "color": "rainbow",
+    "score": 0,
+    "resourceCost": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 0,
+    "defaultSupply": 0,
+    "reserveOnly": true,
+    "hasEntryEffect": false,
+    "keywords": [
+      "unique"
+    ],
+    "effectId": "setup_core_command_tower",
+    "effectType": "setup",
+    "description": "“起航的第一个信号在塔顶点亮。”",
+    "effectText": "唯一。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": true,
+    "uniqueGroupId": "核心指挥塔",
+    "effectScript": "lua/facilities/no_entry.lua"
+  }
+}

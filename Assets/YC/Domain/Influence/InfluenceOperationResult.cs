@@ -26,7 +26,9 @@ namespace YC.Domain.Influence
             InfluenceFailureCode failureCode,
             string reason,
             int playerId,
-            string slotId)
+            string slotId,
+            string influenceId,
+            string fromSlotId)
         {
             Succeeded = succeeded;
             StateChanged = stateChanged;
@@ -34,6 +36,8 @@ namespace YC.Domain.Influence
             Reason = reason;
             PlayerId = playerId;
             SlotId = slotId ?? string.Empty;
+            InfluenceId = influenceId ?? string.Empty;
+            FromSlotId = fromSlotId ?? string.Empty;
         }
 
         public bool Succeeded { get; private set; }
@@ -42,6 +46,12 @@ namespace YC.Domain.Influence
         public string Reason { get; private set; }
         public int PlayerId { get; private set; }
         public string SlotId { get; private set; }
+        public string InfluenceId { get; private set; }
+        public string FromSlotId { get; private set; }
+        public string StableFailureCode
+        {
+            get { return FailureCode.ToString().ToLowerInvariant(); }
+        }
         public ValidationResult Validation
         {
             get
@@ -54,13 +64,25 @@ namespace YC.Domain.Influence
 
         public static InfluenceOperationResult Success(int playerId, string slotId, bool stateChanged)
         {
+            return Success(playerId, slotId, stateChanged, string.Empty, string.Empty);
+        }
+
+        public static InfluenceOperationResult Success(
+            int playerId,
+            string slotId,
+            bool stateChanged,
+            string influenceId,
+            string fromSlotId = "")
+        {
             return new InfluenceOperationResult(
                 true,
                 stateChanged,
                 InfluenceFailureCode.None,
                 string.Empty,
                 playerId,
-                slotId);
+                slotId,
+                influenceId,
+                fromSlotId);
         }
 
         public static InfluenceOperationResult Failure(
@@ -70,7 +92,27 @@ namespace YC.Domain.Influence
             string slotId,
             bool stateChanged)
         {
-            return new InfluenceOperationResult(false, stateChanged, failureCode, reason, playerId, slotId);
+            return Failure(failureCode, reason, playerId, slotId, stateChanged, string.Empty, string.Empty);
+        }
+
+        public static InfluenceOperationResult Failure(
+            InfluenceFailureCode failureCode,
+            string reason,
+            int playerId,
+            string slotId,
+            bool stateChanged,
+            string influenceId,
+            string fromSlotId = "")
+        {
+            return new InfluenceOperationResult(
+                false,
+                stateChanged,
+                failureCode,
+                reason,
+                playerId,
+                slotId,
+                influenceId,
+                fromSlotId);
         }
 
         private static CommandErrorCode ToCommandErrorCode(InfluenceFailureCode failureCode)

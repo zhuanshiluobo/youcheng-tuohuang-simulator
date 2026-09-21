@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using YC.Domain.CityStyles;
@@ -41,7 +41,9 @@ namespace YC.Domain.SpecialActions
             }
         }
 
-        public static void Initialize(IEnumerable<SpecialActionDefinition> sourceDefinitions)
+        public static void Initialize(IEnumerable<SpecialActionDefinition> sourceDefinitions) => InitializeCore(sourceDefinitions, false);
+        public static void InitializeExternal(IEnumerable<SpecialActionDefinition> sourceDefinitions) => InitializeCore(sourceDefinitions, true);
+        private static void InitializeCore(IEnumerable<SpecialActionDefinition> sourceDefinitions, bool external)
         {
             if (sourceDefinitions == null)
             {
@@ -51,7 +53,7 @@ namespace YC.Domain.SpecialActions
             var next = new Dictionary<string, SpecialActionDefinition>(StringComparer.Ordinal);
             foreach (var source in sourceDefinitions)
             {
-                ValidateDefinition(source);
+                ValidateDefinition(source, external);
                 if (next.ContainsKey(source.SpecialActionId))
                 {
                     throw new InvalidOperationException("特殊行动目录包含重复 ID：" + source.SpecialActionId);
@@ -60,7 +62,7 @@ namespace YC.Domain.SpecialActions
                 next.Add(source.SpecialActionId, source.Clone());
             }
 
-            ValidateDefinitionSet(next);
+            if (!external) ValidateDefinitionSet(next);
             var nextSnapshot = new ReadOnlyDictionary<string, SpecialActionDefinition>(next);
             lock (SyncRoot)
             {
@@ -85,10 +87,10 @@ namespace YC.Domain.SpecialActions
             get
             {
                 var snapshot = GetInitializedSnapshot();
-                var result = new List<SpecialActionDefinition>(StableIds.Count);
-                for (var i = 0; i < StableIds.Count; i++)
+                var result = new List<SpecialActionDefinition>(snapshot.Count);
+                foreach (var item in snapshot.Values)
                 {
-                    result.Add(snapshot[StableIds[i]].Clone());
+                    result.Add(item.Clone());
                 }
 
                 return result.AsReadOnly();
@@ -164,20 +166,21 @@ namespace YC.Domain.SpecialActions
             }
         }
 
-        private static void ValidateDefinition(SpecialActionDefinition definition)
+        private static void ValidateDefinition(SpecialActionDefinition definition, bool external = false)
         {
             if (definition == null)
             {
                 throw new InvalidOperationException("特殊行动目录包含空定义。");
             }
 
+            if (string.IsNullOrWhiteSpace(definition.SpecialActionId) || string.IsNullOrWhiteSpace(definition.CityStyleId)) throw new InvalidOperationException("特殊行动或城市样式 ID 不能为空。");
             var expectedCityStyleId = GetExpectedCityStyleId(definition.SpecialActionId);
-            if (expectedCityStyleId == null)
+            if (!external && expectedCityStyleId == null)
             {
                 throw new InvalidOperationException("特殊行动目录包含未知稳定 ID：" + definition.SpecialActionId);
             }
 
-            if (definition.CityStyleId != expectedCityStyleId)
+            if (!external && definition.CityStyleId != expectedCityStyleId)
             {
                 throw new InvalidOperationException(definition.SpecialActionId + " 的城市样式映射不正确。");
             }
@@ -195,7 +198,7 @@ namespace YC.Domain.SpecialActions
             }
 
             ValidateResourceSet(definition.FixedCost, definition.SpecialActionId + " 的固定成本");
-            ValidateSemanticContract(definition);
+            if (!external) ValidateSemanticContract(definition);
         }
 
         private static void ValidateSemanticContract(SpecialActionDefinition definition)

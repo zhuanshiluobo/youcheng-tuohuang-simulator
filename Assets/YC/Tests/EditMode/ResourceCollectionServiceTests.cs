@@ -292,7 +292,7 @@ namespace YC.Tests.EditMode
             Assert.That(initial.PathsByLocationId.ContainsKey("D-03"), Is.False);
             ResourceCollectionRouteOption d2Toll;
             Assert.That(initial.TryGetRouteOption("D2", out d2Toll), Is.True);
-            Assert.That(d2Toll.PaymentKey, Is.EqualTo("D"));
+            Assert.That(d2Toll.PaymentKey, Is.EqualTo("D2"));
             Assert.That(d2Toll.CanAfford, Is.True);
             Assert.That(d2Toll.OpponentOwnerPlayerIds, Is.Empty);
 

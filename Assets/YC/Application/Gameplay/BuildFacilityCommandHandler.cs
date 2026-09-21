@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using YC.Application.Sessions;
 using YC.Domain.Commands;
 using YC.Domain.Events;
+using YC.Domain.Effects;
 using YC.Domain.Facilities;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -16,16 +18,26 @@ namespace YC.Application.Gameplay
 
         private readonly BuildFacilityService buildFacilityService;
         private readonly RoundAdvanceService roundAdvanceService;
+        private readonly EffectRegistry effectRegistry;
 
         public BuildFacilityCommandHandler()
-            : this(new BuildFacilityService(), new RoundAdvanceService())
+            : this(new BuildFacilityService(), new RoundAdvanceService(), null)
         {
         }
 
         public BuildFacilityCommandHandler(BuildFacilityService buildFacilityService, RoundAdvanceService roundAdvanceService)
+            : this(buildFacilityService, roundAdvanceService, null)
         {
-            this.buildFacilityService = buildFacilityService;
-            this.roundAdvanceService = roundAdvanceService;
+        }
+
+        public BuildFacilityCommandHandler(
+            BuildFacilityService buildFacilityService,
+            RoundAdvanceService roundAdvanceService,
+            EffectRegistry effectRegistry)
+        {
+            this.buildFacilityService = buildFacilityService ?? throw new ArgumentNullException(nameof(buildFacilityService));
+            this.roundAdvanceService = roundAdvanceService ?? throw new ArgumentNullException(nameof(roundAdvanceService));
+            this.effectRegistry = effectRegistry;
         }
 
         public bool CanHandle(GameCommand command)
@@ -56,18 +68,73 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(paymentModeValidation);
             }
 
-            var result = buildFacilityService.Build(
-                state,
-                command.PlayerId,
-                facilityId,
-                cityBoardSlotIndex,
-                paymentMode);
-            if (!result.Succeeded)
+            BuildFacilityResult result;
+            if (effectRegistry == null)
             {
-                return CommandResult.Invalid(result.Validation);
+                result = buildFacilityService.Build(
+                    state,
+                    command.PlayerId,
+                    facilityId,
+                    cityBoardSlotIndex,
+                    paymentMode);
+                if (!result.Succeeded)
+                {
+                    return CommandResult.Invalid(result.Validation);
+                }
+                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
             }
+            else
+            {
+                var executor = new EffectTreeExecutor(state, effectRegistry);
+                var buildSpec = FacilityBuildEffectSpecFactory.Build(
+                    command.PlayerId,
+                    facilityId,
+                    cityBoardSlotIndex,
+                    paymentMode,
+                    false,
+                    command.CommandId ?? string.Empty);
+                string buildEffectId;
+                if (!executor.TryCreatePlayerActionEffect(
+                        command.PlayerId,
+                        buildSpec,
+                        state.EffectRuntime.CurrentRoundExecutionId ?? string.Empty,
+                        command.CommandId ?? string.Empty,
+                        out buildEffectId))
+                {
+                    return CommandResult.Invalid(ValidationResult.Failure(
+                        CommandErrorCode.UnknownCommand,
+                        "建设 Effect 创建失败：" + executor.LastDiagnostic));
+                }
 
-            roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
+                EffectRunReport report = executor.RunUntilQuiescent();
+                if (report.Faulted)
+                {
+                    return CommandResult.Invalid(ValidationResult.Failure(
+                        CommandErrorCode.UnknownCommand,
+                        "建设 Effect 执行失败：" + report.FaultCode));
+                }
+
+                var builtNode = executor.GetNode(buildEffectId);
+                if (builtNode == null)
+                {
+                    return CommandResult.Invalid(ValidationResult.Failure(
+                        CommandErrorCode.UnknownCommand,
+                        "建设 Effect 尚未完成。"));
+                }
+
+                if (builtNode.Status != EffectNodeStatus.Completed &&
+                    !(builtNode.Status == EffectNodeStatus.Blocked && state.HasOpenActionableInteraction()))
+                {
+                    return CommandResult.Invalid(ValidationResult.Failure(
+                        CommandErrorCode.UnknownCommand,
+                        "建设 Effect 尚未完成。"));
+                }
+
+                result = BuildFacilityResult.Success(
+                    FacilityCardDatabase.Get(facilityId),
+                    cityBoardSlotIndex,
+                    paymentMode);
+            }
 
             var message = "Player " + command.PlayerId + " built " + result.Facility.Name + ".";
             return CommandResult.SuccessResult(new List<GameEvent>
@@ -150,6 +217,19 @@ namespace YC.Application.Gameplay
 
             string value;
             return command.Parameters.TryGetValue(key, out value) ? value : string.Empty;
+        }
+
+        private static FacilityPlacement FindPlacement(GameState state, int playerId, string facilityId, int slotIndex)
+        {
+            if (state == null || state.Map == null || state.Map.Facilities == null) return null;
+            for (int i = state.Map.Facilities.Count - 1; i >= 0; i--)
+            {
+                FacilityPlacement placement = state.Map.Facilities[i];
+                if (placement != null && placement.PlayerId == playerId &&
+                    placement.FacilityCardId == facilityId && placement.CityBoardSlotIndex == slotIndex)
+                    return placement;
+            }
+            return null;
         }
     }
 }

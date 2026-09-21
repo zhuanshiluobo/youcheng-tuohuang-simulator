@@ -1,0 +1,46 @@
+{
+  "definitionId": "texas",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "德克萨斯",
+  "artwork": "artwork/character/texas.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "character.texas.strategy",
+      "mode": "strategy",
+      "subscriptionId": "characters.texas.strategy",
+      "script": "lua/characters/texas.strategy.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "skillType": "normal",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "character.texas.tactic",
+      "mode": "tactic",
+      "subscriptionId": "characters.texas.tactic",
+      "script": "lua/characters/texas.tactic.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "skillType": "normal",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "texas",
+    "cardId": "texas",
+    "name": "德克萨斯",
+    "strategyEffect": 7,
+    "tacticEffect": 8,
+    "strategyAbilityId": "character.texas.strategy",
+    "tacticAbilityId": "character.texas.tactic"
+  },
+  "expansionId": "core",
+  "replaces": null
+}

@@ -1,0 +1,33 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "延伸枢纽",
+    "score": -1,
+    "resourceCost": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 0,
+    "defaultSupply": 0,
+    "reserveOnly": true,
+    "hasEntryEffect": false,
+    "keywords": [],
+    "effectId": "reserve_extension_hub",
+    "effectType": "reserve",
+    "description": "……权力与扩张之路。",
+    "effectText": "只能通过物流枢纽的入场效果进行建设。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/no_entry.lua"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_green_04",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "富饶岩层",
+  "artwork": "artwork/event/event_green_04.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_green_04",
+    "name": "富饶岩层",
+    "description": "你手拿着荒地人向导倒卖的旧地图，抵达了标记有源石矿藏的位置，但那儿的源石已经不知去向。你注意到了地图下角的绘制日期后，你不禁破口大骂。但鞋底踩上的那些带有小孔的松软土壤，倒也不算是空手而归。",
+    "color": 0,
+    "resourceType": 0,
+    "resourceAmount": 1,
+    "representativeResourceType": 0,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "现在就装一车源岩回城：获得 4 源岩",
+      "找卖你地图的家伙弥补损失：获得 3 源石碎片"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 4,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 3,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

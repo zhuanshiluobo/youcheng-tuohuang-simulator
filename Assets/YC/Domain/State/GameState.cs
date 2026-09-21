@@ -10,6 +10,7 @@ namespace YC.Domain.State
     public sealed class GameState
     {
         public string GameId = string.Empty;
+        public string ContentPackHash = string.Empty;
         public GamePhase Phase = GamePhase.Setup;
         public int Round = 0;
         public int MaxRounds = 8;
@@ -30,6 +31,14 @@ namespace YC.Domain.State
         public List<DelayedCharacterEffectState> DelayedCharacterEffects = new List<DelayedCharacterEffectState>();
         public FinalScoringState FinalScoring;
         public List<GameLogEntry> Logs = new List<GameLogEntry>();
+        public EffectRuntimeState EffectRuntime = new EffectRuntimeState();
+
+        // 兼容后续内核代码的语义名称；真正的持久化字段只有 EffectRuntime。
+        public EffectRuntimeState EffectRuntimeState
+        {
+            get { return EffectRuntime; }
+            set { EffectRuntime = value; }
+        }
 
         public PlayerState FindPlayer(int playerId)
         {
@@ -40,8 +49,41 @@ namespace YC.Domain.State
         {
             return (PendingChoice != null && PendingChoice.IsValid()) ||
                    (PendingCardSession != null && PendingCardSession.IsValid()) ||
-                   (PendingCharacterEffect != null && PendingCharacterEffect.IsValid()) ||
-                   (PendingSpecialAction != null && PendingSpecialAction.IsValid(this));
+                     (PendingCharacterEffect != null && PendingCharacterEffect.IsValid()) ||
+                     (PendingSpecialAction != null && PendingSpecialAction.IsValid(this)) ||
+                     HasOpenActionableInteraction();
+        }
+
+        /// <summary>
+        /// 返回会阻止玩家提交普通行动的开放交互。
+        /// 回合主链完成请求是执行器内部 blocker，由 EndAction/主链服务消费，不能
+        /// 被表现层或普通命令守卫当成待选择项。
+        /// </summary>
+        public bool HasOpenActionableInteraction()
+        {
+            if (EffectRuntime == null || EffectRuntime.InteractionRequests == null) return false;
+            for (int i = 0; i < EffectRuntime.InteractionRequests.Count; i++)
+            {
+                InteractionRequest request = EffectRuntime.InteractionRequests[i];
+                if (request != null && request.Status == "open" && !request.IsInternalMainlineInteraction())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool HasOpenInteraction()
+        {
+            if (EffectRuntime == null || EffectRuntime.InteractionRequests == null) return false;
+            for (int i = 0; i < EffectRuntime.InteractionRequests.Count; i++)
+            {
+                InteractionRequest request = EffectRuntime.InteractionRequests[i];
+                if (request != null && request.Status == "open") return true;
+            }
+
+            return false;
         }
     }
 
@@ -253,17 +295,57 @@ namespace YC.Domain.State
         public List<string> RoadRouteIds = new List<string>();
         public List<string> RemovedFromGameCardIds = new List<string>();
         public List<InfluencePlacement> Influences = new List<InfluencePlacement>();
+        public int NextInfluenceInstanceSequence;
         public List<FacilityPlacement> Facilities = new List<FacilityPlacement>();
+        public List<FacilityInstanceRuntimeState> FacilityInstances = new List<FacilityInstanceRuntimeState>();
         public List<ResourceTokenState> ResourceTokens = new List<ResourceTokenState>();
+    }
+
+    [Serializable]
+    public sealed class RuleSubjectReference
+    {
+        public string SubjectType = string.Empty;
+        public string InstanceId = string.Empty;
+        public string DefinitionId = string.Empty;
+        public int PlayerId = -1;
+
+        public static RuleSubjectReference ForPlayer(int playerId)
+        {
+            return new RuleSubjectReference
+            {
+                SubjectType = "player",
+                InstanceId = playerId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                PlayerId = playerId
+            };
+        }
+    }
+
+    [Serializable]
+    public sealed class InfluenceSourceReference
+    {
+        public string Kind = string.Empty;
+        public string SourceId = string.Empty;
+        public RuleSubjectReference Subject = new RuleSubjectReference();
     }
 
     [Serializable]
     public sealed class InfluencePlacement
     {
+        // influenceId 是影响力实例的唯一权威 ID；SlotId 只表示当前所在位置。
+        public string InfluenceId = string.Empty;
         public int PlayerId;
         public string SlotId = string.Empty;
         public string LocationId = string.Empty;
         public string RouteId = string.Empty;
+        public RuleSubjectReference OwnerSubject = new RuleSubjectReference();
+        public InfluenceSourceReference Source = new InfluenceSourceReference();
+
+        // 兼容迁移期调用方的命名，不作为额外持久化字段。
+        public string InfluenceInstanceId
+        {
+            get { return InfluenceId; }
+            set { InfluenceId = value ?? string.Empty; }
+        }
     }
 
     [Serializable]
@@ -271,8 +353,27 @@ namespace YC.Domain.State
     {
         public int PlayerId;
         public string FacilityCardId = string.Empty;
+        public string ContentInstanceId = string.Empty;
         public string LocationId = string.Empty;
         public int CityBoardSlotIndex = -1;
+    }
+
+    /// <summary>
+    /// 设施实例的权威运行态。牌面静态定义不进入这里；这里只保存可恢复的
+    /// 实例身份、版本和最小业务状态。任何扩展字段都必须保持 DTO + List 形状。
+    /// </summary>
+    [Serializable]
+    public sealed class FacilityInstanceRuntimeState
+    {
+        public int SchemaVersion = 1;
+        public string ContentInstanceId = string.Empty;
+        public string FacilityCardId = string.Empty;
+        public int OwnerPlayerId = -1;
+        public int CityBoardSlotIndex = -1;
+        public int ActivationCount;
+        public int LastActivatedRound = -1;
+        public bool CleanupMarkerRegistered;
+        public List<string> AppliedBehaviorIds = new List<string>();
     }
 
     [Serializable]
@@ -363,6 +464,7 @@ namespace YC.Domain.State
         public int Sequence;
         public string CommandId = string.Empty;
         public int PlayerId = -1;
+        public string Visibility = "public";
         public string Message = string.Empty;
     }
 

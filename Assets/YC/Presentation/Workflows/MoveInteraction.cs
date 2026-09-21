@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using YC.Application.Gameplay;
 using YC.Domain.Commands;
 using YC.Domain.Maps;
+using YC.Domain.Movement;
 using YC.Domain.Rules;
 using YC.Domain.State;
 
@@ -199,7 +200,7 @@ namespace YC.Presentation.Workflows
                 {
                     Kind = GameCommandKind.MoveCity,
                     PlayerId = context.LocalPlayerId,
-                    TargetId = locationId ?? string.Empty
+                    TargetId = CityMoveCandidateQueryService.CandidatePrefix + (locationId ?? string.Empty)
                 },
                 new SubmitCallbacks(
                     view.ShowPrompt,

@@ -1,0 +1,46 @@
+{
+  "definitionId": "tin-man",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "锡人",
+  "artwork": "artwork/character/tin-man.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "character.tin-man.strategy",
+      "mode": "strategy",
+      "subscriptionId": "characters.tin-man.strategy",
+      "script": "lua/characters/tin-man.strategy.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "skillType": "normal",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "character.tin-man.tactic",
+      "mode": "tactic",
+      "subscriptionId": "characters.tin-man.tactic",
+      "script": "lua/characters/tin-man.tactic.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "skillType": "normal",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "tin-man",
+    "cardId": "tin-man",
+    "name": "锡人",
+    "strategyEffect": 9,
+    "tacticEffect": 10,
+    "strategyAbilityId": "character.tin-man.strategy",
+    "tacticAbilityId": "character.tin-man.tactic"
+  },
+  "expansionId": "core",
+  "replaces": null
+}

@@ -1,0 +1,35 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "异铁冶炼厂",
+    "score": 1,
+    "resourceCost": {
+      "originium": 2,
+      "originiumShard": 2,
+      "iron": 1,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 15,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry"
+    ],
+    "effectId": "gain_iron_4",
+    "effectType": "entry",
+    "description": "少有人造物可以像异铁块一样，承受着这片大地的苦难而不变质。",
+    "effectText": "获得 4 异铁。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 4,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/resource_reward.lua"
+  }
+}

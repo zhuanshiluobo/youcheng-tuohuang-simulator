@@ -26,7 +26,7 @@ if ($PlayerCount -eq 3) {
     $testSource = Join-Path $resolvedProjectPath "Assets/YC/Tests/EditMode/LocalhostAutoplayRunnerTests.cs"
     if (-not (Test-Path -LiteralPath $testSource -PathType Leaf) -or
         -not ([IO.File]::ReadAllText($testSource) -match ("\b" + $testName + "\s*\("))) {
-        throw "缺少三人独立跑局测试 $testName。请集成人员在 $testSource 增加调用 RunToRound8Settlement(3) 的三人断言后重试；尚未启动 Unity。"
+        throw "缺少三人独立跑局测试 $testName。请集成人员在 $testSource 增加三人自动跑局断言后重试；尚未启动 Unity。"
     }
     $testFilter += ".$testName"
 } else {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using YC.Domain.Facilities;
@@ -49,7 +49,7 @@ namespace YC.Domain.CityStyles
             get
             {
                 EnsureInitialized();
-                return StableIds;
+                return new List<string>(GetInitializedSnapshot().Keys).AsReadOnly();
             }
         }
 
@@ -58,7 +58,7 @@ namespace YC.Domain.CityStyles
             get
             {
                 EnsureInitialized();
-                return StableIds;
+                return new List<string>(GetInitializedSnapshot().Keys).AsReadOnly();
             }
         }
 
@@ -67,17 +67,19 @@ namespace YC.Domain.CityStyles
             get
             {
                 var snapshot = GetInitializedSnapshot();
-                var result = new List<CityStyleDefinition>(StableIds.Count);
-                for (var i = 0; i < StableIds.Count; i++)
+                var result = new List<CityStyleDefinition>(snapshot.Count);
+                foreach (var item in snapshot.Values)
                 {
-                    result.Add(CloneDefinition(snapshot[StableIds[i]]));
+                    result.Add(CloneDefinition(item));
                 }
 
                 return result.AsReadOnly();
             }
         }
 
-        public static void Initialize(IEnumerable<CityStyleDefinition> sourceDefinitions)
+        public static void Initialize(IEnumerable<CityStyleDefinition> sourceDefinitions) => InitializeCore(sourceDefinitions, false);
+        public static void InitializeExternal(IEnumerable<CityStyleDefinition> sourceDefinitions) => InitializeCore(sourceDefinitions, true);
+        private static void InitializeCore(IEnumerable<CityStyleDefinition> sourceDefinitions, bool external)
         {
             if (sourceDefinitions == null)
             {
@@ -87,7 +89,7 @@ namespace YC.Domain.CityStyles
             var next = new Dictionary<string, CityStyleDefinition>(StringComparer.Ordinal);
             foreach (var source in sourceDefinitions)
             {
-                ValidateDefinition(source);
+                ValidateDefinition(source, external);
                 if (next.ContainsKey(source.CityStyleId))
                 {
                     throw new InvalidOperationException("城市样式目录包含重复 ID：" + source.CityStyleId);
@@ -96,7 +98,7 @@ namespace YC.Domain.CityStyles
                 next.Add(source.CityStyleId, CloneDefinition(source));
             }
 
-            ValidateDefinitionSet(next);
+            if (!external) ValidateDefinitionSet(next);
             var nextSnapshot = new ReadOnlyDictionary<string, CityStyleDefinition>(next);
             lock (SyncRoot)
             {
@@ -197,20 +199,21 @@ namespace YC.Domain.CityStyles
             }
         }
 
-        private static void ValidateDefinition(CityStyleDefinition definition)
+        private static void ValidateDefinition(CityStyleDefinition definition, bool external = false)
         {
             if (definition == null)
             {
                 throw new InvalidOperationException("城市样式目录包含空定义。");
             }
 
+            if (string.IsNullOrWhiteSpace(definition.CityStyleId)) throw new InvalidOperationException("城市样式 ID 不能为空。");
             var expectedActionId = GetExpectedSpecialActionId(definition.CityStyleId);
-            if (expectedActionId == null)
+            if (!external && expectedActionId == null)
             {
                 throw new InvalidOperationException("城市样式目录包含未知稳定 ID：" + definition.CityStyleId);
             }
 
-            if (definition.SpecialActionId != expectedActionId)
+            if (!external && definition.SpecialActionId != expectedActionId)
             {
                 throw new InvalidOperationException(definition.CityStyleId + " 的特殊行动映射不正确。");
             }

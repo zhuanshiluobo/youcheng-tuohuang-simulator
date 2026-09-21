@@ -47,8 +47,9 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(2));
             Assert.That(state.FindPlayer(2).Resources.GoldVoucher, Is.EqualTo(0));
             Assert.That(state.FindPlayer(3).Resources.GoldVoucher, Is.EqualTo(2));
-            Assert.That(state.FindPlayer(1).HasCollectedResourcesThisRound, Is.True);
-            Assert.That(state.Phase, Is.EqualTo(GamePhase.Cleanup));
+            Assert.That(state.FindPlayer(1).HasCollectedResourcesThisRound, Is.False, "下一轮已重置采集标记。");
+            Assert.That(state.Round, Is.EqualTo(2));
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
             Assert.That(result.Events[0].Data["paymentCount"], Is.EqualTo("2"));
         }
 

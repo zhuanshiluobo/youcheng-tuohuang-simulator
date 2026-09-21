@@ -1,0 +1,5 @@
+{
+  "name": "YC.PlayerJourney",
+  "references": ["Unity.ugui"],
+  "autoReferenced": true
+}

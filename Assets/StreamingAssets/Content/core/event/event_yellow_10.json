@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_yellow_10",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "遭弃矿场",
+  "artwork": "artwork/event/event_yellow_10.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_yellow_10",
+    "name": "遭弃矿场",
+    "description": "“这里附近曾发生过一场天灾。天灾信使在通报的途中不幸遇难，但所幸空中异常的天灾云足够明显，让矿工迅速反应过来并撤离了这里。可笑的是，天灾最终并未直接打击这座矿场，哈哈。”",
+    "color": 1,
+    "resourceType": 1,
+    "resourceAmount": 1,
+    "representativeResourceType": 1,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "拆除这里的设备，带走有用的材料：获得 3 异铁",
+      "恢复矿场的运行：获得 4 源石碎片"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 3,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 4,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

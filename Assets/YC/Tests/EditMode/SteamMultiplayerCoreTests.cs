@@ -10,39 +10,60 @@ namespace YC.Tests.EditMode
 {
     public sealed class SteamMultiplayerCoreTests
     {
-        [TestCase("76561198000000000", 76561198000000000UL)]
-        [TestCase(" 480 ", 480UL)]
-        public void TryParseLobbyId_AcceptsPositiveUnsignedIds(string input, ulong expected)
+        [Test]
+        public void TryParseLobbyId_AcceptsPositiveUnsignedIds()
         {
-            Assert.IsTrue(SteamLobbyPolicy.TryParseLobbyId(input, out var actual));
-            Assert.AreEqual(expected, actual);
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    new LobbyIdCase { Input = "76561198000000000", Expected = 76561198000000000UL },
+                    new LobbyIdCase { Input = " 480 ", Expected = 480UL }
+                },
+                testCase =>
+                {
+                    Assert.IsTrue(SteamLobbyPolicy.TryParseLobbyId(testCase.Input, out var actual),
+                        testCase.Input);
+                    Assert.AreEqual(testCase.Expected, actual, testCase.Input);
+                },
+                testCase => testCase.Input);
         }
 
-        [TestCase(null)]
-        [TestCase("")]
-        [TestCase("0")]
-        [TestCase("not-a-lobby")]
-        public void TryParseLobbyId_RejectsInvalidIds(string input)
+        [Test]
+        public void TryParseLobbyId_RejectsInvalidIds()
         {
-            Assert.IsFalse(SteamLobbyPolicy.TryParseLobbyId(input, out _));
+            EditModeTestCaseRunner.Run(
+                new[] { null, "", "0", "not-a-lobby" },
+                input => Assert.IsFalse(SteamLobbyPolicy.TryParseLobbyId(input, out _), input ?? "<null>"),
+                input => input ?? "<null>");
         }
 
-        [TestCase("76561198000000000", 76561198000000000UL)]
-        [TestCase("steam://76561198000000001", 76561198000000001UL)]
-        [TestCase("steam:76561198000000002", 76561198000000002UL)]
-        public void SteamIdentityAddress_ParsesTransportAddresses(string address, ulong expected)
+        [Test]
+        public void SteamIdentityAddress_ParsesTransportAddresses()
         {
-            Assert.IsTrue(SteamIdentityAddress.TryParse(address, out var actual));
-            Assert.AreEqual(expected, actual);
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    new LobbyIdCase { Input = "76561198000000000", Expected = 76561198000000000UL },
+                    new LobbyIdCase { Input = "steam://76561198000000001", Expected = 76561198000000001UL },
+                    new LobbyIdCase { Input = "steam:76561198000000002", Expected = 76561198000000002UL }
+                },
+                testCase =>
+                {
+                    Assert.IsTrue(SteamIdentityAddress.TryParse(testCase.Input, out var actual),
+                        testCase.Input);
+                    Assert.AreEqual(testCase.Expected, actual, testCase.Input);
+                },
+                testCase => testCase.Input);
         }
 
-        [TestCase(null)]
-        [TestCase("")]
-        [TestCase("steam://not-a-steamid")]
-        [TestCase("steam://0")]
-        public void SteamIdentityAddress_RejectsInvalidTransportAddresses(string address)
+        [Test]
+        public void SteamIdentityAddress_RejectsInvalidTransportAddresses()
         {
-            Assert.IsFalse(SteamIdentityAddress.TryParse(address, out _));
+            EditModeTestCaseRunner.Run(
+                new[] { null, "", "steam://not-a-steamid", "steam://0" },
+                address => Assert.IsFalse(
+                    SteamIdentityAddress.TryParse(address, out _), address ?? "<null>"),
+                address => address ?? "<null>");
         }
 
         [Test]
@@ -280,25 +301,30 @@ namespace YC.Tests.EditMode
                 Is.LessThan(enteredCallback.IndexOf("StartClient", System.StringComparison.Ordinal)));
         }
 
-        [TestCase("Host")]
-        [TestCase("Client")]
-        public void ActiveGameLobbyInvite_IsDeferredWithoutTouchingCurrentSession(string role)
+        [Test]
+        public void ActiveGameLobbyInvite_IsDeferredWithoutTouchingCurrentSession()
         {
-            var service = new FakeOnlineRoomService
-            {
-                CurrentRoom = CreateRoom("100", role == "Host" ? 1 : 2)
-            };
-            service.RecordInvite("200");
-            var flow = new LobbyJoinRequestFlow(service);
+            EditModeTestCaseRunner.Run(
+                new[] { "Host", "Client" },
+                role =>
+                {
+                    var service = new FakeOnlineRoomService
+                    {
+                        CurrentRoom = CreateRoom("100", role == "Host" ? 1 : 2)
+                    };
+                    service.RecordInvite("200");
+                    var flow = new LobbyJoinRequestFlow(service);
 
-            var result = flow.ProcessPendingAsync(true, role).GetAwaiter().GetResult();
+                    var result = flow.ProcessPendingAsync(true, role).GetAwaiter().GetResult();
 
-            Assert.That(result.Status, Is.EqualTo(LobbyJoinRequestStatus.Deferred));
-            Assert.That(service.JoinCalls, Is.Zero);
-            Assert.That(service.ShutdownCalls, Is.Zero);
-            Assert.That(service.CloseCurrentRoomCalls, Is.Zero);
-            Assert.That(service.CurrentRoom.RoomId, Is.EqualTo("100"));
-            Assert.That(service.HasPendingLobbyJoinRequest, Is.True);
+                    Assert.That(result.Status, Is.EqualTo(LobbyJoinRequestStatus.Deferred), role);
+                    Assert.That(service.JoinCalls, Is.Zero, role);
+                    Assert.That(service.ShutdownCalls, Is.Zero, role);
+                    Assert.That(service.CloseCurrentRoomCalls, Is.Zero, role);
+                    Assert.That(service.CurrentRoom.RoomId, Is.EqualTo("100"), role);
+                    Assert.That(service.HasPendingLobbyJoinRequest, Is.True, role);
+                },
+                role => role);
         }
 
         [Test]
@@ -523,7 +549,7 @@ namespace YC.Tests.EditMode
             StringAssert.Contains("NetworkServer.connections.Values", detach);
             StringAssert.Contains("!(connection is LocalConnectionToClient)", detach);
             var broadcast = ExtractMethod(source, "private void BroadcastAccepted", "private void SendRejected");
-            Assert.Less(broadcast.IndexOf("connection.Send"), broadcast.IndexOf("ConfirmedCommandApplied?.Invoke"));
+            Assert.Less(broadcast.IndexOf("connection.Send"), broadcast.IndexOf("ConfirmedStateViewApplied?.Invoke"));
             StringAssert.Contains("GameLaunchContext.ReturnToStartScene", ReadSource("YC/Presentation/RoundTrackerController.cs"));
             StringAssert.Contains("GameLaunchContext.ReturnToStartScene", ReadSource("YC/Presentation/GameSettingsMenuController.cs"));
         }
@@ -585,23 +611,42 @@ namespace YC.Tests.EditMode
             StringAssert.Contains("ShowRoomPanel(roomUpdate, roomUpdate.LocalPlayerId == roomUpdate.HostPlayerId);", menuSource);
         }
 
-        [TestCase("YC/Presentation/GameSettingsMenuController.cs")]
-        [TestCase("YC/Presentation/RoundTrackerController.cs")]
-        public void ReturnToStartScene_ShutsDownOnlineSessionBeforeBlackTransition(string relativePath)
+        [Test]
+        public void ReturnToStartScene_ShutsDownOnlineSessionBeforeBlackTransition()
         {
-            var source = File.ReadAllText(Path.Combine(UnityEngine.Application.dataPath, relativePath));
-            var methodStart = source.IndexOf("ReturnToStartScene()", System.StringComparison.Ordinal);
-            Assert.GreaterOrEqual(methodStart, 0, relativePath);
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    "YC/Presentation/GameSettingsMenuController.cs",
+                    "YC/Presentation/RoundTrackerController.cs"
+                },
+                relativePath =>
+                {
+                    var source = File.ReadAllText(Path.Combine(UnityEngine.Application.dataPath, relativePath));
+                    var methodStart = source.IndexOf("ReturnToStartScene()", System.StringComparison.Ordinal);
+                    Assert.GreaterOrEqual(methodStart, 0, relativePath);
 
-            var safeReturn = source.IndexOf("GameLaunchContext.ReturnToStartScene(", methodStart, System.StringComparison.Ordinal);
-            Assert.Greater(safeReturn, methodStart, relativePath);
-            var contextSource = ReadSource("YC/Presentation/GameLaunchContext.cs");
-            var returnMethod = ExtractMethod(contextSource, "public static void ReturnToStartScene", "private void OnNetworkDisconnected");
-            var shutdown = returnMethod.IndexOf("ShutdownOnlineSession();", System.StringComparison.Ordinal);
-            var loadScene = returnMethod.IndexOf("SceneTransitionContext.TryBeginBlackTransition", System.StringComparison.Ordinal);
-            Assert.GreaterOrEqual(shutdown, 0);
-            Assert.Greater(loadScene, shutdown);
-            StringAssert.Contains("Instance.pendingReturnScene = sceneName;", returnMethod);
+                    var safeReturn = source.IndexOf(
+                        "GameLaunchContext.ReturnToStartScene(",
+                        methodStart,
+                        System.StringComparison.Ordinal);
+                    Assert.Greater(safeReturn, methodStart, relativePath);
+                    var contextSource = ReadSource("YC/Presentation/GameLaunchContext.cs");
+                    var returnMethod = ExtractMethod(
+                        contextSource,
+                        "public static void ReturnToStartScene",
+                        "private void OnNetworkDisconnected");
+                    var shutdown = returnMethod.IndexOf(
+                        "ShutdownOnlineSession();",
+                        System.StringComparison.Ordinal);
+                    var loadScene = returnMethod.IndexOf(
+                        "SceneTransitionContext.TryBeginBlackTransition",
+                        System.StringComparison.Ordinal);
+                    Assert.GreaterOrEqual(shutdown, 0, relativePath);
+                    Assert.Greater(loadScene, shutdown, relativePath);
+                    StringAssert.Contains("Instance.pendingReturnScene = sceneName;", returnMethod, relativePath);
+                },
+                relativePath => relativePath);
         }
 
         private static ulong[] Values(IReadOnlyDictionary<int, ulong> seats)
@@ -642,6 +687,12 @@ namespace YC.Tests.EditMode
                 LocalPlayerId = localPlayerId,
                 PlayerCount = 3
             };
+        }
+
+        private sealed class LobbyIdCase
+        {
+            public string Input;
+            public ulong Expected;
         }
 
         private sealed class FakeOnlineRoomService : IOnlineRoomService

@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_029",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "开采电铲",
+  "artwork": "artwork/facility/building_029.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_029",
+    "manifestId": "building_029"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/choose_five_basic_resources.json"
+}

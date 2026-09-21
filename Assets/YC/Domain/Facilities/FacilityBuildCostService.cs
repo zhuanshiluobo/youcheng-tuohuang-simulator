@@ -30,11 +30,6 @@ namespace YC.Domain.Facilities
             }
 
             var result = facility.ResourceCost.Clone();
-            if (facility.Name != "城邦工业区")
-            {
-                return result;
-            }
-
             var colors = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             for (var i = 0; i < player.BuiltFacilityIds.Count; i++)
             {
@@ -47,7 +42,8 @@ namespace YC.Domain.Facilities
                 AddBaseColors(colors, built.Color);
             }
 
-            result.Originium = Math.Max(0, result.Originium - colors.Count);
+            foreach (YC.Domain.Rules.ResourceType resource in Enum.GetValues(typeof(YC.Domain.Rules.ResourceType)))
+                result.Set(resource, Math.Max(0, result.Get(resource) - (facility.CostReductionPerDistinctBuiltColor?.Get(resource) ?? 0) * colors.Count));
             return result;
         }
 

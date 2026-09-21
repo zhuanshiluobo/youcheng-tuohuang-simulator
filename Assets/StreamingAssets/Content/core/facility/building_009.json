@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_009",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "联邦理事处",
+  "artwork": "artwork/facility/building_009.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_009",
+    "manifestId": "building_009"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/claim_start_marker_at_cleanup.json"
+}

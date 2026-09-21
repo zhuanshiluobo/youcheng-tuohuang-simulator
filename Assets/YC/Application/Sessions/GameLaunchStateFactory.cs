@@ -63,15 +63,13 @@ namespace YC.Application.Sessions
             var startPlayerId = GetStartPlayerId(mode, players);
             var state = new GameState
             {
-                Phase = GamePhase.Entrance,
-                StartPlayerId = startPlayerId,
-                CurrentPlayerId = startPlayerId,
                 UseSeatTurnOrder = IsNetworkLaunch(mode),
                 MapId = mapId ?? string.Empty,
                 EventDeckSeed = eventDeckSeed
             };
 
             AddPlayers(state, localPlayerId, players);
+            new RoundExecutionProjector().ProjectEntrance(state, startPlayerId, startPlayerId);
             ScoreTrackService.InitializePlayerMarkers(state);
             for (var i = 0; i < state.Players.Count; i++)
             {

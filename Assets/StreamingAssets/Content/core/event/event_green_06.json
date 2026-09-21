@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_green_06",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "废弃矿坑（4）",
+  "artwork": "artwork/event/event_green_06.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_green_06",
+    "name": "废弃矿坑（4）",
+    "description": "你派去的札拉克探子派上了大用处！他们装神弄鬼吓跑了这座矿井的工人，这让你不费吹灰之力就获得了一处源石矿场。但或许是有些做过头了，矿工们在逃离这里时竟把入口都给炸了，现在想让矿井运转起来成了一道难题。",
+    "color": 0,
+    "resourceType": 1,
+    "resourceAmount": 1,
+    "representativeResourceType": 1,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "先把矿井外围留下的资源设备收走：获得 2 异铁、2 金券",
+      "“看看你们干的好事！天黑前要是不把这挖通我就把你们活埋在源岩里！”：获得 4 源岩"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 2,
+        "pureOriginium": 0,
+        "goldVoucher": 2
+      },
+      {
+        "originium": 4,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

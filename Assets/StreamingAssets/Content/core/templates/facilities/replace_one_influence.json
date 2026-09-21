@@ -1,0 +1,36 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "佣兵指挥部",
+    "color": "red",
+    "score": 1,
+    "resourceCost": {
+      "originium": 2,
+      "originiumShard": 0,
+      "iron": 2,
+      "pureOriginium": 0,
+      "goldVoucher": 4
+    },
+    "goldVoucherCost": 18,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry"
+    ],
+    "effectId": "replace_one_influence",
+    "effectType": "entry",
+    "description": "“放心，把活儿交给专业的人。”",
+    "effectText": "入场时，替换 1 个影响力或放置 1 个影响力。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/replace_one_influence.lua"
+  }
+}

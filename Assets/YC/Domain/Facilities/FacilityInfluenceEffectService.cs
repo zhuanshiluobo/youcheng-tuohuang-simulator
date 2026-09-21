@@ -1,5 +1,6 @@
 using System;
 using YC.Domain.Commands;
+using YC.Domain.Effects;
 using YC.Domain.Influence;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -102,21 +103,58 @@ namespace YC.Domain.Facilities
                 return Failure(CommandErrorCode.InvalidTarget, "不能用自己的影响力替换自己的影响力。", targetInfluenceSlotId);
             }
 
+            // 目标已通过只读查找确认存在后，才为旧快照补齐可持久化实例身份。
+            InfluenceIdentity.Ensure(state);
             var canonicalSlotId = target.SlotId;
-            var removal = influenceService.Remove(state, canonicalSlotId);
-            if (!removal.Succeeded)
+            EffectRunReport report;
+            var node = InfluenceEffectRunner.Run(
+                state,
+                influenceService,
+                InfluenceEffectSpecFactory.ReplaceInfluence(playerId, target.InfluenceId),
+                out report);
+            if (node == null || node.Status != EffectNodeStatus.Completed)
             {
-                return FacilityInfluenceEffectResult.Failure(removal.Validation, canonicalSlotId);
+                return FacilityInfluenceEffectResult.Failure(
+                    InfluenceEffectFailureMapper.ToValidation(node),
+                    canonicalSlotId);
             }
 
-            var placement = influenceService.Place(state, playerId, canonicalSlotId);
-            return placement.Succeeded
-                ? FacilityInfluenceEffectResult.Success(canonicalSlotId, true)
-                : FacilityInfluenceEffectResult.Success(
-                    canonicalSlotId,
-                    false,
-                    placement.FailureCode,
-                    placement.Reason);
+            var replacement = influenceService.FindInfluence(state, canonicalSlotId);
+            if (replacement != null && replacement.PlayerId == playerId)
+            {
+                return FacilityInfluenceEffectResult.Success(canonicalSlotId, true);
+            }
+
+            var placedResult = GetProperty(node.NormalizedResult, "placed");
+            var placementFailureCode = InfluenceEffectFailureMapper.ToInfluenceFailureCode(
+                GetString(placedResult, "failureCode"));
+            return FacilityInfluenceEffectResult.Success(
+                canonicalSlotId,
+                false,
+                placementFailureCode,
+                GetString(placedResult, "reason"));
+        }
+
+        private static NormalizedValue GetProperty(NormalizedValue value, string name)
+        {
+            if (value != null && value.Kind == NormalizedValueKind.Object && value.Properties != null)
+            {
+                for (var i = 0; i < value.Properties.Count; i++)
+                {
+                    var entry = value.Properties[i];
+                    if (entry != null && entry.Name == name) return entry.Value;
+                }
+            }
+
+            return null;
+        }
+
+        private static string GetString(NormalizedValue value, string name)
+        {
+            var property = GetProperty(value, name);
+            return property != null && property.Kind == NormalizedValueKind.String
+                ? property.StringValue
+                : string.Empty;
         }
 
         private static FacilityInfluenceEffectResult Failure(

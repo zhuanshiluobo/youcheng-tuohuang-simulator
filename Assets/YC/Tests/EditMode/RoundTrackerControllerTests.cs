@@ -313,29 +313,53 @@ namespace YC.Tests.EditMode
             Assert.That(GetPublicProperty<int>("SelectedFinalScorePlayerId"), Is.EqualTo(1));
         }
 
-        [TestCase(1)]
-        [TestCase(4)]
-        public void RefreshFromState_FinalScoreDetailsSupportOneToFourPlayers(int playerCount)
+        [Test]
+        public void RefreshFromState_FinalScoreDetailsSupportOneToFourPlayers()
         {
-            controller = CreateController();
-            InvokePublic("RefreshFromState", CreateResolvedScoringState(playerCount));
+            EditModeTestCaseRunner.Run(
+                new[] { 1, 4 },
+                playerCount =>
+                {
+                    try
+                    {
+                        controller = CreateController();
+                        InvokePublic("RefreshFromState", CreateResolvedScoringState(playerCount));
 
-            Assert.That(GetPublicProperty<int>("SelectedFinalScorePlayerId"), Is.EqualTo(playerCount));
-            for (var playerId = 1; playerId <= playerCount; playerId++)
-            {
-                Assert.That(
-                    FindChild(owner.transform, "Final Score Player Details Button P" + playerId),
-                    Is.Not.Null);
-                Assert.That(
-                    FindChild(owner.transform, "Final Score Detail Player Row P" + playerId),
-                    Is.Not.Null);
-                Assert.That(
-                    FindChild(owner.transform, "Final Score Detail Player Switch P" + playerId),
-                    Is.Not.Null);
-                Assert.That(
-                    FindChild(owner.transform, "Final Score Detail Chart P" + playerId),
-                    Is.Not.Null);
-            }
+                        Assert.That(
+                            GetPublicProperty<int>("SelectedFinalScorePlayerId"),
+                            Is.EqualTo(playerCount),
+                            "playerCount=" + playerCount);
+                        for (var playerId = 1; playerId <= playerCount; playerId++)
+                        {
+                            Assert.That(
+                                FindChild(owner.transform, "Final Score Player Details Button P" + playerId),
+                                Is.Not.Null,
+                                "playerCount=" + playerCount);
+                            Assert.That(
+                                FindChild(owner.transform, "Final Score Detail Player Row P" + playerId),
+                                Is.Not.Null,
+                                "playerCount=" + playerCount);
+                            Assert.That(
+                                FindChild(owner.transform, "Final Score Detail Player Switch P" + playerId),
+                                Is.Not.Null,
+                                "playerCount=" + playerCount);
+                            Assert.That(
+                                FindChild(owner.transform, "Final Score Detail Chart P" + playerId),
+                                Is.Not.Null,
+                                "playerCount=" + playerCount);
+                        }
+                    }
+                    finally
+                    {
+                        if (owner != null)
+                        {
+                            UnityEngine.Object.DestroyImmediate(owner);
+                            owner = null;
+                            controller = null;
+                        }
+                    }
+                },
+                playerCount => "playerCount=" + playerCount);
         }
 
         private static GameState CreateResolvedScoringState(int playerCount)

@@ -247,7 +247,15 @@ namespace YC.Presentation.Workflows
 
             if (CanStartMainAction())
             {
-                flowCoordinator.Activate(influenceActionPresenter);
+                flowCoordinator.ResetToChooseAction();
+                commandGateway.Submit(new GameCommand
+                {
+                    Kind = GameCommandKind.DeployInfluence,
+                    PlayerId = context.LocalPlayerId
+                }, new SubmitCallbacks(view.ShowPrompt, CommandGateway.BuildWaitingForHostPrompt("部署行动"))
+                {
+                    OnAppliedLocally = result => view.RefreshFromState()
+                });
             }
         }
 
@@ -364,20 +372,11 @@ namespace YC.Presentation.Workflows
             view.CompleteMainActionPresentation(completedMainActionName);
         }
 
-        public ActionPanelViewModel BuildActionPanelViewModel()
-        {
-            return ActionPanelPresenter.BuildViewModel();
-        }
+        public ActionPanelViewModel BuildActionPanelViewModel() => ActionPanelPresenter.BuildViewModel();
 
-        private bool CanStartMainAction()
-        {
-            return ActionPanelPresenter.CanStartMainAction();
-        }
+        private bool CanStartMainAction() => ActionPanelPresenter.CanStartMainAction();
 
-        private bool CanStartQuickAction()
-        {
-            return ActionPanelPresenter.CanStartQuickAction();
-        }
+        private bool CanStartQuickAction() => ActionPanelPresenter.CanStartQuickAction();
 
         private string GetQuickActionUnavailableReason()
         {

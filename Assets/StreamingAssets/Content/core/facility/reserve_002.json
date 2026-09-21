@@ -1,0 +1,18 @@
+{
+  "definitionId": "reserve_002",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "延伸枢纽",
+  "artwork": "artwork/facility/reserve_002.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "reserve_002",
+    "manifestId": "reserve_002",
+    "color": "blue"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/reserve_extension_hub.json"
+}

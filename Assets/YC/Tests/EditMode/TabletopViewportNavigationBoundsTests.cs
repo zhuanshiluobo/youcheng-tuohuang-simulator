@@ -15,127 +15,131 @@ namespace YC.Tests.EditMode
             "YC.Presentation.MapCameraGeometry, Assembly-CSharp",
             false);
 
-        [TestCase(0.9f)]
-        [TestCase(1f)]
-        [TestCase(2f)]
-        public void FocusBounds_KeepFullCameraViewInsideCenteredMinimumZoomBoundary(float zoom)
+        [Test]
+        public void FocusBounds_KeepFullCameraViewInsideCenteredMinimumZoomBoundary()
         {
-            Assert.That(BoundsType, Is.Not.Null);
-            Assert.That(GeometryType, Is.Not.Null);
-            var mapObject = new GameObject("Navigation Bounds Map", typeof(SpriteRenderer), BoundsType);
-            var cameraObject = new GameObject("Navigation Bounds Camera", typeof(Camera));
-            Texture2D texture = null;
-            Sprite sprite = null;
-            try
-            {
-                texture = new Texture2D(100, 60);
-                sprite = Sprite.Create(texture, new Rect(0f, 0f, 100f, 60f), Vector2.one * 0.5f, 10f);
-                var renderer = mapObject.GetComponent<SpriteRenderer>();
-                renderer.sprite = sprite;
-                var provider = mapObject.GetComponent(BoundsType);
-                var camera = cameraObject.GetComponent<Camera>();
-                camera.orthographic = false;
-                camera.fieldOfView = 45f;
-                camera.aspect = 16f / 9f;
-                var rotation = Quaternion.Euler(-30f, 0f, 0f);
-                var plane = new Plane(Vector3.forward, Vector3.zero);
-                var viewport = new Rect(0.02865f, 0f, 0.78385f, 1f);
-                var fullCameraViewport = new Rect(0f, 0f, 1f, 1f);
-                const float baseDistance = 20f;
-                const float minimumZoom = 0.9f;
-                var minimumZoomDistance = InvokeGeometry<float>(
-                    "CalculateZoomedDistance",
-                    baseDistance,
-                    minimumZoom);
-                camera.transform.SetPositionAndRotation(
-                    InvokeGeometry<Vector3>(
-                        "CalculateCameraPosition",
-                        Vector3.zero,
-                        rotation,
-                        minimumZoomDistance),
-                    rotation);
-
-                var initializeArguments = new object[]
+            EditModeTestCaseRunner.Run(
+                new[] { 0.9f, 1f, 2f },
+                zoom =>
                 {
-                    camera,
-                    viewport,
-                    plane,
-                    Vector3.zero,
-                    Vector3.right,
-                    Vector3.up,
-                    renderer,
-                    null
-                };
-                Assert.That(
-                    BoundsType.GetMethod("Initialize").Invoke(provider, initializeArguments),
-                    Is.True,
-                    initializeArguments[7] as string);
-                var fixedWorldBounds = (Rect)BoundsType
-                    .GetField("fixedWorldBounds", BindingFlags.Instance | BindingFlags.NonPublic)
-                    .GetValue(provider);
-                var currentDistance = InvokeGeometry<float>("CalculateZoomedDistance", baseDistance, zoom);
-                camera.transform.SetPositionAndRotation(
-                    InvokeGeometry<Vector3>("CalculateCameraPosition", Vector3.zero, rotation, currentDistance),
-                    rotation);
-                var boundsArguments = new object[]
-                {
-                    camera,
-                    viewport,
-                    plane,
-                    Vector3.zero,
-                    Vector3.right,
-                    Vector3.up,
-                    null
-                };
-                Assert.That(
-                    BoundsType.GetMethod("TryGetFocusBounds").Invoke(provider, boundsArguments),
-                    Is.True);
-                var focusBounds = (Rect)boundsArguments[6];
+                    Assert.That(BoundsType, Is.Not.Null);
+                    Assert.That(GeometryType, Is.Not.Null);
+                    var mapObject = new GameObject("Navigation Bounds Map", typeof(SpriteRenderer), BoundsType);
+                    var cameraObject = new GameObject("Navigation Bounds Camera", typeof(Camera));
+                    Texture2D texture = null;
+                    Sprite sprite = null;
+                    try
+                    {
+                        texture = new Texture2D(100, 60);
+                        sprite = Sprite.Create(texture, new Rect(0f, 0f, 100f, 60f), Vector2.one * 0.5f, 10f);
+                        var renderer = mapObject.GetComponent<SpriteRenderer>();
+                        renderer.sprite = sprite;
+                        var provider = mapObject.GetComponent(BoundsType);
+                        var camera = cameraObject.GetComponent<Camera>();
+                        camera.orthographic = false;
+                        camera.fieldOfView = 45f;
+                        camera.aspect = 16f / 9f;
+                        var rotation = Quaternion.Euler(-30f, 0f, 0f);
+                        var plane = new Plane(Vector3.forward, Vector3.zero);
+                        var viewport = new Rect(0.02865f, 0f, 0.78385f, 1f);
+                        var fullCameraViewport = new Rect(0f, 0f, 1f, 1f);
+                        const float baseDistance = 20f;
+                        const float minimumZoom = 0.9f;
+                        var minimumZoomDistance = InvokeGeometry<float>(
+                            "CalculateZoomedDistance",
+                            baseDistance,
+                            minimumZoom);
+                        camera.transform.SetPositionAndRotation(
+                            InvokeGeometry<Vector3>(
+                                "CalculateCameraPosition",
+                                Vector3.zero,
+                                rotation,
+                                minimumZoomDistance),
+                            rotation);
 
-                AssertAxisBoundariesConstrained(
-                    camera,
-                    fullCameraViewport,
-                    plane,
-                    currentDistance,
-                    focusBounds.xMin,
-                    focusBounds.xMax,
-                    fixedWorldBounds.xMin,
-                    fixedWorldBounds.xMax,
-                    true);
-                AssertAxisBoundariesConstrained(
-                    camera,
-                    fullCameraViewport,
-                    plane,
-                    currentDistance,
-                    focusBounds.yMin,
-                    focusBounds.yMax,
-                    fixedWorldBounds.yMin,
-                    fixedWorldBounds.yMax,
-                    false);
+                        var initializeArguments = new object[]
+                        {
+                            camera,
+                            viewport,
+                            plane,
+                            Vector3.zero,
+                            Vector3.right,
+                            Vector3.up,
+                            renderer,
+                            null
+                        };
+                        Assert.That(
+                            BoundsType.GetMethod("Initialize").Invoke(provider, initializeArguments),
+                            Is.True,
+                            initializeArguments[7] as string);
+                        var fixedWorldBounds = (Rect)BoundsType
+                            .GetField("fixedWorldBounds", BindingFlags.Instance | BindingFlags.NonPublic)
+                            .GetValue(provider);
+                        var currentDistance = InvokeGeometry<float>("CalculateZoomedDistance", baseDistance, zoom);
+                        camera.transform.SetPositionAndRotation(
+                            InvokeGeometry<Vector3>("CalculateCameraPosition", Vector3.zero, rotation, currentDistance),
+                            rotation);
+                        var boundsArguments = new object[]
+                        {
+                            camera,
+                            viewport,
+                            plane,
+                            Vector3.zero,
+                            Vector3.right,
+                            Vector3.up,
+                            null
+                        };
+                        Assert.That(
+                            BoundsType.GetMethod("TryGetFocusBounds").Invoke(provider, boundsArguments),
+                            Is.True);
+                        var focusBounds = (Rect)boundsArguments[6];
 
-                if (Mathf.Approximately(zoom, minimumZoom))
-                {
-                    Assert.That(focusBounds.xMin, Is.Zero.Within(0.001f));
-                    Assert.That(focusBounds.xMax, Is.Zero.Within(0.001f));
-                    Assert.That(focusBounds.yMin, Is.Zero.Within(0.001f));
-                    Assert.That(focusBounds.yMax, Is.Zero.Within(0.001f));
-                }
-            }
-            finally
-            {
-                if (sprite != null)
-                {
-                    Object.DestroyImmediate(sprite);
-                }
+                        AssertAxisBoundariesConstrained(
+                            camera,
+                            fullCameraViewport,
+                            plane,
+                            currentDistance,
+                            focusBounds.xMin,
+                            focusBounds.xMax,
+                            fixedWorldBounds.xMin,
+                            fixedWorldBounds.xMax,
+                            true);
+                        AssertAxisBoundariesConstrained(
+                            camera,
+                            fullCameraViewport,
+                            plane,
+                            currentDistance,
+                            focusBounds.yMin,
+                            focusBounds.yMax,
+                            fixedWorldBounds.yMin,
+                            fixedWorldBounds.yMax,
+                            false);
 
-                if (texture != null)
-                {
-                    Object.DestroyImmediate(texture);
-                }
+                        if (Mathf.Approximately(zoom, minimumZoom))
+                        {
+                            Assert.That(focusBounds.xMin, Is.Zero.Within(0.001f));
+                            Assert.That(focusBounds.xMax, Is.Zero.Within(0.001f));
+                            Assert.That(focusBounds.yMin, Is.Zero.Within(0.001f));
+                            Assert.That(focusBounds.yMax, Is.Zero.Within(0.001f));
+                        }
+                    }
+                    finally
+                    {
+                        if (sprite != null)
+                        {
+                            Object.DestroyImmediate(sprite);
+                        }
 
-                Object.DestroyImmediate(cameraObject);
-                Object.DestroyImmediate(mapObject);
-            }
+                        if (texture != null)
+                        {
+                            Object.DestroyImmediate(texture);
+                        }
+
+                        Object.DestroyImmediate(cameraObject);
+                        Object.DestroyImmediate(mapObject);
+                    }
+                },
+                zoom => "zoom=" + zoom);
         }
 
         private static void AssertAxisBoundariesConstrained(

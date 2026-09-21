@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_red_06",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "地质瑰宝",
+  "artwork": "artwork/event/event_red_06.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_red_06",
+    "name": "地质瑰宝",
+    "description": "高纯度源石往往在地下深层伴随着固化源石结晶一起被挖出，但这处巨缝中的高纯度源石被源岩所包裹，相当容易开采。或许这对于源石矿脉研究者来说会是一个有价值的发现。",
+    "color": 2,
+    "resourceType": 3,
+    "resourceAmount": 1,
+    "representativeResourceType": 3,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "何必多想，这里的宝贝足够帮你解决眼前更棘手的问题：获得 1 源石碎片、1 至纯源石",
+      "帮助地质学家清除矿脉上的杂质，弄不好会有其他有价值的发现？：获得 3 源岩、3 异铁"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 0,
+        "originiumShard": 1,
+        "iron": 0,
+        "pureOriginium": 1,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 3,
+        "originiumShard": 0,
+        "iron": 3,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

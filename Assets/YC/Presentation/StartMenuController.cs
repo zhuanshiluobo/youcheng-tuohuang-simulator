@@ -169,7 +169,9 @@ namespace YC.Presentation
                     if (!UnityEngine.Application.isEditor) UnityEngine.Application.Quit(1);
                     return true;
                 }
-                var result = LocalhostAutoplayRunner.RunToRound8Settlement(playerCount);
+                var result = LocalhostAutoplayRunner.RunToRound8Settlement(
+                    YC.Infrastructure.Lua.LuaContentCatalog.Register,
+                    playerCount);
                 if (result.Succeeded)
                 {
                     Debug.Log(result.Snapshot);
@@ -342,6 +344,10 @@ namespace YC.Presentation
 
         private static string CreateLocalGameSeedSource()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var seed = GetCommandLineValue(Environment.GetCommandLineArgs(), "--yc-player-journey-seed=");
+            if (!string.IsNullOrEmpty(seed)) return LocalGameSeedSourcePrefix + seed;
+#endif
             return LocalGameSeedSourcePrefix + Guid.NewGuid().ToString("N");
         }
 
@@ -414,6 +420,9 @@ namespace YC.Presentation
         private void BindStaticUi()
         {
             BindButton(view.StartGameButton, ShowLocalMapSelectionPanel);
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.StartGameButton.gameObject, "start.local_game");
+            // 地图选择已改为人数与地图轮换面板，确认按钮承担原四人地图按钮的自动化入口。
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.MapSelectionPanel.StartButton.gameObject, "start.four_player_map");
             BindButton(view.OnlineModeButton, ShowOnlineModePanel);
             BindButton(view.AchievementsButton, ShowAchievementsPanel);
             BindButton(view.QuitGameButton, QuitGame);

@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_red_03",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "采集平台残骸",
+  "artwork": "artwork/event/event_red_03.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_red_03",
+    "name": "采集平台残骸",
+    "description": "你的队伍意外发现了惨遭天灾摧毁的采矿平台。它矗立在荒原上，如同无数死难者的纪念碑，这座平台上残留的异铁足够你再建一座区块了。这时，一些虚弱不堪的矿石病人从铁壳中爬出，他们是如何存活至今的？",
+    "color": 2,
+    "resourceType": 2,
+    "resourceAmount": 1,
+    "representativeResourceType": 2,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "用设备刨开掩埋残骸的障碍，也许有更多的幸存者：获得 4 源岩、3 源石碎片",
+      "他们没救了，继续回收作业：获得 4 异铁、5 金券"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 4,
+        "originiumShard": 3,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 4,
+        "pureOriginium": 0,
+        "goldVoucher": 5
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

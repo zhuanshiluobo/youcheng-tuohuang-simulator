@@ -1,0 +1,18 @@
+{
+  "definitionId": "building_028",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "源石精炼厂",
+  "artwork": "artwork/facility/building_028.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_028",
+    "manifestId": "building_028",
+    "color": "yellow"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/gain_originium_shard_6.json"
+}

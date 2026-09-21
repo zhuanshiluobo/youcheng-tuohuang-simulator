@@ -1,0 +1,26 @@
+{
+  "enabled": false,
+  "definitionId": "example.entrepreneur_round",
+  "contentType": "entrepreneur_round",
+  "version": "0.1.0",
+  "displayName": "未启用的企业家回合卡示例",
+  "artwork": "artwork/city_board.jpg",
+  "tags": [
+    "example"
+  ],
+  "playerMarkerZones": [
+    {
+      "zoneId": "players",
+      "capacity": 4,
+      "zoneKind": "player_marker",
+      "allowedMarkerOwners": "all",
+      "displayAnchorId": "players"
+    }
+  ],
+  "abilities": [],
+  "data": {
+    "roundContent": []
+  },
+  "expansionId": "example",
+  "replaces": null
+}

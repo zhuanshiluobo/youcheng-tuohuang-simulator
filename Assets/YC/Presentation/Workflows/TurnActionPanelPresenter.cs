@@ -106,8 +106,8 @@ namespace YC.Presentation.Workflows
                 mainActionDone);
             var waiting = displayedMode == InteractionMode.WaitingForNextPlayer ||
                           (hasPendingChoice &&
-                           GetPendingPlayerId(state) !=
-                           context.LocalPlayerId);
+                           GetPendingResolutionPlayerId(state) > 0 &&
+                           GetPendingResolutionPlayerId(state) != context.LocalPlayerId);
 
             return new ActionPanelViewModel(
                 displayedMode,
@@ -303,8 +303,8 @@ namespace YC.Presentation.Workflows
         {
             if (hasPendingChoice)
             {
-                var pendingPlayerId = GetPendingPlayerId(state);
-                return pendingPlayerId.HasValue && pendingPlayerId.Value != context.LocalPlayerId
+                var pendingPlayerId = GetPendingResolutionPlayerId(state);
+                return pendingPlayerId > 0 && pendingPlayerId != context.LocalPlayerId
                     ? InteractionMode.WaitingForNextPlayer
                     : InteractionMode.Busy;
             }
@@ -374,9 +374,7 @@ namespace YC.Presentation.Workflows
                     return "结束阶段：雷蛇要求移除 1 个己方影响力。请点击地图上高亮的影响力；选择完成前不能结束本回合";
                 }
 
-                return canEndCurrentAction()
-                    ? "收尾阶段：点击结束本回合进入下一回合"
-                    : "收尾阶段：等待起始玩家结束本回合";
+                return "收尾阶段：请完成当前收尾效果，结算后自动继续。";
             }
 
             if (!isActionPhase)
@@ -386,10 +384,26 @@ namespace YC.Presentation.Workflows
 
             if (hasPendingChoice)
             {
-                var pendingPlayerId = GetPendingPlayerId(state);
-                return pendingPlayerId.HasValue && pendingPlayerId.Value != context.LocalPlayerId
-                    ? "等待玩家 " + pendingPlayerId.Value + " 处理事件选择"
-                    : "请先处理事件选择";
+                var interaction = FindOpenActionableInteraction(state);
+                if (interaction != null)
+                {
+                    var isRemote = interaction.AnsweringPlayerId != context.LocalPlayerId;
+                    var subject = IsCharacterAbilityInteraction(interaction.InteractionTypeId)
+                        ? "角色能力选择"
+                        : IsEventCardInteraction(interaction.InteractionTypeId)
+                            ? "事件牌选择"
+                            : "待处理交互";
+                    return isRemote
+                        ? "等待玩家 " + interaction.AnsweringPlayerId + " 处理" + subject
+                        : "请先处理" + subject;
+                }
+
+                var choice = CardFlowStateAdapter.GetPendingChoiceView(state);
+                return choice != null && choice.PlayerId != context.LocalPlayerId
+                    ? "等待玩家 " + choice.PlayerId + " 处理事件选择"
+                    : state.PendingCharacterEffect != null && state.PendingCharacterEffect.IsValid()
+                        ? "请先处理角色牌效果"
+                        : "请先处理待选择项";
             }
 
             if (!isLocalTurn)
@@ -436,6 +450,55 @@ namespace YC.Presentation.Workflows
             }
 
             return player == null ? "未知玩家" : "请选择一项主要行动";
+        }
+
+        private static int GetPendingResolutionPlayerId(GameState state)
+        {
+            if (state == null) return -1;
+
+            var choice = CardFlowStateAdapter.GetPendingChoiceView(state);
+            if (choice != null) return choice.PlayerId;
+
+            if (state.PendingCharacterEffect != null && state.PendingCharacterEffect.IsValid())
+            {
+                return state.PendingCharacterEffect.PlayerId;
+            }
+
+            var interaction = FindOpenActionableInteraction(state);
+            return interaction == null ? -1 : interaction.AnsweringPlayerId;
+        }
+
+        private static InteractionRequest FindOpenActionableInteraction(GameState state)
+        {
+            if (state == null || state.EffectRuntime == null ||
+                state.EffectRuntime.InteractionRequests == null)
+            {
+                return null;
+            }
+
+            for (var i = 0; i < state.EffectRuntime.InteractionRequests.Count; i++)
+            {
+                var request = state.EffectRuntime.InteractionRequests[i];
+                if (request != null && request.Status == "open" &&
+                    !request.IsInternalMainlineCompletion())
+                {
+                    return request;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsCharacterAbilityInteraction(string interactionTypeId)
+        {
+            return !string.IsNullOrEmpty(interactionTypeId) &&
+                   interactionTypeId.StartsWith("character.ability.", StringComparison.Ordinal);
+        }
+
+        private static bool IsEventCardInteraction(string interactionTypeId)
+        {
+            return interactionTypeId == "event_card.option" ||
+                   interactionTypeId == "event_card.influence_targets";
         }
 
         private string GetPlayerDisplayName(int playerId)

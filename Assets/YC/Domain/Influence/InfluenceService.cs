@@ -77,9 +77,67 @@ namespace YC.Domain.Influence
             return ToValidationResult(CanPlaceCore(state, playerId, slotId));
         }
 
+        /// <summary>
+        /// 返回当前状态下可以用于一次“放置影响力”结算的基础候选集合。
+        /// 候选在调用时按当前状态重新计算，调用方不能把它缓存成跨 Effect 的组合选择。
+        /// </summary>
+        public IReadOnlyList<string> GetLegalPlacementSlotIds(GameState state, int playerId)
+        {
+            ValidateState(state);
+            var result = new List<string>();
+            if (mapQuery == null || mapQuery.Map == null) return result.AsReadOnly();
+
+            if (mapQuery.Map.Locations != null)
+            {
+                for (var i = 0; i < mapQuery.Map.Locations.Count; i++)
+                {
+                    var location = mapQuery.Map.Locations[i];
+                    if (location == null || string.IsNullOrEmpty(location.LocationId)) continue;
+                    for (var slotIndex = 0; slotIndex < location.InfluenceSlotCount; slotIndex++)
+                    {
+                        AddLegalPlacementSlot(
+                            state,
+                            playerId,
+                            GetLocationSlotId(location.LocationId, slotIndex),
+                            result);
+                    }
+                }
+            }
+
+            if (mapQuery.Map.Routes != null)
+            {
+                for (var i = 0; i < mapQuery.Map.Routes.Count; i++)
+                {
+                    var route = mapQuery.Map.Routes[i];
+                    if (route == null || string.IsNullOrEmpty(route.RouteId)) continue;
+                    for (var slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
+                    {
+                        AddLegalPlacementSlot(
+                            state,
+                            playerId,
+                            GetRouteSlotId(route.RouteId, slotIndex),
+                            result);
+                    }
+                }
+            }
+
+            return result.AsReadOnly();
+        }
+
         public InfluenceOperationResult Place(GameState state, int playerId, string slotId)
         {
-            return PlaceCore(state, playerId, slotId);
+            return PlaceCore(state, playerId, slotId, string.Empty, null, null);
+        }
+
+        public InfluenceOperationResult Place(
+            GameState state,
+            int playerId,
+            string slotId,
+            string influenceId,
+            RuleSubjectReference ownerSubject,
+            InfluenceSourceReference source)
+        {
+            return PlaceCore(state, playerId, slotId, influenceId, ownerSubject, source);
         }
 
         public ValidationResult CanMove(GameState state, int playerId, string sourceInfluenceId, string targetSlotId)
@@ -150,6 +208,8 @@ namespace YC.Domain.Influence
                 ApplySlotFromId(projectedInfluence, validation.SlotId);
             }
 
+            // 所有批量校验成功后才补齐旧快照身份并提交移动。
+            InfluenceIdentity.Ensure(state);
             for (var i = 0; i < moves.Count; i++)
             {
                 var influence = FindInfluence(state, moves[i].SourceSlotId);
@@ -455,7 +515,28 @@ namespace YC.Domain.Influence
             return placementRule.Validate(state, playerId, slotId, true);
         }
 
+        private void AddLegalPlacementSlot(
+            GameState state,
+            int playerId,
+            string slotId,
+            List<string> result)
+        {
+            if (string.IsNullOrEmpty(slotId) || result.Contains(slotId)) return;
+            if (CanPlaceCore(state, playerId, slotId).Succeeded) result.Add(slotId);
+        }
+
         private InfluenceOperationResult PlaceCore(GameState state, int playerId, string slotId)
+        {
+            return PlaceCore(state, playerId, slotId, string.Empty, null, null);
+        }
+
+        private InfluenceOperationResult PlaceCore(
+            GameState state,
+            int playerId,
+            string slotId,
+            string influenceId,
+            RuleSubjectReference ownerSubject,
+            InfluenceSourceReference source)
         {
             ValidateState(state);
             var validation = placementRule.Validate(state, playerId, slotId, true);
@@ -466,9 +547,38 @@ namespace YC.Domain.Influence
 
             var player = state.FindPlayer(playerId);
             var canonicalSlotId = validation.SlotId;
+            var resolvedInfluenceId = string.IsNullOrEmpty(influenceId)
+                ? string.Empty
+                : influenceId;
+            if (!string.IsNullOrEmpty(resolvedInfluenceId) && FindInfluence(state, resolvedInfluenceId) != null)
+            {
+                return Failure(
+                    InfluenceFailureCode.InvalidState,
+                    "影响力实例 ID 已存在。",
+                    playerId,
+                    canonicalSlotId,
+                    false);
+            }
+
+            // 所有可失败校验完成后才修改旧快照身份和供给序号。
+            InfluenceIdentity.Ensure(state);
+            if (string.IsNullOrEmpty(resolvedInfluenceId))
+            {
+                resolvedInfluenceId = InfluenceIdentity.CreateNewId(
+                    state,
+                    playerId,
+                    canonicalSlotId,
+                    source == null ? "direct_place" : source.SourceId);
+            }
+
             player.InfluenceSupply -= 1;
-            state.Map.Influences.Add(CreatePlacementFromSlotId(playerId, canonicalSlotId));
-            return InfluenceOperationResult.Success(playerId, canonicalSlotId, true);
+            state.Map.Influences.Add(CreatePlacementFromSlotId(
+                playerId,
+                canonicalSlotId,
+                resolvedInfluenceId,
+                ownerSubject,
+                source));
+            return InfluenceOperationResult.Success(playerId, canonicalSlotId, true, resolvedInfluenceId);
         }
 
         private InfluenceOperationResult ValidateRemoveThenMove(
@@ -564,10 +674,17 @@ namespace YC.Domain.Influence
                 return validation;
             }
 
+            InfluenceIdentity.Ensure(state);
             var placement = FindInfluence(state, sourceInfluenceId);
             var canonicalTargetSlotId = validation.SlotId;
+            var fromSlotId = placement.SlotId;
             ApplySlotFromId(placement, canonicalTargetSlotId);
-            return InfluenceOperationResult.Success(playerId, canonicalTargetSlotId, true);
+            return InfluenceOperationResult.Success(
+                playerId,
+                canonicalTargetSlotId,
+                true,
+                placement.InfluenceId,
+                fromSlotId);
         }
 
         private InfluenceOperationResult RemoveCore(GameState state, string influenceId)
@@ -617,6 +734,8 @@ namespace YC.Domain.Influence
                     false);
             }
 
+            InfluenceIdentity.Ensure(state);
+
             var oldOwner = state.FindPlayer(target.PlayerId);
             if (oldOwner != null)
             {
@@ -624,8 +743,16 @@ namespace YC.Domain.Influence
             }
 
             newOwner.InfluenceSupply -= 1;
-            state.Map.Influences.Insert(targetIndex, CreatePlacementFromSlotId(newOwnerPlayerId, targetSlotId));
-            return InfluenceOperationResult.Success(newOwnerPlayerId, targetSlotId, true);
+            var replacementId = InfluenceIdentity.CreateNewId(state, newOwnerPlayerId, targetSlotId, "legacy_replace");
+            state.Map.Influences.Insert(
+                targetIndex,
+                CreatePlacementFromSlotId(
+                    newOwnerPlayerId,
+                    targetSlotId,
+                    replacementId,
+                    InfluenceIdentity.CreatePlayerOwner(newOwnerPlayerId),
+                    InfluenceIdentity.CreatePlayerSupplySource(newOwnerPlayerId, "legacy_replace")));
+            return InfluenceOperationResult.Success(newOwnerPlayerId, targetSlotId, true, replacementId);
         }
 
         private int CountInRegionCore(GameState state, int playerId, string regionId, bool includeCity)
@@ -634,56 +761,27 @@ namespace YC.Domain.Influence
             return queryService.CountInRegion(state, playerId, regionId, includeCity);
         }
 
-        private static InfluencePlacement CreatePlacementFromSlotId(int playerId, string slotId)
+        private static InfluencePlacement CreatePlacementFromSlotId(
+            int playerId,
+            string slotId,
+            string influenceId,
+            RuleSubjectReference ownerSubject,
+            InfluenceSourceReference source)
         {
-            var placement = new InfluencePlacement { PlayerId = playerId };
+            var placement = new InfluencePlacement
+            {
+                PlayerId = playerId,
+                InfluenceId = influenceId ?? string.Empty,
+                OwnerSubject = InfluenceIdentity.CloneSubject(ownerSubject ?? InfluenceIdentity.CreatePlayerOwner(playerId)),
+                Source = InfluenceIdentity.CloneSource(source ?? InfluenceIdentity.CreatePlayerSupplySource(playerId, "direct_place"))
+            };
             ApplySlotFromId(placement, slotId);
             return placement;
         }
 
         private static GameState CreateMoveProjection(GameState state)
         {
-            var projection = new GameState
-            {
-                GameId = state.GameId,
-                Phase = state.Phase,
-                Round = state.Round,
-                MaxRounds = state.MaxRounds,
-                StartPlayerId = state.StartPlayerId,
-                CurrentPlayerId = state.CurrentPlayerId,
-                ActionRound = state.ActionRound,
-                UseSeatTurnOrder = state.UseSeatTurnOrder,
-                MapId = state.MapId,
-                EventDeckSeed = state.EventDeckSeed,
-                Players = state.Players,
-                Decks = state.Decks,
-                PendingChoice = state.PendingChoice,
-                PendingCardSession = state.PendingCardSession,
-                FinalScoring = state.FinalScoring,
-                Logs = state.Logs,
-                Map = new MapRuntimeState
-                {
-                    OpenLocationIds = state.Map.OpenLocationIds,
-                    ResourceTokens = state.Map.ResourceTokens,
-                    RoadRouteIds = state.Map.RoadRouteIds,
-                    RemovedFromGameCardIds = state.Map.RemovedFromGameCardIds,
-                    Facilities = state.Map.Facilities
-                }
-            };
-
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var influence = state.Map.Influences[i];
-                projection.Map.Influences.Add(new InfluencePlacement
-                {
-                    PlayerId = influence.PlayerId,
-                    SlotId = influence.SlotId,
-                    LocationId = influence.LocationId,
-                    RouteId = influence.RouteId
-                });
-            }
-
-            return projection;
+            return GameStateCloneService.DeepClone(state);
         }
 
         private static void ApplySlotFromId(InfluencePlacement placement, string slotId)

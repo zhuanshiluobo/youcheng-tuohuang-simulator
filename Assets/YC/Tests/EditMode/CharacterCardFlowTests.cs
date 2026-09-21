@@ -74,7 +74,9 @@ namespace YC.Tests.EditMode
             };
             var map = StaticMapDefinitions.CreateFourPlayerMap();
             var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, seats, map.MapId, 17);
-            var setup = new SetupCommandHandler(new MapQueryService(map));
+            // 此测试隔离盖牌流程；无标记入场及事件交互由 PlayerEntranceMainlineTests 覆盖。
+            state.Map.ResourceTokens.Add(new ResourceTokenState { LocationId = "G-01", ResourceType = ResourceType.Iron, Amount = 1 });
+            var setup = PlayerEntranceMainlineTests.Handler(new MapQueryService(map));
 
             var entrance = setup.Handle(state, new GameCommand
             {
@@ -89,7 +91,7 @@ namespace YC.Tests.EditMode
             var cardId = state.FindPlayer(1).HandCardIds[0];
             var cover = new CoverCharacterCardCommandHandler().Handle(state, CoverCommand(1, cardId));
 
-            Assert.That(cover.Succeeded, Is.True);
+            Assert.That(cover.Succeeded, Is.True, cover.Validation == null ? string.Empty : cover.Validation.Reason);
             Assert.That(state.FindPlayer(1).CoveredCharacterCardId, Is.EqualTo(cardId));
             Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
             Assert.That(state.ActionRound, Is.EqualTo(1));
@@ -221,12 +223,22 @@ namespace YC.Tests.EditMode
             Assert.That(player.DiscardCardIds, Is.EqualTo(new[] { cardId }));
             Assert.That(player.UsedCharacterThisRound, Is.True);
 
-            state.Phase = GamePhase.Cleanup;
-            state.Round = 1;
-            state.MaxRounds = 8;
-            var cleanup = new RoundAdvanceService().EndCompletedAction(state, state.StartPlayerId);
-
-            Assert.That(cleanup.IsValid, Is.True);
+            var round = new RoundExecutionService();
+            for (int i = 0; i < 4 && (state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2); i++)
+            {
+                var action = round.CompleteMainAction(state, state.CurrentPlayerId);
+                Assert.That(action.IsValid, Is.True, action.Reason);
+            }
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ResourceCollection));
+            for (int i = 0; i < state.Players.Count; i++)
+            {
+                var participant = state.Players[i];
+                participant.HasCollectedResourcesThisRound = true;
+                var cleanup = round.CompleteResourceCollection(state, participant.PlayerId);
+                Assert.That(cleanup.IsValid, Is.True, cleanup.Reason);
+            }
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
+            player = state.FindPlayer(1);
             Assert.That(player.HandCardIds, Does.Not.Contain(cardId));
             Assert.That(player.DiscardCardIds, Is.EqualTo(new[] { cardId }));
             Assert.That(player.UsedCharacterThisRound, Is.False);
@@ -479,7 +491,8 @@ namespace YC.Tests.EditMode
         public void Cleanup_ReturnsUnusedCoveredCardAndDiscard_ThenEntersCharacterCover()
         {
             var state = CreateCoverState();
-            state.Phase = GamePhase.Cleanup;
+            state.Phase = GamePhase.ActionRound2;
+            state.ActionRound = 2;
             state.Round = 1;
             state.MaxRounds = 8;
             var player = state.FindPlayer(1);
@@ -490,9 +503,22 @@ namespace YC.Tests.EditMode
             player.CoveredCharacterCardId = covered;
             player.DiscardCardIds.Add(discarded);
 
-            var result = new RoundAdvanceService().EndCompletedAction(state, state.StartPlayerId);
-
-            Assert.That(result.IsValid, Is.True);
+            state.CurrentPlayerId = state.StartPlayerId;
+            var round = new RoundExecutionService();
+            for (int i = 0; i < state.Players.Count; i++)
+            {
+                var action = round.CompleteMainAction(state, state.CurrentPlayerId);
+                Assert.That(action.IsValid, Is.True, action.Reason);
+            }
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ResourceCollection));
+            for (int i = 0; i < state.Players.Count; i++)
+            {
+                var participant = state.Players[i];
+                participant.HasCollectedResourcesThisRound = true;
+                var collection = round.CompleteResourceCollection(state, participant.PlayerId);
+                Assert.That(collection.IsValid, Is.True, collection.Reason);
+            }
+            player = state.FindPlayer(1);
             Assert.That(player.HandCardIds, Does.Contain(covered));
             Assert.That(player.HandCardIds, Does.Contain(discarded));
             Assert.That(player.DiscardCardIds, Is.Empty);

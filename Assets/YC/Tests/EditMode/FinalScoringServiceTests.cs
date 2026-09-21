@@ -121,7 +121,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void EndAction_WhenCleanupEntersFinalScoring_ResolvesFinalScoresInApplicationLayer()
+        public void Mainline_WhenCleanupEntersFinalScoring_ResolvesFinalScores()
         {
             var state = CreateFinalState();
             state.Phase = GamePhase.Cleanup;
@@ -131,15 +131,13 @@ namespace YC.Tests.EditMode
             state.CurrentPlayerId = 1;
             state.FindPlayer(1).Score = 4;
             state.FindPlayer(1).Resources.PureOriginium = 2;
-            var handler = new EndActionCommandHandler(new RoundAdvanceService(), CreateService());
+            var turnOrder = new TurnOrderService();
+            var round = new RoundExecutionService(turnOrder, new YC.Domain.Cards.CharacterCardService(turnOrder),
+                new MainActionBudgetService(), new YC.Domain.SpecialActions.SpecialActionLifecycleService(),
+                new YC.Domain.Effects.EffectRegistry(), null, CreateService());
+            RoundLifecycleTestDriver.EnterCollection(state, round);
+            RoundLifecycleTestDriver.FinishCollection(state, round);
 
-            var result = handler.Handle(state, new GameCommand
-            {
-                Kind = GameCommandKind.EndAction,
-                PlayerId = 1
-            });
-
-            Assert.That(result.Succeeded, Is.True);
             Assert.That(state.Phase, Is.EqualTo(GamePhase.FinalScoring));
             Assert.That(state.FinalScoring, Is.Not.Null);
             Assert.That(GetPlayerScore(state, 1).TotalScore, Is.EqualTo(6));

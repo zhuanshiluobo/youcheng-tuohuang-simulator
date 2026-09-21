@@ -2,6 +2,7 @@ using NUnit.Framework;
 using YC.Application.Setup;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
+using YC.Domain.Effects;
 using YC.Domain.Facilities;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -30,7 +31,7 @@ namespace YC.Tests.EditMode
             Assert.That(state.Players, Has.All.Matches<PlayerState>(player => player.HasScoreTrackMarker));
             Assert.That(state.Players, Has.All.Matches<PlayerState>(player => player.InfluenceSupply == 29));
             Assert.That(result.Events, Has.Count.GreaterThanOrEqualTo(1));
-            Assert.That(result.LogMessage, Does.Contain("start player"));
+            Assert.That(result.LogMessage, Does.Contain("起始玩家"));
         }
 
         [Test]
@@ -71,8 +72,7 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(1).CityLocationId, Is.EqualTo("city-a"));
             Assert.That(state.Map.OpenLocationIds, Does.Contain("city-a"));
             AssertCoreCommandTowerPlaced(state, 1);
-            Assert.That(result.Events, Has.Count.GreaterThanOrEqualTo(1));
-            Assert.That(result.LogMessage, Does.Contain("city-a"));
+            Assert.That(state.EffectRuntime.RuleEvents.Exists(e => e.EventType == PlayerEntranceEffectExecutor.EventType && e.TargetEntityId == "city-a"), Is.True);
         }
 
         [Test]
@@ -119,6 +119,7 @@ namespace YC.Tests.EditMode
         public void ChooseInitialLocation_OnFourPlayerMap_WithAllowedEntranceLocation_Succeeds()
         {
             var state = CreateState(GamePhase.Entrance);
+            state.Map.ResourceTokens.Add(new ResourceTokenState { LocationId = "G-01", ResourceType = ResourceType.Iron, Amount = 1 });
             var handler = CreateFourPlayerHandler();
 
             var result = handler.Handle(state, new GameCommand
@@ -239,25 +240,22 @@ namespace YC.Tests.EditMode
         public void ResolveEntranceEvent_WithValidOption_GrantsRewardAndAdvancesEntrance()
         {
             var state = CreateFourPlayerState(GamePhase.Entrance);
+            state.Map.ResourceTokens.Clear();
             state.StartPlayerId = 1;
             state.CurrentPlayerId = 1;
             state.Decks.EventDeckGreen.Add("event_green_01");
             var handler = CreateFourPlayerHandler();
 
             var placeResult = handler.Handle(state, InitialLocationCommand(1, "G-01"));
-            Assert.That(state.PendingCardSession, Is.Not.Null);
-            Assert.That(state.PendingCardSession.ChoiceType, Is.EqualTo("entrance_event"));
-            Assert.That(state.PendingCardSession.CardId, Is.EqualTo("event_green_01"));
-            Assert.That(state.PendingCardSession.TargetId, Is.EqualTo("G-01"));
-            state.PendingChoice = null;
+            Assert.That(state.PendingCardSession, Is.Null);
+            Assert.That(state.PendingChoice, Is.Null);
+            Assert.That(state.EffectRuntime.InteractionRequests.Exists(r => r.Status == "open" && r.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId), Is.True);
 
             var resolveResult = handler.Handle(state, EntranceEventCommand(1, "0"));
 
             Assert.That(placeResult.Succeeded, Is.True);
-            Assert.That(placeResult.Events[1].Message, Does.Contain("中立采石场"));
-            Assert.That(placeResult.Events[1].Data["cardName"], Is.EqualTo("中立采石场"));
             Assert.That(resolveResult.Succeeded, Is.True);
-            Assert.That(resolveResult.LogMessage, Does.Contain("中立采石场"));
+            Assert.That(state.EffectRuntime.RuleEvents.Exists(e => e.EventType == EventCardEffectEventTypeIds.Resolved && e.RouteKey == "event_green_01"), Is.True);
             Assert.That(state.PendingChoice, Is.Null);
             Assert.That(state.PendingCardSession, Is.Null);
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(3));
@@ -301,6 +299,7 @@ namespace YC.Tests.EditMode
         public void ResolveEntranceEvent_WithInvalidOption_FailsWithoutGrantingReward()
         {
             var state = CreateFourPlayerState(GamePhase.Entrance);
+            state.Map.ResourceTokens.Clear();
             state.StartPlayerId = 1;
             state.CurrentPlayerId = 1;
             state.Decks.EventDeckGreen.Add("event_green_01");
@@ -311,19 +310,19 @@ namespace YC.Tests.EditMode
 
             Assert.That(result.Succeeded, Is.False);
             Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
-            Assert.That(state.PendingChoice, Is.Not.Null);
+            Assert.That(state.EffectRuntime.InteractionRequests.Exists(r => r.Status == "open" && r.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId), Is.True);
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.Zero);
             Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
         }
 
         private static SetupCommandHandler CreateHandler()
         {
-            return new SetupCommandHandler(new MapQueryService(StaticMapDefinitions.CreateThreePlayerPlaceholder()));
+            return PlayerEntranceMainlineTests.Handler(new MapQueryService(StaticMapDefinitions.CreateThreePlayerPlaceholder()));
         }
 
         private static SetupCommandHandler CreateFourPlayerHandler()
         {
-            return new SetupCommandHandler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
+            return PlayerEntranceMainlineTests.Handler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
         }
 
         private static GameState CreateState(GamePhase phase)
@@ -351,9 +350,10 @@ namespace YC.Tests.EditMode
 
         private static GameState CreateFourPlayerState(GamePhase phase)
         {
-            return new GameState
+            var state = new GameState
             {
                 Phase = phase,
+                MapId = StaticMapDefinitions.FourPlayerMapId,
                 Players =
                 {
                     new PlayerState
@@ -382,6 +382,10 @@ namespace YC.Tests.EditMode
                     }
                 }
             };
+            // 顺序/开局金券测试使用已有资源点；抽牌测试会显式清空这些标记。
+            foreach (string location in StaticMapDefinitions.FourPlayerInitialLocationIds)
+                state.Map.ResourceTokens.Add(new ResourceTokenState { LocationId = location, ResourceType = ResourceType.Iron, Amount = 1 });
+            return state;
         }
 
         private static GameCommand InitialLocationCommand(int playerId, string locationId)

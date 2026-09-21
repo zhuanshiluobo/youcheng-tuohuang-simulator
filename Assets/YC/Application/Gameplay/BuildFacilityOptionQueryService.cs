@@ -120,6 +120,14 @@ namespace YC.Application.Gameplay
             return Query(state, playerId, facilityId, false);
         }
 
+        public IReadOnlyList<int> GetLegalReserveBuildSlots(GameState state, int playerId, string facilityId)
+        {
+            var slots = new List<int>();
+            for (int i = 0; i < BuildFacilityService.CityBoardSlotCount; i++)
+                if (buildFacilityService.ValidateReserveBuild(state, playerId, facilityId, i).IsValid) slots.Add(i);
+            return slots.AsReadOnly();
+        }
+
         private BuildFacilityOptionQueryResult Query(
             GameState state,
             int playerId,

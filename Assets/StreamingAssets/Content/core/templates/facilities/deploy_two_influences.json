@@ -1,0 +1,36 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "护航调度中心",
+    "color": "red",
+    "score": 0,
+    "resourceCost": {
+      "originium": 2,
+      "originiumShard": 2,
+      "iron": 2,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 18,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry"
+    ],
+    "effectId": "deploy_two_influences",
+    "effectType": "entry",
+    "description": "“虽不及高多汀开拓军的前人来得谨慎，但这些新人拓荒者们勇气尚可。”",
+    "effectText": "入场时，部署 2 个影响力。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/deploy_two.lua"
+  }
+}

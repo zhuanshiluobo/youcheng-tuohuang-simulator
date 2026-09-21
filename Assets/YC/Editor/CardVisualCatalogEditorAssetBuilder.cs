@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -141,9 +141,9 @@ namespace YC.Editor
         {
             var result = new List<CardVisualCatalog.IdTextureEntry>(
                 CardVisualCatalog.ExpectedEventCount);
-            AddEventEntries(result, EventCardDatabase.GreenCardIds);
-            AddEventEntries(result, EventCardDatabase.RedCardIds);
-            AddEventEntries(result, EventCardDatabase.YellowCardIds);
+            AddEventEntries(result, EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Green));
+            AddEventEntries(result, EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Red));
+            AddEventEntries(result, EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Yellow));
             if (result.Count != CardVisualCatalog.ExpectedEventCount)
             {
                 throw new InvalidOperationException(

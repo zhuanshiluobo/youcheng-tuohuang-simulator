@@ -86,6 +86,18 @@ namespace YC.Presentation.Workflows
             return Route(interaction => interaction.OnEscape());
         }
 
+        // 提示仲裁只读查询；不执行过期交互清理，避免清理回调重入提示入口。
+        public string GetPendingPrompt()
+        {
+            foreach (var registration in registrations)
+            {
+                if (registration.Priority != InteractionPriority.PendingResolution || !registration.Interaction.IsActive) continue;
+                var presentation = registration.Interaction.BuildPresentation();
+                if (presentation != null && !string.IsNullOrEmpty(presentation.PromptText)) return presentation.PromptText;
+            }
+            return string.Empty;
+        }
+
         public InteractionPresentation BuildActivePresentation()
         {
             // 待结算弹窗的清理不能被 Busy 提前返回截断。

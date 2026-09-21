@@ -55,11 +55,12 @@ namespace YC.Application.Sessions
 
         private static void PrepareState(GameState state, PlayerState player)
         {
-            state.Round = Math.Max(1, state.Round);
-            state.Phase = GamePhase.ActionRound1;
-            state.ActionRound = 1;
-            state.StartPlayerId = player.PlayerId;
-            state.CurrentPlayerId = player.PlayerId;
+            var roundExecution = new RoundExecutionService();
+            var prepare = roundExecution.PrepareActionWindowForSmoke(state, player.PlayerId);
+            if (!prepare.IsValid)
+            {
+                throw new InvalidOperationException(prepare.Reason);
+            }
             state.PendingChoice = null;
             state.PendingCardSession = null;
 

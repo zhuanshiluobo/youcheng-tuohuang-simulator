@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using YC.Domain.Cards;
 using YC.Domain.CardFlows;
@@ -87,6 +87,12 @@ namespace YC.Domain.Movement
                 sourceCommandId,
                 false,
                 false);
+        }
+
+        /// <summary>Effect 内部校验普通移动规则；预算由外层行动支付，不把当前交互当成外部阻塞。</summary>
+        public ValidationResult CanMoveCityEffect(GameState state, int playerId, string targetLocationId, bool waiveBaseCost)
+        {
+            return CanMoveCityCore(state, playerId, targetLocationId, -1, null, true, waiveBaseCost);
         }
 
         public ValidationResult CanMoveCityForFacility(

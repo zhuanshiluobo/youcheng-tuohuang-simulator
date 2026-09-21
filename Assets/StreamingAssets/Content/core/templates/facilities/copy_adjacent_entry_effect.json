@@ -1,0 +1,37 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "附属能源设施",
+    "color": "rainbow",
+    "score": 1,
+    "resourceCost": {
+      "originium": 2,
+      "originiumShard": 2,
+      "iron": 3,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 23,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry",
+      "unique"
+    ],
+    "effectId": "copy_adjacent_entry_effect",
+    "effectType": "entry",
+    "description": "通过源源不断的能源供应，移动城市上的设施日以继夜地运作着，一刻不停。",
+    "effectText": "唯一；选择一个十字相邻的非彩色设施，结算其入场效果。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": true,
+    "uniqueGroupId": "附属能源设施",
+    "effectScript": "lua/facilities/copy_adjacent_entry.lua"
+  }
+}

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using YC.Domain.Facilities;
 
@@ -13,13 +13,9 @@ namespace YC.Presentation
 
         private void Awake()
         {
-            if (!TryValidateConfiguration(out var reason))
-            {
-                Debug.LogError("[FacilityCatalogBootstrap] " + reason, this);
-                throw new InvalidOperationException("FacilityCatalogBootstrap 初始化失败：" + reason);
-            }
 
-            FacilityCardDatabase.Initialize(facilityCardCatalog.CreateDefinitions());
+
+            FacilityCardDatabase.InitializeExternal(ExternalContentRuntime.Pack.CreateFacilities());
         }
 
         public bool TryValidateConfiguration(out string reason)

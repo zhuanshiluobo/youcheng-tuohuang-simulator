@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_yellow_03",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "荒地人村落",
+  "artwork": "artwork/event/event_yellow_03.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_yellow_03",
+    "name": "荒地人村落",
+    "description": "荒地人对待拓荒者的态度有好有坏，而勘测队眼前的这群显然是友善的。他们愿意拿自己的劳动力换取车队携带的补给品，更有人愿意用源石矿的位置来作为交易的筹码，真是很会变通。",
+    "color": 1,
+    "resourceType": 0,
+    "resourceAmount": 1,
+    "representativeResourceType": 0,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "换取荒地人的服务：获得 3 源岩、1 异铁",
+      "你找到的源石矿储量不多，不过多少有点收获：获得 4 源石碎片"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 3,
+        "originiumShard": 0,
+        "iron": 1,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 4,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

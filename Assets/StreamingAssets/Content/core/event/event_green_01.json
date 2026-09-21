@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_green_01",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "中立采石场",
+  "artwork": "artwork/event/event_green_01.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_green_01",
+    "name": "中立采石场",
+    "description": "带着补给的武装车队旁若无人地驶入了这座早期勘探队伍建立的采石场。“我们只效劳于金券，不会效忠于任何当地竞争者！”这座采石场的领导者向你的人马喊道。",
+    "color": 0,
+    "resourceType": 0,
+    "resourceAmount": 1,
+    "representativeResourceType": 0,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "“我们只是过来兑换一些燃料，并谈谈生意”：获得 3 源石碎片",
+      "“今天起这里不再由你说了算了”：获得 2 异铁、2 金券"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 0,
+        "originiumShard": 3,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 2,
+        "pureOriginium": 0,
+        "goldVoucher": 2
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

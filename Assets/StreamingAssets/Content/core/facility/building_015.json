@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_015",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "城市化区域",
+  "artwork": "artwork/facility/building_015.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_015",
+    "manifestId": "building_015"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/gain_gold_per_core_adjacent_facility.json"
+}

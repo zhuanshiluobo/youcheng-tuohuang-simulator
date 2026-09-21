@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -521,9 +521,8 @@ namespace YC.Presentation
                          candidate.CanDragForSpecialAction);
                     if (!sameGroup) continue;
                     var source = pair.Key;
-                    var ghostObject = new GameObject("影响力拖动组成员", typeof(RectTransform), typeof(Image));
-                    var image = ghostObject.GetComponent<Image>();
-                    image.transform.SetParent(specialActionDragGhost, false);
+                    var image = FacilityCardDragUtility.CreateDragMemberImage(specialActionDragGhost);
+                    image.gameObject.name = "影响力拖动组成员";
                     image.rectTransform.sizeDelta = source.rectTransform.rect.size;
                     image.rectTransform.anchoredPosition =
                         canvasRect.InverseTransformPoint(source.transform.position) -
@@ -616,35 +615,9 @@ namespace YC.Presentation
                 return;
             }
 
-            if (markerModel.SpecialActionId == SpecialActionDatabase.CompositePowerSystem)
-            {
-                ShowCompositePowerPayment(markerModel);
-                return;
-            }
-
-            TrySubmitSpecialActionFromMarker(markerModel, 0, 0);
-        }
-
-        private void ShowCompositePowerPayment(CityStyleMarkerViewModel markerModel)
-        {
-            specialActionPaymentDialog.ShowCompositePayment(
-                markerModel.MaximumOriginiumPayment,
-                markerModel.MaximumIronPayment,
-                values =>
-                {
-                    if (values == null || values.Count < 2)
-                    {
-                        return;
-                    }
-
-                    TrySubmitSpecialActionFromMarker(markerModel, values[0], values[1]);
-                },
-                () => CancelCompositePowerPayment(markerModel));
-            if (specialActionHintText != null)
-            {
-                specialActionHintText.text = "请选择源岩与异铁的支付组合；取消会返回样式卡预览。";
-                specialActionHintText.color = UiTheme.GoldText;
-            }
+            // 支付选择属于主链中 Condition 的左 Effect，由权威交互请求唤起原支付弹窗。
+            int amount = markerModel.SpecialActionId == SpecialActionDatabase.CompositePowerSystem ? -1 : 0;
+            TrySubmitSpecialActionFromMarker(markerModel, amount, amount);
         }
 
         private void CancelCompositePowerPayment(CityStyleMarkerViewModel markerModel)

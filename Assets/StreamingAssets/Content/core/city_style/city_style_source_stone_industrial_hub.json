@@ -1,0 +1,104 @@
+{
+  "definitionId": "city_style_source_stone_industrial_hub",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "源石工业中枢",
+  "artwork": "artwork/city_style/city_style_source_stone_industrial_hub.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cityStyleId": "city_style_source_stone_industrial_hub",
+    "name": "源石工业中枢",
+    "level": 2,
+    "score": 6,
+    "description": "3 行阶梯布局：上方蓝色；中间红色 + 蓝色；下方黄色 + 黄色 + 红色。",
+    "maxDeclarationsPerPlayer": 2,
+    "specialActionId": "special_action.city_style.source_stone_industrial_hub",
+    "declarationReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 6,
+      "requiredEffectTypes": [],
+      "requiredResourceTypes": [],
+      "requiredCityBoardSlotIndexes": [],
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        },
+        {
+          "rowOffset": 2,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 2,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 2,
+          "columnOffset": 2,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        }
+      ],
+      "requireSameCityBoardRow": 0
+    },
+    "specialAction": {
+      "specialActionId": "special_action.city_style.source_stone_industrial_hub",
+      "cityStyleId": "city_style_source_stone_industrial_hub",
+      "name": "源石工业中枢",
+      "description": "支付 6 金券，本玩家行动轮获得至多 2 次额外主要行动。",
+      "level": 2,
+      "effectKind": 3,
+      "fixedCost": {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 6
+      },
+      "flexibleOriginiumAndIronCost": 0,
+      "maximumTargetCount": 0,
+      "freeMoveCount": 0,
+      "extraMainActionCount": 2,
+      "locksCharacterCard": 1
+    },
+    "effectScript": "lua/city_styles/source_stone_industrial_hub.lua",
+    "luaSubscriptionId": "city-styles.source-stone",
+    "luaAbilityId": "city_styles.source_stone",
+    "luaCompletionHandlerId": "",
+    "luaVersion": "1.0.0"
+  },
+  "expansionId": "core",
+  "replaces": null
+}

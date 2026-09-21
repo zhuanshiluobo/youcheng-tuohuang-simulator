@@ -8,33 +8,41 @@ namespace YC.Tests.EditMode
 {
     public sealed class ScoreTrackRefreshingCommandPortTests
     {
-        [TestCase(GameCommandKind.ExploreLocation)]
-        [TestCase(GameCommandKind.BuildFacility)]
-        [TestCase(GameCommandKind.UseCharacterCard)]
-        public void Submit_LocalSuccessfulCardScoreChange_RefreshesScoreTrackImmediately(
-            GameCommandKind commandKind)
+        [Test]
+        public void Submit_LocalSuccessfulCardScoreChange_RefreshesScoreTrackImmediately()
         {
-            var context = CreateContext();
-            var refreshCount = 0;
-            var inner = new FakeCommandPort(command =>
-            {
-                context.State.FindPlayer(1).Score += 1;
-                return SucceededLocally();
-            });
-            var port = new ScoreTrackRefreshingCommandPort(
-                context,
-                inner,
-                () => refreshCount += 1);
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    GameCommandKind.ExploreLocation,
+                    GameCommandKind.BuildFacility,
+                    GameCommandKind.UseCharacterCard
+                },
+                commandKind =>
+                {
+                    var context = CreateContext();
+                    var refreshCount = 0;
+                    var inner = new FakeCommandPort(command =>
+                    {
+                        context.State.FindPlayer(1).Score += 1;
+                        return SucceededLocally();
+                    });
+                    var port = new ScoreTrackRefreshingCommandPort(
+                        context,
+                        inner,
+                        () => refreshCount += 1);
 
-            var result = port.Submit(new GameCommand
-            {
-                Kind = commandKind,
-                PlayerId = 1
-            });
+                    var result = port.Submit(new GameCommand
+                    {
+                        Kind = commandKind,
+                        PlayerId = 1
+                    });
 
-            Assert.That(result.CommandResult.Succeeded, Is.True);
-            Assert.That(context.State.FindPlayer(1).Score, Is.EqualTo(1));
-            Assert.That(refreshCount, Is.EqualTo(1));
+                    Assert.That(result.CommandResult.Succeeded, Is.True, commandKind.ToString());
+                    Assert.That(context.State.FindPlayer(1).Score, Is.EqualTo(1), commandKind.ToString());
+                    Assert.That(refreshCount, Is.EqualTo(1), commandKind.ToString());
+                },
+                commandKind => commandKind.ToString());
         }
 
         [Test]

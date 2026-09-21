@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.State;
 
 namespace YC.Domain.Facilities
@@ -39,8 +40,11 @@ namespace YC.Domain.Facilities
         private static bool injectedDefinitions;
 
         public static bool IsInitialized => injectedDefinitions;
+        public static IReadOnlyList<FacilityCardDefinition> All { get { EnsureInitialized(); return Definitions.Values.Select(CloneInjectedDefinition).ToList().AsReadOnly(); } }
 
-        public static void Initialize(IEnumerable<FacilityCardDefinition> sourceDefinitions)
+        public static void Initialize(IEnumerable<FacilityCardDefinition> sourceDefinitions) => InitializeCore(sourceDefinitions, false);
+        public static void InitializeExternal(IEnumerable<FacilityCardDefinition> sourceDefinitions) => InitializeCore(sourceDefinitions, true);
+        private static void InitializeCore(IEnumerable<FacilityCardDefinition> sourceDefinitions, bool external)
         {
             if (sourceDefinitions == null)
             {
@@ -50,16 +54,21 @@ namespace YC.Domain.Facilities
             var next = new Dictionary<string, FacilityCardDefinition>(StringComparer.Ordinal);
             foreach (var source in sourceDefinitions)
             {
-                ValidateInjectedDefinition(source);
+                ValidateInjectedDefinition(source, external);
                 if (next.ContainsKey(source.FacilityId))
                 {
                     throw new InvalidOperationException("设施目录包含重复 ID：" + source.FacilityId);
                 }
 
-                next.Add(source.FacilityId, CloneInjectedDefinition(source));
+                var normalized = CloneInjectedDefinition(source);
+                // 旧内置资产的兼容迁移；外部内容必须显式声明通用费用修正。
+                if (!external && source.EffectId == FacilityCardEffectIds.DiscountOriginiumByFacilityColor)
+                    normalized.CostReductionPerDistinctBuiltColor.Originium = 1;
+                next.Add(source.FacilityId, normalized);
             }
 
-            ValidateInjectedDefinitionSet(next);
+            if (!external) ValidateInjectedDefinitionSet(next);
+            if (next.Count == 0) throw new InvalidOperationException("设施目录不能为空。");
             if (injectedDefinitions)
             {
                 if (InjectedDefinitionSetsEqual(Definitions, next))
@@ -76,8 +85,8 @@ namespace YC.Domain.Facilities
                 Definitions.Add(pair.Key, pair.Value);
             }
 
-            defaultSupplyIds = BuildDefaultSupplyIds(next);
-            reserveIds = BuildReserveIds(next);
+            defaultSupplyIds = external ? next.Values.Where(d => !d.ReserveOnly && d.DefaultSupply > 0).Select(d => d.FacilityId).ToList().AsReadOnly() : BuildDefaultSupplyIds(next);
+            reserveIds = external ? next.Values.Where(d => d.ReserveOnly).Select(d => d.FacilityId).ToList().AsReadOnly() : BuildReserveIds(next);
             injectedDefinitions = true;
         }
 
@@ -223,7 +232,7 @@ namespace YC.Domain.Facilities
             }
         }
 
-        private static void ValidateInjectedDefinition(FacilityCardDefinition definition)
+        private static void ValidateInjectedDefinition(FacilityCardDefinition definition, bool external = false)
         {
             if (definition == null)
             {
@@ -267,7 +276,7 @@ namespace YC.Domain.Facilities
                 throw new InvalidOperationException(definition.FacilityId + " 的唯一设施字段未由关键词稳定推导。");
             }
 
-            if (!KnownEffectIds.Contains(definition.EffectId))
+            if (!external && !KnownEffectIds.Contains(definition.EffectId))
             {
                 throw new InvalidOperationException(
                     definition.FacilityId + " 使用未知 effectId：" + definition.EffectId);
@@ -280,7 +289,14 @@ namespace YC.Domain.Facilities
                     definition.FacilityId + " 的 HasEntryEffect 与 entry 关键词不一致。");
             }
 
-            ValidateOnBuiltRewardContract(definition);
+            if (!external) ValidateOnBuiltRewardContract(definition);
+            if (definition.CostReductionPerDistinctBuiltColor == null) throw new InvalidOperationException("设施费用修正不能为空。");
+            foreach (YC.Domain.Rules.ResourceType resource in Enum.GetValues(typeof(YC.Domain.Rules.ResourceType)))
+            {
+                int reduction = definition.CostReductionPerDistinctBuiltColor.Get(resource);
+                if (reduction < 0 || reduction > 99) throw new InvalidOperationException("设施颜色费用修正必须在 0 至 99 之间。");
+            }
+            if (definition.DefaultSupply < 0 || definition.DefaultSupply > 1) throw new InvalidOperationException("每个设施实体的 defaultSupply 只能为 0 或 1。");
         }
 
         private static readonly HashSet<string> KnownEffectIds = new HashSet<string>(StringComparer.Ordinal)
@@ -351,6 +367,7 @@ namespace YC.Domain.Facilities
                 Color = source.Color,
                 Score = source.Score,
                 ResourceCost = source.ResourceCost.Clone(),
+                CostReductionPerDistinctBuiltColor = source.CostReductionPerDistinctBuiltColor?.Clone() ?? new ResourceSet(),
                 GoldVoucherCost = source.GoldVoucherCost,
                 Unique = source.Unique,
                 UniqueGroupId = source.UniqueGroupId,
@@ -361,6 +378,7 @@ namespace YC.Domain.Facilities
                 Description = source.Description,
                 EffectText = source.EffectText,
                 ReserveOnly = source.ReserveOnly,
+                DefaultSupply = source.DefaultSupply,
                 OnBuiltReward = source.OnBuiltReward.Clone()
             };
         }
@@ -398,6 +416,7 @@ namespace YC.Domain.Facilities
                 left.Description != right.Description || left.EffectText != right.EffectText ||
                 left.ReserveOnly != right.ReserveOnly ||
                 !InjectedResourceSetsEqual(left.ResourceCost, right.ResourceCost) ||
+                !InjectedResourceSetsEqual(left.CostReductionPerDistinctBuiltColor, right.CostReductionPerDistinctBuiltColor) ||
                 !InjectedResourceSetsEqual(left.OnBuiltReward, right.OnBuiltReward) ||
                 left.Keywords.Count != right.Keywords.Count)
             {

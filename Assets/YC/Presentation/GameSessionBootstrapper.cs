@@ -1,19 +1,23 @@
-using YC.Application.Gameplay;
+﻿using YC.Application.Gameplay;
+using YC.Application.Interactions;
 using YC.Application.Sessions;
 using YC.Application.Setup;
 using YC.Domain.Cards;
 using YC.Domain.CityStyles;
 using YC.Domain.Economy;
+using YC.Domain.Effects;
 using YC.Domain.Exploration;
 using YC.Domain.Facilities;
 using YC.Domain.Harvest;
 using YC.Domain.Influence;
+using YC.Domain.Interactions;
 using YC.Domain.Maps;
 using YC.Domain.Movement;
 using YC.Domain.Rules;
 using YC.Domain.Scoring;
 using YC.Domain.SpecialActions;
 using YC.Domain.State;
+using YC.Infrastructure.Lua;
 using UnityEngine;
 
 namespace YC.Presentation
@@ -66,21 +70,17 @@ namespace YC.Presentation
 
             eventDeckService.InitializeDecks(
                 state.Decks,
-                EventCardDatabase.GreenCardIds,
-                EventCardDatabase.YellowCardIds,
-                EventCardDatabase.RedCardIds,
+                EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Green),
+                EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Yellow),
+                EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Red),
                 mapQuery.Map.MapId == StaticMapDefinitions.ThreePlayerMapId ? 3 : 4);
 
             var resourceTokenService = new ResourceTokenService();
             var session = new GameSession(state);
-            session.RegisterHandler(new SetupCommandHandler(
-                mapQuery,
-                eventDeckService,
-                resourceTokenService,
-                new TurnOrderService()));
             var influenceService = new InfluenceService(mapQuery);
-            session.RegisterHandler(new DeployInfluenceCommandHandler(influenceService));
-            session.RegisterHandler(new DispatchInfluenceCommandHandler(influenceService));
+            var effectRegistry = new EffectRegistry();
+            InfluenceEffectExecutor.Register(effectRegistry, influenceService);
+            ResourceEffectExecutor.Register(effectRegistry);
 
             var travelCostService = new TravelCostService(mapQuery);
             var movementService = new CityMovementService(
@@ -89,23 +89,55 @@ namespace YC.Presentation
                 travelCostService,
                 eventDeckService,
                 resourceTokenService);
+            CityMoveEffectExecutor.Register(
+                effectRegistry,
+                mapQuery,
+                influenceService,
+                movementService,
+                travelCostService,
+                resourceTokenService);
             var mainActionBudgetService = new MainActionBudgetService();
             var specialActionLifecycleService = new SpecialActionLifecycleService();
-            var moveCityCommandHandler = new MoveCityCommandHandler(movementService);
+            var resourceSaleService = new ResourceSaleService();
+            var turnOrderService = new TurnOrderService();
+            var characterCardService = new CharacterCardService(
+                turnOrderService,
+                resourceSaleService,
+                mapQuery,
+                influenceService,
+                movementService);
+            var roundExecutionService = new RoundExecutionService(
+                turnOrderService,
+                characterCardService,
+                mainActionBudgetService,
+                specialActionLifecycleService,
+                effectRegistry,
+                null,
+                new FinalScoringService(mapQuery));
+            var roundAdvanceService = new RoundAdvanceService(roundExecutionService);
+            session.RegisterHandler(new DeployInfluenceCommandHandler(influenceService, roundAdvanceService, effectRegistry));
+            session.RegisterHandler(new DispatchInfluenceCommandHandler(influenceService, roundAdvanceService, effectRegistry));
+            var moveCityCommandHandler = new MoveCityCommandHandler(
+                movementService,
+                roundAdvanceService,
+                effectRegistry);
             var specialActionOptionQuery = new SpecialActionOptionQueryService(
                 mapQuery,
                 influenceService,
                 movementService,
                 specialActionLifecycleService,
                 mainActionBudgetService);
-            var specialActionService = new SpecialActionService(
+            var candidatePolicies = new CandidatePolicyRegistry();
+            CityStyleSpecialActionEffectExecutor.Register(
+                effectRegistry,
                 specialActionOptionQuery,
-                specialActionLifecycleService,
+                candidatePolicies,
+                mapQuery,
                 influenceService,
-                new FacilityInfluenceEffectService(influenceService),
-                mainActionBudgetService);
+                movementService);
+            CityStyleLuaCatalog.Register(effectRegistry);
             session.RegisterHandler(new UseSpecialActionCommandHandler(
-                specialActionService,
+                effectRegistry,
                 specialActionOptionQuery,
                 moveCityCommandHandler));
             session.RegisterHandler(moveCityCommandHandler);
@@ -115,45 +147,57 @@ namespace YC.Presentation
                 influenceService,
                 eventDeckService,
                 resourceTokenService);
-            var exploreLocationCommandHandler = new ExploreLocationCommandHandler(explorationService);
+            ExplorationEffectExecutor.Register(
+                effectRegistry,
+                mapQuery,
+                explorationService,
+                eventDeckService,
+                resourceTokenService);
+            EventCardEffectExecutor.Register(
+                effectRegistry,
+                mapQuery,
+                influenceService,
+                eventDeckService,
+                resourceTokenService);
+            if (EventCardDatabase.IsInitialized)
+            {
+                EventCardLuaCatalog.Register(effectRegistry);
+            }
+            var exploreLocationCommandHandler = new ExploreLocationCommandHandler(
+                explorationService,
+                roundAdvanceService,
+                effectRegistry);
             session.RegisterHandler(exploreLocationCommandHandler);
-            var availabilityService = new FacilityEntryEffectAvailabilityService(
-                mapQuery,
-                influenceService,
-                movementService,
-                explorationService);
-            var entryEffectService = new FacilityEntryEffectService(availabilityService);
-            var buildFacilityService = new BuildFacilityService(
-                new FacilityEntryEffectResolver(entryEffectService));
-            var resourceSaleService = new ResourceSaleService();
-            session.RegisterHandler(new BuildFacilityCommandHandler(buildFacilityService, new RoundAdvanceService()));
-            session.RegisterHandler(new ResolveFacilityEffectCommandHandler(
+            FacilityEntryEffectExecutor.Register(effectRegistry);
+            FacilityLuaCatalog.Register(effectRegistry);
+            var buildFacilityService = BuildFacilityService.CreateForEffectTree();
+            session.RegisterHandler(new BuildFacilityCommandHandler(
                 buildFacilityService,
-                entryEffectService,
-                influenceService,
-                moveCityCommandHandler,
-                exploreLocationCommandHandler,
-                mapQuery,
-                resourceSaleService));
+                roundAdvanceService,
+                effectRegistry));
             session.RegisterHandler(new DeclareCityStyleCommandHandler(new DeclareCityStyleService()));
-            var turnOrderService = new TurnOrderService();
-            var characterCardService = new CharacterCardService(
-                turnOrderService,
-                resourceSaleService,
+            RoundStartedRedZoneRule.Register(effectRegistry, mapQuery);
+            CharacterCardLuaCatalog.Register(effectRegistry);
+            session.RegisterHandler(new SetupCommandHandler(
                 mapQuery,
-                influenceService,
-                movementService);
-            session.RegisterHandler(new CoverCharacterCardCommandHandler(characterCardService));
-            session.RegisterHandler(new UseCharacterCardCommandHandler(characterCardService));
+                eventDeckService,
+                resourceTokenService,
+                turnOrderService,
+                roundExecutionService));
+            session.RegisterHandler(new CoverCharacterCardCommandHandler(characterCardService, effectRegistry));
+            session.RegisterHandler(new UseCharacterCardCommandHandler(characterCardService, effectRegistry));
+            session.RegisterHandler(new AnswerInteractionCommandHandler(effectRegistry, roundExecutionService));
             session.RegisterHandler(new EndActionCommandHandler(
-                new RoundAdvanceService(
-                    turnOrderService,
-                    characterCardService,
-                    mainActionBudgetService,
-                    specialActionLifecycleService),
+                roundAdvanceService,
                 new FinalScoringService(mapQuery)));
             var resourceCollectionService = new ResourceCollectionService(mapQuery);
-            session.RegisterHandler(new CollectResourceCommandHandler(resourceCollectionService));
+            session.RegisterHandler(new CollectResourceCommandHandler(resourceCollectionService, roundAdvanceService));
+
+            if (session.State.Phase == GamePhase.Entrance)
+            {
+                var entrance = roundExecutionService.StartEntrance(session.State);
+                if (!entrance.IsValid) throw new System.InvalidOperationException(entrance.Reason);
+            }
 
             return new Result
             {

@@ -50,9 +50,11 @@ namespace YC.Domain.Influence
         {
             for (var i = 0; i < state.Map.Influences.Count; i++)
             {
-                if (state.Map.Influences[i].SlotId == slotId)
+                var placement = state.Map.Influences[i];
+                if (placement != null &&
+                    (placement.SlotId == slotId || InfluenceIdentity.GetStableId(state, placement) == slotId))
                 {
-                    return state.Map.Influences[i];
+                    return placement;
                 }
             }
 

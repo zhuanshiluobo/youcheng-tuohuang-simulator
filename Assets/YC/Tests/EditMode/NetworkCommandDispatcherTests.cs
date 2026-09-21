@@ -402,8 +402,17 @@ namespace YC.Tests.EditMode
 
             Assert.That(hostResult.Succeeded, Is.True);
             Assert.That(clientResult.Succeeded, Is.True);
-            Assert.That(hostSession.State.PendingChoice.CardId, Is.EqualTo("event_green_01"));
-            Assert.That(clientSession.State.PendingChoice.CardId, Is.EqualTo(hostSession.State.PendingChoice.CardId));
+            Assert.That(hostSession.State.PendingChoice, Is.Null);
+            Assert.That(clientSession.State.PendingChoice, Is.Null);
+            var hostChoice = hostSession.State.EffectRuntime.InteractionRequests.Find(request =>
+                request.Status == "open" && request.InteractionTypeId == YC.Domain.Effects.EventCardEffectExecutor.OptionInteractionTypeId);
+            var clientChoice = clientSession.State.EffectRuntime.InteractionRequests.Find(request =>
+                request.Status == "open" && request.InteractionTypeId == YC.Domain.Effects.EventCardEffectExecutor.OptionInteractionTypeId);
+            Assert.That(hostChoice, Is.Not.Null);
+            Assert.That(clientChoice, Is.Not.Null);
+            Assert.That(hostChoice.CandidateIds[0], Does.StartWith("event_green_01:option:"));
+            Assert.That(clientChoice.CandidateIds, Is.EqualTo(hostChoice.CandidateIds));
+            Assert.That(clientChoice.InteractionId, Is.EqualTo(hostChoice.InteractionId));
             Assert.That(clientSession.State.Map.ResourceTokens[0].ResourceType, Is.EqualTo(hostSession.State.Map.ResourceTokens[0].ResourceType));
             Assert.That(clientSession.State.Logs[0].CommandId, Is.EqualTo("cmd-place-host"));
         }
@@ -457,7 +466,7 @@ namespace YC.Tests.EditMode
             };
 
             var session = new GameSession(state);
-            session.RegisterHandler(new SetupCommandHandler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap())));
+            session.RegisterHandler(PlayerEntranceMainlineTests.Handler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap())));
             return session;
         }
 

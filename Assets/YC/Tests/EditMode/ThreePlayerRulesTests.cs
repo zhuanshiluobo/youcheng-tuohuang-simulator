@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using NUnit.Framework;
-using YC.Application.Setup;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
+using YC.Domain.Effects;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.Scoring;
@@ -67,15 +66,16 @@ namespace YC.Tests.EditMode
             state.StartPlayerId = 2;
             state.UseSeatTurnOrder = true;
             foreach (var player in state.Players) player.Resources.GoldVoucher = 7;
-            // 隔离基础资金发放，不依赖入场事件资产和 A 尚在录入的正式地图。
-            var handler = new SetupCommandHandler(new MapQueryService(new GameMapDefinition()));
-            var grant = typeof(SetupCommandHandler).GetMethod("GrantInitialGoldVouchers", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.That(grant, Is.Not.Null);
-            grant.Invoke(handler, new object[] { state });
-            var expected = playerCount == 3 ? new[] { 10, 12, 18 } : new[] { 10, 12, 14, 18 };
             var order = new TurnOrderService().GetTurnOrder(state);
             Assert.That(order.Count, Is.EqualTo(playerCount));
             Assert.That(order[0], Is.EqualTo(2));
+            var registry = new EffectRegistry();
+            ResourceEffectExecutor.Register(registry);
+            var executor = new EffectTreeExecutor(state, registry);
+            foreach (var effect in PlayerEntranceEffectExecutor.CreateInitialGoldEffects(order.ToList()))
+                executor.CreateRoot(effect);
+            Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            var expected = playerCount == 3 ? new[] { 10, 12, 18 } : new[] { 10, 12, 14, 18 };
             for (var i = 0; i < order.Count; i++)
                 Assert.That(state.FindPlayer(order[i]).Resources.GoldVoucher, Is.EqualTo(7 + expected[i]));
         }
@@ -138,7 +138,16 @@ namespace YC.Tests.EditMode
             {
                 LocationId = "A-03", CanDockCity = true, EventColor = EventColor.Yellow
             });
+            map.Locations.Add(new MapLocationDefinition
+            {
+                LocationId = "A-01", CanDockCity = true, EventColor = EventColor.Green
+            });
+            map.Locations.Add(new MapLocationDefinition
+            {
+                LocationId = "A-02", CanDockCity = true, EventColor = EventColor.Green
+            });
             var state = CreateState(3);
+            state.MapId = map.MapId;
             state.Phase = GamePhase.Entrance;
             state.StartPlayerId = 1;
             state.CurrentPlayerId = 1;
@@ -146,13 +155,18 @@ namespace YC.Tests.EditMode
             // 已有资源标记，隔离地图奖励；这里不冒充事件选项流程验收。
             var tokens = new ResourceTokenService();
             tokens.PlaceToken(state.Map, "B-01", ResourceType.Iron, 1);
-            var handler = new SetupCommandHandler(new MapQueryService(map), new EventDeckService(1), tokens, new TurnOrderService());
+            var handler = PlayerEntranceMainlineTests.Handler(new MapQueryService(map));
             Assert.That(handler.Handle(state, new GameCommand
             {
                 Kind = GameCommandKind.ChooseInitialLocation, PlayerId = 1, TargetId = "A-03"
             }).Succeeded, Is.False);
             var command = new GameCommand { Kind = GameCommandKind.ChooseInitialLocation, PlayerId = 1, TargetId = "B-01" };
-            Assert.That(handler.Handle(state, command).Succeeded, Is.True);
+            var entrance = handler.Handle(state, command);
+            Assert.That(
+                entrance.Succeeded,
+                Is.True,
+                (entrance.Validation == null ? string.Empty : entrance.Validation.Reason) +
+                " / " + state.EffectRuntime.LastFaultMessage);
             // 回到该玩家以验证“已有城市”门禁，而非只依赖当前玩家门禁。
             state.CurrentPlayerId = 1;
             Assert.That(handler.Handle(state, command).Succeeded, Is.False);

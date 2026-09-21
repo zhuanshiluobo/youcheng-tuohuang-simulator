@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0486d526f1bea840843ac2000b4e808, type: 3}
   m_Name: FacilityCardCatalog
   m_EditorClassIdentifier: 
-  sourceSha256: E7B7653518AA7CCF1F1DF18533B13AAF7C1E47A50FC2AC89E99D99D8406EFD07
+  sourceSha256: 5EBE296AD99FD1A9B0FFC34F50ADF074B7669117211CCBD5096679E2E38E991F
   definitions:
   - facilityId: building_001
     manifestId: building_001

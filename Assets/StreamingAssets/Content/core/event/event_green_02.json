@@ -1,0 +1,46 @@
+{
+  "definitionId": "event_green_02",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "清理虫巢",
+  "artwork": "artwork/event/event_green_02.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_green_02",
+    "name": "清理虫巢",
+    "description": "多方势力垂涎这座外露的异铁矿床已久，但却从未有人下手——因为这里盘踞的源石虫多到足以淹没整座聚落。好在，你的手下正好有这么几个落魄术士，擅长驱赶此类害虫，不久源石虫就被“永久挪了窝”。",
+    "color": 0,
+    "resourceType": 2,
+    "resourceAmount": 1,
+    "representativeResourceType": 2,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "向当地治安官邀功：获得 7 金券",
+      "附近聚落居民向你表达感谢：获得 3 源石碎片"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 7
+      },
+      {
+        "originium": 0,
+        "originiumShard": 3,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      []
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

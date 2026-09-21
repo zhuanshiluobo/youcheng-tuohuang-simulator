@@ -1,0 +1,55 @@
+{
+  "definitionId": "event_yellow_08",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "敌对生态圈（4）",
+  "artwork": "artwork/event/event_yellow_08.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_yellow_08",
+    "name": "敌对生态圈（4）",
+    "description": "一支来自萨尔贡的驮兽商队向勘探队提供了一则有趣的情报——一群铜钳铁背的巨磐蟹占据着一片比他们更坚硬的异铁矿。你也许可以占据这些异铁，但是恐怕需要经过其现在的主人的同意。",
+    "color": 1,
+    "resourceType": 2,
+    "resourceAmount": 1,
+    "representativeResourceType": 2,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "派一队佣兵和磐蟹“谈判”：获得 3 异铁",
+      "雇佣萨尔贡术士役使这些大块头：获得 2 源岩、1 分数"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 3,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 2,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      [
+        {
+          "kind": 1,
+          "resourceType": 0,
+          "amount": 1,
+          "targetScope": 1,
+          "costResourceType": 0,
+          "costAmount": 0
+        }
+      ]
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

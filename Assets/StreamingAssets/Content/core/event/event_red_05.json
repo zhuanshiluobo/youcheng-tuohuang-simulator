@@ -1,0 +1,64 @@
+{
+  "definitionId": "event_red_05",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "深层矿床（4）",
+  "artwork": "artwork/event/event_red_05.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_red_05",
+    "name": "深层矿床（4）",
+    "description": "一批来历不明的至纯源石突然在黑市流通。你追根溯源找到了产出地，但发现其中的矿物已被开采殆尽。不过，你还是很快占据了这片地区，你专业的拓荒团队证明了你的直觉，地下深层探测到了更丰富的高纯度源石储备！",
+    "color": 2,
+    "resourceType": 3,
+    "resourceAmount": 1,
+    "representativeResourceType": 3,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "先试着采集一些深层矿物样本：获得 1 源岩、1 至纯源石",
+      "让矿业机械逐步挖开坚硬岩层：获得 3 源石碎片、2 异铁",
+      "向联邦提出拨款请求以协助建设：获得 18 金券；所有对手获得 3 金券"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 1,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 1,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 3,
+        "iron": 2,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 18
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      [],
+      [
+        {
+          "kind": 2,
+          "resourceType": 4,
+          "amount": 3,
+          "targetScope": 2,
+          "costResourceType": 0,
+          "costAmount": 0
+        }
+      ]
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

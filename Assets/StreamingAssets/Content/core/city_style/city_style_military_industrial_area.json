@@ -1,0 +1,77 @@
+{
+  "definitionId": "city_style_military_industrial_area",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "军工化区域",
+  "artwork": "artwork/city_style/city_style_military_industrial_area.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cityStyleId": "city_style_military_industrial_area",
+    "name": "军工化区域",
+    "level": 1,
+    "score": 2,
+    "description": "同一横排相邻布局：蓝/黄设施 + 红色设施。",
+    "maxDeclarationsPerPlayer": 2147483647,
+    "specialActionId": "special_action.city_style.military_industrial_area",
+    "declarationReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 2,
+      "requiredEffectTypes": [],
+      "requiredResourceTypes": [],
+      "requiredCityBoardSlotIndexes": [],
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "blue",
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 0,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        }
+      ],
+      "requireSameCityBoardRow": 0
+    },
+    "specialAction": {
+      "specialActionId": "special_action.city_style.military_industrial_area",
+      "cityStyleId": "city_style_military_industrial_area",
+      "name": "军工化区域",
+      "description": "放置尽可能多的影响力；数量等于本方在该样式上的标记数，最多 3 个。",
+      "level": 1,
+      "effectKind": 0,
+      "fixedCost": {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      "flexibleOriginiumAndIronCost": 0,
+      "maximumTargetCount": 3,
+      "freeMoveCount": 0,
+      "extraMainActionCount": 0,
+      "locksCharacterCard": 0
+    },
+    "effectScript": "lua/city_styles/military_industrial_area.lua",
+    "luaSubscriptionId": "city-styles.military",
+    "luaAbilityId": "city_styles.military",
+    "luaCompletionHandlerId": "",
+    "luaVersion": "1.0.0"
+  },
+  "expansionId": "core",
+  "replaces": null
+}

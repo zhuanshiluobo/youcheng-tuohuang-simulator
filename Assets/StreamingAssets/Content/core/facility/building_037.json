@@ -1,0 +1,17 @@
+{
+  "definitionId": "building_037",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "护航调度中心",
+  "artwork": "artwork/facility/building_037.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "building_037",
+    "manifestId": "building_037"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/deploy_two_influences.json"
+}

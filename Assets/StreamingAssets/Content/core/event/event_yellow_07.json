@@ -1,0 +1,55 @@
+{
+  "definitionId": "event_yellow_07",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "异铁开采权",
+  "artwork": "artwork/event/event_yellow_07.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cardId": "event_yellow_07",
+    "name": "异铁开采权",
+    "description": "在新的异铁矿被发现后不久，一位大腹便便的治安官来到你的城邦“出于公平竞争原则，联邦政府希望你和其他拓荒者能共享这片矿区所带来的利益，并拨下一笔可观的经费来表彰你的贡献。”显然这家伙就是在觊觎这笔拨款。",
+    "color": 1,
+    "resourceType": 2,
+    "resourceAmount": 1,
+    "representativeResourceType": 2,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "“我可没有义务分享成果”你打发走了治安官：获得 3 源岩、1 异铁",
+      "“联邦万岁！”你向治安官伸出了手：获得 13 金券；所有对手获得 1 异铁"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 3,
+        "originiumShard": 0,
+        "iron": 1,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 13
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      [
+        {
+          "kind": 2,
+          "resourceType": 2,
+          "amount": 1,
+          "targetScope": 2,
+          "costResourceType": 0,
+          "costAmount": 0
+        }
+      ]
+    ]
+  },
+  "expansionId": "core",
+  "replaces": null
+}

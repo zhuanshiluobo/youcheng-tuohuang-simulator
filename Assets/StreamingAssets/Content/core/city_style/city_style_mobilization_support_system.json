@@ -1,0 +1,83 @@
+{
+  "definitionId": "city_style_mobilization_support_system",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "动员配套体系",
+  "artwork": "artwork/city_style/city_style_mobilization_support_system.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "cityStyleId": "city_style_mobilization_support_system",
+    "name": "动员配套体系",
+    "level": 1,
+    "score": 3,
+    "description": "同一横排相邻布局：黄色设施 + 黄色设施 + 红色设施。",
+    "maxDeclarationsPerPlayer": 2147483647,
+    "specialActionId": "special_action.city_style.mobilization_support_system",
+    "declarationReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 3,
+      "requiredEffectTypes": [],
+      "requiredResourceTypes": [],
+      "requiredCityBoardSlotIndexes": [],
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 0,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 0,
+          "columnOffset": 2,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        }
+      ],
+      "requireSameCityBoardRow": 0
+    },
+    "specialAction": {
+      "specialActionId": "special_action.city_style.mobilization_support_system",
+      "cityStyleId": "city_style_mobilization_support_system",
+      "name": "动员配套体系",
+      "description": "移除 1 个对手影响力，再尽量在原槽位放置自己的影响力。",
+      "level": 1,
+      "effectKind": 1,
+      "fixedCost": {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      "flexibleOriginiumAndIronCost": 0,
+      "maximumTargetCount": 1,
+      "freeMoveCount": 0,
+      "extraMainActionCount": 0,
+      "locksCharacterCard": 0
+    },
+    "effectScript": "lua/city_styles/mobilization_support_system.lua",
+    "luaSubscriptionId": "city-styles.mobilization",
+    "luaAbilityId": "city_styles.mobilization",
+    "luaCompletionHandlerId": "city-styles.mobilization.after_target",
+    "luaVersion": "1.1.0"
+  },
+  "expansionId": "core",
+  "replaces": null
+}

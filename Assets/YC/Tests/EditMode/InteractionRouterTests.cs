@@ -8,6 +8,22 @@ namespace YC.Tests.EditMode
     public sealed class InteractionRouterTests
     {
         [Test]
+        public void PendingPrompt_PreservesRequiredInputWithoutCancellingOldInteractions()
+        {
+            var router = CreateRouter();
+            var pending = new RecordingInteraction("pending", InteractionPriority.PendingResolution)
+            { Presentation = new InteractionPresentation(null, "请选择高亮的影响力移除。", InteractionMode.Busy) };
+            var action = new RecordingInteraction("action", InteractionPriority.ActiveAction)
+            { Presentation = new InteractionPresentation(null, "本次采集完成", InteractionMode.Busy) };
+            router.Register(action);
+            router.Register(pending);
+            Assert.That(router.GetPendingPrompt(), Is.EqualTo("请选择高亮的影响力移除。"));
+            pending.Active = false;
+            Assert.That(router.GetPendingPrompt(), Is.Empty);
+            Assert.That(pending.CancelCount, Is.Zero);
+        }
+
+        [Test]
         public void BuildPresentation_CleansInactivePendingInteractionBeforeBusy()
         {
             var router = CreateRouter();
@@ -55,17 +71,22 @@ namespace YC.Tests.EditMode
                 Throws.ArgumentNullException);
         }
 
-        [TestCase(null)]
-        [TestCase("")]
-        [TestCase("   ")]
-        public void Register_RejectsMissingInteractionId(string id)
+        [Test]
+        public void Register_RejectsMissingInteractionId()
         {
-            var router = CreateRouter();
-            var interaction = new RecordingInteraction(id);
+            EditModeTestCaseRunner.Run(
+                new[] { (string)null, string.Empty, "   " },
+                id =>
+                {
+                    var router = CreateRouter();
+                    var interaction = new RecordingInteraction(id);
 
-            Assert.That(
-                () => router.Register(interaction),
-                Throws.ArgumentException);
+                    Assert.That(
+                        () => router.Register(interaction),
+                        Throws.ArgumentException,
+                        "id=" + (id ?? "<null>"));
+                },
+                id => "id=" + (id ?? "<null>"));
         }
 
         [Test]
@@ -506,14 +527,16 @@ namespace YC.Tests.EditMode
                 Throws.Nothing);
         }
 
-        [TestCase(null)]
-        [TestCase("")]
-        [TestCase("  ")]
-        public void RejectedWithPrompt_RequiresReason(string reason)
+        [Test]
+        public void RejectedWithPrompt_RequiresReason()
         {
-            Assert.That(
-                () => InteractionResult.RejectedWithPrompt(reason),
-                Throws.ArgumentException);
+            EditModeTestCaseRunner.Run(
+                new[] { (string)null, string.Empty, "  " },
+                reason => Assert.That(
+                    () => InteractionResult.RejectedWithPrompt(reason),
+                    Throws.ArgumentException,
+                    "reason=" + (reason ?? "<null>")),
+                reason => "reason=" + (reason ?? "<null>"));
         }
 
         [Test]

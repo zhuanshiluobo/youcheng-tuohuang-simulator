@@ -1,0 +1,41 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "城邦工业区",
+    "color": "yellow",
+    "score": 2,
+    "resourceCost": {
+      "originium": 4,
+      "originiumShard": 3,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 2
+    },
+    "goldVoucherCost": 24,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": false,
+    "keywords": [],
+    "effectId": "discount_originium_by_facility_color",
+    "effectType": "discount",
+    "description": "移动城市的优势既非武力，也非经济，而是可以躲避天灾的生产力。",
+    "effectText": "你的建筑面板上每有 1 种非彩色的设施，此设施的建筑花费 -1 源岩。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": false,
+    "uniqueGroupId": "",
+    "effectScript": "lua/facilities/no_entry.lua",
+    "costReductionPerDistinctBuiltColor": {
+      "originium": 1,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    }
+  }
+}

@@ -2068,7 +2068,8 @@ namespace YC.Tests.EditMode
         {
             var texture = textureMethod.Invoke(catalog, new object[] { cardId }) as Texture2D;
             Assert.That(texture, Is.Not.Null, "目录贴图映射缺失：" + cardId);
-            Assert.That(AssetDatabase.Contains(texture), Is.True, "目录贴图必须是持久化资产：" + cardId);
+            Assert.That(texture.width, Is.GreaterThan(0), "外部贴图必须已经解码：" + cardId);
+            Assert.That(texture.name, Does.StartWith("artwork/"));
         }
 
         private static Component InstantiateBuildInfoPanel(Type type, out GameObject canvasObject)

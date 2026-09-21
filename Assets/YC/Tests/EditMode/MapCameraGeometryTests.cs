@@ -13,47 +13,56 @@ namespace YC.Tests.EditMode
             "YC.Presentation.MapCameraGeometry, Assembly-CSharp",
             false);
 
-        [TestCase(16f / 9f)]
-        [TestCase(4f / 3f)]
-        [TestCase(21f / 9f)]
-        public void PerspectiveFitDistance_ContainsEveryTabletopCorner(float aspect)
+        [Test]
+        public void PerspectiveFitDistance_ContainsEveryTabletopCorner()
         {
-            Assert.That(GeometryType, Is.Not.Null);
-            var corners = new List<Vector3>
-            {
-                new Vector3(-8f, -5f, 0f),
-                new Vector3(-8f, 5f, 0f),
-                new Vector3(12f, 5f, 0f),
-                new Vector3(12f, -5f, 0f)
-            };
-            var focus = new Vector3(2f, 0f, 0f);
-            var rotation = Quaternion.Euler(30f, 0f, 0f);
-            const float fov = 45f;
-            const float padding = 1.03f;
-            var distance = Invoke<float>(
-                "CalculatePerspectiveFitDistance",
-                corners,
-                focus,
-                rotation,
-                fov,
-                aspect,
-                padding,
-                0.3f);
-            var cameraPosition = Invoke<Vector3>("CalculateCameraPosition", focus, rotation, distance);
-            var inverseRotation = Quaternion.Inverse(rotation);
-            var verticalTangent = Mathf.Tan(fov * Mathf.Deg2Rad * 0.5f);
+            EditModeTestCaseRunner.Run(
+                new[] { 16f / 9f, 4f / 3f, 21f / 9f },
+                aspect =>
+                {
+                    Assert.That(GeometryType, Is.Not.Null);
+                    var corners = new List<Vector3>
+                    {
+                        new Vector3(-8f, -5f, 0f),
+                        new Vector3(-8f, 5f, 0f),
+                        new Vector3(12f, 5f, 0f),
+                        new Vector3(12f, -5f, 0f)
+                    };
+                    var focus = new Vector3(2f, 0f, 0f);
+                    var rotation = Quaternion.Euler(30f, 0f, 0f);
+                    const float fov = 45f;
+                    const float padding = 1.03f;
+                    var distance = Invoke<float>(
+                        "CalculatePerspectiveFitDistance",
+                        corners,
+                        focus,
+                        rotation,
+                        fov,
+                        aspect,
+                        padding,
+                        0.3f);
+                    var cameraPosition = Invoke<Vector3>("CalculateCameraPosition", focus, rotation, distance);
+                    var inverseRotation = Quaternion.Inverse(rotation);
+                    var verticalTangent = Mathf.Tan(fov * Mathf.Deg2Rad * 0.5f);
 
-            foreach (var corner in corners)
-            {
-                var local = inverseRotation * (corner - cameraPosition);
-                Assert.That(local.z, Is.GreaterThanOrEqualTo(0.3f - 0.0001f));
-                Assert.That(
-                    Mathf.Abs(local.x) * padding,
-                    Is.LessThanOrEqualTo(local.z * verticalTangent * aspect + 0.0001f));
-                Assert.That(
-                    Mathf.Abs(local.y) * padding,
-                    Is.LessThanOrEqualTo(local.z * verticalTangent + 0.0001f));
-            }
+                    foreach (var corner in corners)
+                    {
+                        var local = inverseRotation * (corner - cameraPosition);
+                        Assert.That(
+                            local.z,
+                            Is.GreaterThanOrEqualTo(0.3f - 0.0001f),
+                            "aspect=" + aspect);
+                        Assert.That(
+                            Mathf.Abs(local.x) * padding,
+                            Is.LessThanOrEqualTo(local.z * verticalTangent * aspect + 0.0001f),
+                            "aspect=" + aspect);
+                        Assert.That(
+                            Mathf.Abs(local.y) * padding,
+                            Is.LessThanOrEqualTo(local.z * verticalTangent + 0.0001f),
+                            "aspect=" + aspect);
+                    }
+                },
+                aspect => "aspect=" + aspect);
         }
 
         [Test]
@@ -94,14 +103,25 @@ namespace YC.Tests.EditMode
             Assert.That(clamped.z, Is.Zero.Within(0.0001f));
         }
 
-        [TestCase(0.9f, 22.222222f)]
-        [TestCase(1f, 20f)]
-        [TestCase(2f, 10f)]
-        public void ZoomedDistance_UsesOneHundredPercentAsBaseline(float zoom, float expectedDistance)
+        [Test]
+        public void ZoomedDistance_UsesOneHundredPercentAsBaseline()
         {
-            var distance = Invoke<float>("CalculateZoomedDistance", 20f, zoom);
-
-            Assert.That(distance, Is.EqualTo(expectedDistance).Within(0.0001f));
+            EditModeTestCaseRunner.Run(
+                new[]
+                {
+                    new ZoomCase { Zoom = 0.9f, ExpectedDistance = 22.222222f },
+                    new ZoomCase { Zoom = 1f, ExpectedDistance = 20f },
+                    new ZoomCase { Zoom = 2f, ExpectedDistance = 10f }
+                },
+                testCase =>
+                {
+                    var distance = Invoke<float>("CalculateZoomedDistance", 20f, testCase.Zoom);
+                    Assert.That(
+                        distance,
+                        Is.EqualTo(testCase.ExpectedDistance).Within(0.0001f),
+                        "zoom=" + testCase.Zoom);
+                },
+                testCase => "zoom=" + testCase.Zoom);
         }
 
         [Test]
@@ -278,6 +298,12 @@ namespace YC.Tests.EditMode
             var field = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(field, Is.Not.Null);
             Assert.That((float)field.GetValue(target), Is.EqualTo(expected).Within(0.0001f));
+        }
+
+        private sealed class ZoomCase
+        {
+            public float Zoom;
+            public float ExpectedDistance;
         }
     }
 }

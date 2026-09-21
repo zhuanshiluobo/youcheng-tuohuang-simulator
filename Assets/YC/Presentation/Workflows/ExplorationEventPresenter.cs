@@ -637,18 +637,10 @@ namespace YC.Presentation.Workflows
                 OptionIds = new List<string> { choiceIndex.ToString() }
             };
             influenceTargetSelection.AddCommandParameter(command, influenceParameterName);
-            var pendingSpecialAction = context.CurrentState == null
-                ? null
-                : context.CurrentState.PendingSpecialAction;
-            if (pendingSpecialAction != null &&
-                pendingSpecialAction.IsValid() &&
-                pendingSpecialAction.PlayerId == context.LocalPlayerId &&
-                pendingSpecialAction.Step == SpecialActionPendingSteps.AwaitMoveEvent)
-            {
-                command.Parameters[UseSpecialActionCommandHandler.SessionIdParameter] =
-                    pendingSpecialAction.SessionId;
-            }
-
+            var special = context.CurrentState.PendingSpecialAction;
+            if (special != null && special.PlayerId == context.LocalPlayerId &&
+                special.Step == YC.Domain.SpecialActions.SpecialActionPendingSteps.AwaitMoveEvent)
+                command.Parameters[UseSpecialActionCommandHandler.SessionIdParameter] = special.SessionId;
             commandGateway.Submit(
                 command,
                 new SubmitCallbacks(view.ShowPrompt, waitingPrompt)

@@ -613,6 +613,12 @@ namespace YC.Presentation
 
         private void SetInfluenceSlotBorderVisible(string slotId, bool visible)
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (view != null)
+                foreach (var binding in view.InfluenceSlots)
+                    if (binding != null && binding.SlotId == slotId && binding.ClickTarget != null)
+                        YC.PlayerJourney.PlayerAutomationId.Attach(binding.ClickTarget.gameObject, "map.influence_slot." + slotId, visible);
+#endif
             MapHighlightPulse pulse;
             if (influenceSlotPulses.TryGetValue(slotId, out pulse) && pulse != null)
             {

@@ -1,0 +1,17 @@
+{
+  "definitionId": "reserve_001",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "核心指挥塔",
+  "artwork": "artwork/facility/reserve_001.jpg",
+  "tags": [],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "data": {
+    "facilityId": "reserve_001",
+    "manifestId": "reserve_001"
+  },
+  "expansionId": "core",
+  "replaces": null,
+  "dataTemplate": "templates/facilities/setup_core_command_tower.json"
+}

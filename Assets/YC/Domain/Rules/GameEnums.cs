@@ -54,7 +54,8 @@ namespace YC.Domain.Rules
         UseSpecialAction,
         CollectResource,
         ResolvePendingChoice,
-        EndAction
+        EndAction,
+        AnswerInteraction
     }
 
     public enum CommandErrorCode

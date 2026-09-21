@@ -20,6 +20,132 @@ namespace YC.Tests.EditMode
     {
         private GameObject canvasObject;
 
+        [Test]
+        public void ReplacementChoice_MapsStableInfluenceToSlotAndOnlySubmitsAnswer()
+        {
+            var state = CreateState();
+            state.Map.Influences.Add(new InfluencePlacement { InfluenceId = "opponent", PlayerId = 2, SlotId = "location:A-02:0" });
+            var fixture = CreateCoordinator(state);
+            var request = new InteractionRequest
+            {
+                InteractionId = "replace-ui", InteractionTypeId = "lua.choice", Status = "open",
+                Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 1,
+                CandidateIds = new List<string> { "opponent" }, MinSelections = 1, MaxSelections = 1,
+                PromptKey = "effect.influence.replace.target"
+            };
+            state.EffectRuntime.InteractionRequests.Add(request);
+            var commands = new List<YC.Domain.Commands.GameCommand>();
+            var type = Type.GetType("YC.Presentation.MapEffectInteractionUiCoordinator, Assembly-CSharp", true);
+            string prompt = "";
+            var renderer = (IInteractionRequestRenderer)Activator.CreateInstance(type,
+                new object[] { new Func<GameState>(() => state), new Func<int>(() => 1), fixture.Dialog,
+                    new Action<IReadOnlyList<WorkflowHighlight>>(_ => { }), new Action(() => { }),
+                    new Action<YC.Domain.Commands.GameCommand>(command => commands.Add(command)), new Action<string>(value => prompt = value) });
+            renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
+            Assert.That(prompt, Does.Contain("替换"));
+            type.GetMethod("OnInfluenceSlotClicked").Invoke(renderer, new object[] { "location:A-02:0" });
+            Assert.That(commands, Has.Count.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "opponent" }));
+            Assert.That(state.Map.Influences.Exists(i => i.InfluenceId == "opponent"), Is.True);
+            renderer.Clear();
+        }
+
+        [Test]
+        public void ZeroSale_ExistingQuantityDialogSubmitsWithoutChangingResources()
+        {
+            var state = CreateState();
+            var fixture = CreateCoordinator(state);
+            var request = new InteractionRequest
+            {
+                InteractionId = "zero-sale", InteractionTypeId = "character.ability.choice.awaiting_trade", Status = "open",
+                Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 1,
+                CandidateIds = new List<string> { "sale|originium|0", "sale|originium|1" },
+                MinSelections = 1, MaxSelections = 4, PromptKey = "character.cannot.strategy.choose_sale"
+            };
+            state.EffectRuntime.InteractionRequests.Add(request);
+            var commands = new List<YC.Domain.Commands.GameCommand>();
+            var type = Type.GetType("YC.Presentation.CharacterAbilityInteractionUiCoordinator, Assembly-CSharp", true);
+            var renderer = (IInteractionRequestRenderer)Activator.CreateInstance(type,
+                new object[] { new Func<GameState>(() => state), new Func<int>(() => 1), fixture.Dialog,
+                    new Action<IReadOnlyList<WorkflowHighlight>>(_ => { }), new Action(() => { }),
+                    new Action<YC.Domain.Commands.GameCommand>(command => commands.Add(command)), new Action<string>(_ => { }) });
+            renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
+            int before = state.FindPlayer(1).Resources.Originium;
+            ClickButton(GetOverlay(fixture.Dialog), "Confirm Character Effect");
+            Assert.That(commands, Has.Count.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "sale|originium|0" }));
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(before));
+            renderer.Clear();
+        }
+
+        [TestCase("continue", 0)]
+        [TestCase("decline", 1)]
+        public void OptionalEffect_UsesExistingDialogAndOnlySubmitsDecision(string choice, int button)
+        {
+            var state = CreateState();
+            var fixture = CreateCoordinator(state);
+            var request = new InteractionRequest
+            {
+                InteractionId = "optional-test", InteractionTypeId = "action.decline_effect", Status = "open",
+                Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 3, AllowDecline = true,
+                CandidateIds = new List<string> { "continue", "decline" }, MinSelections = 1, MaxSelections = 1,
+                PromptKey = "character.tin_man.purchase.12"
+            };
+            state.EffectRuntime.InteractionRequests.Add(request);
+            var commands = new List<YC.Domain.Commands.GameCommand>();
+            string prompt = "";
+            var type = Type.GetType("YC.Presentation.MapEffectInteractionUiCoordinator, Assembly-CSharp", true);
+            var renderer = (IInteractionRequestRenderer)Activator.CreateInstance(type,
+                new object[] { new Func<GameState>(() => state), new Func<int>(() => 1), fixture.Dialog,
+                    new Action<IReadOnlyList<WorkflowHighlight>>(_ => { }), new Action(() => { }),
+                    new Action<YC.Domain.Commands.GameCommand>(command => commands.Add(command)), new Action<string>(text => prompt = text) });
+            renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
+            Assert.That(prompt, Does.Contain("12 金券"));
+            var before = state.FindPlayer(1).Resources.GoldVoucher;
+            ClickButton(GetOverlay(fixture.Dialog), "Character Effect Option " + button);
+            Assert.That(commands, Has.Count.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { choice }));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(before));
+            renderer.Clear();
+        }
+
+        [TestCase(1)]
+        [TestCase(2)]
+        public void GenericChoice_RendersExistingDialogAndSubmitsOnlyConfirmedCandidates(int maxSelections)
+        {
+            var state = CreateState();
+            var fixture = CreateCoordinator(state);
+            var request = new InteractionRequest
+            {
+                InteractionId = "lua.choice.test", InteractionTypeId = "lua.choice", Status = "open",
+                Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 8,
+                CandidateIds = new List<string> { "originium", "iron" }, MinSelections = 1, MaxSelections = maxSelections,
+                PromptKey = "character.elysium.strategy.choose_resource"
+            };
+            state.EffectRuntime.InteractionRequests.Add(request);
+            var commands = new List<YC.Domain.Commands.GameCommand>();
+            var type = Type.GetType("YC.Presentation.CharacterAbilityInteractionUiCoordinator, Assembly-CSharp", true);
+            var renderer = (IInteractionRequestRenderer)Activator.CreateInstance(type,
+                new object[] { new Func<GameState>(() => state), new Func<int>(() => 1), fixture.Dialog,
+                    new Action<IReadOnlyList<WorkflowHighlight>>(_ => { }), new Action(() => { }),
+                    new Action<YC.Domain.Commands.GameCommand>(command => commands.Add(command)), new Action<string>(_ => { }) });
+            renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
+            var before = state.FindPlayer(1).Resources.Originium;
+            ClickButton(GetOverlay(fixture.Dialog), "Character Effect Option 0");
+            if (maxSelections == 2)
+            {
+                Assert.That(commands, Is.Empty, "多选草稿不能提前提交。");
+                ClickButton(GetOverlay(fixture.Dialog), "Character Effect Option 1");
+                Assert.That(commands, Is.Empty);
+                ClickButton(GetOverlay(fixture.Dialog), "Character Effect Option 2");
+            }
+            Assert.That(commands, Has.Count.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(maxSelections == 1 ? new[] { "originium" } : new[] { "originium", "iron" }));
+            Assert.That(commands[0].Parameters[YC.Application.Interactions.AnswerInteractionCommandHandler.ExpectedRevisionParameter], Is.EqualTo("8"));
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(before), "UI 不能修改权威资源。");
+            renderer.Clear();
+        }
+
         [TearDown]
         public void TearDown()
         {
@@ -30,71 +156,28 @@ namespace YC.Tests.EditMode
             }
         }
 
-        [Test]
-        public void ElysiumStrategy_UsesDialogAndSubmitsSelectedMinimumResource()
-        {
-            var state = CreateState();
-            state.FindPlayer(1).Resources.Originium = 1;
-            state.FindPlayer(1).Resources.OriginiumShard = 3;
-            state.FindPlayer(1).Resources.Iron = 2;
-            var fixture = CreateCoordinator(state);
-
-            Assert.That(BeginEffect(
-                fixture.Coordinator,
-                UseCharacterCardCommandHandler.Strategy,
-                CharacterCardEffectKind.ElysiumLogistics), Is.True);
-            Assert.That(fixture.MapEffectBegun, Is.False);
-            var overlay = GetOverlay(fixture.Dialog);
-            Assert.That(overlay, Is.Not.Null);
-            Assert.That(GetText(overlay, "Character Effect Title"), Is.EqualTo("极境策略：后勤调遣"));
-
-            ClickButton(overlay, "Character Effect Option 0");
-
-            Assert.That(fixture.SubmittedMode, Is.EqualTo(UseCharacterCardCommandHandler.Strategy));
-            Assert.That(fixture.SubmittedEffect[CharacterEffectParameterKeys.ResourceType], Is.EqualTo("originium"));
-            Assert.That(fixture.SubmittedEffect[CharacterEffectParameterKeys.OfferSecondEffect], Is.EqualTo("true"));
-        }
-
-        [Test]
-        public void ElysiumTactic_GoesDirectlyToMapSelection()
+        [TestCase(CharacterCardEffectKind.CannotRequisition, "tactic")]
+        [TestCase(CharacterCardEffectKind.CannotTradeChannel, "strategy")]
+        [TestCase(CharacterCardEffectKind.ElysiumLogistics, "strategy")]
+        [TestCase(CharacterCardEffectKind.ElysiumNavigation, "tactic")]
+        [TestCase(CharacterCardEffectKind.TexasSpecialDelivery, "strategy")]
+        [TestCase(CharacterCardEffectKind.TexasRemoveAndDoubleMove, "tactic")]
+        [TestCase(CharacterCardEffectKind.LiskarmSecurityProtocol, "strategy")]
+        [TestCase(CharacterCardEffectKind.LiskarmControlPosition, "tactic")]
+        [TestCase(CharacterCardEffectKind.TinManEstablishPrestige, "strategy")]
+        [TestCase(CharacterCardEffectKind.TinManDeepPlanning, "tactic")]
+        public void AllCharacterEntrances_SubmitOnceWithoutLegacyPreselection(CharacterCardEffectKind effect, string mode)
         {
             var state = CreateState();
             var fixture = CreateCoordinator(state, mapEffectResult: true);
-
-            Assert.That(BeginEffect(
-                fixture.Coordinator,
-                UseCharacterCardCommandHandler.Tactic,
-                CharacterCardEffectKind.ElysiumNavigation), Is.True);
-
-            Assert.That(fixture.MapEffectBegun, Is.True);
-            Assert.That(fixture.MapEffect, Is.EqualTo(CharacterCardEffectKind.ElysiumNavigation));
-            Assert.That(GetOverlay(fixture.Dialog), Is.Null);
-            Assert.That(fixture.SubmittedEffect, Is.Null);
-        }
-
-        [Test]
-        public void TexasStrategy_SelectsTheActualFacilitySupplyCardWithoutOpeningDialog()
-        {
-            var state = CreateState();
-            state.Decks.FacilitySupply.Add("building_018");
-            state.Decks.FacilitySupply.Add("building_031");
-            var fixture = CreateCoordinator(state);
-
-            Assert.That(BeginEffect(
-                fixture.Coordinator,
-                UseCharacterCardCommandHandler.Strategy,
-                CharacterCardEffectKind.TexasSpecialDelivery), Is.True);
-
-            Assert.That(fixture.FacilitySelectionBegun, Is.True);
-            Assert.That(fixture.SelectableFacilityIds, Is.EqualTo(new[] { "building_018", "building_031" }));
-            Assert.That(GetOverlay(fixture.Dialog), Is.Null);
-            Assert.That(fixture.LastPrompt, Does.Contain("点击左上设施供应区"));
-
-            fixture.SelectFacility("building_031");
-
-            Assert.That(fixture.SubmittedMode, Is.EqualTo(UseCharacterCardCommandHandler.Strategy));
-            Assert.That(fixture.SubmittedEffect[CharacterEffectParameterKeys.FacilityCardId], Is.EqualTo("building_031"));
+            Assert.That(BeginEffect(fixture.Coordinator, mode, effect), Is.True);
+            Assert.That(fixture.SubmissionCount, Is.EqualTo(1));
+            Assert.That(fixture.SubmittedMode, Is.EqualTo(mode));
+            Assert.That(fixture.SubmittedEffect.Count, Is.EqualTo(1));
             Assert.That(fixture.SubmittedEffect[CharacterEffectParameterKeys.OfferSecondEffect], Is.EqualTo("true"));
+            Assert.That(fixture.MapEffectBegun, Is.False);
+            Assert.That(fixture.FacilitySelectionBegun, Is.False);
+            Assert.That(GetOverlay(fixture.Dialog), Is.Null, "选项只能由内核 Interaction 创建。");
         }
 
         [Test]
@@ -150,17 +233,19 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void CannotStrategy_UsesQuantityDialogInsteadOfInfoPanelDraft()
+        public void ResourceSaleDialog_KeepsQuantityPricesAndTitleDragging()
         {
             var state = CreateState();
             state.FindPlayer(1).Resources.Originium = 2;
             state.FindPlayer(1).Resources.Iron = 1;
             var fixture = CreateCoordinator(state);
 
-            Assert.That(BeginEffect(
-                fixture.Coordinator,
-                UseCharacterCardCommandHandler.Strategy,
-                CharacterCardEffectKind.CannotTradeChannel), Is.True);
+            IReadOnlyList<int> saleValues = null;
+            fixture.Dialog.GetType().GetMethod("ShowResourceSale").Invoke(fixture.Dialog, new object[]
+            {
+                new[] { "源岩", "源石碎片", "异铁", "至纯源石" }, new[] { 2, 0, 1, 0 },
+                new[] { 3, 3, 4, 15 }, new Action<IReadOnlyList<int>>(values => saleValues = values), null
+            });
             var overlay = GetOverlay(fixture.Dialog);
             var panel = FindChild(overlay, "Character Card Effect Panel").GetComponent<RectTransform>();
             var title = FindChild(overlay, "Title");
@@ -176,10 +261,7 @@ namespace YC.Tests.EditMode
             Assert.That(GetText(overlay, "Character Sale Summary"), Is.EqualTo("预计获得 7 金券"));
             ClickButton(overlay, "Confirm Character Effect");
 
-            Assert.That(fixture.SubmittedEffect[CharacterEffectParameterKeys.SaleOriginium], Is.EqualTo("1"));
-            Assert.That(fixture.SubmittedEffect[CharacterEffectParameterKeys.SaleIron], Is.EqualTo("1"));
-            Assert.That(fixture.SubmittedEffect[CharacterEffectParameterKeys.SaleOriginiumShard], Is.EqualTo("0"));
-            Assert.That(fixture.SubmittedEffect[CharacterEffectParameterKeys.SalePureOriginium], Is.EqualTo("0"));
+            Assert.That(saleValues, Is.EqualTo(new[] { 1, 0, 1, 0 }));
         }
 
         [Test]
@@ -412,9 +494,7 @@ namespace YC.Tests.EditMode
                 getPlayerId,
                 presenter,
                 dialog,
-                beginMap,
                 beginPendingMap,
-                beginFacilitySelection,
                 endFacilitySelection,
                 submitEffect,
                 submitPending,

@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.Rules;
 using YC.Domain.State;
 
@@ -58,7 +59,9 @@ namespace YC.Domain.Cards
             }
         }
 
-        public static void Initialize(IEnumerable<EventCardDefinition> sourceDefinitions)
+        public static void Initialize(IEnumerable<EventCardDefinition> sourceDefinitions) => InitializeCore(sourceDefinitions, false);
+        public static void InitializeExternal(IEnumerable<EventCardDefinition> sourceDefinitions) => InitializeCore(sourceDefinitions, true);
+        private static void InitializeCore(IEnumerable<EventCardDefinition> sourceDefinitions, bool external)
         {
             if (sourceDefinitions == null)
             {
@@ -80,7 +83,8 @@ namespace YC.Domain.Cards
                 next.Add(clone.CardId, clone);
             }
 
-            ValidateDefinitionSet(ordered);
+            if (!external) ValidateDefinitionSet(ordered);
+            if (ordered.Count == 0) throw new InvalidOperationException("事件目录不能为空。");
             lock (Gate)
             {
                 if (cardsById != null)
@@ -95,6 +99,15 @@ namespace YC.Domain.Cards
                 }
 
                 cardsById = next;
+            }
+        }
+
+        public static IReadOnlyList<string> GetCardIds(EventColor color)
+        {
+            lock (Gate)
+            {
+                if (cardsById == null) throw new InvalidOperationException("事件目录尚未初始化。");
+                return cardsById.Values.Where(d => d.Color == color).Select(d => d.CardId).ToList().AsReadOnly();
             }
         }
 
@@ -171,7 +184,7 @@ namespace YC.Domain.Cards
 
             if (definition.ChoiceDescriptions == null || definition.ChoiceRewards == null ||
                 definition.ChoicePendingEffects == null ||
-                definition.ChoiceDescriptions.Count < 2 || definition.ChoiceDescriptions.Count > 3 ||
+                definition.ChoiceDescriptions.Count > 3 ||
                 definition.ChoiceDescriptions.Count != definition.ChoiceRewards.Count ||
                 definition.ChoiceDescriptions.Count != definition.ChoicePendingEffects.Count)
             {

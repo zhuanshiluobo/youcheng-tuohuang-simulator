@@ -98,34 +98,38 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.True);
         }
 
-        [TestCase("building_034")]
-        [TestCase("building_035")]
-        [TestCase("building_036")]
-        public void BuildFacility_MercenaryWithoutOpponent_StillOpensDeployBranchPopupSession(string facilityId)
+        [Test]
+        public void BuildFacility_MercenaryWithoutOpponent_StillOpensDeployBranchPopupSession()
         {
-            var state = CreateActionState();
-            state.Decks.FacilitySupply.Add(facilityId);
-            state.FindPlayer(1).Resources.GoldVoucher = 18;
-            var handler = new BuildFacilityCommandHandler();
-
-            var result = handler.Handle(state, new GameCommand
-            {
-                Kind = GameCommandKind.BuildFacility,
-                PlayerId = 1,
-                TargetId = facilityId,
-                Parameters =
+            EditModeTestCaseRunner.Run(
+                new[] { "building_034", "building_035", "building_036" },
+                facilityId =>
                 {
-                    { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, "0" },
-                    { BuildFacilityCommandHandler.PaymentModeParameter, BuildFacilityService.PaymentModeGold }
-                }
-            });
+                    var state = CreateActionState();
+                    state.Decks.FacilitySupply.Add(facilityId);
+                    state.FindPlayer(1).Resources.GoldVoucher = 18;
+                    var handler = new BuildFacilityCommandHandler();
 
-            Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
-            Assert.That(state.PendingCardSession, Is.Not.Null);
-            Assert.That(state.PendingCardSession.ChoiceType,
-                Is.EqualTo(FacilityPendingChoiceTypes.ReplaceOneInfluence));
-            Assert.That(state.PendingCardSession.OptionIds,
-                Is.EqualTo(new[] { FacilityPendingChoiceTypes.DeployInfluenceOption }));
+                    var result = handler.Handle(state, new GameCommand
+                    {
+                        Kind = GameCommandKind.BuildFacility,
+                        PlayerId = 1,
+                        TargetId = facilityId,
+                        Parameters =
+                        {
+                            { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, "0" },
+                            { BuildFacilityCommandHandler.PaymentModeParameter, BuildFacilityService.PaymentModeGold }
+                        }
+                    });
+
+                    Assert.That(result.Succeeded, Is.True, facilityId + ": " + result.Validation.Reason);
+                    Assert.That(state.PendingCardSession, Is.Not.Null, facilityId);
+                    Assert.That(state.PendingCardSession.ChoiceType,
+                        Is.EqualTo(FacilityPendingChoiceTypes.ReplaceOneInfluence), facilityId);
+                    Assert.That(state.PendingCardSession.OptionIds,
+                        Is.EqualTo(new[] { FacilityPendingChoiceTypes.DeployInfluenceOption }), facilityId);
+                },
+                facilityId => "facilityId=" + facilityId);
         }
 
         [Test]
@@ -359,32 +363,37 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
         }
 
-        [TestCase(BuildFacilityService.PaymentModeAuto)]
-        [TestCase("unknown")]
-        public void BuildFacility_WhenPaymentModeIsNotExplicit_FailsWithoutMutating(string paymentMode)
+        [Test]
+        public void BuildFacility_WhenPaymentModeIsNotExplicit_FailsWithoutMutating()
         {
-            var state = CreateActionState();
-            state.Decks.FacilitySupply.Add(FacilityCardDatabase.TradeDistrict);
-            state.FindPlayer(1).Resources.GoldVoucher = 6;
-            var handler = new BuildFacilityCommandHandler();
-
-            var result = handler.Handle(state, new GameCommand
-            {
-                Kind = GameCommandKind.BuildFacility,
-                PlayerId = 1,
-                TargetId = FacilityCardDatabase.TradeDistrict,
-                Parameters =
+            EditModeTestCaseRunner.Run(
+                new[] { BuildFacilityService.PaymentModeAuto, "unknown" },
+                paymentMode =>
                 {
-                    { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, "4" },
-                    { BuildFacilityCommandHandler.PaymentModeParameter, paymentMode }
-                }
-            });
+                    var state = CreateActionState();
+                    state.Decks.FacilitySupply.Add(FacilityCardDatabase.TradeDistrict);
+                    state.FindPlayer(1).Resources.GoldVoucher = 6;
+                    var handler = new BuildFacilityCommandHandler();
 
-            Assert.That(result.Succeeded, Is.False);
-            Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
-            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(6));
-            Assert.That(state.Map.Facilities, Is.Empty);
-            Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
+                    var result = handler.Handle(state, new GameCommand
+                    {
+                        Kind = GameCommandKind.BuildFacility,
+                        PlayerId = 1,
+                        TargetId = FacilityCardDatabase.TradeDistrict,
+                        Parameters =
+                        {
+                            { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, "4" },
+                            { BuildFacilityCommandHandler.PaymentModeParameter, paymentMode }
+                        }
+                    });
+
+                    Assert.That(result.Succeeded, Is.False, paymentMode);
+                    Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget), paymentMode);
+                    Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(6), paymentMode);
+                    Assert.That(state.Map.Facilities, Is.Empty, paymentMode);
+                    Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False, paymentMode);
+                },
+                paymentMode => "paymentMode=" + paymentMode);
         }
 
         [Test]

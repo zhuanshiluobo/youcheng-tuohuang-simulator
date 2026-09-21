@@ -9,6 +9,7 @@
     }
   ],
   "dependencies": {
+    "org.moonsharp.moonsharp": "https://github.com/moonsharp-devs/moonsharp.git?path=/interpreter#0fb8ba9106c44b140b8f56cb44cb1b50b358897c",
     "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
     "com.mirror.steamworks.net": "https://github.com/Chykary/FizzySteamworks.git?path=/com.mirror.steamworks.net#FizzySteamworks-6.0.1",
     "com.mirrornetworking.mirror": "96.6.4",
@@ -20,6 +21,7 @@
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.test-framework": "1.1.33",
     "com.unity.textmeshpro": "3.0.7",
+    "com.unity.toolchain.win-x86_64-linux-x86_64": "2.0.11",
     "com.unity.ugui": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",

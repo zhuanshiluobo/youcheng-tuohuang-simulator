@@ -2,22 +2,19 @@ using System;
 using System.Collections.Generic;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
-using YC.Domain.Economy;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
 
 namespace YC.Presentation
 {
-    /// <summary>把角色牌效果分流到独立弹窗或地图选点，不让信息面板承担结算状态。</summary>
+    /// <summary>提交角色激活意图；旧 Pending 展示仅用于尚未迁移的兼容入口。</summary>
     internal sealed class CharacterCardEffectInteractionUiCoordinator
     {
         private readonly Func<GameState> getState;
         private readonly Func<int> getLocalPlayerId;
         private readonly CharacterCardPanelPresenter presenter;
         private readonly CharacterCardEffectChoiceDialog dialog;
-        private readonly Func<string, CharacterCardEffectKind, bool> beginMapEffect;
         private readonly Func<bool> beginPendingInfluenceMove;
-        private readonly Func<IReadOnlyList<string>, Action<string>, Action, bool> beginFacilityEffectSelection;
         private readonly Action endFacilityEffectSelection;
         private readonly Action<string, IReadOnlyDictionary<string, string>> submitEffect;
         private readonly Action<IReadOnlyDictionary<string, string>> submitPending;
@@ -30,9 +27,7 @@ namespace YC.Presentation
             Func<int> getLocalPlayerId,
             CharacterCardPanelPresenter presenter,
             CharacterCardEffectChoiceDialog dialog,
-            Func<string, CharacterCardEffectKind, bool> beginMapEffect,
             Func<bool> beginPendingInfluenceMove,
-            Func<IReadOnlyList<string>, Action<string>, Action, bool> beginFacilityEffectSelection,
             Action endFacilityEffectSelection,
             Action<string, IReadOnlyDictionary<string, string>> submitEffect,
             Action<IReadOnlyDictionary<string, string>> submitPending,
@@ -42,9 +37,7 @@ namespace YC.Presentation
             this.getLocalPlayerId = getLocalPlayerId ?? throw new ArgumentNullException(nameof(getLocalPlayerId));
             this.presenter = presenter ?? throw new ArgumentNullException(nameof(presenter));
             this.dialog = dialog ?? throw new ArgumentNullException(nameof(dialog));
-            this.beginMapEffect = beginMapEffect ?? throw new ArgumentNullException(nameof(beginMapEffect));
             this.beginPendingInfluenceMove = beginPendingInfluenceMove ?? throw new ArgumentNullException(nameof(beginPendingInfluenceMove));
-            this.beginFacilityEffectSelection = beginFacilityEffectSelection ?? throw new ArgumentNullException(nameof(beginFacilityEffectSelection));
             this.endFacilityEffectSelection = endFacilityEffectSelection ?? throw new ArgumentNullException(nameof(endFacilityEffectSelection));
             this.submitEffect = submitEffect ?? throw new ArgumentNullException(nameof(submitEffect));
             this.submitPending = submitPending ?? throw new ArgumentNullException(nameof(submitPending));
@@ -54,41 +47,11 @@ namespace YC.Presentation
         public bool TryBeginEffect(string effectMode, CharacterCardEffectKind effect)
         {
             HideDialog();
-            if (beginMapEffect(effectMode, effect))
-            {
-                return true;
-            }
-
-            switch (effect)
-            {
-                case CharacterCardEffectKind.ElysiumLogistics:
-                    return ShowSingleChoiceEffect(
-                        effectMode,
-                        effect,
-                        CharacterEffectParameterKeys.ResourceType,
-                        "极境策略：后勤调遣",
-                        "选择一种自己持有数量并列最少的基础资源，获得 4 个。",
-                        option => "获得 4 个" + option.DisplayName);
-                case CharacterCardEffectKind.TexasSpecialDelivery:
-                    return BeginTexasSpecialDelivery(effectMode, effect);
-                case CharacterCardEffectKind.CannotRequisition:
-                    return ShowSingleChoiceEffect(
-                        effectMode,
-                        effect,
-                        CharacterEffectParameterKeys.ResourceType,
-                        "坎诺特计谋：征收物资",
-                        "选择一种基础资源；所有玩家以每个 2 金券出售该资源至 0，你获得 1 分。",
-                        option => "征收" + option.DisplayName);
-                case CharacterCardEffectKind.CannotTradeChannel:
-                    return ShowCannotTrade(effectMode);
-                case CharacterCardEffectKind.TinManEstablishPrestige:
-                    return ShowTinManStrategy(effectMode);
-                case CharacterCardEffectKind.TinManDeepPlanning:
-                    SubmitEffect(effectMode, new Dictionary<string, string>());
-                    return true;
-                default:
-                    return false;
-            }
+            if (effect == CharacterCardEffectKind.Unsupported ||
+                !Enum.IsDefined(typeof(CharacterCardEffectKind), effect)) return false;
+            // 所有卡面都先挂激活节点；参数只由 Effect 的唯一交互请求征集。
+            SubmitEffect(effectMode, new Dictionary<string, string>());
+            return true;
         }
 
         public bool SynchronizePending()
@@ -165,143 +128,6 @@ namespace YC.Presentation
             endFacilityEffectSelection();
         }
 
-        private bool BeginTexasSpecialDelivery(string effectMode, CharacterCardEffectKind effect)
-        {
-            var state = getState();
-            if (state == null)
-            {
-                setPrompt("当前游戏状态不可用，无法结算德克萨斯策略。");
-                return true;
-            }
-
-            var result = presenter.QueryOptions(state, getLocalPlayerId(), effect, null);
-            var choices = result.Get(CharacterEffectParameterKeys.FacilityCardId);
-            if (choices.Count == 0)
-            {
-                setPrompt("设施供应区当前没有可由德克萨斯选择的设施牌。");
-                return true;
-            }
-
-            var facilityIds = new List<string>();
-            for (var i = 0; i < choices.Count; i++)
-            {
-                if (!string.IsNullOrEmpty(choices[i].Id))
-                {
-                    facilityIds.Add(choices[i].Id);
-                }
-            }
-
-            var begun = beginFacilityEffectSelection(
-                facilityIds.AsReadOnly(),
-                facilityId => SubmitEffect(effectMode, new Dictionary<string, string>
-                {
-                    [CharacterEffectParameterKeys.FacilityCardId] = facilityId
-                }),
-                CancelInitialSelection);
-            setPrompt(begun
-                ? "德克萨斯策略：请点击左上设施供应区中高亮的设施牌；按 Esc 取消。"
-                : "设施供应区当前无法进入德克萨斯选牌状态。");
-            return true;
-        }
-
-        private bool ShowSingleChoiceEffect(
-            string effectMode,
-            CharacterCardEffectKind effect,
-            string parameterKey,
-            string title,
-            string description,
-            Func<CharacterCardOption, string> formatLabel)
-        {
-            var state = getState();
-            if (state == null)
-            {
-                setPrompt("当前游戏状态不可用，无法结算角色牌。");
-                return true;
-            }
-
-            var result = presenter.QueryOptions(state, getLocalPlayerId(), effect, null);
-            var choices = result.Get(parameterKey);
-            if (choices.Count == 0)
-            {
-                setPrompt("当前角色牌效果没有合法选项。");
-                return true;
-            }
-
-            var options = new List<EffectDialogOption>();
-            for (var i = 0; i < choices.Count; i++)
-            {
-                var choice = choices[i];
-                var capturedChoice = choice;
-                options.Add(new EffectDialogOption(formatLabel(choice), () =>
-                {
-                    SubmitEffect(effectMode, new Dictionary<string, string>
-                    {
-                        [parameterKey] = capturedChoice.Id
-                    });
-                }));
-            }
-
-            dialog.ShowOptions(title, description, options, CancelInitialSelection);
-            setPrompt("请在角色牌结算弹窗中选择效果参数。");
-            return true;
-        }
-
-        private bool ShowCannotTrade(string effectMode)
-        {
-            var state = getState();
-            var player = state == null ? null : state.FindPlayer(getLocalPlayerId());
-            if (player == null || player.Resources == null)
-            {
-                setPrompt("当前玩家资源状态不可用，无法结算坎诺特策略。");
-                return true;
-            }
-
-            dialog.ShowResourceSale(
-                new[] { "源岩", "源石碎片", "异铁", "至纯源石" },
-                new[]
-                {
-                    player.Resources.Originium,
-                    player.Resources.OriginiumShard,
-                    player.Resources.Iron,
-                    player.Resources.PureOriginium
-                },
-                new[]
-                {
-                    ResourceSaleService.OriginiumUnitPrice,
-                    ResourceSaleService.OriginiumShardUnitPrice,
-                    ResourceSaleService.IronUnitPrice,
-                    ResourceSaleService.PureOriginiumUnitPrice
-                },
-                values =>
-                {
-                    SubmitEffect(effectMode, new Dictionary<string, string>
-                    {
-                        [CharacterEffectParameterKeys.SaleOriginium] = ValueAt(values, 0).ToString(),
-                        [CharacterEffectParameterKeys.SaleOriginiumShard] = ValueAt(values, 1).ToString(),
-                        [CharacterEffectParameterKeys.SaleIron] = ValueAt(values, 2).ToString(),
-                        [CharacterEffectParameterKeys.SalePureOriginium] = ValueAt(values, 3).ToString()
-                    });
-                },
-                CancelInitialSelection);
-            setPrompt("请在角色牌结算弹窗中选择要出售的资源数量。");
-            return true;
-        }
-
-        private bool ShowTinManStrategy(string effectMode)
-        {
-            var state = getState();
-            var player = state == null ? null : state.FindPlayer(getLocalPlayerId());
-            if (player == null || player.Resources == null)
-            {
-                setPrompt("当前玩家资源状态不可用，无法结算锡人策略。");
-                return true;
-            }
-
-            setPrompt("正在结算锡人策略：固定获得 1 分后进入第一笔购买选择。");
-            SubmitEffect(effectMode, new Dictionary<string, string>());
-            return true;
-        }
-
         private void ShowTinManPurchaseDecision(
             PendingCharacterEffectState pending,
             CharacterCardOptionQueryResult query)
@@ -366,11 +192,6 @@ namespace YC.Presentation
             submitEffect(effectMode, new Dictionary<string, string>(parameters));
         }
 
-        private void CancelInitialSelection()
-        {
-            setPrompt("已取消本次角色牌效果选择，尚未提交结算。");
-        }
-
         private PendingCharacterEffectState CurrentTinManPending()
         {
             var state = getState();
@@ -408,9 +229,5 @@ namespace YC.Presentation
             return CharacterCardPanelPresenter.ResolveCardDisplayName(pending.RemainingCardIds[0]);
         }
 
-        private static int ValueAt(IReadOnlyList<int> values, int index)
-        {
-            return values != null && index >= 0 && index < values.Count ? values[index] : 0;
-        }
     }
 }

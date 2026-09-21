@@ -1,0 +1,28 @@
+{
+  "enabled": false,
+  "definitionId": "example.enterprise_board",
+  "contentType": "enterprise_board",
+  "version": "0.1.0",
+  "displayName": "未启用的企业板示例",
+  "artwork": "artwork/city_board.jpg",
+  "tags": [
+    "example"
+  ],
+  "playerMarkerZones": [
+    {
+      "zoneId": "players",
+      "capacity": 4,
+      "zoneKind": "player_marker",
+      "allowedMarkerOwners": "all",
+      "displayAnchorId": "players"
+    }
+  ],
+  "abilities": [],
+  "data": {
+    "cooperationLevels": [],
+    "rewards": [],
+    "unlockedAbilities": []
+  },
+  "expansionId": "example",
+  "replaces": null
+}

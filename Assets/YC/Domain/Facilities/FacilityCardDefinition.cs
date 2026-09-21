@@ -12,6 +12,7 @@ namespace YC.Domain.Facilities
         public string Color = string.Empty;
         public int Score;
         public ResourceSet ResourceCost = new ResourceSet();
+        public ResourceSet CostReductionPerDistinctBuiltColor = new ResourceSet();
         public int GoldVoucherCost;
         public bool Unique;
         public string UniqueGroupId = string.Empty;
@@ -23,6 +24,7 @@ namespace YC.Domain.Facilities
         public string EffectText = string.Empty;
         public string ManifestId = string.Empty;
         public bool ReserveOnly;
+        public int DefaultSupply = 1;
         public ResourceSet OnBuiltReward = new ResourceSet();
     }
 

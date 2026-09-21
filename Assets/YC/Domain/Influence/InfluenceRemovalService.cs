@@ -30,6 +30,17 @@ namespace YC.Domain.Influence
                     -1, slotId, false);
             }
 
+            // 只有目标已确认存在后才归一化旧快照身份，失败移除保持严格 no-op。
+            InfluenceIdentity.Ensure(state);
+            placement = FindInfluenceAtSlot(state, slotId);
+            if (placement == null)
+            {
+                return InfluenceOperationResult.Failure(
+                    InfluenceFailureCode.InfluenceNotFound,
+                    "Influence must exist before it can be removed.",
+                    -1, slotId, false);
+            }
+
             var playerId = placement.PlayerId;
             var resolvedSlotId = placement.SlotId;
             state.Map.Influences.Remove(placement);
@@ -40,7 +51,12 @@ namespace YC.Domain.Influence
                 player.InfluenceSupply += 1;
             }
 
-            return InfluenceOperationResult.Success(playerId, resolvedSlotId, true);
+            return InfluenceOperationResult.Success(
+                playerId,
+                resolvedSlotId,
+                true,
+                placement.InfluenceId,
+                resolvedSlotId);
         }
 
         private List<InfluenceOperationResult> RemoveAllCore(GameState state, IEnumerable<string> slotIds, int? onlyPlayerId)
@@ -71,7 +87,12 @@ namespace YC.Domain.Influence
                     player.InfluenceSupply += 1;
                 }
 
-                results.Add(InfluenceOperationResult.Success(playerId, slotId, true));
+                results.Add(InfluenceOperationResult.Success(
+                    playerId,
+                    slotId,
+                    true,
+                    placement.InfluenceId,
+                    slotId));
             }
 
             return results;
@@ -81,9 +102,11 @@ namespace YC.Domain.Influence
         {
             for (var i = 0; i < state.Map.Influences.Count; i++)
             {
-                if (state.Map.Influences[i].SlotId == slotId)
+                var placement = state.Map.Influences[i];
+                if (placement != null &&
+                    (placement.SlotId == slotId || InfluenceIdentity.GetStableId(state, placement) == slotId))
                 {
-                    return state.Map.Influences[i];
+                    return placement;
                 }
             }
 

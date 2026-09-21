@@ -1,0 +1,37 @@
+{
+  "contentType": "facility",
+  "data": {
+    "name": "联邦理事处",
+    "color": "rainbow",
+    "score": 0,
+    "resourceCost": {
+      "originium": 4,
+      "originiumShard": 2,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 17,
+    "defaultSupply": 1,
+    "reserveOnly": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry",
+      "unique"
+    ],
+    "effectId": "claim_start_marker_at_cleanup",
+    "effectType": "cleanup",
+    "description": "尽管拓荒队之间各自为政，但依旧在一些方面受制于哥伦比亚当局。",
+    "effectText": "唯一；本回合的收尾阶段传递起始标记时，由你获得起始标记。只有本回合最后建造的联邦理事处会生效。",
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "unique": true,
+    "uniqueGroupId": "联邦理事处",
+    "effectScript": "lua/facilities/claim_start_marker_at_cleanup.lua"
+  }
+}
