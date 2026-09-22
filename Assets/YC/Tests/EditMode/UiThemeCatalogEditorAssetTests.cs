@@ -79,6 +79,26 @@ namespace YC.Tests.EditMode
             var validate = readiness.GetMethod("ValidateSavedSceneYaml", BindingFlags.NonPublic | BindingFlags.Static);
             Assert.That(validate, Is.Not.Null);
             var baseYaml = "--- !u!1001 &1\nPrefabInstance:\n  m_SourcePrefab: {fileID: 100100000, guid: prefab, type: 3}\n";
+            object[] Arguments(string yaml) => new object[]
+            {
+                "test", yaml, "prefab", 11L, 22L, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 33L, "script"
+            };
+            // UiTheme 原先允许省略移除区段；合并解析逻辑不收紧这个边界。
+            Assert.DoesNotThrow(() => validate.Invoke(null, Arguments(baseYaml)));
+            var sameCatalog = baseYaml + CatalogOverride(22, "33", "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
+            Assert.DoesNotThrow(() => validate.Invoke(null, Arguments(sameCatalog)));
+            Assert.DoesNotThrow(() => validate.Invoke(null, Arguments(sameCatalog.Replace("\n", "\r\n"))));
+            Assert.DoesNotThrow(() => validate.Invoke(null, Arguments(baseYaml + Override(23, "m_Enabled", "0"))));
+            Assert.DoesNotThrow(() => validate.Invoke(null, Arguments(baseYaml +
+                CatalogOverride(22, "0", string.Empty).Replace("guid: prefab", "guid: other"))));
+            Assert.DoesNotThrow(() => validate.Invoke(null, Arguments(baseYaml +
+                CatalogOverride(22, "0", string.Empty).Replace("propertyPath: themeCatalog", "propertyPath: catalog"))));
+            AssertYamlRejected(validate, string.Empty);
+            AssertYamlRejected(validate, baseYaml.Replace("guid: prefab", "guid: other"));
+            AssertYamlRejected(validate, baseYaml + baseYaml);
+            AssertYamlRejected(validate, baseYaml + CatalogOverride(22, "44", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+            AssertYamlRejected(validate, baseYaml + CatalogOverride(22, "33", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+            AssertYamlRejected(validate, (baseYaml + Override(22, "m_Enabled", "0")).Replace("\n", "\r\n"));
             AssertYamlRejected(validate, baseYaml + Override(11, "m_IsActive", "0"));
             AssertYamlRejected(validate, baseYaml + Override(22, "m_Enabled", "0"));
             AssertYamlRejected(validate, baseYaml + CatalogOverride(22, "0", string.Empty));
@@ -90,7 +110,7 @@ namespace YC.Tests.EditMode
         private static object LoadRequiredCatalog() => InvokeReadiness("LoadRequiredCatalog");
         private static string Override(long id, string property, string value) => "    - target: {fileID: " + id + ", guid: prefab, type: 3}\n      propertyPath: " + property + "\n      value: " + value + "\n      objectReference: {fileID: 0}\n";
         private static string CatalogOverride(long id, string reference, string guid) => "    - target: {fileID: " + id + ", guid: prefab, type: 3}\n      propertyPath: themeCatalog\n      value: \n      objectReference: " + (reference == "0" ? "{fileID: 0}" : "{fileID: " + reference + ", guid: " + guid + ", type: 2}") + "\n";
-        private static void AssertYamlRejected(MethodInfo method, string yaml) { var exception = Assert.Throws<TargetInvocationException>(() => method.Invoke(null, new object[] { "test", yaml, "prefab", 11L, 22L, "catalog", 33L, "script" })); Assert.That(exception.InnerException, Is.TypeOf<InvalidOperationException>()); }
+        private static void AssertYamlRejected(MethodInfo method, string yaml) { var exception = Assert.Throws<TargetInvocationException>(() => method.Invoke(null, new object[] { "test", yaml, "prefab", 11L, 22L, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 33L, "script" })); Assert.That(exception.InnerException, Is.TypeOf<InvalidOperationException>()); }
         private static void AssertPlayerColor(object catalog, string player, float r, float g, float b, float a)
         {
             var enumType = Type.GetType("YC.Domain.Rules.PlayerColor, YC.Domain", false);

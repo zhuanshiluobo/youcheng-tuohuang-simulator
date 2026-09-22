@@ -327,6 +327,36 @@ namespace YC.Tests.EditMode
                 scriptGuid
             };
 
+            Assert.DoesNotThrow(() => validateYaml.Invoke(null, arguments));
+            var baseYaml = "--- !u!1001 &1\nPrefabInstance:\n  m_Modification:\n" +
+                "    m_Modifications: []\n    m_RemovedComponents: []\n    m_RemovedGameObjects: []\n" +
+                "  m_SourcePrefab: {fileID: 100100000, guid: " + prefabGuid + ", type: 3}\n";
+            var acceptedArguments = (object[])arguments.Clone();
+            var sameCatalog = AddPrefabOverride(baseYaml, prefabGuid, bootstrapLocalId, "catalog",
+                string.Empty, "{fileID: " + catalogLocalId + ", guid: " + catalogGuid.ToUpperInvariant() + ", type: 2}");
+            acceptedArguments[1] = sameCatalog.Replace("\n", "\r\n");
+            Assert.DoesNotThrow(() => validateYaml.Invoke(null, acceptedArguments));
+            acceptedArguments[1] = AddPrefabOverride(baseYaml, prefabGuid, bootstrapLocalId + 1,
+                "m_Enabled", "0", "{fileID: 0}");
+            Assert.DoesNotThrow(() => validateYaml.Invoke(null, acceptedArguments));
+            AssertYamlRejected(validateYaml, arguments, string.Empty);
+            AssertYamlRejected(validateYaml, arguments, baseYaml.Replace(prefabGuid, scriptGuid));
+            AssertYamlRejected(validateYaml, arguments, baseYaml + baseYaml);
+            AssertYamlRejected(validateYaml, arguments,
+                baseYaml.Replace("    m_RemovedComponents: []\n", string.Empty));
+            AssertYamlRejected(validateYaml, arguments,
+                baseYaml.Replace("    m_RemovedGameObjects: []\n", string.Empty));
+            AssertYamlRejected(validateYaml, arguments, baseYaml.Replace("m_RemovedComponents: []",
+                "m_RemovedComponents:\n    - {fileID: " + bootstrapLocalId + ", guid: " + prefabGuid + ", type: 3}"));
+            AssertYamlRejected(validateYaml, arguments, AddPrefabOverride(baseYaml, prefabGuid,
+                bootstrapLocalId, "catalog", string.Empty,
+                "{fileID: " + (catalogLocalId + 1) + ", guid: " + catalogGuid + ", type: 2}"));
+            AssertYamlRejected(validateYaml, arguments, AddPrefabOverride(baseYaml, prefabGuid,
+                bootstrapLocalId, "catalog", string.Empty,
+                "{fileID: " + catalogLocalId + ", guid: " + scriptGuid + ", type: 2}"));
+            AssertYamlRejected(validateYaml, arguments, AddPrefabOverride(baseYaml, prefabGuid,
+                bootstrapLocalId, "m_Enabled", "0", "{fileID: 0}").Replace("\n", "\r\n"));
+
             AssertYamlRejected(validateYaml, arguments, AddPrefabOverride(
                 (string)arguments[1], prefabGuid, rootLocalId, "m_IsActive", "0", "{fileID: 0}"));
             AssertYamlRejected(validateYaml, arguments, AddPrefabOverride(

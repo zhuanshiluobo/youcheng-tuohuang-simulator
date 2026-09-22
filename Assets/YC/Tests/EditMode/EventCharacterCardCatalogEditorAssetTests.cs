@@ -281,6 +281,24 @@ namespace YC.Tests.EditMode
             };
 
             Assert.DoesNotThrow(() => validate.Invoke(null, Arguments(baseYaml)));
+            var sameCatalog = WithOverride(baseYaml, bootstrapId, prefabGuid, "catalog",
+                string.Empty, "{fileID: " + catalogId + ", guid: " + catalogGuid.ToUpperInvariant() + ", type: 2}");
+            Assert.DoesNotThrow(() => validate.Invoke(null, Arguments(sameCatalog)));
+            Assert.DoesNotThrow(() => validate.Invoke(null, Arguments(sameCatalog.Replace("\n", "\r\n"))));
+            Assert.DoesNotThrow(() => validate.Invoke(null, Arguments(WithOverride(
+                baseYaml, bootstrapId + 1, prefabGuid, "m_Enabled", "0", "{fileID: 0}"))));
+            Assert.DoesNotThrow(() => validate.Invoke(null, Arguments(WithOverride(
+                baseYaml, bootstrapId, scriptGuid, "catalog", string.Empty, "{fileID: 0}"))));
+            AssertRejected(validate, Arguments(string.Empty));
+            AssertRejected(validate, Arguments(baseYaml.Replace(prefabGuid, scriptGuid)));
+            AssertRejected(validate, Arguments(baseYaml.Replace("    m_RemovedComponents: []\n", string.Empty)));
+            AssertRejected(validate, Arguments(baseYaml.Replace("    m_RemovedGameObjects: []\n", string.Empty)));
+            AssertRejected(validate, Arguments(WithOverride(baseYaml, bootstrapId, prefabGuid,
+                "catalog", string.Empty, "{fileID: " + (catalogId + 1) + ", guid: " + catalogGuid + ", type: 2}")));
+            AssertRejected(validate, Arguments(WithOverride(baseYaml, bootstrapId, prefabGuid,
+                "catalog", string.Empty, "{fileID: " + catalogId + ", guid: " + scriptGuid + ", type: 2}")));
+            AssertRejected(validate, Arguments(WithOverride(baseYaml, bootstrapId, prefabGuid,
+                "m_Enabled", "0", "{fileID: 0}").Replace("\n", "\r\n")));
             AssertRejected(validate, Arguments(baseYaml + baseYaml));
             AssertRejected(
                 validate,

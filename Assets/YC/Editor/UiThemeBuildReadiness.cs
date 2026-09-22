@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
@@ -138,37 +137,10 @@ namespace YC.Editor
         internal static void ValidateSavedSceneYaml(string scenePath, string yaml, string prefabGuid,
             long rootId, long bootstrapId, string catalogGuid, long catalogId, string scriptGuid)
         {
-            var blocks = Regex.Matches(yaml ?? string.Empty, @"^--- !u!1001 &.*?(?=^--- !u!|\z)",
-                RegexOptions.Multiline | RegexOptions.Singleline);
-            var source = "m_SourcePrefab: {fileID: 100100000, guid: " + prefabGuid + ", type: 3}";
-            var matches = new List<string>();
-            foreach (Match block in blocks) if (block.Value.Contains(source)) matches.Add(block.Value);
-            if (matches.Count != 1) throw new InvalidOperationException(scenePath + " 必须保留唯一 GameSettings prefab 实例。");
-            if (Regex.IsMatch(yaml, @"m_Script:\s*\{fileID:\s*-?\d+,\s*guid:\s*" + Regex.Escape(scriptGuid) + @",\s*type:\s*3\}", RegexOptions.IgnoreCase))
-                throw new InvalidOperationException(scenePath + " 包含额外的 UiThemeBootstrap 组件。");
-
-            var blockText = matches[0];
-            var removed = Regex.Match(blockText,
-                @"m_RemovedComponents:\s*(?<items>.*?)(?=\s*m_RemovedGameObjects:|\z)",
-                RegexOptions.Singleline).Groups["items"].Value;
-            if (Regex.IsMatch(removed, @"fileID:\s*" + bootstrapId + @",\s*guid:\s*" + Regex.Escape(prefabGuid), RegexOptions.IgnoreCase))
-            {
-                throw new InvalidOperationException("UiThemeBootstrap 已被场景 override 删除。");
-            }
-            RejectOverride(scenePath, blockText, prefabGuid, rootId, "m_IsActive", "0");
-            RejectOverride(scenePath, blockText, prefabGuid, bootstrapId, "m_Enabled", "0");
-            var pattern = @"target:\s*\{fileID:\s*" + bootstrapId + @",\s*guid:\s*" + Regex.Escape(prefabGuid) + @",\s*type:\s*\d+\}\s*\r?\n\s*propertyPath:\s*themeCatalog\s*\r?\n\s*value:.*?\r?\n\s*objectReference:\s*\{fileID:\s*(?<id>-?\d+)(?:,\s*guid:\s*(?<guid>[0-9a-f]+),\s*type:\s*\d+)?\}";
-            foreach (Match match in Regex.Matches(blockText, pattern, RegexOptions.IgnoreCase | RegexOptions.Singleline))
-            {
-                if (long.Parse(match.Groups["id"].Value) != catalogId || !string.Equals(match.Groups["guid"].Value, catalogGuid, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException(scenePath + " 覆盖了 UiThemeBootstrap 的 themeCatalog 引用。");
-            }
-        }
-
-        private static void RejectOverride(string scenePath, string block, string prefabGuid, long targetId, string property, string forbidden)
-        {
-            var pattern = @"target:\s*\{fileID:\s*" + targetId + @",\s*guid:\s*" + Regex.Escape(prefabGuid) + @",\s*type:\s*\d+\}\s*\r?\n\s*propertyPath:\s*" + property + @"\s*\r?\n\s*value:\s*" + forbidden;
-            if (Regex.IsMatch(block, pattern, RegexOptions.IgnoreCase)) throw new InvalidOperationException(scenePath + " 禁用了 UiTheme prefab 内容。");
+            SavedSceneBootstrapYaml.Validate(
+                scenePath, yaml, prefabGuid, rootId, bootstrapId,
+                catalogGuid, catalogId, scriptGuid,
+                "UiThemeBootstrap", "themeCatalog", requireRemovalSection: false);
         }
 
         private static int GetExecutionOrder(Type type)
