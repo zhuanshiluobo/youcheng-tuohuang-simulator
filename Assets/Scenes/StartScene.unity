@@ -478,7 +478,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2464863708669273868, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2895064275912673758, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_Name
@@ -491,10 +491,6 @@ PrefabInstance:
     - target: {fileID: 3007995056258796204, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_FontData.m_FontSize
       value: 35
-      objectReference: {fileID: 0}
-    - target: {fileID: 3122765221010565410, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
-      propertyPath: m_Text
-      value: "\u5B98\u65B9\u7F51\u7AD9"
       objectReference: {fileID: 0}
     - target: {fileID: 3204224465142399252, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_Enabled
@@ -572,10 +568,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -51.25
       objectReference: {fileID: 0}
-    - target: {fileID: 4818518887883747570, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
-      propertyPath: m_Text
-      value: "\u524D\u5F80wiki"
-      objectReference: {fileID: 0}
     - target: {fileID: 5070715762121237602, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_Text
       value: "\u591A\u4EBA\u8054\u673A"
@@ -608,6 +600,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6682730334664130301, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
+      propertyPath: m_Text
+      value: "\u524D\u5F80wiki"
+      objectReference: {fileID: 0}
     - target: {fileID: 6683645725675672658, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -619,6 +615,10 @@ PrefabInstance:
     - target: {fileID: 6683645725675672658, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7257264668407522402, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
+      propertyPath: m_Text
+      value: "\u524D\u5F80github"
       objectReference: {fileID: 0}
     - target: {fileID: 7443471641762290702, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_SizeDelta.x
@@ -655,10 +655,6 @@ PrefabInstance:
     - target: {fileID: 7802986639994671980, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_FontData.m_AlignByGeometry
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8492969087782399985, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
-      propertyPath: m_Text
-      value: "\u524D\u5F80github"
       objectReference: {fileID: 0}
     - target: {fileID: 8599747067336680575, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_AnchoredPosition.x
