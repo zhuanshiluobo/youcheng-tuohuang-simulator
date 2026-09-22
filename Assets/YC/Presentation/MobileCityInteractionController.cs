@@ -526,9 +526,8 @@ namespace YC.Presentation
             interactionRouter.Register(new FacilityInteractionAdapter(facilityInteraction));
             interactionRouter.Register(turnActionPresenter.BuildInteraction);
             interactionRouter.Register(turnActionPresenter.MoveInteraction);
-            interactionRouter.Register(turnActionPresenter.DeployInteraction);
-            interactionRouter.Register(turnActionPresenter.DispatchInteraction);
-            interactionRouter.Register(turnActionPresenter.ExploreInteraction);
+            interactionRouter.Register(influenceActionPresenter);
+            interactionRouter.Register(explorationEventPresenter);
             interactionRouter.Register(resourceCollectionPresenter);
             interactionRouter.Register(mapInteractionRouter);
         }

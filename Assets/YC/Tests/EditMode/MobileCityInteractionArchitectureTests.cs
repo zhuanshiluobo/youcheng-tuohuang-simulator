@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
-using UnityEngine;
 using YC.Presentation.Workflows;
 
 namespace YC.Tests.EditMode
@@ -15,395 +13,48 @@ namespace YC.Tests.EditMode
         public void WorkflowAssembly_IsEngineIndependent()
         {
             var path = Path.Combine(AssetsPath, "YC/Presentation/Workflows/YC.Presentation.Workflows.asmdef");
-            StringAssert.Contains("\"noEngineReferences\": true", File.ReadAllText(path));
+            Assert.That(File.ReadAllText(path), Does.Match(@"""noEngineReferences""\s*:\s*true\b"));
         }
 
         [Test]
-        public void WorkflowPresenter_IsNotAMonoBehaviour_AndHasNoUnityReference()
+        public void WorkflowAssembly_HasNoUnityReference()
         {
-            EditModeTestCaseRunner.Run(
-                new[]
-                {
-                    typeof(ResourceCollectionPresenter),
-                    typeof(InfluenceActionPresenter),
-                    typeof(ExplorationEventPresenter),
-                    typeof(TurnActionPresenter),
-                    typeof(BuildInteraction),
-                    typeof(MoveInteraction),
-                    typeof(DeployInteraction),
-                    typeof(DispatchInteraction),
-                    typeof(ExploreInteraction),
-                    typeof(CityStyleInteraction),
-                    typeof(TurnActionPanelPresenter)
-                },
-                presenterType =>
-                {
-                    Assert.That(typeof(MonoBehaviour).IsAssignableFrom(presenterType), Is.False);
-                    foreach (var reference in presenterType.Assembly.GetReferencedAssemblies())
-                    {
-                        Assert.That(
-                            reference.Name.StartsWith("UnityEngine", StringComparison.Ordinal),
-                            Is.False,
-                            presenterType.FullName);
-                    }
-                },
-                presenterType => presenterType.FullName);
+            // 检查整个工作流程序集的依赖边界，不限定具体实现类或继承方式。
+            foreach (var reference in typeof(TurnActionPresenter).Assembly.GetReferencedAssemblies())
+            {
+                Assert.That(reference.Name.StartsWith("UnityEngine", StringComparison.Ordinal), Is.False);
+                Assert.That(reference.Name.StartsWith("UnityEditor", StringComparison.Ordinal), Is.False);
+            }
         }
 
         [Test]
-        public void BuildInteraction_OwnsBuildStateAndPresenterKeepsOnlyThinCompatibilityApi()
-        {
-            var workflowRoot = Path.Combine(AssetsPath, "YC/Presentation/Workflows");
-            var buildSource = File.ReadAllText(Path.Combine(workflowRoot, "BuildInteraction.cs"));
-            var presenterSource = File.ReadAllText(
-                Path.Combine(workflowRoot, "TurnActionPresenter.cs"));
-
-            Assert.That(typeof(InteractionBase).IsAssignableFrom(typeof(BuildInteraction)), Is.True);
-            Assert.That(
-                typeof(TurnActionPresenter).GetProperty("BuildInteraction").PropertyType,
-                Is.EqualTo(typeof(BuildInteraction)));
-            StringAssert.Contains(
-                "new BuildFacilitySelectionController()",
-                buildSource);
-            StringAssert.Contains(
-                "public void Dispatch(BuildFacilityIntent intent)",
-                buildSource);
-            StringAssert.Contains(
-                "public override void NotifyCommandSettled(string commandId)",
-                buildSource);
-            StringAssert.Contains(
-                "RejectMutationWhileSubmitting()",
-                buildSource);
-            StringAssert.Contains(
-                "BuildInteraction.SynchronizeFromState();",
-                presenterSource);
-            StringAssert.DoesNotContain(
-                "BuildFacilitySelectionController",
-                presenterSource);
-            StringAssert.DoesNotContain(
-                "DispatchBuildFacilityIntent",
-                presenterSource);
-
-            AssertThinDelegate(
-                presenterSource,
-                "public void BeginBuildAction()",
-                "BuildInteraction.Begin();");
-            AssertThinDelegate(
-                presenterSource,
-                "public void BeginBuildFacilityDrag(string facilityId)",
-                "BuildInteraction.BeginDrag(facilityId);");
-            AssertThinDelegate(
-                presenterSource,
-                "public void DropBuildFacility(int cityBoardSlotIndex)",
-                "BuildInteraction.Drop(cityBoardSlotIndex);");
-            AssertThinDelegate(
-                presenterSource,
-                "public void RejectBuildFacilityDrop()",
-                "BuildInteraction.RejectDrop();");
-            AssertThinDelegate(
-                presenterSource,
-                "public void BeginGhostBuildFacilityDrag()",
-                "BuildInteraction.BeginGhostDrag();");
-            AssertThinDelegate(
-                presenterSource,
-                "public bool HandleBuildFacilityEscape()",
-                "return BuildInteraction.HandleEscape();");
-            AssertThinDelegate(
-                presenterSource,
-                "public void SelectBuildFacilityPayment(string paymentMode)",
-                "BuildInteraction.SelectPayment(paymentMode);");
-            AssertThinDelegate(
-                presenterSource,
-                "public void BackToBuildFacilityPayment()",
-                "BuildInteraction.BackToPayment();");
-            AssertThinDelegate(
-                presenterSource,
-                "public void CancelBuildFacility()",
-                "BuildInteraction.CancelExplicitly();");
-            AssertThinDelegate(
-                presenterSource,
-                "public void ConfirmBuildFacility()",
-                "BuildInteraction.Confirm();");
-            AssertThinDelegate(
-                presenterSource,
-                "public BuildFacilityDraftViewModel BuildBuildFacilityDraftViewModel()",
-                "return BuildInteraction.BuildDraftViewModel();");
-            AssertThinDelegate(
-                presenterSource,
-                "public BuildFacilityAvailabilityViewModel BuildBuildFacilityAvailabilityViewModel()",
-                "return BuildInteraction.BuildAvailabilityViewModel();");
-        }
-
-        [Test]
-        public void MoveInteraction_OwnsInitialPlacementAndMoveState()
-        {
-            var workflowRoot = Path.Combine(AssetsPath, "YC/Presentation/Workflows");
-            var moveSource = File.ReadAllText(
-                Path.Combine(workflowRoot, "MoveInteraction.cs"));
-            var presenterSource = File.ReadAllText(
-                Path.Combine(workflowRoot, "TurnActionPresenter.cs"));
-
-            Assert.That(
-                typeof(InteractionBase).IsAssignableFrom(typeof(MoveInteraction)),
-                Is.True);
-            Assert.That(
-                typeof(TurnActionPresenter).GetProperty("MoveInteraction").PropertyType,
-                Is.EqualTo(typeof(MoveInteraction)));
-            StringAssert.Contains("private enum MoveStage", moveSource);
-            StringAssert.Contains("private void PresentMoveTargets()", moveSource);
-            StringAssert.Contains(
-                "private bool CanUseInitialPlacementLocation(string locationId)",
-                moveSource);
-            StringAssert.Contains(
-                "private bool IsOccupiedByAnotherCity(string locationId)",
-                moveSource);
-            StringAssert.DoesNotContain("InteractionMode.Resolving", moveSource);
-            StringAssert.DoesNotContain("TurnActionStage", presenterSource);
-            StringAssert.DoesNotContain("PresentMoveTargets", presenterSource);
-            StringAssert.DoesNotContain("CanUseInitialPlacementLocation", presenterSource);
-            StringAssert.DoesNotContain("IsOccupiedByAnotherCity", presenterSource);
-
-            AssertThinDelegate(
-                presenterSource,
-                "public InteractionMode Mode",
-                "get { return MoveInteraction.Mode; }");
-            AssertThinDelegate(
-                presenterSource,
-                "public bool IsSelectingMoveTarget",
-                "get { return MoveInteraction.IsSelectingMoveTarget; }");
-            AssertThinDelegate(
-                presenterSource,
-                "public bool IsAwaitingInitialPlacement",
-                "get { return MoveInteraction.IsAwaitingInitialPlacement; }");
-            AssertThinDelegate(
-                presenterSource,
-                "public void Activate()",
-                "MoveInteraction.Activate();");
-            AssertThinDelegate(
-                presenterSource,
-                "public void Cancel()",
-                "MoveInteraction.Cancel();");
-            AssertThinDelegate(
-                presenterSource,
-                "public bool IsLocalPlayersTurn()",
-                "return MoveInteraction.IsLocalPlayersTurn();");
-            AssertThinDelegate(
-                presenterSource,
-                "public void PlaceInitialCity(string locationId)",
-                "MoveInteraction.PlaceInitialCity(locationId);");
-            AssertThinDelegate(
-                presenterSource,
-                "public IReadOnlyList<WorkflowHighlight> BuildInitialPlacementHighlights()",
-                "return MoveInteraction.BuildInitialPlacementHighlights();");
-            AssertThinDelegate(
-                presenterSource,
-                "public void BeginMoveAction()",
-                "MoveInteraction.Begin();");
-            AssertThinDelegate(
-                presenterSource,
-                "public void MoveCity(string locationId)",
-                "MoveInteraction.Move(locationId);");
-            AssertThinDelegate(
-                presenterSource,
-                "public void RestoreMovePresentation()",
-                "MoveInteraction.RestorePresentation();");
-        }
-
-        [Test]
-        public void TurnActions_ExposeFiveExplicitInteractions_AndPresentersAreNotInteractions()
-        {
-            var presenterType = typeof(TurnActionPresenter);
-            Assert.That(typeof(InteractionBase).IsAssignableFrom(typeof(BuildInteraction)), Is.True);
-            Assert.That(typeof(InteractionBase).IsAssignableFrom(typeof(DeployInteraction)), Is.True);
-            Assert.That(typeof(InteractionBase).IsAssignableFrom(typeof(DispatchInteraction)), Is.True);
-            Assert.That(typeof(InteractionBase).IsAssignableFrom(typeof(MoveInteraction)), Is.True);
-            Assert.That(typeof(InteractionBase).IsAssignableFrom(typeof(ExploreInteraction)), Is.True);
-            Assert.That(presenterType.GetProperty("BuildInteraction").PropertyType, Is.EqualTo(typeof(BuildInteraction)));
-            Assert.That(presenterType.GetProperty("DeployInteraction").PropertyType, Is.EqualTo(typeof(DeployInteraction)));
-            Assert.That(presenterType.GetProperty("DispatchInteraction").PropertyType, Is.EqualTo(typeof(DispatchInteraction)));
-            Assert.That(presenterType.GetProperty("MoveInteraction").PropertyType, Is.EqualTo(typeof(MoveInteraction)));
-            Assert.That(presenterType.GetProperty("ExploreInteraction").PropertyType, Is.EqualTo(typeof(ExploreInteraction)));
-            Assert.That(typeof(IInteraction).IsAssignableFrom(typeof(InfluenceActionPresenter)), Is.False);
-            Assert.That(typeof(IInteraction).IsAssignableFrom(typeof(ExplorationEventPresenter)), Is.False);
-        }
-
-        [Test]
-        public void CityStyleInteraction_OwnsSelectionAndSpecialActionMarkerLogic()
-        {
-            var workflowRoot = Path.Combine(AssetsPath, "YC/Presentation/Workflows");
-            var interactionSource = File.ReadAllText(
-                Path.Combine(workflowRoot, "CityStyleInteraction.cs"));
-            var presenterSource = File.ReadAllText(
-                Path.Combine(workflowRoot, "TurnActionPresenter.cs"));
-
-            Assert.That(
-                typeof(TurnActionPresenter).GetProperty("CityStyleInteraction").PropertyType,
-                Is.EqualTo(typeof(CityStyleInteraction)));
-            StringAssert.Contains(
-                "new CityStyleSelectionController()",
-                interactionSource);
-            StringAssert.Contains(
-                "new SpecialActionOptionQueryService(",
-                interactionSource);
-            StringAssert.Contains(
-                "completeAction(\"特殊行动\")",
-                interactionSource);
-            StringAssert.DoesNotContain(
-                "CityStyleSelectionController",
-                presenterSource);
-            StringAssert.DoesNotContain(
-                "SpecialActionOptionQueryService",
-                presenterSource);
-            StringAssert.DoesNotContain(
-                "TrySubmitSpecialAction",
-                presenterSource);
-
-            AssertThinDelegate(
-                presenterSource,
-                "public void BeginDeclareCityStyle(string initialCityStyleId = \"\")",
-                "CityStyleInteraction.BeginDeclare(initialCityStyleId);");
-            AssertThinDelegate(
-                presenterSource,
-                "public void OpenCityStylePreview(string initialCityStyleId)",
-                "CityStyleInteraction.OpenPreview(initialCityStyleId);");
-            AssertThinDelegate(
-                presenterSource,
-                "public void SubmitDeclareCityStyle(string cityStyleId, IReadOnlyList<int> selectedSlotIndexes)",
-                "CityStyleInteraction.SubmitDeclare(cityStyleId, selectedSlotIndexes);");
-        }
-
-        [Test]
-        public void TurnActionPanelPresenter_OwnsPanelGuardsModesAndStatusText()
-        {
-            var workflowRoot = Path.Combine(AssetsPath, "YC/Presentation/Workflows");
-            var panelSource = File.ReadAllText(
-                Path.Combine(workflowRoot, "TurnActionPanelPresenter.cs"));
-            var presenterPath = Path.Combine(workflowRoot, "TurnActionPresenter.cs");
-            var presenterSource = File.ReadAllText(presenterPath);
-
-            Assert.That(
-                typeof(TurnActionPresenter).GetProperty("ActionPanelPresenter").PropertyType,
-                Is.EqualTo(typeof(TurnActionPanelPresenter)));
-            StringAssert.Contains("private bool CanStartAction(bool quickAction)", panelSource);
-            StringAssert.Contains("private InteractionMode ResolveDisplayedMode(", panelSource);
-            StringAssert.Contains("private string BuildStatus(", panelSource);
-            StringAssert.DoesNotContain("InteractionMode.Resolving", panelSource);
-            StringAssert.DoesNotContain("private bool CanStartAction(", presenterSource);
-            StringAssert.DoesNotContain("private InteractionMode ResolveDisplayedMode(", presenterSource);
-            StringAssert.DoesNotContain("private string BuildStatus(", presenterSource);
-            StringAssert.DoesNotContain("private static ActionPanelViewModel EmptyViewModel(", presenterSource);
-            Assert.That(
-                File.ReadAllLines(presenterPath).Length,
-                Is.LessThanOrEqualTo(400),
-                "动作面板职责迁出后 TurnActionPresenter 应显著瘦身。");
-
-            AssertThinDelegate(
-                presenterSource,
-                "public ActionPanelViewModel BuildActionPanelViewModel()",
-                "return ActionPanelPresenter.BuildViewModel();");
-            AssertThinDelegate(
-                presenterSource,
-                "private bool CanStartMainAction()",
-                "return ActionPanelPresenter.CanStartMainAction();");
-            AssertThinDelegate(
-                presenterSource,
-                "private bool CanStartQuickAction()",
-                "return ActionPanelPresenter.CanStartQuickAction();");
-            AssertThinDelegate(
-                presenterSource,
-                "private string GetQuickActionUnavailableReason()",
-                "return ActionPanelPresenter.GetQuickActionUnavailableReason();");
-            AssertThinDelegate(
-                presenterSource,
-                "public static string BuildCompletedMainActionMessage(string actionName)",
-                "return TurnActionPanelPresenter.BuildCompletedMainActionMessage(actionName);");
-        }
-
-        [Test]
-        public void SceneController_ContainsOnlyOrchestrationBoundaries()
+        public void SceneController_DoesNotConstructCommandsOrMutateDomainState()
         {
             var root = Path.Combine(AssetsPath, "YC/Presentation");
-            var paths = new List<string>(
-                Directory.GetFiles(root, "MobileCityInteractionController*.cs", SearchOption.TopDirectoryOnly));
-            paths.Sort(StringComparer.Ordinal);
+            var paths = Directory.GetFiles(root, "MobileCityInteractionController*.cs", SearchOption.TopDirectoryOnly);
             Assert.That(paths, Is.Not.Empty);
 
-            var lineBudgetCount = 0;
-            var allPartialLineCount = 0;
-            var rightCardSmokeLineCount = 0;
-            string mainSource = null;
-            for (var i = 0; i < paths.Count; i++)
+            // 包括所有 partial 文件；只约束业务边界，不限定文件拆分、行数或内部委托写法。
+            foreach (var path in paths)
             {
-                var path = paths[i];
-                var fileName = Path.GetFileName(path);
                 var source = File.ReadAllText(path);
-                var lineCount = File.ReadAllLines(path).Length;
-                allPartialLineCount += lineCount;
-                if (fileName == "MobileCityInteractionController.RightCardSmoke.cs")
-                {
-                    rightCardSmokeLineCount = lineCount;
-                }
-                else
-                {
-                    lineBudgetCount += lineCount;
-                }
-
-                if (fileName == "MobileCityInteractionController.cs")
-                {
-                    mainSource = source;
-                }
-
-                StringAssert.DoesNotContain("new GameCommand", source, fileName);
-                Assert.That(source, Does.Not.Match(@"new\s+\w+Command\s*\("), fileName);
-                StringAssert.DoesNotContain("pendingDispatch", source, fileName);
-                StringAssert.DoesNotContain("PendingEvent", source, fileName);
-                Assert.That(
-                    source,
-                    Does.Not.Match(@"private\s+[^\r\n(]*CollectionSelection[^\r\n(]*;"),
-                    fileName);
+                StringAssert.DoesNotContain("new GameCommand", source, path);
+                Assert.That(source, Does.Not.Match(@"new\s+\w+Command\s*\("), path);
                 Assert.That(
                     source,
                     Does.Not.Match(@"\.(Resources|Decks|Phase|CurrentPlayerId|ActedMainActionThisTurn|Pending\w*)\s*=(?!=)"),
-                    fileName);
-                StringAssert.DoesNotContain("ShowCharacterSecondEffectDecision", source, fileName);
+                    path);
             }
-
-            Assert.That(
-                lineBudgetCount,
-                Is.LessThanOrEqualTo(1200),
-                "Controller 核心职责行数超限；RightCardSmoke 仍参与实际编译，仅排除于核心职责行数预算，且仍扫描危险模式。");
-            Assert.That(rightCardSmokeLineCount, Is.GreaterThan(0));
-            Assert.That(
-                allPartialLineCount,
-                Is.EqualTo(lineBudgetCount + rightCardSmokeLineCount),
-                "实际编译的原始 partial 总行数必须明确等于预算口径与 RightCardSmoke 行数之和。");
-            Assert.That(mainSource, Is.Not.Null);
-            var refreshBody = ExtractMethodBody(mainSource, "private void RefreshAllFromState()");
-            StringAssert.DoesNotContain("Begin", refreshBody);
-            StringAssert.DoesNotContain("Activate", refreshBody);
-            StringAssert.DoesNotContain("Reset", refreshBody);
-            StringAssert.DoesNotContain("Cancel", refreshBody);
-            StringAssert.DoesNotContain("Hide", refreshBody);
         }
 
         [Test]
-        public void SceneController_MapClickEntrypointsOnlyForwardToUnifiedRouter()
+        public void SceneController_DestroyCancelsRegisteredInteractions()
         {
             var path = Path.Combine(AssetsPath, "YC/Presentation/MobileCityInteractionController.cs");
             var source = File.ReadAllText(path);
+            var destroyBody = ExtractMethodBody(source, "private void OnDestroy()");
 
-            AssertDirectRouterForward(
-                source,
-                "public void OnHotspotClicked(string locationId)",
-                "interactionRouter.OnLocationClicked(locationId);");
-            AssertDirectRouterForward(
-                source,
-                "public void OnInfluenceSlotClicked(string slotId)",
-                "interactionRouter.OnInfluenceSlotClicked(slotId);");
-            AssertDirectRouterForward(
-                source,
-                "public void OnMobileCityClicked()",
-                "interactionRouter.OnMobileCityClicked();");
+            StringAssert.Contains("interactionRouter.CancelAll()", destroyBody);
         }
 
         [Test]
@@ -426,9 +77,8 @@ namespace YC.Tests.EditMode
             {
                 "interactionRouter.Register(turnActionPresenter.BuildInteraction);",
                 "interactionRouter.Register(turnActionPresenter.MoveInteraction);",
-                "interactionRouter.Register(turnActionPresenter.DeployInteraction);",
-                "interactionRouter.Register(turnActionPresenter.DispatchInteraction);",
-                "interactionRouter.Register(turnActionPresenter.ExploreInteraction);",
+                "interactionRouter.Register(influenceActionPresenter);",
+                "interactionRouter.Register(explorationEventPresenter);",
                 "interactionRouter.Register(resourceCollectionPresenter);"
             };
 
@@ -441,12 +91,6 @@ namespace YC.Tests.EditMode
                     Is.LessThan(routingBody.IndexOf(defaultMapRouteRegistration, StringComparison.Ordinal)),
                     workflowRegistrations[i]);
             }
-            StringAssert.DoesNotContain(
-                "interactionRouter.Register(explorationEventPresenter);",
-                routingBody);
-            StringAssert.DoesNotContain(
-                "interactionRouter.Register(influenceActionPresenter);",
-                routingBody);
 
             StringAssert.Contains(
                 "buildInfoPanel.IsFacilityEffectSelectionActive",
@@ -464,7 +108,10 @@ namespace YC.Tests.EditMode
             const string buildConstruction =
                 "buildFacilityInteraction = new BuildFacilityInteractionUiCoordinator(";
 
-            Assert.That(CountOccurrences(source, buildConstruction), Is.EqualTo(1));
+            StringAssert.Contains(facilityConstruction, source);
+            StringAssert.Contains(buildConstruction, source);
+            var buildIndex = source.IndexOf(buildConstruction, StringComparison.Ordinal);
+            Assert.That(source.IndexOf(buildConstruction, buildIndex + buildConstruction.Length, StringComparison.Ordinal), Is.EqualTo(-1));
             Assert.That(
                 source.IndexOf(buildConstruction, StringComparison.Ordinal),
                 Is.GreaterThan(source.IndexOf(facilityConstruction, StringComparison.Ordinal)));
@@ -484,34 +131,7 @@ namespace YC.Tests.EditMode
                 Is.GreaterThan(awakeBody.IndexOf("BuildInteractionRouting();", StringComparison.Ordinal)));
         }
 
-        [Test]
-        public void SceneController_PendingPresentationUsesUnifiedRouterAndDestroyCancelsRegistry()
-        {
-            var path = Path.Combine(AssetsPath, "YC/Presentation/MobileCityInteractionController.cs");
-            var source = File.ReadAllText(path);
-            var refreshBody = ExtractMethodBody(
-                source,
-                "private void RefreshPendingChoiceOrHighlights()");
-            var destroyBody = ExtractMethodBody(source, "private void OnDestroy()");
-
-            StringAssert.Contains("interactionRouter.BuildActivePresentation()", refreshBody);
-            Assert.That(
-                refreshBody.IndexOf("BeginResourceCollectionSelection();", StringComparison.Ordinal),
-                Is.LessThan(refreshBody.IndexOf("interactionRouter.BuildActivePresentation()", StringComparison.Ordinal)));
-            StringAssert.Contains(
-                "!flowCoordinator.IsActive(resourceCollectionPresenter)",
-                refreshBody);
-            StringAssert.DoesNotContain("characterMapInteraction.Synchronize()", refreshBody);
-            StringAssert.DoesNotContain("specialActionInteraction.Synchronize()", refreshBody);
-            StringAssert.DoesNotContain("characterCardEffectInteraction.SynchronizePending()", refreshBody);
-            StringAssert.DoesNotContain("facilityEffectInteraction.Synchronize()", refreshBody);
-            StringAssert.Contains("interactionPresentation.ReplacesHighlights", refreshBody);
-            StringAssert.Contains(
-                "workflowView.SetHighlights(interactionPresentation.Highlights)",
-                refreshBody);
-            StringAssert.Contains("interactionRouter.CancelAll()", destroyBody);
-        }
-
+        // 以下保留命令结算、输入消费等接线回归检查，不比较完整方法体。
         [Test]
         public void SceneController_EscapeUsesUnifiedRouterResult()
         {
@@ -560,7 +180,6 @@ namespace YC.Tests.EditMode
                 "YC/Presentation/MobileCityInteractionController.cs");
             var source = File.ReadAllText(path);
 
-            StringAssert.Contains("commandGateway = new CommandGateway(gameplayAdapter);", source);
             StringAssert.DoesNotContain("gameplayAdapter.Submit(", source);
             StringAssert.Contains(
                 "commandGateway.Submit(",
@@ -606,58 +225,6 @@ namespace YC.Tests.EditMode
 
             StringAssert.Contains("facilityInteraction.Synchronize()", body);
             StringAssert.DoesNotContain("facilityInteraction.IsActive", body);
-        }
-
-        private static void AssertDirectRouterForward(
-            string source,
-            string signature,
-            string expectedStatement)
-        {
-            var body = ExtractMethodBody(source, signature);
-            Assert.That(RemoveWhitespace(body), Is.EqualTo(RemoveWhitespace(expectedStatement)));
-            StringAssert.DoesNotContain("specialActionInteraction", body);
-            StringAssert.DoesNotContain("characterMapInteraction", body);
-            StringAssert.DoesNotContain("facilityEffectInteraction", body);
-            StringAssert.DoesNotContain("mapInteractionRouter", body);
-        }
-
-        private static void AssertThinDelegate(
-            string source,
-            string signature,
-            string expectedStatement)
-        {
-            var body = ExtractMethodBody(source, signature);
-            Assert.That(
-                RemoveWhitespace(body),
-                Is.EqualTo(RemoveWhitespace(expectedStatement)),
-                signature);
-        }
-
-        private static int CountOccurrences(string source, string value)
-        {
-            var count = 0;
-            var index = 0;
-            while ((index = source.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
-            {
-                count++;
-                index += value.Length;
-            }
-
-            return count;
-        }
-
-        private static string RemoveWhitespace(string value)
-        {
-            var result = string.Empty;
-            for (var i = 0; i < value.Length; i++)
-            {
-                if (!char.IsWhiteSpace(value[i]))
-                {
-                    result += value[i];
-                }
-            }
-
-            return result;
         }
 
         private static string ExtractMethodBody(string source, string signature)

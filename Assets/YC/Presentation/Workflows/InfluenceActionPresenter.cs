@@ -8,7 +8,7 @@ using YC.Domain.State;
 
 namespace YC.Presentation.Workflows
 {
-    public sealed class InfluenceActionPresenter : IInteractionWorkflow
+    public sealed class InfluenceActionPresenter : IInteractionWorkflow, IInteraction
     {
         private enum InfluenceActionStage
         {
@@ -48,6 +48,39 @@ namespace YC.Presentation.Workflows
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
             this.influenceService = influenceService ?? throw new ArgumentNullException(nameof(influenceService));
+        }
+
+        public string Id => "active.influence";
+
+        public InteractionPriority Priority => InteractionPriority.ActiveAction;
+
+        // 地图输入仍由末级 MapInteractionRouter 按工作流状态处理。
+        public InteractionResult OnLocationClicked(string locationId) => InteractionResult.Passthrough;
+
+        public InteractionResult OnInfluenceSlotClicked(string slotId) => InteractionResult.Passthrough;
+
+        public InteractionResult OnMobileCityClicked() => InteractionResult.Passthrough;
+
+        public InteractionResult OnEscape() => InteractionResult.Passthrough;
+
+        public InteractionPresentation BuildPresentation()
+        {
+            return IsActive
+                ? new InteractionPresentation(null, CurrentPrompt, InteractionMode.Busy, false)
+                : InteractionPresentation.Empty;
+        }
+
+        void IInteraction.Cancel()
+        {
+            // 路由器会取消所有注册项；未激活时不能清理其他工作流的展示。
+            if (IsActive)
+            {
+                Cancel();
+            }
+        }
+
+        public void NotifyCommandSettled(string commandId)
+        {
         }
 
         public InteractionMode Mode

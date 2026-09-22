@@ -55,9 +55,6 @@ namespace YC.Presentation.Workflows
                 () => this.flowCoordinator.Activate(this),
                 CanStartMainAction,
                 CompleteAction);
-            DeployInteraction = new DeployInteraction(this.influenceActionPresenter);
-            DispatchInteraction = new DispatchInteraction(this.influenceActionPresenter);
-            ExploreInteraction = new ExploreInteraction(this.explorationEventPresenter);
             ActionPanelPresenter = new TurnActionPanelPresenter(
                 this.context,
                 this.view,
@@ -88,9 +85,6 @@ namespace YC.Presentation.Workflows
         }
         public BuildInteraction BuildInteraction { get; private set; }
         public MoveInteraction MoveInteraction { get; private set; }
-        public DeployInteraction DeployInteraction { get; private set; }
-        public DispatchInteraction DispatchInteraction { get; private set; }
-        public ExploreInteraction ExploreInteraction { get; private set; }
         public TurnActionPanelPresenter ActionPanelPresenter { get; private set; }
         public CityStyleInteraction CityStyleInteraction { get; private set; }
         public bool IsSelectingMoveTarget

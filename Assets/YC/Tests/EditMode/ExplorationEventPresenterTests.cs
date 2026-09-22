@@ -19,24 +19,36 @@ namespace YC.Tests.EditMode
     public sealed class ExplorationEventPresenterTests
     {
         [Test]
-        public void ExploreInteraction_WrapsPresenterWithoutOwningMapInputSideEffects()
+        public void Interaction_ExposesPresenterWithoutOwningMapInputSideEffects()
         {
             var fixture = CreateFixture(false);
-            var interaction = new ExploreInteraction(fixture.Presenter);
+            IInteraction interaction = fixture.Presenter;
 
             Assert.That(interaction.Id, Is.EqualTo("active.explore"));
             Assert.That(interaction.Priority, Is.EqualTo(InteractionPriority.ActiveAction));
             Assert.That(interaction.IsActive, Is.False);
             Assert.That(interaction.BuildPresentation().IsEmpty, Is.True);
 
+            fixture.View.Mode = InteractionMode.Hidden;
+            interaction.Cancel();
+            Assert.That(fixture.View.Mode, Is.EqualTo(InteractionMode.Hidden));
+            Assert.That(fixture.View.HideCount, Is.Zero);
+
             fixture.Presenter.BeginTargetSelection();
 
             Assert.That(interaction.IsActive, Is.True);
             Assert.That(interaction.BuildPresentation().PanelMode, Is.EqualTo(InteractionMode.Busy));
-            Assert.That(interaction.BuildPresentation().PromptText, Does.Contain("探索"));
+            Assert.That(interaction.BuildPresentation().PromptText, Is.EqualTo(fixture.Presenter.CurrentPrompt));
             Assert.That(
                 interaction.OnLocationClicked("B"),
                 Is.SameAs(InteractionResult.Passthrough));
+            Assert.That(interaction.BuildPresentation().ReplacesHighlights, Is.False);
+            Assert.That(interaction.OnInfluenceSlotClicked("slot"), Is.SameAs(InteractionResult.Passthrough));
+            Assert.That(interaction.OnMobileCityClicked(), Is.SameAs(InteractionResult.Passthrough));
+            Assert.That(interaction.OnEscape(), Is.SameAs(InteractionResult.Passthrough));
+            interaction.NotifyCommandSettled("settled");
+            Assert.That(fixture.Presenter.IsSelectingExploreTarget, Is.True);
+            Assert.That(fixture.Commands.LastCommand, Is.Null);
             interaction.Cancel();
 
             Assert.That(fixture.Presenter.IsActive, Is.False);

@@ -13,53 +13,62 @@ namespace YC.Tests.EditMode
     public sealed class InfluenceActionPresenterTests
     {
         [Test]
-        public void DeployAndDispatchInteractions_ExposeMutuallyExclusivePresenterStages()
+        public void Interaction_ExposesDeployAndDispatchStagesWithoutOwningMapInput()
         {
             var fixture = CreateFixture();
-            var deploy = new DeployInteraction(fixture.Presenter);
-            var dispatch = new DispatchInteraction(fixture.Presenter);
+            IInteraction interaction = fixture.Presenter;
 
-            Assert.That(deploy.Id, Is.EqualTo("active.deploy"));
-            Assert.That(dispatch.Id, Is.EqualTo("active.dispatch"));
-            Assert.That(deploy.Priority, Is.EqualTo(InteractionPriority.ActiveAction));
-            Assert.That(dispatch.Priority, Is.EqualTo(InteractionPriority.ActiveAction));
-            Assert.That(deploy.IsActive, Is.False);
-            Assert.That(dispatch.IsActive, Is.False);
+            Assert.That(interaction.Priority, Is.EqualTo(InteractionPriority.ActiveAction));
+            Assert.That(fixture.Presenter.IsSelectingDeployTarget, Is.False);
+            Assert.That(interaction.IsActive, Is.False);
+
+            Assert.That(interaction.Id, Is.EqualTo("active.influence"));
+            Assert.That(interaction.BuildPresentation().IsEmpty, Is.True);
+            fixture.View.Mode = InteractionMode.Hidden;
+            interaction.Cancel();
+            Assert.That(fixture.View.Mode, Is.EqualTo(InteractionMode.Hidden));
 
             fixture.Presenter.BeginDeploy();
 
-            Assert.That(deploy.IsActive, Is.True);
-            Assert.That(dispatch.IsActive, Is.False);
-            Assert.That(deploy.BuildPresentation().PanelMode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.Presenter.IsSelectingDeployTarget, Is.True);
+            Assert.That(interaction.IsActive, Is.True);
+            Assert.That(interaction.BuildPresentation().PanelMode, Is.EqualTo(InteractionMode.Busy));
             Assert.That(
-                deploy.OnInfluenceSlotClicked(fixture.DeployTarget),
+                interaction.OnInfluenceSlotClicked(fixture.DeployTarget),
                 Is.SameAs(InteractionResult.Passthrough));
-            deploy.Cancel();
+            Assert.That(interaction.OnLocationClicked("A"), Is.SameAs(InteractionResult.Passthrough));
+            Assert.That(interaction.OnMobileCityClicked(), Is.SameAs(InteractionResult.Passthrough));
+            Assert.That(interaction.OnEscape(), Is.SameAs(InteractionResult.Passthrough));
+            Assert.That(interaction.BuildPresentation().ReplacesHighlights, Is.False);
+            Assert.That(interaction.BuildPresentation().PromptText, Is.EqualTo(fixture.Presenter.CurrentPrompt));
+            interaction.NotifyCommandSettled("settled");
+            Assert.That(fixture.Presenter.IsSelectingDeployTarget, Is.True);
+            Assert.That(fixture.CommandPort.LastCommand, Is.Null);
+            interaction.Cancel();
             Assert.That(fixture.Presenter.IsActive, Is.False);
 
             fixture.Presenter.BeginDispatch();
 
-            Assert.That(deploy.IsActive, Is.False);
-            Assert.That(dispatch.IsActive, Is.True);
-            Assert.That(dispatch.BuildPresentation().PromptText, Does.Contain("调度"));
+            Assert.That(fixture.Presenter.IsSelectingDeployTarget, Is.False);
+            Assert.That(interaction.IsActive, Is.True);
+            Assert.That(interaction.BuildPresentation().PromptText, Is.EqualTo(fixture.Presenter.CurrentPrompt));
 
             fixture.Presenter.SelectSlot(fixture.FirstSource);
             Assert.That(fixture.Presenter.IsSelectingDispatchTarget, Is.True);
-            Assert.That(dispatch.IsActive, Is.True);
-            Assert.That(deploy.IsActive, Is.False);
+            Assert.That(interaction.IsActive, Is.True);
+            Assert.That(fixture.Presenter.IsSelectingDeployTarget, Is.False);
 
             fixture.Presenter.SelectSlot(fixture.FirstTarget);
             Assert.That(fixture.Presenter.IsSelectingDispatchTarget, Is.True);
-            Assert.That(dispatch.IsActive, Is.True);
+            Assert.That(interaction.IsActive, Is.True);
 
             fixture.Presenter.SelectSlot(fixture.FirstTarget);
             Assert.That(fixture.Presenter.IsChoosingDispatchContinuation, Is.True);
-            Assert.That(dispatch.IsActive, Is.True);
-            Assert.That(deploy.IsActive, Is.False);
+            Assert.That(interaction.IsActive, Is.True);
+            Assert.That(fixture.Presenter.IsSelectingDeployTarget, Is.False);
 
             var router = new InteractionRouter(message => { });
-            router.Register(deploy);
-            router.Register(dispatch);
+            router.Register(interaction);
             Assert.That(() => router.CancelAll(), Throws.Nothing);
             Assert.That(fixture.Presenter.IsActive, Is.False);
         }
