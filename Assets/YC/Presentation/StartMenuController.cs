@@ -34,8 +34,9 @@ namespace YC.Presentation
         private GameObject roomPanel;
         private InputField joinRoomInput;
         private Text roomStatusText;
-        private RoomState pendingRoomUpdate;
-        private RoomState pendingGameStart;
+        // 临时通知不参与热重载序列化，避免 null 被还原为空房间并触发弹窗。
+        [NonSerialized] private RoomState pendingRoomUpdate;
+        [NonSerialized] private RoomState pendingGameStart;
         private string pendingNetworkError;
         private bool pendingRoomDisbanded;
         private bool pendingLobbyJoinRequested;
@@ -52,6 +53,9 @@ namespace YC.Presentation
 
         private void Awake()
         {
+            // 每次进入运行模式都从无待处理房间通知开始。
+            pendingRoomUpdate = null;
+            pendingGameStart = null;
             UnityEngine.Application.runInBackground = true;
             roomService = OnlineRoomServiceProvider.GetOrCreate();
             lobbyJoinRequestFlow = new LobbyJoinRequestFlow(roomService);
