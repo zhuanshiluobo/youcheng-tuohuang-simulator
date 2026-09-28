@@ -61,6 +61,10 @@ namespace YC.Presentation
         public event Action<string> CityStyleClicked;
         public event Action<string> FacilityDragStarted;
         public event Action<string, int> FacilityDropped;
+        public event Action FacilityDragCanceled;
+        private readonly Vector3[] dragArtworkCorners = new Vector3[4];
+        private Vector2Int dragScreenSize;
+        private bool facilityDragActive;
 
         public bool IsFacilityEffectSelectionActive => facilityEffectSelectionActive;
         public BuildInfoPanelView View => view;
@@ -175,14 +179,13 @@ namespace YC.Presentation
                     eventData => BeginExternalFacilityDrag(binding, eventData),
                     MoveExternalFacilityDrag,
                     eventData => EndExternalFacilityDrag(binding, eventData),
-                    DestroyFacilityDragGhost);
+                    CancelFacilityDrag);
             }
 
             cityBoardSlotBindings.Clear();
             for (var i = 0; i < view.CityBoardSlots.Length; i++)
             {
                 var slot = view.CityBoardSlots[i];
-                CityBoardSlotLayout.Apply(slot.Root, cardBoardVisualLayout, i);
                 slot.DropTarget.Configure(i);
                 cityBoardSlotBindings.Add(new CityBoardSlotBinding
                 {
@@ -387,6 +390,7 @@ namespace YC.Presentation
                 eventData =>
                 {
                     DestroyFacilityDragGhost();
+                    CaptureDragGeometry();
                     facilityDragGhost = CreateFacilityDragGhost(ghostBinding);
                     MoveExternalFacilityDrag(eventData);
                     beginDrag?.Invoke();
@@ -395,10 +399,11 @@ namespace YC.Presentation
                 eventData =>
                 {
                     var targetSlotIndex = ResolveDropCityBoardSlotIndex(eventData);
+                    facilityDragActive = false;
                     DestroyFacilityDragGhost();
                     drop?.Invoke(targetSlotIndex);
                 },
-                DestroyFacilityDragGhost);
+                CancelFacilityDrag);
 
         }
 
@@ -581,6 +586,7 @@ namespace YC.Presentation
             }
 
             DestroyFacilityDragGhost();
+            CaptureDragGeometry();
             facilityDragGhost = CreateFacilityDragGhost(binding);
             MoveExternalFacilityDrag(eventData);
             FacilityDragStarted?.Invoke(binding.Id);
@@ -599,7 +605,7 @@ namespace YC.Presentation
             view.CardInteractionLayoutProfile.DragGhostLayout.RootLayout.ApplyTo(ghost.Root);
             ghost.Root.sizeDelta = binding.Button.GetComponent<RectTransform>().rect.size;
             ghost.Canvas.overrideSorting = true;
-            ghost.Canvas.sortingOrder = Mathf.Max(140, canvas.sortingOrder + 1);
+            ghost.Canvas.sortingOrder = GameplayUiLayers.ContentDrag;
             ghost.RawImage.texture = binding.CardImage == null ? null : binding.CardImage.texture;
             ghost.RawImage.color = ghost.RawImage.texture == null ? ExternalCardBackground : Color.white;
             ghost.RawImage.raycastTarget = false;
@@ -620,6 +626,7 @@ namespace YC.Presentation
         {
             var facilityId = binding == null ? string.Empty : binding.Id;
             var slotIndex = ResolveDropCityBoardSlotIndex(eventData);
+            facilityDragActive = false;
             DestroyFacilityDragGhost();
 
             if (!string.IsNullOrEmpty(facilityId))
@@ -630,7 +637,37 @@ namespace YC.Presentation
 
         private int ResolveDropCityBoardSlotIndex(PointerEventData eventData)
         {
-            return FacilityCardDragUtility.ResolveCityBoardSlotIndex(eventData);
+            if (!facilityDragActive || !DragGeometryUnchanged()) return -1;
+            return FacilityCardDragUtility.ResolveCityBoardSlotIndex(
+                eventData, view == null || view.CityBoardImage == null
+                    ? null : view.CityBoardImage.rectTransform);
+        }
+
+        private void CaptureDragGeometry()
+        {
+            facilityDragActive = true;
+            dragScreenSize = new Vector2Int(Screen.width, Screen.height);
+            if (view != null && view.CityBoardImage != null)
+                view.CityBoardImage.rectTransform.GetWorldCorners(dragArtworkCorners);
+        }
+
+        private bool DragGeometryUnchanged()
+        {
+            if (dragScreenSize.x != Screen.width || dragScreenSize.y != Screen.height ||
+                view == null || view.CityBoardImage == null) return false;
+            var corners = new Vector3[4];
+            view.CityBoardImage.rectTransform.GetWorldCorners(corners);
+            for (var i = 0; i < corners.Length; i++)
+                if ((corners[i] - dragArtworkCorners[i]).sqrMagnitude > 0.0001f) return false;
+            return true;
+        }
+
+        private void CancelFacilityDrag()
+        {
+            if (!facilityDragActive) return;
+            facilityDragActive = false;
+            DestroyFacilityDragGhost();
+            FacilityDragCanceled?.Invoke();
         }
 
         private void DestroyFacilityDragGhost()

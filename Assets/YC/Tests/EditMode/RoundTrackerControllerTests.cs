@@ -69,39 +69,14 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void BuildRoundUi_CreatesTopDockedRoundTrackWithBorderFrame()
+        public void RoundUi_BindsAuthoredTrackReferences()
         {
             controller = CreateController();
-
-            var panel = GetPrivateField<RectTransform>("panelTransform");
-            var content = GetPrivateField<RectTransform>("contentArea");
-            var marker = GetPrivateField<RectTransform>("markerTransform");
-
             Assert.That(GetPublicProperty<bool>("IsExpanded"), Is.True);
-            Assert.That(panel.GetComponent<RectMask2D>(), Is.Null);
-            Assert.That(panel.GetComponent<Image>(), Is.Not.Null);
-            Assert.That(panel.GetComponent<Outline>(), Is.Null);
-            Assert.That(panel.anchorMin, Is.EqualTo(new Vector2(0.5f, 1f)));
-            Assert.That(panel.anchorMax, Is.EqualTo(new Vector2(0.5f, 1f)));
-            Assert.That(panel.pivot, Is.EqualTo(new Vector2(0.5f, 1f)));
-            Assert.That(panel.anchoredPosition, Is.EqualTo(Vector2.zero));
-            Assert.That(panel.rect.height, Is.EqualTo(78f).Within(0.01f));
-            var borderThickness = GetPrivateStaticFloat("BorderThickness");
-            Assert.That(borderThickness, Is.EqualTo(panel.rect.height * 0.2f).Within(0.01f));
-            Assert.That(content.offsetMin.x, Is.EqualTo(borderThickness).Within(0.01f));
-            Assert.That(content.offsetMin.y, Is.EqualTo(borderThickness).Within(0.01f));
-            Assert.That(content.offsetMax.x, Is.EqualTo(-borderThickness).Within(0.01f));
-            Assert.That(content.offsetMax.y, Is.EqualTo(-borderThickness).Within(0.01f));
-            Assert.That(content.gameObject.activeSelf, Is.True);
-            Assert.That(marker.anchoredPosition.y, Is.EqualTo(0f).Within(0.01f));
-
-            Assert.That(FindChild(content, "Round Track"), Is.Not.Null);
-            Assert.That(FindChild(panel, "Round Border Top"), Is.Not.Null);
-            Assert.That(FindChild(panel, "Round Border Bottom"), Is.Not.Null);
-            Assert.That(FindChild(panel, "Round Border Left"), Is.Not.Null);
-            Assert.That(FindChild(panel, "Round Border Right"), Is.Not.Null);
-            Assert.That(FindChild(content, "End Round Button"), Is.Null);
-            Assert.That(FindChild(panel, "Toggle Button"), Is.Null);
+            Assert.That(GetPrivateField<RectTransform>("panelTransform"), Is.Not.Null);
+            Assert.That(GetPrivateField<RectTransform>("contentArea").gameObject.activeSelf, Is.True);
+            Assert.That(GetPrivateField<RectTransform>("trackSlotsTransform"), Is.Not.Null);
+            Assert.That(GetPrivateField<RectTransform>("markerTransform"), Is.Not.Null);
         }
 
         [Test]

@@ -1,0 +1,595 @@
+{
+  "revision": "2.2.0; module chrome retained, matte topbar frame updated",
+  "assets": 45,
+  "artBackedAssets": 23,
+  "transparentFrames": 10,
+  "checks": "SVG XML valid; exact PNG dimensions; source-image clipping; transparent backgrounds; all nine-slice frame centers transparent; all control fill centers opaque",
+  "allPassed": true,
+  "results": [
+    {
+      "id": "screen-frame",
+      "dimensions": [
+        1024,
+        576
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "centerTransparent": true,
+      "passed": true
+    },
+    {
+      "id": "topbar-frame",
+      "dimensions": [
+        1920,
+        68
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "centerTransparent": true,
+      "passed": true
+    },
+    {
+      "id": "module-frame",
+      "dimensions": [
+        512,
+        320
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "centerTransparent": true,
+      "passed": true
+    },
+    {
+      "id": "submodule-frame",
+      "dimensions": [
+        256,
+        180
+      ],
+      "alphaRange": [
+        0,
+        253
+      ],
+      "centerTransparent": true,
+      "passed": true
+    },
+    {
+      "id": "module-header-frame",
+      "dimensions": [
+        512,
+        44
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": true,
+      "passed": true
+    },
+    {
+      "id": "card-slot-frame",
+      "dimensions": [
+        160,
+        224
+      ],
+      "alphaRange": [
+        0,
+        253
+      ],
+      "centerTransparent": true,
+      "passed": true
+    },
+    {
+      "id": "thin-row-frame",
+      "dimensions": [
+        512,
+        56
+      ],
+      "alphaRange": [
+        0,
+        253
+      ],
+      "centerTransparent": true,
+      "passed": true
+    },
+    {
+      "id": "button-frame",
+      "dimensions": [
+        256,
+        72
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "centerTransparent": true,
+      "passed": true
+    },
+    {
+      "id": "tab-frame",
+      "dimensions": [
+        240,
+        60
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "centerTransparent": true,
+      "passed": true
+    },
+    {
+      "id": "stepper-frame",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "centerTransparent": true,
+      "passed": true
+    },
+    {
+      "id": "button-fill-default",
+      "dimensions": [
+        256,
+        72
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "button-fill-hover",
+      "dimensions": [
+        256,
+        72
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "button-fill-pressed",
+      "dimensions": [
+        256,
+        72
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "button-fill-disabled",
+      "dimensions": [
+        256,
+        72
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "button-fill-primary-active",
+      "dimensions": [
+        256,
+        72
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "button-fill-primary-pressed",
+      "dimensions": [
+        256,
+        72
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "tab-fill-default",
+      "dimensions": [
+        240,
+        60
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "tab-fill-active",
+      "dimensions": [
+        240,
+        60
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "tab-fill-disabled",
+      "dimensions": [
+        240,
+        60
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "scrollbar-track-v",
+      "dimensions": [
+        20,
+        240
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "scrollbar-thumb-v",
+      "dimensions": [
+        16,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "scrollbar-track-h",
+      "dimensions": [
+        240,
+        20
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "scrollbar-thumb-h",
+      "dimensions": [
+        64,
+        16
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "chevron-left",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "chevron-right",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "chevron-up",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "chevron-down",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "plus",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "minus",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "close",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "settings",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "expand",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "collapse",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "zoom",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "players",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "hand-cards",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "discard",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "covered-cards",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "city",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "enterprise",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "info",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "stepper-fill-default",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "stepper-fill-hover",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "stepper-fill-pressed",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    },
+    {
+      "id": "stepper-fill-disabled",
+      "dimensions": [
+        64,
+        64
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "centerTransparent": null,
+      "passed": true
+    }
+  ]
+}

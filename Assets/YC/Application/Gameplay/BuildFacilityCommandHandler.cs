@@ -53,6 +53,18 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(guard);
             }
 
+            if (effectRegistry != null)
+            {
+                var args = new List<NormalizedValueEntry>();
+                if (!string.IsNullOrEmpty(GetFacilityId(command)))
+                    args.Add(new NormalizedValueEntry { Name = "preselectedCard", Value = NormalizedValue.CreateString(GetFacilityId(command)) });
+                var requestedSlot = GetParameter(command, CityBoardSlotIndexParameter);
+                if (!string.IsNullOrEmpty(requestedSlot))
+                    args.Add(new NormalizedValueEntry { Name = "preselectedSlot", Value = NormalizedValue.CreateString(requestedSlot) });
+                return MainActionEffectSubmission.Begin(state, command, effectRegistry,
+                    MainActionEffectExecutor.Create(command.PlayerId, new EffectSpec(FacilitySelectionEffectExecutor.TypeId, NormalizedValue.CreateObject(args)) { PlayerId = command.PlayerId }));
+            }
+
             var facilityId = GetFacilityId(command);
             int cityBoardSlotIndex;
             var slotValidation = ResolveCityBoardSlotIndex(command, out cityBoardSlotIndex);
@@ -68,73 +80,9 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(paymentModeValidation);
             }
 
-            BuildFacilityResult result;
-            if (effectRegistry == null)
-            {
-                result = buildFacilityService.Build(
-                    state,
-                    command.PlayerId,
-                    facilityId,
-                    cityBoardSlotIndex,
-                    paymentMode);
-                if (!result.Succeeded)
-                {
-                    return CommandResult.Invalid(result.Validation);
-                }
-                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
-            }
-            else
-            {
-                var executor = new EffectTreeExecutor(state, effectRegistry);
-                var buildSpec = FacilityBuildEffectSpecFactory.Build(
-                    command.PlayerId,
-                    facilityId,
-                    cityBoardSlotIndex,
-                    paymentMode,
-                    false,
-                    command.CommandId ?? string.Empty);
-                string buildEffectId;
-                if (!executor.TryCreatePlayerActionEffect(
-                        command.PlayerId,
-                        buildSpec,
-                        state.EffectRuntime.CurrentRoundExecutionId ?? string.Empty,
-                        command.CommandId ?? string.Empty,
-                        out buildEffectId))
-                {
-                    return CommandResult.Invalid(ValidationResult.Failure(
-                        CommandErrorCode.UnknownCommand,
-                        "建设 Effect 创建失败：" + executor.LastDiagnostic));
-                }
-
-                EffectRunReport report = executor.RunUntilQuiescent();
-                if (report.Faulted)
-                {
-                    return CommandResult.Invalid(ValidationResult.Failure(
-                        CommandErrorCode.UnknownCommand,
-                        "建设 Effect 执行失败：" + report.FaultCode));
-                }
-
-                var builtNode = executor.GetNode(buildEffectId);
-                if (builtNode == null)
-                {
-                    return CommandResult.Invalid(ValidationResult.Failure(
-                        CommandErrorCode.UnknownCommand,
-                        "建设 Effect 尚未完成。"));
-                }
-
-                if (builtNode.Status != EffectNodeStatus.Completed &&
-                    !(builtNode.Status == EffectNodeStatus.Blocked && state.HasOpenActionableInteraction()))
-                {
-                    return CommandResult.Invalid(ValidationResult.Failure(
-                        CommandErrorCode.UnknownCommand,
-                        "建设 Effect 尚未完成。"));
-                }
-
-                result = BuildFacilityResult.Success(
-                    FacilityCardDatabase.Get(facilityId),
-                    cityBoardSlotIndex,
-                    paymentMode);
-            }
+            var result = buildFacilityService.Build(state, command.PlayerId, facilityId, cityBoardSlotIndex, paymentMode);
+            if (!result.Succeeded) return CommandResult.Invalid(result.Validation);
+            roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
 
             var message = "Player " + command.PlayerId + " built " + result.Facility.Name + ".";
             return CommandResult.SuccessResult(new List<GameEvent>

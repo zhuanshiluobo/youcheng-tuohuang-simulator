@@ -196,7 +196,17 @@ namespace YC.Domain.Effects
                         cost.Iron += definition.FlexibleOriginiumAndIronCost - ore;
                         options.Add(cost);
                     }
-                    left.Add(ResourcePaymentChoiceEffectExecutor.Create(context.Node.PlayerId, options, "city_style.composite.payment"));
+                    int selectedOre = ReadInt(context.Node.NormalizedArguments, "originiumAmount", -1);
+                    int selectedIron = ReadInt(context.Node.NormalizedArguments, "ironAmount", -1);
+                    if (selectedOre >= 0 && selectedIron >= 0)
+                    {
+                        if (selectedOre + selectedIron != definition.FlexibleOriginiumAndIronCost) return EffectStepResult.Failed("invalid_payment");
+                        var cost = options[selectedOre];
+                        if (!player.Resources.CanPay(cost)) return EffectStepResult.Failed("insufficient_resources");
+                        foreach (var item in cost.Enumerate())
+                            if (item.Value > 0) left.Add(ResourceEffectSpecFactory.Pay(context.Node.PlayerId, item.Key, item.Value, actionId));
+                    }
+                    else left.Add(ResourcePaymentChoiceEffectExecutor.Create(context.Node.PlayerId, options, "city_style.composite.payment"));
                 }
                 else if (definition.FixedCost != null)
                 {
@@ -213,7 +223,9 @@ namespace YC.Domain.Effects
             if (HasNonTerminalChild(context)) return EffectStepResult.NoProgress("特殊行动子 Effect 尚未结束。");
             if (context.ChildNodes.Count == 0 || ReadString(context.ChildNodes[0].NormalizedResult, "outcome", "") != "condition_met")
                 return EffectStepResult.Failed("special_action_condition_not_met");
-            new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId);
+            var consume = context.Node.NormalizedArguments.Properties.Find(p => p.Name == "consumeMainAction");
+            if (consume == null || consume.Value.BooleanValue)
+                new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId);
             return EffectStepResult.Completed(NormalizedValue.CreateString("completed"));
         }
 

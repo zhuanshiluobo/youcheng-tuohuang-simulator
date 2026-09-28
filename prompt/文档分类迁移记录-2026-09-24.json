@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "date": "2026-09-24",
+  "purpose": "用户要求将既有提示词归入一级分类；仅移动，原文逐字节保留。",
+  "count": 18,
+  "files": [
+    {
+      "source": "prompt/00-共同执行约束.md",
+      "destination": "prompt/Lua架构迁移/00-共同执行约束.md",
+      "sha256": "ec1206658eb3bb119d8f27a3b97db91864f4f4aa046fcf041ea5900d10e0a825",
+      "bytes": 6483
+    },
+    {
+      "source": "prompt/NMC-001-测试基线与首轮瘦身.md",
+      "destination": "prompt/Lua架构迁移/NMC-001-测试基线与首轮瘦身.md",
+      "sha256": "4a27df374574de8a838e9f9382942e59278580f705edf119bc47d5fb9027e100",
+      "bytes": 3612
+    },
+    {
+      "source": "prompt/NMC-002-Lua运行时选型验证.md",
+      "destination": "prompt/Lua架构迁移/NMC-002-Lua运行时选型验证.md",
+      "sha256": "419c7d0c9dfd23834840343b7aceb8c9702fb843aaace52fcfd5361e3930237e",
+      "bytes": 3640
+    },
+    {
+      "source": "prompt/NMC-003-事务序列化与运行状态底座.md",
+      "destination": "prompt/Lua架构迁移/NMC-003-事务序列化与运行状态底座.md",
+      "sha256": "2852d133a9557ef571bbe974400ad453530b33a5ab1d4a4271990ae8ccc09433",
+      "bytes": 4211
+    },
+    {
+      "source": "prompt/NMC-004-Effect树与Event生命周期.md",
+      "destination": "prompt/Lua架构迁移/NMC-004-Effect树与Event生命周期.md",
+      "sha256": "655de6b9c643b936a909096309a1ea6f3011cc5185beb04edfea5974491c0912",
+      "bytes": 4302
+    },
+    {
+      "source": "prompt/NMC-005-回合主链迁移.md",
+      "destination": "prompt/Lua架构迁移/NMC-005-回合主链迁移.md",
+      "sha256": "1ea595e1b4578a2f3998f36f6fc1e445f6bf5c82128f9010cc0f76455afd22fb",
+      "bytes": 3531
+    },
+    {
+      "source": "prompt/NMC-006-Lua宿主与EffectSpec分发.md",
+      "destination": "prompt/Lua架构迁移/NMC-006-Lua宿主与EffectSpec分发.md",
+      "sha256": "3127a070530559391b2e21097aab83e55ba989837637d7dbee9ffc56aa6c3157",
+      "bytes": 3587
+    },
+    {
+      "source": "prompt/NMC-007-Interaction与Candidate内核.md",
+      "destination": "prompt/Lua架构迁移/NMC-007-Interaction与Candidate内核.md",
+      "sha256": "5b5f232a4085c957f07a9d50a44880f6241a38bf237c851c970eff9cbea503b5",
+      "bytes": 3432
+    },
+    {
+      "source": "prompt/NMC-008-RoundStarted红区纵向切片.md",
+      "destination": "prompt/Lua架构迁移/NMC-008-RoundStarted红区纵向切片.md",
+      "sha256": "c9dc2209c596ba6a054db6bb00bd605d6652c2380323d8f56d9a4531945768ff",
+      "bytes": 3163
+    },
+    {
+      "source": "prompt/NMC-009-联机可见性与恢复.md",
+      "destination": "prompt/Lua架构迁移/NMC-009-联机可见性与恢复.md",
+      "sha256": "74386b1b504c9f1a0f21611650fad2532f0c0abb0c6fcfe445d21202074957cc",
+      "bytes": 3566
+    },
+    {
+      "source": "prompt/NMC-010-角色盖放与角色牌迁移.md",
+      "destination": "prompt/Lua架构迁移/NMC-010-角色盖放与角色牌迁移.md",
+      "sha256": "59babdde336deafa8b8a9bb7b993c15c029acba11bf04867480b49f41342f78e",
+      "bytes": 3799
+    },
+    {
+      "source": "prompt/NMC-011-影响力Effect与替换迁移.md",
+      "destination": "prompt/Lua架构迁移/NMC-011-影响力Effect与替换迁移.md",
+      "sha256": "cf606245f2285c81da1415a283bfca0dfac802d77183f0accf726a32e2edd6ea",
+      "bytes": 3609
+    },
+    {
+      "source": "prompt/NMC-012-移动城市探索与事件牌迁移.md",
+      "destination": "prompt/Lua架构迁移/NMC-012-移动城市探索与事件牌迁移.md",
+      "sha256": "2d96fb6a2407211f722fb008dece657e2f96c788cddfbca346db0e1648ef258a",
+      "bytes": 3352
+    },
+    {
+      "source": "prompt/NMC-013-城市样式与特殊行动迁移.md",
+      "destination": "prompt/Lua架构迁移/NMC-013-城市样式与特殊行动迁移.md",
+      "sha256": "065d3a629ed7ae3a05e1e0d626b55eaf9ba2c5c030583372e8d8fc43ff80b1a1",
+      "bytes": 3621
+    },
+    {
+      "source": "prompt/NMC-014-设施效果迁移.md",
+      "destination": "prompt/Lua架构迁移/NMC-014-设施效果迁移.md",
+      "sha256": "7d2d7f90358b2bb9fa4f53312bfba39e16d961fcce02aaca2ba8543da4d08d58",
+      "bytes": 3273
+    },
+    {
+      "source": "prompt/NMC-014A-Lua新架构偏差审计与纠正.md",
+      "destination": "prompt/Lua架构迁移/NMC-014A-Lua新架构偏差审计与纠正.md",
+      "sha256": "99db293ce73bc9762c915a55d6da9107efbac2fb9141ec82ea6d980d205e4e0a",
+      "bytes": 22852
+    },
+    {
+      "source": "prompt/NMC-015-残留清理与测试最终瘦身.md",
+      "destination": "prompt/Lua架构迁移/NMC-015-残留清理与测试最终瘦身.md",
+      "sha256": "ca186698b030b7af1dce9149dd9e7a7ca3eddd3758f44d34b87faad1b12632c4",
+      "bytes": 5425
+    },
+    {
+      "source": "prompt/README.md",
+      "destination": "prompt/Lua架构迁移/README.md",
+      "sha256": "a02ec8b049485ffa180b5154db9925643a36a478f3cb3e796401d8bf44d11ab9",
+      "bytes": 6964
+    }
+  ]
+}

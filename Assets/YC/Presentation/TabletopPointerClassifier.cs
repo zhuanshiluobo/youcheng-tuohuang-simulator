@@ -8,6 +8,13 @@ namespace YC.Presentation
     /// <summary>Distinguishes flat HUD hits from interactive UI rendered on the tabletop.</summary>
     public static class TabletopPointerClassifier
     {
+        public static bool CanRouteMapPointer(Vector2 screenPosition)
+        {
+            return MapCameraGeometry.IsScreenPointInCameraViewport(
+                       Camera.main, screenPosition) &&
+                   !IsBlockedByFlatHud(screenPosition);
+        }
+
         public static bool IsBlockedByFlatHud(Vector2 screenPosition)
         {
             var eventSystem = EventSystem.current;

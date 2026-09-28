@@ -1,0 +1,102 @@
+[
+  {
+    "archive": "FrontierUI-v3-Patch.zip",
+    "package": "FrontierUI-v3-Patch",
+    "archiveSha256": "01ec53446a4e46076395102325b6b900ddea9edb400ea7602d0d2a5ecea4e59f",
+    "archiveBytes": 41434642,
+    "actualVersion": "3.1",
+    "purpose": "主界面新版组件、布局补丁和底栏；其他窗口适配依据",
+    "fileCount": 142,
+    "uncompressedBytes": 43226763
+  },
+  {
+    "archive": "MainGameUI-v2.2.zip",
+    "package": "MainGameUI-v2.2",
+    "archiveSha256": "82b7a44d7e399c62007a5a298766c9f722bf3510f296a68e66a1bd716fe3422d",
+    "archiveBytes": 45559923,
+    "actualVersion": "2.2.0",
+    "purpose": "主界面内容基线、原图、玩家标记和未替换控件",
+    "fileCount": 280,
+    "uncompressedBytes": 47083154
+  },
+  {
+    "archive": "EnterprisePicker-v1.0.zip",
+    "package": "EnterprisePicker-v1.0",
+    "archiveSha256": "4f149a671aac127a80138b84205c373f8a334f39f127e3d2c74270d85a88fc60",
+    "archiveBytes": 23168030,
+    "actualVersion": "1.0.1",
+    "purpose": "企业／企业特效窗口；包内实际版本为 1.0.1",
+    "fileCount": 196,
+    "uncompressedBytes": 23698410
+  },
+  {
+    "archive": "FacilityBuild-UI-v1.0.zip",
+    "package": "FacilityBuild-UI-v1.0",
+    "archiveSha256": "d6f16705a70182262bd6f586cafb556f4bb81ff78650f90372bb5f9c0ac766d9",
+    "archiveBytes": 42729806,
+    "actualVersion": "1.0.0",
+    "purpose": "设施建设窗口；效果区须按新版底栏合同迁移",
+    "fileCount": 205,
+    "uncompressedBytes": 45491458
+  },
+  {
+    "archive": "CityPattern-UI-v1.0.zip",
+    "package": "CityPattern-UI-v1.0",
+    "archiveSha256": "63818c6fd5754ef85604500cce607c007c738b642c0268a32005b57824c8e1f5",
+    "archiveBytes": 43198374,
+    "actualVersion": "1.0.0",
+    "purpose": "城市样式详情与宣告窗口",
+    "fileCount": 201,
+    "uncompressedBytes": 45614372
+  },
+  {
+    "archive": "RhineDepartment-UI-v1.0.zip",
+    "package": "RhineDepartment-UI-v1.0",
+    "archiveSha256": "35c9132bf40913fc0c5b6752471ebe5153b0382589b613614769a1bd685816da",
+    "archiveBytes": 27941386,
+    "actualVersion": "1.0.0",
+    "purpose": "莱茵生命公共科室选择窗口",
+    "fileCount": 206,
+    "uncompressedBytes": 28491255
+  },
+  {
+    "archive": "Card-Picker-UI-v1.zip",
+    "package": "Card-Picker-UI-v1",
+    "archiveSha256": "3d9cc4d45c17ae0dbcb93c1a6cea9ac686e0f8e48d72de38c39a1767b5e87190",
+    "archiveBytes": 7510988,
+    "actualVersion": "1.0.0",
+    "purpose": "通用卡牌选择窗口",
+    "fileCount": 11,
+    "uncompressedBytes": 7651593
+  },
+  {
+    "archive": "Option-Picker-UI-v1.zip",
+    "package": "Option-Picker-UI-v1",
+    "archiveSha256": "b304ec6c440444521632ef771a1645e53a89925ea9120dee8daf986078832685",
+    "archiveBytes": 12343075,
+    "actualVersion": "1",
+    "purpose": "单选与重复出售窗口；沿用包名版本标识",
+    "fileCount": 17,
+    "uncompressedBytes": 12537451
+  },
+  {
+    "archive": "MainGameUI-CooperationMarkers-v1.zip",
+    "package": "MainGameUI-CooperationMarkers-v1",
+    "archiveSha256": "5fdfa64842061c42e2c87b9646abb6de0b8116f3173258afe773fee09b1afb7c",
+    "archiveBytes": 208543,
+    "actualVersion": "1",
+    "purpose": "标记补充包，与主包重复部分按字节去重",
+    "fileCount": 98,
+    "uncompressedBytes": 247823
+  },
+  {
+    "archive": "MainGameUI-Topbar-v2.2.zip",
+    "package": "MainGameUI-Topbar-v2.2",
+    "archiveSha256": "d04a2d6d501200dde71f83011a7475a3440b95949a1619033c73f853d5a68e0f",
+    "archiveBytes": 2710806,
+    "actualVersion": "2.2",
+    "purpose": "历史顶栏补充包；新版主界面不再采用",
+    "fileCount": 25,
+    "uncompressedBytes": 2760502
+  }
+]

@@ -1,0 +1,92 @@
+{
+  "sourceLibraryId": "libfile_25e2432b559881918f34b8c561d2fa65",
+  "originals": [
+    {
+      "path": "originals/enterprise-atlas.jpg",
+      "sha256": "e5f0cfd4262b6e58f859249606fd7886070c6eb91adcf33cf51cd51b9a4bc261",
+      "imageBytesUnchanged": true,
+      "sourceIndex": 46,
+      "archiveEntry": "Images/httpcloud3steamusercontentcomugc2282824741255042060480DBC0752A56513E67B3E3676C93604328AD9B4.jpg",
+      "originalSize": [
+        2600,
+        3700
+      ]
+    },
+    {
+      "path": "originals/main-background.png",
+      "sha256": "27d84b8a5fe05c52662b264a57d41805ab157d1188c528b492630205babde339",
+      "imageBytesUnchanged": true,
+      "styleSource": "CityPattern / MainGameUI approved background",
+      "originalSize": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "path": "originals/department-defense.png",
+      "sha256": "57413b8c9b2ccd0fba0e3befb5ffc6d9e9b08b6f20461ad4f7b1c787c4455021",
+      "imageBytesUnchanged": true,
+      "sourceIndex": 48,
+      "archiveEntry": "Images/httpcloud3steamusercontentcomugc2282824741258520150CB1E97A26AF49272D8690157318F41F4BC4A2C83.png",
+      "originalSize": [
+        516,
+        1000
+      ]
+    },
+    {
+      "path": "originals/department-engineering.png",
+      "sha256": "02dda1ba263cd720545a474534fe1845d143429d8e07641917935d347faec5cf",
+      "imageBytesUnchanged": true,
+      "sourceIndex": 49,
+      "archiveEntry": "Images/httpcloud3steamusercontentcomugc22828247412585212712F18BA4FA0CB2F6545DD5DEF35B402A18A3444F2.png",
+      "originalSize": [
+        516,
+        1000
+      ]
+    },
+    {
+      "path": "originals/department-structure.png",
+      "sha256": "72ce39e2e78217267b5a06d09cf4e8dbc8869f1cd845c59837bbd7c606f168b2",
+      "imageBytesUnchanged": true,
+      "sourceIndex": 50,
+      "archiveEntry": "Images/httpcloud3steamusercontentcomugc2282824741258521907E331DE09E3D9FD4EE42FE9B472396EF80FCAA037.png",
+      "originalSize": [
+        516,
+        1000
+      ]
+    },
+    {
+      "path": "originals/department-hr.png",
+      "sha256": "3d7b3833e370a52fb5701ac36975509fe07830ad6b5d3f19d9ed19aea373a9b5",
+      "imageBytesUnchanged": true,
+      "sourceIndex": 79,
+      "archiveEntry": "Images/httpcloud3steamusercontentcomugc2490001101124928372AEA2A498E02806205E160E83D3525EDFB9A562D7.png",
+      "originalSize": [
+        516,
+        1000
+      ]
+    },
+    {
+      "path": "originals/department-business.png",
+      "sha256": "cb3384c3d62405822a6aa6d16d670f122c697bd01021b99073581dcfbf6a4732",
+      "imageBytesUnchanged": true,
+      "sourceIndex": 80,
+      "archiveEntry": "Images/httpcloud3steamusercontentcomugc24900011011249293696CC1A8A27D937B2D91ADAE636A3E81B769FFF8D8.png",
+      "originalSize": [
+        516,
+        1000
+      ]
+    },
+    {
+      "path": "originals/department-research.png",
+      "sha256": "63dd96e0f41370308c2c6d40e677c1608aa2edc999e475da5eb439407b082e30",
+      "imageBytesUnchanged": true,
+      "sourceIndex": 81,
+      "archiveEntry": "Images/httpcloud3steamusercontentcomugc249000110112493003605D1309C814D3B97095E33537AF9CC6BF6FFB241.png",
+      "originalSize": [
+        516,
+        1000
+      ]
+    }
+  ]
+}

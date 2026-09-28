@@ -1,0 +1,64 @@
+{
+  "enterpriseAtlas": {
+    "path": "originals/enterprise-atlas.jpg",
+    "sourceLibraryFile": "TTS游城拓荒图包 稳定分支20240414（测试分支0414通用）.zip",
+    "sourceImage": "asset-046.jpg",
+    "size": [
+      2600,
+      3700
+    ],
+    "grid": [
+      4,
+      2
+    ],
+    "boardSize": [
+      650,
+      1850
+    ],
+    "sha256": "e5f0cfd4262b6e58f859249606fd7886070c6eb91adcf33cf51cd51b9a4bc261",
+    "copiedWithoutImageEditing": true
+  },
+  "backdrop": {
+    "path": "originals/main-background.png",
+    "source": "MainGameUI-Preview-v2.2.png",
+    "use": "decorative dimmed backdrop only; demo company data is independent"
+  },
+  "confirmButton": {
+    "id": "card-picker-confirm",
+    "path": "shared/card-picker/button-primary.png",
+    "sourcePackage": "Card-Picker-UI-v1.zip",
+    "sourceEntry": "card-picker-ui-v1/assets/button-primary.png",
+    "sourceLibraryId": "libfile_92621ce198248191a1cc494bbedbf95f",
+    "sha256": "c7a4fe46dff130f2c12b459ea7c3f0f9c19e9001d5b5039618f19143d358607d",
+    "sourceSize": [
+      1983,
+      793
+    ],
+    "visibleRect": [
+      35,
+      102,
+      1916,
+      582
+    ],
+    "targetRect": [
+      1532,
+      928,
+      252,
+      60
+    ],
+    "text": {
+      "size": 26,
+      "color": "#241C13",
+      "alignment": "center",
+      "bakedIntoTexture": false
+    },
+    "states": {
+      "normal": "original texture",
+      "hover": "brightness(1.08)",
+      "pressed": "brightness(0.9)",
+      "disabled": "grayscale(1) brightness(0.65) opacity(0.6)"
+    },
+    "mapping": "textureRect=(targetX-rx*targetW/rw,targetY-ry*targetH/rh,sourceW*targetW/rw,sourceH*targetH/rh)",
+    "unchangedOriginalBytes": true
+  }
+}

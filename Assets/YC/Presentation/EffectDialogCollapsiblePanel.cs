@@ -5,9 +5,7 @@ using UnityEngine.UI;
 namespace YC.Presentation
 {
     /// <summary>效果对话框共享的移动与折叠状态。</summary>
-    public sealed class EffectDialogCollapsiblePanel : MonoBehaviour,
-        IBeginDragHandler,
-        IDragHandler
+    public sealed class EffectDialogCollapsiblePanel : MonoBehaviour
     {
         private RectTransform panel;
         private Canvas canvas;
@@ -29,6 +27,7 @@ namespace YC.Presentation
         private bool collapsedOverlayRaycastTarget;
         private EffectDialogRectLayout collapsedToggleLayout;
         private EffectDialogRectLayout expandedToggleLayout;
+        private bool useRuntimeLayout;
         private bool configured;
         private bool collapsed;
         private bool clampToCanvasBounds;
@@ -76,6 +75,7 @@ namespace YC.Presentation
             expandedToggleLayout = spec.ExpandedToggleLayout;
             expandedOverlayColor = overlayImage == null ? Color.clear : overlayImage.color;
             expandedOverlayRaycastTarget = overlayImage != null && overlayImage.raycastTarget;
+            useRuntimeLayout = spec.UseRuntimeLayout;
             collapsed = spec.StartCollapsed;
             configured = panel != null;
             ApplyCollapseState();
@@ -103,14 +103,7 @@ namespace YC.Presentation
 
         public void OnDrag(PointerEventData eventData)
         {
-            if (!configured || panel == null || eventData == null)
-            {
-                return;
-            }
-
-            var scaleFactor = canvas == null || canvas.scaleFactor <= 0f ? 1f : canvas.scaleFactor;
-            var position = panel.anchoredPosition + eventData.delta / scaleFactor;
-            panel.anchoredPosition = clampToCanvasBounds ? ClampToParent(position) : position;
+            // 折叠仍可用；拖动标题、背景或边缘不得移动整个窗口。
         }
 
         private Vector2 ClampToParent(Vector2 position)
@@ -161,11 +154,11 @@ namespace YC.Presentation
             {
                 toggleIcon.sprite = collapsed ? triangleDownSprite : triangleUpSprite;
             }
-            if (collapsed)
+            if (useRuntimeLayout && collapsed)
             {
                 collapsedToggleLayout.ApplyTo(toggleRect);
             }
-            else
+            else if (useRuntimeLayout)
             {
                 expandedToggleLayout.ApplyTo(toggleRect);
             }

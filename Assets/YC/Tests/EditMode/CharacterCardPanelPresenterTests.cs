@@ -23,7 +23,7 @@ namespace YC.Tests.EditMode
             Assert.That(view.HandCards[0].DisplayName, Is.EqualTo("雷蛇"));
             Assert.That(view.HandCards[1].DisplayName, Is.EqualTo("expansion-card-7"));
             Assert.That(view.HandCards[0].CanCover, Is.True);
-            Assert.That(view.InteractionStatus, Is.EqualTo("拖动到主要行动卡上即可盖放"));
+            Assert.That(view.InteractionStatus, Is.EqualTo("拖动手牌到盖放角色区"));
         }
 
         [Test]

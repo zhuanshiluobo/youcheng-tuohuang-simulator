@@ -15,7 +15,6 @@ namespace YC.Presentation
         public const float CardImageInset = 3f;
 
         private static readonly Color CardBackground = new Color(0.09f, 0.07f, 0.045f, 0.72f);
-        private const int MinimumDragSortingOrder = 140;
 
         // 拖动成员只需要空的显示锚点，不能复制来源按钮的子模型或输入组件。
         public static Image CreateDragMemberImage(RectTransform parent)
@@ -51,7 +50,7 @@ namespace YC.Presentation
 
             var dragCanvas = ghostObject.GetComponent<Canvas>();
             dragCanvas.overrideSorting = true;
-            dragCanvas.sortingOrder = ResolveDragSortingOrder();
+            dragCanvas.sortingOrder = GameplayUiLayers.ContentDrag;
 
             var ghost = ghostObject.GetComponent<RectTransform>();
             layout.RootLayout.ApplyTo(ghost);
@@ -99,41 +98,57 @@ namespace YC.Presentation
             }
         }
 
-        public static int ResolveCityBoardSlotIndex(PointerEventData eventData)
+        public static int ResolveCityBoardSlotIndex(
+            PointerEventData eventData, RectTransform boardArtwork)
         {
-            if (eventData == null)
+            if (eventData == null || boardArtwork == null || !boardArtwork.gameObject.activeInHierarchy)
             {
                 return -1;
             }
 
             var hit = eventData.pointerCurrentRaycast.gameObject;
-            var current = hit == null ? null : hit.transform;
-            while (current != null)
+            // A persistent bar or an open page above the board owns this release.
+            if (hit != null && !hit.transform.IsChildOf(boardArtwork)) return -1;
+            var canvas = boardArtwork.GetComponentInParent<Canvas>();
+            var root = canvas == null ? null : canvas.rootCanvas;
+            var camera = root == null || root.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null : root.worldCamera;
+            var targets = boardArtwork.GetComponentsInChildren<CityBoardSlotDropTarget>();
+            for (var i = targets.Length - 1; i >= 0; i--)
             {
-                var target = current.GetComponent<CityBoardSlotDropTarget>();
-                if (target != null && target.SlotIndex >= 0)
-                {
+                var target = targets[i];
+                if (target.isActiveAndEnabled && RectTransformUtility.RectangleContainsScreenPoint(
+                        target.transform as RectTransform, eventData.position, camera))
                     return target.SlotIndex;
-                }
-
-                current = current.parent;
             }
+            return -1;
+        }
+
+        // Effect-card drags may originate in a page canvas above the legacy city board.
+        // Keep that existing route, but validate against the same artwork geometry.
+        public static int ResolveCityBoardSlotIndex(PointerEventData eventData)
+        {
+            if (eventData == null) return -1;
+            var hit = eventData.pointerCurrentRaycast.gameObject;
+            var hitCanvas = hit == null ? null : hit.GetComponentInParent<Canvas>();
+            if (hitCanvas != null && hitCanvas.sortingOrder >= GameplayUiLayers.PersistentBars)
+                return -1;
 
             var targets = UnityEngine.Object.FindObjectsOfType<CityBoardSlotDropTarget>();
             for (var i = 0; i < targets.Length; i++)
             {
                 var target = targets[i];
-                var rect = target == null ? null : target.transform as RectTransform;
-                if (target != null && target.isActiveAndEnabled && target.SlotIndex >= 0 && rect != null &&
-                    RectTransformUtility.RectangleContainsScreenPoint(
-                        rect,
-                        eventData.position,
-                        eventData.pressEventCamera))
-                {
+                var artwork = target == null ? null : target.transform.parent as RectTransform;
+                if (target == null || !target.isActiveAndEnabled || artwork == null ||
+                    !artwork.gameObject.activeInHierarchy) continue;
+                var canvas = artwork.GetComponentInParent<Canvas>();
+                var root = canvas == null ? null : canvas.rootCanvas;
+                var camera = root == null || root.renderMode == RenderMode.ScreenSpaceOverlay
+                    ? null : root.worldCamera;
+                if (RectTransformUtility.RectangleContainsScreenPoint(
+                        target.transform as RectTransform, eventData.position, camera))
                     return target.SlotIndex;
-                }
             }
-
             return -1;
         }
 
@@ -191,20 +206,6 @@ namespace YC.Presentation
             outline.effectDistance = layout.FallbackOutlineDistance;
         }
 
-        private static int ResolveDragSortingOrder()
-        {
-            var sortingOrder = MinimumDragSortingOrder;
-            var canvases = UnityEngine.Object.FindObjectsOfType<Canvas>();
-            for (var i = 0; i < canvases.Length; i++)
-            {
-                if (canvases[i] != null)
-                {
-                    sortingOrder = Mathf.Max(sortingOrder, canvases[i].sortingOrder + 1);
-                }
-            }
-
-            return Mathf.Min(sortingOrder, short.MaxValue);
-        }
     }
 
     /// <summary>

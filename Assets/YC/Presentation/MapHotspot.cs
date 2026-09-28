@@ -64,11 +64,14 @@ namespace YC.Presentation
         private void OnMouseDown()
         {
             if (Camera.main != null && Camera.main.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() != null) return;
-            if (controller != null) controller.OnHotspotClicked(LocationId);
+            if (controller != null && TabletopPointerClassifier.CanRouteMapPointer(Input.mousePosition))
+                controller.OnHotspotClicked(LocationId);
         }
         public void OnPointerClick(UnityEngine.EventSystems.PointerEventData eventData)
         {
-            if (eventData.button == UnityEngine.EventSystems.PointerEventData.InputButton.Left && controller != null)
+            if (eventData != null &&
+                eventData.button == UnityEngine.EventSystems.PointerEventData.InputButton.Left &&
+                controller != null && TabletopPointerClassifier.CanRouteMapPointer(eventData.position))
                 controller.OnHotspotClicked(LocationId);
         }
     }

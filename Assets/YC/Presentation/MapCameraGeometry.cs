@@ -84,7 +84,7 @@ namespace YC.Presentation
             out Vector3 worldPoint)
         {
             worldPoint = default;
-            if (camera == null)
+            if (!IsScreenPointInCameraViewport(camera, screenPosition))
             {
                 return false;
             }
@@ -97,6 +97,12 @@ namespace YC.Presentation
 
             worldPoint = ray.GetPoint(distance);
             return true;
+        }
+
+        public static bool IsScreenPointInCameraViewport(Camera camera, Vector2 screenPosition)
+        {
+            return camera != null && camera.enabled &&
+                   camera.pixelRect.Contains(screenPosition);
         }
 
         public static bool TryScreenToMapPlane(

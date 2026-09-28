@@ -17,6 +17,8 @@ namespace YC.Presentation
 
         public bool IsOpen => isOpen;
 
+        public bool OwnsPage(GameObject page) => view != null && view.OverlayObject == page;
+
         private void Awake()
         {
             TryInitialize();
@@ -34,8 +36,11 @@ namespace YC.Presentation
                 return;
             }
 
+            GameplayHudFrame.Active?.SuspendEffectForInformation();
+            GameplayHudFrame.Active?.ConstrainExternalPage(view.OverlayObject.transform as RectTransform);
             Refresh();
             view.OverlayObject.SetActive(true);
+            GameplayHudFrame.Active?.ShowPage(view.OverlayObject, false);
             isOpen = true;
         }
 
@@ -44,6 +49,7 @@ namespace YC.Presentation
             if (initialized)
             {
                 view.OverlayObject.SetActive(false);
+                GameplayHudFrame.Active?.HidePage(view.OverlayObject);
             }
 
             isOpen = false;

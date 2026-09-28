@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Passed" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-24 19:16:37Z" end-time="2026-09-24 19:16:39Z" duration="1.9809207">
+  <test-suite type="TestSuite" id="1013" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-24 19:16:37Z" end-time="2026-09-24 19:16:39Z" duration="1.980921" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1022" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-24 19:16:37Z" end-time="2026-09-24 19:16:39Z" duration="1.977101" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="44080" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1023" name="YC" fullname="YC" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-24 19:16:37Z" end-time="2026-09-24 19:16:39Z" duration="1.976686" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1024" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-24 19:16:37Z" end-time="2026-09-24 19:16:39Z" duration="1.976401" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1025" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-24 19:16:37Z" end-time="2026-09-24 19:16:39Z" duration="1.976139" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1019" name="Ui003HudFramePlayModeTests" fullname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests" classname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-24 19:16:37Z" end-time="2026-09-24 19:16:39Z" duration="1.975295" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1021" name="BothGameplayScenes_KeepBarsClickableAboveSettingsAndContent" fullname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests.BothGameplayScenes_KeepBarsClickableAboveSettingsAndContent" methodname="BothGameplayScenes_KeepBarsClickableAboveSettingsAndContent" classname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests" runstate="Runnable" seed="682728443" result="Passed" start-time="2026-09-24 19:16:37Z" end-time="2026-09-24 19:16:39Z" duration="1.678541" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[UI003 PLAY OK SampleScene 640x480
+UI003 PLAY OK ThreePlayerScene 640x480
+]]></output>
+              </test-case>
+              <test-case id="1020" name="EffectPage_CanSuspendBrowseTwoPagesAndRestoreOnlyCurrentRequest" fullname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests.EffectPage_CanSuspendBrowseTwoPagesAndRestoreOnlyCurrentRequest" methodname="EffectPage_CanSuspendBrowseTwoPagesAndRestoreOnlyCurrentRequest" classname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests" runstate="Runnable" seed="772918965" result="Passed" start-time="2026-09-24 19:16:39Z" end-time="2026-09-24 19:16:39Z" duration="0.289682" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

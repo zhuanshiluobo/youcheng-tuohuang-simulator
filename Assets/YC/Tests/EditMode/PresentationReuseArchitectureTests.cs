@@ -118,15 +118,63 @@ namespace YC.Tests.EditMode
                 var rect = owner.GetComponent<RectTransform>();
                 type.GetMethod("Apply", BindingFlags.Static | BindingFlags.Public)
                     .Invoke(null, new object[] { rect, layout, 0 });
-                Assert.That((rect.anchorMin.x + rect.anchorMax.x) * 0.5f, Is.EqualTo(0.176f).Within(0.0001f));
-                Assert.That((rect.anchorMin.y + rect.anchorMax.y) * 0.5f, Is.EqualTo(0.848f).Within(0.0001f));
-                Assert.That(rect.anchorMax.x - rect.anchorMin.x, Is.EqualTo(0.292f).Within(0.0001f));
-                Assert.That(rect.anchorMax.y - rect.anchorMin.y, Is.EqualTo(0.224f).Within(0.0001f));
+                Assert.That(rect.anchorMin.x, Is.EqualTo(100f / 2059f).Within(0.0001f));
+                Assert.That(rect.anchorMax.x, Is.EqualTo(700f / 2059f).Within(0.0001f));
+                Assert.That(rect.anchorMin.y, Is.EqualTo(1f - 1006f / 3801f).Within(0.0001f));
+                Assert.That(rect.anchorMax.y, Is.EqualTo(1f - 156f / 3801f).Within(0.0001f));
             }
             finally
             {
                 UnityEngine.Object.DestroyImmediate(owner);
             }
+        }
+
+        [Test]
+        public void CityBoardSlotLayout_UsesArtworkPixelsAfterParentTransformAndRejectsBorder()
+        {
+            var type = Type.GetType("YC.Presentation.CityBoardSlotLayout, Assembly-CSharp", true);
+            var getSourceRect = type.GetMethod("GetSourceRect", BindingFlags.Static | BindingFlags.Public);
+            var tryGetSlot = type.GetMethod("TryGetSlotIndex", BindingFlags.Static | BindingFlags.Public);
+            Assert.That(getSourceRect, Is.Not.Null);
+            Assert.That(tryGetSlot, Is.Not.Null);
+
+            var owner = new GameObject("Artwork Geometry", typeof(RectTransform));
+            try
+            {
+                var artwork = owner.GetComponent<RectTransform>();
+                artwork.sizeDelta = new Vector2(270f, 500f);
+                artwork.position = new Vector3(600f, 450f, 0f);
+                artwork.localScale = Vector3.one * 0.72f;
+                artwork.localRotation = Quaternion.Euler(0f, 0f, 11f);
+                for (var i = 0; i < 12; i++)
+                {
+                    var source = (Rect)getSourceRect.Invoke(null, new object[] { i });
+                    var point = ToScreen(artwork, source.center);
+                    var arguments = new object[] { artwork, point, null, -1 };
+                    Assert.That((bool)tryGetSlot.Invoke(null, arguments), Is.True, "slot=" + i);
+                    Assert.That((int)arguments[3], Is.EqualTo(i));
+                }
+
+                var borderArguments = new object[]
+                {
+                    artwork, ToScreen(artwork, new Vector2(20f, 20f)), null, -1
+                };
+                Assert.That((bool)tryGetSlot.Invoke(null, borderArguments), Is.False);
+                Assert.That((int)borderArguments[3], Is.EqualTo(-1));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(owner);
+            }
+        }
+
+        private static Vector2 ToScreen(RectTransform artwork, Vector2 sourcePoint)
+        {
+            var rect = artwork.rect;
+            var local = new Vector3(
+                rect.xMin + sourcePoint.x * rect.width / 2059f,
+                rect.yMax - sourcePoint.y * rect.height / 3801f);
+            return RectTransformUtility.WorldToScreenPoint(null, artwork.TransformPoint(local));
         }
 
         [Test]

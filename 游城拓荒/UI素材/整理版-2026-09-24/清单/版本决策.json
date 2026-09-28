@@ -1,0 +1,162 @@
+{
+  "patch": {
+    "patchId": "frontier-collaboration-v3",
+    "baseline": "MainGameUI-v2.2",
+    "applyMode": "mount-new-assets-and-remap-roles",
+    "assetManifest": "asset-manifest.json",
+    "geometryPatch": "layout-patch.json",
+    "deleteFiles": [],
+    "oldRoleToNewAssetIds": {
+      "screen-fill": [
+        "module-bg"
+      ],
+      "screen-frame": [
+        "outer-frame"
+      ],
+      "module-frame": [
+        "module-frame"
+      ],
+      "submodule-frame": [
+        "module-frame"
+      ],
+      "thin-row-frame": [
+        "module-frame"
+      ],
+      "module-fill-dark": [
+        "module-bg"
+      ],
+      "module-fill-paper": [
+        "paper-bg"
+      ],
+      "module-header-fill": [
+        "header-bg"
+      ],
+      "module-header-frame": [],
+      "card-slot-fill": [
+        "card-bg"
+      ],
+      "card-slot-frame": [
+        "card-frame"
+      ],
+      "topbar-fill": [
+        "topbar-bg"
+      ],
+      "topbar-frame": [
+        "topbar-frame"
+      ],
+      "turn-ribbon-fill": [
+        "turn-tag-refined"
+      ],
+      "turn-ribbon-frame": [],
+      "title-plaque-fill": [],
+      "title-plaque-frame": [],
+      "right-cluster-fill": [],
+      "right-cluster-frame": []
+    },
+    "windowRoleToNewAssetIds": {
+      "window-background": [
+        "module-bg"
+      ],
+      "window-frame": [
+        "outer-frame"
+      ],
+      "window-header": [
+        "header-bg"
+      ],
+      "section-background": [
+        "module-bg"
+      ],
+      "section-frame": [
+        "module-frame"
+      ],
+      "paper-content": [
+        "paper-bg"
+      ],
+      "selection-slot": [
+        "card-bg",
+        "card-frame"
+      ],
+      "confirm-button": [
+        "button-primary"
+      ],
+      "cancel-button": [
+        "button-secondary"
+      ]
+    },
+    "newRoles": {
+      "bottom-background": [
+        "bottom-bar"
+      ],
+      "bottom-frame": [
+        "bottom-frame"
+      ],
+      "resolution-summary": [
+        "chain-slot-bg",
+        "chain-slot-frame"
+      ],
+      "resolution-drawer": [
+        "module-bg",
+        "drawer-frame",
+        "header-bg"
+      ],
+      "undo-enabled": [
+        "undo-enabled",
+        "icon-undo-active"
+      ],
+      "undo-disabled": [
+        "undo-disabled",
+        "icon-undo-muted"
+      ],
+      "end-action-enabled": [
+        "button-primary"
+      ],
+      "end-action-disabled": [
+        "button-disabled"
+      ]
+    },
+    "retainedUnchanged": [
+      "original-game-art",
+      "exact-four-player-colors",
+      "all-cooperation-marker-combinations",
+      "card-selection-state-semantics",
+      "source-card-aspect-ratios"
+    ],
+    "runtimeLayers": [
+      "text",
+      "numbers",
+      "player-markers",
+      "status-icons",
+      "hit-areas"
+    ],
+    "notes": "An empty mapping removes an obsolete visual layer, not a semantic control. Topbar labels and hit regions are recomposed in the new preview. This is a role mapping, not a one-click game patch.",
+    "topbarRevision": "3.1"
+  },
+  "issues": [
+    {
+      "id": "version-frontier",
+      "finding": "补丁包名为 v3，组件清单和顶栏为 3.1；layout-patch.json 仍标 3.0.0。",
+      "decision": "采用 3.1 组件及顶栏；主界面区域采用现存布局补丁，不改写源版本字段。"
+    },
+    {
+      "id": "version-enterprise",
+      "finding": "企业包文件名 v1.0，包内 asset-manifest.json 与说明实际为 1.0.1。",
+      "decision": "目录保留源包名，版本清单标记 1.0.1。"
+    },
+    {
+      "id": "frontier-count",
+      "finding": "补丁 verification.json 声明 assetCount=51，实际 asset-manifest.json 为 35 项。",
+      "decision": "整理数量以实际成员及组件清单为准，原 QA 文件保留。"
+    },
+    {
+      "id": "modal-bottom-overlap",
+      "finding": "历史设施、企业、城市样式、科室窗口主体延伸到 y=1012，新底栏从 y=986 开始。",
+      "decision": "列为适配事项；未制作新弹窗矩形或新版弹窗预览，不宣称已经完成。"
+    },
+    {
+      "id": "preview-coverage",
+      "finding": "补丁仅交付新版主界面预览；其他窗口仍是旧主题。包内浏览器验证均未完成。",
+      "decision": "预览按版本分类，素材整理不代表 Unity 接入、浏览器交互或规则验收通过。"
+    }
+  ],
+  "scope": "资产整理与接入参考；未修改 Unity 场景、Prefab 或原有文档"
+}

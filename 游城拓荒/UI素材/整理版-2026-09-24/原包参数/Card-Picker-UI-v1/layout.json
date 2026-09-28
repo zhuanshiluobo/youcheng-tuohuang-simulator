@@ -1,0 +1,291 @@
+{
+  "version": "1.0.0",
+  "units": "logical pixels; x right, y down",
+  "screen": [
+    1920,
+    1080
+  ],
+  "window": {
+    "rect": [
+      73,
+      96.5,
+      1774,
+      887
+    ]
+  },
+  "regions": {
+    "title": [
+      96,
+      56,
+      1582,
+      56
+    ],
+    "subtitle": [
+      96,
+      124,
+      1582,
+      34
+    ],
+    "viewport": [
+      96,
+      198,
+      1582,
+      482
+    ],
+    "counter": [
+      96,
+      744,
+      920,
+      40
+    ],
+    "hint": [
+      96,
+      794,
+      920,
+      30
+    ],
+    "button_secondary": [
+      1088,
+      744,
+      280,
+      84
+    ],
+    "button_primary": [
+      1392,
+      744,
+      280,
+      84
+    ],
+    "button_secondary_text": [
+      1116,
+      768,
+      224,
+      36
+    ],
+    "button_primary_text": [
+      1420,
+      768,
+      224,
+      36
+    ],
+    "scrollbar_track": [
+      120,
+      650,
+      1534,
+      16
+    ],
+    "scrollbar_hit_area": [
+      120,
+      638,
+      1534,
+      40
+    ]
+  },
+  "type": {
+    "title": {
+      "size": 40,
+      "line_height": 56,
+      "align": "center",
+      "color": "#EFE4D6"
+    },
+    "subtitle": {
+      "size": 24,
+      "line_height": 34,
+      "align": "center",
+      "color": "#EEE4D6"
+    },
+    "counter": {
+      "size": 28,
+      "line_height": 40,
+      "align": "left",
+      "color": "#EEE4D6",
+      "accent": "#EFB72A"
+    },
+    "hint": {
+      "size": 22,
+      "line_height": 30,
+      "align": "left",
+      "color": "#C9B8A6"
+    },
+    "button": {
+      "size": 28,
+      "line_height": 36,
+      "align": "center",
+      "primary_color": "#241C13",
+      "secondary_color": "#F0E4D6"
+    }
+  },
+  "cards": {
+    "aspect": [
+      12,
+      17
+    ],
+    "source_size": [
+      600,
+      850
+    ],
+    "available_width": 1582,
+    "horizontal_padding": 16,
+    "gap": 16,
+    "center_y": 439,
+    "max_width": 288,
+    "width_step": 12,
+    "max_before_scroll": 7,
+    "scroll_card_size": [
+      180,
+      255
+    ],
+    "scroll_card_x0": 113,
+    "scroll_step": 228,
+    "scroll_y": 311.5,
+    "vertical_decoration_allowance": 28
+  },
+  "scrollbar": {
+    "min_thumb_width": 80,
+    "thumb_y": 652,
+    "thumb_height": 12,
+    "formula": "thumbW=clamp(1534*1582/contentWidth,80,1534); thumbX=120+(scrollX/maxScroll)*(1534-thumbW); hidden when maxScroll<=0"
+  },
+  "assets": {
+    "window.png": {
+      "path": "assets/window.png",
+      "size": [
+        1774,
+        887
+      ],
+      "source_reference_rect": [
+        0,
+        0,
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "reference_kind": "visible_rect"
+    },
+    "card-slot.png": {
+      "path": "assets/card-slot.png",
+      "size": [
+        1053,
+        1493
+      ],
+      "source_reference_rect": [
+        118,
+        130,
+        817,
+        1233
+      ],
+      "mode": "RGBA",
+      "reference_kind": "card_content_safe_rect"
+    },
+    "card-selected.png": {
+      "path": "assets/card-selected.png",
+      "size": [
+        1054,
+        1493
+      ],
+      "source_reference_rect": [
+        80,
+        130,
+        896,
+        1280
+      ],
+      "mode": "RGBA",
+      "reference_kind": "card_content_safe_rect"
+    },
+    "button-primary.png": {
+      "path": "assets/button-primary.png",
+      "size": [
+        1983,
+        793
+      ],
+      "source_reference_rect": [
+        35,
+        102,
+        1916,
+        582
+      ],
+      "mode": "RGBA",
+      "reference_kind": "visible_rect"
+    },
+    "button-secondary.png": {
+      "path": "assets/button-secondary.png",
+      "size": [
+        1983,
+        793
+      ],
+      "source_reference_rect": [
+        35,
+        102,
+        1916,
+        582
+      ],
+      "mode": "RGBA",
+      "reference_kind": "visible_rect"
+    },
+    "scrollbar-track.png": {
+      "path": "assets/scrollbar-track.png",
+      "size": [
+        2172,
+        724
+      ],
+      "source_reference_rect": [
+        82,
+        333,
+        2008,
+        50
+      ],
+      "mode": "RGBA",
+      "reference_kind": "visible_rect"
+    },
+    "scrollbar-thumb.png": {
+      "path": "assets/scrollbar-thumb.png",
+      "size": [
+        2172,
+        724
+      ],
+      "source_reference_rect": [
+        92,
+        326,
+        1988,
+        71
+      ],
+      "mode": "RGBA",
+      "reference_kind": "visible_rect"
+    }
+  },
+  "scenes": {
+    "start": {
+      "count": 7,
+      "required": 2,
+      "title": "选择卡牌",
+      "subtitle": "选择 2 张角色牌移出本局",
+      "confirm": "移出所选",
+      "secondary": "重新选择",
+      "allow_cancel": false
+    },
+    "build": {
+      "count": "N",
+      "required": 1,
+      "title": "选择建设方案",
+      "subtitle": "选择 1 张设施牌进行建设",
+      "confirm": "确认建设",
+      "secondary": "返回",
+      "allow_cancel": "game_flow_decides"
+    },
+    "dispatch": {
+      "count": 2,
+      "required": 1,
+      "title": "干员特派",
+      "subtitle": "选择 1 张干员牌",
+      "confirm": "确认选择",
+      "secondary": null,
+      "allow_cancel": false
+    }
+  },
+  "sprite_mapping": "textureRect=(targetX-rx*targetW/rw,targetY-ry*targetH/rh,sourceW*targetW/rw,sourceH*targetH/rh); map frame sprites only, preserve actual card aspect",
+  "notes": [
+    "PNG source files are unchanged; calibration is performed at render time.",
+    "sample-card.jpg is a repeated facility sample for layout QA only.",
+    "Only normal button textures supplied; other states use runtime tint."
+  ]
+}

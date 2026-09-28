@@ -1,0 +1,806 @@
+{
+  "atlas": {
+    "file": "originals/facility-atlas.jpg",
+    "size": [
+      5400,
+      5100
+    ],
+    "columns": 9,
+    "rows": 6,
+    "cellSize": [
+      600,
+      850
+    ],
+    "indexing": "zero-based row-major",
+    "ttsDeckKey": "166",
+    "confirmedBy": "TTS original deck 166: NumWidth=9 NumHeight=6",
+    "validIndices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50
+    ],
+    "trailingBlankIndices": [
+      51,
+      52,
+      53
+    ],
+    "back": "not required for face-up candidate UI"
+  },
+  "ordinary": [
+    {
+      "name": "城邦行政区",
+      "index": 0,
+      "ttsCardId": 16600,
+      "row0": 0,
+      "column0": 0,
+      "row1": 1,
+      "column1": 1,
+      "sourceRect": [
+        0,
+        0,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "rainbow",
+      "printedScore": 3,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 3,
+          "originium": 3,
+          "iron": 3
+        },
+        "voucherAlternative": 30
+      },
+      "note": "唯一"
+    },
+    {
+      "name": "附属能源设施",
+      "index": 3,
+      "ttsCardId": 16603,
+      "row0": 0,
+      "column0": 3,
+      "row1": 1,
+      "column1": 4,
+      "sourceRect": [
+        1800,
+        0,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "rainbow",
+      "printedScore": 1,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 2,
+          "originium": 2,
+          "iron": 3
+        },
+        "voucherAlternative": 23
+      },
+      "note": "唯一；入场选择一个十字相邻的非彩色设施，结算其入场效果"
+    },
+    {
+      "name": "联邦理事处",
+      "index": 6,
+      "ttsCardId": 16606,
+      "row0": 0,
+      "column0": 6,
+      "row1": 1,
+      "column1": 7,
+      "sourceRect": [
+        3600,
+        0,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "rainbow",
+      "printedScore": 0,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 4,
+          "originium": 2
+        },
+        "voucherAlternative": 17
+      },
+      "note": "唯一"
+    },
+    {
+      "name": "简陋工程营",
+      "index": 9,
+      "ttsCardId": 16609,
+      "row0": 1,
+      "column0": 0,
+      "row1": 2,
+      "column1": 1,
+      "sourceRect": [
+        0,
+        850,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "rainbow",
+      "printedScore": -1,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 2,
+          "originium": 1
+        },
+        "voucherAlternative": 8
+      },
+      "note": "唯一"
+    },
+    {
+      "name": "物流枢纽",
+      "index": 12,
+      "ttsCardId": 16612,
+      "row0": 1,
+      "column0": 3,
+      "row1": 2,
+      "column1": 4,
+      "sourceRect": [
+        1800,
+        850,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "blue",
+      "printedScore": 2,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "pureOriginium": 1,
+          "voucher": 2
+        },
+        "voucherAlternative": 24
+      },
+      "note": "唯一；入场可从余下的延伸枢纽中选择1张并建设"
+    },
+    {
+      "name": "城市化区域",
+      "index": 15,
+      "ttsCardId": 16615,
+      "row0": 1,
+      "column0": 6,
+      "row1": 2,
+      "column1": 7,
+      "sourceRect": [
+        3600,
+        850,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "blue",
+      "printedScore": 1,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 3,
+          "iron": 2
+        },
+        "voucherAlternative": 16
+      },
+      "note": "每有一个与核心指挥塔十字相邻的设施，获得4券"
+    },
+    {
+      "name": "贸易街区",
+      "index": 18,
+      "ttsCardId": 16618,
+      "row0": 2,
+      "column0": 0,
+      "row1": 3,
+      "column1": 1,
+      "sourceRect": [
+        0,
+        1700,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "blue",
+      "printedScore": 0,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 1,
+          "iron": 1
+        },
+        "voucherAlternative": 6
+      },
+      "note": "入场可出售资源"
+    },
+    {
+      "name": "城邦工业区",
+      "index": 24,
+      "ttsCardId": 16624,
+      "row0": 2,
+      "column0": 6,
+      "row1": 3,
+      "column1": 7,
+      "sourceRect": [
+        3600,
+        1700,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "yellow",
+      "printedScore": 2,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 4,
+          "originium": 3,
+          "voucher": 2
+        },
+        "voucherAlternative": 24
+      },
+      "note": "每有1种非彩色设施，此设施的建筑花费-1源岩"
+    },
+    {
+      "name": "固源岩提纯厂",
+      "index": 27,
+      "ttsCardId": 16627,
+      "row0": 3,
+      "column0": 0,
+      "row1": 4,
+      "column1": 1,
+      "sourceRect": [
+        0,
+        2550,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "yellow",
+      "printedScore": 0,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 1,
+          "originium": 1,
+          "iron": 1
+        },
+        "voucherAlternative": 10
+      },
+      "note": "入场获得7源岩"
+    },
+    {
+      "name": "开采电铲",
+      "index": 30,
+      "ttsCardId": 16630,
+      "row0": 3,
+      "column0": 3,
+      "row1": 4,
+      "column1": 4,
+      "sourceRect": [
+        1800,
+        2550,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "yellow",
+      "printedScore": 0,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "originium": 2,
+          "iron": 1
+        },
+        "voucherAlternative": 10
+      },
+      "note": "入场合计获得5个源岩/源石/异铁"
+    },
+    {
+      "name": "异铁冶炼厂",
+      "index": 33,
+      "ttsCardId": 16633,
+      "row0": 3,
+      "column0": 6,
+      "row1": 4,
+      "column1": 7,
+      "sourceRect": [
+        3600,
+        2550,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "red",
+      "printedScore": 1,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 2,
+          "originium": 2,
+          "iron": 1
+        },
+        "voucherAlternative": 15
+      },
+      "note": "入场获得4异铁"
+    },
+    {
+      "name": "佣兵指挥部",
+      "index": 36,
+      "ttsCardId": 16636,
+      "row0": 4,
+      "column0": 0,
+      "row1": 5,
+      "column1": 1,
+      "sourceRect": [
+        0,
+        3400,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "red",
+      "printedScore": 1,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 2,
+          "iron": 2,
+          "voucher": 4
+        },
+        "voucherAlternative": 18
+      },
+      "note": "图标入场效果，需按规则实现"
+    },
+    {
+      "name": "护航调度中心",
+      "index": 39,
+      "ttsCardId": 16639,
+      "row0": 4,
+      "column0": 3,
+      "row1": 5,
+      "column1": 4,
+      "sourceRect": [
+        1800,
+        3400,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "red",
+      "printedScore": 0,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 2,
+          "originium": 2,
+          "iron": 2
+        },
+        "voucherAlternative": 18
+      },
+      "note": "图标入场效果，需按规则实现"
+    },
+    {
+      "name": "载具仓库",
+      "index": 42,
+      "ttsCardId": 16642,
+      "row0": 4,
+      "column0": 6,
+      "row1": 5,
+      "column1": 7,
+      "sourceRect": [
+        3600,
+        3400,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "red",
+      "printedScore": 0,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 1,
+          "originium": 2
+        },
+        "voucherAlternative": 9
+      },
+      "note": "图标入场效果或执行1次探索"
+    },
+    {
+      "name": "企业办事处",
+      "index": 48,
+      "ttsCardId": 16648,
+      "row0": 5,
+      "column0": 3,
+      "row1": 6,
+      "column1": 4,
+      "sourceRect": [
+        1800,
+        4250,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "red",
+      "printedScore": 1,
+      "source": "originals/facility-atlas.jpg",
+      "cost": {
+        "resourceOption": {
+          "rock": 3,
+          "originium": 1,
+          "iron": 3
+        },
+        "voucherAlternative": 23
+      },
+      "note": "企业扩展；入场选择1家企业合作"
+    }
+  ],
+  "hubs": [
+    {
+      "name": "延伸枢纽",
+      "index": 21,
+      "ttsCardId": 16621,
+      "row0": 2,
+      "column0": 3,
+      "row1": 3,
+      "column1": 4,
+      "sourceRect": [
+        1800,
+        1700,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "blue",
+      "printedScore": -1,
+      "source": "originals/facility-atlas.jpg",
+      "cost": null,
+      "ordinaryPurchaseAllowed": false,
+      "printedRestriction": "只能通过物流中枢的入场效果进行建造"
+    },
+    {
+      "name": "延伸枢纽",
+      "index": 32,
+      "ttsCardId": 16632,
+      "row0": 3,
+      "column0": 5,
+      "row1": 4,
+      "column1": 6,
+      "sourceRect": [
+        3000,
+        2550,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "yellow",
+      "printedScore": -1,
+      "source": "originals/facility-atlas.jpg",
+      "cost": null,
+      "ordinaryPurchaseAllowed": false,
+      "printedRestriction": "只能通过物流中枢的入场效果进行建造"
+    },
+    {
+      "name": "延伸枢纽",
+      "index": 43,
+      "ttsCardId": 16643,
+      "row0": 4,
+      "column0": 7,
+      "row1": 5,
+      "column1": 8,
+      "sourceRect": [
+        4200,
+        3400,
+        600,
+        850
+      ],
+      "aspectRatio": "12:17",
+      "color": "red",
+      "printedScore": -1,
+      "source": "originals/facility-atlas.jpg",
+      "cost": null,
+      "ordinaryPurchaseAllowed": false,
+      "printedRestriction": "只能通过物流中枢的入场效果进行建造"
+    }
+  ],
+  "city": {
+    "file": "originals/city-board.png",
+    "size": [
+      2059,
+      3801
+    ],
+    "aspectRatio": "2059:3801",
+    "sha256": "67c85fce31269b13181d1c9b1593f640b9ab4b6d81b489cd05125891660d6218",
+    "slotSize": [
+      600,
+      850
+    ],
+    "columnX": [
+      100,
+      730,
+      1360
+    ],
+    "rowY": [
+      156,
+      1036,
+      1916,
+      2796
+    ],
+    "slotStep": [
+      630,
+      880
+    ],
+    "gridRect": [
+      100,
+      156,
+      1860,
+      3490
+    ],
+    "slots": [
+      {
+        "row0": 0,
+        "column0": 0,
+        "row1": 1,
+        "column1": 1,
+        "sourceRect": [
+          100,
+          156,
+          600,
+          850
+        ],
+        "coreTower": false
+      },
+      {
+        "row0": 0,
+        "column0": 1,
+        "row1": 1,
+        "column1": 2,
+        "sourceRect": [
+          730,
+          156,
+          600,
+          850
+        ],
+        "coreTower": false
+      },
+      {
+        "row0": 0,
+        "column0": 2,
+        "row1": 1,
+        "column1": 3,
+        "sourceRect": [
+          1360,
+          156,
+          600,
+          850
+        ],
+        "coreTower": false
+      },
+      {
+        "row0": 1,
+        "column0": 0,
+        "row1": 2,
+        "column1": 1,
+        "sourceRect": [
+          100,
+          1036,
+          600,
+          850
+        ],
+        "coreTower": false
+      },
+      {
+        "row0": 1,
+        "column0": 1,
+        "row1": 2,
+        "column1": 2,
+        "sourceRect": [
+          730,
+          1036,
+          600,
+          850
+        ],
+        "coreTower": false
+      },
+      {
+        "row0": 1,
+        "column0": 2,
+        "row1": 2,
+        "column1": 3,
+        "sourceRect": [
+          1360,
+          1036,
+          600,
+          850
+        ],
+        "coreTower": false
+      },
+      {
+        "row0": 2,
+        "column0": 0,
+        "row1": 3,
+        "column1": 1,
+        "sourceRect": [
+          100,
+          1916,
+          600,
+          850
+        ],
+        "coreTower": false
+      },
+      {
+        "row0": 2,
+        "column0": 1,
+        "row1": 3,
+        "column1": 2,
+        "sourceRect": [
+          730,
+          1916,
+          600,
+          850
+        ],
+        "coreTower": true
+      },
+      {
+        "row0": 2,
+        "column0": 2,
+        "row1": 3,
+        "column1": 3,
+        "sourceRect": [
+          1360,
+          1916,
+          600,
+          850
+        ],
+        "coreTower": false
+      },
+      {
+        "row0": 3,
+        "column0": 0,
+        "row1": 4,
+        "column1": 1,
+        "sourceRect": [
+          100,
+          2796,
+          600,
+          850
+        ],
+        "coreTower": false
+      },
+      {
+        "row0": 3,
+        "column0": 1,
+        "row1": 4,
+        "column1": 2,
+        "sourceRect": [
+          730,
+          2796,
+          600,
+          850
+        ],
+        "coreTower": false
+      },
+      {
+        "row0": 3,
+        "column0": 2,
+        "row1": 4,
+        "column1": 3,
+        "sourceRect": [
+          1360,
+          2796,
+          600,
+          850
+        ],
+        "coreTower": false
+      }
+    ],
+    "measurementNote": "Repeated exact 600x850 plate edges found by image pixel gradients; original image was not modified."
+  },
+  "resourceLegend": {
+    "rock": "源岩（浅黄石块图标）",
+    "originium": "源石（红黑晶体图标）",
+    "iron": "异铁（蓝色金属图标）",
+    "pureOriginium": "至纯源石（金色晶体图标）",
+    "voucher": "券（纸券图标，完整规则名称由规则书核验）"
+  },
+  "wordingCaveat": "物流枢纽为卡面顶部实际标题，延伸枢纽的限制文字写物流中枢，两处原图用语不一致，不能误认为两种不同设施。",
+  "previewRecommendations": {
+    "thumbnail": [
+      180,
+      255
+    ],
+    "detail": [
+      420,
+      595
+    ],
+    "city": "Keep 2059:3801 aspect; fit to available height and overlay slots using sourceRect scaled by the same factor; no crop.",
+    "text": "At 180x255 full printed body text is small; show a separate readable name/cost line and click/hover detail at 420x595; avoid baking substitute text over original card.",
+    "normalSampleIndices": [
+      12,
+      15,
+      18,
+      24,
+      27,
+      33
+    ]
+  },
+  "coreTower": {
+    "name": "核心指挥塔",
+    "index": 45,
+    "ttsCardId": 16645,
+    "source": "/workspace/scratch/f2adf1f55c56/tmp/assets-review/asset-057.jpg",
+    "sourceRect": [
+      0,
+      4250,
+      600,
+      850
+    ],
+    "row0": 5,
+    "column0": 0,
+    "aspectRatio": "12:17",
+    "printedScore": 0,
+    "printedCost": null,
+    "printedRestriction": "唯一",
+    "visuallyConfirmedEquivalentIndices": [
+      45,
+      46,
+      47
+    ],
+    "citySlotRow1": 3,
+    "citySlotColumn1": 2
+  }
+}

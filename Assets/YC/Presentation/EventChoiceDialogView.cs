@@ -69,6 +69,8 @@ namespace YC.Presentation
             }
         }
 
+        [Tooltip("默认保留预制体布局。仅需旧的按模式自动布局时启用。")]
+        [SerializeField] private bool useModeLayout;
         [SerializeField] private Canvas overlayCanvas;
         [SerializeField] private RectTransform overlayRect;
         [SerializeField] private Image overlayImage;
@@ -205,7 +207,7 @@ namespace YC.Presentation
                 expandedContent == null || titleText == null || metadataText == null || descriptionText == null ||
                 collapsedSummaryText == null || actionArea == null || closeButton == null ||
                 closeButtonLabel == null || collapseButton == null || collapseButtonLabel == null ||
-                collapseButtonIcon == null || collapsiblePanel == null || dragHandle == null ||
+                collapseButtonIcon == null || collapsiblePanel == null ||
                 closeInputHandler == null || layoutProfile == null)
             {
                 reason = "事件选择窗口固定壳引用不完整。";
@@ -274,10 +276,13 @@ namespace YC.Presentation
             ClearForReuse();
             gameObject.name = overlayName ?? string.Empty;
             panel.gameObject.name = panelName ?? string.Empty;
-            panel.sizeDelta = panelSize;
-            panel.anchoredPosition = panelPosition;
+            if (useModeLayout)
+            {
+                panel.sizeDelta = panelSize;
+                panel.anchoredPosition = panelPosition;
+            }
             overlayCanvas.overrideSorting = true;
-            overlayCanvas.sortingOrder = 118;
+            overlayCanvas.sortingOrder = GameplayUiLayers.Page;
             overlayImage.color = new Color(0f, 0f, 0f, layoutProfile.OverlayAlpha);
             overlayImage.raycastTarget = GetOverlayRaycastTarget(mode);
             ConfigureModeFixedPresentation(mode);
@@ -305,8 +310,8 @@ namespace YC.Presentation
             var row = CloneRoot(paymentRouteRowTemplate.Root, parent);
             return new PaymentRouteRow(
                 row,
-                FindRequired<Text>(row, "Route Label"),
-                FindRequired<RectTransform>(row, "Recipient Host"));
+                FindClonedReference(paymentRouteRowTemplate.Root, paymentRouteRowTemplate.Label, row),
+                FindClonedReference(paymentRouteRowTemplate.Root, paymentRouteRowTemplate.RecipientHost, row));
         }
 
         public ButtonRow CreatePaymentRecipientButton(RectTransform parent) =>
@@ -344,7 +349,7 @@ namespace YC.Presentation
             closeButton.gameObject.SetActive(false);
             collapseButton.gameObject.SetActive(false);
             expandedContent.gameObject.SetActive(true);
-            dragHandle.enabled = false;
+            if (dragHandle != null) dragHandle.enabled = false;
             collapsiblePanel.Configure(null);
             eventCardArtworkImage.texture = null;
             eventCardArtworkImage.gameObject.SetActive(false);
@@ -389,7 +394,8 @@ namespace YC.Presentation
         private ButtonRow CloneButtonRow(ButtonRow template, RectTransform parent)
         {
             var row = CloneRoot(template.Root, parent);
-            return new ButtonRow(row, row.GetComponent<Button>(), FindRequired<Text>(row, "Label"));
+            return new ButtonRow(row, FindClonedReference(template.Root, template.Button, row),
+                FindClonedReference(template.Root, template.Label, row));
         }
 
         private RectTransform CloneRoot(RectTransform template, RectTransform parent)
@@ -402,6 +408,13 @@ namespace YC.Presentation
 
         private void ConfigureModeFixedPresentation(EventChoiceDialogMode mode)
         {
+            if (!useModeLayout)
+            {
+                closeButton.gameObject.SetActive(mode == EventChoiceDialogMode.ResourceCollectionPayment ||
+                    mode == EventChoiceDialogMode.BuildFacilityFocus ||
+                    mode == EventChoiceDialogMode.BuildFacilityConfirmation);
+                return;
+            }
             EventChoiceDialogRectLayout titleLayout;
             EventChoiceDialogTextStyle titleStyle;
             switch (mode)
@@ -547,18 +560,20 @@ namespace YC.Presentation
             text.raycastTarget = style.RaycastTarget;
         }
 
-        private static T FindRequired<T>(RectTransform root, string objectName) where T : Component
+        // 用已序列化引用在模板内的相对层级定位副本，子物体可以自由改名。
+        private static T FindClonedReference<T>(Transform template, T source, Transform clone) where T : Component
         {
-            var children = root.GetComponentsInChildren<Transform>(true);
-            for (var i = 0; i < children.Length; i++)
+            if (source == null) throw new InvalidOperationException("事件选择模板缺少组件引用。");
+            var indices = new List<int>();
+            var current = source.transform;
+            while (current != template)
             {
-                if (children[i].name == objectName)
-                {
-                    return children[i].GetComponent<T>();
-                }
+                if (current == null) throw new InvalidOperationException("事件选择模板引用不属于模板层级。");
+                indices.Add(current.GetSiblingIndex());
+                current = current.parent;
             }
-
-            throw new InvalidOperationException("事件选择模板缺少子引用：" + objectName);
+            for (var i = indices.Count - 1; i >= 0; i--) clone = clone.GetChild(indices[i]);
+            return clone.GetComponent<T>();
         }
 
         private GameObject[] GetModeBlocks()

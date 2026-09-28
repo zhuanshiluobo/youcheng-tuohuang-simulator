@@ -1,0 +1,564 @@
+{
+  "sprites": [
+    {
+      "id": "outer-frame",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/outer-frame.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/outer-frame.png",
+      "sha256": "9983e7b77d3c1987ebec85add88337c957fef56833747b4501009d6513c20738",
+      "border": [
+        64,
+        64,
+        64,
+        64
+      ],
+      "size": [
+        1024,
+        576
+      ]
+    },
+    {
+      "id": "module-bg",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/module-bg.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/module-bg.png",
+      "sha256": "a869bca6b92d9fabb3849db20e11a1d63ab9437a2ffc6ff60e3a3b87e53ed8e9",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        512,
+        320
+      ]
+    },
+    {
+      "id": "paper-bg",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/paper-bg.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/paper-bg.png",
+      "sha256": "67882a56e82e567c3b7fec74978f4f369a78ca858abba52cd22ea30643bd4431",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        512,
+        128
+      ]
+    },
+    {
+      "id": "header-bg",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/header-bg.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/header-bg.png",
+      "sha256": "d5638f7fc404b80ef699315cddfe1412320f55fdd155ab144b423a6688afd699",
+      "border": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "size": [
+        1024,
+        88
+      ]
+    },
+    {
+      "id": "module-frame",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/module-frame.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/module-frame.png",
+      "sha256": "23609d9070dd3be87cc9c7146b582a6c17b648055c4e8867422d11f74ac90b52",
+      "border": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "size": [
+        512,
+        320
+      ]
+    },
+    {
+      "id": "drawer-frame",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/drawer-frame.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/drawer-frame.png",
+      "sha256": "5dd82e234ebb729087e7a0639e1959d6699e8d665455822e95d511780150c853",
+      "border": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "size": [
+        1024,
+        240
+      ]
+    },
+    {
+      "id": "card-frame",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/card-frame.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/card-frame.png",
+      "sha256": "7bb91c958a6ea729293d2eef619633c91bc03542738e9af2bbaeae1500280ab7",
+      "border": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "size": [
+        320,
+        456
+      ]
+    },
+    {
+      "id": "card-bg",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/card-bg.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/card-bg.png",
+      "sha256": "8675d7bfe5a46338e524f44ffb1cd93136583d83312d5c39be5ca8c44d4fbf80",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        320,
+        456
+      ]
+    },
+    {
+      "id": "topbar-bg",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/topbar-bg.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/topbar-bg.png",
+      "sha256": "cb1a910abc850b883e7d2fe66c22a87f5857cd5e3a8e9fbcd17d0b356446ae7c",
+      "border": [
+        16,
+        8,
+        16,
+        8
+      ],
+      "size": [
+        1920,
+        72
+      ]
+    },
+    {
+      "id": "topbar-frame",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/topbar-frame.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/topbar-frame.png",
+      "sha256": "3b59dd3cb8ce9ea460eb0b77811bb59bcc81fb4a4baca0e6b65bb43945e753b7",
+      "border": [
+        28,
+        8,
+        12,
+        8
+      ],
+      "size": [
+        1920,
+        72
+      ]
+    },
+    {
+      "id": "turn-tag",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Compatible/turn-tag.png",
+      "source": "资产/兼容组件/Frontier-3.1/topbar-v3/turn-tag.png",
+      "sha256": "8bad25f407a4ce766596e180a384b085c54db0c9aabbc6456882b0af787297ad",
+      "border": [
+        25,
+        8,
+        28,
+        8
+      ],
+      "size": [
+        256,
+        56
+      ]
+    },
+    {
+      "id": "redzone-paper",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Compatible/redzone-paper.png",
+      "source": "资产/兼容组件/Frontier-3.1/topbar-v3/redzone-paper.png",
+      "sha256": "c86812eb50ca156bd63208d830762ff8328d09d532d1a08fa12004699aefaa23",
+      "border": [
+        24,
+        8,
+        8,
+        8
+      ],
+      "size": [
+        256,
+        56
+      ]
+    },
+    {
+      "id": "bottom-bar",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/bottom-bar.png",
+      "source": "资产/新版组件/Frontier-3.1/bottom-v3/bottom-bar.png",
+      "sha256": "a421c855a1c5ed5e1be0069f0ed1f648efa072aeb623c705ffc240ef630682b2",
+      "border": [
+        16,
+        12,
+        16,
+        12
+      ],
+      "size": [
+        1920,
+        96
+      ]
+    },
+    {
+      "id": "bottom-frame",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/bottom-frame.png",
+      "source": "资产/新版组件/Frontier-3.1/bottom-v3/bottom-frame.png",
+      "sha256": "5b7bb3772b26a9ad38a1edff65fdc59f09a05eae1eeb02b08d1a4717512b697f",
+      "border": [
+        36,
+        8,
+        36,
+        8
+      ],
+      "size": [
+        1920,
+        96
+      ]
+    },
+    {
+      "id": "chain-slot-bg",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/chain-slot-bg.png",
+      "source": "资产/新版组件/Frontier-3.1/bottom-v3/chain-slot-bg.png",
+      "sha256": "dc8fa0bb1af3d0bc65568872aa34096de32856a6c0cf44bde792d1018acc5a58",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        1024,
+        64
+      ]
+    },
+    {
+      "id": "chain-slot-frame",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/chain-slot-frame.png",
+      "source": "资产/新版组件/Frontier-3.1/bottom-v3/chain-slot-frame.png",
+      "sha256": "42446858b734fa343168b875261fa427caf442ee79db141991718b6f25aee711",
+      "border": [
+        18,
+        12,
+        12,
+        12
+      ],
+      "size": [
+        1024,
+        64
+      ]
+    },
+    {
+      "id": "button-primary",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/button-primary.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/button-primary.png",
+      "sha256": "27cdb7e5379b316141b3020ae93934b41eb7f540b3d28712cd8088dafab3b6e0",
+      "border": [
+        28,
+        20,
+        28,
+        20
+      ],
+      "size": [
+        320,
+        98
+      ]
+    },
+    {
+      "id": "button-secondary",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/button-secondary.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/button-secondary.png",
+      "sha256": "67530acea04e5c020ddd6c5154b6a9232762a805021a58feff2290325c1ad1f1",
+      "border": [
+        28,
+        20,
+        28,
+        20
+      ],
+      "size": [
+        320,
+        98
+      ]
+    },
+    {
+      "id": "button-disabled",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/button-disabled.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/button-disabled.png",
+      "sha256": "f09b0927d83dc1dfff2c0c4cde128f361709c4856ef2e7bf699d4408045dae37",
+      "border": [
+        28,
+        20,
+        28,
+        20
+      ],
+      "size": [
+        320,
+        98
+      ]
+    },
+    {
+      "id": "undo-enabled",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/undo-enabled.png",
+      "source": "资产/新版组件/Frontier-3.1/bottom-v3/undo-enabled.png",
+      "sha256": "4712d9bf057db8826698d008fbdc31b13a9e6592510ed1675a54874b21ed0bad",
+      "border": [
+        28,
+        20,
+        28,
+        20
+      ],
+      "size": [
+        200,
+        64
+      ]
+    },
+    {
+      "id": "undo-disabled",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/undo-disabled.png",
+      "source": "资产/新版组件/Frontier-3.1/bottom-v3/undo-disabled.png",
+      "sha256": "50596fe92ce3a8ffe84f91260174615aa9292c20d9b2a2f5a017c9f5759d404f",
+      "border": [
+        28,
+        20,
+        28,
+        20
+      ],
+      "size": [
+        200,
+        64
+      ]
+    },
+    {
+      "id": "icon-undo-active",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/icon-undo-active.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/icon-undo-active.png",
+      "sha256": "5dcb00278a927c1fcfd08290defd7de671bcb2a1cfb34ceea171707d4d17e3f3",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        48,
+        48
+      ]
+    },
+    {
+      "id": "icon-undo-muted",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/icon-undo-muted.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/icon-undo-muted.png",
+      "sha256": "96d7789817b158cc60fbd81ac1055614da7ca793c456c75f248523197dad6d72",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        48,
+        48
+      ]
+    },
+    {
+      "id": "icon-chevron",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/icon-chevron.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/icon-chevron.png",
+      "sha256": "f508ec68cd04923be0e3627ef46d742d7012bf0ec67127af7569ebf7cec40a6a",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        32,
+        32
+      ]
+    },
+    {
+      "id": "icon-close",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/icon-close.png",
+      "source": "资产/新版组件/Frontier-3.1/shared-v3/icon-close.png",
+      "sha256": "476ad7446919364dd4166d6023c2e38f99c0b15ab1d5be58f90f751ad9668593",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        32,
+        32
+      ]
+    },
+    {
+      "id": "round-plaque",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/round-plaque.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/round-plaque.png",
+      "sha256": "586f4a045ceaf7726b81c7043dacba91130e0d320c4619ccf7acd41a5c4d3d9f",
+      "border": [
+        7,
+        7,
+        7,
+        7
+      ],
+      "size": [
+        60,
+        44
+      ]
+    },
+    {
+      "id": "turn-tag-refined",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/turn-tag-refined.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/turn-tag-refined.png",
+      "sha256": "740174a46519445bac0a23881fc68264ebb07e974df5858ac2826d017810d588",
+      "border": [
+        50,
+        6,
+        24,
+        6
+      ],
+      "size": [
+        224,
+        44
+      ]
+    },
+    {
+      "id": "topbar-tool-default",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/topbar-tool-default.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/topbar-tool-default.png",
+      "sha256": "0b09786755c49091189c642234fb41246a0a92637c74df06003ebeda08764b05",
+      "border": [
+        9,
+        9,
+        9,
+        9
+      ],
+      "size": [
+        216,
+        44
+      ]
+    },
+    {
+      "id": "topbar-tool-hover",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/topbar-tool-hover.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/topbar-tool-hover.png",
+      "sha256": "cb13bdb60b57118000d0c84116977ba9d58045032ada697f5c7f32902905465f",
+      "border": [
+        9,
+        9,
+        9,
+        9
+      ],
+      "size": [
+        216,
+        44
+      ]
+    },
+    {
+      "id": "redzone-plaque",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/redzone-plaque.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/redzone-plaque.png",
+      "sha256": "a1f29452e2f1c7abcac75b2b33394da6de21428c311f8134e1111c4ac7b987e7",
+      "border": [
+        8,
+        5,
+        8,
+        5
+      ],
+      "size": [
+        252,
+        44
+      ]
+    },
+    {
+      "id": "icon-frontier",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/icon-frontier.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/icon-frontier.png",
+      "sha256": "44d1231b7cbe7e4fe213e186650e90deb2b7b0ebc1306223ecc6c5ec2a964796",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        40,
+        40
+      ]
+    },
+    {
+      "id": "icon-action",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/icon-action.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/icon-action.png",
+      "sha256": "be2d1488351f256ee77ca7c5d876f927e5d92830b225293bd1bbd95dbde11feb",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        24,
+        24
+      ]
+    },
+    {
+      "id": "icon-redzone",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/icon-redzone.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/icon-redzone.png",
+      "sha256": "ea9554b7ce218c4e5f5dbc9580fa6b0b6af4b605066555042449b0ee9fe9543c",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        28,
+        28
+      ]
+    },
+    {
+      "id": "icon-panels",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/icon-panels.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/icon-panels.png",
+      "sha256": "5c759cb3c196b5b2c2c94327c2b8ca535ba67dfb1c1ef85133321e9924243a35",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        24,
+        24
+      ]
+    },
+    {
+      "id": "icon-settings",
+      "path": "Assets/YC/Presentation/Ui002/Sprites/Frontier31/icon-settings.png",
+      "source": "资产/新版组件/Frontier-3.1/topbar-v3/icon-settings.png",
+      "sha256": "45928e2e46bba6924a57d7ea16c99b71113819da5cf5d7f863f6d6210d6c6784",
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        32,
+        32
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-25 04:27:41Z" end-time="2026-09-25 04:27:46Z" duration="4.3066731">
+  <test-suite type="TestSuite" id="1015" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-09-25 04:27:41Z" end-time="2026-09-25 04:27:46Z" duration="4.306673" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1026" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-09-25 04:27:41Z" end-time="2026-09-25 04:27:46Z" duration="4.302408" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="45084" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1027" name="YC" fullname="YC" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-09-25 04:27:41Z" end-time="2026-09-25 04:27:46Z" duration="4.301755" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1028" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-09-25 04:27:41Z" end-time="2026-09-25 04:27:46Z" duration="4.301365" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1029" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-09-25 04:27:41Z" end-time="2026-09-25 04:27:46Z" duration="4.301031" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1021" name="Ui003HudFramePlayModeTests" fullname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests" classname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests" runstate="Runnable" testcasecount="4" result="Failed" site="Child" start-time="2026-09-25 04:27:41Z" end-time="2026-09-25 04:27:46Z" duration="4.299711" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1022" name="LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars" fullname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests.LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars" methodname="LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars" classname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests" runstate="Runnable" seed="2006819260" result="Failed" start-time="2026-09-25 04:27:41Z" end-time="2026-09-25 04:27:46Z" duration="4.291765" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  旧设施供应槽无法接收输入：slotActive=True rootActive=True raycaster=True hits=Left Ground@100,Map Backdrop Left@100
+  Expected: True
+  But was:  False
+]]></message>
+                  <stack-trace><![CDATA[at YC.Tests.PlayMode.Ui003HudFramePlayModeTests+<LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars>d__0.MoveNext () [0x00259] in G:\NoMadCity\Assets\YC\Tests\PlayMode\FacilityCatalog\Ui003HudFramePlayModeTests.cs:49
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@1.1.33\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:46
+]]></stack-trace>
+                </failure>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

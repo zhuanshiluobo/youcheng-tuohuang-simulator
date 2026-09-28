@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using YC.Domain.Cards;
 using YC.Domain.CardFlows;
@@ -531,6 +531,69 @@ namespace YC.Domain.Exploration
                 playerId,
                 player.CityLocationId,
                 targetLocationId).AsReadOnly();
+        }
+
+        public bool RequiresPathChoice(GameState state, int playerId, IReadOnlyList<MapPath> paths)
+        {
+            if (paths == null || paths.Count <= 1)
+            {
+                return false;
+            }
+
+            var signatures = new HashSet<string>(StringComparer.Ordinal);
+            var hasOpponentToll = false;
+            for (var i = 0; i < paths.Count; i++)
+            {
+                var signature = BuildOpponentRecipientSignature(state, playerId, paths[i]);
+                if (!string.IsNullOrEmpty(signature))
+                {
+                    hasOpponentToll = true;
+                }
+
+                signatures.Add(signature);
+            }
+
+            return hasOpponentToll && signatures.Count > 1;
+        }
+
+        private string BuildOpponentRecipientSignature(GameState state, int playerId, MapPath path)
+        {
+            if (path == null)
+            {
+                return string.Empty;
+            }
+
+            var signatures = new List<string>();
+            var paidKeys = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < path.RouteIds.Count; i++)
+            {
+                var routeId = path.RouteIds[i];
+                var key = routeTollService.GetRoutePaymentKey(
+                    routeId,
+                    RouteTollPaymentKeyMode.SharedRegion);
+                if (!paidKeys.Add(key) ||
+                    !routeTollService.IsPaymentRequired(
+                        state,
+                        routeId,
+                        playerId,
+                        RouteTollPaymentKeyMode.SharedRegion))
+                {
+                    continue;
+                }
+
+                var owners = routeTollService.GetOpponentInfluenceOwnersOnPaymentKey(
+                    state,
+                    key,
+                    playerId,
+                    RouteTollPaymentKeyMode.SharedRegion);
+                owners.Sort();
+                if (owners.Count > 0)
+                {
+                    signatures.Add(string.Join(",", owners));
+                }
+            }
+
+            return string.Join("|", signatures);
         }
 
         private ValidationResult ValidatePath(string sourceLocationId, string targetLocationId, MapPath path)

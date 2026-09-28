@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="6" result="Passed" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-25 10:41:24Z" end-time="2026-09-25 10:41:28Z" duration="4.0392908">
+  <test-suite type="TestSuite" id="1022" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-09-25 10:41:24Z" end-time="2026-09-25 10:41:28Z" duration="4.039291" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1040" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-09-25 10:41:24Z" end-time="2026-09-25 10:41:28Z" duration="4.035060" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="40760" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1041" name="YC" fullname="YC" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-09-25 10:41:24Z" end-time="2026-09-25 10:41:28Z" duration="4.034145" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1042" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-09-25 10:41:24Z" end-time="2026-09-25 10:41:28Z" duration="4.033663" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1043" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-09-25 10:41:24Z" end-time="2026-09-25 10:41:28Z" duration="4.032978" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1033" name="Ui005MainHudPlayModeTests" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-25 10:41:24Z" end-time="2026-09-25 10:41:28Z" duration="4.031919" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1034" name="BothScenes_UseOneBottomActionAndTabbedFormalEntries" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests.BothScenes_UseOneBottomActionAndTabbedFormalEntries" methodname="BothScenes_UseOneBottomActionAndTabbedFormalEntries" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" seed="1221497427" result="Passed" start-time="2026-09-25 10:41:24Z" end-time="2026-09-25 10:41:26Z" duration="1.865399" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1038" name="BuildButton_OpensAndCancelsTheExistingDraft" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests.BuildButton_OpensAndCancelsTheExistingDraft" methodname="BuildButton_OpensAndCancelsTheExistingDraft" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" seed="1502159193" result="Passed" start-time="2026-09-25 10:41:26Z" end-time="2026-09-25 10:41:27Z" duration="0.363084" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1039" name="CityStyleTab_OpensAndClosesTheFormalQuickActionPreview" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests.CityStyleTab_OpensAndClosesTheFormalQuickActionPreview" methodname="CityStyleTab_OpensAndClosesTheFormalQuickActionPreview" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" seed="2004590766" result="Passed" start-time="2026-09-25 10:41:27Z" end-time="2026-09-25 10:41:27Z" duration="0.815257" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1036" name="OpponentProjection_ShowsPublicCountsWithoutCardIdentities" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests.OpponentProjection_ShowsPublicCountsWithoutCardIdentities" methodname="OpponentProjection_ShowsPublicCountsWithoutCardIdentities" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" seed="1882651583" result="Passed" start-time="2026-09-25 10:41:27Z" end-time="2026-09-25 10:41:28Z" duration="0.330009" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1037" name="OverflowHand_NavigationKeepsTheCurrentPageAcrossRenders" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests.OverflowHand_NavigationKeepsTheCurrentPageAcrossRenders" methodname="OverflowHand_NavigationKeepsTheCurrentPageAcrossRenders" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" seed="1908335377" result="Passed" start-time="2026-09-25 10:41:28Z" end-time="2026-09-25 10:41:28Z" duration="0.332692" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1035" name="TabState_DisabledOverridesSelection_AndRetainsSelectionOnExit" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests.TabState_DisabledOverridesSelection_AndRetainsSelectionOnExit" methodname="TabState_DisabledOverridesSelection_AndRetainsSelectionOnExit" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" seed="520954075" result="Passed" start-time="2026-09-25 10:41:28Z" end-time="2026-09-25 10:41:28Z" duration="0.316511" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

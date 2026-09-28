@@ -140,14 +140,14 @@ namespace YC.Presentation.Workflows
             }
             else if (state.Phase == GamePhase.CharacterCover)
             {
-                interactionStatus = canCover ? "拖动到主要行动卡上即可盖放" : coveredStatus;
+                interactionStatus = canCover ? "拖动手牌到盖放角色区" : coveredStatus;
             }
             else if (actionPhase)
             {
                 interactionStatus = isSecondEffectDecision
                     ? (canContinueSecondEffect
-                        ? "可继续使用第二个效果；点击翻转则结束角色卡使用"
-                        : "当前角色牌效果没有合法的地图目标，请点击翻转完成结算。")
+                        ? "可继续使用第二个效果；点击盖放区的结束使用则结束角色卡使用"
+                        : "当前角色牌效果没有合法的地图目标，请点击盖放区的结束使用完成结算。")
                     : canUse && !hasImplementedEffect
                     ? "效果尚未接入"
                     : (canUse ? "可使用本回合盖放的角色牌" : coveredStatus);

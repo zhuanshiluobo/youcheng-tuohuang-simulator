@@ -1,0 +1,18 @@
+{
+  "patchVersion": "3.2",
+  "buttons": 11,
+  "buttonFamilies": 3,
+  "baseVariants": 18,
+  "glyphColorVariants": 33,
+  "assetFiles": 153,
+  "packageSourceHashesVerified": true,
+  "installedDestinationHashesVerified": true,
+  "verifiedInstallOperations": 161,
+  "cleanBaselineInstallPassed": true,
+  "idempotentInstallPassed": true,
+  "staticPreviewReviewed": true,
+  "independentVisualReviewPassed": true,
+  "allPngFilesDecoded": true,
+  "browserTestsRun": false,
+  "note": "按钮状态的浏览器交互未自动测试；本补丁不执行实际游戏规则。"
+}

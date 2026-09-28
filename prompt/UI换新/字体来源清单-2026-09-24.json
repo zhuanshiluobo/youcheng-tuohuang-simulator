@@ -1,0 +1,303 @@
+{
+  "date": "2026-09-24",
+  "scope": "只读核对字体来源、文件头与名称表；未导入 Unity，未验证实际字形渲染。",
+  "fonts": [
+    {
+      "source": "游城拓荒/UI素材/FangZhengHeiTiJianTi-1.ttf",
+      "role": "常规文字",
+      "bytes": 2990476,
+      "signatureHex": "00010000",
+      "container": "TrueType",
+      "sha256": "8167f5ad881403c0f67842ec42acef9849a7627e5808978295cfb2ae232fded9",
+      "faces": [
+        {
+          "index": 0,
+          "names": [
+            {
+              "nameId": 1,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "FZHei-B01S"
+            },
+            {
+              "nameId": 2,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Regular"
+            },
+            {
+              "nameId": 4,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "FZHei-B01S"
+            },
+            {
+              "nameId": 6,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "FZHTJW--GB1-0"
+            },
+            {
+              "nameId": 1,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "方正黑体简体"
+            },
+            {
+              "nameId": 2,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "Regular"
+            },
+            {
+              "nameId": 4,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "方正黑体简体"
+            },
+            {
+              "nameId": 6,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "FZHTJW--GB1-0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/HanYiCuHeiJian-1.ttf",
+      "role": "强调文字，关闭加粗选项",
+      "bytes": 2671808,
+      "signatureHex": "00010000",
+      "container": "TrueType",
+      "sha256": "b45059518bb7a274a351a21b7ab9cf39dc4673770e946d8011eb5d19dae281df",
+      "faces": [
+        {
+          "index": 0,
+          "names": [
+            {
+              "nameId": 1,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "汉仪粗黑简"
+            },
+            {
+              "nameId": 2,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "regular"
+            },
+            {
+              "nameId": 4,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "汉仪粗黑简"
+            },
+            {
+              "nameId": 6,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "HYb9gj"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/msyh.ttc",
+      "role": "特殊字词",
+      "bytes": 19701556,
+      "signatureHex": "74746366",
+      "container": "TrueType Collection",
+      "sha256": "3084f1f88369af6bf9989c909024164d953d1e38d08734f05f28ef24b2f9d577",
+      "faces": [
+        {
+          "index": 0,
+          "names": [
+            {
+              "nameId": 1,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Microsoft YaHei"
+            },
+            {
+              "nameId": 2,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Regular"
+            },
+            {
+              "nameId": 4,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Microsoft YaHei"
+            },
+            {
+              "nameId": 6,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "MicrosoftYaHei"
+            },
+            {
+              "nameId": 1,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "微软雅黑"
+            },
+            {
+              "nameId": 2,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "Regular"
+            },
+            {
+              "nameId": 4,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "微软雅黑"
+            },
+            {
+              "nameId": 6,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "MicrosoftYaHeiRegular"
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "names": [
+            {
+              "nameId": 1,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Microsoft YaHei UI"
+            },
+            {
+              "nameId": 2,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Regular"
+            },
+            {
+              "nameId": 4,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Microsoft YaHei UI"
+            },
+            {
+              "nameId": 6,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "MicrosoftYaHeiUI"
+            },
+            {
+              "nameId": 1,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "Microsoft YaHei UI"
+            },
+            {
+              "nameId": 2,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "Regular"
+            },
+            {
+              "nameId": 4,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "Microsoft Yahei UI"
+            },
+            {
+              "nameId": 6,
+              "languageId": 2052,
+              "encodingId": 1,
+              "value": "MicrosoftYaHeiUIRegular"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/Novecento NarrowBold.otf",
+      "role": "卡面 effect 相关数字",
+      "bytes": 78648,
+      "signatureHex": "4f54544f",
+      "container": "OpenType CFF",
+      "sha256": "dd1c29c430478a2aea7b91eacfe92d37c022b3e405f34c0f57690b6a53b38568",
+      "faces": [
+        {
+          "index": 0,
+          "names": [
+            {
+              "nameId": 1,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Novecento Narrow Bold"
+            },
+            {
+              "nameId": 2,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Bold"
+            },
+            {
+              "nameId": 4,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Novecento NarrowBold"
+            },
+            {
+              "nameId": 6,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Novecento-NarrowBold"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/Novecento wide Normal Regular.woff2.ttf",
+      "role": "纯 UI 数字",
+      "bytes": 50388,
+      "signatureHex": "00010000",
+      "container": "TrueType",
+      "sha256": "579b047cd83f611fe5f5a96437577ddbfa796faf5edc772bbc7d4a03cf77d1ec",
+      "faces": [
+        {
+          "index": 0,
+          "names": [
+            {
+              "nameId": 1,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Novecento wide Normal"
+            },
+            {
+              "nameId": 2,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Regular"
+            },
+            {
+              "nameId": 4,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Novecento wide Normal Regular"
+            },
+            {
+              "nameId": 6,
+              "languageId": 1033,
+              "encodingId": 1,
+              "value": "Novecentowide-Normal"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "nameTableScope": "读取 Windows Unicode 名称记录（platform 3，encoding 1 或 10，中英文）；忽略旧编码记录，避免误解码。"
+}

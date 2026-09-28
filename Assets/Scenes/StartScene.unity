@@ -279,6 +279,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1393939250495583179, guid: b8c82ab37df14894f9d7ca148f923a1b, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2207148157020601466, guid: b8c82ab37df14894f9d7ca148f923a1b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -322,6 +326,10 @@ PrefabInstance:
     - target: {fileID: 2284681126278896554, guid: b8c82ab37df14894f9d7ca148f923a1b, type: 3}
       propertyPath: m_Name
       value: Game Settings Menu
+      objectReference: {fileID: 0}
+    - target: {fileID: 3365200432097876241, guid: b8c82ab37df14894f9d7ca148f923a1b, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3483565071125839763, guid: b8c82ab37df14894f9d7ca148f923a1b, type: 3}
       propertyPath: showReturnToStartButton
@@ -567,6 +575,10 @@ PrefabInstance:
     - target: {fileID: 4717821074635118894, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -51.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 5066206479195059155, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5070715762121237602, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_Text

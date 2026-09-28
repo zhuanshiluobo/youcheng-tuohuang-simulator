@@ -1,0 +1,62 @@
+{
+  "version": "3.1",
+  "browserTestsRun": false,
+  "browserReason": "No browser executable used; HTML and static previews share the same scene source.",
+  "renderer": "Inkscape",
+  "offlinePreview": true,
+  "sharedScene": true,
+  "assetCount": 51,
+  "originals": 33,
+  "states": [
+    {
+      "name": "main-idle",
+      "mode": "idle"
+    },
+    {
+      "name": "main-resolution",
+      "mode": "resolve",
+      "drawerOpen": true,
+      "undoEnabled": true
+    },
+    {
+      "name": "main-collapsed",
+      "mode": "resolve",
+      "collapsed": true,
+      "drawerOpen": false,
+      "undoEnabled": true
+    },
+    {
+      "name": "main-resolution-compact",
+      "mode": "resolve",
+      "drawerOpen": false,
+      "undoEnabled": true
+    },
+    {
+      "name": "main-city-patterns",
+      "mode": "idle",
+      "tab": "patterns"
+    }
+  ],
+  "checks": {
+    "assetPathsExist": true,
+    "javascriptSyntax": true,
+    "staticRendersFinished": true,
+    "originalCityAspectPreserved": true,
+    "mapAspectPreserved": true,
+    "cardArtUnmodified": true,
+    "undoEnabledAndDisabledShown": true,
+    "disabledEndDuringResolution": true,
+    "bottomVisibleWhenCollapsed": true,
+    "refinedTopbarVisualReview": true,
+    "topbarIconsAreSeparateAssets": true
+  },
+  "interactionScope": [
+    "tabs",
+    "collapse and expand UI",
+    "expand and collapse resolution drawer",
+    "open optional-effect child-choice placeholder",
+    "switch undo appearance",
+    "undo demonstration state only"
+  ],
+  "engineFeaturesImplemented": false
+}

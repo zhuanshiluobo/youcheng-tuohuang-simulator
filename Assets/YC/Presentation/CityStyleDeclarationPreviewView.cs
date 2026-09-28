@@ -248,7 +248,7 @@ namespace YC.Presentation
             ClearForReuse();
             gameObject.name = "City Style Declaration Preview Canvas";
             overlayCanvas.overrideSorting = true;
-            overlayCanvas.sortingOrder = 130;
+            overlayCanvas.sortingOrder = GameplayUiLayers.Page;
             overlayObject.SetActive(true);
         }
 

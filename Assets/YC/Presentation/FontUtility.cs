@@ -11,6 +11,7 @@ namespace YC.Presentation
         private static readonly Dictionary<Font, string> ManagedFontOrigins = new Dictionary<Font, string>();
         private static Font cjkFont;
         private static Font latinFont;
+        private static UiFontRoles roleFonts;
         private static Object configurationOwner;
         private static bool refreshingTextRenderers;
         private static bool pendingManagedTextRefresh;
@@ -26,9 +27,23 @@ namespace YC.Presentation
             return GetConfiguredFont(latinFont, "Latin");
         }
 
+        public static Font GetRoleFont(UiFontRole role)
+        {
+            if (roleFonts == null || configurationOwner == null)
+            {
+                throw new System.InvalidOperationException("FontUtility semantic fonts are not configured by FontRefreshDriver.");
+            }
+            return GetConfiguredFont(roleFonts.Get(role), role.ToString());
+        }
+
         internal static bool IsConfigured => cjkFont != null && latinFont != null && configurationOwner != null;
 
         internal static void Configure(Font configuredCjkFont, Font configuredLatinFont, Object owner)
+        {
+            Configure(configuredCjkFont, configuredLatinFont, null, owner);
+        }
+
+        internal static void Configure(Font configuredCjkFont, Font configuredLatinFont, UiFontRoles configuredRoles, Object owner)
         {
             if (configuredCjkFont == null || configuredLatinFont == null || owner == null)
             {
@@ -38,6 +53,7 @@ namespace YC.Presentation
 
             cjkFont = configuredCjkFont;
             latinFont = configuredLatinFont;
+            roleFonts = configuredRoles;
             configurationOwner = owner;
             ManagedFontFamilies.Clear();
             ManagedFontOrigins.Clear();
@@ -45,6 +61,22 @@ namespace YC.Presentation
             ManagedFontOrigins[cjkFont] = "Serialized:CJK";
             ManagedFontFamilies[latinFont] = FontFamily.Latin;
             ManagedFontOrigins[latinFont] = "Serialized:Latin";
+            if (roleFonts != null)
+            {
+                RegisterRole(roleFonts.Regular, FontFamily.Regular, "Serialized:Regular");
+                RegisterRole(roleFonts.Emphasis, FontFamily.Emphasis, "Serialized:Emphasis");
+                RegisterRole(roleFonts.SpecialWord, FontFamily.SpecialWord, "Serialized:SpecialWord");
+                RegisterRole(roleFonts.EffectNumber, FontFamily.EffectNumber, "Serialized:EffectNumber");
+                RegisterRole(roleFonts.UiNumber, FontFamily.UiNumber, "Serialized:UiNumber");
+                RegisterRole(roleFonts.MissingGlyphFallback, FontFamily.Fallback, "Serialized:Fallback");
+            }
+        }
+
+        private static void RegisterRole(Font font, FontFamily family, string origin)
+        {
+            if (font == null) return;
+            ManagedFontFamilies[font] = family;
+            ManagedFontOrigins[font] = origin;
         }
 
         internal static void Release(Object owner)
@@ -56,6 +88,7 @@ namespace YC.Presentation
 
             cjkFont = null;
             latinFont = null;
+            roleFonts = null;
             configurationOwner = null;
             ManagedFontFamilies.Clear();
             ManagedFontOrigins.Clear();
@@ -68,6 +101,7 @@ namespace YC.Presentation
         {
             cjkFont = null;
             latinFont = null;
+            roleFonts = null;
             configurationOwner = null;
             ManagedFontFamilies.Clear();
             ManagedFontOrigins.Clear();
@@ -212,9 +246,7 @@ namespace YC.Presentation
                     var text = texts[i];
                     if (recreateFonts)
                     {
-                        text.font = families[i] == FontFamily.Latin
-                            ? GetLatinFont(text.fontSize)
-                            : GetCjkFont(text.fontSize);
+                        text.font = GetManagedFont(families[i], text.fontSize);
                     }
 
                     text.FontTextureChanged();
@@ -246,6 +278,21 @@ namespace YC.Presentation
         {
             pendingManagedTextRefresh = true;
             pendingManagedFontRecreate |= recreateFonts;
+        }
+
+        private static Font GetManagedFont(FontFamily family, int size)
+        {
+            switch (family)
+            {
+                case FontFamily.Latin: return GetLatinFont(size);
+                case FontFamily.Regular: return GetRoleFont(UiFontRole.Regular);
+                case FontFamily.Emphasis: return GetRoleFont(UiFontRole.Emphasis);
+                case FontFamily.SpecialWord: return GetRoleFont(UiFontRole.SpecialWord);
+                case FontFamily.EffectNumber: return GetRoleFont(UiFontRole.EffectNumber);
+                case FontFamily.UiNumber: return GetRoleFont(UiFontRole.UiNumber);
+                case FontFamily.Fallback: return roleFonts.MissingGlyphFallback;
+                default: return GetCjkFont(size);
+            }
         }
         private static ManagedFontSnapshot CaptureManagedFontSnapshot(string label)
         {
@@ -396,7 +443,13 @@ namespace YC.Presentation
         private enum FontFamily
         {
             Cjk,
-            Latin
+            Latin,
+            Regular,
+            Emphasis,
+            SpecialWord,
+            EffectNumber,
+            UiNumber,
+            Fallback
         }
 
         private sealed class ManagedFontSnapshot

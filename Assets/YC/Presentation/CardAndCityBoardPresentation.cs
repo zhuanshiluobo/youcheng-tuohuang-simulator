@@ -40,11 +40,51 @@ namespace YC.Presentation
     internal static class CityBoardSlotLayout
     {
         public const int SlotCount = CardBoardVisualLayout.ExpectedCityBoardSlotCount;
+        public const float SourceWidth = 2059f;
+        public const float SourceHeight = 3801f;
+        private const float SlotWidth = 600f;
+        private const float SlotHeight = 850f;
 
         public static Vector2 GetCenter(CardBoardVisualLayout layout, int slotIndex)
         {
             RequireLayout(layout);
-            return layout.GetCityBoardSlotCenter(slotIndex);
+            var rect = GetSourceRect(slotIndex);
+            return new Vector2(rect.center.x / SourceWidth, rect.center.y / SourceHeight);
+        }
+
+        // Source coordinates start at the artwork's upper left; UI anchors start at its lower left.
+        public static Rect GetSourceRect(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= SlotCount)
+                throw new ArgumentOutOfRangeException(nameof(slotIndex));
+            var column = slotIndex % 3;
+            var row = slotIndex / 3;
+            return new Rect(100f + column * 630f, 156f + row * 880f,
+                SlotWidth, SlotHeight);
+        }
+
+        public static bool TryGetSlotIndex(
+            RectTransform artwork, Vector2 screenPosition, Camera eventCamera, out int slotIndex)
+        {
+            slotIndex = -1;
+            if (artwork == null || artwork.rect.width <= 0f || artwork.rect.height <= 0f ||
+                !RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    artwork, screenPosition, eventCamera, out var local))
+                return false;
+
+            var rect = artwork.rect;
+            var source = new Vector2(
+                (local.x - rect.xMin) * SourceWidth / rect.width,
+                (rect.yMax - local.y) * SourceHeight / rect.height);
+            if (source.x < 0f || source.y < 0f ||
+                source.x >= SourceWidth || source.y >= SourceHeight) return false;
+            for (var i = 0; i < SlotCount; i++)
+            {
+                if (!GetSourceRect(i).Contains(source)) continue;
+                slotIndex = i;
+                return true;
+            }
+            return false;
         }
 
         public static void Apply(
@@ -58,14 +98,13 @@ namespace YC.Presentation
             }
 
             RequireLayout(layout);
-            var center = GetCenter(layout, slotIndex);
-            var centerY = 1f - center.y;
+            var source = GetSourceRect(slotIndex);
             rect.anchorMin = new Vector2(
-                center.x - layout.CityBoardSlotWidthRatio * 0.5f,
-                centerY - layout.CityBoardSlotHeightRatio * 0.5f);
+                source.xMin / SourceWidth,
+                1f - source.yMax / SourceHeight);
             rect.anchorMax = new Vector2(
-                center.x + layout.CityBoardSlotWidthRatio * 0.5f,
-                centerY + layout.CityBoardSlotHeightRatio * 0.5f);
+                source.xMax / SourceWidth,
+                1f - source.yMin / SourceHeight);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;

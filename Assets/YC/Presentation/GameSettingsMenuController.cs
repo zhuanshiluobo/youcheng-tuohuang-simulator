@@ -29,7 +29,9 @@ namespace YC.Presentation
         private bool initialized;
         private bool isOpen;
 
-        public bool IsOpen => isOpen;
+        public bool IsOpen => isOpen && view != null && view.OverlayObject.activeSelf;
+
+        public bool OwnsPage(GameObject page) => view != null && view.OverlayObject == page;
 
         private void Awake()
         {
@@ -60,7 +62,14 @@ namespace YC.Presentation
                 return;
             }
 
-            if (cityInteractionController != null && cityInteractionController.TryHandleInteractionEscape())
+            if (actionLogViewer != null && actionLogViewer.IsOpen)
+            {
+                actionLogViewer.Close();
+                return;
+            }
+
+            if (!GameplayHudFrame.EffectInputSuspended &&
+                cityInteractionController != null && cityInteractionController.TryHandleInteractionEscape())
             {
                 return;
             }
@@ -71,7 +80,7 @@ namespace YC.Presentation
                 return;
             }
 
-            if (isOpen)
+            if (IsOpen)
             {
                 view.CloseInputHandler.RequestClose();
                 return;
@@ -87,11 +96,14 @@ namespace YC.Presentation
                 return;
             }
 
+            GameplayHudFrame.Active?.SuspendEffectForInformation();
+            GameplayHudFrame.Active?.ConstrainExternalPage(view.OverlayObject.transform as RectTransform);
             isOpen = true;
             view.CloseInputHandler.Configure(Close);
             view.ConfirmationObject.SetActive(false);
             view.MenuPanel.anchoredPosition = Vector2.zero;
             view.OverlayObject.SetActive(true);
+            GameplayHudFrame.Active?.ShowPage(view.OverlayObject, false);
         }
 
         public void Close()
@@ -105,6 +117,7 @@ namespace YC.Presentation
             view.ConfirmationObject.SetActive(false);
             view.MenuPanel.anchoredPosition = Vector2.zero;
             view.OverlayObject.SetActive(false);
+            GameplayHudFrame.Active?.HidePage(view.OverlayObject);
         }
 
         public void SetReturnToStartButtonVisible(bool visible)

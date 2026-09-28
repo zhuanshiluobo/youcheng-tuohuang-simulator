@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
 
@@ -19,6 +20,7 @@ namespace YC.Presentation
             this.presenter = presenter ?? throw new ArgumentNullException(nameof(presenter));
             panel.FacilityDragStarted += OnFacilityDragStarted;
             panel.FacilityDropped += OnFacilityDropped;
+            panel.FacilityDragCanceled += OnFacilityDragCanceled;
         }
 
         public void Refresh(GameState state, int localPlayerId)
@@ -33,6 +35,9 @@ namespace YC.Presentation
             if (model == null)
             {
                 var availability = presenter.BuildBuildFacilityAvailabilityViewModel();
+                // 新版“建设”入口负责开启草稿；旧供应/城市板仅在正式草稿或
+                // 设施效果选点期间显示，避免常驻旧面板遮住玩家与城市模块。
+                SetLegacyBuildViewVisible(panel.IsFacilityEffectSelectionActive);
                 panel.SetBuildInteraction(
                     true,
                     availability.DraggableFacilityIds,
@@ -42,6 +47,8 @@ namespace YC.Presentation
                 panel.SetPendingBuildGhost(false, string.Empty, -1, null, null);
                 return;
             }
+
+            SetLegacyBuildViewVisible(true);
 
             var draggableIds = new List<string>();
             if (model.Phase != BuildFacilityDraftPhase.Dragging)
@@ -71,10 +78,16 @@ namespace YC.Presentation
                 OnGhostDropped);
         }
 
+        private void SetLegacyBuildViewVisible(bool visible)
+        {
+            if (panel.View != null) panel.View.SetLegacyVisible(visible);
+        }
+
         public void Dispose()
         {
             panel.FacilityDragStarted -= OnFacilityDragStarted;
             panel.FacilityDropped -= OnFacilityDropped;
+            panel.FacilityDragCanceled -= OnFacilityDragCanceled;
         }
 
         private void OnFacilityDragStarted(string facilityId)
@@ -97,6 +110,11 @@ namespace YC.Presentation
             CompleteDrop(slotIndex);
         }
 
+        private void OnFacilityDragCanceled()
+        {
+            CompleteDrop(-1);
+        }
+
         private void OnGhostDragStarted()
         {
             var model = presenter.BuildBuildFacilityDraftViewModel();
@@ -104,8 +122,6 @@ namespace YC.Presentation
             {
                 model.Dispatch(new BuildFacilityIntent.BeginGhostDrag());
             }
-
-            Synchronize();
         }
 
         private void OnGhostDropped(int slotIndex)

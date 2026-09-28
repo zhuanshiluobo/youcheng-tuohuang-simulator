@@ -9,12 +9,14 @@ namespace YC.Presentation
 
         [SerializeField] private Font cjkFont;
         [SerializeField] private Font latinFont;
+        [SerializeField] private UiFontRoles roleFonts;
 
         private bool subscribed;
         private float nextHealthCheckAt;
 
         public Font CjkFont => cjkFont;
         public Font LatinFont => latinFont;
+        public UiFontRoles RoleFonts => roleFonts;
 
         private void Awake()
         {
@@ -76,6 +78,11 @@ namespace YC.Presentation
                 return false;
             }
 
+            if (roleFonts != null && !roleFonts.TryValidate(out reason))
+            {
+                return false;
+            }
+
             reason = string.Empty;
             return true;
         }
@@ -89,7 +96,7 @@ namespace YC.Presentation
                 return;
             }
 
-            FontUtility.Configure(cjkFont, latinFont, this);
+            FontUtility.Configure(cjkFont, latinFont, roleFonts, this);
             if (!subscribed)
             {
                 Font.textureRebuilt += FontUtility.OnFontTextureRebuilt;

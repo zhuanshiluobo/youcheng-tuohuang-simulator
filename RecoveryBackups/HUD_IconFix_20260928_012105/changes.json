@@ -1,0 +1,52 @@
+[
+  {
+    "image_file_id": "4975984516309715724",
+    "source": "lightIcon",
+    "sprite": "{fileID: 21300000, guid: 9a1e3927e8b7ff648b54cac8d86f38fb, type: 3}"
+  },
+  {
+    "image_file_id": "1104890651257077213",
+    "source": "lightIcon",
+    "sprite": "{fileID: 21300000, guid: 25e3129ae867c3a49aa2a57e1fb12fe1, type: 3}"
+  },
+  {
+    "image_file_id": "4221099982418597059",
+    "source": "lightIcon",
+    "sprite": "{fileID: 21300000, guid: 94e6cbb7459373e428e5ce161e16e684, type: 3}"
+  },
+  {
+    "image_file_id": "24811264129783868",
+    "source": "lightIcon",
+    "sprite": "{fileID: 21300000, guid: 5a6a18917c472d84ca0733d979f087f9, type: 3}"
+  },
+  {
+    "image_file_id": "201932808676498475",
+    "source": "darkIcon",
+    "sprite": "{fileID: 21300000, guid: 89307759a171da247a7c343678bd71b9, type: 3}"
+  },
+  {
+    "image_file_id": "2184860206477457171",
+    "source": "lightIcon",
+    "sprite": "{fileID: 21300000, guid: 4efa33da0c27b8742a1f1bf869f6fac2, type: 3}"
+  },
+  {
+    "image_file_id": "8848482811931158153",
+    "source": "lightIcon",
+    "sprite": "{fileID: 21300000, guid: 3b15758f4f656f043bbcd72835d38625, type: 3}"
+  },
+  {
+    "image_file_id": "4794811181411659097",
+    "source": "lightIcon",
+    "sprite": "{fileID: 21300000, guid: b0a501bdd54b1cf49ab7f009a6923069, type: 3}"
+  },
+  {
+    "image_file_id": "3262488600041380348",
+    "source": "lightIcon",
+    "sprite": "{fileID: 21300000, guid: 4748afb9106283b418e934ea67448ed3, type: 3}"
+  },
+  {
+    "image_file_id": "2912584826028307245",
+    "source": "darkIcon",
+    "sprite": "{fileID: 21300000, guid: 2517208cb6f14ea4bb5d7363f28e0a09, type: 3}"
+  }
+]

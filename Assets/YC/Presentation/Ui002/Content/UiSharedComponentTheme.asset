@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c44ce11e350dc84fa291717a6c2ee0d, type: 3}
+  m_Name: UiSharedComponentTheme
+  m_EditorClassIdentifier: 
+  outerFrame: {fileID: 21300000, guid: aa1b97a5365d1bc43a2347ecf9652512, type: 3}
+  moduleBackground: {fileID: 21300000, guid: 3b717c670b1a52843bcc7592be6fe504, type: 3}
+  moduleFrame: {fileID: 21300000, guid: b4ca9e75c1cae354aa1b2ce17d12d467, type: 3}
+  paperBackground: {fileID: 21300000, guid: 9abda3d4730078e43951140a94b0d95f, type: 3}
+  headerBackground: {fileID: 21300000, guid: 8cc4ba9975aca514aa6e0a19d59ee8ff, type: 3}
+  drawerFrame: {fileID: 21300000, guid: ba406cda5d8729a419c7c8a2b464f3c1, type: 3}
+  cardBackground: {fileID: 21300000, guid: e26ca69b2fc150242b66a471fbdddb55, type: 3}
+  cardFrame: {fileID: 21300000, guid: 328813539f533c2449046fb16398784a, type: 3}
+  primaryButton: {fileID: 21300000, guid: 6b15b2f14a32abc4f802520d29150fb7, type: 3}
+  secondaryButton: {fileID: 21300000, guid: 89d566eed90cc4a4b9e60335c7e60377, type: 3}
+  disabledButton: {fileID: 21300000, guid: d7a006428d20cd34796eebd067221015, type: 3}
+  selectedOverlay: {fileID: 21300000, guid: f74fdea60ee0c6d45806b6411416ba4a, type: 3}
+  scrollbarTrack: {fileID: 21300000, guid: f57fe0a04165ea3419d5c605c76a32e9, type: 3}
+  scrollbarThumb: {fileID: 21300000, guid: 22c8711713c66eb499c9858e3f0db6fe, type: 3}
+  frameMinimum: {x: 320, y: 200}
+  framePreferred: {x: 720, y: 480}
+  frameContentInset: {x: 24, y: 24, z: 24, w: 24}
+  buttonMinimum: {x: 120, y: 44}
+  buttonPreferred: {x: 180, y: 55}
+  buttonContentInset: {x: 20, y: 10, z: 20, w: 10}
+  cardSlotPreferred: {x: 160, y: 228}
+  scrollbarSize: {x: 14, y: 14}
+  compactWidth: 900
+  wideWidth: 1600
+  layoutHysteresis: 24
+  hoverTint: {r: 0.3, g: 0.85, b: 0.9, a: 0.2}
+  pressedTint: {r: 0.05, g: 0.1, b: 0.12, a: 0.35}
+  focusedTint: {r: 0.2, g: 0.55, b: 0.75, a: 0.3}
+  selectedTint: {r: 0.05, g: 0.5, b: 0.75, a: 0.48}
+  pendingTint: {r: 0.1, g: 0.7, b: 0.9, a: 0.34}

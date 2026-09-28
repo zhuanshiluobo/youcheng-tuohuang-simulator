@@ -15,6 +15,18 @@ namespace YC.Domain.Effects
                 registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.IntrinsicFlow, Version));
         }
 
+        public static bool IsPlanning(EffectExecutionContext context)
+        {
+            var parent = context.State.EffectRuntime.EffectNodes.Find(n => n.EffectId == context.Node.ParentEffectId);
+            return parent != null && parent.EffectTypeId == TypeId && context.ChildNodes.Count == 0;
+        }
+
+        public static bool IsCancellation(EffectExecutionContext context)
+        {
+            var answer = context.GetLatestInteractionAnswer();
+            return IsPlanning(context) && answer != null && answer.Kind == YC.Domain.State.NormalizedValueKind.Boolean && !answer.BooleanValue;
+        }
+
         public static EffectSpec Create(int playerId, EffectSpec operation)
         {
             var spec = new EffectSpec(TypeId) { DefinitionVersion = Version, PlayerId = playerId };
@@ -36,7 +48,7 @@ namespace YC.Domain.Effects
 
             foreach (var child in context.ChildNodes)
             {
-                if (child.Status == YC.Domain.State.EffectNodeStatus.Failed)
+                if (child.Status == YC.Domain.State.EffectNodeStatus.Failed || child.Status == YC.Domain.State.EffectNodeStatus.Faulted)
                     return EffectStepResult.Failed(child.FailureReason);
                 if (child.Status != YC.Domain.State.EffectNodeStatus.Completed)
                     return EffectStepResult.NoProgress("等待主要行动子效果完成。");

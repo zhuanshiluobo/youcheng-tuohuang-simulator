@@ -1,0 +1,70 @@
+{
+  "browserTestsRun": false,
+  "htmlInteractionStatus": "Implemented; not browser-tested because no browser executable is installed.",
+  "staticRenderer": "Inkscape SVG composition, not a browser screenshot",
+  "assetsExist": true,
+  "compositionAssets": 18,
+  "originalBoardSize": [
+    650,
+    1850
+  ],
+  "boardDisplaySize": [
+    248,
+    705.8461538461538
+  ],
+  "originalAspectPreserved": true,
+  "effectSourceRows": {
+    "1": [
+      20,
+      1424,
+      630,
+      229
+    ],
+    "2": [
+      20,
+      1171,
+      630,
+      237
+    ],
+    "3": [
+      20,
+      924,
+      630,
+      231
+    ],
+    "4": [
+      20,
+      668,
+      630,
+      240
+    ],
+    "5": [
+      20,
+      406,
+      630,
+      246
+    ]
+  },
+  "effectTargets": 12,
+  "ordinaryRewardsHaveNoEffectTargets": true,
+  "unavailableTargetsAreInspectable": true,
+  "availabilityProvidedByCaller": true,
+  "app.jsSyntax": true,
+  "data.jsSyntax": true,
+  "stateLogicValidation": {
+    "method": "Node DOM shim, not a browser",
+    "passed": true,
+    "scope": [
+      "initial selection",
+      "unavailable inspection clears selected",
+      "unavailable confirm blocked",
+      "valid effect callback payload",
+      "two-company callback",
+      "canCancel enforced",
+      "ordinary upgrades excluded",
+      "no resource or level mutation",
+      "playerLevels may be omitted"
+    ]
+  },
+  "htmlAndCssPathsExist": true
+}

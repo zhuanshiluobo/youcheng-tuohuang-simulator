@@ -1,0 +1,2007 @@
+{
+  "version": "3.2",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "说明": "坐标为基准构图；label 为素材参考文案，previewAction 非游戏命令。",
+  "roles": [
+    {
+      "sourceRole": {
+        "id": "tab.main",
+        "label": "主要行动",
+        "family": "tab",
+        "glyph": "main-actions",
+        "rect": [
+          1352,
+          598,
+          180,
+          48
+        ],
+        "iconRect": [
+          1364,
+          606,
+          32,
+          32
+        ],
+        "labelCenter": [
+          1463,
+          622
+        ],
+        "fontSize": 19,
+        "selectedState": "selected",
+        "previewAction": "tab-actions"
+      },
+      "states": {
+        "default": {
+          "baseId": "tab-default",
+          "iconId": "icon-main-actions-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/tab-default.png",
+            "path2x": "原包/assets/bases/tab-default@2x.png",
+            "svg": "原包/assets/bases/tab-default.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/main-actions-light.png",
+            "path2x": "原包/assets/icons/main-actions-light@2x.png",
+            "svg": "原包/assets/icons/main-actions-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "hover": {
+          "baseId": "tab-hover",
+          "iconId": "icon-main-actions-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/tab-hover.png",
+            "path2x": "原包/assets/bases/tab-hover@2x.png",
+            "svg": "原包/assets/bases/tab-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/main-actions-light.png",
+            "path2x": "原包/assets/icons/main-actions-light@2x.png",
+            "svg": "原包/assets/icons/main-actions-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "pressed": {
+          "baseId": "tab-pressed",
+          "iconId": "icon-main-actions-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/tab-pressed.png",
+            "path2x": "原包/assets/bases/tab-pressed@2x.png",
+            "svg": "原包/assets/bases/tab-pressed.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/main-actions-light.png",
+            "path2x": "原包/assets/icons/main-actions-light@2x.png",
+            "svg": "原包/assets/icons/main-actions-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "disabled": {
+          "baseId": "tab-disabled",
+          "iconId": "icon-main-actions-muted",
+          "ink": "muted",
+          "base": {
+            "path": "原包/assets/bases/tab-disabled.png",
+            "path2x": "原包/assets/bases/tab-disabled@2x.png",
+            "svg": "原包/assets/bases/tab-disabled.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/main-actions-muted.png",
+            "path2x": "原包/assets/icons/main-actions-muted@2x.png",
+            "svg": "原包/assets/icons/main-actions-muted.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "selected": {
+          "baseId": "tab-selected",
+          "iconId": "icon-main-actions-dark",
+          "ink": "dark",
+          "base": {
+            "path": "原包/assets/bases/tab-selected.png",
+            "path2x": "原包/assets/bases/tab-selected@2x.png",
+            "svg": "原包/assets/bases/tab-selected.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/main-actions-dark.png",
+            "path2x": "原包/assets/icons/main-actions-dark@2x.png",
+            "svg": "原包/assets/icons/main-actions-dark.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "selected-hover": {
+          "baseId": "tab-selected-hover",
+          "iconId": "icon-main-actions-dark",
+          "ink": "dark",
+          "base": {
+            "path": "原包/assets/bases/tab-selected-hover.png",
+            "path2x": "原包/assets/bases/tab-selected-hover@2x.png",
+            "svg": "原包/assets/bases/tab-selected-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/main-actions-dark.png",
+            "path2x": "原包/assets/icons/main-actions-dark@2x.png",
+            "svg": "原包/assets/icons/main-actions-dark.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        }
+      }
+    },
+    {
+      "sourceRole": {
+        "id": "tab.quick",
+        "label": "快速行动",
+        "family": "tab",
+        "glyph": "quick-actions",
+        "rect": [
+          1538,
+          598,
+          180,
+          48
+        ],
+        "iconRect": [
+          1550,
+          606,
+          32,
+          32
+        ],
+        "labelCenter": [
+          1649,
+          622
+        ],
+        "fontSize": 19,
+        "selectedState": "selected",
+        "previewAction": "tab-quick"
+      },
+      "states": {
+        "default": {
+          "baseId": "tab-default",
+          "iconId": "icon-quick-actions-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/tab-default.png",
+            "path2x": "原包/assets/bases/tab-default@2x.png",
+            "svg": "原包/assets/bases/tab-default.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/quick-actions-light.png",
+            "path2x": "原包/assets/icons/quick-actions-light@2x.png",
+            "svg": "原包/assets/icons/quick-actions-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "hover": {
+          "baseId": "tab-hover",
+          "iconId": "icon-quick-actions-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/tab-hover.png",
+            "path2x": "原包/assets/bases/tab-hover@2x.png",
+            "svg": "原包/assets/bases/tab-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/quick-actions-light.png",
+            "path2x": "原包/assets/icons/quick-actions-light@2x.png",
+            "svg": "原包/assets/icons/quick-actions-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "pressed": {
+          "baseId": "tab-pressed",
+          "iconId": "icon-quick-actions-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/tab-pressed.png",
+            "path2x": "原包/assets/bases/tab-pressed@2x.png",
+            "svg": "原包/assets/bases/tab-pressed.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/quick-actions-light.png",
+            "path2x": "原包/assets/icons/quick-actions-light@2x.png",
+            "svg": "原包/assets/icons/quick-actions-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "disabled": {
+          "baseId": "tab-disabled",
+          "iconId": "icon-quick-actions-muted",
+          "ink": "muted",
+          "base": {
+            "path": "原包/assets/bases/tab-disabled.png",
+            "path2x": "原包/assets/bases/tab-disabled@2x.png",
+            "svg": "原包/assets/bases/tab-disabled.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/quick-actions-muted.png",
+            "path2x": "原包/assets/icons/quick-actions-muted@2x.png",
+            "svg": "原包/assets/icons/quick-actions-muted.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "selected": {
+          "baseId": "tab-selected",
+          "iconId": "icon-quick-actions-dark",
+          "ink": "dark",
+          "base": {
+            "path": "原包/assets/bases/tab-selected.png",
+            "path2x": "原包/assets/bases/tab-selected@2x.png",
+            "svg": "原包/assets/bases/tab-selected.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/quick-actions-dark.png",
+            "path2x": "原包/assets/icons/quick-actions-dark@2x.png",
+            "svg": "原包/assets/icons/quick-actions-dark.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "selected-hover": {
+          "baseId": "tab-selected-hover",
+          "iconId": "icon-quick-actions-dark",
+          "ink": "dark",
+          "base": {
+            "path": "原包/assets/bases/tab-selected-hover.png",
+            "path2x": "原包/assets/bases/tab-selected-hover@2x.png",
+            "svg": "原包/assets/bases/tab-selected-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/quick-actions-dark.png",
+            "path2x": "原包/assets/icons/quick-actions-dark@2x.png",
+            "svg": "原包/assets/icons/quick-actions-dark.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        }
+      }
+    },
+    {
+      "sourceRole": {
+        "id": "tab.city",
+        "label": "城市样式",
+        "family": "tab",
+        "glyph": "city-patterns",
+        "rect": [
+          1724,
+          598,
+          180,
+          48
+        ],
+        "iconRect": [
+          1736,
+          606,
+          32,
+          32
+        ],
+        "labelCenter": [
+          1835,
+          622
+        ],
+        "fontSize": 19,
+        "selectedState": "selected",
+        "previewAction": "tab-patterns"
+      },
+      "states": {
+        "default": {
+          "baseId": "tab-default",
+          "iconId": "icon-city-patterns-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/tab-default.png",
+            "path2x": "原包/assets/bases/tab-default@2x.png",
+            "svg": "原包/assets/bases/tab-default.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/city-patterns-light.png",
+            "path2x": "原包/assets/icons/city-patterns-light@2x.png",
+            "svg": "原包/assets/icons/city-patterns-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "hover": {
+          "baseId": "tab-hover",
+          "iconId": "icon-city-patterns-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/tab-hover.png",
+            "path2x": "原包/assets/bases/tab-hover@2x.png",
+            "svg": "原包/assets/bases/tab-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/city-patterns-light.png",
+            "path2x": "原包/assets/icons/city-patterns-light@2x.png",
+            "svg": "原包/assets/icons/city-patterns-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "pressed": {
+          "baseId": "tab-pressed",
+          "iconId": "icon-city-patterns-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/tab-pressed.png",
+            "path2x": "原包/assets/bases/tab-pressed@2x.png",
+            "svg": "原包/assets/bases/tab-pressed.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/city-patterns-light.png",
+            "path2x": "原包/assets/icons/city-patterns-light@2x.png",
+            "svg": "原包/assets/icons/city-patterns-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "disabled": {
+          "baseId": "tab-disabled",
+          "iconId": "icon-city-patterns-muted",
+          "ink": "muted",
+          "base": {
+            "path": "原包/assets/bases/tab-disabled.png",
+            "path2x": "原包/assets/bases/tab-disabled@2x.png",
+            "svg": "原包/assets/bases/tab-disabled.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/city-patterns-muted.png",
+            "path2x": "原包/assets/icons/city-patterns-muted@2x.png",
+            "svg": "原包/assets/icons/city-patterns-muted.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "selected": {
+          "baseId": "tab-selected",
+          "iconId": "icon-city-patterns-dark",
+          "ink": "dark",
+          "base": {
+            "path": "原包/assets/bases/tab-selected.png",
+            "path2x": "原包/assets/bases/tab-selected@2x.png",
+            "svg": "原包/assets/bases/tab-selected.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/city-patterns-dark.png",
+            "path2x": "原包/assets/icons/city-patterns-dark@2x.png",
+            "svg": "原包/assets/icons/city-patterns-dark.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "selected-hover": {
+          "baseId": "tab-selected-hover",
+          "iconId": "icon-city-patterns-dark",
+          "ink": "dark",
+          "base": {
+            "path": "原包/assets/bases/tab-selected-hover.png",
+            "path2x": "原包/assets/bases/tab-selected-hover@2x.png",
+            "svg": "原包/assets/bases/tab-selected-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/city-patterns-dark.png",
+            "path2x": "原包/assets/icons/city-patterns-dark@2x.png",
+            "svg": "原包/assets/icons/city-patterns-dark.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        }
+      }
+    },
+    {
+      "sourceRole": {
+        "id": "action.deploy",
+        "label": "部署",
+        "family": "action",
+        "glyph": "deploy",
+        "rect": [
+          1364,
+          700,
+          258,
+          55
+        ],
+        "iconRect": [
+          1381,
+          708.5,
+          38,
+          38
+        ],
+        "labelCenter": [
+          1525,
+          727.5
+        ],
+        "fontSize": 21,
+        "separator": [
+          1429,
+          713,
+          1429,
+          742
+        ],
+        "previewAction": "action-0"
+      },
+      "states": {
+        "default": {
+          "baseId": "action-default",
+          "iconId": "icon-deploy-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-default.png",
+            "path2x": "原包/assets/bases/action-default@2x.png",
+            "svg": "原包/assets/bases/action-default.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/deploy-light.png",
+            "path2x": "原包/assets/icons/deploy-light@2x.png",
+            "svg": "原包/assets/icons/deploy-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "hover": {
+          "baseId": "action-hover",
+          "iconId": "icon-deploy-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-hover.png",
+            "path2x": "原包/assets/bases/action-hover@2x.png",
+            "svg": "原包/assets/bases/action-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/deploy-light.png",
+            "path2x": "原包/assets/icons/deploy-light@2x.png",
+            "svg": "原包/assets/icons/deploy-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "pressed": {
+          "baseId": "action-pressed",
+          "iconId": "icon-deploy-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-pressed.png",
+            "path2x": "原包/assets/bases/action-pressed@2x.png",
+            "svg": "原包/assets/bases/action-pressed.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/deploy-light.png",
+            "path2x": "原包/assets/icons/deploy-light@2x.png",
+            "svg": "原包/assets/icons/deploy-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "disabled": {
+          "baseId": "action-disabled",
+          "iconId": "icon-deploy-muted",
+          "ink": "muted",
+          "base": {
+            "path": "原包/assets/bases/action-disabled.png",
+            "path2x": "原包/assets/bases/action-disabled@2x.png",
+            "svg": "原包/assets/bases/action-disabled.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/deploy-muted.png",
+            "path2x": "原包/assets/icons/deploy-muted@2x.png",
+            "svg": "原包/assets/icons/deploy-muted.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        }
+      }
+    },
+    {
+      "sourceRole": {
+        "id": "action.dispatch",
+        "label": "调度",
+        "family": "action",
+        "glyph": "dispatch",
+        "rect": [
+          1634,
+          700,
+          258,
+          55
+        ],
+        "iconRect": [
+          1651,
+          708.5,
+          38,
+          38
+        ],
+        "labelCenter": [
+          1795,
+          727.5
+        ],
+        "fontSize": 21,
+        "separator": [
+          1699,
+          713,
+          1699,
+          742
+        ],
+        "previewAction": "action-1"
+      },
+      "states": {
+        "default": {
+          "baseId": "action-default",
+          "iconId": "icon-dispatch-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-default.png",
+            "path2x": "原包/assets/bases/action-default@2x.png",
+            "svg": "原包/assets/bases/action-default.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/dispatch-light.png",
+            "path2x": "原包/assets/icons/dispatch-light@2x.png",
+            "svg": "原包/assets/icons/dispatch-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "hover": {
+          "baseId": "action-hover",
+          "iconId": "icon-dispatch-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-hover.png",
+            "path2x": "原包/assets/bases/action-hover@2x.png",
+            "svg": "原包/assets/bases/action-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/dispatch-light.png",
+            "path2x": "原包/assets/icons/dispatch-light@2x.png",
+            "svg": "原包/assets/icons/dispatch-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "pressed": {
+          "baseId": "action-pressed",
+          "iconId": "icon-dispatch-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-pressed.png",
+            "path2x": "原包/assets/bases/action-pressed@2x.png",
+            "svg": "原包/assets/bases/action-pressed.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/dispatch-light.png",
+            "path2x": "原包/assets/icons/dispatch-light@2x.png",
+            "svg": "原包/assets/icons/dispatch-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "disabled": {
+          "baseId": "action-disabled",
+          "iconId": "icon-dispatch-muted",
+          "ink": "muted",
+          "base": {
+            "path": "原包/assets/bases/action-disabled.png",
+            "path2x": "原包/assets/bases/action-disabled@2x.png",
+            "svg": "原包/assets/bases/action-disabled.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/dispatch-muted.png",
+            "path2x": "原包/assets/icons/dispatch-muted@2x.png",
+            "svg": "原包/assets/icons/dispatch-muted.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        }
+      }
+    },
+    {
+      "sourceRole": {
+        "id": "action.explore",
+        "label": "探索",
+        "family": "action",
+        "glyph": "explore",
+        "rect": [
+          1364,
+          765,
+          258,
+          55
+        ],
+        "iconRect": [
+          1381,
+          773.5,
+          38,
+          38
+        ],
+        "labelCenter": [
+          1525,
+          792.5
+        ],
+        "fontSize": 21,
+        "separator": [
+          1429,
+          778,
+          1429,
+          807
+        ],
+        "previewAction": "action-2"
+      },
+      "states": {
+        "default": {
+          "baseId": "action-default",
+          "iconId": "icon-explore-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-default.png",
+            "path2x": "原包/assets/bases/action-default@2x.png",
+            "svg": "原包/assets/bases/action-default.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/explore-light.png",
+            "path2x": "原包/assets/icons/explore-light@2x.png",
+            "svg": "原包/assets/icons/explore-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "hover": {
+          "baseId": "action-hover",
+          "iconId": "icon-explore-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-hover.png",
+            "path2x": "原包/assets/bases/action-hover@2x.png",
+            "svg": "原包/assets/bases/action-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/explore-light.png",
+            "path2x": "原包/assets/icons/explore-light@2x.png",
+            "svg": "原包/assets/icons/explore-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "pressed": {
+          "baseId": "action-pressed",
+          "iconId": "icon-explore-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-pressed.png",
+            "path2x": "原包/assets/bases/action-pressed@2x.png",
+            "svg": "原包/assets/bases/action-pressed.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/explore-light.png",
+            "path2x": "原包/assets/icons/explore-light@2x.png",
+            "svg": "原包/assets/icons/explore-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "disabled": {
+          "baseId": "action-disabled",
+          "iconId": "icon-explore-muted",
+          "ink": "muted",
+          "base": {
+            "path": "原包/assets/bases/action-disabled.png",
+            "path2x": "原包/assets/bases/action-disabled@2x.png",
+            "svg": "原包/assets/bases/action-disabled.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/explore-muted.png",
+            "path2x": "原包/assets/icons/explore-muted@2x.png",
+            "svg": "原包/assets/icons/explore-muted.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        }
+      }
+    },
+    {
+      "sourceRole": {
+        "id": "action.move",
+        "label": "城市移动",
+        "family": "action",
+        "glyph": "city-move",
+        "rect": [
+          1634,
+          765,
+          258,
+          55
+        ],
+        "iconRect": [
+          1651,
+          773.5,
+          38,
+          38
+        ],
+        "labelCenter": [
+          1795,
+          792.5
+        ],
+        "fontSize": 21,
+        "separator": [
+          1699,
+          778,
+          1699,
+          807
+        ],
+        "previewAction": "action-3"
+      },
+      "states": {
+        "default": {
+          "baseId": "action-default",
+          "iconId": "icon-city-move-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-default.png",
+            "path2x": "原包/assets/bases/action-default@2x.png",
+            "svg": "原包/assets/bases/action-default.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/city-move-light.png",
+            "path2x": "原包/assets/icons/city-move-light@2x.png",
+            "svg": "原包/assets/icons/city-move-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "hover": {
+          "baseId": "action-hover",
+          "iconId": "icon-city-move-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-hover.png",
+            "path2x": "原包/assets/bases/action-hover@2x.png",
+            "svg": "原包/assets/bases/action-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/city-move-light.png",
+            "path2x": "原包/assets/icons/city-move-light@2x.png",
+            "svg": "原包/assets/icons/city-move-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "pressed": {
+          "baseId": "action-pressed",
+          "iconId": "icon-city-move-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-pressed.png",
+            "path2x": "原包/assets/bases/action-pressed@2x.png",
+            "svg": "原包/assets/bases/action-pressed.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/city-move-light.png",
+            "path2x": "原包/assets/icons/city-move-light@2x.png",
+            "svg": "原包/assets/icons/city-move-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "disabled": {
+          "baseId": "action-disabled",
+          "iconId": "icon-city-move-muted",
+          "ink": "muted",
+          "base": {
+            "path": "原包/assets/bases/action-disabled.png",
+            "path2x": "原包/assets/bases/action-disabled@2x.png",
+            "svg": "原包/assets/bases/action-disabled.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/city-move-muted.png",
+            "path2x": "原包/assets/icons/city-move-muted@2x.png",
+            "svg": "原包/assets/icons/city-move-muted.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        }
+      }
+    },
+    {
+      "sourceRole": {
+        "id": "action.build",
+        "label": "建设",
+        "family": "action",
+        "glyph": "build",
+        "rect": [
+          1364,
+          830,
+          258,
+          55
+        ],
+        "iconRect": [
+          1381,
+          838.5,
+          38,
+          38
+        ],
+        "labelCenter": [
+          1525,
+          857.5
+        ],
+        "fontSize": 21,
+        "separator": [
+          1429,
+          843,
+          1429,
+          872
+        ],
+        "previewAction": "action-4"
+      },
+      "states": {
+        "default": {
+          "baseId": "action-default",
+          "iconId": "icon-build-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-default.png",
+            "path2x": "原包/assets/bases/action-default@2x.png",
+            "svg": "原包/assets/bases/action-default.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/build-light.png",
+            "path2x": "原包/assets/icons/build-light@2x.png",
+            "svg": "原包/assets/icons/build-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "hover": {
+          "baseId": "action-hover",
+          "iconId": "icon-build-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-hover.png",
+            "path2x": "原包/assets/bases/action-hover@2x.png",
+            "svg": "原包/assets/bases/action-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/build-light.png",
+            "path2x": "原包/assets/icons/build-light@2x.png",
+            "svg": "原包/assets/icons/build-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "pressed": {
+          "baseId": "action-pressed",
+          "iconId": "icon-build-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-pressed.png",
+            "path2x": "原包/assets/bases/action-pressed@2x.png",
+            "svg": "原包/assets/bases/action-pressed.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/build-light.png",
+            "path2x": "原包/assets/icons/build-light@2x.png",
+            "svg": "原包/assets/icons/build-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "disabled": {
+          "baseId": "action-disabled",
+          "iconId": "icon-build-muted",
+          "ink": "muted",
+          "base": {
+            "path": "原包/assets/bases/action-disabled.png",
+            "path2x": "原包/assets/bases/action-disabled@2x.png",
+            "svg": "原包/assets/bases/action-disabled.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/build-muted.png",
+            "path2x": "原包/assets/icons/build-muted@2x.png",
+            "svg": "原包/assets/icons/build-muted.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        }
+      }
+    },
+    {
+      "sourceRole": {
+        "id": "action.special",
+        "label": "特殊行动",
+        "family": "action",
+        "glyph": "special",
+        "rect": [
+          1634,
+          830,
+          258,
+          55
+        ],
+        "iconRect": [
+          1651,
+          838.5,
+          38,
+          38
+        ],
+        "labelCenter": [
+          1795,
+          857.5
+        ],
+        "fontSize": 21,
+        "separator": [
+          1699,
+          843,
+          1699,
+          872
+        ],
+        "previewAction": "action-5"
+      },
+      "states": {
+        "default": {
+          "baseId": "action-default",
+          "iconId": "icon-special-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-default.png",
+            "path2x": "原包/assets/bases/action-default@2x.png",
+            "svg": "原包/assets/bases/action-default.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/special-light.png",
+            "path2x": "原包/assets/icons/special-light@2x.png",
+            "svg": "原包/assets/icons/special-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "hover": {
+          "baseId": "action-hover",
+          "iconId": "icon-special-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-hover.png",
+            "path2x": "原包/assets/bases/action-hover@2x.png",
+            "svg": "原包/assets/bases/action-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/special-light.png",
+            "path2x": "原包/assets/icons/special-light@2x.png",
+            "svg": "原包/assets/icons/special-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "pressed": {
+          "baseId": "action-pressed",
+          "iconId": "icon-special-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/action-pressed.png",
+            "path2x": "原包/assets/bases/action-pressed@2x.png",
+            "svg": "原包/assets/bases/action-pressed.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/special-light.png",
+            "path2x": "原包/assets/icons/special-light@2x.png",
+            "svg": "原包/assets/icons/special-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "disabled": {
+          "baseId": "action-disabled",
+          "iconId": "icon-special-muted",
+          "ink": "muted",
+          "base": {
+            "path": "原包/assets/bases/action-disabled.png",
+            "path2x": "原包/assets/bases/action-disabled@2x.png",
+            "svg": "原包/assets/bases/action-disabled.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/special-muted.png",
+            "path2x": "原包/assets/icons/special-muted@2x.png",
+            "svg": "原包/assets/icons/special-muted.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        }
+      }
+    },
+    {
+      "sourceRole": {
+        "id": "undo",
+        "label": "撤销",
+        "family": "undo",
+        "glyph": "undo",
+        "rect": [
+          36,
+          1005,
+          132,
+          48
+        ],
+        "iconRect": [
+          48,
+          1014,
+          30,
+          30
+        ],
+        "labelCenter": [
+          121,
+          1029
+        ],
+        "fontSize": 20,
+        "previewAction": "undo"
+      },
+      "states": {
+        "default": {
+          "baseId": "undo-default",
+          "iconId": "icon-undo-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/undo-default.png",
+            "path2x": "原包/assets/bases/undo-default@2x.png",
+            "svg": "原包/assets/bases/undo-default.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/undo-light.png",
+            "path2x": "原包/assets/icons/undo-light@2x.png",
+            "svg": "原包/assets/icons/undo-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "hover": {
+          "baseId": "undo-hover",
+          "iconId": "icon-undo-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/undo-hover.png",
+            "path2x": "原包/assets/bases/undo-hover@2x.png",
+            "svg": "原包/assets/bases/undo-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/undo-light.png",
+            "path2x": "原包/assets/icons/undo-light@2x.png",
+            "svg": "原包/assets/icons/undo-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "pressed": {
+          "baseId": "undo-pressed",
+          "iconId": "icon-undo-light",
+          "ink": "light",
+          "base": {
+            "path": "原包/assets/bases/undo-pressed.png",
+            "path2x": "原包/assets/bases/undo-pressed@2x.png",
+            "svg": "原包/assets/bases/undo-pressed.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/undo-light.png",
+            "path2x": "原包/assets/icons/undo-light@2x.png",
+            "svg": "原包/assets/icons/undo-light.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "disabled": {
+          "baseId": "undo-disabled",
+          "iconId": "icon-undo-muted",
+          "ink": "muted",
+          "base": {
+            "path": "原包/assets/bases/undo-disabled.png",
+            "path2x": "原包/assets/bases/undo-disabled@2x.png",
+            "svg": "原包/assets/bases/undo-disabled.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/undo-muted.png",
+            "path2x": "原包/assets/icons/undo-muted@2x.png",
+            "svg": "原包/assets/icons/undo-muted.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        }
+      }
+    },
+    {
+      "sourceRole": {
+        "id": "endAction",
+        "label": "结束行动",
+        "family": "primary",
+        "glyph": "end",
+        "rect": [
+          1640,
+          1003,
+          236,
+          52
+        ],
+        "iconRect": [
+          1678,
+          1014,
+          30,
+          30
+        ],
+        "labelCenter": [
+          1785,
+          1029
+        ],
+        "fontSize": 21,
+        "previewAction": "end"
+      },
+      "states": {
+        "default": {
+          "baseId": "primary-default",
+          "iconId": "icon-end-dark",
+          "ink": "dark",
+          "base": {
+            "path": "原包/assets/bases/primary-default.png",
+            "path2x": "原包/assets/bases/primary-default@2x.png",
+            "svg": "原包/assets/bases/primary-default.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/end-dark.png",
+            "path2x": "原包/assets/icons/end-dark@2x.png",
+            "svg": "原包/assets/icons/end-dark.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "hover": {
+          "baseId": "primary-hover",
+          "iconId": "icon-end-dark",
+          "ink": "dark",
+          "base": {
+            "path": "原包/assets/bases/primary-hover.png",
+            "path2x": "原包/assets/bases/primary-hover@2x.png",
+            "svg": "原包/assets/bases/primary-hover.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/end-dark.png",
+            "path2x": "原包/assets/icons/end-dark@2x.png",
+            "svg": "原包/assets/icons/end-dark.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "pressed": {
+          "baseId": "primary-pressed",
+          "iconId": "icon-end-dark",
+          "ink": "dark",
+          "base": {
+            "path": "原包/assets/bases/primary-pressed.png",
+            "path2x": "原包/assets/bases/primary-pressed@2x.png",
+            "svg": "原包/assets/bases/primary-pressed.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/end-dark.png",
+            "path2x": "原包/assets/icons/end-dark@2x.png",
+            "svg": "原包/assets/icons/end-dark.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        },
+        "disabled": {
+          "baseId": "primary-disabled",
+          "iconId": "icon-end-muted",
+          "ink": "muted",
+          "base": {
+            "path": "原包/assets/bases/primary-disabled.png",
+            "path2x": "原包/assets/bases/primary-disabled@2x.png",
+            "svg": "原包/assets/bases/primary-disabled.svg"
+          },
+          "icon": {
+            "path": "原包/assets/icons/end-muted.png",
+            "path2x": "原包/assets/icons/end-muted@2x.png",
+            "svg": "原包/assets/icons/end-muted.svg"
+          },
+          "unityBorderOrder": [
+            "left",
+            "bottom",
+            "right",
+            "top"
+          ],
+          "unityBorder1x": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "unityBorder2x": [
+            24,
+            24,
+            24,
+            24
+          ]
+        }
+      }
+    }
+  ]
+}

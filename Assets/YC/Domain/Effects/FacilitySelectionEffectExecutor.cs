@@ -27,14 +27,15 @@ namespace YC.Domain.Effects
         }
         private static EffectStepResult Wait(EffectExecutionContext c, string stage, string prompt, List<string> ids)
         {
-            if (ids.Count == 0) return EffectStepResult.Completed(NormalizedValue.CreateString("no_legal_target"));
+            if (ids.Count == 0) return MainActionEffectExecutor.IsPlanning(c) ? EffectStepResult.Failed("no_legal_target") : EffectStepResult.Completed(NormalizedValue.CreateString("no_legal_target"));
             var request = new EffectInteractionSpec { InteractionTypeId = "facility.entry.choice", PromptKey = prompt,
-                AnsweringPlayerId = c.Node.PlayerId, Visibility = "owner", AnswerSchema = "candidate_id", MinSelections = 1, MaxSelections = 1 };
+                AllowDecline = MainActionEffectExecutor.IsPlanning(c), AnsweringPlayerId = c.Node.PlayerId, Visibility = "owner", AnswerSchema = "candidate_id", MinSelections = 1, MaxSelections = 1 };
             request.CandidateIds.AddRange(ids);
             return EffectStepResult.Continue(stage).AddInteraction(request);
         }
         private static EffectStepResult Execute(EffectExecutionContext c)
         {
+            if (MainActionEffectExecutor.IsCancellation(c)) return EffectStepResult.Failed("player_cancelled");
             string zone = Text(c.Node.NormalizedArguments, "sourceZone", "supply");
             if (zone != "supply" && zone != "reserve") return EffectStepResult.Failed("unsupported_build_source");
             bool reserve = zone == "reserve";
@@ -62,6 +63,15 @@ namespace YC.Domain.Effects
                         if ((reserve ? service.ValidateReserveBuild(c.State, c.Node.PlayerId, id, slot) : service.Validate(c.State, c.Node.PlayerId, id, slot, "auto")).IsValid)
                         { cards.Add(id); break; }
                 }
+                string preselected = Text(c.Node.NormalizedArguments, "preselectedCard");
+                if (MainActionEffectExecutor.IsPlanning(c) && preselected.Length > 0)
+                {
+                    if (!cards.Contains(preselected)) return EffectStepResult.Failed("invalid_build_card");
+                    var paymentModes = new List<string>();
+                    foreach (string mode in new[] { "resources", "gold" })
+                        if (service.ValidatePaymentMode(c.State, c.Node.PlayerId, preselected, mode).IsValid) paymentModes.Add(mode);
+                    return Wait(c, "payment|" + Uri.EscapeDataString(preselected), "effect.build.choose_payment", paymentModes);
+                }
                 if (reserve) cards.Add("choice.skip");
                 return Wait(c, "card", "facility.entry.choose_additional_build", cards);
             }
@@ -82,15 +92,26 @@ namespace YC.Domain.Effects
                 for (int slot = 0; slot < BuildFacilityService.CityBoardSlotCount; slot++)
                     if ((reserve ? service.ValidateReserveBuild(c.State, c.Node.PlayerId, card, slot) : service.Validate(c.State, c.Node.PlayerId, card, slot, payment)).IsValid)
                         slots.Add("build-slot:" + slot.ToString(CultureInfo.InvariantCulture));
+                string preselectedSlot = Text(c.Node.NormalizedArguments, "preselectedSlot");
+                if (MainActionEffectExecutor.IsPlanning(c) && preselectedSlot.Length > 0)
+                {
+                    if (!slots.Contains("build-slot:" + preselectedSlot)) return EffectStepResult.Failed("invalid_build_slot");
+                    return Wait(c, "confirm|" + stage[1] + "|" + payment + "|" + preselectedSlot, "action.main.confirm", new List<string> { "action.confirm" });
+                }
                 return Wait(c, "slot|" + stage[1] + "|" + payment, "effect.build.choose_slot", slots);
             }
             if (stage[0] == "slot" && stage.Length == 3)
             {
                 string answer = Answer(c);
                 if (!answer.StartsWith("build-slot:", StringComparison.Ordinal) || !int.TryParse(answer.Substring(11), out int slot)) return EffectStepResult.Failed("invalid_build_slot");
+                if (MainActionEffectExecutor.IsPlanning(c))
+                    return Wait(c, "confirm|" + stage[1] + "|" + stage[2] + "|" + slot.ToString(CultureInfo.InvariantCulture), "action.main.confirm", new List<string> { "action.confirm" });
                 return EffectStepResult.Continue("built").AddChild(FacilityBuildEffectSpecFactory.Build(c.Node.PlayerId,
                     Uri.UnescapeDataString(stage[1]), slot, stage[2], reserve, c.Node.SourceId, false));
             }
+            if (stage[0] == "confirm" && stage.Length == 4 && Answer(c) == "action.confirm")
+                return EffectStepResult.Continue("built").AddChild(FacilityBuildEffectSpecFactory.Build(c.Node.PlayerId,
+                    Uri.UnescapeDataString(stage[1]), int.Parse(stage[3], CultureInfo.InvariantCulture), stage[2], reserve, c.Node.SourceId, false));
             return EffectStepResult.Failed("invalid_build_selection_stage");
         }
     }

@@ -1,0 +1,170 @@
+{
+  "source": "MainGameUI-v2.2 / 07-originals and 04-markers",
+  "files": [
+    {
+      "path": "preview/originals/character-atlas.jpg",
+      "bytes": 1356289,
+      "sha256": "42859d86d80867bea640052ef8e85348063c45b72f4c0add8cc0a47f4ae76847"
+    },
+    {
+      "path": "preview/originals/character-back-reunion.jpg",
+      "bytes": 156406,
+      "sha256": "081182980414c10c123b05e43c7f905e23124a26c8d80cca66c21e61767eb828"
+    },
+    {
+      "path": "preview/originals/character-back-rhodes.jpg",
+      "bytes": 233764,
+      "sha256": "0361f0e12abcad6642631dff3020010afea0163ddeee33e03a8f88d5158c3b7f"
+    },
+    {
+      "path": "preview/originals/city-board.png",
+      "bytes": 8114616,
+      "sha256": "67c85fce31269b13181d1c9b1593f640b9ab4b6d81b489cd05125891660d6218"
+    },
+    {
+      "path": "preview/originals/enterprise-atlas.jpg",
+      "bytes": 2547459,
+      "sha256": "e5f0cfd4262b6e58f859249606fd7886070c6eb91adcf33cf51cd51b9a4bc261"
+    },
+    {
+      "path": "preview/originals/entrepreneur-1.jpg",
+      "bytes": 111538,
+      "sha256": "3aa098e6a1b2b682997b1b6fc4f50e7035b0bc222901b9c18c819e22b7bf8452"
+    },
+    {
+      "path": "preview/originals/entrepreneur-2.jpg",
+      "bytes": 124259,
+      "sha256": "aa52cd4718387d366ab50eb694ee9c3e6e99b82b08afca7e260fab2a9dfa768f"
+    },
+    {
+      "path": "preview/originals/entrepreneur-3.jpg",
+      "bytes": 114396,
+      "sha256": "6dcaf1a548aca0b428339bf03b0074e15f79fa596c044015957cd837c5b1ac69"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-00-64.png",
+      "bytes": 678,
+      "sha256": "443de7967143a5f4dd5fd9a68c11916dd7f9866d51c14fe4bc5036f51b5a8e57"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-01-64.png",
+      "bytes": 679,
+      "sha256": "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-02-64.png",
+      "bytes": 678,
+      "sha256": "ab6ace1eaff283f15515d152c8a16d198ecd5cdef68a4ba1a791fd9989f01351"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-03-64.png",
+      "bytes": 827,
+      "sha256": "3685288cfd853cfddf1606697e7dbc25a436c727ce70c29cb35ff3fe70c3aacf"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-04-64.png",
+      "bytes": 678,
+      "sha256": "edcc07d148d018ab557f550f011fc43be0aa005c2b52188d6983596295c21eec"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-05-64.png",
+      "bytes": 828,
+      "sha256": "7dbcdceb9232273ac00fe120adec8740ff38c003eee98074ccc37278c835338f"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-06-64.png",
+      "bytes": 829,
+      "sha256": "70f5f0ded2ad276bb0ff7e9872ea03ba2e2121a23ca885d61b64437dda015e2d"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-07-64.png",
+      "bytes": 691,
+      "sha256": "1bde096cbaa80534a64e750d7d2979e8277809a82b198ce652bb99f01894c9c8"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-08-64.png",
+      "bytes": 678,
+      "sha256": "afd73d934def1788bfb746251f519ccb6955abd15540f8f7d220a36565d8e64b"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-09-64.png",
+      "bytes": 828,
+      "sha256": "08ef48a5e20cc96155883e9a3b9df19bf8c6df251015a4e759ed1cef9019ae2c"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-0a-64.png",
+      "bytes": 828,
+      "sha256": "48bf822715419d06deefb8ce6b985a36de79d8ccfb93e809eddccd94b16d83b8"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-0b-64.png",
+      "bytes": 691,
+      "sha256": "b93b5b37dcbd4ae3aa7373e7fe653e78e6bb83af50a1b4c6e98d3d8ea296d8b6"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-0c-64.png",
+      "bytes": 829,
+      "sha256": "f392615d6f7a54137335e4e085fb8dc1b7f33199946c5263fa8d43a87eebc1f0"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-0d-64.png",
+      "bytes": 694,
+      "sha256": "8c24503ef3e9c076fcbd7b365c393f5f5189ffa9acf722feb4225a7296ce411a"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-0e-64.png",
+      "bytes": 693,
+      "sha256": "d0bc8e2304d7c79873102701e48dc0efd5ce83ba8347c4b26a9d5e554719c28f"
+    },
+    {
+      "path": "preview/originals/markers/cooperation-0f-64.png",
+      "bytes": 704,
+      "sha256": "959b8813ee16f67cf170865931510fbdabb5bccb39cdefefc96a4a25c7eb8f86"
+    },
+    {
+      "path": "preview/originals/markers/digit-base-blue-64.png",
+      "bytes": 678,
+      "sha256": "edcc07d148d018ab557f550f011fc43be0aa005c2b52188d6983596295c21eec"
+    },
+    {
+      "path": "preview/originals/markers/digit-base-green-64.png",
+      "bytes": 679,
+      "sha256": "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef"
+    },
+    {
+      "path": "preview/originals/markers/digit-base-red-64.png",
+      "bytes": 678,
+      "sha256": "afd73d934def1788bfb746251f519ccb6955abd15540f8f7d220a36565d8e64b"
+    },
+    {
+      "path": "preview/originals/markers/digit-base-yellow-64.png",
+      "bytes": 678,
+      "sha256": "ab6ace1eaff283f15515d152c8a16d198ecd5cdef68a4ba1a791fd9989f01351"
+    },
+    {
+      "path": "preview/originals/resource-iron.png",
+      "bytes": 33249,
+      "sha256": "2da089ee32aa6c4a329f6f055b5e527de84c788099b15b64a39f7415859d37e3"
+    },
+    {
+      "path": "preview/originals/resource-originium.png",
+      "bytes": 37169,
+      "sha256": "3d3b8553130e658276e040e5aac963961fcc1f40464c57ad1c3b7cb19d753cc6"
+    },
+    {
+      "path": "preview/originals/resource-pure.png",
+      "bytes": 44960,
+      "sha256": "c1ddc84b577953c3604251608de84652787b0186ef42f50e2d02fd9ccb0862b9"
+    },
+    {
+      "path": "preview/originals/resource-rock.png",
+      "bytes": 34669,
+      "sha256": "81b92f61c43cc1b2f45396a550a6c6d6b0682c461a1aed454ae4fc0bddc17ea1"
+    },
+    {
+      "path": "preview/originals/world-map.jpg",
+      "bytes": 7535343,
+      "sha256": "605f6fb43c8021706847d7d9db0d4483a5bfa05fcd09bf15b13e96b6996464bf"
+    }
+  ]
+}

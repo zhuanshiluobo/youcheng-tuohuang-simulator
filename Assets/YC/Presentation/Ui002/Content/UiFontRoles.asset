@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 979bcdb110355644db9a52c0b5969f4b, type: 3}
+  m_Name: UiFontRoles
+  m_EditorClassIdentifier: 
+  regular: {fileID: 12800000, guid: 43e9d69dcca63724db85852acd46004d, type: 3}
+  emphasis: {fileID: 12800000, guid: 5c5a187d1eb86944c93f847ec521c324, type: 3}
+  specialWord: {fileID: 12800000, guid: 583ab100aa403d043b49362948eef356, type: 3}
+  effectNumber: {fileID: 12800000, guid: 3eddf79db7bec9c4193e00ae800bfd4e, type: 3}
+  uiNumber: {fileID: 12800000, guid: 0a6c131175d7afb4daca1a87a679f835, type: 3}
+  missingGlyphFallback: {fileID: 12800000, guid: 36dc20363ed04374b8e0ffab577935af, type: 3}

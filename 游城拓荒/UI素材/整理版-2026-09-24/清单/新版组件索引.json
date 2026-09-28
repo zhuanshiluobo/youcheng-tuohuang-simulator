@@ -1,0 +1,1172 @@
+{
+  "version": "3.1",
+  "assets": {
+    "outer-frame": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/outer-frame.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/outer-frame.png",
+        "svg": "shared-v3/outer-frame.svg",
+        "viewBox": [
+          1024,
+          576
+        ],
+        "slices": [
+          64,
+          64,
+          64,
+          64
+        ],
+        "role": "screen/window outer perimeter; transparent center",
+        "contentInset": [
+          24,
+          24,
+          24,
+          24
+        ],
+        "sha256": "9983e7b77d3c1987ebec85add88337c957fef56833747b4501009d6513c20738",
+        "bytes": 153759
+      },
+      "unityBorderLeftBottomRightTop": [
+        64,
+        64,
+        64,
+        64
+      ]
+    },
+    "module-bg": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/module-bg.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/module-bg.png",
+        "svg": "shared-v3/module-bg.svg",
+        "viewBox": [
+          512,
+          320
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "matte graphite fill; stretch or crop separately",
+        "contentInset": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "sha256": "a869bca6b92d9fabb3849db20e11a1d63ab9437a2ffc6ff60e3a3b87e53ed8e9",
+        "bytes": 183709
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "paper-bg": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/paper-bg.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/paper-bg.png",
+        "svg": "shared-v3/paper-bg.svg",
+        "viewBox": [
+          512,
+          128
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "ivory document surface",
+        "contentInset": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "sha256": "67882a56e82e567c3b7fec74978f4f369a78ca858abba52cd22ea30643bd4431",
+        "bytes": 76404
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "header-bg": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/header-bg.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/header-bg.png",
+        "svg": "shared-v3/header-bg.svg",
+        "viewBox": [
+          1024,
+          88
+        ],
+        "slices": [
+          18,
+          12,
+          18,
+          12
+        ],
+        "role": "ivory window header; no baked text",
+        "contentInset": [
+          20,
+          10,
+          20,
+          10
+        ],
+        "sha256": "d5638f7fc404b80ef699315cddfe1412320f55fdd155ab144b423a6688afd699",
+        "bytes": 128495
+      },
+      "unityBorderLeftBottomRightTop": [
+        18,
+        12,
+        18,
+        12
+      ]
+    },
+    "module-frame": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/module-frame.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/module-frame.png",
+        "svg": "shared-v3/module-frame.svg",
+        "viewBox": [
+          512,
+          320
+        ],
+        "slices": [
+          16,
+          16,
+          16,
+          16
+        ],
+        "role": "subordinate module border; transparent center",
+        "contentInset": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "sha256": "23609d9070dd3be87cc9c7146b582a6c17b648055c4e8867422d11f74ac90b52",
+        "bytes": 21156
+      },
+      "unityBorderLeftBottomRightTop": [
+        16,
+        16,
+        16,
+        16
+      ]
+    },
+    "drawer-frame": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/drawer-frame.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/drawer-frame.png",
+        "svg": "shared-v3/drawer-frame.svg",
+        "viewBox": [
+          1024,
+          240
+        ],
+        "slices": [
+          20,
+          20,
+          20,
+          20
+        ],
+        "role": "resolution drawer border; transparent center",
+        "contentInset": [
+          16,
+          16,
+          16,
+          16
+        ],
+        "sha256": "5dd82e234ebb729087e7a0639e1959d6699e8d665455822e95d511780150c853",
+        "bytes": 36509
+      },
+      "unityBorderLeftBottomRightTop": [
+        20,
+        20,
+        20,
+        20
+      ]
+    },
+    "card-frame": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/card-frame.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/card-frame.png",
+        "svg": "shared-v3/card-frame.svg",
+        "viewBox": [
+          320,
+          456
+        ],
+        "slices": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "role": "thin neutral card perimeter; independent of card ratio",
+        "contentInset": [
+          8,
+          8,
+          8,
+          8
+        ],
+        "sha256": "7bb91c958a6ea729293d2eef619633c91bc03542738e9af2bbaeae1500280ab7",
+        "bytes": 14537
+      },
+      "unityBorderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    "card-bg": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/card-bg.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/card-bg.png",
+        "svg": "shared-v3/card-bg.svg",
+        "viewBox": [
+          320,
+          456
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "empty card well fill",
+        "contentInset": [
+          8,
+          8,
+          8,
+          8
+        ],
+        "sha256": "8675d7bfe5a46338e524f44ffb1cd93136583d83312d5c39be5ca8c44d4fbf80",
+        "bytes": 145307
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "topbar-bg": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/topbar-bg.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/topbar-bg.png",
+        "svg": "topbar-v3/topbar-bg.svg",
+        "viewBox": [
+          1920,
+          72
+        ],
+        "slices": [
+          16,
+          8,
+          16,
+          8
+        ],
+        "role": "unified ivory top bar background",
+        "contentInset": [
+          22,
+          10,
+          22,
+          10
+        ],
+        "sha256": "cb1a910abc850b883e7d2fe66c22a87f5857cd5e3a8e9fbcd17d0b356446ae7c",
+        "bytes": 167507
+      },
+      "unityBorderLeftBottomRightTop": [
+        16,
+        8,
+        16,
+        8
+      ]
+    },
+    "topbar-frame": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/topbar-frame.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/topbar-frame.png",
+        "svg": "topbar-v3/topbar-frame.svg",
+        "viewBox": [
+          1920,
+          72
+        ],
+        "slices": [
+          28,
+          8,
+          12,
+          8
+        ],
+        "role": "top bar edge with one yellow registration marker",
+        "contentInset": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "sha256": "3b59dd3cb8ce9ea460eb0b77811bb59bcc81fb4a4baca0e6b65bb43945e753b7",
+        "bytes": 986
+      },
+      "unityBorderLeftBottomRightTop": [
+        28,
+        8,
+        12,
+        8
+      ]
+    },
+    "turn-tag": {
+      "path": "资产/兼容组件/Frontier-3.1/topbar-v3/turn-tag.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/turn-tag.png",
+        "svg": "topbar-v3/turn-tag.svg",
+        "viewBox": [
+          256,
+          56
+        ],
+        "slices": [
+          25,
+          8,
+          28,
+          8
+        ],
+        "role": "separate action indicator arrow; no text",
+        "contentInset": [
+          32,
+          10,
+          32,
+          10
+        ],
+        "sha256": "8bad25f407a4ce766596e180a384b085c54db0c9aabbc6456882b0af787297ad",
+        "bytes": 9859
+      },
+      "unityBorderLeftBottomRightTop": [
+        25,
+        8,
+        28,
+        8
+      ]
+    },
+    "redzone-paper": {
+      "path": "资产/兼容组件/Frontier-3.1/topbar-v3/redzone-paper.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/redzone-paper.png",
+        "svg": "topbar-v3/redzone-paper.svg",
+        "viewBox": [
+          256,
+          56
+        ],
+        "slices": [
+          24,
+          8,
+          8,
+          8
+        ],
+        "role": "inline red-zone notice surface; no text",
+        "contentInset": [
+          30,
+          8,
+          12,
+          8
+        ],
+        "sha256": "c86812eb50ca156bd63208d830762ff8328d09d532d1a08fa12004699aefaa23",
+        "bytes": 19047
+      },
+      "unityBorderLeftBottomRightTop": [
+        24,
+        8,
+        8,
+        8
+      ]
+    },
+    "bottom-bar": {
+      "path": "资产/新版组件/Frontier-3.1/bottom-v3/bottom-bar.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "bottom-v3/bottom-bar.png",
+        "svg": "bottom-v3/bottom-bar.svg",
+        "viewBox": [
+          1920,
+          96
+        ],
+        "slices": [
+          16,
+          12,
+          16,
+          12
+        ],
+        "role": "global bottom action bar graphite fill",
+        "contentInset": [
+          20,
+          16,
+          20,
+          16
+        ],
+        "sha256": "a421c855a1c5ed5e1be0069f0ed1f648efa072aeb623c705ffc240ef630682b2",
+        "bytes": 208726
+      },
+      "unityBorderLeftBottomRightTop": [
+        16,
+        12,
+        16,
+        12
+      ]
+    },
+    "bottom-frame": {
+      "path": "资产/新版组件/Frontier-3.1/bottom-v3/bottom-frame.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "bottom-v3/bottom-frame.png",
+        "svg": "bottom-v3/bottom-frame.svg",
+        "viewBox": [
+          1920,
+          96
+        ],
+        "slices": [
+          36,
+          8,
+          36,
+          8
+        ],
+        "role": "bottom bar perimeter; transparent center",
+        "contentInset": [
+          16,
+          16,
+          16,
+          16
+        ],
+        "sha256": "5b7bb3772b26a9ad38a1edff65fdc59f09a05eae1eeb02b08d1a4717512b697f",
+        "bytes": 1308
+      },
+      "unityBorderLeftBottomRightTop": [
+        36,
+        8,
+        36,
+        8
+      ]
+    },
+    "chain-slot-bg": {
+      "path": "资产/新版组件/Frontier-3.1/bottom-v3/chain-slot-bg.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "bottom-v3/chain-slot-bg.png",
+        "svg": "bottom-v3/chain-slot-bg.svg",
+        "viewBox": [
+          1024,
+          64
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "resolution chain recessed slot fill",
+        "contentInset": [
+          10,
+          10,
+          10,
+          10
+        ],
+        "sha256": "dc8fa0bb1af3d0bc65568872aa34096de32856a6c0cf44bde792d1018acc5a58",
+        "bytes": 47445
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "chain-slot-frame": {
+      "path": "资产/新版组件/Frontier-3.1/bottom-v3/chain-slot-frame.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "bottom-v3/chain-slot-frame.png",
+        "svg": "bottom-v3/chain-slot-frame.svg",
+        "viewBox": [
+          1024,
+          64
+        ],
+        "slices": [
+          18,
+          12,
+          12,
+          12
+        ],
+        "role": "reserved resolution slot frame; transparent center",
+        "contentInset": [
+          25,
+          10,
+          16,
+          10
+        ],
+        "sha256": "42446858b734fa343168b875261fa427caf442ee79db141991718b6f25aee711",
+        "bytes": 14848
+      },
+      "unityBorderLeftBottomRightTop": [
+        18,
+        12,
+        12,
+        12
+      ]
+    },
+    "button-primary": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/button-primary.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/button-primary.png",
+        "svg": "shared-v3/button-primary.svg",
+        "viewBox": [
+          320,
+          98
+        ],
+        "slices": [
+          28,
+          20,
+          28,
+          20
+        ],
+        "role": "original Card Picker primary button without text",
+        "contentInset": [
+          20,
+          20,
+          20,
+          20
+        ],
+        "sourceVisibleRect": [
+          35,
+          102,
+          1916,
+          582
+        ],
+        "sha256": "27cdb7e5379b316141b3020ae93934b41eb7f540b3d28712cd8088dafab3b6e0",
+        "bytes": 39619
+      },
+      "unityBorderLeftBottomRightTop": [
+        28,
+        20,
+        28,
+        20
+      ]
+    },
+    "button-secondary": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/button-secondary.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/button-secondary.png",
+        "svg": "shared-v3/button-secondary.svg",
+        "viewBox": [
+          320,
+          98
+        ],
+        "slices": [
+          28,
+          20,
+          28,
+          20
+        ],
+        "role": "original Card Picker secondary button without text",
+        "contentInset": [
+          20,
+          20,
+          20,
+          20
+        ],
+        "sourceVisibleRect": [
+          35,
+          102,
+          1916,
+          582
+        ],
+        "sha256": "67530acea04e5c020ddd6c5154b6a9232762a805021a58feff2290325c1ad1f1",
+        "bytes": 37461
+      },
+      "unityBorderLeftBottomRightTop": [
+        28,
+        20,
+        28,
+        20
+      ]
+    },
+    "button-disabled": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/button-disabled.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/button-disabled.png",
+        "svg": "shared-v3/button-disabled.svg",
+        "viewBox": [
+          320,
+          98
+        ],
+        "slices": [
+          28,
+          20,
+          28,
+          20
+        ],
+        "role": "unavailable button base; no text",
+        "contentInset": [
+          20,
+          20,
+          20,
+          20
+        ],
+        "sha256": "f09b0927d83dc1dfff2c0c4cde128f361709c4856ef2e7bf699d4408045dae37",
+        "bytes": 25340
+      },
+      "unityBorderLeftBottomRightTop": [
+        28,
+        20,
+        28,
+        20
+      ]
+    },
+    "undo-enabled": {
+      "path": "资产/新版组件/Frontier-3.1/bottom-v3/undo-enabled.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "bottom-v3/undo-enabled.png",
+        "svg": "bottom-v3/undo-enabled.svg",
+        "viewBox": [
+          200,
+          64
+        ],
+        "slices": [
+          28,
+          20,
+          28,
+          20
+        ],
+        "role": "undo available; base only, icon and label overlay",
+        "contentInset": [
+          18,
+          18,
+          18,
+          18
+        ],
+        "sha256": "4712d9bf057db8826698d008fbdc31b13a9e6592510ed1675a54874b21ed0bad",
+        "bytes": 17560
+      },
+      "unityBorderLeftBottomRightTop": [
+        28,
+        20,
+        28,
+        20
+      ]
+    },
+    "undo-disabled": {
+      "path": "资产/新版组件/Frontier-3.1/bottom-v3/undo-disabled.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "bottom-v3/undo-disabled.png",
+        "svg": "bottom-v3/undo-disabled.svg",
+        "viewBox": [
+          200,
+          64
+        ],
+        "slices": [
+          28,
+          20,
+          28,
+          20
+        ],
+        "role": "undo unavailable; base only, muted icon and label overlay",
+        "contentInset": [
+          18,
+          18,
+          18,
+          18
+        ],
+        "sha256": "50596fe92ce3a8ffe84f91260174615aa9292c20d9b2a2f5a017c9f5759d404f",
+        "bytes": 12559
+      },
+      "unityBorderLeftBottomRightTop": [
+        28,
+        20,
+        28,
+        20
+      ]
+    },
+    "icon-undo-active": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/icon-undo-active.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/icon-undo-active.png",
+        "svg": "shared-v3/icon-undo-active.svg",
+        "viewBox": [
+          48,
+          48
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "separate enabled undo icon",
+        "contentInset": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "5dcb00278a927c1fcfd08290defd7de671bcb2a1cfb34ceea171707d4d17e3f3",
+        "bytes": 1107
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon-undo-muted": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/icon-undo-muted.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/icon-undo-muted.png",
+        "svg": "shared-v3/icon-undo-muted.svg",
+        "viewBox": [
+          48,
+          48
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "separate disabled undo icon",
+        "contentInset": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "96d7789817b158cc60fbd81ac1055614da7ca793c456c75f248523197dad6d72",
+        "bytes": 1101
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon-chevron": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/icon-chevron.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/icon-chevron.png",
+        "svg": "shared-v3/icon-chevron.svg",
+        "viewBox": [
+          32,
+          32
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "drawer expand/collapse; rotate 180 degrees for inverse",
+        "contentInset": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "f508ec68cd04923be0e3627ef46d742d7012bf0ec67127af7569ebf7cec40a6a",
+        "bytes": 407
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon-close": {
+      "path": "资产/新版组件/Frontier-3.1/shared-v3/icon-close.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "shared-v3/icon-close.png",
+        "svg": "shared-v3/icon-close.svg",
+        "viewBox": [
+          32,
+          32
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "close icon for ivory headers",
+        "contentInset": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "476ad7446919364dd4166d6023c2e38f99c0b15ab1d5be58f90f751ad9668593",
+        "bytes": 490
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "round-plaque": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/round-plaque.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/round-plaque.png",
+        "svg": "topbar-v3/round-plaque.svg",
+        "viewBox": [
+          60,
+          44
+        ],
+        "slices": [
+          7,
+          7,
+          7,
+          7
+        ],
+        "role": "round number surface; number is runtime text",
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "sha256": "586f4a045ceaf7726b81c7043dacba91130e0d320c4619ccf7acd41a5c4d3d9f",
+        "bytes": 541
+      },
+      "unityBorderLeftBottomRightTop": [
+        7,
+        7,
+        7,
+        7
+      ]
+    },
+    "turn-tag-refined": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/turn-tag-refined.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/turn-tag-refined.png",
+        "svg": "topbar-v3/turn-tag-refined.svg",
+        "viewBox": [
+          224,
+          44
+        ],
+        "slices": [
+          50,
+          6,
+          24,
+          6
+        ],
+        "role": "refined current-action flag; separate icon and label",
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "sha256": "740174a46519445bac0a23881fc68264ebb07e974df5858ac2826d017810d588",
+        "bytes": 7624
+      },
+      "unityBorderLeftBottomRightTop": [
+        50,
+        6,
+        24,
+        6
+      ]
+    },
+    "topbar-tool-default": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/topbar-tool-default.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/topbar-tool-default.png",
+        "svg": "topbar-v3/topbar-tool-default.svg",
+        "viewBox": [
+          216,
+          44
+        ],
+        "slices": [
+          9,
+          9,
+          9,
+          9
+        ],
+        "role": "quiet inset utility button",
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "sha256": "0b09786755c49091189c642234fb41246a0a92637c74df06003ebeda08764b05",
+        "bytes": 9457
+      },
+      "unityBorderLeftBottomRightTop": [
+        9,
+        9,
+        9,
+        9
+      ]
+    },
+    "topbar-tool-hover": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/topbar-tool-hover.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/topbar-tool-hover.png",
+        "svg": "topbar-v3/topbar-tool-hover.svg",
+        "viewBox": [
+          216,
+          44
+        ],
+        "slices": [
+          9,
+          9,
+          9,
+          9
+        ],
+        "role": "utility button hover background",
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "sha256": "cb13bdb60b57118000d0c84116977ba9d58045032ada697f5c7f32902905465f",
+        "bytes": 9435
+      },
+      "unityBorderLeftBottomRightTop": [
+        9,
+        9,
+        9,
+        9
+      ]
+    },
+    "redzone-plaque": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/redzone-plaque.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/redzone-plaque.png",
+        "svg": "topbar-v3/redzone-plaque.svg",
+        "viewBox": [
+          252,
+          44
+        ],
+        "slices": [
+          8,
+          5,
+          8,
+          5
+        ],
+        "role": "red-zone grouping frame; transparent center",
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "sha256": "a1f29452e2f1c7abcac75b2b33394da6de21428c311f8134e1111c4ac7b987e7",
+        "bytes": 388
+      },
+      "unityBorderLeftBottomRightTop": [
+        8,
+        5,
+        8,
+        5
+      ]
+    },
+    "icon-frontier": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/icon-frontier.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/icon-frontier.png",
+        "svg": "topbar-v3/icon-frontier.svg",
+        "viewBox": [
+          40,
+          40
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "runtime-independent icon",
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "sha256": "44d1231b7cbe7e4fe213e186650e90deb2b7b0ebc1306223ecc6c5ec2a964796",
+        "bytes": 1242
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon-action": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/icon-action.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/icon-action.png",
+        "svg": "topbar-v3/icon-action.svg",
+        "viewBox": [
+          24,
+          24
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "runtime-independent icon",
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "sha256": "be2d1488351f256ee77ca7c5d876f927e5d92830b225293bd1bbd95dbde11feb",
+        "bytes": 562
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon-redzone": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/icon-redzone.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/icon-redzone.png",
+        "svg": "topbar-v3/icon-redzone.svg",
+        "viewBox": [
+          28,
+          28
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "runtime-independent icon",
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "sha256": "ea9554b7ce218c4e5f5dbc9580fa6b0b6af4b605066555042449b0ee9fe9543c",
+        "bytes": 1099
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon-panels": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/icon-panels.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/icon-panels.png",
+        "svg": "topbar-v3/icon-panels.svg",
+        "viewBox": [
+          24,
+          24
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "runtime-independent icon",
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "sha256": "5c759cb3c196b5b2c2c94327c2b8ca535ba67dfb1c1ef85133321e9924243a35",
+        "bytes": 456
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "icon-settings": {
+      "path": "资产/新版组件/Frontier-3.1/topbar-v3/icon-settings.png",
+      "sourcePackage": "FrontierUI-v3-Patch",
+      "sourceSpec": {
+        "path": "topbar-v3/icon-settings.png",
+        "svg": "topbar-v3/icon-settings.svg",
+        "viewBox": [
+          32,
+          32
+        ],
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "role": "runtime-independent icon",
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "sha256": "45928e2e46bba6924a57d7ea16c99b71113819da5cf5d7f863f6d6210d6c6784",
+        "bytes": 1297
+      },
+      "unityBorderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "patchId": "frontier-collaboration-v3",
+  "baseline": "MainGameUI-v2.2",
+  "applyMode": "mount-new-assets-and-remap-roles",
+  "assetManifest": "asset-manifest.json",
+  "geometryPatch": "layout-patch.json",
+  "deleteFiles": [],
+  "oldRoleToNewAssetIds": {
+    "screen-fill": [
+      "module-bg"
+    ],
+    "screen-frame": [
+      "outer-frame"
+    ],
+    "module-frame": [
+      "module-frame"
+    ],
+    "submodule-frame": [
+      "module-frame"
+    ],
+    "thin-row-frame": [
+      "module-frame"
+    ],
+    "module-fill-dark": [
+      "module-bg"
+    ],
+    "module-fill-paper": [
+      "paper-bg"
+    ],
+    "module-header-fill": [
+      "header-bg"
+    ],
+    "module-header-frame": [],
+    "card-slot-fill": [
+      "card-bg"
+    ],
+    "card-slot-frame": [
+      "card-frame"
+    ],
+    "topbar-fill": [
+      "topbar-bg"
+    ],
+    "topbar-frame": [
+      "topbar-frame"
+    ],
+    "turn-ribbon-fill": [
+      "turn-tag-refined"
+    ],
+    "turn-ribbon-frame": [],
+    "title-plaque-fill": [],
+    "title-plaque-frame": [],
+    "right-cluster-fill": [],
+    "right-cluster-frame": []
+  },
+  "windowRoleToNewAssetIds": {
+    "window-background": [
+      "module-bg"
+    ],
+    "window-frame": [
+      "outer-frame"
+    ],
+    "window-header": [
+      "header-bg"
+    ],
+    "section-background": [
+      "module-bg"
+    ],
+    "section-frame": [
+      "module-frame"
+    ],
+    "paper-content": [
+      "paper-bg"
+    ],
+    "selection-slot": [
+      "card-bg",
+      "card-frame"
+    ],
+    "confirm-button": [
+      "button-primary"
+    ],
+    "cancel-button": [
+      "button-secondary"
+    ]
+  },
+  "newRoles": {
+    "bottom-background": [
+      "bottom-bar"
+    ],
+    "bottom-frame": [
+      "bottom-frame"
+    ],
+    "resolution-summary": [
+      "chain-slot-bg",
+      "chain-slot-frame"
+    ],
+    "resolution-drawer": [
+      "module-bg",
+      "drawer-frame",
+      "header-bg"
+    ],
+    "undo-enabled": [
+      "undo-enabled",
+      "icon-undo-active"
+    ],
+    "undo-disabled": [
+      "undo-disabled",
+      "icon-undo-muted"
+    ],
+    "end-action-enabled": [
+      "button-primary"
+    ],
+    "end-action-disabled": [
+      "button-disabled"
+    ]
+  },
+  "retainedUnchanged": [
+    "original-game-art",
+    "exact-four-player-colors",
+    "all-cooperation-marker-combinations",
+    "card-selection-state-semantics",
+    "source-card-aspect-ratios"
+  ],
+  "runtimeLayers": [
+    "text",
+    "numbers",
+    "player-markers",
+    "status-icons",
+    "hit-areas"
+  ],
+  "notes": "An empty mapping removes an obsolete visual layer, not a semantic control. Topbar labels and hit regions are recomposed in the new preview. This is a role mapping, not a one-click game patch.",
+  "topbarRevision": "3.1"
+}

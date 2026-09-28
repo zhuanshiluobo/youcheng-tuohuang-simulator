@@ -1,0 +1,130 @@
+{
+  "browserTestsRun": false,
+  "renderer": "Inkscape, using exactly the same scene.js as the HTML preview",
+  "browserStatus": "No installed browser executable; browser interactions and visual layout are not claimed as tested.",
+  "referencedAssetPathsValid": true,
+  "referencedAssets": 19,
+  "javascriptSyntax": [
+    "data.js",
+    "scene.js",
+    "app.js"
+  ],
+  "originalFacilitySize": [
+    600,
+    850
+  ],
+  "facilityDisplaySize": [
+    204,
+    289
+  ],
+  "cityOriginalSize": [
+    2059,
+    3801
+  ],
+  "cityDisplayRect": [
+    1405,
+    234,
+    354,
+    653.4987858183584
+  ],
+  "previewResults": [
+    {
+      "id": "standard",
+      "canConfirm": true,
+      "quote": {
+        "valid": true,
+        "affordable": true,
+        "costs": [
+          {
+            "resource": "rock",
+            "count": 1
+          },
+          {
+            "resource": "iron",
+            "count": 2
+          }
+        ],
+        "reason": "",
+        "pendingSubchoice": false,
+        "provenance": "explicit-demo-table",
+        "effectsToConsume": {
+          "passengerMarkers": 2
+        }
+      }
+    },
+    {
+      "id": "many-candidates",
+      "canConfirm": true,
+      "quote": {
+        "valid": true,
+        "affordable": true,
+        "costs": [
+          {
+            "resource": "rock",
+            "count": 1
+          },
+          {
+            "resource": "iron",
+            "count": 2
+          }
+        ],
+        "reason": "",
+        "pendingSubchoice": false,
+        "provenance": "explicit-demo-table",
+        "effectsToConsume": {
+          "passengerMarkers": 2
+        }
+      }
+    },
+    {
+      "id": "extension-three",
+      "canConfirm": true,
+      "quote": {
+        "valid": true,
+        "affordable": true,
+        "costs": [],
+        "reason": "",
+        "pendingSubchoice": false,
+        "provenance": "explicit-demo-table",
+        "effectsToConsume": {
+          "passengerMarkers": 0
+        }
+      }
+    }
+  ],
+  "htmlCssResourcePathsValid": true,
+  "sharedSceneUsedForHtmlAndStatic": true,
+  "manualVisualReview": {
+    "passed": true,
+    "previews": [
+      "standard.png",
+      "many-candidates.png",
+      "extension-three.png"
+    ],
+    "scope": [
+      "original cards visible and proportional",
+      "six candidates fully visible without scrolling",
+      "long candidate list has vertical scrollbar",
+      "three candidates centered in both directions",
+      "city board and cell overlays preserve original ratio",
+      "selected check outside original card score",
+      "confirmation uses original card-picker texture"
+    ]
+  },
+  "logicValidation": {
+    "method": "Pure scene helpers plus a limited Node DOM shim; no browser engine",
+    "passed": true,
+    "checks": [
+      "discount changes quote; unaffordable candidates remain selectable",
+      "confirmation blocked by insufficient resources",
+      "occupied core cell cannot be selected",
+      "pending subchoice prevents confirmation",
+      "free extension needs no payment",
+      "zoom preserves the existing selection",
+      "successful callback does not mutate resources or effect markers",
+      "changing to gold payment clears resource credits",
+      "canCancel=false prevents cancellation",
+      "stale async confirmation cannot close a newly opened operation"
+    ]
+  }
+}

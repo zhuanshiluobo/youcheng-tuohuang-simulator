@@ -163,8 +163,7 @@ namespace YC.Presentation
 
             view.CollapsedSummaryText.text = BuildCardSummary(card, metadataLabel);
             view.CollapseButton.gameObject.SetActive(true);
-            view.DragHandle.enabled = true;
-            view.DragHandle.Configure(view.Panel);
+            if (view.DragHandle != null) view.DragHandle.enabled = false;
             view.CollapsiblePanel.Configure(new EffectDialogCollapseSpec(
                 effectDialogLayoutProfile)
             {
@@ -244,8 +243,7 @@ namespace YC.Presentation
 
             view.CollapsedSummaryText.text = BuildCardSummary(card, metadataLabel);
             ConfigureAssetizedCollapseButton();
-            view.DragHandle.enabled = true;
-            view.DragHandle.Configure(view.Panel);
+            if (view.DragHandle != null) view.DragHandle.enabled = false;
 
             var collapseSpec = new EffectDialogCollapseSpec(effectDialogLayoutProfile)
             {

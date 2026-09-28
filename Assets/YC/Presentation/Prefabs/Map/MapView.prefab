@@ -1792,6 +1792,13 @@ MonoBehaviour:
     y: 0
     width: 0.78385
     height: 1
+  cameraViewport:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  framedViewportZoom: 1.2
   minZoom: 0.9
   maxZoom: 2
   wheelZoomStep: 0.1

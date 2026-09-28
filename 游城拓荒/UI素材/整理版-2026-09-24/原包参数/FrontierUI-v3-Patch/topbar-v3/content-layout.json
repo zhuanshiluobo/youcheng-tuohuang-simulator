@@ -1,0 +1,82 @@
+{
+  "version": "3.1",
+  "height": 64,
+  "units": "logical pixels",
+  "regions": {
+    "brandIcon": [
+      28,
+      12,
+      40,
+      40
+    ],
+    "roundPlaque": [
+      557,
+      9,
+      60,
+      44
+    ],
+    "turnFlag": [
+      1048,
+      10,
+      224,
+      44
+    ],
+    "redZone": [
+      1324,
+      10,
+      252,
+      44
+    ],
+    "redZoneState": [
+      1504,
+      24,
+      60,
+      21
+    ],
+    "collapse": [
+      1610,
+      10,
+      216,
+      44
+    ],
+    "settings": [
+      1840,
+      10,
+      60,
+      44
+    ]
+  },
+  "runtimeValues": [
+    "round",
+    "roundCount",
+    "phase",
+    "playerCount",
+    "collapsed"
+  ],
+  "redZoneOpenRoundByPlayerCount": {
+    "2": 6,
+    "3": 5,
+    "4": 4
+  },
+  "redZoneOpenCondition": "round >= redZoneOpenRoundByPlayerCount[playerCount]",
+  "newAssets": [
+    "round-plaque",
+    "turn-tag-refined",
+    "redzone-plaque",
+    "topbar-tool-default",
+    "topbar-tool-hover",
+    "icon-frontier",
+    "icon-action",
+    "icon-redzone",
+    "icon-panels",
+    "icon-settings"
+  ],
+  "runtimeLayers": [
+    "labels",
+    "round-number",
+    "round-ticks",
+    "red-zone-state-label",
+    "collapse-chevron",
+    "hit-regions"
+  ]
+}

@@ -1,0 +1,238 @@
+{
+  "browserTestsRun": false,
+  "browserUnavailableReason": "Playwright browser executable is absent; attempted installation did not provide a usable browser. No browser interaction results are claimed.",
+  "staticChecks": {
+    "cssImagePaths": true,
+    "topbarState": {
+      "playerCount": 4,
+      "round": 4,
+      "roundCount": 8,
+      "phaseLabel": "行动阶段",
+      "isYourTurn": true,
+      "redZoneOpenRound": 4,
+      "redZoneTitle": "红区开放",
+      "redZoneLabel": "第4回合起",
+      "redZoneOpenRoundByPlayerCount": {
+        "2": 6,
+        "3": 5,
+        "4": 4
+      },
+      "statusTextIsIndependent": true,
+      "topbarComposition": "v2.2 native-size parts; full-width header, spaced title and round group, small gold turn flag, shared right cluster with two-line red-zone information",
+      "topbarRects": {
+        "header": [
+          0,
+          0,
+          1920,
+          68
+        ],
+        "title": [
+          16,
+          0,
+          474,
+          64
+        ],
+        "round": [
+          720,
+          14,
+          320,
+          42
+        ],
+        "turn": [
+          1075,
+          7,
+          204,
+          49
+        ],
+        "rightCluster": [
+          1436,
+          3,
+          474,
+          59
+        ],
+        "collapse": [
+          1678,
+          3,
+          167,
+          59
+        ],
+        "settings": [
+          1845,
+          3,
+          65,
+          59
+        ]
+      }
+    },
+    "referencedCompositionAssets": 51,
+    "javascriptSyntax": [
+      {
+        "label": "app.js syntax",
+        "passed": true
+      },
+      {
+        "label": "data.js syntax",
+        "passed": true
+      }
+    ],
+    "originalCitySize": [
+      2059,
+      3801
+    ],
+    "cityDisplayRect": [
+      67.9905288082,
+      472,
+      312.0189423836,
+      576
+    ],
+    "cityAspectPreserved": true,
+    "mapAspectPreserved": true,
+    "mapSourceCrop": [
+      100,
+      300,
+      4690,
+      4520
+    ],
+    "mapBackdrop": "Blurred and darkened ambient fill; one sharp proportional map; complete original accessible in HTML modal",
+    "cardPresentation": "Portrait thumbnails; full originals accessible in HTML details",
+    "cooperationCellComposition": "one PNG for each combined color mask",
+    "tierIIStateColumns": [
+      "2",
+      "已用余1",
+      "1",
+      "已用余0",
+      "0"
+    ],
+    "nineSliceFrames": true,
+    "renderer": "Inkscape",
+    "outsideTopbarPixelComparison": {
+      "region": [
+        0,
+        72,
+        1920,
+        1008
+      ],
+      "reference": "v2.1 actual main-city-patterns.png",
+      "allUnchanged": true,
+      "sha256": "5c05e51101e0cd204774d4105a7af89bc24b7d216d8eff54abcb3643a3b8685d"
+    },
+    "topbarLayerValidation": [
+      {
+        "id": "topbar-fill",
+        "size": [
+          1920,
+          68
+        ],
+        "alphaRange": [
+          255,
+          255
+        ],
+        "passed": true
+      },
+      {
+        "id": "topbar-frame",
+        "size": [
+          1920,
+          68
+        ],
+        "alphaRange": [
+          0,
+          254
+        ],
+        "passed": true
+      },
+      {
+        "id": "title-plaque-fill",
+        "size": [
+          474,
+          64
+        ],
+        "alphaRange": [
+          0,
+          254
+        ],
+        "passed": true
+      },
+      {
+        "id": "title-plaque-frame",
+        "size": [
+          474,
+          64
+        ],
+        "alphaRange": [
+          0,
+          254
+        ],
+        "passed": true
+      },
+      {
+        "id": "title-plaque",
+        "size": [
+          474,
+          64
+        ],
+        "alphaRange": [
+          0,
+          254
+        ],
+        "passed": true
+      },
+      {
+        "id": "turn-ribbon-fill",
+        "size": [
+          204,
+          49
+        ],
+        "alphaRange": [
+          0,
+          254
+        ],
+        "passed": true
+      },
+      {
+        "id": "turn-ribbon-frame",
+        "size": [
+          204,
+          49
+        ],
+        "alphaRange": [
+          0,
+          254
+        ],
+        "passed": true
+      },
+      {
+        "id": "right-cluster-fill",
+        "size": [
+          474,
+          59
+        ],
+        "alphaRange": [
+          0,
+          254
+        ],
+        "passed": true
+      },
+      {
+        "id": "right-cluster-frame",
+        "size": [
+          474,
+          59
+        ],
+        "alphaRange": [
+          0,
+          253
+        ],
+        "passed": true
+      }
+    ]
+  },
+  "staticPreviews": [
+    "main-city-patterns.svg",
+    "main-city-patterns.png",
+    "main-actions.svg",
+    "main-actions.png"
+  ],
+  "contentRevision": "v2.2 reference-aligned topbar and shared right control cluster; reference-aligned art composition: player avatars and color bands, shared paper state table, portrait thumbnails, sideways covered stack, proportional cropped map.",
+  "htmlInteractionStatus": "Implemented but not browser-tested: tabs, collapse/expand, details, map zoom, independent card-pile scrolling."
+}

@@ -64,9 +64,12 @@ namespace YC.Presentation
             }
 
             EnsureConfigured();
-            var instance = UnityEngine.Object.Instantiate(effectDialogShellPrefab, parent, false);
+            var frame = GameplayHudFrame.Active;
+            var instance = UnityEngine.Object.Instantiate(effectDialogShellPrefab,
+                frame == null || frame.ContentRect == null ? parent : frame.ContentRect, false);
             instance.transform.SetAsLastSibling();
-            instance.gameObject.SetActive(true);
+            if (frame != null) frame.ShowPage(instance.gameObject, true);
+            else instance.gameObject.SetActive(true);
             return instance;
         }
 
@@ -78,9 +81,12 @@ namespace YC.Presentation
             }
 
             EnsureConfigured();
-            var instance = UnityEngine.Object.Instantiate(dispatchDecisionPrefab, parent, false);
+            var frame = GameplayHudFrame.Active;
+            var instance = UnityEngine.Object.Instantiate(dispatchDecisionPrefab,
+                frame == null || frame.ContentRect == null ? parent : frame.ContentRect, false);
             instance.transform.SetAsLastSibling();
-            instance.gameObject.SetActive(true);
+            if (frame != null) frame.ShowPage(instance.gameObject, false);
+            else instance.gameObject.SetActive(true);
             return instance;
         }
 
@@ -92,10 +98,13 @@ namespace YC.Presentation
             }
 
             EnsureConfigured();
-            var instance = UnityEngine.Object.Instantiate(eventChoiceDialogPrefab, parent, false);
+            var frame = GameplayHudFrame.Active;
+            var instance = UnityEngine.Object.Instantiate(eventChoiceDialogPrefab,
+                frame == null || frame.ContentRect == null ? parent : frame.ContentRect, false);
             NormalizeNestedOverlayRect(instance.OverlayRect);
             instance.transform.SetAsLastSibling();
-            instance.gameObject.SetActive(true);
+            if (frame != null) frame.ShowPage(instance.gameObject, true);
+            else instance.gameObject.SetActive(true);
             return instance;
         }
 
@@ -125,9 +134,12 @@ namespace YC.Presentation
             }
 
             EnsureConfigured();
-            var instance = UnityEngine.Object.Instantiate(cityStyleDeclarationPreviewPrefab, parent, false);
+            var frame = GameplayHudFrame.Active;
+            var instance = UnityEngine.Object.Instantiate(cityStyleDeclarationPreviewPrefab,
+                frame == null || frame.ContentRect == null ? parent : frame.ContentRect, false);
             instance.transform.SetAsLastSibling();
-            instance.gameObject.SetActive(true);
+            if (frame != null) frame.ShowPage(instance.gameObject, false);
+            else instance.gameObject.SetActive(true);
             return instance;
         }
 

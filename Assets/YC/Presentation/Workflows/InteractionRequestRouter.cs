@@ -20,6 +20,7 @@ namespace YC.Presentation.Workflows
     /// </summary>
     public sealed class InteractionRequestRouter
     {
+        public static event Action<InteractionRequestProjection> RequestRouted;
         private readonly List<IInteractionRequestRenderer> renderers =
             new List<IInteractionRequestRenderer>();
         private readonly HashSet<string> rendererIds =
@@ -68,6 +69,7 @@ namespace YC.Presentation.Workflows
                 IInteractionRequestRenderer renderer = renderers[i];
                 if (!renderer.CanRender(projection)) continue;
                 if (activeRenderer != null && activeRenderer != renderer) activeRenderer.Clear();
+                RequestRouted?.Invoke(projection);
                 renderer.Render(projection);
                 activeRenderer = renderer;
                 return true;
@@ -78,6 +80,7 @@ namespace YC.Presentation.Workflows
 
         public void Clear()
         {
+            RequestRouted?.Invoke(null);
             if (activeRenderer != null)
             {
                 activeRenderer.Clear();

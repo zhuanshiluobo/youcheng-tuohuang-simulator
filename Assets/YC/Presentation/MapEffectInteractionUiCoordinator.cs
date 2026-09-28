@@ -124,6 +124,7 @@ namespace YC.Presentation
         {
             var request = Current();
             if (request == null) return InteractionResult.Passthrough;
+            if (GameplayHudFrame.EffectInputSuspended) return InteractionResult.Consumed;
             if (!string.IsNullOrEmpty(inFlight)) return InteractionResult.Consumed;
             var candidate = request.CandidateIds.Find(id => Slot(request, id) == slotId);
             if (string.IsNullOrEmpty(candidate)) { prompt("请选择高亮的合法目标。"); return InteractionResult.Consumed; }
@@ -140,6 +141,7 @@ namespace YC.Presentation
         {
             var request = Current();
             if (request == null) return InteractionResult.Passthrough;
+            if (GameplayHudFrame.EffectInputSuspended) return InteractionResult.Consumed;
             if ((request.InteractionTypeId == PlayerEntranceEffectExecutor.InteractionTypeId || request.InteractionTypeId == CityMoveEffectExecutor.TargetInteractionTypeId) && request.CandidateIds.Contains(locationId))
                 Answer(request, locationId, false);
             else prompt("请选择高亮的合法目标。");
@@ -150,6 +152,7 @@ namespace YC.Presentation
         {
             var request = Current();
             if (request == null) return InteractionResult.Passthrough;
+            if (GameplayHudFrame.EffectInputSuspended) return InteractionResult.Consumed;
             if (request.AllowDecline) Answer(request, null, true);
             else prompt("请先完成当前效果的目标选择。");
             return InteractionResult.Consumed;

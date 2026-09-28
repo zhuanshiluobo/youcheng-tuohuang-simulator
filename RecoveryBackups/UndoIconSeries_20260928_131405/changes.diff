@@ -1,0 +1,24 @@
+--- before
++++ after
+@@ -14532,7 +14532,7 @@
+   m_OnCullStateChanged:
+     m_PersistentCalls:
+       m_Calls: []
+-  m_Sprite: {fileID: 21300000, guid: ee87e10bf6c3f64459ba5c7a38b380e8, type: 3}
++  m_Sprite: {fileID: 21300000, guid: 648ead4237233a94fa3cd31ab5d039fe, type: 3}
+   m_Type: 0
+   m_PreserveAspect: 0
+   m_FillCenter: 1
+@@ -24776,9 +24776,9 @@
+   disabled: {fileID: 21300000, guid: 423708fe7e7c57041962c1490952a8c7, type: 3}
+   selectedFace: {fileID: 0}
+   selectedHover: {fileID: 0}
+-  lightIcon: {fileID: 21300000, guid: 8aa4f67a924d7164aa87642165711c86, type: 3}
+-  darkIcon: {fileID: 21300000, guid: a754ea2ba4d75aa4b94571eb31fb31f9, type: 3}
+-  mutedIcon: {fileID: 21300000, guid: 69649fe51a299c745bd28650e948f6d1, type: 3}
++  lightIcon: {fileID: 21300000, guid: 648ead4237233a94fa3cd31ab5d039fe, type: 3}
++  darkIcon: {fileID: 21300000, guid: 648ead4237233a94fa3cd31ab5d039fe, type: 3}
++  mutedIcon: {fileID: 21300000, guid: ee87e10bf6c3f64459ba5c7a38b380e8, type: 3}
+   darkNormalInk: 0
+   selected: 0
+   lightInk: {r: 0.925, g: 0.922, b: 0.855, a: 1}

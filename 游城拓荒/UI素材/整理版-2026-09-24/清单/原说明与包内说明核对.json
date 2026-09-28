@@ -1,0 +1,50 @@
+[
+  {
+    "document": "FrontierUI-v3-Incremental.md",
+    "archive": "FrontierUI-v3-Patch.zip",
+    "member": "FrontierUI-v3-Patch/docs/INCREMENTAL_PATCH.md",
+    "identical": true
+  },
+  {
+    "document": "MainGameUI-Layout-v2.2.md",
+    "archive": "MainGameUI-v2.2.zip",
+    "member": "MainGameUI-v2.2/docs/UI_LAYOUT.md",
+    "identical": true
+  },
+  {
+    "document": "EnterprisePicker-Layout-v1.0.md",
+    "archive": "EnterprisePicker-v1.0.zip",
+    "member": "EnterprisePicker-v1.0/docs/ENTERPRISE_PICKER.md",
+    "identical": true
+  },
+  {
+    "document": "FacilityBuild-Layout-v1.0.md",
+    "archive": "FacilityBuild-UI-v1.0.zip",
+    "member": "FacilityBuild-UI-v1.0/docs/FACILITY_BUILD.md",
+    "identical": true
+  },
+  {
+    "document": "CityPattern-Layout-v1.0.md",
+    "archive": "CityPattern-UI-v1.0.zip",
+    "member": "CityPattern-UI-v1.0/docs/CITY_PATTERN.md",
+    "identical": true
+  },
+  {
+    "document": "RhineDepartment-Layout-v1.0.md",
+    "archive": "RhineDepartment-UI-v1.0.zip",
+    "member": "RhineDepartment-UI-v1.0/docs/RHINE_DEPARTMENT.md",
+    "identical": true
+  },
+  {
+    "document": "UI_LAYOUT.md",
+    "archive": "Card-Picker-UI-v1.zip",
+    "member": "card-picker-ui-v1/UI_LAYOUT.md",
+    "identical": true
+  },
+  {
+    "document": "OPTION_WINDOWS.md",
+    "archive": "Option-Picker-UI-v1.zip",
+    "member": "option-picker-ui-v1/OPTION_WINDOWS.md",
+    "identical": true
+  }
+]

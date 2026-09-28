@@ -1,0 +1,314 @@
+{
+  "version": "2.2.0",
+  "assets": [
+    {
+      "id": "topbar-fill",
+      "svg": "01-topbar/topbar-fill.svg",
+      "png": "01-topbar/topbar-fill.png",
+      "sourceSize": {
+        "width": 1920,
+        "height": 68
+      },
+      "border": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "role": "background",
+      "material": "05-textures/art/topbar-matte-background.png",
+      "hasText": false,
+      "centerAlpha": 255,
+      "recommendedDisplayRect": [
+        0,
+        0,
+        1920,
+        68
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration",
+      "sourceCrop": [
+        0,
+        324,
+        2172,
+        77
+      ]
+    },
+    {
+      "id": "topbar-frame",
+      "svg": "01-topbar/topbar-frame.svg",
+      "png": "01-topbar/topbar-frame.png",
+      "sourceSize": {
+        "width": 1920,
+        "height": 68
+      },
+      "border": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 4
+      },
+      "role": "bottom-separation-edge",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 0,
+      "recommendedDisplayRect": [
+        0,
+        0,
+        1920,
+        68
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    },
+    {
+      "id": "title-plaque-fill",
+      "svg": "01-topbar/title-plaque-fill.svg",
+      "png": "01-topbar/title-plaque-fill.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 64
+      },
+      "border": {
+        "left": 8,
+        "top": 0,
+        "right": 76,
+        "bottom": 0
+      },
+      "role": "independent-fill",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 253,
+      "recommendedDisplayRect": [
+        16,
+        0,
+        474,
+        64
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    },
+    {
+      "id": "title-plaque-frame",
+      "svg": "01-topbar/title-plaque-frame.svg",
+      "png": "01-topbar/title-plaque-frame.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 64
+      },
+      "border": {
+        "left": 8,
+        "top": 0,
+        "right": 76,
+        "bottom": 0
+      },
+      "role": "transparent-frame",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 0,
+      "recommendedDisplayRect": [
+        16,
+        0,
+        474,
+        64
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    },
+    {
+      "id": "title-plaque",
+      "svg": "01-topbar/title-plaque.svg",
+      "png": "01-topbar/title-plaque.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 64
+      },
+      "border": {
+        "left": 8,
+        "top": 0,
+        "right": 76,
+        "bottom": 0
+      },
+      "role": "optional-combined-title-decoration",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 253,
+      "recommendedDisplayRect": [
+        16,
+        0,
+        474,
+        64
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    },
+    {
+      "id": "turn-ribbon-fill",
+      "svg": "01-topbar/turn-ribbon-fill.svg",
+      "png": "01-topbar/turn-ribbon-fill.png",
+      "sourceSize": {
+        "width": 204,
+        "height": 49
+      },
+      "border": {
+        "left": 24,
+        "top": 0,
+        "right": 24,
+        "bottom": 0
+      },
+      "role": "independent-fill",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 253,
+      "recommendedDisplayRect": [
+        1075,
+        7,
+        204,
+        49
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    },
+    {
+      "id": "turn-ribbon-frame",
+      "svg": "01-topbar/turn-ribbon-frame.svg",
+      "png": "01-topbar/turn-ribbon-frame.png",
+      "sourceSize": {
+        "width": 204,
+        "height": 49
+      },
+      "border": {
+        "left": 24,
+        "top": 0,
+        "right": 24,
+        "bottom": 0
+      },
+      "role": "transparent-frame",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 0,
+      "recommendedDisplayRect": [
+        1075,
+        7,
+        204,
+        49
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    },
+    {
+      "id": "right-cluster-fill",
+      "svg": "01-topbar/right-cluster-fill.svg",
+      "png": "01-topbar/right-cluster-fill.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 59
+      },
+      "border": {
+        "left": 62,
+        "top": 0,
+        "right": 66,
+        "bottom": 0
+      },
+      "role": "independent-fill",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 253,
+      "recommendedDisplayRect": [
+        1436,
+        3,
+        474,
+        59
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    },
+    {
+      "id": "right-cluster-frame",
+      "svg": "01-topbar/right-cluster-frame.svg",
+      "png": "01-topbar/right-cluster-frame.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 59
+      },
+      "border": {
+        "left": 62,
+        "top": 0,
+        "right": 66,
+        "bottom": 0
+      },
+      "role": "transparent-frame",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 0,
+      "recommendedDisplayRect": [
+        1436,
+        3,
+        474,
+        59
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    }
+  ],
+  "source": "05-textures/art/topbar-matte-source.png",
+  "sourceSize": [
+    2172,
+    724
+  ],
+  "sourceHeaderBand": [
+    0,
+    306,
+    2172,
+    101
+  ],
+  "reference": "Approved main-screen concept exec-333ae77c-4116-4a55-99a2-d987fa429236.png; layout and silhouette reference, not a pixel-identical extraction",
+  "layerOrder": [
+    "topbar-fill",
+    "topbar-frame",
+    "title-plaque-fill + title-plaque-frame",
+    "turn-ribbon-fill + turn-ribbon-frame",
+    "right-cluster-fill + right-cluster-frame",
+    "runtime labels and icons",
+    "transparent interaction hit areas"
+  ],
+  "rightCluster": {
+    "redZone": [
+      0,
+      0,
+      242,
+      59
+    ],
+    "collapse": [
+      242,
+      0,
+      167,
+      59
+    ],
+    "settings": [
+      409,
+      0,
+      65,
+      59
+    ],
+    "resize": "Keep whole cluster uniform to preserve three control areas; do not nine-slice it as one control."
+  },
+  "rules": {
+    "redZoneOpenRoundByPlayerCount": {
+      "2": 6,
+      "3": 5,
+      "4": 4
+    },
+    "redRoutesAlwaysUsable": true
+  },
+  "deprecatedAssets": [
+    "red-zone-ribbon-fill",
+    "red-zone-ribbon-frame"
+  ],
+  "validation": {
+    "allLayersRendered": true,
+    "allSizesChecked": true,
+    "textBakedIntoTextures": false,
+    "sourcePngUnchanged": true
+  }
+}

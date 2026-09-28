@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-25 04:57:35Z" end-time="2026-09-25 04:57:36Z" duration="1.3330291">
+  <test-suite type="TestSuite" id="1015" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-25 04:57:35Z" end-time="2026-09-25 04:57:36Z" duration="1.333029" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1026" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-25 04:57:35Z" end-time="2026-09-25 04:57:36Z" duration="1.328885" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="38604" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1027" name="YC" fullname="YC" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-25 04:57:35Z" end-time="2026-09-25 04:57:36Z" duration="1.328382" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1028" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-25 04:57:35Z" end-time="2026-09-25 04:57:36Z" duration="1.328042" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1029" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-25 04:57:35Z" end-time="2026-09-25 04:57:36Z" duration="1.327744" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1021" name="Ui003HudFramePlayModeTests" fullname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests" classname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-25 04:57:35Z" end-time="2026-09-25 04:57:36Z" duration="1.326802" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1022" name="LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars" fullname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests.LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars" methodname="LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars" classname="YC.Tests.PlayMode.Ui003HudFramePlayModeTests" runstate="Runnable" seed="1960471423" result="Passed" start-time="2026-09-25 04:57:35Z" end-time="2026-09-25 04:57:36Z" duration="1.319147" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -192,7 +192,9 @@ namespace YC.Presentation
             }
 
             gameOverDialogShown = true;
+            GameplayHudFrame.Active?.ConstrainExternalPage(view.GameOverOverlay.transform as RectTransform);
             view.GameOverOverlay.SetActive(true);
+            GameplayHudFrame.Active?.ShowPage(view.GameOverOverlay, false);
             PopulateFinalScoreboard(state);
         }
 

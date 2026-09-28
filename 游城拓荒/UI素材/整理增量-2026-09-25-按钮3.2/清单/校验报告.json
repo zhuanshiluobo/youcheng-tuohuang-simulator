@@ -1,0 +1,41 @@
+{
+  "日期": "2026-09-25",
+  "阶段": "源素材整理；尚未导入 Unity",
+  "源包文件数": 174,
+  "源包清单校验通过": 173,
+  "安装清单源文件校验通过": 161,
+  "安装脚本已执行": false,
+  "浏览器交互已验证": false,
+  "Unity接入已验证": false,
+  "基线校验": [
+    {
+      "path": "asset-manifest.json",
+      "sha256": "08c566a827ccfab12aba97eae0cdd7350f72d9c1e787e6d2c23d317e9edecdb1",
+      "matched": true
+    },
+    {
+      "path": "preview/scene.mjs",
+      "sha256": "acf905daeed89de81c3ecbfa3d690074425dcad5ab888a717198b379baf7bbc6",
+      "matched": true
+    },
+    {
+      "path": "preview/preview.bundle.js",
+      "sha256": "914ec8be81b51a9a73f1c1c9dff9cbed8afd94300ef6d500d21f72f3279a7d81",
+      "matched": true
+    },
+    {
+      "path": "preview/styles.css",
+      "sha256": "cd367fba41f064dee7b3966237422bb109adb6c47b79f02d60b6107edfb145ee",
+      "matched": true
+    }
+  ],
+  "外部说明与包内说明逐字节一致": true,
+  "PNG签名CRC与解压通过": 105,
+  "按钮数": 11,
+  "底板系列数": 4,
+  "底板状态数": 18,
+  "图标配色数": 33,
+  "逻辑素材数": 51,
+  "运行时源素材文件数": 153,
+  "说明": "源包 QA.json 保留其原始声明；本报告不将源包自报验收算作项目验收。"
+}

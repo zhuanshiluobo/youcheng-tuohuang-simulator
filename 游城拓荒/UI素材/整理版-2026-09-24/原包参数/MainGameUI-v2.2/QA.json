@@ -1,0 +1,168 @@
+{
+  "revision": "2.2.0",
+  "componentChecks": [
+    {
+      "check": "45 chrome assets exported and checked for dimensions and alpha",
+      "passed": true,
+      "evidence": "chrome-validation.json"
+    },
+    {
+      "check": "layout asset borders match final chrome metadata",
+      "passed": true
+    },
+    {
+      "check": "95 marker files match the previous release SHA256 values",
+      "passed": true
+    },
+    {
+      "check": "original game art files preserve source SHA256 values",
+      "passed": true
+    },
+    {
+      "check": "final scene PNGs are 1920 x 1080 and decode successfully",
+      "passed": true
+    },
+    {
+      "check": "final actual composition visually reviewed after asset export completed",
+      "passed": true
+    },
+    {
+      "check": "red-zone opening round: 4-player=4, 3-player=5, 2-player=6",
+      "passed": true,
+      "evidence": "rulebook PDF pages 14 and 25"
+    },
+    {
+      "check": "nine matte topbar layers: exact dimensions and alpha; runtime text remains separate",
+      "passed": true,
+      "evidence": "01-topbar/topbar-v22.json"
+    },
+    {
+      "check": "main composition pixels below y=72 match v2.1 exactly",
+      "passed": true
+    },
+    {
+      "check": "206 pre-existing screen/module/control/marker/icon/original-art assets retain exact SHA256",
+      "passed": true
+    }
+  ],
+  "allPassed": true,
+  "browserTestsRun": false,
+  "previewVerification": "preview/verification.json",
+  "visualReviewScope": [
+    "main-city-patterns.png",
+    "main-actions.png",
+    "component-sheet.png",
+    "topbar-detail.png"
+  ],
+  "artSources": "art-prompts.json",
+  "topbarValidation": [
+    {
+      "id": "topbar-fill",
+      "size": [
+        1920,
+        68
+      ],
+      "alphaRange": [
+        255,
+        255
+      ],
+      "passed": true
+    },
+    {
+      "id": "topbar-frame",
+      "size": [
+        1920,
+        68
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "passed": true
+    },
+    {
+      "id": "title-plaque-fill",
+      "size": [
+        474,
+        64
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "passed": true
+    },
+    {
+      "id": "title-plaque-frame",
+      "size": [
+        474,
+        64
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "passed": true
+    },
+    {
+      "id": "title-plaque",
+      "size": [
+        474,
+        64
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "passed": true
+    },
+    {
+      "id": "turn-ribbon-fill",
+      "size": [
+        204,
+        49
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "passed": true
+    },
+    {
+      "id": "turn-ribbon-frame",
+      "size": [
+        204,
+        49
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "passed": true
+    },
+    {
+      "id": "right-cluster-fill",
+      "size": [
+        474,
+        59
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "passed": true
+    },
+    {
+      "id": "right-cluster-frame",
+      "size": [
+        474,
+        59
+      ],
+      "alphaRange": [
+        0,
+        253
+      ],
+      "passed": true
+    }
+  ]
+}

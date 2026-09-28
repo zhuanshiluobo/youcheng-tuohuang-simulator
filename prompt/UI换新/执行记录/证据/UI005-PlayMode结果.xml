@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Failed(Child)" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-25 10:04:38Z" end-time="2026-09-25 10:04:41Z" duration="2.8906591">
+  <test-suite type="TestSuite" id="1020" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="10" result="Failed" site="Child" start-time="2026-09-25 10:04:38Z" end-time="2026-09-25 10:04:41Z" duration="2.890659" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1036" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="10" result="Failed" site="Child" start-time="2026-09-25 10:04:38Z" end-time="2026-09-25 10:04:41Z" duration="2.886400" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="40416" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1037" name="YC" fullname="YC" runstate="Runnable" testcasecount="10" result="Failed" site="Child" start-time="2026-09-25 10:04:38Z" end-time="2026-09-25 10:04:41Z" duration="2.885709" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1038" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="10" result="Failed" site="Child" start-time="2026-09-25 10:04:38Z" end-time="2026-09-25 10:04:41Z" duration="2.885275" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1039" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="10" result="Failed" site="Child" start-time="2026-09-25 10:04:38Z" end-time="2026-09-25 10:04:41Z" duration="2.884423" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1031" name="Ui005MainHudPlayModeTests" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" testcasecount="4" result="Failed" site="Child" start-time="2026-09-25 10:04:38Z" end-time="2026-09-25 10:04:41Z" duration="2.882896" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1032" name="BothScenes_UseOneBottomActionAndTabbedFormalEntries" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests.BothScenes_UseOneBottomActionAndTabbedFormalEntries" methodname="BothScenes_UseOneBottomActionAndTabbedFormalEntries" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" seed="689451172" result="Passed" start-time="2026-09-25 10:04:38Z" end-time="2026-09-25 10:04:40Z" duration="1.886797" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+              <test-case id="1035" name="BuildButton_OpensAndCancelsTheExistingDraft" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests.BuildButton_OpensAndCancelsTheExistingDraft" methodname="BuildButton_OpensAndCancelsTheExistingDraft" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" seed="1813365119" result="Failed" start-time="2026-09-25 10:04:40Z" end-time="2026-09-25 10:04:40Z" duration="0.327019" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  建设入口应使用当前主要行动能力
+  Expected: True
+  But was:  False
+]]></message>
+                  <stack-trace><![CDATA[at YC.Tests.PlayMode.Ui005MainHudPlayModeTests+<BuildButton_OpensAndCancelsTheExistingDraft>d__3.MoveNext () [0x001de] in G:\NoMadCity\Assets\YC\Tests\PlayMode\FacilityCatalog\Ui005MainHudPlayModeTests.cs:166
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@1.1.33\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:46
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1034" name="OpponentProjection_ShowsPublicCountsWithoutCardIdentities" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests.OpponentProjection_ShowsPublicCountsWithoutCardIdentities" methodname="OpponentProjection_ShowsPublicCountsWithoutCardIdentities" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" seed="541783842" result="Passed" start-time="2026-09-25 10:04:40Z" end-time="2026-09-25 10:04:40Z" duration="0.324917" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+              <test-case id="1033" name="TabState_DisabledOverridesSelection_AndRetainsSelectionOnExit" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests.TabState_DisabledOverridesSelection_AndRetainsSelectionOnExit" methodname="TabState_DisabledOverridesSelection_AndRetainsSelectionOnExit" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" seed="416773182" result="Passed" start-time="2026-09-25 10:04:40Z" end-time="2026-09-25 10:04:41Z" duration="0.332178" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

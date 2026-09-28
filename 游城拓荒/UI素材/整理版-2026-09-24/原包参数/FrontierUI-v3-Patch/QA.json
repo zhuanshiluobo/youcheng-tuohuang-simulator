@@ -1,0 +1,337 @@
+{
+  "artifactValidationPassed": true,
+  "browserTestsRun": false,
+  "browserNote": "Static composition and file checks only; preview is not a running game.",
+  "checks": [
+    {
+      "id": "outer-frame",
+      "size": [
+        1024,
+        576
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "module-bg",
+      "size": [
+        512,
+        320
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "paper-bg",
+      "size": [
+        512,
+        128
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "header-bg",
+      "size": [
+        1024,
+        88
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "module-frame",
+      "size": [
+        512,
+        320
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "drawer-frame",
+      "size": [
+        1024,
+        240
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "card-frame",
+      "size": [
+        320,
+        456
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "card-bg",
+      "size": [
+        320,
+        456
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "topbar-bg",
+      "size": [
+        1920,
+        72
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "topbar-frame",
+      "size": [
+        1920,
+        72
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "turn-tag",
+      "size": [
+        256,
+        56
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "redzone-paper",
+      "size": [
+        256,
+        56
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "bottom-bar",
+      "size": [
+        1920,
+        96
+      ],
+      "centerAlpha": 249
+    },
+    {
+      "id": "bottom-frame",
+      "size": [
+        1920,
+        96
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "chain-slot-bg",
+      "size": [
+        1024,
+        64
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "chain-slot-frame",
+      "size": [
+        1024,
+        64
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "button-primary",
+      "size": [
+        320,
+        98
+      ],
+      "centerAlpha": 253
+    },
+    {
+      "id": "button-secondary",
+      "size": [
+        320,
+        98
+      ],
+      "centerAlpha": 253
+    },
+    {
+      "id": "button-disabled",
+      "size": [
+        320,
+        98
+      ],
+      "centerAlpha": 183
+    },
+    {
+      "id": "undo-enabled",
+      "size": [
+        200,
+        64
+      ],
+      "centerAlpha": 253
+    },
+    {
+      "id": "undo-disabled",
+      "size": [
+        200,
+        64
+      ],
+      "centerAlpha": 183
+    },
+    {
+      "id": "icon-undo-active",
+      "size": [
+        48,
+        48
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "icon-undo-muted",
+      "size": [
+        48,
+        48
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "icon-chevron",
+      "size": [
+        32,
+        32
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "icon-close",
+      "size": [
+        32,
+        32
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "round-plaque",
+      "size": [
+        60,
+        44
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "turn-tag-refined",
+      "size": [
+        224,
+        44
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "topbar-tool-default",
+      "size": [
+        216,
+        44
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "topbar-tool-hover",
+      "size": [
+        216,
+        44
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "redzone-plaque",
+      "size": [
+        252,
+        44
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "icon-frontier",
+      "size": [
+        40,
+        40
+      ],
+      "centerAlpha": 255
+    },
+    {
+      "id": "icon-action",
+      "size": [
+        24,
+        24
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "icon-redzone",
+      "size": [
+        28,
+        28
+      ],
+      "centerAlpha": 212
+    },
+    {
+      "id": "icon-panels",
+      "size": [
+        24,
+        24
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "id": "icon-settings",
+      "size": [
+        32,
+        32
+      ],
+      "centerAlpha": 0
+    },
+    {
+      "preview": "main-idle.png",
+      "size": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "preview": "main-resolution.png",
+      "size": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "preview": "main-resolution-compact.png",
+      "size": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "preview": "main-collapsed.png",
+      "size": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "preview": "main-city-patterns.png",
+      "size": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "preview": "component-sheet.png",
+      "size": [
+        1600,
+        1100
+      ]
+    },
+    {
+      "preview": "topbar-detail.png",
+      "size": [
+        1920,
+        328
+      ]
+    }
+  ],
+  "errors": []
+}

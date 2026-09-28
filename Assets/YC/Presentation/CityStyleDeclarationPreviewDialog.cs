@@ -50,6 +50,8 @@ namespace YC.Presentation
         private bool leftPointerHeld;
         private bool hasLastPointerPosition;
         private Vector2 lastPointerPosition;
+        private Vector2Int boardGestureScreenSize;
+        private readonly Vector3[] boardGestureCorners = new Vector3[4];
         private bool selectionCanConfirm;
         private string selectionReason = string.Empty;
         private int selectionRequiredFacilityCount;
@@ -925,6 +927,7 @@ namespace YC.Presentation
             leftPointerHeld = true;
             hasLastPointerPosition = true;
             lastPointerPosition = pointerPosition;
+            CaptureBoardGestureGeometry();
         }
 
         private void OnSlotLeftPointerDown(int slotIndex, Vector2 pointerPosition)
@@ -937,12 +940,18 @@ namespace YC.Presentation
             leftPointerHeld = true;
             hasLastPointerPosition = true;
             lastPointerPosition = pointerPosition;
+            CaptureBoardGestureGeometry();
         }
 
         private void OnSlotLeftPointerEnter(int slotIndex, Vector2 pointerPosition)
         {
             if (!selectingFacilities || !leftPointerHeld)
             {
+                return;
+            }
+            if (!BoardGestureGeometryUnchanged())
+            {
+                EndLeftPointerGesture();
                 return;
             }
 
@@ -967,6 +976,11 @@ namespace YC.Presentation
             {
                 return;
             }
+            if (!BoardGestureGeometryUnchanged())
+            {
+                EndLeftPointerGesture();
+                return;
+            }
 
             var changed = hasLastPointerPosition &&
                           AddSlotsAlongPointerSegment(lastPointerPosition, pointerPosition);
@@ -982,6 +996,24 @@ namespace YC.Presentation
         {
             leftPointerHeld = false;
             hasLastPointerPosition = false;
+        }
+
+        private void CaptureBoardGestureGeometry()
+        {
+            boardGestureScreenSize = new Vector2Int(Screen.width, Screen.height);
+            cityBoardRect?.GetWorldCorners(boardGestureCorners);
+        }
+
+        private bool BoardGestureGeometryUnchanged()
+        {
+            if (cityBoardRect == null || boardGestureScreenSize.x != Screen.width ||
+                boardGestureScreenSize.y != Screen.height) return false;
+            var corners = new Vector3[4];
+            cityBoardRect.GetWorldCorners(corners);
+            for (var i = 0; i < corners.Length; i++)
+                if ((corners[i] - boardGestureCorners[i]).sqrMagnitude > 0.0001f)
+                    return false;
+            return true;
         }
 
         private void OnSlotLeftClick(int slotIndex)
@@ -1255,27 +1287,23 @@ namespace YC.Presentation
                 return false;
             }
 
-            var corners = new Vector3[4];
-            rectTransform.GetWorldCorners(corners);
-            var first = RectTransformUtility.WorldToScreenPoint(null, corners[0]);
-            var minX = first.x;
-            var maxX = first.x;
-            var minY = first.y;
-            var maxY = first.y;
-            for (var i = 1; i < corners.Length; i++)
-            {
-                var screenPoint = RectTransformUtility.WorldToScreenPoint(null, corners[i]);
-                minX = Mathf.Min(minX, screenPoint.x);
-                maxX = Mathf.Max(maxX, screenPoint.x);
-                minY = Mathf.Min(minY, screenPoint.y);
-                maxY = Mathf.Max(maxY, screenPoint.y);
-            }
+            var canvas = rectTransform.GetComponentInParent<Canvas>();
+            var root = canvas == null ? null : canvas.rootCanvas;
+            var camera = root == null || root.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null : root.worldCamera;
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    rectTransform, start, camera, out var localStart) ||
+                !RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    rectTransform, end, camera, out var localEnd)) return false;
+            var rect = rectTransform.rect;
 
-            var direction = end - start;
+            var direction = localEnd - localStart;
             var minimumTime = 0f;
             var maximumTime = 1f;
-            return ClipSegmentAxis(start.x, direction.x, minX, maxX, ref minimumTime, ref maximumTime) &&
-                   ClipSegmentAxis(start.y, direction.y, minY, maxY, ref minimumTime, ref maximumTime);
+            return ClipSegmentAxis(localStart.x, direction.x, rect.xMin, rect.xMax,
+                       ref minimumTime, ref maximumTime) &&
+                   ClipSegmentAxis(localStart.y, direction.y, rect.yMin, rect.yMax,
+                       ref minimumTime, ref maximumTime);
         }
 
         private static bool ClipSegmentAxis(

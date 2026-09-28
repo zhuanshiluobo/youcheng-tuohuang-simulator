@@ -1,0 +1,108 @@
+{
+  "version": "2.2.0",
+  "assets": [
+    {
+      "id": "module-fill-dark",
+      "svg": "02-modules/module-fill-dark.svg",
+      "png": "02-modules/module-fill-dark.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 320
+      },
+      "material": "05-textures/metal-brown-base.png",
+      "role": "module-background-dark",
+      "hasText": false,
+      "hasFrame": false,
+      "alpha": "opaque",
+      "border": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "resize": "stretch-or-cover",
+      "overlayOrder": 0
+    },
+    {
+      "id": "module-fill-paper",
+      "svg": "02-modules/module-fill-paper.svg",
+      "png": "02-modules/module-fill-paper.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 320
+      },
+      "material": "05-textures/paper-ivory-base.png",
+      "role": "module-background-light",
+      "hasText": false,
+      "hasFrame": false,
+      "alpha": "opaque",
+      "border": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "resize": "stretch-or-cover",
+      "overlayOrder": 0
+    },
+    {
+      "id": "module-header-fill",
+      "svg": "02-modules/module-header-fill.svg",
+      "png": "02-modules/module-header-fill.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 44
+      },
+      "material": "05-textures/metal-brown-base.png",
+      "role": "module-header-background",
+      "hasText": false,
+      "hasFrame": false,
+      "alpha": "opaque",
+      "border": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "resize": "stretch-or-cover",
+      "overlayOrder": 0
+    },
+    {
+      "id": "card-slot-fill",
+      "svg": "02-modules/card-slot-fill.svg",
+      "png": "02-modules/card-slot-fill.png",
+      "sourceSize": {
+        "width": 160,
+        "height": 224
+      },
+      "material": "05-textures/metal-brown-base.png",
+      "role": "card-slot-background",
+      "hasText": false,
+      "hasFrame": false,
+      "alpha": "opaque",
+      "border": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "resize": "stretch-or-cover",
+      "overlayOrder": 0
+    }
+  ],
+  "materials": [
+    {
+      "path": "05-textures/metal-brown-base.png",
+      "sha256": "9a8e70a3c70ed98f3dac41249efdb335b25618c81e9685d7aad109367611307a",
+      "method": "built-in-image-generation",
+      "seamlessTilingVerified": false
+    },
+    {
+      "path": "05-textures/paper-ivory-base.png",
+      "sha256": "59c935156accaeb0838538ce32debffc6033a60ef918b860e012c3a573ae5909",
+      "method": "built-in-image-generation",
+      "seamlessTilingVerified": false
+    }
+  ],
+  "svgDependency": "Keep 05-textures beside the component folders."
+}

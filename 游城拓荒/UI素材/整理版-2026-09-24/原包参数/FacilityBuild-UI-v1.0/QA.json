@@ -1,0 +1,12 @@
+{
+  "originalCardAndCityArtUnchanged": true,
+  "confirmMatchesOriginalCardPicker": true,
+  "cancelMatchesOriginalCardPicker": true,
+  "previewSize": [
+    1920,
+    1080
+  ],
+  "missingSvgDependencies": [],
+  "browserTestsRun": false,
+  "rendering": "Actual modular assets composed through shared SVG scene; exported with Inkscape."
+}

@@ -1,0 +1,83 @@
+{
+  "browserTestsRun": false,
+  "renderer": "Inkscape composition using shared scene.js; not a browser screenshot",
+  "referencedAssetPathsValid": true,
+  "referencedAssetCount": 13,
+  "javascriptSyntax": [
+    "data.js",
+    "scene.js",
+    "app.js"
+  ],
+  "originalPatternSize": [
+    930,
+    600
+  ],
+  "patternDisplaySize": [
+    376,
+    242.58064516129033
+  ],
+  "cityDisplayRect": [
+    1405,
+    234,
+    354,
+    653.4987858183584
+  ],
+  "tierComposition": {
+    "I": 4,
+    "II": 2
+  },
+  "stateTracksAreSeparateFromAdditionalDeclarations": true,
+  "previewResults": [
+    {
+      "id": "details",
+      "canConfirm": false,
+      "validation": {
+        "valid": false,
+        "reason": "当前为详情查看"
+      }
+    },
+    {
+      "id": "declaration",
+      "canConfirm": true,
+      "validation": {
+        "valid": true,
+        "reason": "组合符合条件",
+        "matchId": "military-first-horizontal",
+        "rotation": 0,
+        "conditionVariant": "first",
+        "score": 2,
+        "markerDestination": "unused"
+      }
+    }
+  ],
+  "htmlCssResourcePathsValid": true,
+  "sharedSceneUsedForHtmlAndStatic": true,
+  "manualVisualReview": {
+    "passed": true,
+    "previews": [
+      "details.png",
+      "declaration.png"
+    ],
+    "scope": [
+      "complete 930:600 source cards",
+      "4 tier-I and 2 tier-II cards",
+      "five distinct tier-II slots",
+      "separate additional declaration marker bands",
+      "original proportional city board",
+      "used facility visibly rotated 180 degrees",
+      "read-only details has no declaration button"
+    ]
+  },
+  "directedLogicChecks": {
+    "method": "Pure scene validation plus limited Node DOM shim; no browser engine",
+    "passed": true,
+    "scope": [
+      "details mode cannot submit declarations or select city facilities",
+      "used facility cannot be selected again",
+      "zoom preserves selected pattern and facilities and renders full card with marker layers",
+      "confirmation returns declaration intent without resource/marker/score/facility mutation",
+      "zero available markers prevents declaration",
+      "both tier-II cards retain all five slots"
+    ]
+  }
+}

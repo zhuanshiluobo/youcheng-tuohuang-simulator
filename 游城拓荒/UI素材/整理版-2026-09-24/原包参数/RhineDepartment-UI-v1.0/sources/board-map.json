@@ -1,0 +1,673 @@
+{
+  "schemaVersion": 1,
+  "coordinateConvention": "[x,y,width,height], source pixels, origin top-left; atlas indices are zero-based row-major.",
+  "enterprise": {
+    "assetId": 46,
+    "size": [
+      2600,
+      3700
+    ],
+    "columns": 4,
+    "rows": 2,
+    "cellSize": [
+      650,
+      1850
+    ],
+    "atlasIndex": 2,
+    "column0": 2,
+    "row0": 0,
+    "sourceRect": [
+      1300,
+      0,
+      650,
+      1850
+    ],
+    "aspectRatio": "13:37",
+    "ttsDeckKey": 625,
+    "sha256": "e5f0cfd4262b6e58f859249606fd7886070c6eb91adcf33cf51cd51b9a4bc261",
+    "rhineVisibleTextVariant": "same observed Rhine Lab rules",
+    "rhineRegionPixelIdenticalTo046": true,
+    "note": "Use this fixed source for UI.",
+    "source": "originals/enterprise-atlas.jpg"
+  },
+  "departments": [
+    {
+      "id": "def",
+      "name": "防卫科",
+      "assetId": 48,
+      "source": "originals/department-defense.png",
+      "atlas": false,
+      "atlasIndex": null,
+      "sourceRect": [
+        0,
+        0,
+        516,
+        1000
+      ],
+      "size": [
+        516,
+        1000
+      ],
+      "aspectRatio": "129:250",
+      "mode": "RGBA",
+      "alphaRange": [
+        255,
+        255
+      ],
+      "scope": "base",
+      "sha256": "57413b8c9b2ccd0fba0e3befb5ffc6d9e9b08b6f20461ad4f7b1c787c4455021",
+      "ttsObjectPath": "$.ObjectStates[55]",
+      "ttsObjectType": "Custom_Token",
+      "explicitSecondaryImage": false,
+      "ttsStates": [],
+      "nameStripRect": [
+        440,
+        0,
+        76,
+        1000
+      ],
+      "rewardZones": [
+        {
+          "level": 5,
+          "sourceRect": [
+            0,
+            0,
+            440,
+            244
+          ],
+          "safeOutlineRect": [
+            6,
+            6,
+            428,
+            232
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 4,
+          "sourceRect": [
+            0,
+            262,
+            440,
+            238
+          ],
+          "safeOutlineRect": [
+            6,
+            268,
+            428,
+            226
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 3,
+          "sourceRect": [
+            0,
+            518,
+            440,
+            229
+          ],
+          "safeOutlineRect": [
+            6,
+            524,
+            428,
+            217
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 2,
+          "sourceRect": [
+            0,
+            765,
+            440,
+            235
+          ],
+          "safeOutlineRect": [
+            6,
+            771,
+            428,
+            223
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        }
+      ]
+    },
+    {
+      "id": "eng",
+      "name": "工程科",
+      "assetId": 49,
+      "source": "originals/department-engineering.png",
+      "atlas": false,
+      "atlasIndex": null,
+      "sourceRect": [
+        0,
+        0,
+        516,
+        1000
+      ],
+      "size": [
+        516,
+        1000
+      ],
+      "aspectRatio": "129:250",
+      "mode": "RGBA",
+      "alphaRange": [
+        255,
+        255
+      ],
+      "scope": "base",
+      "sha256": "02dda1ba263cd720545a474534fe1845d143429d8e07641917935d347faec5cf",
+      "ttsObjectPath": "$.ObjectStates[56]",
+      "ttsObjectType": "Custom_Token",
+      "explicitSecondaryImage": false,
+      "ttsStates": [],
+      "nameStripRect": [
+        440,
+        0,
+        76,
+        1000
+      ],
+      "rewardZones": [
+        {
+          "level": 5,
+          "sourceRect": [
+            0,
+            0,
+            440,
+            244
+          ],
+          "safeOutlineRect": [
+            6,
+            6,
+            428,
+            232
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 4,
+          "sourceRect": [
+            0,
+            262,
+            440,
+            238
+          ],
+          "safeOutlineRect": [
+            6,
+            268,
+            428,
+            226
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 3,
+          "sourceRect": [
+            0,
+            518,
+            440,
+            229
+          ],
+          "safeOutlineRect": [
+            6,
+            524,
+            428,
+            217
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 2,
+          "sourceRect": [
+            0,
+            765,
+            440,
+            235
+          ],
+          "safeOutlineRect": [
+            6,
+            771,
+            428,
+            223
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        }
+      ]
+    },
+    {
+      "id": "stru",
+      "name": "结构科",
+      "assetId": 50,
+      "source": "originals/department-structure.png",
+      "atlas": false,
+      "atlasIndex": null,
+      "sourceRect": [
+        0,
+        0,
+        516,
+        1000
+      ],
+      "size": [
+        516,
+        1000
+      ],
+      "aspectRatio": "129:250",
+      "mode": "RGBA",
+      "alphaRange": [
+        255,
+        255
+      ],
+      "scope": "base",
+      "sha256": "72ce39e2e78217267b5a06d09cf4e8dbc8869f1cd845c59837bbd7c606f168b2",
+      "ttsObjectPath": "$.ObjectStates[57]",
+      "ttsObjectType": "Custom_Token",
+      "explicitSecondaryImage": false,
+      "ttsStates": [],
+      "nameStripRect": [
+        440,
+        0,
+        76,
+        1000
+      ],
+      "rewardZones": [
+        {
+          "level": 5,
+          "sourceRect": [
+            0,
+            0,
+            440,
+            244
+          ],
+          "safeOutlineRect": [
+            6,
+            6,
+            428,
+            232
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 4,
+          "sourceRect": [
+            0,
+            262,
+            440,
+            238
+          ],
+          "safeOutlineRect": [
+            6,
+            268,
+            428,
+            226
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 3,
+          "sourceRect": [
+            0,
+            518,
+            440,
+            229
+          ],
+          "safeOutlineRect": [
+            6,
+            524,
+            428,
+            217
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 2,
+          "sourceRect": [
+            0,
+            765,
+            440,
+            235
+          ],
+          "safeOutlineRect": [
+            6,
+            771,
+            428,
+            223
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        }
+      ]
+    },
+    {
+      "id": "hr",
+      "name": "人力科",
+      "assetId": 79,
+      "source": "originals/department-hr.png",
+      "atlas": false,
+      "atlasIndex": null,
+      "sourceRect": [
+        0,
+        0,
+        516,
+        1000
+      ],
+      "size": [
+        516,
+        1000
+      ],
+      "aspectRatio": "129:250",
+      "mode": "RGBA",
+      "alphaRange": [
+        114,
+        255
+      ],
+      "scope": "additional",
+      "sha256": "3d7b3833e370a52fb5701ac36975509fe07830ad6b5d3f19d9ed19aea373a9b5",
+      "ttsObjectPath": "$.ObjectStates[126].ContainedObjects[0]",
+      "ttsObjectType": "Custom_Token",
+      "explicitSecondaryImage": false,
+      "ttsStates": [],
+      "nameStripRect": [
+        440,
+        0,
+        76,
+        1000
+      ],
+      "rewardZones": [
+        {
+          "level": 5,
+          "sourceRect": [
+            0,
+            0,
+            440,
+            244
+          ],
+          "safeOutlineRect": [
+            6,
+            6,
+            428,
+            232
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 4,
+          "sourceRect": [
+            0,
+            262,
+            440,
+            238
+          ],
+          "safeOutlineRect": [
+            6,
+            268,
+            428,
+            226
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 3,
+          "sourceRect": [
+            0,
+            518,
+            440,
+            229
+          ],
+          "safeOutlineRect": [
+            6,
+            524,
+            428,
+            217
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 2,
+          "sourceRect": [
+            0,
+            765,
+            440,
+            235
+          ],
+          "safeOutlineRect": [
+            6,
+            771,
+            428,
+            223
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        }
+      ]
+    },
+    {
+      "id": "bsn",
+      "name": "商务科",
+      "assetId": 80,
+      "source": "originals/department-business.png",
+      "atlas": false,
+      "atlasIndex": null,
+      "sourceRect": [
+        0,
+        0,
+        516,
+        1000
+      ],
+      "size": [
+        516,
+        1000
+      ],
+      "aspectRatio": "129:250",
+      "mode": "RGBA",
+      "alphaRange": [
+        57,
+        255
+      ],
+      "scope": "additional",
+      "sha256": "cb3384c3d62405822a6aa6d16d670f122c697bd01021b99073581dcfbf6a4732",
+      "ttsObjectPath": "$.ObjectStates[126].ContainedObjects[1]",
+      "ttsObjectType": "Custom_Token",
+      "explicitSecondaryImage": false,
+      "ttsStates": [],
+      "nameStripRect": [
+        440,
+        0,
+        76,
+        1000
+      ],
+      "rewardZones": [
+        {
+          "level": 5,
+          "sourceRect": [
+            0,
+            0,
+            440,
+            244
+          ],
+          "safeOutlineRect": [
+            6,
+            6,
+            428,
+            232
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 4,
+          "sourceRect": [
+            0,
+            262,
+            440,
+            238
+          ],
+          "safeOutlineRect": [
+            6,
+            268,
+            428,
+            226
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 3,
+          "sourceRect": [
+            0,
+            518,
+            440,
+            229
+          ],
+          "safeOutlineRect": [
+            6,
+            524,
+            428,
+            217
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 2,
+          "sourceRect": [
+            0,
+            765,
+            440,
+            235
+          ],
+          "safeOutlineRect": [
+            6,
+            771,
+            428,
+            223
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        }
+      ]
+    },
+    {
+      "id": "scient",
+      "name": "科考科",
+      "assetId": 81,
+      "source": "originals/department-research.png",
+      "atlas": false,
+      "atlasIndex": null,
+      "sourceRect": [
+        0,
+        0,
+        516,
+        1000
+      ],
+      "size": [
+        516,
+        1000
+      ],
+      "aspectRatio": "129:250",
+      "mode": "RGBA",
+      "alphaRange": [
+        32,
+        255
+      ],
+      "scope": "additional",
+      "sha256": "63dd96e0f41370308c2c6d40e677c1608aa2edc999e475da5eb439407b082e30",
+      "ttsObjectPath": "$.ObjectStates[126].ContainedObjects[2]",
+      "ttsObjectType": "Custom_Token",
+      "explicitSecondaryImage": false,
+      "ttsStates": [],
+      "nameStripRect": [
+        440,
+        0,
+        76,
+        1000
+      ],
+      "rewardZones": [
+        {
+          "level": 5,
+          "sourceRect": [
+            0,
+            0,
+            440,
+            244
+          ],
+          "safeOutlineRect": [
+            6,
+            6,
+            428,
+            232
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 4,
+          "sourceRect": [
+            0,
+            262,
+            440,
+            238
+          ],
+          "safeOutlineRect": [
+            6,
+            268,
+            428,
+            226
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 3,
+          "sourceRect": [
+            0,
+            518,
+            440,
+            229
+          ],
+          "safeOutlineRect": [
+            6,
+            524,
+            428,
+            217
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        },
+        {
+          "level": 2,
+          "sourceRect": [
+            0,
+            765,
+            440,
+            235
+          ],
+          "safeOutlineRect": [
+            6,
+            771,
+            428,
+            223
+          ],
+          "origin": "full original PNG top-left",
+          "meaning": "reward area, not a clickable enterprise special action"
+        }
+      ]
+    }
+  ],
+  "departmentCount": 6,
+  "rewardZonesAreNotActionButtons": true
+}

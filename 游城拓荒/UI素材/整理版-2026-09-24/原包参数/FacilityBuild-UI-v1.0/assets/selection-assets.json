@@ -1,0 +1,143 @@
+{
+  "version": "1.0.0",
+  "assets": [
+    {
+      "id": "frame-selected",
+      "png": "assets/frame-selected.png",
+      "svg": "assets/frame-selected.svg",
+      "sourceSize": {
+        "width": 320,
+        "height": 112
+      },
+      "border": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      },
+      "role": "Selected state: amber art edge; runtime checkmark supplied separately",
+      "hasText": false,
+      "recommendedTargetBorder": 10,
+      "sourceType": "unchanged generated art sliced in native SVG"
+    },
+    {
+      "id": "frame-available",
+      "png": "assets/frame-available.png",
+      "svg": "assets/frame-available.svg",
+      "sourceSize": {
+        "width": 320,
+        "height": 112
+      },
+      "border": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      },
+      "role": "Selectable but not selected: restrained amber art edge",
+      "hasText": false,
+      "recommendedTargetBorder": 10,
+      "sourceType": "unchanged generated art sliced in native SVG"
+    },
+    {
+      "id": "frame-unavailable",
+      "png": "assets/frame-unavailable.png",
+      "svg": "assets/frame-unavailable.svg",
+      "sourceSize": {
+        "width": 320,
+        "height": 112
+      },
+      "border": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      },
+      "role": "Unavailable state: gray broken outline; readable original board remains visible",
+      "hasText": false,
+      "recommendedTargetBorder": 10,
+      "sourceType": "native SVG UI state geometry"
+    },
+    {
+      "id": "fill-unavailable",
+      "png": "assets/fill-unavailable.png",
+      "svg": "assets/fill-unavailable.svg",
+      "sourceSize": {
+        "width": 320,
+        "height": 112
+      },
+      "border": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      },
+      "role": "Optional independent dim layer below the unavailable outline",
+      "hasText": false,
+      "recommendedTargetBorder": 10,
+      "sourceType": "native SVG UI state geometry"
+    },
+    {
+      "id": "icon-check",
+      "png": "assets/icon-check.png",
+      "svg": "assets/icon-check.svg",
+      "sourceSize": {
+        "width": 24,
+        "height": 24
+      },
+      "border": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "role": "Runtime selected check icon",
+      "hasText": false,
+      "recommendedTargetBorder": 0,
+      "sourceType": "native SVG UI state geometry"
+    },
+    {
+      "id": "icon-lock",
+      "png": "assets/icon-lock.png",
+      "svg": "assets/icon-lock.svg",
+      "sourceSize": {
+        "width": 24,
+        "height": 24
+      },
+      "border": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "role": "Runtime unavailable lock icon",
+      "hasText": false,
+      "recommendedTargetBorder": 0,
+      "sourceType": "native SVG UI state geometry"
+    }
+  ],
+  "frameSource": "sources/effect-frame-source.png",
+  "frameSourceSize": [
+    2172,
+    724
+  ],
+  "frameSourceCrop": [
+    17,
+    145,
+    2137,
+    420
+  ],
+  "frameSourceBorders": [
+    120,
+    120,
+    120,
+    120
+  ],
+  "layerOrder": [
+    "original enterprise board",
+    "optional unavailable dim layer",
+    "state outline",
+    "runtime check/lock badge",
+    "runtime text and player markers"
+  ]
+}

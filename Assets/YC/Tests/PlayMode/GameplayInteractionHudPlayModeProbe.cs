@@ -133,7 +133,8 @@ namespace YC.Tests.PlayMode
         private static void RunDialogMigrationChecks(GameplayInteractionHudView hud, int rootsBefore)
         {
             var canvas = hud.Canvas.transform as RectTransform;
-            if (canvas == null || hud.DialogRegistry == null)
+            var pageRoot = hud.Frame == null ? null : hud.Frame.ContentRect;
+            if (canvas == null || pageRoot == null || hud.DialogRegistry == null)
             {
                 throw new InvalidOperationException("HUD 缺少 Canvas 或 GameplayDialogRegistry。");
             }
@@ -156,9 +157,9 @@ namespace YC.Tests.PlayMode
                 _ => eventChoiceCount++,
                 null);
             var eventView = RequireActiveDialog<EventChoiceDialogView>(
-                canvas,
+                pageRoot,
                 "Event Choice Overlay");
-            RequireDirectCanvasParent(eventView.transform, canvas, "EventChoiceDialog");
+            RequireDirectCanvasParent(eventView.transform, pageRoot, "EventChoiceDialog");
             if (eventView.OverlayImage.raycastTarget)
             {
                 throw new InvalidOperationException("EventChoiceDialog event-card overlay must pass pointer input through.");
@@ -215,11 +216,11 @@ namespace YC.Tests.PlayMode
                 null,
                 null));
             var cityStyleView = RequireActiveDialog<CityStyleDeclarationPreviewView>(
-                canvas,
+                pageRoot,
                 "City Style Declaration Preview Canvas");
-            RequireDirectCanvasParent(cityStyleView.transform, canvas, "城市样式声明预览");
+            RequireDirectCanvasParent(cityStyleView.transform, pageRoot, "城市样式声明预览");
             if (cityStyleView.OverlayCanvas == null || !cityStyleView.OverlayCanvas.overrideSorting ||
-                cityStyleView.OverlayCanvas.sortingOrder != 130 ||
+                cityStyleView.OverlayCanvas.sortingOrder != 118 ||
                 cityStyleView.CityBoardSlotCount != CityStyleDeclarationPreviewView.RequiredCityBoardSlotCount)
             {
                 throw new InvalidOperationException("城市样式声明预览的 Canvas 排序或固定槽位配置无效。");
@@ -250,9 +251,9 @@ namespace YC.Tests.PlayMode
                 "Play 探针",
                 new[] { new EffectDialogOption("确认角色效果", () => characterCount++) });
             var characterShell = RequireActiveDialog<EffectDialogShellView>(
-                canvas,
+                pageRoot,
                 "Character Card Effect Overlay");
-            RequireDirectCanvasParent(characterShell.transform, canvas, "角色效果");
+            RequireDirectCanvasParent(characterShell.transform, pageRoot, "角色效果");
             var characterClick = RequireButton(characterShell.transform, "Character Effect Option 0").onClick;
             characterClick.Invoke();
             characterClick.Invoke();
@@ -266,9 +267,9 @@ namespace YC.Tests.PlayMode
                 "Play 探针",
                 new[] { new EffectDialogOption("确认设施效果", () => facilityCount++) });
             var facilityShell = RequireActiveDialog<EffectDialogShellView>(
-                canvas,
+                pageRoot,
                 "Facility Effect Choice Overlay");
-            RequireDirectCanvasParent(facilityShell.transform, canvas, "设施效果");
+            RequireDirectCanvasParent(facilityShell.transform, pageRoot, "设施效果");
             var facilityClick = RequireButton(facilityShell.transform, "Option 0").onClick;
             facilityClick.Invoke();
             facilityClick.Invoke();
@@ -279,9 +280,9 @@ namespace YC.Tests.PlayMode
             var special = new SpecialActionChoiceDialog(hud.DialogRegistry, () => canvas);
             special.ShowCompositePayment(3, 3, _ => { }, () => specialCancelCount++);
             var specialShell = RequireActiveDialog<EffectDialogShellView>(
-                canvas,
+                pageRoot,
                 "Special Action Choice Overlay");
-            RequireDirectCanvasParent(specialShell.transform, canvas, "特殊行动");
+            RequireDirectCanvasParent(specialShell.transform, pageRoot, "特殊行动");
             var specialCancel = RequireButton(specialShell.transform, "Cancel Special Action Payment").onClick;
             specialCancel.Invoke();
             specialCancel.Invoke();
@@ -299,9 +300,9 @@ namespace YC.Tests.PlayMode
                 () => dispatchContinueCount++,
                 () => dispatchFinishCount++));
             var dispatchView = RequireActiveDialog<DispatchDecisionDialogView>(
-                canvas,
+                pageRoot,
                 "Dispatch Decision Overlay");
-            RequireDirectCanvasParent(dispatchView.transform, canvas, "调度决策");
+            RequireDirectCanvasParent(dispatchView.transform, pageRoot, "调度决策");
             if (dispatchView.ContinueLabel.text != "继续调度" || dispatchView.FinishLabel.text != "完成调度")
             {
                 throw new InvalidOperationException("调度决策按钮文案绑定失败。");
@@ -323,7 +324,9 @@ namespace YC.Tests.PlayMode
         {
             if (hud == null || hud.Canvas == null || hud.PromptView == null || hud.ActionPanelView == null ||
                 hud.ResourceCounterBoard == null || hud.BuildInfoPanel == null || hud.CharacterHandPanel == null ||
-                hud.DialogRegistry == null ||
+                hud.DialogRegistry == null || hud.Frame == null ||
+                hud.Frame.EndActionButton != hud.ActionPanelView.EndRoundButton ||
+                hud.Frame.BarCanvas.sortingOrder <= 150 ||
                 UnityEngine.Object.FindObjectOfType<RoundTrackerController>() == null)
             {
                 throw new InvalidOperationException("Prompt/Action/Round/Info/Build/DialogRegistry 必须在 Play 中共存。");
@@ -566,7 +569,7 @@ namespace YC.Tests.PlayMode
         {
             if (instance == null || instance.parent != canvas)
             {
-                throw new InvalidOperationException(label + "实例必须直接挂在 HUD Canvas 下。");
+                throw new InvalidOperationException(label + "实例必须直接挂在 HUD ContentRect 下。");
             }
         }
 

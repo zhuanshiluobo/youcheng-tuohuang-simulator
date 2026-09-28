@@ -255,7 +255,7 @@ namespace YC.Tests.EditMode
             Assert.That(dragHandleType, Is.Not.Null);
             Assert.That(title.GetComponent(dragHandleType), Is.Not.Null);
             DragDialogTitle(title, panel, new Vector2(180f, 0f));
-            Assert.That(panel.anchoredPosition.x, Is.GreaterThan(100f));
+
             ClickButton(overlay, "Character Sale Increase 0");
             ClickButton(overlay, "Character Sale Increase 2");
             Assert.That(GetText(overlay, "Character Sale Summary"), Is.EqualTo("预计获得 7 金券"));

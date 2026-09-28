@@ -1,0 +1,18 @@
+{
+  "archiveCount": 10,
+  "archiveMemberCount": 1381,
+  "copiedUniqueImages": 180,
+  "copiedJsonFiles": 71,
+  "v3Components": 35,
+  "archiveHashClaimsChecked": 1118,
+  "rasterMembersChecked": 826,
+  "uniqueRasterFilesChecked": 227,
+  "pngMembersChecked": 803,
+  "duplicateHashGroups": 206,
+  "copiedImageBytes": 90307192,
+  "sourceDocumentsAndArchivesPreserved": true,
+  "browserTestsRun": false,
+  "unityAssetsChanged": false,
+  "errors": [],
+  "notes": "PNG 检查签名、尺寸、全部块 CRC 及 IDAT 解压；JPEG 检查签名和尺寸；ZIP 读取执行 CRC 校验。"
+}

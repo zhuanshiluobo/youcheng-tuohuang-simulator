@@ -1,0 +1,91 @@
+{
+  "browserTestsRun": false,
+  "renderer": "Inkscape using the same pure scene.js as the HTML preview",
+  "referencedAssetPathsValid": true,
+  "referencedAssetCount": 17,
+  "javascriptSyntax": [
+    "data.js",
+    "scene.js",
+    "app.js"
+  ],
+  "enterpriseSourceRect": [
+    1300,
+    0,
+    650,
+    1850
+  ],
+  "enterpriseDisplayRect": [
+    214,
+    242,
+    224,
+    637.5384615384615
+  ],
+  "departmentOriginalSize": [
+    516,
+    1000
+  ],
+  "departmentDisplaySize": [
+    280,
+    542.6356589147287
+  ],
+  "selectionIsWholeDepartment": true,
+  "previewResults": [
+    {
+      "id": "three",
+      "canConfirm": true,
+      "contentWidth": 980,
+      "maxScroll": 0,
+      "centerOffset": 99
+    },
+    {
+      "id": "two",
+      "canConfirm": true,
+      "contentWidth": 658,
+      "maxScroll": 0,
+      "centerOffset": 260
+    },
+    {
+      "id": "many",
+      "canConfirm": true,
+      "contentWidth": 1624,
+      "maxScroll": 446,
+      "centerOffset": 0
+    }
+  ],
+  "sharedSceneUsedForHtmlAndStatic": true,
+  "directedFunctionChecks": {
+    "passed": true,
+    "scope": [
+      "two and three candidates centered with no overflow",
+      "five candidates preserve dimensions with horizontal overflow",
+      "one valid selected department can confirm",
+      "current active department cannot confirm",
+      "empty selection cannot confirm"
+    ],
+    "method": "Direct scene functions; no DOM shim and no browser test"
+  },
+  "visualReview": {
+    "passed": true,
+    "previews": [
+      "three.png",
+      "two.png",
+      "many.png"
+    ],
+    "scope": [
+      "complete original enterprise and department boards",
+      "initial activation has no immediate reward claim",
+      "switch example uses trigger player level 3 reward only",
+      "external 5/4/3/2 reward-level labels",
+      "original card-picker confirmation texture"
+    ]
+  },
+  "finalPngDecodeCheck": {
+    "passed": true,
+    "files": [
+      "three.png",
+      "two.png",
+      "many.png"
+    ],
+    "method": "PIL.Image.load() after all export processes exited"
+  }
+}

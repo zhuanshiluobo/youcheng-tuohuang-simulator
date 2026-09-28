@@ -1,0 +1,68 @@
+{
+  "originalEnterpriseAtlasUnchanged": true,
+  "originalAtlasSha256": "e5f0cfd4262b6e58f859249606fd7886070c6eb91adcf33cf51cd51b9a4bc261",
+  "missingSvgDependencies": [],
+  "selectionAssets": [
+    {
+      "id": "frame-selected",
+      "size": [
+        320,
+        112
+      ],
+      "transparentFrameCenter": true,
+      "passed": true
+    },
+    {
+      "id": "frame-available",
+      "size": [
+        320,
+        112
+      ],
+      "transparentFrameCenter": true,
+      "passed": true
+    },
+    {
+      "id": "frame-unavailable",
+      "size": [
+        320,
+        112
+      ],
+      "transparentFrameCenter": true,
+      "passed": true
+    },
+    {
+      "id": "fill-unavailable",
+      "size": [
+        320,
+        112
+      ],
+      "transparentFrameCenter": false,
+      "passed": true
+    },
+    {
+      "id": "icon-check",
+      "size": [
+        24,
+        24
+      ],
+      "transparentFrameCenter": false,
+      "passed": true
+    },
+    {
+      "id": "icon-lock",
+      "size": [
+        24,
+        24
+      ],
+      "transparentFrameCenter": false,
+      "passed": true
+    }
+  ],
+  "staticPreviewSizes": [
+    1920,
+    1080
+  ],
+  "confirmButtonMatchesCardPickerOriginal": true,
+  "browserTestsRun": false,
+  "browserNote": "No usable browser executable; preview screenshots are actual Inkscape SVG compositions, not browser screenshots."
+}

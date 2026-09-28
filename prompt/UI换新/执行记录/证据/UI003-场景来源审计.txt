@@ -1,0 +1,4 @@
+UI-003 场景来源与输入审计
+HUD 源：Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab
+Assets/Scenes/SampleScene.unity | HUD 共享源匹配 | EventSystem=1 | 顶底栏排序=30000 | 结束行动入口唯一 | 常驻栏有 GraphicRaycaster
+Assets/Scenes/ThreePlayerScene.unity | HUD 共享源匹配 | EventSystem=1 | 顶底栏排序=30000 | 结束行动入口唯一 | 常驻栏有 GraphicRaycaster

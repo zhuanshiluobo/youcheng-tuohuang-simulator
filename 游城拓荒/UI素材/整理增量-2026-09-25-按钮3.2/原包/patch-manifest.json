@@ -1,0 +1,979 @@
+{
+  "patchId": "main-buttons-v3.2-full-corners",
+  "version": "3.2",
+  "base": "FrontierUI-v3-Patch / internal 3.1",
+  "requiredBaselineHashes": {
+    "asset-manifest.json": "08c566a827ccfab12aba97eae0cdd7350f72d9c1e787e6d2c23d317e9edecdb1",
+    "preview/scene.mjs": "acf905daeed89de81c3ecbfa3d690074425dcad5ab888a717198b379baf7bbc6",
+    "preview/preview.bundle.js": "914ec8be81b51a9a73f1c1c9dff9cbed8afd94300ef6d500d21f72f3279a7d81",
+    "preview/styles.css": "cd367fba41f064dee7b3966237422bb109adb6c47b79f02d60b6107edfb145ee"
+  },
+  "files": [
+    {
+      "source": "integration/asset-manifest.json",
+      "destination": "asset-manifest.json",
+      "sha256": "395895c09ccedda985c940e8976c51f72884cf4c0a7128afae54cbeee8586af9",
+      "bytes": 51843
+    },
+    {
+      "source": "integration/preview/scene.mjs",
+      "destination": "preview/scene.mjs",
+      "sha256": "db2bbdc415b5dfdf3d0bad251bdc0ec7714b5e2f0d78255edd39a382426532d9",
+      "bytes": 19300
+    },
+    {
+      "source": "integration/preview/preview.bundle.js",
+      "destination": "preview/preview.bundle.js",
+      "sha256": "e85a756d81aa0342b81c43d0c41898f83dd7434d74927d45efff114e9dd32245",
+      "bytes": 55262
+    },
+    {
+      "source": "integration/preview/styles.css",
+      "destination": "preview/styles.css",
+      "sha256": "fabeee0b8b204cb73c85b84fa7d33e07f468aea96283390283569c391802dce3",
+      "bytes": 1607
+    },
+    {
+      "source": "assets/bases/action-default.png",
+      "destination": "button-assets-v3.2/bases/action-default.png",
+      "sha256": "079072283a94c6250ffec782a1343c0f2220fac037e72fafa8831e8410dd8615",
+      "bytes": 1452
+    },
+    {
+      "source": "assets/bases/action-default.svg",
+      "destination": "button-assets-v3.2/bases/action-default.svg",
+      "sha256": "c3d4255f604c23aef63fa66193fa7f0092bb10fa2aef8e9f0542c495af88c05e",
+      "bytes": 624
+    },
+    {
+      "source": "assets/bases/action-default@2x.png",
+      "destination": "button-assets-v3.2/bases/action-default@2x.png",
+      "sha256": "7ebd1e07458fefd2ed54b3e31eec5bc30b5e6ac5da479f29d08cead1469ba7cb",
+      "bytes": 3141
+    },
+    {
+      "source": "assets/bases/action-disabled.png",
+      "destination": "button-assets-v3.2/bases/action-disabled.png",
+      "sha256": "33c15dfc0af935ed58dfc32a343054e18ad0778a64903609f872d34a08d253ae",
+      "bytes": 1374
+    },
+    {
+      "source": "assets/bases/action-disabled.svg",
+      "destination": "button-assets-v3.2/bases/action-disabled.svg",
+      "sha256": "fd65249c29ea24e7a2755c1d4b84c3c4a3c520b2ed085f50c75ddfe63d62cadd",
+      "bytes": 623
+    },
+    {
+      "source": "assets/bases/action-disabled@2x.png",
+      "destination": "button-assets-v3.2/bases/action-disabled@2x.png",
+      "sha256": "e3dae6b9ea08de870a170a84e02b6e6023d69184e78026d367af41e02360d551",
+      "bytes": 3011
+    },
+    {
+      "source": "assets/bases/action-hover.png",
+      "destination": "button-assets-v3.2/bases/action-hover.png",
+      "sha256": "744cb1414223be8e28d2dac592c1e98ccf583252e2cd1bd8abb4232b55020ca1",
+      "bytes": 1523
+    },
+    {
+      "source": "assets/bases/action-hover.svg",
+      "destination": "button-assets-v3.2/bases/action-hover.svg",
+      "sha256": "55242a45ef67f487c42052c1fb87030535c7140dbea43494663294f1b4281b2e",
+      "bytes": 624
+    },
+    {
+      "source": "assets/bases/action-hover@2x.png",
+      "destination": "button-assets-v3.2/bases/action-hover@2x.png",
+      "sha256": "a52a246490f12a68ade347e1e279b4d4c331c5fa9389996cfca67ec16635804d",
+      "bytes": 3290
+    },
+    {
+      "source": "assets/bases/action-pressed.png",
+      "destination": "button-assets-v3.2/bases/action-pressed.png",
+      "sha256": "3379c0efe18212368dec821fab8e96ee5196044b3ba1d7cca8a0fe8ac22bb541",
+      "bytes": 1492
+    },
+    {
+      "source": "assets/bases/action-pressed.svg",
+      "destination": "button-assets-v3.2/bases/action-pressed.svg",
+      "sha256": "150376e7898bd4cb4aed0e2bf2183dca31e035f732ae548f87e1515246ecd4dd",
+      "bytes": 624
+    },
+    {
+      "source": "assets/bases/action-pressed@2x.png",
+      "destination": "button-assets-v3.2/bases/action-pressed@2x.png",
+      "sha256": "9e0859ed5a9cfea8d4b49f60c737b104933d5c5f0676cb707d1b2215b7d6563e",
+      "bytes": 3236
+    },
+    {
+      "source": "assets/bases/primary-default.png",
+      "destination": "button-assets-v3.2/bases/primary-default.png",
+      "sha256": "d0c3fec299a35fa98a4ae69aa2e3800f54195032db210c257d5097579748f66b",
+      "bytes": 1735
+    },
+    {
+      "source": "assets/bases/primary-default.svg",
+      "destination": "button-assets-v3.2/bases/primary-default.svg",
+      "sha256": "af9b0d324fbc35915d71c48e378161b528a0db13ff33f9aa6e76c6b2719d869c",
+      "bytes": 457
+    },
+    {
+      "source": "assets/bases/primary-default@2x.png",
+      "destination": "button-assets-v3.2/bases/primary-default@2x.png",
+      "sha256": "bf895c76f23c4aa4f4485b5eee37dcfcec6b1ced21715646c7c8b23d6a8ca3f2",
+      "bytes": 3739
+    },
+    {
+      "source": "assets/bases/primary-disabled.png",
+      "destination": "button-assets-v3.2/bases/primary-disabled.png",
+      "sha256": "216defb846f79e083761e4deb17d21a2f1ec0f2d6fb638a4407708812dc571af",
+      "bytes": 1635
+    },
+    {
+      "source": "assets/bases/primary-disabled.svg",
+      "destination": "button-assets-v3.2/bases/primary-disabled.svg",
+      "sha256": "ae86ce7746d9743fc7e4472db446ef4d7e5cb8ae1347a7ba3a049c2994609612",
+      "bytes": 458
+    },
+    {
+      "source": "assets/bases/primary-disabled@2x.png",
+      "destination": "button-assets-v3.2/bases/primary-disabled@2x.png",
+      "sha256": "0757c2d70e33f6ca7f82a9edc3b7eaaec796efc1380f31a7c52a14cce90c4ac3",
+      "bytes": 3510
+    },
+    {
+      "source": "assets/bases/primary-hover.png",
+      "destination": "button-assets-v3.2/bases/primary-hover.png",
+      "sha256": "3cce1df77ac1219db9357de7e0c16459a2aa37545343fbbd7c6b061c1f5f2a55",
+      "bytes": 1753
+    },
+    {
+      "source": "assets/bases/primary-hover.svg",
+      "destination": "button-assets-v3.2/bases/primary-hover.svg",
+      "sha256": "6a7833990f1f863bf4e61da8901e7e369244dab7007309648cdb3ea0549d4481",
+      "bytes": 457
+    },
+    {
+      "source": "assets/bases/primary-hover@2x.png",
+      "destination": "button-assets-v3.2/bases/primary-hover@2x.png",
+      "sha256": "4b2b62bf1ecd3933e4eabeac88a7a542f026b72ef7a751c94936dc1e90b63de2",
+      "bytes": 3780
+    },
+    {
+      "source": "assets/bases/primary-pressed.png",
+      "destination": "button-assets-v3.2/bases/primary-pressed.png",
+      "sha256": "14c625de0332e1d488f5b7744dca9c1d4a1d7c9aa27121dc6330e21dab6cd4d7",
+      "bytes": 1731
+    },
+    {
+      "source": "assets/bases/primary-pressed.svg",
+      "destination": "button-assets-v3.2/bases/primary-pressed.svg",
+      "sha256": "e0759cff74c0b350298f0f394a30fcd066dd488c4e56e7e364fdc16810d6bd88",
+      "bytes": 457
+    },
+    {
+      "source": "assets/bases/primary-pressed@2x.png",
+      "destination": "button-assets-v3.2/bases/primary-pressed@2x.png",
+      "sha256": "63c1612efb123f881afd770610070736d360e6672250751253b166c85705df93",
+      "bytes": 3771
+    },
+    {
+      "source": "assets/bases/tab-default.png",
+      "destination": "button-assets-v3.2/bases/tab-default.png",
+      "sha256": "01edfe099ed44e68d9bb47e28955231f442f56d294f83eea2d5d7f72a1dcc0fe",
+      "bytes": 824
+    },
+    {
+      "source": "assets/bases/tab-default.svg",
+      "destination": "button-assets-v3.2/bases/tab-default.svg",
+      "sha256": "119e60fb989aecaab33bf054a79944111fb4a84ac70cf87cc75aeefce0ad4abe",
+      "bytes": 358
+    },
+    {
+      "source": "assets/bases/tab-default@2x.png",
+      "destination": "button-assets-v3.2/bases/tab-default@2x.png",
+      "sha256": "64dd3a5db9f75c3c343cdc453b4e075ccc77e921511d9f34a572f138f23d85a2",
+      "bytes": 1710
+    },
+    {
+      "source": "assets/bases/tab-disabled.png",
+      "destination": "button-assets-v3.2/bases/tab-disabled.png",
+      "sha256": "0009260d61a92c4d803e37094289081782d0f2ce3d4920c739d44aa1e430d24c",
+      "bytes": 796
+    },
+    {
+      "source": "assets/bases/tab-disabled.svg",
+      "destination": "button-assets-v3.2/bases/tab-disabled.svg",
+      "sha256": "3586ec742461fccff8ba50c23a4aaa9d0d3fe912b00304c5abfaa233e55ba855",
+      "bytes": 357
+    },
+    {
+      "source": "assets/bases/tab-disabled@2x.png",
+      "destination": "button-assets-v3.2/bases/tab-disabled@2x.png",
+      "sha256": "323580ea99fc1b690e7284c50f1db694713673d740e4ccbbd4172d625a1f5190",
+      "bytes": 1681
+    },
+    {
+      "source": "assets/bases/tab-hover.png",
+      "destination": "button-assets-v3.2/bases/tab-hover.png",
+      "sha256": "f9f5785f9c3b750d4f208926e82ba2567754e9d4aeffbedc5b7a5bde4385dad0",
+      "bytes": 836
+    },
+    {
+      "source": "assets/bases/tab-hover.svg",
+      "destination": "button-assets-v3.2/bases/tab-hover.svg",
+      "sha256": "7d0471c7a1db3549bf6f22acc70be2e234519c09e1f3316696a3445f567e1ae4",
+      "bytes": 358
+    },
+    {
+      "source": "assets/bases/tab-hover@2x.png",
+      "destination": "button-assets-v3.2/bases/tab-hover@2x.png",
+      "sha256": "00ab076ad835e2f703cea4f7568e97ad2e9286e7b488925beab96cfefd07b852",
+      "bytes": 1747
+    },
+    {
+      "source": "assets/bases/tab-pressed.png",
+      "destination": "button-assets-v3.2/bases/tab-pressed.png",
+      "sha256": "a1abcb074287e4c53f3f60f731eaf8de738c0a7f59e0249dd143654522db8044",
+      "bytes": 855
+    },
+    {
+      "source": "assets/bases/tab-pressed.svg",
+      "destination": "button-assets-v3.2/bases/tab-pressed.svg",
+      "sha256": "4a5aa50a47e99ec6d257a9bd5902cce5f3b77378f588ec5b798e285e255c849c",
+      "bytes": 358
+    },
+    {
+      "source": "assets/bases/tab-pressed@2x.png",
+      "destination": "button-assets-v3.2/bases/tab-pressed@2x.png",
+      "sha256": "d5c94434aea3382fded5b367d45f00ddd19780975ada8da511850048d02a728c",
+      "bytes": 1753
+    },
+    {
+      "source": "assets/bases/tab-selected-hover.png",
+      "destination": "button-assets-v3.2/bases/tab-selected-hover.png",
+      "sha256": "4fabbdfb08e5eab901bdcac51ca3ecfe7abfd71743789dd39794d1b754835102",
+      "bytes": 800
+    },
+    {
+      "source": "assets/bases/tab-selected-hover.svg",
+      "destination": "button-assets-v3.2/bases/tab-selected-hover.svg",
+      "sha256": "c348d9e5cff40a09fd321f250caaed81065ba1b240e9aa61fab3e908898afc1a",
+      "bytes": 391
+    },
+    {
+      "source": "assets/bases/tab-selected-hover@2x.png",
+      "destination": "button-assets-v3.2/bases/tab-selected-hover@2x.png",
+      "sha256": "373ecb937f9080bc687e4b4fe8cefa863e4389fed6a92982e94c6798a7bf3ec3",
+      "bytes": 1592
+    },
+    {
+      "source": "assets/bases/tab-selected.png",
+      "destination": "button-assets-v3.2/bases/tab-selected.png",
+      "sha256": "604d472d2609520c14ec4f01389ed263e97ddadd3541dff220148db0f86849b2",
+      "bytes": 824
+    },
+    {
+      "source": "assets/bases/tab-selected.svg",
+      "destination": "button-assets-v3.2/bases/tab-selected.svg",
+      "sha256": "126453db1b7f862afe29aec28bc62da8d7fc03621fb2ede3b44e95f8f5eaa014",
+      "bytes": 391
+    },
+    {
+      "source": "assets/bases/tab-selected@2x.png",
+      "destination": "button-assets-v3.2/bases/tab-selected@2x.png",
+      "sha256": "8d953122c7affe30faced756d1dd503f0c94cff02ea75268ad3b4c652b931aad",
+      "bytes": 1670
+    },
+    {
+      "source": "assets/bases/undo-default.png",
+      "destination": "button-assets-v3.2/bases/undo-default.png",
+      "sha256": "7d322e0db78ffb0c8b4ea23385d74fbb2a94021a6d6b958c4a57d1d54ca8bb31",
+      "bytes": 1240
+    },
+    {
+      "source": "assets/bases/undo-default.svg",
+      "destination": "button-assets-v3.2/bases/undo-default.svg",
+      "sha256": "b0b98a02675b39d50fd77240ad23fe9da9ff8b1902a260ec0a8928ce26c902d4",
+      "bytes": 293
+    },
+    {
+      "source": "assets/bases/undo-default@2x.png",
+      "destination": "button-assets-v3.2/bases/undo-default@2x.png",
+      "sha256": "0183d2c0cf55a0e842d4a938dfdea9f9d5f338b275fb942570f092512b13c17b",
+      "bytes": 2563
+    },
+    {
+      "source": "assets/bases/undo-disabled.png",
+      "destination": "button-assets-v3.2/bases/undo-disabled.png",
+      "sha256": "5f6877082de4999400160298e436c1b95166ce354084254207e78bf75618fc00",
+      "bytes": 1190
+    },
+    {
+      "source": "assets/bases/undo-disabled.svg",
+      "destination": "button-assets-v3.2/bases/undo-disabled.svg",
+      "sha256": "78268a843b8f4d4fce843d76ce12dbb6a58971bf1c6cc5b8f3af23d7bf81335b",
+      "bytes": 292
+    },
+    {
+      "source": "assets/bases/undo-disabled@2x.png",
+      "destination": "button-assets-v3.2/bases/undo-disabled@2x.png",
+      "sha256": "e0ebba31c1133229d0201ac655041f76e17836d019415e412fa23a697ea73e0d",
+      "bytes": 2446
+    },
+    {
+      "source": "assets/bases/undo-hover.png",
+      "destination": "button-assets-v3.2/bases/undo-hover.png",
+      "sha256": "ecae9f3c2f7ae7b7bb1a5dc3ad7be9b7c0f8b1a21f9b9c458aacfb6208e0adfa",
+      "bytes": 1247
+    },
+    {
+      "source": "assets/bases/undo-hover.svg",
+      "destination": "button-assets-v3.2/bases/undo-hover.svg",
+      "sha256": "8f994f20ad9fd264ec315c46dad2e0a160f80a51d00dcfc9a543580f03dc8e01",
+      "bytes": 293
+    },
+    {
+      "source": "assets/bases/undo-hover@2x.png",
+      "destination": "button-assets-v3.2/bases/undo-hover@2x.png",
+      "sha256": "9b2b369d3c37d7399dc8670f3ac8013b663f4c1f490e66a12325b25f5190dbc0",
+      "bytes": 2540
+    },
+    {
+      "source": "assets/bases/undo-pressed.png",
+      "destination": "button-assets-v3.2/bases/undo-pressed.png",
+      "sha256": "4d52189f0151d6b6b72100aa83bedab059f0797edc8e3c44557482b24430ef2b",
+      "bytes": 1248
+    },
+    {
+      "source": "assets/bases/undo-pressed.svg",
+      "destination": "button-assets-v3.2/bases/undo-pressed.svg",
+      "sha256": "6c81bc673bd91378c3ad340f978ca17a258589d34cda1752cc5a6ed1e8e7d5a3",
+      "bytes": 293
+    },
+    {
+      "source": "assets/bases/undo-pressed@2x.png",
+      "destination": "button-assets-v3.2/bases/undo-pressed@2x.png",
+      "sha256": "5b083a259fa88553b7649eeb7242945fdd91ff01daa86752287c1f801ef1b827",
+      "bytes": 2543
+    },
+    {
+      "source": "integration/button-assets-v3.2/button-assets.json",
+      "destination": "button-assets-v3.2/button-assets.json",
+      "sha256": "6add8a0373d19afbcc0cfa4e3fbd7660cf4c146650d53963114ceec22eaa2ed1",
+      "bytes": 36686
+    },
+    {
+      "source": "assets/icons/build-dark.png",
+      "destination": "button-assets-v3.2/icons/build-dark.png",
+      "sha256": "62d26df9afe996f067551c00b8f2042e32948d3d3fa09c7bc89000b3df4ea1c6",
+      "bytes": 1040
+    },
+    {
+      "source": "assets/icons/build-dark.svg",
+      "destination": "button-assets-v3.2/icons/build-dark.svg",
+      "sha256": "b07364dc14e3d2a9337b62a8fef4a3ffdd4348c879289b9bed84e6ed10c5e791",
+      "bytes": 308
+    },
+    {
+      "source": "assets/icons/build-dark@2x.png",
+      "destination": "button-assets-v3.2/icons/build-dark@2x.png",
+      "sha256": "2555bf76849d01f0844fe5bf746598944d8e8591401dd554f5f7620ba660b089",
+      "bytes": 1839
+    },
+    {
+      "source": "assets/icons/build-light.png",
+      "destination": "button-assets-v3.2/icons/build-light.png",
+      "sha256": "e82de55979c130760873a9c10eb3dea25a5f6ac98dd7866f30e5be4d049b3471",
+      "bytes": 1094
+    },
+    {
+      "source": "assets/icons/build-light.svg",
+      "destination": "button-assets-v3.2/icons/build-light.svg",
+      "sha256": "040d4ed33f47942387b508807c70d54acf0f5b845840c8bbc00e457205456eb7",
+      "bytes": 308
+    },
+    {
+      "source": "assets/icons/build-light@2x.png",
+      "destination": "button-assets-v3.2/icons/build-light@2x.png",
+      "sha256": "67e2122fb5514fdf0042c6f1de94a0f110951e18ae1c9b78e085e22a5492899c",
+      "bytes": 1846
+    },
+    {
+      "source": "assets/icons/build-muted.png",
+      "destination": "button-assets-v3.2/icons/build-muted.png",
+      "sha256": "29332568566b4d7af552dce0b232a5672cbf2ac79257ab0ef4b3f822a9b591fe",
+      "bytes": 1026
+    },
+    {
+      "source": "assets/icons/build-muted.svg",
+      "destination": "button-assets-v3.2/icons/build-muted.svg",
+      "sha256": "830d67682e3858e6469f1ee0d4352a166f96ddaea9119c300be1e6e52daffd57",
+      "bytes": 308
+    },
+    {
+      "source": "assets/icons/build-muted@2x.png",
+      "destination": "button-assets-v3.2/icons/build-muted@2x.png",
+      "sha256": "c92093477c1fac311b3cebd1cf3aeeb32bfaa882b0e2317a69637c94f24aed58",
+      "bytes": 1807
+    },
+    {
+      "source": "assets/icons/city-move-dark.png",
+      "destination": "button-assets-v3.2/icons/city-move-dark.png",
+      "sha256": "5620a1d06560fdbf7d8750e94658807f100cdd2cab6ff2faa5532a9e4c4a8336",
+      "bytes": 1023
+    },
+    {
+      "source": "assets/icons/city-move-dark.svg",
+      "destination": "button-assets-v3.2/icons/city-move-dark.svg",
+      "sha256": "d3e539ed6c89afb4d0c2e6e9c407290f6c6e36ca3ee1fef5026612524b8d7ee0",
+      "bytes": 333
+    },
+    {
+      "source": "assets/icons/city-move-dark@2x.png",
+      "destination": "button-assets-v3.2/icons/city-move-dark@2x.png",
+      "sha256": "2034ffb3c368d5dd2c619dff7059eb611bbdea275f59ed4a722fd78d72d2979f",
+      "bytes": 1693
+    },
+    {
+      "source": "assets/icons/city-move-light.png",
+      "destination": "button-assets-v3.2/icons/city-move-light.png",
+      "sha256": "4d86d8c3d03f45f00e3b8b1dafde4151d1df598392d029f7a243252b1d48733d",
+      "bytes": 1001
+    },
+    {
+      "source": "assets/icons/city-move-light.svg",
+      "destination": "button-assets-v3.2/icons/city-move-light.svg",
+      "sha256": "9b7b51ff09ff12cb43b6d0556ac862c7c48bda1a6323109f94d2cee10a3d2624",
+      "bytes": 333
+    },
+    {
+      "source": "assets/icons/city-move-light@2x.png",
+      "destination": "button-assets-v3.2/icons/city-move-light@2x.png",
+      "sha256": "da8aa0b30d3bf513c81105cf15106855bbfc0aa011ea0dc874a5806ac8ea4f9d",
+      "bytes": 1601
+    },
+    {
+      "source": "assets/icons/city-move-muted.png",
+      "destination": "button-assets-v3.2/icons/city-move-muted.png",
+      "sha256": "d9eadb6e69a9756e0005df99c5d1041911ecbd62ee3fa30aad8e60bb0a37fa08",
+      "bytes": 966
+    },
+    {
+      "source": "assets/icons/city-move-muted.svg",
+      "destination": "button-assets-v3.2/icons/city-move-muted.svg",
+      "sha256": "32954844396822862471e6d90f1c39e8a8b14df8cbdc3f7919934117f50eb4be",
+      "bytes": 333
+    },
+    {
+      "source": "assets/icons/city-move-muted@2x.png",
+      "destination": "button-assets-v3.2/icons/city-move-muted@2x.png",
+      "sha256": "c054bb151137ded34e4031752d401536669a13b8d79648e702b4d8a0aed37cc4",
+      "bytes": 1662
+    },
+    {
+      "source": "assets/icons/city-patterns-dark.png",
+      "destination": "button-assets-v3.2/icons/city-patterns-dark.png",
+      "sha256": "25fd79f378dcc05205d590cf9d2628e6e7f5d369e0fcd2bc96f9f2ff887c279d",
+      "bytes": 841
+    },
+    {
+      "source": "assets/icons/city-patterns-dark.svg",
+      "destination": "button-assets-v3.2/icons/city-patterns-dark.svg",
+      "sha256": "b70c4901040b6475582a8418598d0119592fa12ef91e1af91cfeee379be42621",
+      "bytes": 341
+    },
+    {
+      "source": "assets/icons/city-patterns-dark@2x.png",
+      "destination": "button-assets-v3.2/icons/city-patterns-dark@2x.png",
+      "sha256": "cfbb316d94978048a6929cbeb9bde6b32dd4fec7133367b88607787f4ed193d9",
+      "bytes": 1414
+    },
+    {
+      "source": "assets/icons/city-patterns-light.png",
+      "destination": "button-assets-v3.2/icons/city-patterns-light.png",
+      "sha256": "db0f47b1aef90a650f4eae5067bfe11598cbe60b7e8fd3eb2978c810e535ad85",
+      "bytes": 817
+    },
+    {
+      "source": "assets/icons/city-patterns-light.svg",
+      "destination": "button-assets-v3.2/icons/city-patterns-light.svg",
+      "sha256": "1752e70c26847e6228aa5495b8a2c1b6e2afaf3995ea940f21e73a180b36f217",
+      "bytes": 341
+    },
+    {
+      "source": "assets/icons/city-patterns-light@2x.png",
+      "destination": "button-assets-v3.2/icons/city-patterns-light@2x.png",
+      "sha256": "252e2f98577f9e4b315937265a64a351f640f3a93445200fc828a36adc58e121",
+      "bytes": 1336
+    },
+    {
+      "source": "assets/icons/city-patterns-muted.png",
+      "destination": "button-assets-v3.2/icons/city-patterns-muted.png",
+      "sha256": "4936a6f617047ce0fa8f06b4666a517eda80b4c2947321f09f11b1bc04de9f16",
+      "bytes": 814
+    },
+    {
+      "source": "assets/icons/city-patterns-muted.svg",
+      "destination": "button-assets-v3.2/icons/city-patterns-muted.svg",
+      "sha256": "9cbd5b89cb637c61f4a8d6d6235476d885db3bb40b3b42484cb2adc469b29182",
+      "bytes": 341
+    },
+    {
+      "source": "assets/icons/city-patterns-muted@2x.png",
+      "destination": "button-assets-v3.2/icons/city-patterns-muted@2x.png",
+      "sha256": "0c7357fd70c0dba7002147bd5bdfa4ab8870d2dee1280d50a9cfd8c7a2372750",
+      "bytes": 1461
+    },
+    {
+      "source": "assets/icons/deploy-dark.png",
+      "destination": "button-assets-v3.2/icons/deploy-dark.png",
+      "sha256": "bf243645a7b56fad0c68444db2498a35a81929e94931c1cbcd5cac154c0ca48a",
+      "bytes": 1642
+    },
+    {
+      "source": "assets/icons/deploy-dark.svg",
+      "destination": "button-assets-v3.2/icons/deploy-dark.svg",
+      "sha256": "dd7d595fbad20c7133c042354e670d0cf5f02aff445bd06d073ba9ceaff8060f",
+      "bytes": 312
+    },
+    {
+      "source": "assets/icons/deploy-dark@2x.png",
+      "destination": "button-assets-v3.2/icons/deploy-dark@2x.png",
+      "sha256": "7e0211286c1c10f3954d663fc307534b67db3999c5bf5b5e77072c03fd8c3b07",
+      "bytes": 3153
+    },
+    {
+      "source": "assets/icons/deploy-light.png",
+      "destination": "button-assets-v3.2/icons/deploy-light.png",
+      "sha256": "e5bfb7c02ae23e72405f5c04d2e58247fd007b41a532350722d035a3048ceeb6",
+      "bytes": 1596
+    },
+    {
+      "source": "assets/icons/deploy-light.svg",
+      "destination": "button-assets-v3.2/icons/deploy-light.svg",
+      "sha256": "2387109efe42f29befdfb27058a18a55ed6c196254131ced240f9aedaa5ca009",
+      "bytes": 312
+    },
+    {
+      "source": "assets/icons/deploy-light@2x.png",
+      "destination": "button-assets-v3.2/icons/deploy-light@2x.png",
+      "sha256": "c401d085970932a856348870d900998a4342e0d4e050fa5a103d7d212766d1b3",
+      "bytes": 2992
+    },
+    {
+      "source": "assets/icons/deploy-muted.png",
+      "destination": "button-assets-v3.2/icons/deploy-muted.png",
+      "sha256": "bbd2a61c59f03256492c404c08cbabfba6a29350cc9b4593c4b027f43064f2e9",
+      "bytes": 1630
+    },
+    {
+      "source": "assets/icons/deploy-muted.svg",
+      "destination": "button-assets-v3.2/icons/deploy-muted.svg",
+      "sha256": "ae8b0e048e5a4ca4982fbe07d8bcbd3d46138c7d1d0226232121c1bb14370c3d",
+      "bytes": 312
+    },
+    {
+      "source": "assets/icons/deploy-muted@2x.png",
+      "destination": "button-assets-v3.2/icons/deploy-muted@2x.png",
+      "sha256": "d4a007b01dae85af7bca5f817f2290c22a8e287a6c8fee40f14a512e0523035f",
+      "bytes": 3132
+    },
+    {
+      "source": "assets/icons/dispatch-dark.png",
+      "destination": "button-assets-v3.2/icons/dispatch-dark.png",
+      "sha256": "f8061608c2452f2e0b9de20d7b05d056705121ff88a28eeb2e2298838ffa96b6",
+      "bytes": 774
+    },
+    {
+      "source": "assets/icons/dispatch-dark.svg",
+      "destination": "button-assets-v3.2/icons/dispatch-dark.svg",
+      "sha256": "5ed241981c85f590f970a1d877c19a879e86146d1321c19367be895ee0effbda",
+      "bytes": 257
+    },
+    {
+      "source": "assets/icons/dispatch-dark@2x.png",
+      "destination": "button-assets-v3.2/icons/dispatch-dark@2x.png",
+      "sha256": "543f543ca0b083259b38e9c146d8cd29411ef1c789b6e6d05df03aecd22f8ee3",
+      "bytes": 1241
+    },
+    {
+      "source": "assets/icons/dispatch-light.png",
+      "destination": "button-assets-v3.2/icons/dispatch-light.png",
+      "sha256": "a073298772f521d278bcced11075a60bb91c504e9ae691f6d2f2633aee195bf3",
+      "bytes": 756
+    },
+    {
+      "source": "assets/icons/dispatch-light.svg",
+      "destination": "button-assets-v3.2/icons/dispatch-light.svg",
+      "sha256": "dfce1ebe609fcfbb7960ab6319cf4d09937086c9dff2a38badfb0216c8f439c9",
+      "bytes": 257
+    },
+    {
+      "source": "assets/icons/dispatch-light@2x.png",
+      "destination": "button-assets-v3.2/icons/dispatch-light@2x.png",
+      "sha256": "3acc52109d8fda2f47ddf75f2ddab94aecf96a66e1e324667e3825fe0d0a2d31",
+      "bytes": 1207
+    },
+    {
+      "source": "assets/icons/dispatch-muted.png",
+      "destination": "button-assets-v3.2/icons/dispatch-muted.png",
+      "sha256": "469da85630d47401b0efdd8459b016da3a92d1e6cc7a65e2ea10dfb8c5a6b0d2",
+      "bytes": 745
+    },
+    {
+      "source": "assets/icons/dispatch-muted.svg",
+      "destination": "button-assets-v3.2/icons/dispatch-muted.svg",
+      "sha256": "222ffd8ac1be363ba890969a16b69e19d5ea60d925f6b23fed1b346a79e80ac7",
+      "bytes": 257
+    },
+    {
+      "source": "assets/icons/dispatch-muted@2x.png",
+      "destination": "button-assets-v3.2/icons/dispatch-muted@2x.png",
+      "sha256": "6443c568a59c9aeb313a6a2a0a337a19cf4524fe896558539247a8d5ecd8fd9d",
+      "bytes": 1250
+    },
+    {
+      "source": "assets/icons/end-dark.png",
+      "destination": "button-assets-v3.2/icons/end-dark.png",
+      "sha256": "3242dfe90250a16bf09b37f831dd3bbed926b13296f37824c00b7e37835ef640",
+      "bytes": 1022
+    },
+    {
+      "source": "assets/icons/end-dark.svg",
+      "destination": "button-assets-v3.2/icons/end-dark.svg",
+      "sha256": "4728ddc0e28b9cba5f4b0608d2c9e0428180c8664e6db181924c833cfa3649c3",
+      "bytes": 246
+    },
+    {
+      "source": "assets/icons/end-dark@2x.png",
+      "destination": "button-assets-v3.2/icons/end-dark@2x.png",
+      "sha256": "818e98713daa47731d030a76a8d70b518d3ffcccc24704ffb41b16e8904a435a",
+      "bytes": 1715
+    },
+    {
+      "source": "assets/icons/end-light.png",
+      "destination": "button-assets-v3.2/icons/end-light.png",
+      "sha256": "cdae740ef0363976a0618f8644e71923ca7a72c8e10d193cfb1ac518d30886da",
+      "bytes": 1005
+    },
+    {
+      "source": "assets/icons/end-light.svg",
+      "destination": "button-assets-v3.2/icons/end-light.svg",
+      "sha256": "6d1d46212e4d22c9f7f72050ec3790859990e4a9d52c968a11e7b250f81c3be7",
+      "bytes": 246
+    },
+    {
+      "source": "assets/icons/end-light@2x.png",
+      "destination": "button-assets-v3.2/icons/end-light@2x.png",
+      "sha256": "76dcf6f7ab34debb4be9080c03c893a0927b81f2fb1d340953ed3e132de96f9f",
+      "bytes": 1685
+    },
+    {
+      "source": "assets/icons/end-muted.png",
+      "destination": "button-assets-v3.2/icons/end-muted.png",
+      "sha256": "5c112b6a7f0960b0af0426dac1e454bf76fe6f65afe76a94a10d3cfafda61fe7",
+      "bytes": 1021
+    },
+    {
+      "source": "assets/icons/end-muted.svg",
+      "destination": "button-assets-v3.2/icons/end-muted.svg",
+      "sha256": "2a8c4fc6d88783b3c32b02c97c13b5c0b2278c573b5668b6e507bcf67d03bf58",
+      "bytes": 246
+    },
+    {
+      "source": "assets/icons/end-muted@2x.png",
+      "destination": "button-assets-v3.2/icons/end-muted@2x.png",
+      "sha256": "2698aaff0f0eed004d050327b9318396865bd879a623112487243e9149758d3c",
+      "bytes": 1721
+    },
+    {
+      "source": "assets/icons/explore-dark.png",
+      "destination": "button-assets-v3.2/icons/explore-dark.png",
+      "sha256": "d0073bc836eecddd792c54a0bcaf0a8125bb46a94f2f9ab88641e014d9ca8f20",
+      "bytes": 2840
+    },
+    {
+      "source": "assets/icons/explore-dark.svg",
+      "destination": "button-assets-v3.2/icons/explore-dark.svg",
+      "sha256": "159f4aa0685d3e47b443cf7f93e12e8089c98bb518cc50a2330d50138715f0f3",
+      "bytes": 337
+    },
+    {
+      "source": "assets/icons/explore-dark@2x.png",
+      "destination": "button-assets-v3.2/icons/explore-dark@2x.png",
+      "sha256": "0eef66ed9c8039bb5d3c025190bf98e7f095ebc8295ab4e1180d9c3cf7f8033c",
+      "bytes": 5559
+    },
+    {
+      "source": "assets/icons/explore-light.png",
+      "destination": "button-assets-v3.2/icons/explore-light.png",
+      "sha256": "fcfaec207ec8fef89b79ffa53f8b06e754a7bb3c55e6eda65ba3cf18e594a981",
+      "bytes": 2822
+    },
+    {
+      "source": "assets/icons/explore-light.svg",
+      "destination": "button-assets-v3.2/icons/explore-light.svg",
+      "sha256": "4e6fc2cbe29484fc1f71c444edc51aed19e610d55d06c23cacae9976de11d274",
+      "bytes": 337
+    },
+    {
+      "source": "assets/icons/explore-light@2x.png",
+      "destination": "button-assets-v3.2/icons/explore-light@2x.png",
+      "sha256": "74e71a6e57e7897aaad24bb8aa0e8cbbe0d132322ba149ce56464a195888e2d5",
+      "bytes": 5482
+    },
+    {
+      "source": "assets/icons/explore-muted.png",
+      "destination": "button-assets-v3.2/icons/explore-muted.png",
+      "sha256": "8d311ca65e6e02cf5d47787c7be2e2830d6075cb1c27769f8eb04d850dbcecf2",
+      "bytes": 2912
+    },
+    {
+      "source": "assets/icons/explore-muted.svg",
+      "destination": "button-assets-v3.2/icons/explore-muted.svg",
+      "sha256": "9b705a50fa95864448d31830bb130f1ad18fafd2adda0e93f18d94a78add67c0",
+      "bytes": 337
+    },
+    {
+      "source": "assets/icons/explore-muted@2x.png",
+      "destination": "button-assets-v3.2/icons/explore-muted@2x.png",
+      "sha256": "ce90b74e5b320bd80bec0ea4479e47f134a2c103c7b04d15cb4629847e1d2e8d",
+      "bytes": 5608
+    },
+    {
+      "source": "assets/icons/main-actions-dark.png",
+      "destination": "button-assets-v3.2/icons/main-actions-dark.png",
+      "sha256": "02e0d9010df64db63a34b2ed9cb48b8ecd076d5a04424f7d0dc326c22786be08",
+      "bytes": 527
+    },
+    {
+      "source": "assets/icons/main-actions-dark.svg",
+      "destination": "button-assets-v3.2/icons/main-actions-dark.svg",
+      "sha256": "2a76b4f546bcd72d050aaa1aa69877bd7763b234ce55e9226bc87fa1f44f2600",
+      "bytes": 533
+    },
+    {
+      "source": "assets/icons/main-actions-dark@2x.png",
+      "destination": "button-assets-v3.2/icons/main-actions-dark@2x.png",
+      "sha256": "e7e844e7789a22af41d5b1b0923c365fc43d215cdf8ef4de918cd140126b01c1",
+      "bytes": 968
+    },
+    {
+      "source": "assets/icons/main-actions-light.png",
+      "destination": "button-assets-v3.2/icons/main-actions-light.png",
+      "sha256": "8fc99d87463d5edf30181a98e54cc73ebc35035bfd98cdcccad8086fc1c826f8",
+      "bytes": 524
+    },
+    {
+      "source": "assets/icons/main-actions-light.svg",
+      "destination": "button-assets-v3.2/icons/main-actions-light.svg",
+      "sha256": "70a17b3a49b6660e95d236e66253ef27e841711312fd5a06dee392aade68c0e2",
+      "bytes": 533
+    },
+    {
+      "source": "assets/icons/main-actions-light@2x.png",
+      "destination": "button-assets-v3.2/icons/main-actions-light@2x.png",
+      "sha256": "09eae05ee83dc06ba74be0e670189bd95d3bb0eeda27d100b45d856433a5f738",
+      "bytes": 964
+    },
+    {
+      "source": "assets/icons/main-actions-muted.png",
+      "destination": "button-assets-v3.2/icons/main-actions-muted.png",
+      "sha256": "db5883b991cb5b01fa95fa732f61305f23e7056feeb3cd47cd255c8f517f6a09",
+      "bytes": 528
+    },
+    {
+      "source": "assets/icons/main-actions-muted.svg",
+      "destination": "button-assets-v3.2/icons/main-actions-muted.svg",
+      "sha256": "bcde92344b53edf5b4329649a883dcfdac5c35dc9904179b5aec474e909da89f",
+      "bytes": 533
+    },
+    {
+      "source": "assets/icons/main-actions-muted@2x.png",
+      "destination": "button-assets-v3.2/icons/main-actions-muted@2x.png",
+      "sha256": "f8c8af373a3f3832675825339bd852cafb621b6fba6e8387dbf0b441418f16c5",
+      "bytes": 981
+    },
+    {
+      "source": "assets/icons/quick-actions-dark.png",
+      "destination": "button-assets-v3.2/icons/quick-actions-dark.png",
+      "sha256": "0676622baaad23883797cf857e253d1afc7a5df0dfaa1caef975f53cf7c504d4",
+      "bytes": 1648
+    },
+    {
+      "source": "assets/icons/quick-actions-dark.svg",
+      "destination": "button-assets-v3.2/icons/quick-actions-dark.svg",
+      "sha256": "2e3709cf069701e88449a3f22feb9a8ba9c5b43b1c16c3ede9ff9cdcaac7b1c8",
+      "bytes": 233
+    },
+    {
+      "source": "assets/icons/quick-actions-dark@2x.png",
+      "destination": "button-assets-v3.2/icons/quick-actions-dark@2x.png",
+      "sha256": "f587412ba80323bd3b9ac8f5981c9613e4c853440fd0e56ecab08ee80a194c8c",
+      "bytes": 2630
+    },
+    {
+      "source": "assets/icons/quick-actions-light.png",
+      "destination": "button-assets-v3.2/icons/quick-actions-light.png",
+      "sha256": "c6a12e32bb3d0b6abfc91344185ff0ad487789801822de701eea657bfff5573c",
+      "bytes": 1655
+    },
+    {
+      "source": "assets/icons/quick-actions-light.svg",
+      "destination": "button-assets-v3.2/icons/quick-actions-light.svg",
+      "sha256": "937958449aac8d35bf31e305464848630996c19900c14ea4160830f6781c4097",
+      "bytes": 233
+    },
+    {
+      "source": "assets/icons/quick-actions-light@2x.png",
+      "destination": "button-assets-v3.2/icons/quick-actions-light@2x.png",
+      "sha256": "9b22a399b1ad4adefa5f971c742f394877501ae36ae7b0e18b7fdbe3669c8558",
+      "bytes": 2590
+    },
+    {
+      "source": "assets/icons/quick-actions-muted.png",
+      "destination": "button-assets-v3.2/icons/quick-actions-muted.png",
+      "sha256": "4faabfdb13eb69cc95da188e1c447605d365f03c85bd158eb7650905fe184c36",
+      "bytes": 1647
+    },
+    {
+      "source": "assets/icons/quick-actions-muted.svg",
+      "destination": "button-assets-v3.2/icons/quick-actions-muted.svg",
+      "sha256": "45144d2d455a4adfc6095684716604d87928f9642ec34e96e909b474bac6c2f2",
+      "bytes": 233
+    },
+    {
+      "source": "assets/icons/quick-actions-muted@2x.png",
+      "destination": "button-assets-v3.2/icons/quick-actions-muted@2x.png",
+      "sha256": "a2dc3b745b776bb93a31e3d187d25fbad7207d656c9f3ba0d15fb1e54252e7f9",
+      "bytes": 2684
+    },
+    {
+      "source": "assets/icons/special-dark.png",
+      "destination": "button-assets-v3.2/icons/special-dark.png",
+      "sha256": "e3963d394750bba0f2abc3f9525defab5cbbc416448085247545d4abae80a1dd",
+      "bytes": 1230
+    },
+    {
+      "source": "assets/icons/special-dark.svg",
+      "destination": "button-assets-v3.2/icons/special-dark.svg",
+      "sha256": "41323490a84763e47da3cf5684f5efe2d1ecd3baa0a2e7cd10f6d32b1ceeb120",
+      "bytes": 308
+    },
+    {
+      "source": "assets/icons/special-dark@2x.png",
+      "destination": "button-assets-v3.2/icons/special-dark@2x.png",
+      "sha256": "6c9ed39d57e980933299d4782f99a306b7470cb9f11b9470036d681017d5b3ce",
+      "bytes": 2098
+    },
+    {
+      "source": "assets/icons/special-light.png",
+      "destination": "button-assets-v3.2/icons/special-light.png",
+      "sha256": "d23e49e4a1b9d0db8eedb13728f244c5f516a7f7f2f169fa64b7f3bbca17662d",
+      "bytes": 1193
+    },
+    {
+      "source": "assets/icons/special-light.svg",
+      "destination": "button-assets-v3.2/icons/special-light.svg",
+      "sha256": "9fb697fd01452624d685b5b2b34027392a67832114ca3f0cd213c87fca6748c5",
+      "bytes": 308
+    },
+    {
+      "source": "assets/icons/special-light@2x.png",
+      "destination": "button-assets-v3.2/icons/special-light@2x.png",
+      "sha256": "725fefde6b8fda40fffbc380a38eedff1f6e17d9aa7117511cdfbcc4cba72fb4",
+      "bytes": 2091
+    },
+    {
+      "source": "assets/icons/special-muted.png",
+      "destination": "button-assets-v3.2/icons/special-muted.png",
+      "sha256": "579798023fb91754b01de10dd36f7b2db8fedcc621f3b813db6cccc06445bbc0",
+      "bytes": 1193
+    },
+    {
+      "source": "assets/icons/special-muted.svg",
+      "destination": "button-assets-v3.2/icons/special-muted.svg",
+      "sha256": "e22e1fd1cc297123528b460d09afa358e3bd55f5fe6d351082669d1722b21e35",
+      "bytes": 308
+    },
+    {
+      "source": "assets/icons/special-muted@2x.png",
+      "destination": "button-assets-v3.2/icons/special-muted@2x.png",
+      "sha256": "26b3cd3e0f7795fa572cbe798f1f29dcc79f9c131cdb4297b791651f8f66e2f1",
+      "bytes": 2109
+    },
+    {
+      "source": "assets/icons/undo-dark.png",
+      "destination": "button-assets-v3.2/icons/undo-dark.png",
+      "sha256": "fb852f8d94d2885586791cecfcdc8411340e7609405cb86f36308f38de803cc1",
+      "bytes": 1298
+    },
+    {
+      "source": "assets/icons/undo-dark.svg",
+      "destination": "button-assets-v3.2/icons/undo-dark.svg",
+      "sha256": "dfac270eab5abd9efa69dc112158a2d1770cebb7007a48588750c55c8fd788c5",
+      "bytes": 269
+    },
+    {
+      "source": "assets/icons/undo-dark@2x.png",
+      "destination": "button-assets-v3.2/icons/undo-dark@2x.png",
+      "sha256": "e501a44566d387770d3d26f90a0e2e025b32547c2240e526bf5e1ec4b2ae0ed2",
+      "bytes": 2323
+    },
+    {
+      "source": "assets/icons/undo-light.png",
+      "destination": "button-assets-v3.2/icons/undo-light.png",
+      "sha256": "cbdfd0fc386ffa8bac0641486d1609cf8a43f0b6bb7c6803e31f7b5092922f90",
+      "bytes": 1285
+    },
+    {
+      "source": "assets/icons/undo-light.svg",
+      "destination": "button-assets-v3.2/icons/undo-light.svg",
+      "sha256": "659d4c37c5e5610cadf3434c2cb2bc251ddd38e1995bb3755a55522bc200bcb4",
+      "bytes": 269
+    },
+    {
+      "source": "assets/icons/undo-light@2x.png",
+      "destination": "button-assets-v3.2/icons/undo-light@2x.png",
+      "sha256": "d57d15121631c05d16e53e6a4ede256bc9d49fec661bb152486f2411cecc4639",
+      "bytes": 2313
+    },
+    {
+      "source": "assets/icons/undo-muted.png",
+      "destination": "button-assets-v3.2/icons/undo-muted.png",
+      "sha256": "9f8acc578902efdb9c4c15899e46cc5bee6b3ec2bfd5eecb0b91c0d5420a04d9",
+      "bytes": 1280
+    },
+    {
+      "source": "assets/icons/undo-muted.svg",
+      "destination": "button-assets-v3.2/icons/undo-muted.svg",
+      "sha256": "cf30ce04d0de20be2ead4003d046be5b5aec7439c109ee0dec26db25c00e0c7d",
+      "bytes": 269
+    },
+    {
+      "source": "assets/icons/undo-muted@2x.png",
+      "destination": "button-assets-v3.2/icons/undo-muted@2x.png",
+      "sha256": "35543462f0af141f800cb49f500529cdd06b70168e79e278e6587912ead6849f",
+      "bytes": 2397
+    },
+    {
+      "source": "preview/main-idle.png",
+      "destination": "preview/main-idle.png",
+      "sha256": "8bd8f30a62c12d570b3de9e77b442f8b4f5b9e5d0de68d0e3cf9020d74610da0",
+      "bytes": 2726339
+    },
+    {
+      "source": "preview/main-resolution.png",
+      "destination": "preview/main-resolution.png",
+      "sha256": "0ccc2aed1382a1267096df3ecb32633f5b8c1a7c36a2e94a954f87a5b4dfdb1b",
+      "bytes": 2581354
+    },
+    {
+      "source": "integration/button-assets-v3.2/button-roles.json",
+      "destination": "button-assets-v3.2/button-roles.json",
+      "sha256": "2b8dd781d48a948a5eaff4aae129b3695a9005a25377b121a8e6c7068918ef9a",
+      "bytes": 5362
+    }
+  ]
+}

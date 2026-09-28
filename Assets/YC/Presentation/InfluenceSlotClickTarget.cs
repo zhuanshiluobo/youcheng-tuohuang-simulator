@@ -24,11 +24,14 @@ namespace YC.Presentation
         private void OnMouseDown()
         {
             if (Camera.main != null && Camera.main.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() != null) return;
-            if (controller != null) controller.OnInfluenceSlotClicked(slotId);
+            if (controller != null && TabletopPointerClassifier.CanRouteMapPointer(Input.mousePosition))
+                controller.OnInfluenceSlotClicked(slotId);
         }
         public void OnPointerClick(UnityEngine.EventSystems.PointerEventData eventData)
         {
-            if (eventData.button == UnityEngine.EventSystems.PointerEventData.InputButton.Left && controller != null)
+            if (eventData != null &&
+                eventData.button == UnityEngine.EventSystems.PointerEventData.InputButton.Left &&
+                controller != null && TabletopPointerClassifier.CanRouteMapPointer(eventData.position))
                 controller.OnInfluenceSlotClicked(slotId);
         }
     }

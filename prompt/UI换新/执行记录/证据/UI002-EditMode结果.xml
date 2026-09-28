@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-24 12:32:02Z" end-time="2026-09-24 12:32:02Z" duration="0.1544877">
+  <test-suite type="TestSuite" id="2304" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="1140" result="Passed" start-time="2026-09-24 12:32:02Z" end-time="2026-09-24 12:32:02Z" duration="0.154488" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="3604" name="YC.Tests.EditMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.EditMode.dll" runstate="Runnable" testcasecount="1140" result="Passed" start-time="2026-09-24 12:32:02Z" end-time="2026-09-24 12:32:02Z" duration="0.133956" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="9464" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="3605" name="YC" fullname="YC" runstate="Runnable" testcasecount="1140" result="Passed" start-time="2026-09-24 12:32:02Z" end-time="2026-09-24 12:32:02Z" duration="0.120834" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="3606" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="1140" result="Passed" start-time="2026-09-24 12:32:02Z" end-time="2026-09-24 12:32:02Z" duration="0.107524" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="SetUpFixture" id="2675" name="EditMode" fullname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" classname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" runstate="Runnable" testcasecount="1140" result="Passed" start-time="2026-09-24 12:32:02Z" end-time="2026-09-24 12:32:02Z" duration="0.094603" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="3584" name="Ui002FontRolesTests" fullname="YC.Tests.EditMode.Ui002FontRolesTests" classname="YC.Tests.EditMode.Ui002FontRolesTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-24 12:32:02Z" end-time="2026-09-24 12:32:02Z" duration="0.059102" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="3585" name="RecreateManagedTextPreservesFiveSemanticFonts" fullname="YC.Tests.EditMode.Ui002FontRolesTests.RecreateManagedTextPreservesFiveSemanticFonts" methodname="RecreateManagedTextPreservesFiveSemanticFonts" classname="YC.Tests.EditMode.Ui002FontRolesTests" runstate="Runnable" seed="1133862418" result="Passed" start-time="2026-09-24 12:32:02Z" end-time="2026-09-24 12:32:02Z" duration="0.051751" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -5,6 +5,19 @@ namespace YC.Presentation
 {
     public sealed class BuildInfoPanelView : MonoBehaviour
     {
+        public void SetLegacyVisible(bool visible)
+        {
+            if (root == null) return;
+            // 地图相机只覆盖中央视口；旧供应槽的独立 Canvas 需使用全屏 UI 射线。
+            var canvas = root.GetComponent<Canvas>();
+            if (visible && canvas != null) canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            var group = root.GetComponent<CanvasGroup>();
+            if (group == null) return;
+            group.alpha = visible ? 1f : 0f;
+            group.interactable = visible;
+            group.blocksRaycasts = visible;
+        }
+
         [SerializeField] private CardInteractionLayoutProfile cardInteractionLayoutProfile;
         [SerializeField] private BuildInfoPanel controller;
         [SerializeField] private RectTransform root;

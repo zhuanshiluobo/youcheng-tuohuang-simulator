@@ -1,0 +1,5614 @@
+[
+  {
+    "sha256": "42859d86d80867bea640052ef8e85348063c45b72f4c0add8cc0a47f4ae76847",
+    "bytes": 1356289,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/character-atlas.jpg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/character-atlas.jpg"
+      }
+    ]
+  },
+  {
+    "sha256": "081182980414c10c123b05e43c7f905e23124a26c8d80cca66c21e61767eb828",
+    "bytes": 156406,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/character-back-reunion.jpg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/character-back-reunion.jpg"
+      }
+    ]
+  },
+  {
+    "sha256": "0361f0e12abcad6642631dff3020010afea0163ddeee33e03a8f88d5158c3b7f",
+    "bytes": 233764,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/character-back-rhodes.jpg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/character-back-rhodes.jpg"
+      }
+    ]
+  },
+  {
+    "sha256": "67c85fce31269b13181d1c9b1593f640b9ab4b6d81b489cd05125891660d6218",
+    "bytes": 8114616,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/city-board.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/city-board.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/originals/city-board.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/originals/city-board.png"
+      }
+    ]
+  },
+  {
+    "sha256": "e5f0cfd4262b6e58f859249606fd7886070c6eb91adcf33cf51cd51b9a4bc261",
+    "bytes": 2547459,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/enterprise-atlas.jpg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/enterprise-atlas.jpg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/originals/enterprise-atlas.jpg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/originals/enterprise-atlas.jpg"
+      }
+    ]
+  },
+  {
+    "sha256": "3aa098e6a1b2b682997b1b6fc4f50e7035b0bc222901b9c18c819e22b7bf8452",
+    "bytes": 111538,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/entrepreneur-1.jpg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/entrepreneur-1.jpg"
+      }
+    ]
+  },
+  {
+    "sha256": "aa52cd4718387d366ab50eb694ee9c3e6e99b82b08afca7e260fab2a9dfa768f",
+    "bytes": 124259,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/entrepreneur-2.jpg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/entrepreneur-2.jpg"
+      }
+    ]
+  },
+  {
+    "sha256": "6dcaf1a548aca0b428339bf03b0074e15f79fa596c044015957cd837c5b1ac69",
+    "bytes": 114396,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/entrepreneur-3.jpg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/entrepreneur-3.jpg"
+      }
+    ]
+  },
+  {
+    "sha256": "443de7967143a5f4dd5fd9a68c11916dd7f9866d51c14fe4bc5036f51b5a8e57",
+    "bytes": 678,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-00-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-00-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-00-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-00-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-00-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-00-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-00-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef",
+    "bytes": 679,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-01-64.png"
+      },
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/digit-base-green-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-01-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-green-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-01-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-green-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-01-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-green-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-01-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-green-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-01-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-green-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-01-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-green-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "ab6ace1eaff283f15515d152c8a16d198ecd5cdef68a4ba1a791fd9989f01351",
+    "bytes": 678,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-02-64.png"
+      },
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/digit-base-yellow-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-02-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-yellow-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-02-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-yellow-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-02-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-yellow-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-02-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-yellow-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-02-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-yellow-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-02-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-yellow-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "3685288cfd853cfddf1606697e7dbc25a436c727ce70c29cb35ff3fe70c3aacf",
+    "bytes": 827,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-03-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-03-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-03-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-03-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-03-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-03-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-03-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "edcc07d148d018ab557f550f011fc43be0aa005c2b52188d6983596295c21eec",
+    "bytes": 678,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-04-64.png"
+      },
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/digit-base-blue-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-04-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-blue-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-04-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-blue-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-04-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-blue-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-04-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-blue-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-04-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-blue-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-04-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-blue-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "7dbcdceb9232273ac00fe120adec8740ff38c003eee98074ccc37278c835338f",
+    "bytes": 828,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-05-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-05-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-05-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-05-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-05-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-05-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-05-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "70f5f0ded2ad276bb0ff7e9872ea03ba2e2121a23ca885d61b64437dda015e2d",
+    "bytes": 829,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-06-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-06-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-06-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-06-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-06-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-06-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-06-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "1bde096cbaa80534a64e750d7d2979e8277809a82b198ce652bb99f01894c9c8",
+    "bytes": 691,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-07-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-07-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-07-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-07-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-07-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-07-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-07-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "afd73d934def1788bfb746251f519ccb6955abd15540f8f7d220a36565d8e64b",
+    "bytes": 678,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-08-64.png"
+      },
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/digit-base-red-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-08-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-red-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-08-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-red-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-08-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-red-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-08-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-red-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-08-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-red-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-08-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-red-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "08ef48a5e20cc96155883e9a3b9df19bf8c6df251015a4e759ed1cef9019ae2c",
+    "bytes": 828,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-09-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-09-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-09-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-09-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-09-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-09-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-09-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "48bf822715419d06deefb8ce6b985a36de79d8ccfb93e809eddccd94b16d83b8",
+    "bytes": 828,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-0a-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0a-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0a-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0a-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0a-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0a-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0a-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "b93b5b37dcbd4ae3aa7373e7fe653e78e6bb83af50a1b4c6e98d3d8ea296d8b6",
+    "bytes": 691,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-0b-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0b-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0b-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0b-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0b-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0b-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0b-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "f392615d6f7a54137335e4e085fb8dc1b7f33199946c5263fa8d43a87eebc1f0",
+    "bytes": 829,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-0c-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0c-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0c-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0c-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0c-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0c-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0c-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "8c24503ef3e9c076fcbd7b365c393f5f5189ffa9acf722feb4225a7296ce411a",
+    "bytes": 694,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-0d-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0d-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0d-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0d-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0d-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0d-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0d-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "d0bc8e2304d7c79873102701e48dc0efd5ce83ba8347c4b26a9d5e554719c28f",
+    "bytes": 693,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-0e-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0e-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0e-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0e-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0e-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0e-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0e-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "959b8813ee16f67cf170865931510fbdabb5bccb39cdefefc96a4a25c7eb8f86",
+    "bytes": 704,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/markers/cooperation-0f-64.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0f-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0f-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0f-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0f-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0f-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0f-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "2da089ee32aa6c4a329f6f055b5e527de84c788099b15b64a39f7415859d37e3",
+    "bytes": 33249,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/resource-iron.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/resource-iron.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/originals/resource-iron.png"
+      },
+      {
+        "package": "Option-Picker-UI-v1",
+        "member": "option-picker-ui-v1/assets/resource-iron.png"
+      }
+    ]
+  },
+  {
+    "sha256": "3d3b8553130e658276e040e5aac963961fcc1f40464c57ad1c3b7cb19d753cc6",
+    "bytes": 37169,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/resource-originium.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/resource-originium.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/originals/resource-originium.png"
+      },
+      {
+        "package": "Option-Picker-UI-v1",
+        "member": "option-picker-ui-v1/assets/resource-originium.png"
+      }
+    ]
+  },
+  {
+    "sha256": "c1ddc84b577953c3604251608de84652787b0186ef42f50e2d02fd9ccb0862b9",
+    "bytes": 44960,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/resource-pure.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/resource-pure.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/originals/resource-pure.png"
+      },
+      {
+        "package": "Option-Picker-UI-v1",
+        "member": "option-picker-ui-v1/assets/resource-pure.png"
+      }
+    ]
+  },
+  {
+    "sha256": "81b92f61c43cc1b2f45396a550a6c6d6b0682c461a1aed454ae4fc0bddc17ea1",
+    "bytes": 34669,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/resource-rock.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/resource-rock.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/originals/resource-rock.png"
+      },
+      {
+        "package": "Option-Picker-UI-v1",
+        "member": "option-picker-ui-v1/assets/resource-rock.png"
+      }
+    ]
+  },
+  {
+    "sha256": "605f6fb43c8021706847d7d9db0d4483a5bfa05fcd09bf15b13e96b6996464bf",
+    "bytes": 7535343,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/preview/originals/world-map.jpg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/07-originals/world-map.jpg"
+      }
+    ]
+  },
+  {
+    "sha256": "c7a4fe46dff130f2c12b459ea7c3f0f9c19e9001d5b5039618f19143d358607d",
+    "bytes": 1631112,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/sources/original-button-primary.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/card-picker/button-primary.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/card-picker/button-primary.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/card-picker/button-primary.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/card-picker/button-primary.png"
+      },
+      {
+        "package": "Card-Picker-UI-v1",
+        "member": "card-picker-ui-v1/assets/button-primary.png"
+      },
+      {
+        "package": "Option-Picker-UI-v1",
+        "member": "option-picker-ui-v1/assets/button-primary.png"
+      }
+    ]
+  },
+  {
+    "sha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
+    "bytes": 1483924,
+    "sources": [
+      {
+        "package": "FrontierUI-v3-Patch",
+        "member": "FrontierUI-v3-Patch/sources/original-button-secondary.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/card-picker/button-secondary.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/card-picker/button-secondary.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/card-picker/button-secondary.png"
+      },
+      {
+        "package": "Card-Picker-UI-v1",
+        "member": "card-picker-ui-v1/assets/button-secondary.png"
+      },
+      {
+        "package": "Option-Picker-UI-v1",
+        "member": "option-picker-ui-v1/assets/button-secondary.png"
+      }
+    ]
+  },
+  {
+    "sha256": "0e65a923e338af1ef9a8f34cf3d879e170fa8a9b036499724a546e580c3e9865",
+    "bytes": 27928,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/right-cluster-fill.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/right-cluster-fill.png"
+      }
+    ]
+  },
+  {
+    "sha256": "c02ad4203afc992d05bd4668465755ea6b18bb4fb5a55b19f869a0ef7311192a",
+    "bytes": 1366,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/right-cluster-fill.svg"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/right-cluster-fill.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "a57ef25bb25bdca46e9c9ba0ffa3ed3968aad9bf85de2dbd78766fdfc98ecfc9",
+    "bytes": 7292,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/right-cluster-frame.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/right-cluster-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "ec8d8ab3b47f82afe3f0b09e355e839e2db4b0cdfa79ac1f02e8cc7da77462d2",
+    "bytes": 1385,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/right-cluster-frame.svg"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/right-cluster-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "e11c8cf4a878186272ab67cf91fdd3e03c26fd9e85e167abe1998733a4842f87",
+    "bytes": 30165,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/title-plaque-fill.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/title-plaque-fill.png"
+      }
+    ]
+  },
+  {
+    "sha256": "9ec98602eef0103cf30ef336769e159edcc7f5e20882ffcecb2d6753659ef480",
+    "bytes": 493,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/title-plaque-fill.svg"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/title-plaque-fill.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "7ba53b7fa2dbc2111118969067268514d2edf820b2ed858fbdcbdcc07442072b",
+    "bytes": 7367,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/title-plaque-frame.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/title-plaque-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "18c2c822c0b255a60bb8591224f435a47eedf6eb0cb82c71c572fb08b17e0a87",
+    "bytes": 515,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/title-plaque-frame.svg"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/title-plaque-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "2c513d2d35f2227365f88b3ab1b5b18f9873defd75fb7c70b133ff5031b512f8",
+    "bytes": 35354,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/title-plaque.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/title-plaque.png"
+      }
+    ]
+  },
+  {
+    "sha256": "32cd402a4e2cd8fef54ab18dc83030c7d1e0c2ce55b28fc3bd22ced98162a531",
+    "bytes": 493,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/title-plaque.svg"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/title-plaque.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "40c01faeda53c34bf95a44f42c8fb71a6ddbf70271205d8613751d1d0a294e16",
+    "bytes": 137265,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/topbar-fill.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/topbar-fill.png"
+      }
+    ]
+  },
+  {
+    "sha256": "8a301ad51e263548ed48ead8caea793eae5dffa3d9d8771264c998109605d247",
+    "bytes": 377,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/topbar-fill.svg"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/topbar-fill.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "937ef7ec95a27935938a033a98c27fbc55143c19ea5fb9bc1480d51fa7fd3772",
+    "bytes": 10634,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/topbar-frame.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/topbar-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "83283098d870831a1dc931c9a1f033459ab9c9651fa411e84fcb8c31e067eddd",
+    "bytes": 491,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/topbar-frame.svg"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/topbar-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "16f222458681647d0c822c185fb65464a14203762b0ffe3e05f4e31bf81dfdda",
+    "bytes": 8391,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/topbar-v22.json"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/topbar-v22.json"
+      }
+    ]
+  },
+  {
+    "sha256": "a3043e1b3b436541fb4be4c9c54168718de091493342db03071c9703c24fdccd",
+    "bytes": 12264,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/turn-ribbon-fill.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/turn-ribbon-fill.png"
+      }
+    ]
+  },
+  {
+    "sha256": "9be14d1e2c2b4018f7234c47f9d97ba238647f537fdaa9ffc61aa3033dac3164",
+    "bytes": 499,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/turn-ribbon-fill.svg"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/turn-ribbon-fill.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "60081d58895eeddc4270049a52ef974a6cb4558116894fde231537092464b283",
+    "bytes": 3621,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/turn-ribbon-frame.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/turn-ribbon-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "6aac9abce58301819b3d09723ee62cab5fbcc0cd0651851752c35c0a11f2cf60",
+    "bytes": 535,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/01-topbar/turn-ribbon-frame.svg"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/01-topbar/turn-ribbon-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "ddce7889d3601228dffbd3f2be3da40ad6f2570cc8e6629e91134545129e467c",
+    "bytes": 44224,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/card-slot-fill.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/card-slot-fill.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/card-slot-fill.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/card-slot-fill.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/card-slot-fill.png"
+      }
+    ]
+  },
+  {
+    "sha256": "6bc3078cb115f7580c9e54d6c2dc7f5a65d7e016f1ee3d17520ffc9c06515504",
+    "bytes": 369,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/card-slot-fill.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/card-slot-fill.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/card-slot-fill.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/card-slot-fill.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/card-slot-fill.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "0d72948250f5318e56dcd740301c932aa34d9da5476304aba60171c4305d01a9",
+    "bytes": 10147,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/card-slot-frame.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/card-slot-frame.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/card-slot-frame.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/card-slot-frame.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/card-slot-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "854e2da80b2ab14cc0a31ee00d215bb01b01b20c880e3fb000c13569d4aab396",
+    "bytes": 2154,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/card-slot-frame.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/card-slot-frame.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/card-slot-frame.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/card-slot-frame.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/card-slot-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "cf798feedf8623a7094374ca805adfd95f3fbda4b3df3bc97a4a7a4f7ce7d037",
+    "bytes": 219878,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/module-fill-dark.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/module-fill-dark.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/module-fill-dark.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/module-fill-dark.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/module-fill-dark.png"
+      }
+    ]
+  },
+  {
+    "sha256": "560302d2fd13fd03ef349f76118a2b8a64133d08475814718db6094155982c09",
+    "bytes": 369,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/module-fill-dark.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/module-fill-dark.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/module-fill-dark.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/module-fill-dark.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/module-fill-dark.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "b0ed26893e04bc2ebb900415cb1a3f40b339efdb2a444bf731235abd8f64818f",
+    "bytes": 228204,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/module-fill-paper.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/module-fill-paper.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/module-fill-paper.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/module-fill-paper.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/module-fill-paper.png"
+      }
+    ]
+  },
+  {
+    "sha256": "9e38cf3917c0a29850fb1c713c5a6a90a151e83000c034e3358cc55d8a896390",
+    "bytes": 368,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/module-fill-paper.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/module-fill-paper.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/module-fill-paper.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/module-fill-paper.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/module-fill-paper.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "bd875fe46f6f60d41e601f53d00971da82403186c7b9112adc9d362331689934",
+    "bytes": 33074,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/module-frame.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/module-frame.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/module-frame.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/module-frame.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/module-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "4921485f0ba91245c9ff9f79b49e1fdcab81f55a1b447973aea4cca4b28183c4",
+    "bytes": 2154,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/module-frame.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/module-frame.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/module-frame.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/module-frame.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/module-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "fbb16c95380c3976560c1e3e358573bff51b1059e3bf7e21c7f99a7cfcd232a8",
+    "bytes": 32586,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/module-header-fill.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/module-header-fill.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/module-header-fill.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/module-header-fill.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/module-header-fill.png"
+      }
+    ]
+  },
+  {
+    "sha256": "a4bbda6a46292ece3b5d21a960d614254cf385a9981dbcd4d7623380dbff7100",
+    "bytes": 364,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/module-header-fill.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/module-header-fill.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/module-header-fill.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/module-header-fill.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/module-header-fill.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "0def192581ba8052cf7cb454f784a31496a4258cd82a95730e33c0d737a1244d",
+    "bytes": 2971,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/module-header-frame.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/module-header-frame.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/module-header-frame.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/module-header-frame.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/module-header-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "71866080f6827983a2952a8f85d027e1b140d64a8fe27d07dd874ba3283b9734",
+    "bytes": 587,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/module-header-frame.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/module-header-frame.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/module-header-frame.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/module-header-frame.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/module-header-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "8d4c23bac0c1e28c926bef08167d296a8dc482ef065fc660770001547283a849",
+    "bytes": 14033,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/submodule-frame.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/submodule-frame.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/submodule-frame.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/submodule-frame.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/submodule-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "6d7c009f1066055e82483949320732a97bd5fa19cc25549d6a31ff2c6f4bb099",
+    "bytes": 2154,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/submodule-frame.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/submodule-frame.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/submodule-frame.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/submodule-frame.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/submodule-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "b4275c496d722d0c7b4ad690bb53028c6fd1f95cbea6cdc9edc5f7f0cb647441",
+    "bytes": 2938,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/thin-row-frame.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/thin-row-frame.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/thin-row-frame.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/thin-row-frame.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/thin-row-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "db80dde7844bc2a68922b1339293df372d2063ca1d9ea1e310bb2e67e0c3100f",
+    "bytes": 483,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/02-modules/thin-row-frame.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/02-modules/thin-row-frame.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/02-modules/thin-row-frame.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/02-modules/thin-row-frame.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/02-modules/thin-row-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "e7fd3966ffdeb60c2fcbb3b3d44b7897652bd13b10515adf24dbd28d3885a956",
+    "bytes": 17366,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-default.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-default.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-default.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-default.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-default.png"
+      }
+    ]
+  },
+  {
+    "sha256": "2c084822059b30703e15a2a8fd514bcd048e83f08ed1d65313ba1b8e6c1204d8",
+    "bytes": 2616,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-default.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-default.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-default.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-default.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-default.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "8564d26ee71b628fa25e9c1ea4e6acee12adfea20ad021b29eb6ae2a336deed7",
+    "bytes": 12304,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-disabled.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-disabled.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-disabled.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-disabled.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-disabled.png"
+      }
+    ]
+  },
+  {
+    "sha256": "6a7362420e9885ffe5847ab7ac64942f67cb6cef2c372fcb0aa07294fccd3b49",
+    "bytes": 2676,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-disabled.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-disabled.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-disabled.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-disabled.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-disabled.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "ed64496c659870931dd282b30ffcb4f64480927832aae052954f47ee80820f62",
+    "bytes": 16662,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-hover.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-hover.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-hover.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-hover.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-hover.png"
+      }
+    ]
+  },
+  {
+    "sha256": "9e99dcb7712dc30a807e82f321c25c1a9aa148e32d1a6a00065747ae2d66abbf",
+    "bytes": 2676,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-hover.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-hover.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-hover.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-hover.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-hover.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "837fe51eb1d70e2c2dc6d6650e35468b9198362b294d2637e2b6adef6ef2607b",
+    "bytes": 15628,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-pressed.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-pressed.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-pressed.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-pressed.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-pressed.png"
+      }
+    ]
+  },
+  {
+    "sha256": "17aef1a8d9ab4f00904d2f084df8e044e5c589ed5288b3b273a7034e99c94509",
+    "bytes": 2915,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-pressed.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-pressed.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-pressed.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-pressed.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-pressed.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "e0089b17fb3e7ee34551161c53b5c0e0e817ae30853ae7ab66ee3f78c8c2e82f",
+    "bytes": 23017,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-primary-active.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-primary-active.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-primary-active.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-primary-active.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-primary-active.png"
+      }
+    ]
+  },
+  {
+    "sha256": "b4025d40ab4cdbe4338cb7b75f30d3f195145849a6b5c98510be005b920b22b8",
+    "bytes": 2618,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-primary-active.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-primary-active.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-primary-active.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-primary-active.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-primary-active.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "0f513f16879d119e271e3cd9291fb8e6e1e4cfe3784086d8bf9f268a12f91f4e",
+    "bytes": 20871,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-primary-pressed.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-primary-pressed.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-primary-pressed.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-primary-pressed.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-primary-pressed.png"
+      }
+    ]
+  },
+  {
+    "sha256": "d6e58ea5257e141ad1551a70a95266cbe18a430d0f53187b8986fc48b83f6179",
+    "bytes": 2917,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-fill-primary-pressed.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-fill-primary-pressed.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-primary-pressed.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-fill-primary-pressed.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-primary-pressed.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "af00441a821c3ba4e73f5efeb555adb2aeb4395f1712ed54999520677619ecf9",
+    "bytes": 10044,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-frame.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-frame.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-frame.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-frame.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "2b626ac8a7b69605f7eca2476c205975e71636caa643e9d65a0eddb661fa0b50",
+    "bytes": 2598,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/button-frame.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/button-frame.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/button-frame.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/button-frame.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/button-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "08956d37b9b7f722735fb070f17b035e1435a400c16c1c3dcb37cf425e68edee",
+    "bytes": 551,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/scrollbar-thumb-h.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/scrollbar-thumb-h.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/scrollbar-thumb-h.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/scrollbar-thumb-h.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/scrollbar-thumb-h.png"
+      }
+    ]
+  },
+  {
+    "sha256": "714041417d5d1f203e33880ce0bfb935361f90ebbc7c98f337fe53490d2c46c8",
+    "bytes": 624,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/scrollbar-thumb-h.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/scrollbar-thumb-h.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/scrollbar-thumb-h.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/scrollbar-thumb-h.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/scrollbar-thumb-h.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "c0351364b536823c3d79403c7b028d7ee39368c4bf7d1ebd3aa411f58b5e62eb",
+    "bytes": 522,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/scrollbar-thumb-v.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/scrollbar-thumb-v.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/scrollbar-thumb-v.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/scrollbar-thumb-v.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/scrollbar-thumb-v.png"
+      }
+    ]
+  },
+  {
+    "sha256": "fd7ced1915fbb5ab4777cb9313f7d42583d9f776fd2271de548da5d7a4def46b",
+    "bytes": 578,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/scrollbar-thumb-v.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/scrollbar-thumb-v.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/scrollbar-thumb-v.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/scrollbar-thumb-v.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/scrollbar-thumb-v.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "98acf8a55635374d17f1955cc2ffa7e66590624ca9914e0966390349de50e68d",
+    "bytes": 599,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/scrollbar-track-h.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/scrollbar-track-h.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/scrollbar-track-h.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/scrollbar-track-h.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/scrollbar-track-h.png"
+      }
+    ]
+  },
+  {
+    "sha256": "3df2bfffff277bf3706497c27eafc9c8d1efc1cfc9b9e0e698fd046ea84f9fbb",
+    "bytes": 482,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/scrollbar-track-h.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/scrollbar-track-h.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/scrollbar-track-h.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/scrollbar-track-h.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/scrollbar-track-h.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "231a200522977488d3f3b320d6cf58aaaaac1f8b84be6f925c9e2bbddfb5a991",
+    "bytes": 592,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/scrollbar-track-v.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/scrollbar-track-v.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/scrollbar-track-v.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/scrollbar-track-v.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/scrollbar-track-v.png"
+      }
+    ]
+  },
+  {
+    "sha256": "f2381d3564894fae3f9e8e33dbc3b14ed50d1c039278f739a1b6dba63b7c4e11",
+    "bytes": 435,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/scrollbar-track-v.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/scrollbar-track-v.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/scrollbar-track-v.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/scrollbar-track-v.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/scrollbar-track-v.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "47660f6a377696f8317ebbdd451bee10be73137b6423eefd59160d25d1e4b3e3",
+    "bytes": 3944,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/stepper-fill-default.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-default.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-default.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-default.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-default.png"
+      }
+    ]
+  },
+  {
+    "sha256": "1ff306ce0018214ace787851987dd7e15a18f893d1b06ef5b6a7e188fa035f74",
+    "bytes": 2599,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/stepper-fill-default.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-default.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-default.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-default.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-default.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "e467f9375498726c93335969b4ec68d0564001e332da46616a20bb3fa099ad49",
+    "bytes": 2943,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/stepper-fill-disabled.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-disabled.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-disabled.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-disabled.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-disabled.png"
+      }
+    ]
+  },
+  {
+    "sha256": "dfbd2ae6713a8f5e2475bea13af864d4d8de1f0acb7538d9f407616fe933591f",
+    "bytes": 2658,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/stepper-fill-disabled.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-disabled.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-disabled.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-disabled.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-disabled.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "991f3f585977993ea78915ae789ed16d6951a45eb7103c9a89c6c53e411037c6",
+    "bytes": 3820,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/stepper-fill-hover.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-hover.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-hover.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-hover.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-hover.png"
+      }
+    ]
+  },
+  {
+    "sha256": "98801213d60cbf6b0a5fb6d31bcd0c41533607c76bab907fdce865de76dee6e5",
+    "bytes": 2658,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/stepper-fill-hover.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-hover.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-hover.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-hover.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-hover.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "370ee38616d7c0aaf81c57658a2eadf5700a515f4d8b88f06d6c14511f474940",
+    "bytes": 3660,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/stepper-fill-pressed.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-pressed.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-pressed.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-pressed.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-pressed.png"
+      }
+    ]
+  },
+  {
+    "sha256": "bf161a765dea227037dbabe79896e74d1ad98cb67cd7a4bf70d765733872cb80",
+    "bytes": 2896,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/stepper-fill-pressed.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-pressed.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-pressed.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-pressed.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-pressed.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "0ff15c4d6a47089e198f2d5d32e06c3bf74d092e2281747054302ee2fd93fcc1",
+    "bytes": 4302,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/stepper-frame.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/stepper-frame.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-frame.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/stepper-frame.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "67abd321d10893573c51b81ef6860b42f53bf142c20c7a624d21336a46c0ef20",
+    "bytes": 2583,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/stepper-frame.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/stepper-frame.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-frame.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/stepper-frame.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "a15682e31cfb18ce1af968ea3d92f854577886662c5815644cb677f34546b077",
+    "bytes": 17271,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/tab-fill-active.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/tab-fill-active.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/tab-fill-active.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/tab-fill-active.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/tab-fill-active.png"
+      }
+    ]
+  },
+  {
+    "sha256": "ea44c6f51e3a8079806eb4be2fc3592abd870c3d8e9e51a7bdbcf399a16bd07b",
+    "bytes": 2618,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/tab-fill-active.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/tab-fill-active.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/tab-fill-active.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/tab-fill-active.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/tab-fill-active.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "91cf09107ec6bbbc54d667c27a2d3b759a4d819013f6cf0ea6fa3c644ea109b7",
+    "bytes": 13100,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/tab-fill-default.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/tab-fill-default.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/tab-fill-default.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/tab-fill-default.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/tab-fill-default.png"
+      }
+    ]
+  },
+  {
+    "sha256": "77eaed8c378a560a322620b2e9bb3c8a0bb80e2d737a932e04dd6260675ede34",
+    "bytes": 2616,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/tab-fill-default.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/tab-fill-default.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/tab-fill-default.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/tab-fill-default.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/tab-fill-default.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "cae448d734e7182f848ace8c9abb66b6fd069524c18131b39446dadb44545407",
+    "bytes": 9276,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/tab-fill-disabled.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/tab-fill-disabled.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/tab-fill-disabled.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/tab-fill-disabled.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/tab-fill-disabled.png"
+      }
+    ]
+  },
+  {
+    "sha256": "b54c8d9f55a48558cec5a7acd80b5fd9bf7499cde02deedeeeb0ec995c9487e1",
+    "bytes": 2676,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/tab-fill-disabled.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/tab-fill-disabled.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/tab-fill-disabled.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/tab-fill-disabled.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/tab-fill-disabled.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "ac5f3642a8929ef57c29a5632827759e0a647f240e1157b7c959e8cc2fdf3a8c",
+    "bytes": 8419,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/tab-frame.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/tab-frame.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/tab-frame.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/tab-frame.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/tab-frame.png"
+      }
+    ]
+  },
+  {
+    "sha256": "ced18336e160cad32eb299de2ca2d9f8e33e196ae23f05b39179755cf0ab1828",
+    "bytes": 2598,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/03-controls/tab-frame.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/03-controls/tab-frame.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/03-controls/tab-frame.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/03-controls/tab-frame.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/03-controls/tab-frame.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "c1f35f1de8bc33feda2af99baf1a709b6539d04b00f8fedb2e1b4341a81d6ff1",
+    "bytes": 1084,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-00-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-00-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-00-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-00-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-00-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-00-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "d64c0c868efafc2d3f1b5b19b0bd5d5ad33e8c7b8cfb24644947ad715af2a75c",
+    "bytes": 379,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-00-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-00-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-00-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-00-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-00-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-00-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "275e636622e941ba16317c831780cbb2cd6a6dd65974d347af070b3c883d3414",
+    "bytes": 483,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-00.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-00.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-00.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-00.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-00.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-00.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "a2477e1f6e7ba972dc56c3fe213b8c66ef285039704c0f5aa95b94cb921ce676",
+    "bytes": 1084,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-01-128.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-green-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-01-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-green-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-01-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-green-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-01-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-green-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-01-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-green-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-01-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-green-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "60b185fba5d7f673f74d32bb45d61cd70f7a66f18248c59729bedce89f19b11b",
+    "bytes": 379,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-01-32.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-green-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-01-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-green-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-01-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-green-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-01-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-green-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-01-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-green-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-01-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-green-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "274ecdd29aa9654ae4b919f282c7f3d1902b65b4d351381dedc7b1d39973ea7a",
+    "bytes": 483,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-01.svg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-green.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-01.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-green.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-01.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-green.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-01.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-green.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-01.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-green.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-01.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-green.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "a43279e1611b209c62fb3e21d40752a07657e7e34c3779ee1b930a2118cb146a",
+    "bytes": 1084,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-02-128.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-yellow-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-02-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-yellow-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-02-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-yellow-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-02-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-yellow-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-02-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-yellow-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-02-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-yellow-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "8a4761941d779b924cb71689c2640d0c62ca59727277633abb974be50b156b59",
+    "bytes": 379,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-02-32.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-yellow-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-02-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-yellow-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-02-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-yellow-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-02-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-yellow-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-02-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-yellow-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-02-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-yellow-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "23c5b0e103390c2fbb45b2db9003b09cf8949bc6c73257b556b2bbdbd6508c44",
+    "bytes": 483,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-02.svg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-yellow.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-02.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-yellow.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-02.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-yellow.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-02.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-yellow.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-02.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-yellow.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-02.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-yellow.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "edf4dfca669205550d76c5b953059e90efafde163d504e32a2fbcc1c3fdb9869",
+    "bytes": 1393,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-03-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-03-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-03-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-03-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-03-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-03-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "d0ad25cf529c343a816020e9fcb92c76ce75c02a3b21d42f8160448a9e358424",
+    "bytes": 476,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-03-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-03-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-03-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-03-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-03-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-03-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "53008d29f91bac0013d400de7e0c5c24632c8f77ff2123bed62b6f6e2d822dfb",
+    "bytes": 528,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-03.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-03.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-03.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-03.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-03.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-03.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "6308539bbe826bdf88c821c56fa411ada7dcc95e1cae8fbdf467ec52e1c95db1",
+    "bytes": 1085,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-04-128.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-blue-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-04-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-blue-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-04-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-blue-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-04-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-blue-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-04-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-blue-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-04-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-blue-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "03c052fe639ea8974658dadb39b7530c0238cce2fb07f419f302f75fffe60096",
+    "bytes": 379,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-04-32.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-blue-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-04-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-blue-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-04-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-blue-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-04-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-blue-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-04-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-blue-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-04-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-blue-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "19c7953fd560ad3f5ce6527607605b4d1bbef4d7d291e2d859439616dfe9f5fb",
+    "bytes": 483,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-04.svg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-blue.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-04.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-blue.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-04.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-blue.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-04.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-blue.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-04.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-blue.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-04.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-blue.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "3fc54cbb7855b28b60f3fc8c8e6d6bad21803d6dfc5f1259b2f780852e5b9b26",
+    "bytes": 1397,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-05-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-05-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-05-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-05-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-05-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-05-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "7473da0ca2bf8bba7e08ef96e43dd2e386d192003fd8e044a6845be160251667",
+    "bytes": 477,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-05-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-05-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-05-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-05-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-05-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-05-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "2e904b2652977399008887d9bc195254fd181757957db4fa18e7e7f4d0194afb",
+    "bytes": 528,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-05.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-05.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-05.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-05.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-05.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-05.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "7c37852b4212546357c8b011b8c70fc7b754353e527d2d981e8e442821352964",
+    "bytes": 1396,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-06-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-06-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-06-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-06-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-06-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-06-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "3ea1292a76c97ce8202f34910acc4787e6847d4c55f7152e167b40ae23614d88",
+    "bytes": 480,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-06-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-06-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-06-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-06-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-06-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-06-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "fc91ab1eec8c84f633a7e43fa4eae2d2d9a2a63cc70dd173cc987536065974d8",
+    "bytes": 528,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-06.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-06.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-06.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-06.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-06.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-06.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "bfebc984d61d2ce0cc00bdc7c27d6678107664593c0a3224d0fe33f3d41f88ac",
+    "bytes": 1098,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-07-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-07-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-07-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-07-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-07-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-07-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "9d7fd115ac05dafe5715717ffb19e938cd25cf481fc01776dbde0558bf3bc641",
+    "bytes": 396,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-07-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-07-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-07-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-07-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-07-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-07-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "a27c3544b3f1c35c9a7474aee5a1d3c5811d6922186e4d37fb6752094d9984ae",
+    "bytes": 601,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-07.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-07.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-07.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-07.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-07.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-07.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "fa1273ded286c8b0de0504b5a760c5ff41f5f053afcd4dd799a41a9cb9389973",
+    "bytes": 1086,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-08-128.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-red-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-08-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-red-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-08-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-red-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-08-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-red-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-08-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-red-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-08-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-red-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "e7e8dcbbbca156dee7f08101c46d227bdcdcc383b23997dc59c6b928b7cc835c",
+    "bytes": 379,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-08-32.png"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-red-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-08-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-red-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-08-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-red-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-08-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-red-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-08-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-red-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-08-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-red-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "3f5888f2945c04d0b290938ce36242b3e060b1d17031929c7a5edd8aa5a2d585",
+    "bytes": 483,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-08.svg"
+      },
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/digit-base-red.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-08.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/digit-base-red.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-08.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-red.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-08.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/digit-base-red.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-08.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-red.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-08.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-red.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "6b20053862ab25bb8dc657ce63b66d0cb2a4e54316ea17d13a40612a927e2f38",
+    "bytes": 1392,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-09-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-09-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-09-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-09-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-09-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-09-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "35d3b4ed5f8d626c2b10b7069ee10f4cc56987046fc18141ad27798b5c2e9ecc",
+    "bytes": 475,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-09-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-09-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-09-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-09-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-09-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-09-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "b3e6d615e1747d86963da37b5cd0682ecf66ad72cbd00d9e1d8621a0c9121ead",
+    "bytes": 528,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-09.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-09.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-09.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-09.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-09.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-09.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "9a105c033f0ec2e5e6c915a37984ed5c4ccb3ced5754e176f11159764338a9e6",
+    "bytes": 1392,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0a-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0a-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0a-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0a-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0a-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0a-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "bc0b64eaa38271ff8f5a9c732c2167fe762ade10ae64145cf8be2425805fac5a",
+    "bytes": 475,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0a-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0a-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0a-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0a-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0a-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0a-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "3d7c5be8bbb06fc46f9559eef907dd8d91e06201bd0a6838cb3b4b22d75305df",
+    "bytes": 528,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0a.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0a.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0a.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0a.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0a.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0a.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "ed0fcc59da7747148b2a6cd68a6bf79b378cad5757bc4a703e2710b6d3a08b53",
+    "bytes": 1097,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0b-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0b-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0b-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0b-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0b-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0b-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "c3e772717437f5af8deb297ab46c0dfc61c3613fda854e5b108dbb5d6effd0c2",
+    "bytes": 394,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0b-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0b-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0b-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0b-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0b-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0b-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "72db2e63c13782fb938d6b2ed070c956be69e063fa3099a078c68f9a31d39417",
+    "bytes": 601,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0b.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0b.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0b.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0b.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0b.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0b.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "5de4d9cf81ec7ef96c38ba5346af858ff28db002622e5e90053d6ec7f80068c1",
+    "bytes": 1396,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0c-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0c-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0c-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0c-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0c-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0c-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "139927b0428d8b08f55f3052fba5c93153ca8c540b18f68c2643ce54f866c45f",
+    "bytes": 478,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0c-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0c-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0c-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0c-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0c-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0c-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "72eae07cd2a3a7fda76ee438f248013bfc5eff95aba18a49b29bd05c259f8fd1",
+    "bytes": 528,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0c.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0c.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0c.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0c.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0c.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0c.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "bf271360b4193e208de038b2a60876da5997cd78e05e69f1af7ee7c7d1d03cfa",
+    "bytes": 1100,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0d-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0d-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0d-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0d-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0d-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0d-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "f45d1fbb8a0cb3efd7911594ddd3b956340b86bce59553292d1d8d7255e0162d",
+    "bytes": 399,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0d-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0d-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0d-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0d-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0d-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0d-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "0fb3f678c2ed8f84bda94ff1fea5d9748b0d965c9dfa6d1901807aa056871887",
+    "bytes": 601,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0d.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0d.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0d.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0d.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0d.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0d.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "36c7a5dd31fd4d05fd26ed8416b63b212b82bd946980cf28ddc6dd7f5af84a65",
+    "bytes": 1097,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0e-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0e-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0e-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0e-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0e-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0e-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "f2c8ee773b207784d23f9552776a601363385701c453e484e5360bfd906fd5c2",
+    "bytes": 399,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0e-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0e-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0e-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0e-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0e-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0e-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "1446cedca255f4417a209e0279b017f9bf1574513b4d16aad96c7004b2a1cc53",
+    "bytes": 601,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0e.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0e.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0e.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0e.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0e.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0e.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "66119c351b0835dcb027ff655af8432b6489e81c5a8089181a04976b362af8b8",
+    "bytes": 1116,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0f-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0f-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0f-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0f-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0f-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0f-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "ae0829dda6602bdf5b1e3e338e895299f954c699ff21e1303369df6862dfb352",
+    "bytes": 407,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0f-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0f-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0f-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0f-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0f-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0f-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "61e0062117bc99ed8ccc76917ac2c38d6f85d0fd641f69834936a696c85f7175",
+    "bytes": 660,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/cooperation-0f.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/cooperation-0f.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0f.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/cooperation-0f.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0f.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0f.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "0f86bb5fe3d22397173292ff92c63ef24a53a81db5625490c931d6c46dce263a",
+    "bytes": 132882,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/gallery.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/gallery.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/gallery.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/gallery.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/gallery.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/gallery.png"
+      }
+    ]
+  },
+  {
+    "sha256": "5f460d9c0b512199d3cdcce77e6439e523efdf447840d953f0f8b335f0282701",
+    "bytes": 16190,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/gallery.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/gallery.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/gallery.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/gallery.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/gallery.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/gallery.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "b7263dfcbf0ee59354120963424f0096eaa506605fe82c6e35aa5c0156fca093",
+    "bytes": 19832,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/markers.json"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/markers.json"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/markers.json"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/markers.json"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/markers.json"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/markers.json"
+      }
+    ]
+  },
+  {
+    "sha256": "c67c309dcbffff6f854ec3a316638979d6586151d3af9272c991f2d839bb68ea",
+    "bytes": 1414,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-focus-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-focus-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-focus-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-focus-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-focus-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-focus-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "222e6e86473378c7d6b6ec571498098c2171c61c5c4c202250cf30df215b6243",
+    "bytes": 569,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-focus-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-focus-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-focus-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-focus-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-focus-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-focus-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "6c2e2b138d56517acf42c1e3cf4a5bf495bb2307ca6c56bb0d87aba3ba74ef4f",
+    "bytes": 803,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-focus-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-focus-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-focus-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-focus-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-focus-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-focus-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "9ab6a5876117e33e6540c790ac09b27951effce0dcf3f217952fc60cb5edc74c",
+    "bytes": 216,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-focus.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-focus.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-focus.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-focus.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-focus.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-focus.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "8606c73b8ff88a95beceb967309cadc0c7439ddd81c751103a86fef4eaa62502",
+    "bytes": 912,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-hover-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-hover-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-hover-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-hover-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-hover-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-hover-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "b74ffe1f8635882dce264a19651896bfcfba8f56d5fa094ea5eecddb5b9dac0c",
+    "bytes": 331,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-hover-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-hover-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-hover-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-hover-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-hover-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-hover-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "007fdd103d66ff175b45f5860a26e0e1aeb6e00929ae0e2f108ae72dd619b57b",
+    "bytes": 594,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-hover-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-hover-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-hover-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-hover-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-hover-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-hover-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "5076acc0bb431d7caf18963e240f7254c0bfc3f64acb52f327665e007e7dd853",
+    "bytes": 207,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-hover.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-hover.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-hover.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-hover.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-hover.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-hover.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "ac45a82ac0d999fa7020bbf53f767ea0d89d533f72f0848035790a615c9be2b3",
+    "bytes": 1110,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-selected-128.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-selected-128.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-selected-128.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-selected-128.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-selected-128.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-selected-128.png"
+      }
+    ]
+  },
+  {
+    "sha256": "af86fe6adcf62f91c5fcea76fba7e987b7879eeead3685bbb2f665cdbe768431",
+    "bytes": 431,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-selected-32.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-selected-32.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-selected-32.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-selected-32.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-selected-32.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-selected-32.png"
+      }
+    ]
+  },
+  {
+    "sha256": "1b8ea896d56f31346125b0e178032031bfae64e7068055e781258a4d61f47c26",
+    "bytes": 722,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-selected-64.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-selected-64.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-selected-64.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-selected-64.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-selected-64.png"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-selected-64.png"
+      }
+    ]
+  },
+  {
+    "sha256": "b052f27f0e4596154d91e10c2d5eed855904a1b19a3424fedabbdfdb2be76606",
+    "bytes": 461,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/04-markers/overlay-selected.svg"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/04-markers/overlay-selected.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/04-markers/overlay-selected.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/04-markers/overlay-selected.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/04-markers/overlay-selected.svg"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/04-markers/overlay-selected.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "bf54e6eead066ffda4933193b977cce11b1003a00684a90dee8f134c64fb4305",
+    "bytes": 1265212,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/05-textures/art/button-gray-art.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/05-textures/art/button-gray-art.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/05-textures/art/button-gray-art.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/05-textures/art/button-gray-art.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/05-textures/art/button-gray-art.png"
+      }
+    ]
+  },
+  {
+    "sha256": "ed19c9ee6b9a36a80819252e6c316254d93d393a5c634915d62084fd4b81e580",
+    "bytes": 1603691,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/05-textures/art/button-yellow-art.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/05-textures/art/button-yellow-art.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/05-textures/art/button-yellow-art.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/05-textures/art/button-yellow-art.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/05-textures/art/button-yellow-art.png"
+      }
+    ]
+  },
+  {
+    "sha256": "eea8209d71656c9b56cc9a0f567ed15c46c4870baa7b4173000cf4046355444e",
+    "bytes": 1708430,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/05-textures/art/topbar-matte-background.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/05-textures/art/topbar-matte-background.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/05-textures/art/topbar-matte-background.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/05-textures/art/topbar-matte-background.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/05-textures/art/topbar-matte-background.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/05-textures/art/topbar-matte-background.png"
+      }
+    ]
+  },
+  {
+    "sha256": "4cdf5085c6b57a4a94cf685084fa3f0af529c84d6788ee137ebc8349fdc381c2",
+    "bytes": 301315,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/05-textures/art/topbar-matte-source.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/05-textures/art/topbar-matte-source.png"
+      }
+    ]
+  },
+  {
+    "sha256": "8cb69d2d9172089709d22393da6be2a50b5911233a82a392da8ac21253dff505",
+    "bytes": 602718,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/05-textures/art/window-frame-art.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/05-textures/art/window-frame-art.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/05-textures/art/window-frame-art.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/05-textures/art/window-frame-art.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/05-textures/art/window-frame-art.png"
+      }
+    ]
+  },
+  {
+    "sha256": "9a8e70a3c70ed98f3dac41249efdb335b25618c81e9685d7aad109367611307a",
+    "bytes": 2699662,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/05-textures/metal-brown-base.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/05-textures/metal-brown-base.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/05-textures/metal-brown-base.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/05-textures/metal-brown-base.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/05-textures/metal-brown-base.png"
+      }
+    ]
+  },
+  {
+    "sha256": "59c935156accaeb0838538ce32debffc6033a60ef918b860e012c3a573ae5909",
+    "bytes": 2435002,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/05-textures/paper-ivory-base.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/05-textures/paper-ivory-base.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/05-textures/paper-ivory-base.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/05-textures/paper-ivory-base.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/05-textures/paper-ivory-base.png"
+      }
+    ]
+  },
+  {
+    "sha256": "0ab7ce88be108d2c69475df2c4a7e16301d185119df82887f882b34090754e2c",
+    "bytes": 5827,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/docs/TOPBAR_UPDATE.md"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/docs/TOPBAR_UPDATE.md"
+      }
+    ]
+  },
+  {
+    "sha256": "c50bb0ef777eed3b23f1bc8e2ffb804cd7b64be4ed55ba44ec57e94d47be31cd",
+    "bytes": 285,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/palette.json"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/palette.json"
+      }
+    ]
+  },
+  {
+    "sha256": "27d84b8a5fe05c52662b264a57d41805ab157d1188c528b492630205babde339",
+    "bytes": 3347449,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/preview/main-city-patterns.png"
+      },
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/originals/main-background.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/originals/main-background.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/originals/main-background.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/originals/main-background.png"
+      }
+    ]
+  },
+  {
+    "sha256": "4725980839439d718e89cf73898e19a380019ad6628eb3f5745a5fff3be5eadb",
+    "bytes": 451672,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/preview/topbar-detail.png"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/preview/topbar-detail.png"
+      }
+    ]
+  },
+  {
+    "sha256": "79515ad627af5017ea615573eb587966c98bec5e2dc4073febb45aa8930c88a3",
+    "bytes": 12998,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/tools/build_markers.py"
+      },
+      {
+        "package": "MainGameUI-CooperationMarkers-v1",
+        "member": "MainGameUI-CooperationMarkers-v1/tools/build_markers.py"
+      }
+    ]
+  },
+  {
+    "sha256": "28672a05a4fa5dfe09f0a78caa26ad9c8713cc942e5067aa7816908fed70aff2",
+    "bytes": 6361,
+    "sources": [
+      {
+        "package": "MainGameUI-v2.2",
+        "member": "MainGameUI-v2.2/tools/build_topbar_matte.py"
+      },
+      {
+        "package": "MainGameUI-Topbar-v2.2",
+        "member": "MainGameUI-Topbar-v2.2/tools/build_topbar_matte.py"
+      }
+    ]
+  },
+  {
+    "sha256": "f2ceba1770140c578aa60d1050ebeb6edebca8bc1b6464648987d431b4379733",
+    "bytes": 726,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/fill-unavailable.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/fill-unavailable.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/fill-unavailable.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/fill-unavailable.png"
+      }
+    ]
+  },
+  {
+    "sha256": "d99efa3914295ef595dcedabdb8bf581a8acdaf9a1611d8a8a783b452729feee",
+    "bytes": 237,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/fill-unavailable.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/fill-unavailable.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/fill-unavailable.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/fill-unavailable.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "41f1f6f3a16f4e848ae781b9e4b1ee333eaeb13f3eae05beeb85cb688ee29eba",
+    "bytes": 9465,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/frame-available.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/frame-available.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/frame-available.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/frame-available.png"
+      }
+    ]
+  },
+  {
+    "sha256": "dccb396276d95c09eb5e21b23966f3bfadb3f4943698ff8575c17d47716da705",
+    "bytes": 2300,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/frame-available.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/frame-available.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/frame-available.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/frame-available.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "ce5643863c9963a5497406acc4e918253b767ee9a6d7c5d9586f0f14c26c51ad",
+    "bytes": 10652,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/frame-selected.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/frame-selected.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/frame-selected.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/frame-selected.png"
+      }
+    ]
+  },
+  {
+    "sha256": "149f1a4293164f4a57cadcf8a7fd7e269688ca21b2d7e5b1835e4acf69a60f59",
+    "bytes": 2278,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/frame-selected.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/frame-selected.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/frame-selected.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/frame-selected.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "8178d8244f1f41885ec3cf0a49e8c863098844d100fdbc8588d31f7e6b1cc329",
+    "bytes": 1302,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/frame-unavailable.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/frame-unavailable.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/frame-unavailable.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/frame-unavailable.png"
+      }
+    ]
+  },
+  {
+    "sha256": "a886f00b9db619516d589518348f3f354e3273aed5344aeedcf987a1b292a6ad",
+    "bytes": 272,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/frame-unavailable.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/frame-unavailable.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/frame-unavailable.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/frame-unavailable.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "1987126dc2e5e3938c45eea3bd368e0ffb8d7104ef73c5b60f4f846f5458c510",
+    "bytes": 369,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/icon-check.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/icon-check.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/icon-check.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/icon-check.png"
+      }
+    ]
+  },
+  {
+    "sha256": "c189d11b5f106ca845b5d2097eab74a9ae439d8dd61d453e879875be00727d66",
+    "bytes": 265,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/icon-check.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/icon-check.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/icon-check.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/icon-check.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "43d01b1a8f1477c1eb493c2e0d10b68da8bf7a9a4445c89f941e813da867999e",
+    "bytes": 477,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/icon-lock.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/icon-lock.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/icon-lock.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/icon-lock.png"
+      }
+    ]
+  },
+  {
+    "sha256": "c79a85924e490266729f1309c88333f1628595f483167e882e4c8a85d8180fe4",
+    "bytes": 345,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/icon-lock.svg"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/icon-lock.svg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/icon-lock.svg"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/icon-lock.svg"
+      }
+    ]
+  },
+  {
+    "sha256": "1d1b614aa521fe147f7ee0d8cce5958db5cc7567de7079ccaea00fd2d9db6f95",
+    "bytes": 3422,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/assets/selection-assets.json"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/assets/selection-assets.json"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/assets/selection-assets.json"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/assets/selection-assets.json"
+      }
+    ]
+  },
+  {
+    "sha256": "06ba9306e87b20ddca3864e4d5d8bab3eacc9555f9842102117aa1fa6f2041f0",
+    "bytes": 25520,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/chrome.json"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/chrome.json"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/chrome.json"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/chrome.json"
+      }
+    ]
+  },
+  {
+    "sha256": "08949ad56e3dee921b12e7a1d42925793841509f2aa26278175d086f374c1e72",
+    "bytes": 2788,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/shared/textures.json"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/textures.json"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/textures.json"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/textures.json"
+      }
+    ]
+  },
+  {
+    "sha256": "515d1fe20e6da018449a0982c7919ec6470752b80c3831628059f870d4b258d2",
+    "bytes": 253742,
+    "sources": [
+      {
+        "package": "EnterprisePicker-v1.0",
+        "member": "EnterprisePicker-v1.0/sources/effect-frame-source.png"
+      },
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/sources/effect-frame-source.png"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/sources/effect-frame-source.png"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/sources/effect-frame-source.png"
+      }
+    ]
+  },
+  {
+    "sha256": "add0a139b3c447a13803cd07d18a475ffebef90fcf27d078cc700aa1fb6472b1",
+    "bytes": 335,
+    "sources": [
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/QA.json"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/QA.json"
+      }
+    ]
+  },
+  {
+    "sha256": "5025430462e59fb39e424f0ff44c30d7027fb1e04d40ed26b880ae98146eb269",
+    "bytes": 10689932,
+    "sources": [
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/originals/facility-atlas.jpg"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/originals/facility-atlas.jpg"
+      }
+    ]
+  },
+  {
+    "sha256": "16ff702dc50bad0b315612263068513fa52ec9b8e3f52cc7c0fa0cecbd4f8ba1",
+    "bytes": 999,
+    "sources": [
+      {
+        "package": "FacilityBuild-UI-v1.0",
+        "member": "FacilityBuild-UI-v1.0/shared/card-picker/button-primary.json"
+      },
+      {
+        "package": "CityPattern-UI-v1.0",
+        "member": "CityPattern-UI-v1.0/shared/card-picker/button-primary.json"
+      },
+      {
+        "package": "RhineDepartment-UI-v1.0",
+        "member": "RhineDepartment-UI-v1.0/shared/card-picker/button-primary.json"
+      }
+    ]
+  },
+  {
+    "sha256": "1a1c94d2e50d626a8907ca4c9d959eb371d67d52f0e2ab75bf082a1caa160eec",
+    "bytes": 259540,
+    "sources": [
+      {
+        "package": "Card-Picker-UI-v1",
+        "member": "card-picker-ui-v1/assets/scrollbar-thumb.png"
+      },
+      {
+        "package": "Option-Picker-UI-v1",
+        "member": "option-picker-ui-v1/assets/scrollbar-thumb.png"
+      }
+    ]
+  },
+  {
+    "sha256": "71e22e53ddc5593942cbe128dae1cdce43ab1050f455eeb74e7f4a5d4a54f523",
+    "bytes": 192239,
+    "sources": [
+      {
+        "package": "Card-Picker-UI-v1",
+        "member": "card-picker-ui-v1/assets/scrollbar-track.png"
+      },
+      {
+        "package": "Option-Picker-UI-v1",
+        "member": "option-picker-ui-v1/assets/scrollbar-track.png"
+      }
+    ]
+  },
+  {
+    "sha256": "e6d9f698114af5c966f085a801963b4bf55aca36ace85e0eab1fc42ec7f9a469",
+    "bytes": 2185173,
+    "sources": [
+      {
+        "package": "Card-Picker-UI-v1",
+        "member": "card-picker-ui-v1/assets/window.png"
+      },
+      {
+        "package": "Option-Picker-UI-v1",
+        "member": "option-picker-ui-v1/assets/window.png"
+      }
+    ]
+  }
+]

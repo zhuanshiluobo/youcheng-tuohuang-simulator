@@ -33,7 +33,7 @@ namespace YC.Presentation
                 pendingCardId = string.Empty;
                 resolvePendingCover?.Invoke(false);
                 var actionPanel = getActionPanel == null ? null : getActionPanel();
-                actionPanel?.ShowMainFace();
+                actionPanel?.ClearCharacterCoverPreview();
             }
 
             draggedCardId = cardId ?? string.Empty;
@@ -48,14 +48,13 @@ namespace YC.Presentation
                 return;
             }
 
-            if (actionPanel.IsPointerNearPanel(screenPosition))
+            if (actionPanel.IsPointerOverCharacterCoverRegion(screenPosition))
             {
                 actionPanel.ShowCharacterCoverDropZone(draggedCardId);
             }
-            else if (actionPanel.CurrentFace == ActionPanelFace.CharacterCover &&
-                     string.IsNullOrEmpty(pendingCardId))
+            else if (string.IsNullOrEmpty(pendingCardId))
             {
-                actionPanel.ShowMainFace();
+                actionPanel.ClearCharacterCoverPreview();
             }
         }
 
@@ -66,7 +65,7 @@ namespace YC.Presentation
             var droppedNearPanel =
                 matchesDrag &&
                 actionPanel != null &&
-                actionPanel.IsPointerNearPanel(screenPosition);
+                actionPanel.IsPointerOverCharacterCoverRegion(screenPosition);
             if (droppedNearPanel)
             {
                 pendingCardId = draggedCardId;
@@ -79,7 +78,7 @@ namespace YC.Presentation
             }
 
             pendingCardId = string.Empty;
-            actionPanel?.ShowMainFace();
+            actionPanel?.ClearCharacterCoverPreview();
             draggedCardId = string.Empty;
             return null;
         }
@@ -96,16 +95,25 @@ namespace YC.Presentation
             pendingCardId = string.Empty;
             resolvePendingCover?.Invoke(true);
             var actionPanel = getActionPanel == null ? null : getActionPanel();
-            actionPanel?.ShowMainFace();
+            actionPanel?.ClearCharacterCoverPreview();
             submitCover?.Invoke(cardId);
         }
 
-        private void Cancel()
+        public void Cancel()
         {
             pendingCardId = string.Empty;
+            draggedCardId = string.Empty;
             resolvePendingCover?.Invoke(false);
-            var actionPanel = getActionPanel == null ? null : getActionPanel();
-            actionPanel?.ShowMainFace();
+            getActionPanel?.Invoke()?.ClearCharacterCoverPreview();
+        }
+
+        public void Synchronize(CharacterCardPanelViewModel model)
+        {
+            if (string.IsNullOrEmpty(pendingCardId)) return;
+            if (model != null && model.CanCover)
+                foreach (var card in model.HandCards)
+                    if (card.CardId == pendingCardId) return;
+            Cancel();
         }
     }
 }
