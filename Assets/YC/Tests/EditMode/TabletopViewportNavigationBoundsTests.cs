@@ -16,7 +16,7 @@ namespace YC.Tests.EditMode
             false);
 
         [Test]
-        public void FocusBounds_KeepFullCameraViewInsideCenteredMinimumZoomBoundary()
+        public void FocusBounds_KeepFullCameraViewInsideMapBoundary()
         {
             EditModeTestCaseRunner.Run(
                 new[] { 0.9f, 1f, 2f },
@@ -39,11 +39,11 @@ namespace YC.Tests.EditMode
                         camera.orthographic = false;
                         camera.fieldOfView = 45f;
                         camera.aspect = 16f / 9f;
-                        var rotation = Quaternion.Euler(-30f, 0f, 0f);
+                        var rotation = Quaternion.identity;
                         var plane = new Plane(Vector3.forward, Vector3.zero);
                         var viewport = new Rect(0.02865f, 0f, 0.78385f, 1f);
                         var fullCameraViewport = new Rect(0f, 0f, 1f, 1f);
-                        const float baseDistance = 20f;
+                        var baseDistance = 5f / (Mathf.Tan(22.5f * Mathf.Deg2Rad) * camera.aspect) * 0.9f;
                         const float minimumZoom = 0.9f;
                         var minimumZoomDistance = InvokeGeometry<float>(
                             "CalculateZoomedDistance",
@@ -75,6 +75,7 @@ namespace YC.Tests.EditMode
                         var fixedWorldBounds = (Rect)BoundsType
                             .GetField("fixedWorldBounds", BindingFlags.Instance | BindingFlags.NonPublic)
                             .GetValue(provider);
+                        Assert.That(fixedWorldBounds, Is.EqualTo(new Rect(-5f, -3f, 10f, 6f)));
                         var currentDistance = InvokeGeometry<float>("CalculateZoomedDistance", baseDistance, zoom);
                         camera.transform.SetPositionAndRotation(
                             InvokeGeometry<Vector3>("CalculateCameraPosition", Vector3.zero, rotation, currentDistance),
@@ -119,8 +120,8 @@ namespace YC.Tests.EditMode
                         {
                             Assert.That(focusBounds.xMin, Is.Zero.Within(0.001f));
                             Assert.That(focusBounds.xMax, Is.Zero.Within(0.001f));
-                            Assert.That(focusBounds.yMin, Is.Zero.Within(0.001f));
-                            Assert.That(focusBounds.yMax, Is.Zero.Within(0.001f));
+                            Assert.That(focusBounds.yMin, Is.LessThan(0f));
+                            Assert.That(focusBounds.yMax, Is.GreaterThan(0f));
                         }
                     }
                     finally

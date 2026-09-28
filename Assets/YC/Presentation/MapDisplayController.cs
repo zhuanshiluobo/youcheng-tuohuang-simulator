@@ -18,12 +18,9 @@ namespace YC.Presentation
         [SerializeField] private MonoBehaviour navigationBoundsSource;
 
         [Header("Tabletop Camera")]
-        [SerializeField, Range(1f, 89f)] private float cameraPitch = 30f;
         [SerializeField, Range(1f, 179f)] private float fieldOfView = 45f;
-        [SerializeField, Min(1f)] private float cameraPadding = 1.03f;
         [SerializeField] private Rect tabletopViewport = new Rect(0.02865f, 0f, 0.78385f, 1f);
         [SerializeField] private Rect cameraViewport = new Rect(0f, 0f, 1f, 1f);
-        [SerializeField, Range(1f, 1.5f)] private float framedViewportZoom = 1.2f;
 
         [Header("Navigation")]
         [SerializeField, Range(0.1f, 1f)] private float minZoom = 0.9f;
@@ -41,6 +38,7 @@ namespace YC.Presentation
         private Vector3 panAxisY;
         private ITabletopNavigationBoundsProvider navigationBounds;
         private float baseDistance;
+        private float layoutAspect;
         private float currentZoom = 1f;
         private float targetZoom = 1f;
         private float zoomVelocity;
@@ -70,9 +68,7 @@ namespace YC.Presentation
 
         private void OnValidate()
         {
-            cameraPitch = Mathf.Clamp(cameraPitch, 1f, 89f);
             fieldOfView = Mathf.Clamp(fieldOfView, 1f, 179f);
-            cameraPadding = Mathf.Max(1f, cameraPadding);
             tabletopViewport.x = Mathf.Clamp01(tabletopViewport.x);
             tabletopViewport.y = Mathf.Clamp01(tabletopViewport.y);
             tabletopViewport.width = Mathf.Clamp(tabletopViewport.width, 0.1f, 1f - tabletopViewport.x);
@@ -90,6 +86,11 @@ namespace YC.Presentation
                 targetCamera == null || !targetCamera.enabled)
             {
                 return;
+            }
+
+            if (!Mathf.Approximately(targetCamera.aspect, layoutAspect))
+            {
+                FitCameraToMap(true);
             }
 
             UpdateZoomSmoothing();
@@ -136,38 +137,32 @@ namespace YC.Presentation
             panAxisX = mapRenderer.transform.right.normalized;
             panAxisY = mapRenderer.transform.up.normalized;
             tabletopPlane = new Plane(mapRenderer.transform.forward.normalized, mapCenter);
-            cameraRotation = Quaternion.Euler(-cameraPitch, 0f, 0f);
+            // 地图位于 Sprite 的局部 XY 平面，沿其法线垂直观察。
+            cameraRotation = Quaternion.LookRotation(mapRenderer.transform.forward, panAxisY);
 
             focusPoint = mapCenter;
+            panOrigin = mapCenter;
 
             targetCamera.orthographic = false;
             targetCamera.fieldOfView = fieldOfView;
             targetCamera.rect = cameraViewport;
             var aspect = targetCamera.aspect > 0f ? targetCamera.aspect : DefaultAspect;
-            var safeAspect = aspect * tabletopViewport.width / tabletopViewport.height;
-            baseDistance = MapCameraGeometry.CalculatePerspectiveFitDistance(
-                tabletopCorners,
-                focusPoint,
-                cameraRotation,
-                fieldOfView,
-                safeAspect,
-                cameraPadding,
-                targetCamera.nearClipPlane);
+            layoutAspect = aspect;
+            var mapWidth = mapRenderer.transform.TransformVector(Vector3.right * spriteBounds.size.x).magnitude;
+            var mapHeight = mapRenderer.transform.TransformVector(Vector3.up * spriteBounds.size.y).magnitude;
+            var verticalTangent = Mathf.Tan(fieldOfView * Mathf.Deg2Rad * 0.5f);
+            // 最小缩放时也让完整相机视口落在地图内，而不是把整张地图缩进视口。
+            var maximumDistance = Mathf.Min(mapWidth / aspect, mapHeight) / (2f * verticalTangent);
+            baseDistance = maximumDistance * minZoom;
 
             currentZoom = preserveNavigation
                 ? Mathf.Clamp(previousZoom, minZoom, maxZoom)
-                : cameraViewport.width < .99f ? framedViewportZoom : 1f;
+                : minZoom;
             targetZoom = currentZoom;
             zoomVelocity = 0f;
             hasZoomAnchor = false;
             EndDrag();
             hasCameraLayout = baseDistance > 0f;
-            ApplyCameraTransform();
-
-            panOrigin = focusPoint;
-            var initialZoom = currentZoom;
-            currentZoom = minZoom;
-            ApplyCameraTransform();
             var hasNavigationBounds = ResolveNavigationBounds(out var reason) &&
                                       navigationBounds.Initialize(
                                           targetCamera,
@@ -178,9 +173,6 @@ namespace YC.Presentation
                                           panAxisY,
                                           mapRenderer,
                                           out reason);
-            currentZoom = initialZoom;
-            targetZoom = initialZoom;
-            ApplyCameraTransform();
             if (!hasNavigationBounds)
             {
                 hasCameraLayout = false;
@@ -192,10 +184,9 @@ namespace YC.Presentation
             {
                 currentZoom = Mathf.Clamp(previousZoom, minZoom, maxZoom);
                 targetZoom = Mathf.Clamp(previousTargetZoom, minZoom, maxZoom);
-                focusPoint = MapCameraGeometry.ClampPlanarPosition(
-                    previousFocus, panOrigin, panAxisX, panAxisY, GetCurrentPanBounds());
-                ApplyCameraTransform();
+                focusPoint = previousFocus;
             }
+            ApplyCameraTransform();
         }
 
         public void SetScreenViewport(Rect viewport)
@@ -425,6 +416,12 @@ namespace YC.Presentation
                 cameraRotation,
                 MapCameraGeometry.CalculateZoomedDistance(baseDistance, safeZoom));
             targetCamera.transform.SetPositionAndRotation(cameraPosition, cameraRotation);
+            // 每次距离改变后用新视口收紧焦点，避免边缘缩小时短暂露底。
+            focusPoint = MapCameraGeometry.ClampPlanarPosition(
+                focusPoint, panOrigin, panAxisX, panAxisY, GetCurrentPanBounds());
+            targetCamera.transform.position = MapCameraGeometry.CalculateCameraPosition(
+                focusPoint, cameraRotation,
+                MapCameraGeometry.CalculateZoomedDistance(baseDistance, safeZoom));
         }
 
         private void EndDrag()

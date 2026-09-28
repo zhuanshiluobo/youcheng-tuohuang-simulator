@@ -190,6 +190,10 @@ namespace YC.Tests.EditMode
                     .SetValue(controller, bounds);
                 controllerType.GetMethod("FitCameraToMap", BindingFlags.Instance | BindingFlags.Public)
                     .Invoke(controller, null);
+                controllerType.GetMethod("SetScreenViewport", BindingFlags.Instance | BindingFlags.Public)
+                    .Invoke(controller, new object[] { new Rect(0.1f, 0.1f, 0.8f, 0.8f) });
+                AssertField(controllerType, controller, "currentZoom", 0.9f);
+                AssertField(controllerType, controller, "targetZoom", 0.9f);
                 var zoomField = controllerType.GetField("currentZoom", BindingFlags.Instance | BindingFlags.NonPublic);
                 var targetField = controllerType.GetField("targetZoom", BindingFlags.Instance | BindingFlags.NonPublic);
                 zoomField.SetValue(controller, 1.5f);
@@ -229,7 +233,6 @@ namespace YC.Tests.EditMode
             try
             {
                 var controller = owner.AddComponent(controllerType);
-                AssertField(controllerType, controller, "cameraPitch", 30f);
                 AssertField(controllerType, controller, "fieldOfView", 45f);
                 AssertField(controllerType, controller, "minZoom", 0.9f);
                 AssertField(controllerType, controller, "maxZoom", 2f);
@@ -247,8 +250,10 @@ namespace YC.Tests.EditMode
             }
         }
 
-        [Test]
-        public void Controller_FitCameraToMap_ConfiguresThirtyDegreePerspectiveAtBaselineZoom()
+        [TestCase(16f / 9f)]
+        [TestCase(32f / 9f)]
+        [TestCase(9f / 16f)]
+        public void Controller_FitCameraToMap_KeepsTopDownViewportInsideMap(float aspect)
         {
             var controllerType = Type.GetType("YC.Presentation.MapDisplayController, Assembly-CSharp", false);
             Assert.That(controllerType, Is.Not.Null);
@@ -264,7 +269,7 @@ namespace YC.Tests.EditMode
                 var renderer = mapObject.GetComponent<SpriteRenderer>();
                 renderer.sprite = sprite;
                 var camera = cameraObject.GetComponent<Camera>();
-                camera.aspect = 16f / 9f;
+                camera.aspect = aspect;
                 camera.orthographic = true;
                 var navigationBoundsType = Type.GetType(
                     "YC.Presentation.TabletopViewportNavigationBounds, Assembly-CSharp",
@@ -285,7 +290,7 @@ namespace YC.Tests.EditMode
                 Assert.That(camera.orthographic, Is.False);
                 Assert.That(camera.fieldOfView, Is.EqualTo(45f).Within(0.0001f));
                 Assert.That(camera.rect, Is.EqualTo(new Rect(0f, 0f, 1f, 1f)));
-                Assert.That(Mathf.DeltaAngle(camera.transform.eulerAngles.x, -30f),
+                Assert.That(Mathf.DeltaAngle(camera.transform.eulerAngles.x, 0f),
                     Is.Zero.Within(0.0001f));
                 var mapCenterViewport = camera.WorldToViewportPoint(Vector3.zero);
                 Assert.That(mapCenterViewport.x, Is.EqualTo(0.5f).Within(0.001f));
@@ -298,8 +303,8 @@ namespace YC.Tests.EditMode
                     .GetValue(controller);
                 Assert.That(focusPoint, Is.EqualTo(Vector3.zero));
                 Assert.That(panOrigin, Is.EqualTo(Vector3.zero));
-                AssertField(controllerType, controller, "currentZoom", 1f);
-                AssertField(controllerType, controller, "targetZoom", 1f);
+                AssertField(controllerType, controller, "currentZoom", 0.9f);
+                AssertField(controllerType, controller, "targetZoom", 0.9f);
 
                 controllerType.GetField("currentZoom", BindingFlags.Instance | BindingFlags.NonPublic)
                     .SetValue(controller, 0.9f);
@@ -308,10 +313,8 @@ namespace YC.Tests.EditMode
                 var minimumPanBounds = (Rect)controllerType
                     .GetMethod("GetCurrentPanBounds", BindingFlags.Instance | BindingFlags.NonPublic)
                     .Invoke(controller, null);
-                Assert.That(minimumPanBounds.xMin, Is.Zero.Within(0.001f));
-                Assert.That(minimumPanBounds.xMax, Is.Zero.Within(0.001f));
-                Assert.That(minimumPanBounds.yMin, Is.Zero.Within(0.001f));
-                Assert.That(minimumPanBounds.yMax, Is.Zero.Within(0.001f));
+                Assert.That(Mathf.Min(minimumPanBounds.width, minimumPanBounds.height),
+                    Is.Zero.Within(0.001f));
 
                 controllerType.GetField("currentZoom", BindingFlags.Instance | BindingFlags.NonPublic)
                     .SetValue(controller, 2f);
@@ -324,6 +327,30 @@ namespace YC.Tests.EditMode
                 Assert.That(zoomedPanBounds.xMax, Is.GreaterThan(0f));
                 Assert.That(zoomedPanBounds.yMin, Is.LessThan(0f));
                 Assert.That(zoomedPanBounds.yMax, Is.GreaterThan(0f));
+
+                // 拖到四角，再连续缩小；每一步完整视口都不能越过地图边界。
+                foreach (var zoom in new[] { 2f, 1.5f, 1f, 0.9f })
+                {
+                    controllerType.GetField("currentZoom", BindingFlags.Instance | BindingFlags.NonPublic)
+                        .SetValue(controller, zoom);
+                    for (var edge = 0; edge < 4; edge++)
+                    {
+                        controllerType.GetField("focusPoint", BindingFlags.Instance | BindingFlags.NonPublic)
+                            .SetValue(controller, new Vector3((edge & 1) == 0 ? -100f : 100f,
+                                (edge & 2) == 0 ? -100f : 100f, 0f));
+                        controllerType.GetMethod("ApplyCameraTransform", BindingFlags.Instance | BindingFlags.NonPublic)
+                            .Invoke(controller, null);
+                        for (var corner = 0; corner < 4; corner++)
+                        {
+                            var ray = camera.ViewportPointToRay(new Vector3(corner & 1, (corner >> 1) & 1));
+                            Assert.That(new Plane(Vector3.forward, Vector3.zero).Raycast(ray, out var distance), Is.True);
+                            var point = ray.GetPoint(distance);
+                            Assert.That(point.x, Is.InRange(-5.001f, 5.001f));
+                            Assert.That(point.y, Is.InRange(-3.001f, 3.001f));
+                        }
+                    }
+                }
+
             }
             finally
             {
