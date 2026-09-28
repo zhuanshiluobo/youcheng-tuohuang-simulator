@@ -340,6 +340,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6682730334664130301, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
+      propertyPath: m_Text
+      value: "\u524D\u5F80wiki"
+      objectReference: {fileID: 0}
+    - target: {fileID: 7257264668407522402, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
+      propertyPath: m_Text
+      value: "\u524D\u5F80github"
+      objectReference: {fileID: 0}
     - target: {fileID: 174254055163450458, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_Name
       value: "\u591A\u4EBA\u8054\u673A Button"
@@ -492,10 +500,6 @@ PrefabInstance:
       propertyPath: m_FontData.m_FontSize
       value: 35
       objectReference: {fileID: 0}
-    - target: {fileID: 3122765221010565410, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
-      propertyPath: m_Text
-      value: "\u5B98\u65B9\u7F51\u7AD9"
-      objectReference: {fileID: 0}
     - target: {fileID: 3204224465142399252, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -571,10 +575,6 @@ PrefabInstance:
     - target: {fileID: 4717821074635118894, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -51.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 4818518887883747570, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
-      propertyPath: m_Text
-      value: "\u524D\u5F80wiki"
       objectReference: {fileID: 0}
     - target: {fileID: 5070715762121237602, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_Text
@@ -655,10 +655,6 @@ PrefabInstance:
     - target: {fileID: 7802986639994671980, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_FontData.m_AlignByGeometry
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8492969087782399985, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
-      propertyPath: m_Text
-      value: "\u524D\u5F80github"
       objectReference: {fileID: 0}
     - target: {fileID: 8599747067336680575, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_AnchoredPosition.x
