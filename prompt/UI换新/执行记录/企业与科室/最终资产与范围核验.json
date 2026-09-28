@@ -1,0 +1,172 @@
+{
+  "existingFileChanges": [
+    "Assets/YC/Presentation/GameplayDialogRegistry.cs",
+    "Assets/YC/Presentation/GameplayHudFrame.cs",
+    "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab"
+  ],
+  "unexpectedChanges": [],
+  "assets": [
+    {
+      "asset": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\Enterprise\\DepartmentSelectionDialog.prefab",
+      "missingFileIds": [],
+      "missingGuids": [],
+      "references": {
+        "0f0b92afea2f4885bd0b2b0d01c49171": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\Enterprise\\EnterpriseTarget.prefab",
+        "1344c3c82d62a2a41a3576d8abb8e3ea": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\RawImage.cs",
+        "134ba391d6034fde8eabc456965d2d7d": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\Enterprise\\EnterpriseBoardItem.prefab",
+        "1aa08ab6e0800fa44ae55d278d1423e3": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\ScrollRect.cs",
+        "28fb9ecaab0c9024699a38366cdeb6aa": "Assets\\YC\\Presentation\\CommonUi\\Content\\UiFontRoles.asset",
+        "2a4db7a114972834c8e4117be1d82ba3": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Scrollbar.cs",
+        "30649d3a9faa99c48a7b1166b86bf2a0": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\HorizontalLayoutGroup.cs",
+        "306cc8c2b49d7114eaa3623786fc2126": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\LayoutElement.cs",
+        "3245ec927659c4140ac4f8d17403cc18": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\ContentSizeFitter.cs",
+        "3312d7739989d2b4e91e6319e9a96d76": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\RectMask2D.cs",
+        "3b717c670b1a52843bcc7592be6fe504": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\module-bg.png",
+        "3eddf79db7bec9c4193e00ae800bfd4e": "Assets\\YC\\Presentation\\CommonUi\\Fonts\\Novecento NarrowBold.otf",
+        "43e9d69dcca63724db85852acd46004d": "Assets\\YC\\Presentation\\CommonUi\\Fonts\\FangZhengHeiTiJianTi-1.ttf",
+        "4ace3cdecdbd4702a5010494553fbe0b": "Assets\\YC\\Presentation\\EnterpriseBoardItemView.cs",
+        "4e29b1a8efbd4b44bb3f3716e73f07ff": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Button.cs",
+        "4e40d5fee46f0e7499796af0cb4566db": "Assets\\YC\\Presentation\\CommonUi\\Prefabs\\MixedLine.prefab",
+        "55131882f9ccafe44bb1a56357717193": "Assets\\YC\\Presentation\\Layout\\UiScrollContentWidth.cs",
+        "59f8146938fff824cb5fd77236b75775": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\VerticalLayoutGroup.cs",
+        "5c5a187d1eb86944c93f847ec521c324": "Assets\\YC\\Presentation\\CommonUi\\Fonts\\HanYiCuHeiJian-1.ttf",
+        "5f7201a12d95ffc409449d95f23cf332": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Text.cs",
+        "75fc96ab6371c5145aacaba3edf45ce0": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-track-h.png",
+        "86710e43de46f6f4bac7c8e50813a599": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\AspectRatioFitter.cs",
+        "8794106eabe49b74694172d3466b5417": "Assets\\YC\\Presentation\\Layout\\UiSemanticLabel.cs",
+        "89d566eed90cc4a4b9e60335c7e60377": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\button-secondary.png",
+        "913ac7c6635003c4197996086558e31d": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-thumb-h.png",
+        "9df331a5a89cee345afbdca68a1dc254": "Assets\\YC\\Presentation\\CommonUi\\UiFlowLayoutGroup.cs",
+        "aa1b97a5365d1bc43a2347ecf9652512": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\outer-frame.png",
+        "b2b6b6af52cb4b87b5619aa82d2aa5e1": "Assets\\YC\\Presentation\\Enterprise\\Artwork\\selection-button-secondary.png",
+        "c1b71d4b094746b8b6f3678b4f245477": "Assets\\YC\\Presentation\\Enterprise\\EnterpriseBoardCatalog.asset",
+        "e3feda7d48154536bfc56338e90a2fee": "Assets\\YC\\Presentation\\Enterprise\\Artwork\\selection-button-primary.png",
+        "e9c48fe45b164de6ac614d84fc6e5f14": "Assets\\YC\\Presentation\\EnterpriseSelectionDialogView.cs",
+        "fe87c0e1cc204ed48ad3b37840f39efc": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Image.cs"
+      }
+    },
+    {
+      "asset": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\Enterprise\\EnterpriseBoardItem.prefab",
+      "missingFileIds": [],
+      "missingGuids": [],
+      "references": {
+        "0f0b92afea2f4885bd0b2b0d01c49171": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\Enterprise\\EnterpriseTarget.prefab",
+        "1344c3c82d62a2a41a3576d8abb8e3ea": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\RawImage.cs",
+        "30649d3a9faa99c48a7b1166b86bf2a0": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\HorizontalLayoutGroup.cs",
+        "306cc8c2b49d7114eaa3623786fc2126": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\LayoutElement.cs",
+        "3eddf79db7bec9c4193e00ae800bfd4e": "Assets\\YC\\Presentation\\CommonUi\\Fonts\\Novecento NarrowBold.otf",
+        "4ace3cdecdbd4702a5010494553fbe0b": "Assets\\YC\\Presentation\\EnterpriseBoardItemView.cs",
+        "4e29b1a8efbd4b44bb3f3716e73f07ff": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Button.cs",
+        "59f8146938fff824cb5fd77236b75775": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\VerticalLayoutGroup.cs",
+        "5c5a187d1eb86944c93f847ec521c324": "Assets\\YC\\Presentation\\CommonUi\\Fonts\\HanYiCuHeiJian-1.ttf",
+        "5f7201a12d95ffc409449d95f23cf332": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Text.cs",
+        "86710e43de46f6f4bac7c8e50813a599": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\AspectRatioFitter.cs",
+        "89d566eed90cc4a4b9e60335c7e60377": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\button-secondary.png",
+        "fe87c0e1cc204ed48ad3b37840f39efc": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Image.cs"
+      }
+    },
+    {
+      "asset": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\Enterprise\\EnterpriseSelectionDialog.prefab",
+      "missingFileIds": [],
+      "missingGuids": [],
+      "references": {
+        "1344c3c82d62a2a41a3576d8abb8e3ea": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\RawImage.cs",
+        "134ba391d6034fde8eabc456965d2d7d": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\Enterprise\\EnterpriseBoardItem.prefab",
+        "1aa08ab6e0800fa44ae55d278d1423e3": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\ScrollRect.cs",
+        "28fb9ecaab0c9024699a38366cdeb6aa": "Assets\\YC\\Presentation\\CommonUi\\Content\\UiFontRoles.asset",
+        "2a4db7a114972834c8e4117be1d82ba3": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Scrollbar.cs",
+        "30649d3a9faa99c48a7b1166b86bf2a0": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\HorizontalLayoutGroup.cs",
+        "306cc8c2b49d7114eaa3623786fc2126": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\LayoutElement.cs",
+        "3245ec927659c4140ac4f8d17403cc18": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\ContentSizeFitter.cs",
+        "3312d7739989d2b4e91e6319e9a96d76": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\RectMask2D.cs",
+        "3b717c670b1a52843bcc7592be6fe504": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\module-bg.png",
+        "3eddf79db7bec9c4193e00ae800bfd4e": "Assets\\YC\\Presentation\\CommonUi\\Fonts\\Novecento NarrowBold.otf",
+        "43e9d69dcca63724db85852acd46004d": "Assets\\YC\\Presentation\\CommonUi\\Fonts\\FangZhengHeiTiJianTi-1.ttf",
+        "4e29b1a8efbd4b44bb3f3716e73f07ff": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Button.cs",
+        "4e40d5fee46f0e7499796af0cb4566db": "Assets\\YC\\Presentation\\CommonUi\\Prefabs\\MixedLine.prefab",
+        "55131882f9ccafe44bb1a56357717193": "Assets\\YC\\Presentation\\Layout\\UiScrollContentWidth.cs",
+        "59f8146938fff824cb5fd77236b75775": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\VerticalLayoutGroup.cs",
+        "5c5a187d1eb86944c93f847ec521c324": "Assets\\YC\\Presentation\\CommonUi\\Fonts\\HanYiCuHeiJian-1.ttf",
+        "5f7201a12d95ffc409449d95f23cf332": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Text.cs",
+        "75fc96ab6371c5145aacaba3edf45ce0": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-track-h.png",
+        "86710e43de46f6f4bac7c8e50813a599": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Layout\\AspectRatioFitter.cs",
+        "8794106eabe49b74694172d3466b5417": "Assets\\YC\\Presentation\\Layout\\UiSemanticLabel.cs",
+        "89d566eed90cc4a4b9e60335c7e60377": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\button-secondary.png",
+        "913ac7c6635003c4197996086558e31d": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-thumb-h.png",
+        "9df331a5a89cee345afbdca68a1dc254": "Assets\\YC\\Presentation\\CommonUi\\UiFlowLayoutGroup.cs",
+        "aa1b97a5365d1bc43a2347ecf9652512": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\outer-frame.png",
+        "b2b6b6af52cb4b87b5619aa82d2aa5e1": "Assets\\YC\\Presentation\\Enterprise\\Artwork\\selection-button-secondary.png",
+        "c1b71d4b094746b8b6f3678b4f245477": "Assets\\YC\\Presentation\\Enterprise\\EnterpriseBoardCatalog.asset",
+        "e3feda7d48154536bfc56338e90a2fee": "Assets\\YC\\Presentation\\Enterprise\\Artwork\\selection-button-primary.png",
+        "e9c48fe45b164de6ac614d84fc6e5f14": "Assets\\YC\\Presentation\\EnterpriseSelectionDialogView.cs",
+        "fe87c0e1cc204ed48ad3b37840f39efc": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Image.cs"
+      }
+    },
+    {
+      "asset": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\Enterprise\\EnterpriseTarget.prefab",
+      "missingFileIds": [],
+      "missingGuids": [],
+      "references": {
+        "262daa0f4e6b47a79ee5eefc44d18716": "Assets\\YC\\Presentation\\EnterpriseTargetView.cs",
+        "4e29b1a8efbd4b44bb3f3716e73f07ff": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Button.cs",
+        "5334759779b2c164a91743fe13e524ac": "Assets\\YC\\Presentation\\CommonUi\\UiSelectionState.cs",
+        "60da9888730f47940a4996898a80b18c": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\frame-available.png",
+        "7d33d8aaa12b8484ab725526bf9aeebe": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\icon-check.png",
+        "a772bf793ea41d54c8a4e9198c2c6b2b": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\frame-unavailable.png",
+        "cc9cea303e29af54b9138a367f3c2401": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\icon-lock.png",
+        "f74fdea60ee0c6d45806b6411416ba4a": "Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\frame-selected.png",
+        "fe87c0e1cc204ed48ad3b37840f39efc": "Library\\PackageCache\\com.unity.ugui@1.0.0\\Runtime\\UI\\Core\\Image.cs"
+      }
+    }
+  ],
+  "unresolvedReferences": [],
+  "artwork": [
+    {
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\enterprise-atlas.jpg",
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\MainGameUI-v2.2\\enterprise-atlas.jpg",
+      "originalBytesPreserved": true
+    },
+    {
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-business.png",
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-business.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-defense.png",
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-defense.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-engineering.png",
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-engineering.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-hr.png",
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-hr.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-research.png",
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-research.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-structure.png",
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-structure.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\selection-button-primary.png",
+      "source": "Card-Picker-UI-v1.zip/card-picker-ui-v1/assets/button-primary.png",
+      "originalBytesPreserved": true
+    },
+    {
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\selection-button-secondary.png",
+      "source": "Card-Picker-UI-v1.zip/card-picker-ui-v1/assets/button-secondary.png",
+      "originalBytesPreserved": true
+    }
+  ],
+  "scenesUnchanged": true,
+  "limitation": "静态来源和范围检查，不代表画面或正式业务通过。"
+}

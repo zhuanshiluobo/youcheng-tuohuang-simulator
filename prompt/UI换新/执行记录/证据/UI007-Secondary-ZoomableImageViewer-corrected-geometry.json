@@ -1,0 +1,505 @@
+{
+    "asset": "Assets/YC/Presentation/Prefabs/Viewers/ZoomableImageViewer.prefab",
+    "evidenceKind": "离线资产参考矩形；不是实际运行屏幕验收。包含相同对象迁移前后坐标、活动状态和层级。",
+    "referenceResolution": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "capturePhase": "-corrected",
+    "objects": [
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Collapse Toggle Button",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Collapse Toggle Button",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 856.0,
+                "y": 128.0,
+                "width": 208.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 856.0,
+                "y": 128.0,
+                "width": 208.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Image Title",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Header/Image Title",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 360.0,
+                "y": 906.0,
+                "width": 1200.0,
+                "height": 64.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 360.0,
+                "y": 906.0,
+                "width": 1200.0,
+                "height": 64.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 360.0,
+                "y": 110.0,
+                "width": 1200.0,
+                "height": 860.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 360.0,
+                "y": 110.0,
+                "width": 1200.0,
+                "height": 860.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Secondary Image Action Button",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Footer/Secondary Image Action Button",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 968.0,
+                "y": 128.0,
+                "width": 208.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 968.0,
+                "y": 128.0,
+                "width": 208.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Secondary Image Action Button/Label",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Footer/Secondary Image Action Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 976.0,
+                "y": 128.0,
+                "width": 192.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 976.0,
+                "y": 128.0,
+                "width": 192.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Previous Image Button",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Body Viewport/Previous Image Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 388.0,
+                "y": 481.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 388.0,
+                "y": 481.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Collapsed Summary",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Collapsed Summary",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 372.0,
+                "y": 519.0,
+                "width": 1040.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 372.0,
+                "y": 519.0,
+                "width": 1040.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Next Image Button/Label",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Body Viewport/Next Image Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1482.0,
+                "y": 481.0,
+                "width": 42.0,
+                "height": 118.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1482.0,
+                "y": 481.0,
+                "width": 42.0,
+                "height": 118.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Image Viewport/Image Image",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Body Viewport/Image Viewport/Image Image",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 510.0,
+                "y": 194.0,
+                "width": 900.0,
+                "height": 700.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 510.0,
+                "y": 194.0,
+                "width": 900.0,
+                "height": 700.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Image Viewport",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Body Viewport/Image Viewport",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 456.0,
+                "y": 192.0,
+                "width": 1008.0,
+                "height": 704.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 456.0,
+                "y": 192.0,
+                "width": 1008.0,
+                "height": 704.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Image Page Label",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Footer/Image Page Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 132.0,
+                "width": 520.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 132.0,
+                "width": 520.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Close Image Button/Label",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Header/Close Image Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1508.0,
+                "y": 916.0,
+                "width": 26.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1508.0,
+                "y": 916.0,
+                "width": 26.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 360.0,
+                "y": 110.0,
+                "width": 1200.0,
+                "height": 860.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 360.0,
+                "y": 110.0,
+                "width": 1200.0,
+                "height": 860.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Primary Image Action Button/Label",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Footer/Primary Image Action Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 752.0,
+                "y": 128.0,
+                "width": 192.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 752.0,
+                "y": 128.0,
+                "width": 192.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Collapse Toggle Button/Label",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Collapse Toggle Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 864.0,
+                "y": 128.0,
+                "width": 192.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 864.0,
+                "y": 128.0,
+                "width": 192.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Close Image Button",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Header/Close Image Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1500.0,
+                "y": 916.0,
+                "width": 42.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1500.0,
+                "y": 916.0,
+                "width": 42.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Previous Image Button/Label",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Body Viewport/Previous Image Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 396.0,
+                "y": 481.0,
+                "width": 42.0,
+                "height": 118.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 396.0,
+                "y": 481.0,
+                "width": 42.0,
+                "height": 118.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Primary Image Action Button",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Footer/Primary Image Action Button",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 744.0,
+                "y": 128.0,
+                "width": 208.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 744.0,
+                "y": 128.0,
+                "width": 208.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/Next Image Button",
+            "afterPath": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Body Viewport/Next Image Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1474.0,
+                "y": 481.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1474.0,
+                "y": 481.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        }
+    ]
+}

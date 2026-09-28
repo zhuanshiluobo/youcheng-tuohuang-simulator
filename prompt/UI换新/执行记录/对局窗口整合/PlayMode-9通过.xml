@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="9" result="Passed" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-27 11:22:44Z" end-time="2026-09-27 11:22:52Z" duration="8.4089692">
+  <test-suite type="TestSuite" id="1038" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-27 11:22:44Z" end-time="2026-09-27 11:22:52Z" duration="8.408969" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1072" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-27 11:22:44Z" end-time="2026-09-27 11:22:52Z" duration="8.402306" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="52776" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1073" name="YC" fullname="YC" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-27 11:22:44Z" end-time="2026-09-27 11:22:52Z" duration="8.401424" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1074" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-27 11:22:44Z" end-time="2026-09-27 11:22:52Z" duration="8.400939" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1075" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-27 11:22:44Z" end-time="2026-09-27 11:22:52Z" duration="8.400369" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1044" name="GameplayHudFramePlayModeTests" fullname="YC.Tests.PlayMode.GameplayHudFramePlayModeTests" classname="YC.Tests.PlayMode.GameplayHudFramePlayModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-27 11:22:44Z" end-time="2026-09-27 11:22:48Z" duration="3.892154" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1046" name="ActualEffectShell_SettingsThenLog_RestoresAfterClosingLogController" fullname="YC.Tests.PlayMode.GameplayHudFramePlayModeTests.ActualEffectShell_SettingsThenLog_RestoresAfterClosingLogController" methodname="ActualEffectShell_SettingsThenLog_RestoresAfterClosingLogController" classname="YC.Tests.PlayMode.GameplayHudFramePlayModeTests" runstate="Runnable" seed="839313672" result="Passed" start-time="2026-09-27 11:22:44Z" end-time="2026-09-27 11:22:46Z" duration="2.007124" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1048" name="BothGameplayScenes_KeepBarsClickableAboveSettingsAndContent" fullname="YC.Tests.PlayMode.GameplayHudFramePlayModeTests.BothGameplayScenes_KeepBarsClickableAboveSettingsAndContent" methodname="BothGameplayScenes_KeepBarsClickableAboveSettingsAndContent" classname="YC.Tests.PlayMode.GameplayHudFramePlayModeTests" runstate="Runnable" seed="1494893987" result="Passed" start-time="2026-09-27 11:22:46Z" end-time="2026-09-27 11:22:47Z" duration="0.984231" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+PLAY OK SampleScene 640x480
+Right card smoke setup ready. Dialog=None, PlayerId=1.
+PLAY OK ThreePlayerScene 640x480
+]]></output>
+              </test-case>
+              <test-case id="1047" name="EffectPage_CanSuspendBrowseTwoPagesAndRestoreOnlyCurrentRequest" fullname="YC.Tests.PlayMode.GameplayHudFramePlayModeTests.EffectPage_CanSuspendBrowseTwoPagesAndRestoreOnlyCurrentRequest" methodname="EffectPage_CanSuspendBrowseTwoPagesAndRestoreOnlyCurrentRequest" classname="YC.Tests.PlayMode.GameplayHudFramePlayModeTests" runstate="Runnable" seed="877523369" result="Passed" start-time="2026-09-27 11:22:47Z" end-time="2026-09-27 11:22:47Z" duration="0.455990" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1045" name="LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars" fullname="YC.Tests.PlayMode.GameplayHudFramePlayModeTests.LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars" methodname="LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars" classname="YC.Tests.PlayMode.GameplayHudFramePlayModeTests" runstate="Runnable" seed="1156552959" result="Passed" start-time="2026-09-27 11:22:47Z" end-time="2026-09-27 11:22:48Z" duration="0.431032" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1049" name="GameplayMainHudPlayModeTests" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-09-27 11:22:48Z" end-time="2026-09-27 11:22:52Z" duration="4.505628" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1062" name="CardViewer_FormalQuickActionCancelsWithoutCommandThenUsesPlotOnce" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CardViewer_FormalQuickActionCancelsWithoutCommandThenUsesPlotOnce" methodname="CardViewer_FormalQuickActionCancelsWithoutCommandThenUsesPlotOnce" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="1028905436" result="Passed" start-time="2026-09-27 11:22:48Z" end-time="2026-09-27 11:22:48Z" duration="0.673381" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1063" name="CardViewer_HandFacilityAndDiscardDetailsStayReadOnlyAndReturn" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CardViewer_HandFacilityAndDiscardDetailsStayReadOnlyAndReturn" methodname="CardViewer_HandFacilityAndDiscardDetailsStayReadOnlyAndReturn" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="978030162" result="Passed" start-time="2026-09-27 11:22:48Z" end-time="2026-09-27 11:22:49Z" duration="0.941319" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1064" name="InformationPages_FormalSettingsRulebookPagingImagePanAndLongLog" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.InformationPages_FormalSettingsRulebookPagingImagePanAndLongLog" methodname="InformationPages_FormalSettingsRulebookPagingImagePanAndLongLog" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="2011494015" result="Passed" start-time="2026-09-27 11:22:49Z" end-time="2026-09-27 11:22:50Z" duration="1.106131" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1054" name="OverflowHand_NavigationKeepsTheCurrentPageAcrossRenders" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.OverflowHand_NavigationKeepsTheCurrentPageAcrossRenders" methodname="OverflowHand_NavigationKeepsTheCurrentPageAcrossRenders" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="546182534" result="Passed" start-time="2026-09-27 11:22:50Z" end-time="2026-09-27 11:22:51Z" duration="0.521551" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1061" name="SecondEffect_RealFirstSettlementThenContinueOrFinishThroughNewPage" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.SecondEffect_RealFirstSettlementThenContinueOrFinishThroughNewPage" methodname="SecondEffect_RealFirstSettlementThenContinueOrFinishThroughNewPage" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="62664442" result="Passed" start-time="2026-09-27 11:22:51Z" end-time="2026-09-27 11:22:52Z" duration="1.258566" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

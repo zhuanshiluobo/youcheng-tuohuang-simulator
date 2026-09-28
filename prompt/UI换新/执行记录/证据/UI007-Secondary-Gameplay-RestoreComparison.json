@@ -1,0 +1,167 @@
+{
+  "scope": "实际SampleScene当前InGame来源1920→1024→恢复1920；不是开工前后比较。",
+  "comparison": "唯一path严格配对；重复path只核对矩形多重集合，不声称同名对象身份匹配。",
+  "states": [
+    {
+      "state": "Settings",
+      "evidence": [
+        "UI007-Secondary-Live-Gameplay-Settings-1920x1080-actual-1920x1080.json",
+        "UI007-Secondary-Live-Gameplay-Settings-1024x768-actual-1024x768.json",
+        "UI007-Secondary-Live-Gameplay-Settings-Restored-1920x1080-actual-1920x1080.json"
+      ],
+      "objectCounts": [
+        43,
+        43,
+        43
+      ],
+      "uniqueMatchedRestored": 30,
+      "duplicatePaths": [
+        {
+          "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row",
+          "beforeCount": 2,
+          "afterCount": 2,
+          "rectMultisetsEqualRoundedTo0_001": true
+        },
+        {
+          "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Vertical Gap",
+          "beforeCount": 3,
+          "afterCount": 3,
+          "rectMultisetsEqualRoundedTo0_001": true
+        },
+        {
+          "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/UI007 Horizontal Gap",
+          "beforeCount": 4,
+          "afterCount": 4,
+          "rectMultisetsEqualRoundedTo0_001": true
+        },
+        {
+          "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Vertical Gap",
+          "beforeCount": 2,
+          "afterCount": 2,
+          "rectMultisetsEqualRoundedTo0_001": true
+        },
+        {
+          "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+          "beforeCount": 2,
+          "afterCount": 2,
+          "rectMultisetsEqualRoundedTo0_001": true
+        }
+      ],
+      "maxUniqueRestoredDelta": 0,
+      "missingPathsAfterRestore": [],
+      "addedPathsAfterRestore": [],
+      "restoredDifferencesOver0_001": [],
+      "narrowScreenOutOfBounds": [],
+      "rootRect1920": {
+        "serializedVersion": "2",
+        "x": 640.0,
+        "y": 340.0,
+        "width": 640.0,
+        "height": 430.0
+      },
+      "rootRect1024": {
+        "serializedVersion": "2",
+        "x": 314.93109130859375,
+        "y": 242.35671997070312,
+        "width": 394.1378173828125,
+        "height": 264.81134033203125
+      },
+      "rootRectRestored1920": {
+        "serializedVersion": "2",
+        "x": 640.0,
+        "y": 340.0,
+        "width": 640.0,
+        "height": 430.0
+      }
+    },
+    {
+      "state": "ActionLog",
+      "evidence": [
+        "UI007-Secondary-Live-Gameplay-ActionLog-1920x1080-actual-1920x1080.json",
+        "UI007-Secondary-Live-Gameplay-ActionLog-1024x768-actual-1024x768.json",
+        "UI007-Secondary-Live-Gameplay-ActionLog-Restored-1920x1080-actual-1920x1080.json"
+      ],
+      "objectCounts": [
+        15,
+        15,
+        15
+      ],
+      "uniqueMatchedRestored": 15,
+      "duplicatePaths": [],
+      "maxUniqueRestoredDelta": 0,
+      "missingPathsAfterRestore": [],
+      "addedPathsAfterRestore": [],
+      "restoredDifferencesOver0_001": [],
+      "narrowScreenOutOfBounds": [],
+      "rootRect1920": {
+        "serializedVersion": "2",
+        "x": 528.0,
+        "y": 215.0,
+        "width": 864.0,
+        "height": 680.0
+      },
+      "rootRect1024": {
+        "serializedVersion": "2",
+        "x": 245.9569854736328,
+        "y": 165.37667846679688,
+        "width": 532.0860595703125,
+        "height": 418.7713928222656
+      },
+      "rootRectRestored1920": {
+        "serializedVersion": "2",
+        "x": 528.0,
+        "y": 215.0,
+        "width": 864.0,
+        "height": 680.0
+      }
+    },
+    {
+      "state": "CityStyle",
+      "evidence": [
+        "UI007-Secondary-Live-Gameplay-CityStyle-1920x1080-actual-1920x1080.json",
+        "UI007-Secondary-Live-Gameplay-CityStyle-1024x768-actual-1024x768.json",
+        "UI007-Secondary-Live-Gameplay-CityStyle-Restored-1920x1080-actual-1920x1080.json"
+      ],
+      "objectCounts": [
+        43,
+        43,
+        43
+      ],
+      "uniqueMatchedRestored": 40,
+      "duplicatePaths": [
+        {
+          "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+          "beforeCount": 3,
+          "afterCount": 3,
+          "rectMultisetsEqualRoundedTo0_001": true
+        }
+      ],
+      "maxUniqueRestoredDelta": 0,
+      "missingPathsAfterRestore": [],
+      "addedPathsAfterRestore": [],
+      "restoredDifferencesOver0_001": [],
+      "narrowScreenOutOfBounds": [],
+      "rootRect1920": {
+        "serializedVersion": "2",
+        "x": 200.0,
+        "y": 105.0,
+        "width": 1520.0,
+        "height": 900.0
+      },
+      "rootRect1024": {
+        "serializedVersion": "2",
+        "x": 43.961360931396484,
+        "y": 97.63424682617188,
+        "width": 936.0772705078125,
+        "height": 554.2562255859375
+      },
+      "rootRectRestored1920": {
+        "serializedVersion": "2",
+        "x": 200.0,
+        "y": 105.0,
+        "width": 1520.0,
+        "height": 900.0
+      }
+    }
+  ]
+}

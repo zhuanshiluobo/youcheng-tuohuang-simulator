@@ -1,0 +1,870 @@
+{
+  "审查范围": "HUD栏、三列、玩家/城市和行动页签布局；未自行启动Unity。",
+  "证据来源": "最终四份UI007-FinalGeometry-*.json为当前结论；geometry-interim.json只保留为历史城市迁移追溯，不代表最终差异数量。",
+  "城市例外原因": "原城市格位子树属于旧Tabletop透视Canvas，矩形与实际可见City Board Artwork不一致；正常主界面还可能受旧建设CanvasGroup透明度影响。此次保留原对象、Button/DropTarget/业务引用，静态迁入实际原图下，使12格位和输入使用同一最终矩形。activeInHierarchy不等于真正可见；这些27项不能计为“原位置完全一致”。",
+  "城市显示基准保持": {
+    "City Region": [
+      16,
+      102,
+      416,
+      554
+    ],
+    "City Board Artwork": [
+      89,
+      113,
+      270,
+      500
+    ]
+  },
+  "城市子树前后矩形": [
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图",
+      "before": {
+        "serializedVersion": "2",
+        "x": 111.19644165039062,
+        "y": 93.31553649902344,
+        "width": 378.3896484375,
+        "height": 452.34588623046875
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 89.0,
+        "y": 113.0,
+        "width": 270.0,
+        "height": 500.0
+      },
+      "delta": {
+        "x": -22.196441650390625,
+        "y": 19.684463500976562,
+        "width": -108.3896484375,
+        "height": 47.65411376953125
+      },
+      "maxAbsoluteDelta": 108.3896484375
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 1",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 1",
+      "before": {
+        "serializedVersion": "2",
+        "x": 261.1107482910156,
+        "y": 447.3410949707031,
+        "width": 91.3763427734375,
+        "height": 83.85989379882812
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 102.11315155029297,
+        "y": 480.6664123535156,
+        "width": 78.67896270751953,
+        "height": 111.81271362304688
+      },
+      "delta": {
+        "x": -158.99759674072266,
+        "y": 33.3253173828125,
+        "width": -12.697380065917969,
+        "height": 27.95281982421875
+      },
+      "maxAbsoluteDelta": 158.99759674072266
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 1/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 1/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 261.1107482910156,
+        "y": 447.3410949707031,
+        "width": 91.3763427734375,
+        "height": 83.85989379882812
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 102.11315155029297,
+        "y": 480.6664123535156,
+        "width": 78.67896270751953,
+        "height": 111.81271362304688
+      },
+      "delta": {
+        "x": -158.99759674072266,
+        "y": 33.3253173828125,
+        "width": -12.697380065917969,
+        "height": 27.95281982421875
+      },
+      "maxAbsoluteDelta": 158.99759674072266
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 2",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 2",
+      "before": {
+        "serializedVersion": "2",
+        "x": 326.26031494140625,
+        "y": 447.3410949707031,
+        "width": 88.01730346679688,
+        "height": 83.85989379882812
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 184.72605895996094,
+        "y": 480.6664123535156,
+        "width": 78.67897033691406,
+        "height": 111.81271362304688
+      },
+      "delta": {
+        "x": -141.5342559814453,
+        "y": 33.3253173828125,
+        "width": -9.338333129882812,
+        "height": 27.95281982421875
+      },
+      "maxAbsoluteDelta": 141.5342559814453
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 2/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 2/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 326.26031494140625,
+        "y": 447.3410949707031,
+        "width": 88.01730346679688,
+        "height": 83.85989379882812
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 184.72605895996094,
+        "y": 480.6664123535156,
+        "width": 78.67897033691406,
+        "height": 111.81271362304688
+      },
+      "delta": {
+        "x": -141.5342559814453,
+        "y": 33.3253173828125,
+        "width": -9.338333129882812,
+        "height": 27.95281982421875
+      },
+      "maxAbsoluteDelta": 141.5342559814453
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 3",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 3",
+      "before": {
+        "serializedVersion": "2",
+        "x": 391.4100036621094,
+        "y": 447.3410949707031,
+        "width": 84.65823364257812,
+        "height": 83.85989379882812
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 267.3389892578125,
+        "y": 480.6664123535156,
+        "width": 78.678955078125,
+        "height": 111.81271362304688
+      },
+      "delta": {
+        "x": -124.07101440429688,
+        "y": 33.3253173828125,
+        "width": -5.979278564453125,
+        "height": 27.95281982421875
+      },
+      "maxAbsoluteDelta": 124.07101440429688
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 3/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 3/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 391.4100036621094,
+        "y": 447.3410949707031,
+        "width": 84.65823364257812,
+        "height": 83.85989379882812
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 267.3389892578125,
+        "y": 480.6664123535156,
+        "width": 78.678955078125,
+        "height": 111.81271362304688
+      },
+      "delta": {
+        "x": -124.07101440429688,
+        "y": 33.3253173828125,
+        "width": -5.979278564453125,
+        "height": 27.95281982421875
+      },
+      "maxAbsoluteDelta": 124.07101440429688
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 4",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 4",
+      "before": {
+        "serializedVersion": "2",
+        "x": 223.48617553710938,
+        "y": 350.34259033203125,
+        "width": 98.57833862304688,
+        "height": 93.87191772460938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 102.11315155029297,
+        "y": 364.9073791503906,
+        "width": 78.67896270751953,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -121.3730239868164,
+        "y": 14.564788818359375,
+        "width": -19.899375915527344,
+        "height": 17.940765380859375
+      },
+      "maxAbsoluteDelta": 121.3730239868164
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 4/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 4/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 223.48617553710938,
+        "y": 350.34259033203125,
+        "width": 98.57833862304688,
+        "height": 93.87191772460938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 102.11315155029297,
+        "y": 364.9073791503906,
+        "width": 78.67896270751953,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -121.3730239868164,
+        "y": 14.564788818359375,
+        "width": -19.899375915527344,
+        "height": 17.940765380859375
+      },
+      "maxAbsoluteDelta": 121.3730239868164
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 5",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 5",
+      "before": {
+        "serializedVersion": "2",
+        "x": 292.52117919921875,
+        "y": 350.34259033203125,
+        "width": 94.81817626953125,
+        "height": 93.87191772460938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 184.72605895996094,
+        "y": 364.9073791503906,
+        "width": 78.67897033691406,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -107.79512023925781,
+        "y": 14.564788818359375,
+        "width": -16.139205932617188,
+        "height": 17.940765380859375
+      },
+      "maxAbsoluteDelta": 107.79512023925781
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 5/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 5/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 292.52117919921875,
+        "y": 350.34259033203125,
+        "width": 94.81817626953125,
+        "height": 93.87191772460938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 184.72605895996094,
+        "y": 364.9073791503906,
+        "width": 78.67897033691406,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -107.79512023925781,
+        "y": 14.564788818359375,
+        "width": -16.139205932617188,
+        "height": 17.940765380859375
+      },
+      "maxAbsoluteDelta": 107.79512023925781
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 6",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 6",
+      "before": {
+        "serializedVersion": "2",
+        "x": 361.5561828613281,
+        "y": 350.34259033203125,
+        "width": 91.05807495117188,
+        "height": 93.87191772460938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 267.3389892578125,
+        "y": 364.9073791503906,
+        "width": 78.678955078125,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -94.21719360351562,
+        "y": 14.564788818359375,
+        "width": -12.379119873046875,
+        "height": 17.940765380859375
+      },
+      "maxAbsoluteDelta": 94.21719360351562
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 6/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 6/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 361.5561828613281,
+        "y": 350.34259033203125,
+        "width": 91.05807495117188,
+        "height": 93.87191772460938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 267.3389892578125,
+        "y": 364.9073791503906,
+        "width": 78.678955078125,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -94.21719360351562,
+        "y": 14.564788818359375,
+        "width": -12.379119873046875,
+        "height": 17.940765380859375
+      },
+      "maxAbsoluteDelta": 94.21719360351562
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 7",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 7",
+      "before": {
+        "serializedVersion": "2",
+        "x": 181.08929443359375,
+        "y": 241.04083251953125,
+        "width": 106.91647338867188,
+        "height": 105.7906494140625
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 102.11315155029297,
+        "y": 249.14834594726562,
+        "width": 78.67896270751953,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -78.97614288330078,
+        "y": 8.107513427734375,
+        "width": -28.237510681152344,
+        "height": 6.02203369140625
+      },
+      "maxAbsoluteDelta": 78.97614288330078
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 7/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 7/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 181.08929443359375,
+        "y": 241.04083251953125,
+        "width": 106.91647338867188,
+        "height": 105.7906494140625
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 102.11315155029297,
+        "y": 249.14834594726562,
+        "width": 78.67896270751953,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -78.97614288330078,
+        "y": 8.107513427734375,
+        "width": -28.237510681152344,
+        "height": 6.02203369140625
+      },
+      "maxAbsoluteDelta": 78.97614288330078
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 8",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 8",
+      "before": {
+        "serializedVersion": "2",
+        "x": 254.50247192382812,
+        "y": 241.04083251953125,
+        "width": 102.67892456054688,
+        "height": 105.7906494140625
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 184.72605895996094,
+        "y": 249.14834594726562,
+        "width": 78.67897033691406,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -69.77641296386719,
+        "y": 8.107513427734375,
+        "width": -23.999954223632812,
+        "height": 6.02203369140625
+      },
+      "maxAbsoluteDelta": 69.77641296386719
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 8/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 8/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 254.50247192382812,
+        "y": 241.04083251953125,
+        "width": 102.67892456054688,
+        "height": 105.7906494140625
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 184.72605895996094,
+        "y": 249.14834594726562,
+        "width": 78.67897033691406,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -69.77641296386719,
+        "y": 8.107513427734375,
+        "width": -23.999954223632812,
+        "height": 6.02203369140625
+      },
+      "maxAbsoluteDelta": 69.77641296386719
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 8/ContentRoot/设施卡内容",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 8/ContentRoot/设施卡内容",
+      "before": {
+        "serializedVersion": "2",
+        "x": 254.50247192382812,
+        "y": 241.04083251953125,
+        "width": 102.67892456054688,
+        "height": 105.7906494140625
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 184.72605895996094,
+        "y": 249.14834594726562,
+        "width": 78.67897033691406,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -69.77641296386719,
+        "y": 8.107513427734375,
+        "width": -23.999954223632812,
+        "height": 6.02203369140625
+      },
+      "maxAbsoluteDelta": 69.77641296386719
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 8/ContentRoot/设施卡内容/设施卡图",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 8/ContentRoot/设施卡内容/设施卡图",
+      "before": {
+        "serializedVersion": "2",
+        "x": 254.50247192382812,
+        "y": 241.04083251953125,
+        "width": 102.67892456054688,
+        "height": 105.7906494140625
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 184.72605895996094,
+        "y": 249.14834594726562,
+        "width": 78.67897033691406,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -69.77641296386719,
+        "y": 8.107513427734375,
+        "width": -23.999954223632812,
+        "height": 6.02203369140625
+      },
+      "maxAbsoluteDelta": 69.77641296386719
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 9",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 9",
+      "before": {
+        "serializedVersion": "2",
+        "x": 327.9156494140625,
+        "y": 241.04083251953125,
+        "width": 98.44143676757812,
+        "height": 105.7906494140625
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 267.3389892578125,
+        "y": 249.14834594726562,
+        "width": 78.678955078125,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -60.57666015625,
+        "y": 8.107513427734375,
+        "width": -19.762481689453125,
+        "height": 6.02203369140625
+      },
+      "maxAbsoluteDelta": 60.57666015625
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 9/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 9/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 327.9156494140625,
+        "y": 241.04083251953125,
+        "width": 98.44143676757812,
+        "height": 105.7906494140625
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 267.3389892578125,
+        "y": 249.14834594726562,
+        "width": 78.678955078125,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -60.57666015625,
+        "y": 8.107513427734375,
+        "width": -19.762481689453125,
+        "height": 6.02203369140625
+      },
+      "maxAbsoluteDelta": 60.57666015625
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 10",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 10",
+      "before": {
+        "serializedVersion": "2",
+        "x": 132.95089721679688,
+        "y": 116.93667602539062,
+        "width": 116.66697692871094,
+        "height": 120.13314819335938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 102.11315155029297,
+        "y": 133.38937377929688,
+        "width": 78.67896270751953,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -30.837745666503906,
+        "y": 16.45269775390625,
+        "width": -37.988014221191406,
+        "height": -8.320465087890625
+      },
+      "maxAbsoluteDelta": 37.988014221191406
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 10/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 10/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 132.95089721679688,
+        "y": 116.93667602539062,
+        "width": 116.66697692871094,
+        "height": 120.13314819335938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 102.11315155029297,
+        "y": 133.38937377929688,
+        "width": 78.67896270751953,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -30.837745666503906,
+        "y": 16.45269775390625,
+        "width": -37.988014221191406,
+        "height": -8.320465087890625
+      },
+      "maxAbsoluteDelta": 37.988014221191406
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 11",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 11",
+      "before": {
+        "serializedVersion": "2",
+        "x": 211.3351287841797,
+        "y": 116.93667602539062,
+        "width": 111.85490417480469,
+        "height": 120.13314819335938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 184.72605895996094,
+        "y": 133.38937377929688,
+        "width": 78.67897033691406,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -26.60906982421875,
+        "y": 16.45269775390625,
+        "width": -33.175933837890625,
+        "height": -8.320465087890625
+      },
+      "maxAbsoluteDelta": 33.175933837890625
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 11/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 11/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 211.3351287841797,
+        "y": 116.93667602539062,
+        "width": 111.85490417480469,
+        "height": 120.13314819335938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 184.72605895996094,
+        "y": 133.38937377929688,
+        "width": 78.67897033691406,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -26.60906982421875,
+        "y": 16.45269775390625,
+        "width": -33.175933837890625,
+        "height": -8.320465087890625
+      },
+      "maxAbsoluteDelta": 33.175933837890625
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 12",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 12",
+      "before": {
+        "serializedVersion": "2",
+        "x": 289.71942138671875,
+        "y": 116.93667602539062,
+        "width": 107.0428466796875,
+        "height": 120.13314819335938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 267.3389892578125,
+        "y": 133.38937377929688,
+        "width": 78.678955078125,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -22.38043212890625,
+        "y": 16.45269775390625,
+        "width": -28.3638916015625,
+        "height": -8.320465087890625
+      },
+      "maxAbsoluteDelta": 28.3638916015625
+    },
+    {
+      "beforePath": "Tabletop UI Canvas/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/城市面板底图/槽位 12/ContentRoot",
+      "afterPath": "Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 12/ContentRoot",
+      "before": {
+        "serializedVersion": "2",
+        "x": 289.71942138671875,
+        "y": 116.93667602539062,
+        "width": 107.0428466796875,
+        "height": 120.13314819335938
+      },
+      "after": {
+        "serializedVersion": "2",
+        "x": 267.3389892578125,
+        "y": 133.38937377929688,
+        "width": 78.678955078125,
+        "height": 111.81268310546875
+      },
+      "delta": {
+        "x": -22.38043212890625,
+        "y": 16.45269775390625,
+        "width": -28.3638916015625,
+        "height": -8.320465087890625
+      },
+      "maxAbsoluteDelta": 28.3638916015625
+    }
+  ],
+  "其他差异说明": [
+    "Main Regions父容器从全屏1080高改为ContentRect的906高，叶节点另行核验保持。",
+    "最终同状态采集中Prompt Panel和Prompt Text均与开工矩形完全相同，中间提示状态差异不再残留。",
+    "4个同名Rivet无法按路径逐对象匹配，补验矩形多重集一致；不伪造唯一对象身份。"
+  ],
+  "尺寸驱动审查": [
+    "GameplayHudFrame只集中分配安全区域、栏高和ContentRect；CanvasScaler负责基础缩放。",
+    "UiHudBarLayout控制顶栏语义组；不足时缩减间距并换行；底栏HorizontalLayoutGroup只压缩弹性摘要，保留两端操作。",
+    "UiHudColumnsLayout负责三列实际矩形，紧凑模式未选列SetActive(false)，其子Graphic因此不参与射线。地图相机和外部输入依照实际viewport投影；最终常态地图与装饰视觉由主线程截图核验。",
+    "UiPlayerCityLayout独占header/detail/city的矩形；ScrollRect内容按其内部布局增长。UiAspectContentLayout独占最终城市图比例矩形，UiCitySlotsLayout独占原12格位容器。",
+    "UiActionGroupLayout控制Main/Quick/City Style组，UiActionRegionHeight仅测量首选高度，实际Action Region由右列VerticalLayoutGroup驱动，超高交给右列ScrollRect。"
+  ],
+  "已修低高度缺陷": {
+    "缺陷": "实际列高低于约541.54时旧算法先消耗所有可用高度到header，展开明细被分配为0高。",
+    "修复": "新增minimumExpandedDetailHeight默认112；先留可滚动明细与城市可用空间，再压缩header及必要留白；正常906列高/长明细224/城市330保持。",
+    "必要回归": "已由主线程统一PlayMode验证通过：实际容器压缩至400逻辑高，长明细末项可滚动到达；城市仍保持正尺寸、等比、内容区内，12个真实槽位仍可命中。见Logs/UI007/playmode-final.xml。"
+  },
+  "边界与验证限制": [
+    "底栏当前需要自身逻辑宽至少624，即安全区逻辑宽至少656（两侧各16）；未扩展任意极窄窗口换行承诺。",
+    "1920×1080、2560×1080、1280×720、1024×768、900×600的CanvasScaler逻辑宽均可满足此条件；尺寸计算不是实际PlayMode或视觉通过证据。",
+    "PlayMode 6/6通过、EditMode 103/103通过。最终常态12图已采集，1920两场景基准与恢复核对见四份详细报告；地图实际透视fit与开工图有差异，不能称全图像素保持。"
+  ],
+  "G12设施供应补漏": {
+    "实际入口": "BuildInfoPanel.BindFixedViews按ExternalFacilitySlots的6个原引用绑定CardPointerInteraction点击与拖放；供应变化只更新卡牌内容和可用性。",
+    "来源": "独立BuildInfoPanel.prefab，以及静态城市迁移后由GameplayInteractionHud.prefab独立维护的实例。两者分别精准迁移。",
+    "迁移入口": "YC.Presentation.Editor.Ui007HudLayoutMigration.PatchFacilitySupplyLayout",
+    "结构": "两类原供应区由UiSupplyRegionsLayout约束到同屏ContentRect；设施区Viewport底部预留40给原状态信息，Content由GridLayoutGroup和UiAdaptiveGridColumns决定最多3列，ContentSizeFitter只管内容高度，原区域ScrollRect承担内部滚动。",
+    "基准": "365×350区域内原6槽为99×141，首格6/6，列距25、行距22。新网格padding左6右12顶6底0，三列两行内容310高，与原坐标完全同构；不改世界空间父Canvas或相机。",
+    "引用保留": "6个原BuildInfoSlotView/Root/Button/CardPointerInteraction全部保留，View数组逐项断言未替换。",
+    "验证状态": "已运行ConstrainSupplyRegionsToContent手动迁移；PlayMode正式供应测试通过，保留六槽正尺寸/实际激活/逐槽真实首命中，并验证顶栏设置与底栏结束按钮仍位于输入最高层。见Logs/UI007/playmode-final.xml。"
+  },
+  "输入回归追加审查": {
+    "证据": [
+      "Logs/UI007/playmode-input-retry.xml",
+      "Logs/UI007/editmode-input-diagnostic.xml",
+      "Logs/UI007/supply-bounds-repair.log",
+      "Logs/UI007/playmode-final.xml",
+      "Logs/UI007/playmode-final.log"
+    ],
+    "城市格位": {
+      "观察": "640×480紧凑模式默认隐藏玩家列；测试同帧SelectSection→Layout→Raycast时Graphic.depth=-1，cull=false。",
+      "处理": "在玩家列真实激活后等待一个渲染帧再做严格首命中，并保留透明空槽cullTransparentMesh=false。",
+      "状态": "通过：两场景在玩家列真实激活后的渲染帧，12个槽位实际GraphicRaycaster首命中均归属对应槽位，源图坐标解析返回同一索引；展开长明细、缩小/低高度阶段再次验证格位输入，切换/关闭/恢复阶段验证城市边界与矩形恢复。",
+      "真实射线修复": "空槽保持原透明颜色，CanvasRenderer.cullTransparentMesh=false保留承担输入的网格；不生成设施业务数据、不伪造RaycastResult、不降低首命中要求。此前depth=-1的测试激活时序问题由等待真实渲染帧解决。"
+    },
+    "供应区": {
+      "观察": "首槽实际point=(49.07,444.01)，顶栏为真实首命中；原(72,-17)相对全屏Overlay Canvas，未受ContentRect限制。",
+      "处理": "UiSupplyRegionsLayout将两类供应列投影到同屏ContentRect，原Grid/ScrollRect、Button/CardPointer、槽位引用不变。",
+      "迁移入口": "YC.Presentation.Editor.Ui007HudLayoutMigration.ConstrainSupplyRegionsToContent",
+      "来源": [
+        "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+        "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab"
+      ],
+      "状态": "通过：主线程手动迁移后，LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars真实首命中全部通过。",
+      "基准位置例外": "原供应区以全屏Canvas左上(72,-17)定位，顶部卡牌侵入常驻顶栏。现有布局在越界时把供应列移入ContentRect，并在高度不足时压缩两类供应视口、保留内部滚动；此项是输入遮挡缺陷修复，不归入原位置完全一致。未改变常驻栏排序或地图相机。"
+    },
+    "ExtensionHub_EditMode夹具": {
+      "观察": "真实GraphicRaycaster直接调用命中1/3项，depth=0/2，cull=false，RectangleContains和Graphic.Raycast均true，但RaycasterManager注册数量为0。",
+      "源码依据": "UGUI BaseRaycaster无ExecuteAlways；OnEnable负责注册RaycasterManager。",
+      "处理": "夹具显式调用全部active真实检测器的OnEnable补齐生命周期；继续EventSystem.RaycastAll严格首命中，TearDown仅反注册本夹具添加项。",
+      "状态": "最终EditMode共103/103通过，包含两个ExtensionHub真实EventSystem.RaycastAll首命中用例；见Logs/UI007/editmode-final.xml。"
+    }
+  },
+  "最终PlayMode行为回归": {
+    "结果": {
+      "总数": 6,
+      "通过": 6,
+      "失败": 0
+    },
+    "时间UTC": {
+      "开始": "2026-09-25 19:56:18Z",
+      "结束": "2026-09-25 19:56:22Z"
+    },
+    "来源": [
+      "Logs/UI007/playmode-final.xml",
+      "Logs/UI007/playmode-final.log"
+    ],
+    "执行者": "主线程统一运行；本审查代理未启动Unity。",
+    "真实运行尺寸": "640×480（日志含SampleScene和ThreePlayerScene）",
+    "覆盖行为": [
+      "SampleScene与ThreePlayerScene常驻顶底栏实际输入在设置/内容页之上。",
+      "Effect页收起、跨页面浏览、关闭日志后恢复，保留当前请求状态并拒绝旧请求恢复。",
+      "Effect同流程步骤刷新仍维持收起，使用当前步骤和revision。",
+      "六个原设施供应槽真实首命中，且临时建设层不遮挡顶底栏。",
+      "两场景20项长明细内部滚动，末项可达；受限列缩小至400逻辑高仍有可读明细和城市。",
+      "城市原图等比且位于同屏ContentRect和底栏上方；12槽实际输入与最终原图矩形一致；切换/关闭/恢复后的城市矩形恢复。"
+    ],
+    "测试": [
+      {
+        "名称": "YC.Tests.PlayMode.Ui003HudFramePlayModeTests.ActualEffectShell_SettingsThenLog_RestoresAfterClosingLogController",
+        "结果": "Passed"
+      },
+      {
+        "名称": "YC.Tests.PlayMode.Ui003HudFramePlayModeTests.BothGameplayScenes_KeepBarsClickableAboveSettingsAndContent",
+        "结果": "Passed"
+      },
+      {
+        "名称": "YC.Tests.PlayMode.Ui003HudFramePlayModeTests.EffectPage_CanSuspendBrowseTwoPagesAndRestoreOnlyCurrentRequest",
+        "结果": "Passed"
+      },
+      {
+        "名称": "YC.Tests.PlayMode.Ui003HudFramePlayModeTests.LegacyBuildSupply_CanReceiveInputAboveNewSurfaceWithoutCoveringBars",
+        "结果": "Passed"
+      },
+      {
+        "名称": "YC.Tests.PlayMode.Ui006EffectPagePlayModeTests.SuspendedEffect_StaysHiddenOnRefreshAndMovesToCurrentStep",
+        "结果": "Passed"
+      },
+      {
+        "名称": "YC.Tests.PlayMode.Ui006OpponentDetailPlayModeTests.BothScenes_DetailScrollAndCityStayInsideLiveContentAcrossResizeAndRestore",
+        "结果": "Passed"
+      }
+    ],
+    "不替代": "截图和几何独立核验：最终两场景1920常态/恢复已比较；地图实际透视fit差异单列。其他窗口的视觉细节仍应按实际截图审阅，不由6项测试推定。"
+  },
+  "历史中间比较": {
+    "开工active节点": 399,
+    "匹配": 395,
+    "未匹配": [
+      "Mobile City UI Canvas/ResourceCounterBoard/Rulebook Resource Counter/Rivet",
+      "Mobile City UI Canvas/ResourceCounterBoard/Rulebook Resource Counter/Rivet",
+      "Mobile City UI Canvas/ResourceCounterBoard/Rulebook Resource Counter/Rivet",
+      "Mobile City UI Canvas/ResourceCounterBoard/Rulebook Resource Counter/Rivet"
+    ],
+    "差异": 30,
+    "城市子树例外": 27
+  },
+  "最终1920几何核对": {
+    "报告": [
+      "UI007-FinalGeometry-SampleScene-Before-Final-1920x1080.json",
+      "UI007-FinalGeometry-SampleScene-Final-Restored-1920x1080.json",
+      "UI007-FinalGeometry-ThreePlayerScene-Before-Final-1920x1080.json",
+      "UI007-FinalGeometry-ThreePlayerScene-Final-Restored-1920x1080.json"
+    ],
+    "两场景结果一致": true,
+    "Before→Final": {
+      "每场景活动基准数": 399,
+      "唯一匹配": 395,
+      "容差内": 316,
+      "超容差": 79,
+      "分类": {
+        "主区域父容器重构": 1,
+        "城市原格位子树迁移": 27,
+        "设施供应布局与桌面投影": 25,
+        "城市样式供应布局与桌面投影": 19,
+        "旧桌面容器投影": 7
+      },
+      "同名Rivet": {
+        "节点": 4,
+        "判定": "无法按路径逐对象唯一匹配；矩形多重集完全一致。"
+      },
+      "新增活动布局容器": 25
+    },
+    "Final→Restored": {
+      "每场景活动节点数": 424,
+      "唯一匹配": 420,
+      "超容差": 0,
+      "另4个Rivet矩形多重集": "完全一致"
+    },
+    "结论": "常驻主HUD叶节点/区域未发现新增几何漂移；同屏ContentRect、Map Region/Frame、City Region/Artwork、Prompt Panel/Text保持原矩形。79项差异均逐项保留分类；不得据此宣称整个画面与开工图像素相同。",
+    "地图单列": "实际透视地图fit与开工图不同，UI边框同位不代表地图图像相同；当前仍使用既有相机方案，不隐藏或豁免此视觉差异。",
+    "可见性限制": "51项仍处于旧Tabletop链，其中Tabletop Canvas自身无Graphic，另外50项处于当前源alpha=0的BuildInfo CanvasGroup。常态流程与截图支持隐藏，但捕获JSON无运行时alpha字段，保留直接实测可见性未判；显式打开供应的真实首命中另有PlayMode通过证据。"
+  },
+  "最终EditMode行为回归": {
+    "来源": "Logs/UI007/editmode-final.xml",
+    "总数": 103,
+    "通过": 103,
+    "失败": 0,
+    "时间UTC": {
+      "开始": "2026-09-25 19:57:22Z",
+      "结束": "2026-09-25 19:57:25Z"
+    },
+    "ExtensionHub": "真实检测器注册后的两个严格拖放首命中用例均通过。"
+  }
+}

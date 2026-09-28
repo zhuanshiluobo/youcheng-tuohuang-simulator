@@ -53,7 +53,8 @@ namespace YC.Presentation
                 return;
             }
 
-            if (MobileCityInteractionController.WasInteractionEscapeConsumedThisFrame() ||
+            if (CardViewer.WasEscapeConsumedThisFrame() || CardViewer.HasOpenViewer() ||
+                MobileCityInteractionController.WasInteractionEscapeConsumedThisFrame() ||
                 CityStyleDeclarationPreviewInputHandler.WasEscapeConsumedThisFrame() ||
                 CityStyleDeclarationPreviewInputHandler.HasOpenDialog() ||
                 ZoomableImageViewerController.WasEscapeConsumedThisFrame() ||
@@ -101,7 +102,7 @@ namespace YC.Presentation
             isOpen = true;
             view.CloseInputHandler.Configure(Close);
             view.ConfirmationObject.SetActive(false);
-            view.MenuPanel.anchoredPosition = Vector2.zero;
+            ResetLegacyPanelPosition();
             view.OverlayObject.SetActive(true);
             GameplayHudFrame.Active?.ShowPage(view.OverlayObject, false);
         }
@@ -115,7 +116,7 @@ namespace YC.Presentation
 
             isOpen = false;
             view.ConfirmationObject.SetActive(false);
-            view.MenuPanel.anchoredPosition = Vector2.zero;
+            ResetLegacyPanelPosition();
             view.OverlayObject.SetActive(false);
             GameplayHudFrame.Active?.HidePage(view.OverlayObject);
         }
@@ -186,10 +187,20 @@ namespace YC.Presentation
             view.ActionLogButtonObject.SetActive(false);
             view.ConfirmationObject.SetActive(false);
             view.OverlayObject.SetActive(false);
-            view.MenuPanel.anchoredPosition = Vector2.zero;
+            ResetLegacyPanelPosition();
             view.CloseInputHandler.Configure(Close);
             initialized = true;
             return true;
+        }
+
+        private void ResetLegacyPanelPosition()
+        {
+            // 局内副本由布局组件管理位置；开始页仍保留原共享资产的打开与关闭行为。
+            var parent = view.MenuPanel.parent;
+            if (parent == null || parent.GetComponent<UiWindowSizeInput>() == null)
+            {
+                view.MenuPanel.anchoredPosition = Vector2.zero;
+            }
         }
 
         private void BindButtons()

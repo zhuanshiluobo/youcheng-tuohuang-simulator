@@ -9,6 +9,7 @@ namespace YC.Presentation.Workflows
 {
     public sealed class TurnActionPanelPresenter
     {
+        public string CharacterCoverPrompt { get; set; } = string.Empty;
         private static readonly MainActionBudgetService MainActionBudgetService =
             new MainActionBudgetService();
 
@@ -136,7 +137,8 @@ namespace YC.Presentation.Workflows
                 canChooseMainAction && player != null,
                 canChooseMainAction,
                 canEndCurrentAction() && !RoundTrackRule.IsFinalState(state),
-                waiting);
+                waiting) { CanViewFacilitySupply = player != null &&
+                    (mainActionDone || !isLocalTurn || !isActionPhase) };
         }
 
         public bool CanStartMainAction()
@@ -359,7 +361,7 @@ namespace YC.Presentation.Workflows
                 return player != null &&
                        state.CurrentPlayerId == context.LocalPlayerId &&
                        string.IsNullOrEmpty(player.CoveredCharacterCardId)
-                    ? "拖动手牌到右侧面板盖放"
+                    ? CharacterCoverPrompt
                     : "入场阶段：等待当前玩家盖放角色卡";
             }
 

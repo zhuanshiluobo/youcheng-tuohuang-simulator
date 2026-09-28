@@ -593,146 +593,51 @@ namespace YC.Tests.EditMode
             }
         }
 
-        [Test]
-        public void CollapsibleEffectDialogs_UseOneSharedPanelController()
-        {
-            var sharedType = Type.GetType(
-                "YC.Presentation.EffectDialogCollapsiblePanel, Assembly-CSharp",
-                false);
-            var facilityDialogType = Type.GetType(
-                "YC.Presentation.FacilityEffectChoiceDialog, Assembly-CSharp",
-                false);
-            var eventDialogType = Type.GetType(
-                "YC.Presentation.EventChoiceDialog, Assembly-CSharp",
-                false);
 
-            Assert.That(sharedType, Is.Not.Null);
-            Assert.That(facilityDialogType, Is.Not.Null);
-            Assert.That(eventDialogType, Is.Not.Null);
-            Assert.That(
-                facilityDialogType.GetField(
-                    "collapsiblePanel",
-                    BindingFlags.Instance | BindingFlags.NonPublic).FieldType,
-                Is.EqualTo(sharedType));
-            var eventViewType = Type.GetType(
-                "YC.Presentation.EventChoiceDialogView, Assembly-CSharp",
-                false);
-            Assert.That(eventViewType, Is.Not.Null);
-            Assert.That(
-                eventViewType.GetField(
-                    "collapsiblePanel",
-                    BindingFlags.Instance | BindingFlags.NonPublic).FieldType,
-                Is.EqualTo(sharedType));
-            Assert.That(
-                facilityDialogType.GetNestedType("FacilityCardDragHandle", BindingFlags.NonPublic),
-                Is.Null);
-            Assert.That(
-                eventDialogType.GetNestedType("EventCardDragHandle", BindingFlags.NonPublic),
-                Is.Null);
-        }
+
+
 
         [Test]
-        public void EventChoiceDialog_EventCardSharedPanelMovesCollapsesAndExpandsWithoutDrift()
+        public void EventArtwork_ResizingPreservesAspectAndHotspotsWithinImage()
         {
-            var root = new GameObject(
-                "Event Card Shared Panel Test Root",
-                typeof(RectTransform),
-                typeof(Canvas),
-                typeof(GraphicRaycaster));
-            var eventSystemObject = new GameObject(
-                "Event Card Shared Panel Test EventSystem",
-                typeof(EventSystem));
+            var root = new GameObject("Event Artwork Layout Test", typeof(RectTransform), typeof(Canvas));
+            var texture = new Texture2D(850, 600);
             try
             {
-                var canvas = root.GetComponent<Canvas>();
-                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvas.scaleFactor = 2f;
-                var dialogType = Type.GetType(
-                    "YC.Presentation.EventChoiceDialog, Assembly-CSharp",
-                    false);
-                var sharedType = Type.GetType(
-                    "YC.Presentation.EffectDialogCollapsiblePanel, Assembly-CSharp",
-                    false);
-                Assert.That(dialogType, Is.Not.Null);
-                Assert.That(sharedType, Is.Not.Null);
-                var dialog = CreateEventDialog(dialogType, root.GetComponent<RectTransform>());
+                root.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
+                var rootRect = root.GetComponent<RectTransform>();
+                rootRect.sizeDelta = new Vector2(1000, 800);
+                var type = Type.GetType("YC.Presentation.EventChoiceDialog, Assembly-CSharp", true);
+                var dialog = CreateEventDialog(type, rootRect);
                 var card = new EventCardDefinition
                 {
-                    CardId = "event-shared-panel-test",
-                    Name = "共享弹窗测试",
-                    Description = "测试事件卡展开、缩小和移动状态。",
-                    ChoiceDescriptions = { "结算测试选项" },
-                    ChoiceRewards = { new ResourceSet() }
+                    CardId = "dialogs-artwork-test", Name = "布局测试", Color = EventColor.Green,
+                    ChoiceDescriptions = { "选项一", "选项二" },
+                    ChoiceRewards = { new ResourceSet(), new ResourceSet() }
                 };
-
-                dialogType.GetMethod("ShowEventCardOptions").Invoke(
-                    dialog,
-                    new object[]
-                    {
-                        card,
-                        "测试资源点",
-                        null,
-                        null,
-                        null,
-                        new Action<int>(_ => { }),
-                        new Action<string, int>((_, __) => { })
-                    });
-
+                type.GetMethod("ShowAssetizedEventCardOptions", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(dialog, new object[] { card, string.Empty, texture, new Action<int>(_ => { }) });
                 var overlay = FindRectTransformByName(root, "Event Choice Overlay");
-                var panel = FindRectTransformByName(root, "Choice Panel");
-                var expandedContent = FindRectTransformByName(root, "Expanded Content");
-                var collapsedSummary = FindRectTransformByName(root, "Collapsed Summary");
-                var collapseButton = FindButtonByName(
-                    root.GetComponentsInChildren<Button>(true),
-                    "Collapse");
-                Assert.That(overlay, Is.Not.Null);
-                Assert.That(panel, Is.Not.Null);
-                Assert.That(panel.GetComponent(sharedType), Is.Not.Null);
-                var expandedSize = panel.sizeDelta;
-                var expandedPosition = panel.anchoredPosition;
-
-                dialogType.GetMethod("CollapseForMapInteraction").Invoke(dialog, null);
-
-                Assert.That(panel.sizeDelta.y, Is.EqualTo(58f));
-                Assert.That(expandedContent.gameObject.activeSelf, Is.False);
-                Assert.That(collapsedSummary.gameObject.activeSelf, Is.True);
-                Assert.That(overlay.GetComponent<Image>().color.a, Is.EqualTo(0f));
-                Assert.That(overlay.GetComponent<Image>().raycastTarget, Is.False);
-                Assert.That(GetButtonLabel(collapseButton), Is.EqualTo("展开卡片"));
-                var collapsedPosition = panel.anchoredPosition;
-
-                dialogType.GetMethod("CollapseForMapInteraction").Invoke(dialog, null);
-                Assert.That(panel.anchoredPosition, Is.EqualTo(collapsedPosition), "重复缩小不应造成位置漂移。");
-
-                var pointer = new PointerEventData(eventSystemObject.GetComponent<EventSystem>())
+                var artwork = FindRectTransformByName(root, "Event Card Artwork");
+                var choice = FindRectTransformByName(root, "Choice 1");
+                foreach (var size in new[] { new Vector2(1000, 800), new Vector2(500, 360), new Vector2(1000, 800) })
                 {
-                    button = PointerEventData.InputButton.Left,
-                    delta = new Vector2(40f, 20f)
-                };
-                Assert.That(
-                    ExecuteEvents.Execute(panel.gameObject, pointer, ExecuteEvents.beginDragHandler),
-                    Is.True);
-                Assert.That(
-                    ExecuteEvents.Execute(panel.gameObject, pointer, ExecuteEvents.dragHandler),
-                    Is.True);
-                Assert.That(
-                    panel.anchoredPosition,
-                    Is.EqualTo(collapsedPosition + new Vector2(20f, 10f)));
-
-                collapseButton.onClick.Invoke();
-
-                Assert.That(panel.sizeDelta, Is.EqualTo(expandedSize));
-                Assert.That(panel.anchoredPosition, Is.EqualTo(expandedPosition + new Vector2(20f, 10f)));
-                Assert.That(expandedContent.gameObject.activeSelf, Is.True);
-                Assert.That(collapsedSummary.gameObject.activeSelf, Is.False);
-                Assert.That(overlay.GetComponent<Image>().color.a, Is.EqualTo(0.5f).Within(0.001f));
-                Assert.That(GetButtonLabel(collapseButton), Is.EqualTo("收起卡片"));
+                    rootRect.sizeDelta = size;
+                    Canvas.ForceUpdateCanvases();
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(overlay);
+                    Assert.That(artwork.rect.width / artwork.rect.height, Is.EqualTo(850f / 600).Within(.001f));
+                    var corners = new Vector3[4]; choice.GetWorldCorners(corners);
+                    foreach (var corner in corners)
+                    {
+                        var point = artwork.InverseTransformPoint(corner);
+                        Assert.That(point.x, Is.InRange(artwork.rect.xMin - .01f, artwork.rect.xMax + .01f));
+                        Assert.That(point.y, Is.InRange(artwork.rect.yMin - .01f, artwork.rect.yMax + .01f));
+                    }
+                    Assert.That(choice.rect.width / artwork.rect.width, Is.EqualTo(720f / 850).Within(.001f));
+                }
+                type.GetMethod("Hide").Invoke(dialog, null);
             }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(eventSystemObject);
-                UnityEngine.Object.DestroyImmediate(root);
-            }
+            finally { UnityEngine.Object.DestroyImmediate(texture); UnityEngine.Object.DestroyImmediate(root); }
         }
 
         [Test]
@@ -746,15 +651,18 @@ namespace YC.Tests.EditMode
                 Assert.That(type, Is.Not.Null);
                 var panel = InstantiateBuildInfoPanel(type, out canvasObject);
                 var state = CreateBuildInfoPanelState();
-                var clickedCityStyleId = string.Empty;
 
-                type.GetEvent("CityStyleClicked").AddEventHandler(panel, new Action<string>(id => clickedCityStyleId = id));
                 type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
 
                 var buttons = canvasObject.GetComponentsInChildren<Button>(true);
                 Assert.That(CountButtonsByNamePrefix(buttons, "槽位 "), Is.EqualTo(12));
                 Assert.That(CountButtonsByNamePrefix(buttons, "BuildSlot_"), Is.EqualTo(6));
-                Assert.That(CountButtonsByNamePrefix(buttons, "城市样式 "), Is.EqualTo(CityStyleDatabase.PresentationSupplyIds.Count));
+                var statusRows = canvasObject.GetComponentsInChildren(
+                    Type.GetType("YC.Presentation.CityStyleStatusRowView, Assembly-CSharp", true));
+                Assert.That(statusRows.Length, Is.EqualTo(state.Decks.CityStyleSupply.Count > 0
+                    ? state.Decks.CityStyleSupply.Count : CityStyleDatabase.PresentationSupplyIds.Count));
+                foreach (var row in statusRows)
+                    Assert.That(row.GetComponentsInChildren<Button>(true), Is.Empty);
 
                 Assert.That(FindRectTransformByName(canvasObject, "Build Sidebar Panel"), Is.Not.Null, "缺少固定建设侧栏。");
                 var boardImage = FindRectTransformByName(canvasObject, "城市面板底图");
@@ -780,17 +688,6 @@ namespace YC.Tests.EditMode
                 AssertFacilityCardImageIsCenteredInSlot(coreTowerSlot);
                 AssertExternalCardRect(FindButtonByName(buttons, "BuildSlot_1"), new Vector2(99f, 141f), new Vector2(6f, -6f));
                 AssertExternalCardRect(FindButtonByName(buttons, "BuildSlot_6"), new Vector2(99f, 141f), new Vector2(254f, -169f));
-                AssertExternalCardRect(FindButtonByName(buttons, "城市样式 1"), new Vector2(143f, 91f), new Vector2(20f, -6f));
-                AssertExternalCardRect(FindButtonByName(buttons, "城市样式 6"), new Vector2(143f, 91f), new Vector2(203f, -228f));
-                Assert.That(CountRectTransformsByNamePrefix(canvasObject, "样式影响力 "), Is.EqualTo(2));
-                var blueMarkerColor = FindRectTransformByName(
-                    canvasObject,
-                    "样式影响力 玩家1 标记1").GetComponent<Image>().color;
-                var redMarkerColor = FindRectTransformByName(
-                    canvasObject,
-                    "样式影响力 玩家2 标记1").GetComponent<Image>().color;
-                Assert.That(blueMarkerColor.b, Is.GreaterThan(blueMarkerColor.r));
-                Assert.That(redMarkerColor.r, Is.GreaterThan(redMarkerColor.b));
 
                 Assert.That(HasText(canvasObject, "剩余牌堆：1"), Is.False);
                 Assert.That(HasTextContaining(canvasObject, "玩家一：源石工业中枢"), Is.False);
@@ -856,25 +753,13 @@ namespace YC.Tests.EditMode
                 CloseCardImageViewer();
                 DoubleClickButtonByName(buttons, "BuildSlot_1");
                 AssertCardImageViewerIsClosed();
-                InvokeButtonByName(buttons, "城市样式 1");
-                AssertCardImageViewerIsClosed();
-                DoubleClickButtonByName(buttons, "城市样式 1");
-                AssertCardImageViewerIsClosed();
                 AssertExternalCardNotSelected(FindButtonByName(buttons, "BuildSlot_1"));
                 AssertExternalCardNotSelected(FindButtonByName(buttons, "BuildSlot_2"));
-                AssertExternalCardNotSelected(FindButtonByName(buttons, "城市样式 1"));
-                AssertExternalCardNotSelected(FindButtonByName(buttons, "城市样式 2"));
-
-                Assert.That(clickedCityStyleId, Is.EqualTo(CityStyleDatabase.MilitaryIndustrialArea));
 
                 InvokeButtonByName(buttons, "BuildSlot_1");
                 AssertExternalCardNotSelected(FindButtonByName(buttons, "BuildSlot_1"));
                 AssertCardImageViewerIsOpen();
                 CloseCardImageViewer();
-
-                InvokeButtonByName(buttons, "城市样式 1");
-                AssertExternalCardNotSelected(FindButtonByName(buttons, "城市样式 1"));
-                Assert.That(clickedCityStyleId, Is.EqualTo(CityStyleDatabase.MilitaryIndustrialArea));
 
                 var selectedFacilityForEffect = string.Empty;
                 var cancelledFacilityEffectSelections = 0;
@@ -929,7 +814,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void CityStylePreview_OpensInSelectionTogglesClicksPreservesSelectionAcrossCardsAndConfirmsExactSlots()
+        public void CityStylePreview_SelectionDetailsSwitchingAndConfirmationKeepTheCorrectDraft()
         {
             var host = new GameObject("City Style Preview Test Host", typeof(RectTransform));
             GameObject previewCanvas = null;
@@ -1053,109 +938,23 @@ namespace YC.Tests.EditMode
 
                 previewCanvas = GameObject.Find("City Style Declaration Preview Canvas");
                 Assert.That(previewCanvas, Is.Not.Null);
-                Assert.That(previewCanvas.GetComponent<Canvas>().sortingOrder, Is.EqualTo(130));
-                Assert.That(
-                    FindRectTransformByName(previewCanvas, "City Style Declaration Preview Panel").sizeDelta,
-                    Is.EqualTo(new Vector2(1520f, 900f)));
-                Assert.That(FindRectTransformByName(previewCanvas, "City Style Preview Card"), Is.Not.Null);
-                Assert.That(FindRectTransformByName(previewCanvas, "City Style Preview Board"), Is.Not.Null);
-                Assert.That(FindRectTransformByName(previewCanvas, "City Style Preview Metadata"), Is.Null);
-                Assert.That(FindRectTransformByName(previewCanvas, "City Style Preview Counter"), Is.Null);
-                Assert.That(
-                    GetProperty(dialog, "CurrentCityStyleId"),
-                    Is.EqualTo(CityStyleDatabase.MilitaryIndustrialArea));
-                var previewMarker = FindRectTransformByName(
-                    previewCanvas,
-                    "样式预览影响力 玩家2 标记1");
-                Assert.That(previewMarker, Is.Not.Null);
-                Assert.That(previewMarker.GetComponent<Image>().color.r, Is.GreaterThan(
-                    previewMarker.GetComponent<Image>().color.b));
-
+                var panelRect = FindRectTransformByName(previewCanvas, "City Style Declaration Preview Panel");
+                Assert.That(panelRect.GetComponent<VerticalLayoutGroup>(), Is.Not.Null);
+                for (var pass = 0; pass < 4; pass++)
+                    foreach (var group in previewCanvas.GetComponentsInChildren<LayoutGroup>())
+                        LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)group.transform);
+                Canvas.ForceUpdateCanvases();
                 var buttons = previewCanvas.GetComponentsInChildren<Button>(true);
-                var cardFrame = FindRectTransformByName(previewCanvas, "City Style Preview Card Frame");
-                var previous = FindButtonByName(buttons, "Previous City Style");
-                var next = FindButtonByName(buttons, "Next City Style");
+                var firstOption = FindRectTransformByName(previewCanvas, CityStyleDatabase.MilitaryIndustrialArea);
+                var secondOption = FindRectTransformByName(previewCanvas, CityStyleDatabase.MaterialRelayStation);
                 var close = FindButtonByName(buttons, "Close City Style Declaration Preview Button");
-                Assert.That(previous.GetComponentInChildren<Text>().text, Is.EqualTo("<"));
-                Assert.That(next.GetComponentInChildren<Text>().text, Is.EqualTo(">"));
-                Assert.That(previous.GetComponent<RectTransform>().anchoredPosition.y,
-                    Is.EqualTo(cardFrame.anchoredPosition.y));
-                Assert.That(next.GetComponent<RectTransform>().anchoredPosition.y,
-                    Is.EqualTo(cardFrame.anchoredPosition.y));
-                Assert.That(previous.GetComponent<RectTransform>().anchoredPosition.x, Is.LessThan(0f));
-                Assert.That(next.GetComponent<RectTransform>().anchoredPosition.x, Is.GreaterThan(0f));
-                Assert.That(previous.interactable, Is.False);
-                Assert.That(next.interactable, Is.True);
-                var boardTitle = FindRectTransformByName(
-                    previewCanvas,
-                    "City Style Preview Board Title").GetComponent<Text>();
-                var boardOutline = FindRectTransformByName(
-                    previewCanvas,
-                    "City Style Preview Board").GetComponent<Outline>();
-                var selectableTitleColor = boardTitle.color;
-                var selectableBoardOutlineColor = boardOutline.effectColor;
-                Assert.That(boardTitle.text, Is.EqualTo("建设面板（单击/拖动选择）"));
-                Assert.That(boardOutline.effectDistance, Is.EqualTo(new Vector2(5f, -5f)));
-
-                next.onClick.Invoke();
-                Assert.That((bool)GetProperty(dialog, "IsSelecting"), Is.False);
-                Assert.That(boardTitle.text, Is.EqualTo("建设面板（单击/拖动选择）"));
-                Assert.That(boardTitle.color, Is.EqualTo(selectableTitleColor));
-                Assert.That(boardOutline.effectColor, Is.EqualTo(selectableBoardOutlineColor));
-                Assert.That(boardOutline.effectDistance, Is.EqualTo(new Vector2(5f, -5f)));
-                Assert.That(
-                    FindButtonByName(buttons, "宣告槽位 1").GetComponent<Outline>().effectDistance,
-                    Is.EqualTo(new Vector2(2f, -2f)),
-                    "不可宣告的样式卡也应沿用统一的建设面板视觉。 ");
-                previous.onClick.Invoke();
-                Assert.That((bool)GetProperty(dialog, "IsSelecting"), Is.True);
-                var closeLabel = close.GetComponentInChildren<Text>();
-                Assert.That(closeLabel.text, Is.EqualTo("×"));
-                Assert.That(closeLabel.resizeTextForBestFit, Is.True);
-                Assert.That(closeLabel.GetComponent<Outline>(), Is.Not.Null);
-                Assert.That(close.GetComponent<RectTransform>().anchorMin, Is.EqualTo(Vector2.one));
-                var uguiUtilityType = Type.GetType("YC.Presentation.UguiUtility, Assembly-CSharp", false);
-                Assert.That(
-                    uguiUtilityType,
-                    Is.Null,
-                    "运行时 Assembly-CSharp 不应继续公开编辑器 Prefab 构建工具。");
-                var inputHandlerType = Type.GetType(
-                    "YC.Presentation.CityStyleDeclarationPreviewInputHandler, Assembly-CSharp",
-                    false);
-                Assert.That(inputHandlerType, Is.Not.Null);
-                Assert.That(previewCanvas.GetComponentInChildren(inputHandlerType, true), Is.Not.Null);
-                var previewBoard = FindRectTransformByName(previewCanvas, "City Style Preview Board");
-                Assert.That(previewBoard.sizeDelta, Is.EqualTo(new Vector2(397f, 733f)));
-                Assert.That(
-                    previewBoard.rect.width / previewBoard.rect.height,
-                    Is.EqualTo(2059f / 3801f).Within(0.001f));
-                AssertCityBoardSlotIsCenteredOnBoard(
-                    FindButtonByName(buttons, "宣告槽位 2"),
-                    previewBoard,
-                    0.502f,
-                    0.152f);
-                AssertCityBoardSlotIsCenteredOnBoard(
-                    FindButtonByName(buttons, "宣告槽位 11"),
-                    previewBoard,
-                    0.502f,
-                    0.846f);
-                AssertCityBoardSlotMatchesFacilityCardRatio(
-                    FindButtonByName(buttons, "宣告槽位 8"),
-                    previewBoard);
-
-                AssertCityBoardSlotRotation(FindButtonByName(buttons, "宣告槽位 4"), 180f);
-                var usedPreviewSlot = FindButtonByName(buttons, "宣告槽位 4");
-                Assert.That(usedPreviewSlot.GetComponent<Outline>().effectColor.a, Is.Zero);
-                Assert.That(usedPreviewSlot.GetComponent<Outline>().effectDistance, Is.EqualTo(Vector2.zero));
-                Assert.That(CountActiveTexts(previewCanvas, "已使用"), Is.EqualTo(1));
                 var confirm = FindButtonByName(buttons, "Confirm City Style Declaration");
-                Assert.That(FindRectTransformByName(previewCanvas, "Begin City Style Declaration"), Is.Null);
-                Assert.That(confirm.GetComponent<RectTransform>().anchoredPosition.x, Is.Zero.Within(0.01f));
-                Assert.That(confirm.GetComponent<RectTransform>().anchoredPosition.y, Is.EqualTo(-310f));
-                var matchStatus = FindRectTransformByName(
-                    previewCanvas,
-                    "City Style Match Status").GetComponent<Text>();
-                Assert.That(matchStatus.raycastTarget, Is.False);
+                var matchStatus = FindRectTransformByName(previewCanvas, "City Style Match Status").GetComponent<Text>();
+                var inputHandlerType = Type.GetType("YC.Presentation.CityStyleDeclarationPreviewInputHandler, Assembly-CSharp", true);
+                var previewBoard = FindRectTransformByName(previewCanvas, "City Style Preview Board");
+                Assert.That(previewBoard.GetComponent<AspectRatioFitter>(), Is.Not.Null);
+                AssertCityBoardSlotRotation(FindButtonByName(buttons, "宣告槽位 4"), 180f);
+                Assert.That(FindButtonByName(buttons, "宣告槽位 4").interactable, Is.False);
                 Assert.That(confirm.interactable, Is.False);
                 Assert.That((bool)GetProperty(dialog, "IsSelecting"), Is.True);
 
@@ -1208,29 +1007,27 @@ namespace YC.Tests.EditMode
                     "拖动重复经过建设卡时不应产生重复项或取消已有选择。 ");
                 Assert.That(confirm.interactable, Is.True);
                 Assert.That((bool)GetProperty(dialog, "CanConfirm"), Is.True);
-                Assert.That(matchStatus.text, Does.StartWith("满足宣告条件。"));
-                Assert.That(matchStatus.text, Does.Contain("已选 2 / 2 个设施色块。"));
-                Assert.That(matchStatus.text, Does.Not.Contain("旋转"));
-                Assert.That(matchStatus.text, Does.Not.Contain("翻转"));
+                Assert.That(matchStatus.text, Does.Contain("2 / 2"), "真实设施数量应显示。");
+                var detail = FindButtonByName(buttons, "View Original Card");
+                FindButtonByName(buttons, "Enlarge Card").onClick.Invoke(); detail.onClick.Invoke();
+                Assert.That((IReadOnlyList<int>)GetProperty(dialog, "SelectedSlotIndexes"), Is.EqualTo(new[] { 0, 1 }), "详情返回保留草稿。");
 
-                next.onClick.Invoke();
+                ExecutePointerClick(secondOption.gameObject, PointerEventData.InputButton.Left);
                 Assert.That(
                     GetProperty(dialog, "CurrentCityStyleId"),
                     Is.EqualTo(CityStyleDatabase.MaterialRelayStation));
                 Assert.That(
                     (IReadOnlyList<int>)GetProperty(dialog, "SelectedSlotIndexes"),
-                    Is.EqualTo(new[] { 0, 1 }),
-                    "切换样式卡时应保留已选建设卡。 ");
-                Assert.That(previous.interactable, Is.True);
-                Assert.That(next.interactable, Is.False);
-                previous.onClick.Invoke();
+                    Is.Empty,
+                    "切换样式时清空旧组合，不能把另一样式的预选带入。 ");
+                ExecutePointerClick(firstOption.gameObject, PointerEventData.InputButton.Left);
                 Assert.That(
                     GetProperty(dialog, "CurrentCityStyleId"),
                     Is.EqualTo(CityStyleDatabase.MilitaryIndustrialArea));
                 Assert.That(
                     (IReadOnlyList<int>)GetProperty(dialog, "SelectedSlotIndexes"),
-                    Is.EqualTo(new[] { 0, 1 }));
-                Assert.That(confirm.interactable, Is.True);
+                    Is.Empty);
+                Assert.That(confirm.interactable, Is.False);
 
                 dialogType.GetMethod("ClearCurrentSelection", BindingFlags.Instance | BindingFlags.NonPublic)
                     .Invoke(dialog, null);

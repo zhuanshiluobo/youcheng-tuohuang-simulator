@@ -277,6 +277,7 @@ namespace YC.Domain.State
     {
         public string InteractionId = string.Empty;
         public string SourceNodeId = string.Empty;
+        public string OwnerEffectId = string.Empty;
         public string Kind = string.Empty;
         public int AnsweringPlayerId = -1;
         public string Visibility = string.Empty;
@@ -626,7 +627,8 @@ namespace YC.Domain.State
                     UsedCharacterThisRound = source.UsedCharacterThisRound,
                     UsedCharacterThisTurn = source.UsedCharacterThisTurn,
                     CharacterCardLockedThisTurn = source.CharacterCardLockedThisTurn,
-                    Resources = privateVisible && source.Resources != null ? source.Resources.Clone() : null,
+                    // 资源数量属于主界面的公开玩家摘要，只有卡牌身份等私有数据按拥有者过滤。
+                    Resources = source.Resources == null ? new ResourceSet() : source.Resources.Clone(),
                     HandCardCount = source.HandCardIds == null ? 0 : source.HandCardIds.Count,
                     DiscardCardCount = source.DiscardCardIds == null ? 0 : source.DiscardCardIds.Count,
                     HasCoveredCharacterCard = !string.IsNullOrEmpty(source.CoveredCharacterCardId),
@@ -870,6 +872,7 @@ namespace YC.Domain.State
             {
                 InteractionId = request.GetStableInteractionId(),
                 SourceNodeId = request.SourceNodeId ?? string.Empty,
+                OwnerEffectId = request.OwnerEffectId ?? string.Empty,
                 Kind = request.InteractionTypeId ?? string.Empty,
                 AnsweringPlayerId = request.AnsweringPlayerId,
                 Visibility = request.Visibility ?? string.Empty,

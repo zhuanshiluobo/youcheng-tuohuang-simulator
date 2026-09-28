@@ -1,0 +1,110 @@
+{
+  "originalPackage": "游城拓荒/UI素材/Card-Picker-UI-v1.zip",
+  "sourceAssets": [
+    {
+      "source": "card-picker-ui-v1/assets/window.png",
+      "asset": "Assets/YC/Presentation/CardPicker/Artwork/window.png",
+      "sourceSha256": "e6d9f698114af5c966f085a801963b4bf55aca36ace85e0eab1fc42ec7f9a469",
+      "assetSha256": "e6d9f698114af5c966f085a801963b4bf55aca36ace85e0eab1fc42ec7f9a469",
+      "byteIdentical": true
+    },
+    {
+      "source": "card-picker-ui-v1/assets/card-slot.png",
+      "asset": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+      "sourceSha256": "cad1ce0d56de793abb08452559682f64c3c8ac52beb95f086db3a6bb33470e30",
+      "assetSha256": "cad1ce0d56de793abb08452559682f64c3c8ac52beb95f086db3a6bb33470e30",
+      "byteIdentical": true
+    },
+    {
+      "source": "card-picker-ui-v1/assets/card-selected.png",
+      "asset": "Assets/YC/Presentation/Layout/card-selected.png",
+      "sourceSha256": "2e25904eda1ccde4c73d3f209587a3d6eb12c960576df2764cf7f5d4f4e33bcf",
+      "assetSha256": "2e25904eda1ccde4c73d3f209587a3d6eb12c960576df2764cf7f5d4f4e33bcf",
+      "byteIdentical": true
+    },
+    {
+      "source": "card-picker-ui-v1/assets/button-primary.png",
+      "asset": "Assets/YC/Presentation/Enterprise/Artwork/selection-button-primary.png",
+      "sourceSha256": "c7a4fe46dff130f2c12b459ea7c3f0f9c19e9001d5b5039618f19143d358607d",
+      "assetSha256": "c7a4fe46dff130f2c12b459ea7c3f0f9c19e9001d5b5039618f19143d358607d",
+      "byteIdentical": true
+    },
+    {
+      "source": "card-picker-ui-v1/assets/button-secondary.png",
+      "asset": "Assets/YC/Presentation/Enterprise/Artwork/selection-button-secondary.png",
+      "sourceSha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
+      "assetSha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
+      "byteIdentical": true
+    },
+    {
+      "source": "card-picker-ui-v1/assets/scrollbar-track.png",
+      "asset": "Assets/YC/Presentation/CardPicker/Artwork/scrollbar-track.png",
+      "sourceSha256": "71e22e53ddc5593942cbe128dae1cdce43ab1050f455eeb74e7f4a5d4a54f523",
+      "assetSha256": "71e22e53ddc5593942cbe128dae1cdce43ab1050f455eeb74e7f4a5d4a54f523",
+      "byteIdentical": true
+    },
+    {
+      "source": "card-picker-ui-v1/assets/scrollbar-thumb.png",
+      "asset": "Assets/YC/Presentation/CardPicker/Artwork/scrollbar-thumb.png",
+      "sourceSha256": "1a1c94d2e50d626a8907ca4c9d959eb371d67d52f0e2ab75bf082a1caa160eec",
+      "assetSha256": "1a1c94d2e50d626a8907ca4c9d959eb371d67d52f0e2ab75bf082a1caa160eec",
+      "byteIdentical": true
+    }
+  ],
+  "protectedNonGameplayAndGenericShell": [
+    {
+      "path": "G:\\NoMadCity\\Assets\\Scenes\\StartScene.unity",
+      "beforeSha256": "c41aecc68e9df15a54434b1b000beda9c3488cd80e075bc814b5cee82ce73da6",
+      "currentSha256": "c41aecc68e9df15a54434b1b000beda9c3488cd80e075bc814b5cee82ce73da6",
+      "unchanged": true
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\Scenes\\LoadingScene.unity",
+      "beforeSha256": "8b492e4e640839d4bf71773163143631a28e1c2b28f77ff4d4755f891c35aa25",
+      "currentSha256": "8b492e4e640839d4bf71773163143631a28e1c2b28f77ff4d4755f891c35aa25",
+      "unchanged": true
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\Scenes\\CollectionRoom.unity",
+      "beforeSha256": "70e7dfeb448bae52bfb83bec7fcbb50ee8dfb0ab8c949601ce7bd0bd4d472cdb",
+      "currentSha256": "70e7dfeb448bae52bfb83bec7fcbb50ee8dfb0ab8c949601ce7bd0bd4d472cdb",
+      "unchanged": true
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\StartMenu\\StartMenuRoot.prefab",
+      "beforeSha256": "b83a1041c74e66f49da9feddbdddf786f13e455e3741e9d9393c52d17865ec48",
+      "currentSha256": "b83a1041c74e66f49da9feddbdddf786f13e455e3741e9d9393c52d17865ec48",
+      "unchanged": true
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\LoadingSceneController.cs",
+      "beforeSha256": "4c60ac79e30e375cedd29d80380918014a1ed1db143ea82a2bf678b968b2fe62",
+      "currentSha256": "4c60ac79e30e375cedd29d80380918014a1ed1db143ea82a2bf678b968b2fe62",
+      "unchanged": true
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\GameSettings\\GameSettingsMenu.prefab",
+      "beforeSha256": "9f50bd61eb675fe45a79db850acbcbb0699501bed7d9ca52ed7b0790ccefdac2",
+      "currentSha256": "9f50bd61eb675fe45a79db850acbcbb0699501bed7d9ca52ed7b0790ccefdac2",
+      "unchanged": true
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Viewers\\ActionLogViewer.prefab",
+      "beforeSha256": "3fbaad5f68b07ef561180ae9e5fb0307c9d5880213cf404c759ee5232d6c1d70",
+      "currentSha256": "3fbaad5f68b07ef561180ae9e5fb0307c9d5880213cf404c759ee5232d6c1d70",
+      "unchanged": true
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Viewers\\ZoomableImageViewer.prefab",
+      "beforeSha256": "062ba95420fe66c482d29f23ef16b22fa13295afbac0b659d7c8e3eeb3142912",
+      "currentSha256": "062ba95420fe66c482d29f23ef16b22fa13295afbac0b659d7c8e3eeb3142912",
+      "unchanged": true
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EffectDialogShell.prefab",
+      "beforeSha256": "c065f56f58cdcec7164c7838455f6c933a6ccbd9384df23396deee5fa237e466",
+      "currentSha256": "c065f56f58cdcec7164c7838455f6c933a6ccbd9384df23396deee5fa237e466",
+      "unchanged": true
+    }
+  ]
+}

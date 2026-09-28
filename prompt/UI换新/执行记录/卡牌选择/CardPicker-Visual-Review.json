@@ -1,0 +1,505 @@
+{
+  "reviewStatus": "final",
+  "reviewedAt": "2026-09-27T11:41:47.415679+08:00",
+  "sourcePackage": "游城拓荒/UI素材/Card-Picker-UI-v1.zip",
+  "sourceLayout": "card-picker-ui-v1/layout.json",
+  "sourceScene": "Assets/Scenes/SampleScene.unity",
+  "sourcePrefab": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardPickerDialog.prefab",
+  "scope": "只读审图；没有修改Assets或运行Unity。",
+  "artwork": [
+    {
+      "source": "window.png",
+      "imported": "Assets/YC/Presentation/CardPicker/Artwork/window.png",
+      "identicalOriginalBytes": true,
+      "importedSha256": "e6d9f698114af5c966f085a801963b4bf55aca36ace85e0eab1fc42ec7f9a469"
+    },
+    {
+      "source": "card-slot.png",
+      "imported": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+      "identicalOriginalBytes": true,
+      "importedSha256": "cad1ce0d56de793abb08452559682f64c3c8ac52beb95f086db3a6bb33470e30"
+    },
+    {
+      "source": "card-selected.png",
+      "imported": "Assets/YC/Presentation/Layout/card-selected.png",
+      "identicalOriginalBytes": true,
+      "importedSha256": "2e25904eda1ccde4c73d3f209587a3d6eb12c960576df2764cf7f5d4f4e33bcf"
+    },
+    {
+      "source": "scrollbar-track.png",
+      "imported": "Assets/YC/Presentation/CardPicker/Artwork/scrollbar-track.png",
+      "identicalOriginalBytes": true,
+      "importedSha256": "71e22e53ddc5593942cbe128dae1cdce43ab1050f455eeb74e7f4a5d4a54f523"
+    },
+    {
+      "source": "scrollbar-thumb.png",
+      "imported": "Assets/YC/Presentation/CardPicker/Artwork/scrollbar-thumb.png",
+      "identicalOriginalBytes": true,
+      "importedSha256": "1a1c94d2e50d626a8907ca4c9d959eb371d67d52f0e2ab75bf082a1caa160eec"
+    },
+    {
+      "source": "button-primary.png",
+      "imported": "Assets/YC/Presentation/Enterprise/Artwork/selection-button-primary.png",
+      "identicalOriginalBytes": true,
+      "importedSha256": "c7a4fe46dff130f2c12b459ea7c3f0f9c19e9001d5b5039618f19143d358607d"
+    },
+    {
+      "source": "button-secondary.png",
+      "imported": "Assets/YC/Presentation/Enterprise/Artwork/selection-button-secondary.png",
+      "identicalOriginalBytes": true,
+      "importedSha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2"
+    }
+  ],
+  "visualConclusions": [
+    "七图均为实际Unity组件诊断截图；窗口完整原底板、普通槽、选中框、真实角色正面、主次按钮以及溢出横向滚动条均能显示。",
+    "1920×1080时2/6/7张卡面分别为288×408、216×306、180×255；9张保持180×255。卡面12:17比例保持；局部坐标与原包对应公式一致。",
+    "1920×1080九张首端显示前七张，末端显示后七张，内容2038px、视口1582px、实际横移456px。最右第九张及选中标记完整可见。",
+    "900×600九张末端，第九张与选中框完整可见；左侧部分卡面为横向滚动裁切，底部按钮和提示未被遮挡。卡面小字仍需详情放大阅读。",
+    "原槽/选择框原始Rect含透明留白，不能把这些RawRect超出视口直接视为可见装饰裁切；实图可见边框和勾选未丢失。",
+    "最终1920×1200七张无多余滚动条；新增两张正式盖牌实图的五张真实候选、选中标记、详情及确认按钮均完整可见。"
+  ],
+  "sourceDifferences": [
+    {
+      "item": "窗口位置",
+      "detail": "原包使用1920×1080全屏中心；局内使用ContentRect(0,102,1920,906)的中心。实际窗口左上(73,81.5)，源包(73,96.5)：整体上移15px；窗口尺寸及内部局部布局不变。"
+    },
+    {
+      "item": "详情按钮",
+      "detail": "卡面下方详情入口属于已有游戏交互的保留项，原包没有该附加文字按钮。"
+    },
+    {
+      "item": "诊断内容",
+      "detail": "角色正面按真实目录循环，最多5种纹理；选中1张与计数由组件诊断设置，不代表游戏候选规则。"
+    }
+  ],
+  "unverified": [
+    "7张组件截图末端为直接设置ScrollRect；真实滚轮与滑块行为由附录PlayMode用例证明，不由静态图推导。",
+    "组件图没有业务提交，正式盖牌与只读入口功能仅引用最终3/3结果。",
+    "未覆盖零张、一张、极大量候选、全部悬停/按下/禁用外观、其他长文案、更小屏幕、多客户端联机和全部手柄操作。"
+  ],
+  "cases": [
+    {
+      "png": "CardPicker-Component-2-Start-1920x1080-actual-1920x1080.png",
+      "json": "CardPicker-Component-2-Start-1920x1080-actual-1920x1080.json",
+      "visuallyReviewed": true,
+      "actualMatchesRequested": true,
+      "cardCount": 2,
+      "selectedIndex": 0,
+      "faceSizeScreenPx": [
+        288.0,
+        408.0
+      ],
+      "panelScreenBottomLeftRect": [
+        73.0,
+        111.5,
+        1774.0,
+        887.0
+      ],
+      "viewportScreenBottomLeftRect": [
+        169.0,
+        318.5,
+        1582.0,
+        482.0
+      ],
+      "centerDeltaFromContentPx": [
+        0.0,
+        0.0
+      ],
+      "panelInsideContent": true,
+      "horizontalOnly": true,
+      "normalizedScroll": 0.0,
+      "contentOverflowScreenPx": 0.0,
+      "scrollbarVisible": false,
+      "allCardsInsideViewport": true,
+      "lastFaceInsideViewport": true,
+      "selectedFaceInsideViewport": true,
+      "selectedFrameCount": 1,
+      "fitsAvailableHeight": true,
+      "pngSha256": "aca853d870588ad50b06914491b0cdd241ee1a9d627590b548c3f2265493d759",
+      "jsonSha256": "42d5243946fd279c0989818747fcf18522a13de1a98f25d7cfe32e2d94ab923e",
+      "buttonLabelActualScreenPx": [
+        [
+          1189.0,
+          194.5,
+          224.0,
+          36.0
+        ],
+        [
+          1493.0,
+          194.5,
+          224.0,
+          36.0
+        ]
+      ]
+    },
+    {
+      "png": "CardPicker-Component-6-Start-1920x1080-actual-1920x1080.png",
+      "json": "CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "visuallyReviewed": true,
+      "actualMatchesRequested": true,
+      "cardCount": 6,
+      "selectedIndex": 0,
+      "faceSizeScreenPx": [
+        216.0,
+        306.0
+      ],
+      "panelScreenBottomLeftRect": [
+        73.0,
+        111.5,
+        1774.0,
+        887.0
+      ],
+      "viewportScreenBottomLeftRect": [
+        169.0,
+        318.5,
+        1582.0,
+        482.0
+      ],
+      "centerDeltaFromContentPx": [
+        0.0,
+        0.0
+      ],
+      "panelInsideContent": true,
+      "horizontalOnly": true,
+      "normalizedScroll": 0.0,
+      "contentOverflowScreenPx": 0.0,
+      "scrollbarVisible": false,
+      "allCardsInsideViewport": true,
+      "lastFaceInsideViewport": true,
+      "selectedFaceInsideViewport": true,
+      "selectedFrameCount": 1,
+      "fitsAvailableHeight": true,
+      "pngSha256": "80f1958d516329f0c93ed983f684f6a1585bd1a142c58aae89d9c790ee25d3b0",
+      "jsonSha256": "a7e3c6fe3ac1faee5615759228ae82184c7efdd9d2aa4dfd8543ac9b61988007",
+      "buttonLabelActualScreenPx": [
+        [
+          1189.0,
+          194.5,
+          224.0,
+          36.0
+        ],
+        [
+          1493.0,
+          194.5,
+          224.0,
+          36.0
+        ]
+      ]
+    },
+    {
+      "png": "CardPicker-Component-7-Start-1920x1080-actual-1920x1080.png",
+      "json": "CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "visuallyReviewed": true,
+      "actualMatchesRequested": true,
+      "cardCount": 7,
+      "selectedIndex": 0,
+      "faceSizeScreenPx": [
+        180.0,
+        255.0
+      ],
+      "panelScreenBottomLeftRect": [
+        73.0,
+        111.5,
+        1774.0,
+        887.0
+      ],
+      "viewportScreenBottomLeftRect": [
+        169.0,
+        318.5,
+        1582.0,
+        482.0
+      ],
+      "centerDeltaFromContentPx": [
+        0.0,
+        0.0
+      ],
+      "panelInsideContent": true,
+      "horizontalOnly": true,
+      "normalizedScroll": 0.0,
+      "contentOverflowScreenPx": 0.0,
+      "scrollbarVisible": false,
+      "allCardsInsideViewport": true,
+      "lastFaceInsideViewport": true,
+      "selectedFaceInsideViewport": true,
+      "selectedFrameCount": 1,
+      "fitsAvailableHeight": true,
+      "pngSha256": "81690a023c0bfd14fdd3c278c7f88c4717f9862e8f94eb9033e0d3b8defe5913",
+      "jsonSha256": "275f0a51644eeea6122e2d86ca615e0b7647a55ee0beab7a7a4199d478ff5267",
+      "buttonLabelActualScreenPx": [
+        [
+          1189.0,
+          194.5,
+          224.0,
+          36.0
+        ],
+        [
+          1493.0,
+          194.5,
+          224.0,
+          36.0
+        ]
+      ]
+    },
+    {
+      "png": "CardPicker-Component-7-Start-1920x1200-actual-1920x1200.png",
+      "json": "CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "visuallyReviewed": true,
+      "actualMatchesRequested": true,
+      "cardCount": 7,
+      "selectedIndex": 0,
+      "faceSizeScreenPx": [
+        189.73665,
+        268.79358
+      ],
+      "panelScreenBottomLeftRect": [
+        25.29825,
+        148.46053,
+        1869.40356,
+        934.70172
+      ],
+      "viewportScreenBottomLeftRect": [
+        126.49113,
+        366.60431,
+        1667.01782,
+        507.8988
+      ],
+      "centerDeltaFromContentPx": [
+        0.0,
+        -1e-05
+      ],
+      "panelInsideContent": true,
+      "horizontalOnly": true,
+      "normalizedScroll": 0.0,
+      "contentOverflowScreenPx": 0.0,
+      "scrollbarVisible": false,
+      "allCardsInsideViewport": true,
+      "lastFaceInsideViewport": true,
+      "selectedFaceInsideViewport": true,
+      "selectedFrameCount": 1,
+      "fitsAvailableHeight": true,
+      "pngSha256": "05b81f4ddecafa307ef056380095579d5ba522f58c312e521cd0eb425ec32ac3",
+      "jsonSha256": "c0f8dd81a82e13f4938e6cb84e8048bf81cd3e7f5474deead1c30585c2024d7b",
+      "buttonLabelActualScreenPx": [
+        [
+          1201.19836,
+          235.95013,
+          236.0791,
+          37.91705
+        ],
+        [
+          1521.59351,
+          235.95013,
+          236.0791,
+          37.91705
+        ]
+      ]
+    },
+    {
+      "png": "CardPicker-Component-9-End-1920x1080-actual-1920x1080.png",
+      "json": "CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "visuallyReviewed": true,
+      "actualMatchesRequested": true,
+      "cardCount": 9,
+      "selectedIndex": 8,
+      "faceSizeScreenPx": [
+        180.0,
+        255.0
+      ],
+      "panelScreenBottomLeftRect": [
+        73.0,
+        111.5,
+        1774.0,
+        887.0
+      ],
+      "viewportScreenBottomLeftRect": [
+        169.0,
+        318.5,
+        1582.0,
+        482.0
+      ],
+      "centerDeltaFromContentPx": [
+        0.0,
+        0.0
+      ],
+      "panelInsideContent": true,
+      "horizontalOnly": true,
+      "normalizedScroll": 1.0,
+      "contentOverflowScreenPx": 456.0,
+      "scrollbarVisible": true,
+      "allCardsInsideViewport": false,
+      "lastFaceInsideViewport": true,
+      "selectedFaceInsideViewport": true,
+      "selectedFrameCount": 1,
+      "fitsAvailableHeight": true,
+      "pngSha256": "c10d66ff6380983515bf9d06ab40cadf568dc04d2691c808ae254869a7c5fc54",
+      "jsonSha256": "1c9d356db57d8e4f3515fcf87dc6153e034a4ded7611326f9cfe87a37580b29e",
+      "buttonLabelActualScreenPx": [
+        [
+          1189.0,
+          194.5,
+          224.0,
+          36.0
+        ],
+        [
+          1493.0,
+          194.5,
+          224.0,
+          36.0
+        ]
+      ]
+    },
+    {
+      "png": "CardPicker-Component-9-End-900x600-actual-900x600.png",
+      "json": "CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "visuallyReviewed": true,
+      "actualMatchesRequested": true,
+      "cardCount": 9,
+      "selectedIndex": 8,
+      "faceSizeScreenPx": [
+        91.85587,
+        130.12915
+      ],
+      "panelScreenBottomLeftRect": [
+        12.24745,
+        88.77839,
+        875.50513,
+        437.75256
+      ],
+      "viewportScreenBottomLeftRect": [
+        61.23725,
+        191.55756,
+        777.52551,
+        236.67126
+      ],
+      "centerDeltaFromContentPx": [
+        1e-05,
+        0.0
+      ],
+      "panelInsideContent": true,
+      "horizontalOnly": true,
+      "normalizedScroll": 1.0000001192092896,
+      "contentOverflowScreenPx": 262.48718,
+      "scrollbarVisible": true,
+      "allCardsInsideViewport": false,
+      "lastFaceInsideViewport": true,
+      "selectedFaceInsideViewport": true,
+      "selectedFrameCount": 1,
+      "fitsAvailableHeight": true,
+      "pngSha256": "e0a8d2df620ea0fe45456140145e21d919857b787ae207cd17c3abb05bb94484",
+      "jsonSha256": "8215cee22b70050141712a5fc1086a629f6feea044ad0bbd7c9f849d65891928",
+      "buttonLabelActualScreenPx": [
+        [
+          556.75616,
+          131.13416,
+          112.29358,
+          16.7507
+        ],
+        [
+          709.26971,
+          131.13416,
+          112.29358,
+          16.7507
+        ]
+      ]
+    },
+    {
+      "png": "CardPicker-Component-9-Start-1920x1080-actual-1920x1080.png",
+      "json": "CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "visuallyReviewed": true,
+      "actualMatchesRequested": true,
+      "cardCount": 9,
+      "selectedIndex": 0,
+      "faceSizeScreenPx": [
+        180.0,
+        255.0
+      ],
+      "panelScreenBottomLeftRect": [
+        73.0,
+        111.5,
+        1774.0,
+        887.0
+      ],
+      "viewportScreenBottomLeftRect": [
+        169.0,
+        318.5,
+        1582.0,
+        482.0
+      ],
+      "centerDeltaFromContentPx": [
+        0.0,
+        0.0
+      ],
+      "panelInsideContent": true,
+      "horizontalOnly": true,
+      "normalizedScroll": 0.0,
+      "contentOverflowScreenPx": 456.0,
+      "scrollbarVisible": true,
+      "allCardsInsideViewport": false,
+      "lastFaceInsideViewport": false,
+      "selectedFaceInsideViewport": true,
+      "selectedFrameCount": 1,
+      "fitsAvailableHeight": true,
+      "pngSha256": "ecdb8b43306feb4732409d686a4b7561a03bb199f2df32f19b88afcf62b71497",
+      "jsonSha256": "315d99834375304084be74a8f44f807bd60e88f8402718e759ed24e54007c96d",
+      "buttonLabelActualScreenPx": [
+        [
+          1189.0,
+          194.5,
+          224.0,
+          36.0
+        ],
+        [
+          1493.0,
+          194.5,
+          224.0,
+          36.0
+        ]
+      ]
+    }
+  ],
+  "final": true,
+  "reviewedImageCount": 9,
+  "resolvedFindings": [
+    {
+      "item": "按钮文字安全区",
+      "detail": "最终1920×1080主、次按钮文字Rect均224×36、窗口局部Y768，与原包一致；受限尺寸的实际屏幕矩形分别记录在各图条目。"
+    },
+    {
+      "item": "1920×1200微溢出",
+      "detail": "最终七张isOverflowing=false、scrollbarVisible=false；内容行与视口等宽1667.01782屏幕px，七张卡面完整。"
+    }
+  ],
+  "formalAppendix": {
+    "sourceTest": "Assets/YC/Tests/PlayMode/FacilityCatalog/GameplayMainHudPlayModeTests.cs::CharacterCover_FormalEntranceSelectionDetailsAndConfirmation",
+    "sourceDescription": "两场景通过正式入场命令推进到CharacterCover，预选真实手牌后、确认前截图。本审查仅目视，不重复运行业务。",
+    "testEvidence": "CardPicker-PlayMode.xml",
+    "testEvidenceSha256": "c4c03480ef4c1c93e8ac240285719c43a234e2df28ba842191cb531f78ae62b1",
+    "passed": 3,
+    "failed": 0,
+    "testBoundary": "功能来源为最终PlayMode结果，涵盖两场景正式盖牌、真实滚轮事件及拖动滑块、只读弃牌；静态截图仅证明捕获时显示状态。",
+    "screenshots": [
+      {
+        "png": "FormalCover-SampleScene-1920x1080.png",
+        "sha256": "d8886c98399c3ab491eed20f8bd1a845f57a67ef8d4ae0f8a504909776bfd263",
+        "visuallyReviewed": true,
+        "actualSize": [
+          1920,
+          1080
+        ],
+        "visibleCandidates": 5,
+        "visualObservation": "底板、普通槽、五张真实候选、首张选中框、详情和确认按钮完整；未见裁切或遮挡。"
+      },
+      {
+        "png": "FormalCover-ThreePlayerScene-1920x1080.png",
+        "sha256": "fd844eee1b4ad721262faa931c7e85c16b6b80ec06dca10091c41071f4c5da87",
+        "visuallyReviewed": true,
+        "actualSize": [
+          1920,
+          1080
+        ],
+        "visibleCandidates": 5,
+        "visualObservation": "底板、普通槽、五张真实候选、首张选中框、详情和确认按钮完整；未见裁切或遮挡。"
+      }
+    ]
+  }
+}

@@ -16,6 +16,7 @@ namespace YC.Presentation
         public string RoomId = string.Empty;
         public List<PlayerSeat> Players = new List<PlayerSeat>();
         private bool returningToStart;
+        public bool IsLeavingGameplay => returningToStart;
         private bool completedSessionDetached;
         private string pendingReturnScene;
         private MirrorNetworkRuntime subscribedRuntime;
@@ -150,6 +151,8 @@ namespace YC.Presentation
                 return;
             }
             returningToStart = true;
+            GameplayHudFrame.Active?.ClearRequest();
+            foreach (var viewer in FindObjectsOfType<CardViewer>()) viewer.Dismiss();
             ShutdownOnlineSession();
             SceneTransitionContext.TryBeginBlackTransition("StartScene");
         }

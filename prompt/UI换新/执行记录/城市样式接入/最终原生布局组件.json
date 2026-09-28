@@ -1,0 +1,1332 @@
+[
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "fileID": 2460966521573133670,
+    "object": "BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards",
+    "script": "GridLayoutGroup.cs",
+    "configuration": "--- !u!114 &2460966521573133670\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4742203890766986421}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 6\n    m_Right: 12\n    m_Top: 6\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_StartCorner: 0\n  m_StartAxis: 0\n  m_CellSize: {x: 99, y: 141}\n  m_Spacing: {x: 25, y: 22}\n  m_Constraint: 1\n  m_ConstraintCount: 3\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "fileID": 3314478046226319644,
+    "object": "BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards",
+    "script": "ContentSizeFitter.cs",
+    "configuration": "--- !u!114 &3314478046226319644\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4742203890766986421}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_HorizontalFit: 0\n  m_VerticalFit: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "fileID": 2257719207135085235,
+    "object": "BuildInfoPanel/External City Style Area/City Style Cards",
+    "script": "GridLayoutGroup.cs",
+    "configuration": "--- !u!114 &2257719207135085235\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5307771276932077279}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 20\n    m_Right: 19\n    m_Top: 6\n    m_Bottom: 6\n  m_ChildAlignment: 0\n  m_StartCorner: 0\n  m_StartAxis: 0\n  m_CellSize: {x: 143, y: 91}\n  m_Spacing: {x: 40, y: 20}\n  m_Constraint: 0\n  m_ConstraintCount: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "fileID": 3761265569286715316,
+    "object": "BuildInfoPanel/External City Style Area/City Style Cards",
+    "script": "ContentSizeFitter.cs",
+    "configuration": "--- !u!114 &3761265569286715316\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5307771276932077279}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_HorizontalFit: 0\n  m_VerticalFit: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "fileID": 7015749254177631952,
+    "object": "BuildInfoPanel/External City Style Area",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &7015749254177631952\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6508223634207737752}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Content: {fileID: 4666509910456757868}\n  m_Horizontal: 0\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 1\n  m_Viewport: {fileID: 6471153061788466766}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 0}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 0\n  m_HorizontalScrollbarSpacing: 0\n  m_VerticalScrollbarSpacing: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "fileID": 7201451917994791213,
+    "object": "BuildInfoPanel/External Facility Supply Area",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &7201451917994791213\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8807404928592285363}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Content: {fileID: 8683813244636130217}\n  m_Horizontal: 0\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 1\n  m_Viewport: {fileID: 512135168256588303}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 0}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 0\n  m_HorizontalScrollbarSpacing: 0\n  m_VerticalScrollbarSpacing: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "fileID": 7451260000000000001,
+    "object": "BuildInfoPanel",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000001\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8095302702702523979}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 72\n    m_Right: 0\n    m_Top: 17\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "fileID": 7451260000000000002,
+    "object": "BuildInfoPanel/External Facility Supply Area",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000002\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8807404928592285363}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 80\n  m_PreferredWidth: 365\n  m_PreferredHeight: 350\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "fileID": 7451260000000000003,
+    "object": "BuildInfoPanel/External City Style Area",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000003\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6508223634207737752}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 80\n  m_PreferredWidth: 365\n  m_PreferredHeight: 330\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "fileID": 7451260000000000004,
+    "object": "BuildInfoPanel/Build Sidebar Panel",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000004\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8403185053049300529}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 1\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "fileID": 7451260000000000005,
+    "object": "BuildInfoPanel/Templates",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000005\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2880893587795113174}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 1\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 4310223641892655938,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &4310223641892655938\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 62440988554672650}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Content: {fileID: 1895673891559691262}\n  m_Horizontal: 0\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 35\n  m_Viewport: {fileID: 234794363554464732}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 0}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 0\n  m_HorizontalScrollbarSpacing: 0\n  m_VerticalScrollbarSpacing: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 3174866253059793859,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &3174866253059793859\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 135020566520885876}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Content: {fileID: 1432822188003379699}\n  m_Horizontal: 0\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 1\n  m_Viewport: {fileID: 995158717369333461}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 453440170374778572}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 1\n  m_HorizontalScrollbarSpacing: 0\n  m_VerticalScrollbarSpacing: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 6096684782600588532,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &6096684782600588532\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 157375402479256247}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 240\n  m_PreferredWidth: 0\n  m_PreferredHeight: 670\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 2766196947204325091,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &2766196947204325091\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 312142073571321743}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 5\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 3\n  m_Spacing: 4\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 0\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 3350041473598844512,
+    "object": "GameplayInteractionHud/Mobile City UI Canvas/Main Surface",
+    "script": "GameplayMainModules.cs",
+    "configuration": "--- !u!114 &3350041473598844512\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 725956925546427460}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 0e832c6f383dfa840a4592dbc7f3164a, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  opponentData:\n  - {fileID: 8150781210985174627}\n  - {fileID: 4296177906904327007}\n  - {fileID: 6848164591993680201}\n  opponentEmpty:\n  - {fileID: 476331040835207474}\n  - {fileID: 307489031265706067}\n  - {fileID: 4000799588713785150}\n  opponentName:\n  - {fileID: 7874732781663932233}\n  - {fileID: 4813182761983962596}\n  - {fileID: 3262455072831422046}\n  opponentScore:\n  - {fileID: 2315479275924221448}\n  - {fileID: 8916802637057946520}\n  - {fileID: 6008165530000943730}\n  opponentHandCount:\n  - {fileID: 4030395539989901948}\n  - {fileID: 5156548607803505883}\n  - {fileID: 7564819367437485195}\n  opponentStyleCount:\n  - {fileID: 6455114814290506151}\n  - {fileID: 3767366278579520330}\n  - {fileID: 7235819541334386362}\n  opponentColor:\n  - {fileID: 6273279304216404583}\n  - {fileID: 6293627640236413793}\n  - {fileID: 6420987206643090820}\n  opponentDetailToggles:\n  - {fileID: 7565052247731182807}\n  - {fileID: 8539176552653433810}\n  - {fileID: 156980890616110378}\n  opponentDetailPanels:\n  - {fileID: 3894420465129257372}\n  - {fileID: 135020566520885876}\n  - {fileID: 9215436249733985835}\n  opponentSeats:\n  - {fileID: 4979352195438569890}\n  - {fileID: 6917915955127014695}\n  - {fileID: 3724688802410089773}\n  cityRegion: {fileID: 3705433733909304703}\n  cityBoardArtwork: {fileID: 1084437596187710385}\n  playerCityLayout: {fileID: 2040180129774975964}\n  detailToggleCollapsed: {fileID: 21300000, guid: 06559436c8530a74c949a02c1f5b4226, type: 3}\n  detailToggleExpanded: {fileID: 21300000, guid: 44b977feb3bba084a90dc8509ee521c7, type: 3}\n  detailToggleDown: {fileID: 21300000, guid: 0d71d892b4238924ca47f1835ac420a9, type: 3}\n  detailToggleUp: {fileID: 21300000, guid: 3793400a4835d644f875224641e026c4, type: 3}\n  detailHeight: 108\n  expandedDetailHeight: 224\n  coveredBack: {fileID: 2996522187418977764}\n  coveredEmpty: {fileID: 8901382434806612673}\n  characterDeckCount: {fileID: 4874835321543206617}\n  localResourceValues:\n  - {fileID: 6752085615292218876}\n  - {fileID: 5125392165047754329}\n  - {fileID: 1773894781871874047}\n  - {fileID: 8795140640965874462}\n  localVoucherValue: {fileID: 5393179800372820209}\n  discardCountText: {fileID: 7441152035638269014}\n  discardPreviewButton: {fileID: 879654321012345678}\n  discardCountFormat: \"{0}\"\n  unnamedPlayerFormat: \"\\u73A9\\u5BB6 {0}\"\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 1400946364265479043,
+    "object": "GameplayInteractionHud/Mobile City UI Canvas/Main Surface",
+    "script": "UiMapSurroundLayout.cs",
+    "configuration": "--- !u!114 &1400946364265479043\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 725956925546427460}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 88e097e961639b44f97859d8b2e9fae1, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  map: {fileID: 9070454273898555430}\n  content: {fileID: 7003000000000000018}\n  left: {fileID: 3756401327967971082}\n  right: {fileID: 1529832215737326749}\n  lower: {fileID: 3140495688737316794}\n  seam: {fileID: 4795717592612772625}\n  edgeGap: 8\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 8094135580722325875,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 1",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &8094135580722325875\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 739769560895179418}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 48\n  m_PreferredWidth: 180\n  m_PreferredHeight: 48\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 2307127777977176530,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Voucher Chip",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &2307127777977176530\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1032793600839599245}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 135\n  m_MinHeight: 36\n  m_PreferredWidth: 135\n  m_PreferredHeight: 36\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 932825936367934553,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &932825936367934553\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1117820407880077195}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 120\n  m_PreferredWidth: -1\n  m_PreferredHeight: 324\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 6823248915806767882,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork",
+    "script": "UiCitySlotsLayout.cs",
+    "configuration": "--- !u!114 &6823248915806767882\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1119894773331228573}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 0379d9a42669ea247b7fd96bfe440c6b, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  slots: {fileID: 412501124377051901}\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 962303714409984524,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &962303714409984524\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1274150793795415752}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 424\n  m_MinHeight: 172\n  m_PreferredWidth: 424\n  m_PreferredHeight: 172\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 5033063947358813985,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards",
+    "script": "GridLayoutGroup.cs",
+    "configuration": "--- !u!114 &5033063947358813985\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1379494071197133645}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding: \n    m_Left: 4\n    m_Right: 4\n    m_Top: 4\n    m_Bottom: 4\n  m_ChildAlignment: 0\n  m_StartCorner: 0\n  m_StartAxis: 0\n  m_CellSize: {x: 143, y: 91}\n  m_Spacing: {x: 10, y: 10}\n  m_Constraint: 1\n  m_ConstraintCount: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7980022629564500518,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards",
+    "script": "ContentSizeFitter.cs",
+    "configuration": "--- !u!114 &7980022629564500518\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1379494071197133645}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_HorizontalFit: 0\n  m_VerticalFit: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7380349655085129128,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7380349655085129128\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1469551827262022110}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 8\n    m_Right: 8\n    m_Top: 8\n    m_Bottom: 8\n  m_ChildAlignment: 0\n  m_Spacing: 6\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 6920727528786566025,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+    "script": "ContentSizeFitter.cs",
+    "configuration": "--- !u!114 &6920727528786566025\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1469551827262022110}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_HorizontalFit: 0\n  m_VerticalFit: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7492866403921717358,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 3",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7492866403921717358\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1601718948891299992}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 116\n  m_PreferredWidth: 72\n  m_PreferredHeight: 116\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7425477554234619522,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 2",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7425477554234619522\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1943000812268138577}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 48\n  m_PreferredWidth: 180\n  m_PreferredHeight: 48\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 8682377526378035397,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &8682377526378035397\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2357141034321589025}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Content: {fileID: 6415968190082241765}\n  m_Horizontal: 0\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 1\n  m_Viewport: {fileID: 3196517083528348868}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 0}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 0\n  m_HorizontalScrollbarSpacing: 0\n  m_VerticalScrollbarSpacing: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 4300463304198259466,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Region",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &4300463304198259466\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2502954252030517052}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 100\n  m_PreferredWidth: -1\n  m_PreferredHeight: 282\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7285082705872583493,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7285082705872583493\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2557654759463948584}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 12\n  m_PreferredWidth: 0\n  m_PreferredHeight: 12\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 5869946731068389554,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 1",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &5869946731068389554\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2689919697967732232}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 116\n  m_PreferredWidth: 72\n  m_PreferredHeight: 116\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 1870586793517129655,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content/No Persistent Effects",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &1870586793517129655\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3031178892130996212}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: -1\n  m_MinHeight: -1\n  m_PreferredWidth: -1\n  m_PreferredHeight: 56\n  m_FlexibleWidth: -1\n  m_FlexibleHeight: -1\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 5300726027524202771,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 0",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &5300726027524202771\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3109653971274334075}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 106\n  m_MinHeight: 36\n  m_PreferredWidth: 106\n  m_PreferredHeight: 36\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 8890551291540008465,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &8890551291540008465\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3152090702018753828}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 48\n  m_PreferredWidth: -1\n  m_PreferredHeight: 48\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 6118082177352886059,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &6118082177352886059\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3152090702018753828}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 3\n  m_Spacing: 6\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 2840400736180485172,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Effect Toggle Group",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &2840400736180485172\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3178933097647887775}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 56\n  m_PreferredWidth: 216\n  m_PreferredHeight: 56\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 3766852736673024700,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 4",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &3766852736673024700\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3302499504006365416}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 116\n  m_PreferredWidth: 72\n  m_PreferredHeight: 116\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 5282579212163033269,
+    "object": "GameplayInteractionHud/Tabletop UI Canvas",
+    "script": "TabletopCanvasLayout.cs",
+    "configuration": "--- !u!114 &5282579212163033269\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3349338462093850653}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: ac730bcbbb042a0498b3698feca01594, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  canvas: {fileID: 7153811198077552068}\n  rectTransform: {fileID: 2983016746340282869}\n  graphicRaycaster: {fileID: 2558380124313313658}\n  canvasScaler: {fileID: 6058028691350719313}\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7685879944101520087,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7685879944101520087\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3631107308384790933}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 8\n  m_PreferredWidth: 0\n  m_PreferredHeight: 8\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 5969585642357979127,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &5969585642357979127\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3665118847601456259}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 120\n  m_PreferredWidth: -1\n  m_PreferredHeight: 220\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7784355193316716883,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7784355193316716883\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3665118847601456259}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 3\n  m_Spacing: 12\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 5310268827999782163,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &5310268827999782163\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3799143106700469446}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 8\n    m_Right: 8\n    m_Top: 8\n    m_Bottom: 8\n  m_ChildAlignment: 0\n  m_Spacing: 6\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 8657808835788528994,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+    "script": "ContentSizeFitter.cs",
+    "configuration": "--- !u!114 &8657808835788528994\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3799143106700469446}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_HorizontalFit: 0\n  m_VerticalFit: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 3274499411072447898,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &3274499411072447898\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3894420465129257372}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Content: {fileID: 4262343078112695440}\n  m_Horizontal: 0\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 1\n  m_Viewport: {fileID: 7895594347614007092}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 7081229118323555108}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 1\n  m_HorizontalScrollbarSpacing: 0\n  m_VerticalScrollbarSpacing: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 4131835817593533811,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &4131835817593533811\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4076422693606853919}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 2\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 10\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 3528686122282764349,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 0",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &3528686122282764349\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4155900398084436448}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 48\n  m_PreferredWidth: 180\n  m_PreferredHeight: 48\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 289106761391728937,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &289106761391728937\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4260863356707915549}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: 270\n  m_PreferredHeight: 220\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 8644810782484670222,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Resolution Summary Slot",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &8644810782484670222\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4264297302600026055}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 160\n  m_MinHeight: 60\n  m_PreferredWidth: 1424\n  m_PreferredHeight: 60\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 867833352716697381,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &867833352716697381\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4331976078926377472}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 3\n  m_Spacing: 10\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 2248266292454451163,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region",
+    "script": "UiAspectContentLayout.cs",
+    "configuration": "--- !u!114 &2248266292454451163\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4338740993833283678}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: d6e84888924ae68458ccb418ce65a93c, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 43\n    m_Bottom: 11\n  m_ChildAlignment: 0\n  artwork: {fileID: 3095012305954973377}\n  preferredSize: {x: 270, y: 500}\n  projectedSlots: {fileID: 6823248915806767882}\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 5646167598031780477,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 2",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &5646167598031780477\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4432872228029742621}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 116\n  m_PreferredWidth: 72\n  m_PreferredHeight: 116\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7314584355813578902,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7314584355813578902\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4702252724199804250}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 16\n    m_Right: 16\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 12\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 1\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 2196341841841434867,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &2196341841841434867\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4937367888335501239}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 56\n  m_PreferredWidth: 505\n  m_PreferredHeight: 56\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 3579173498736221519,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content/No Persistent Effects",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &3579173498736221519\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5058518588194090731}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: -1\n  m_MinHeight: -1\n  m_PreferredWidth: -1\n  m_PreferredHeight: 56\n  m_FlexibleWidth: -1\n  m_FlexibleHeight: -1\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 2543958141272949613,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &2543958141272949613\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5167394012663241349}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 172\n  m_PreferredWidth: 0\n  m_PreferredHeight: 172\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 4095573330859937809,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &4095573330859937809\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5167394012663241349}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 3\n  m_Spacing: 12\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 6301426390064257090,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 3",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &6301426390064257090\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5204133481042400746}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 106\n  m_MinHeight: 36\n  m_PreferredWidth: 106\n  m_PreferredHeight: 36\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 2800337425295190527,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Main Actions",
+    "script": "GridLayoutGroup.cs",
+    "configuration": "--- !u!114 &2800337425295190527\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5261761099102251483}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_StartCorner: 0\n  m_StartAxis: 0\n  m_CellSize: {x: 258, y: 55}\n  m_Spacing: {x: 12, y: 10}\n  m_Constraint: 1\n  m_ConstraintCount: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 8710132246662007722,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Summary End Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &8710132246662007722\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5500132002676682218}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 28\n  m_MinHeight: 0\n  m_PreferredWidth: 28\n  m_PreferredHeight: 0\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7261031117300078746,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7261031117300078746\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5699431741324977519}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 20\n    m_Right: 28\n    m_Top: 13\n    m_Bottom: 9\n  m_ChildAlignment: 3\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 0\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 8755000465932348843,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &8755000465932348843\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6038250852636052880}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 48\n  m_PreferredWidth: 0\n  m_PreferredHeight: 48\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 1329245212573801916,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Red Zone Group",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &1329245212573801916\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6221541969036474681}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 56\n  m_PreferredWidth: 252\n  m_PreferredHeight: 56\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 6063550583272505876,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Turn Group",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &6063550583272505876\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6313954753566371559}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 56\n  m_PreferredWidth: 224\n  m_PreferredHeight: 56\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 6349924885518464840,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards",
+    "script": "GridLayoutGroup.cs",
+    "configuration": "--- !u!114 &6349924885518464840\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6718004861020370511}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 6\n    m_Right: 12\n    m_Top: 6\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_StartCorner: 0\n  m_StartAxis: 0\n  m_CellSize: {x: 99, y: 141}\n  m_Spacing: {x: 25, y: 22}\n  m_Constraint: 1\n  m_ConstraintCount: 3\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 4607502692047438856,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards",
+    "script": "ContentSizeFitter.cs",
+    "configuration": "--- !u!114 &4607502692047438856\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6718004861020370511}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_HorizontalFit: 0\n  m_VerticalFit: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 8398936358639261890,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Undo Summary Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &8398936358639261890\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6934248253348142297}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 20\n  m_MinHeight: 0\n  m_PreferredWidth: 20\n  m_PreferredHeight: 0\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7003000000000000006,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars",
+    "script": "GameplayHudFrame.cs",
+    "configuration": "--- !u!114 &7003000000000000006\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7003000000000000001}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 350ec42a39a44ccaba837780f73e8734, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  barCanvas: {fileID: 7003000000000000003}\n  safeArea: {fileID: 7003000000000000008}\n  topBar: {fileID: 7003000000000000010}\n  bottomBar: {fileID: 7003000000000000014}\n  topBarContent: {fileID: 6411941799098997274}\n  bottomBarContent: {fileID: 5577519109880725800}\n  contentRect: {fileID: 7003000000000000018}\n  mapRegion: {fileID: 9070454273898555430}\n  mainSurface: {fileID: 4605007833305756418}\n  mainRegions: {fileID: 2303750512166892191}\n  columnsLayout: {fileID: 7314584355813578902}\n  topContentLayout: {fileID: 7602053498032870273}\n  mapSurroundLayout: {fileID: 1400946364265479043}\n  citySlotsLayout: {fileID: 6823248915806767882}\n  mapBackdrops:\n  - {fileID: 221575171575856253}\n  - {fileID: 562098695957418580}\n  - {fileID: 8027894289073781037}\n  - {fileID: 722112643919797331}\n  roundNumberText: {fileID: 7003000000000000030}\n  roundTotalText: {fileID: 2544202096443575054}\n  phaseText: {fileID: 7003000000000000034}\n  redZoneText: {fileID: 7003000000000000038}\n  redZoneOpenRoundText: {fileID: 77589418649695181}\n  turnTagText: {fileID: 4874986141736487590}\n  roundTicks:\n  - {fileID: 6109297880838440018}\n  - {fileID: 2550309322627340835}\n  - {fileID: 3392999132805914009}\n  - {fileID: 4805197967950972268}\n  - {fileID: 5265522685708911656}\n  - {fileID: 9176191084789978790}\n  - {fileID: 3101061247901618710}\n  - {fileID: 3958448195740327895}\n  - {fileID: 1533270956122374761}\n  - {fileID: 7198756405796695772}\n  - {fileID: 357691335991601807}\n  - {fileID: 7070623654507187272}\n  summaryText: {fileID: 7003000000000000060}\n  shortSummaryText: {fileID: 7003000000000000064}\n  selfNameText: {fileID: 2951274325603089767}\n  resourceValueTexts:\n  - {fileID: 6752085615292218876}\n  - {fileID: 5125392165047754329}\n  - {fileID: 1773894781871874047}\n  - {fileID: 8795140640965874462}\n  - {fileID: 5393179800372820209}\n  settingsButton: {fileID: 7003000000000000047}\n  foldButton: {fileID: 7003000000000000056}\n  foldButtonText: {fileID: 7003000000000000051}\n  undoButton: {fileID: 7003000000000000073}\n  endActionButton: {fileID: 7982745628680004908}\n  longSummary: {fileID: 7003000000000000057}\n  shortSummary: {fileID: 7003000000000000061}\n  redZoneClosedText: \"\\u672A\\u5F00\\u653E\"\n  redZoneOpenText: \"\\u5DF2\\u5F00\\u653E\"\n  localTurnText: \"\\u8F6E\\u5230\\u4F60\\u884C\\u52A8\"\n  waitingTurnText: \"\\u7B49\\u5F85\\u5176\\u4ED6\\u73A9\\u5BB6\"\n  scoreSuffix: \" \\u5206\"\n  foldVisibleText: \"\\u6536\\u8D77\"\n  foldSuspendedText: \"\\u5C55\\u5F00\"\n  foldUnavailableText: \"\\u65E0\\u5F85\\u5904\\u7406\\u7ED3\\u7B97\"\n  selectionSummaryFormat: \"\\u5F85\\u5904\\u7406\\u9009\\u62E9\\uFF1A{0}\\uFF5E{1} \\u9879\"\n  skippableSelectionSummaryFormat: \"\\u5F85\\u5904\\u7406\\u9009\\u62E9\\uFF1A{0}\\uFF5E{1}\n    \\u9879\\uFF08\\u53EF\\u8DF3\\u8FC7\\uFF09\"\n  targetSummary: \"\\u5F85\\u5904\\u7406\\u76EE\\u6807\\uFF1A\\u8BF7\\u9009\\u62E9\\u76EE\\u6807\"\n  skippableTargetSummary: \"\\u5F85\\u5904\\u7406\\u76EE\\u6807\\uFF1A\\u8BF7\\u9009\\u62E9\\u76EE\\u6807\\uFF08\\u53EF\\u8DF3\\u8FC7\\uFF09\"\n  setupPhaseText: \"\\u51C6\\u5907\"\n  entrancePhaseText: \"\\u5165\\u573A\"\n  roundStartPhaseText: \"\\u56DE\\u5408\\u5F00\\u59CB\"\n  characterCoverPhaseText: \"\\u76D6\\u653E\\u89D2\\u8272\\u724C\"\n  firstActionPhaseText: \"\\u7B2C\\u4E00\\u884C\\u52A8\\u8F6E\"\n  secondActionPhaseText: \"\\u7B2C\\u4E8C\\u884C\\u52A8\\u8F6E\"\n  collectionPhaseText: \"\\u91C7\\u96C6\"\n  cleanupPhaseText: \"\\u6536\\u5C3E\"\n  finalScoringPhaseText: \"\\u6700\\u7EC8\\u8BA1\\u5206\"\n  gameOverPhaseText: \"\\u7EC8\\u5C40\"\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 1165927065654112623,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Undo Button",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &1165927065654112623\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7003000000000000069}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 132\n  m_MinHeight: 48\n  m_PreferredWidth: 132\n  m_PreferredHeight: 48\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 5818448565811034406,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &5818448565811034406\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7084079159743091652}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 8\n    m_Right: 8\n    m_Top: 8\n    m_Bottom: 8\n  m_ChildAlignment: 0\n  m_Spacing: 6\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 5977303435102343782,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+    "script": "ContentSizeFitter.cs",
+    "configuration": "--- !u!114 &5977303435102343782\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7084079159743091652}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_HorizontalFit: 0\n  m_VerticalFit: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7641330720369607755,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Settings Group",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7641330720369607755\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7193306221672161997}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 56\n  m_PreferredWidth: 60\n  m_PreferredHeight: 56\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7524716844802442450,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 1",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7524716844802442450\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7213255702122678202}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 106\n  m_MinHeight: 36\n  m_PreferredWidth: 106\n  m_PreferredHeight: 36\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 9187927768020085617,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &9187927768020085617\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7466490538060171361}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 8\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 5873826892288820850,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &5873826892288820850\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7819639207942877045}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 12\n  m_PreferredWidth: 0\n  m_PreferredHeight: 12\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 661223802967856803,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &661223802967856803\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8020101050472044345}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 8\n    m_Right: 9\n    m_Top: 2\n    m_Bottom: 2\n  m_ChildAlignment: 3\n  m_Spacing: 10\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 4035535233048384292,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &4035535233048384292\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8020101050472044345}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 76\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 3293292735143186475,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Hand Region",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &3293292735143186475\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8172759031274982312}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 460\n  m_MinHeight: 172\n  m_PreferredWidth: 460\n  m_PreferredHeight: 172\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 8383485338905297834,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/\"\\u7ED3\\u675F\\u672C\\u56DE\\u5408 Button\"",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &8383485338905297834\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8201189751453221815}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 236\n  m_MinHeight: 52\n  m_PreferredWidth: 236\n  m_PreferredHeight: 52\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 9210184233854690515,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 2",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &9210184233854690515\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8327600587150798719}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 106\n  m_MinHeight: 36\n  m_PreferredWidth: 106\n  m_PreferredHeight: 36\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 4919510938245739725,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Brand Group",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &4919510938245739725\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8394685045025513272}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 56\n  m_PreferredWidth: 372\n  m_PreferredHeight: 56\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 1213815721404064409,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content/No Persistent Effects",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &1213815721404064409\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8450481884906229671}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: -1\n  m_MinHeight: -1\n  m_PreferredWidth: -1\n  m_PreferredHeight: 56\n  m_FlexibleWidth: -1\n  m_FlexibleHeight: -1\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 437886965131743463,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &437886965131743463\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8462691832107351926}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: 270\n  m_PreferredHeight: 220\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 4463975421651075894,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 5",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &4463975421651075894\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8800631221903374404}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 116\n  m_PreferredWidth: 72\n  m_PreferredHeight: 116\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 39119183010840807,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region/Prompt Bounds/Prompt Frame/Prompt Panel/Prompt Viewport",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &39119183010840807\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8821469831543317897}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Content: {fileID: 8110610408668957803}\n  m_Horizontal: 0\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 1\n  m_Viewport: {fileID: 6104188807654128810}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 0}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 0\n  m_HorizontalScrollbarSpacing: 0\n  m_VerticalScrollbarSpacing: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7602053498032870273,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7602053498032870273\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8962896085045469236}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 28\n    m_Right: 20\n    m_Top: 4\n    m_Bottom: 4\n  m_ChildAlignment: 0\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 1\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 1540680792281286838,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &1540680792281286838\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 9215436249733985835}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Content: {fileID: 6281711921073953352}\n  m_Horizontal: 0\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 1\n  m_Viewport: {fileID: 1756096494402709488}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 6589547255981490898}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 1\n  m_HorizontalScrollbarSpacing: 0\n  m_VerticalScrollbarSpacing: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7441152035638270001,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7441152035638270001\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4078214717075046014}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7441152035638270012,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &7441152035638270012\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6512998409172798286}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Content: {fileID: 7441152035638270011}\n  m_Horizontal: 0\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 24\n  m_Viewport: {fileID: 7957545507481678560}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 0}\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7441152035638270014,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7441152035638270014\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7441152035638270010}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 1\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7441152035638270022,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Region/Cooperation Viewport",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &7441152035638270022\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7441152035638270020}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Content: {fileID: 4724840371159033531}\n  m_Horizontal: 0\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 24\n  m_Viewport: {fileID: 7441152035638270021}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 0}\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7441152035638270030,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Discard Content",
+    "script": "UiAspectContentLayout.cs",
+    "configuration": "--- !u!114 &7441152035638270030\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7663681051294708157}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: d6e84888924ae68458ccb418ce65a93c, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 8\n    m_Bottom: 13\n  m_ChildAlignment: 0\n  artwork: {fileID: 1823378019233116720}\n  preferredSize: {x: 86, y: 142}\n  projectedSlots: {fileID: 0}\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7441152035638270031,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region",
+    "script": "UiAspectContentLayout.cs",
+    "configuration": "--- !u!114 &7441152035638270031\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8462691832107351926}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: d6e84888924ae68458ccb418ce65a93c, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 52\n    m_Bottom: 26\n  m_ChildAlignment: 0\n  artwork: {fileID: 5672611053474829184}\n  preferredSize: {x: 86, y: 142}\n  projectedSlots: {fileID: 0}\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000003,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000003\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7003000000000000007}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 12\n  m_ChildAlignment: 0\n  m_Spacing: 8\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000004,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000004\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7003000000000000009}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 64\n  m_PreferredWidth: -1\n  m_PreferredHeight: 64\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000005,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000005\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7003000000000000013}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: 82\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000006,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000006\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000001}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: 0\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000009,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000009\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6464350259260681422}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 240\n  m_MinHeight: 0\n  m_PreferredWidth: 416\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000010,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000010\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7466490538060171361}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 360\n  m_MinHeight: 0\n  m_PreferredWidth: 896\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000011,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000011\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7461740478851784026}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 360\n  m_MinHeight: 0\n  m_PreferredWidth: 552\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000012,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000012\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6464350259260681422}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000013,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 1",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000013\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1142607823247248012}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 60\n  m_PreferredWidth: -1\n  m_PreferredHeight: 108\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000014,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000014\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3894420465129257372}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 112\n  m_PreferredWidth: -1\n  m_PreferredHeight: 160\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000017,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Player Seat Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000017\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000015}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 8\n  m_PreferredWidth: -1\n  m_PreferredHeight: 8\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000018,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 2",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000018\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4573834366248038325}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 60\n  m_PreferredWidth: -1\n  m_PreferredHeight: 108\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000019,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000019\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 135020566520885876}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 112\n  m_PreferredWidth: -1\n  m_PreferredHeight: 160\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000022,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Player Seat Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000022\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000020}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 8\n  m_PreferredWidth: -1\n  m_PreferredHeight: 8\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000023,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 3",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000023\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1131605719133931768}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 60\n  m_PreferredWidth: -1\n  m_PreferredHeight: 108\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000024,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Persistent Detail Panel",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000024\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 9215436249733985835}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 112\n  m_PreferredWidth: -1\n  m_PreferredHeight: 160\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000027,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Player City Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000027\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000025}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 12\n  m_PreferredWidth: -1\n  m_PreferredHeight: 12\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000028,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000028\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4338740993833283678}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 80\n  m_PreferredWidth: -1\n  m_PreferredHeight: 0\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000031,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Bar Flexible Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000031\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000029}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 8\n  m_MinHeight: 0\n  m_PreferredWidth: 126\n  m_PreferredHeight: 56\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000034,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Bar Flexible Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000034\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000032}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 8\n  m_MinHeight: 0\n  m_PreferredWidth: 17\n  m_PreferredHeight: 56\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000037,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Bar Flexible Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000037\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000035}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 8\n  m_MinHeight: 0\n  m_PreferredWidth: 52\n  m_PreferredHeight: 56\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000040,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Bar Flexible Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000040\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000038}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 8\n  m_MinHeight: 0\n  m_PreferredWidth: 34\n  m_PreferredHeight: 56\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000043,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Bar Flexible Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000043\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000041}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 8\n  m_MinHeight: 0\n  m_PreferredWidth: 14\n  m_PreferredHeight: 56\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000046,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000046\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000044}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 16\n    m_Right: 16\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 1\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000047,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000047\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000044}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 82\n  m_PreferredWidth: -1\n  m_PreferredHeight: 82\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000050,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region/Prompt Bounds",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000050\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2542461768264573118}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 58\n    m_Bottom: 0\n  m_ChildAlignment: 1\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000051,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region/Prompt Bounds/Prompt Frame",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000051\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1207034046805476285}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: 590\n  m_PreferredHeight: 80\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000052,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000052\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3086168320864373721}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 72\n    m_Right: 0\n    m_Top: 17\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000053,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000053\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2357141034321589025}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 80\n  m_PreferredWidth: 365\n  m_PreferredHeight: 350\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000054,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000054\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 62440988554672650}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 40\n  m_PreferredWidth: -1\n  m_PreferredHeight: 0\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000055,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/Build Sidebar Panel",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000055\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3319736898671909795}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 1\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000056,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/Templates",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000056\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 9040679530334964036}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 1\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000059,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row/Body Hit Area/Effect Text",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000059\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000057}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 22\n    m_Top: 0\n    m_Bottom: 4\n  m_ChildAlignment: 0\n  m_Spacing: 1\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000060,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row/Body Hit Area/Effect Text/Row Title",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000060\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6600872568367650758}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 28\n  m_PreferredWidth: 0\n  m_PreferredHeight: 28\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000061,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row/Body Hit Area/Effect Text/Row Description",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000061\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7033192057942936542}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: 0\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000062,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row/Body Hit Area/Effect Text",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000062\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000057}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 64\n  m_PreferredWidth: 0\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000063,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row/Body Hit Area",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000063\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6939012105550359383}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 8\n    m_Right: 0\n    m_Top: 4\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 6\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 1\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000064,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row/Body Hit Area",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000064\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6939012105550359383}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: 0\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000065,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row/Body Hit Area/Marker 1",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000065\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8366399866678426736}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 28\n  m_MinHeight: 28\n  m_PreferredWidth: 28\n  m_PreferredHeight: 28\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000066,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row/Body Hit Area/Marker 2",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000066\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5459175420326300190}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 28\n  m_MinHeight: 28\n  m_PreferredWidth: 28\n  m_PreferredHeight: 28\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000067,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row/\"\\u4F7F\\u7528\\u89D2\\u8272\\u724C Button\"",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000067\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2363844073560807833}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 48\n  m_MinHeight: 48\n  m_PreferredWidth: 48\n  m_PreferredHeight: 48\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000068,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/Quick Actions/Quick Effect Row/Row Frame",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000068\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1807190210545170045}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 1\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000081,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000081\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1461277262713071503}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 8\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "fileID": 7451260000000000082,
+    "object": "GameplayInteractionHud/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/Declare City Style Button",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000082\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 980506286514905213}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 48\n  m_PreferredWidth: -1\n  m_PreferredHeight: 48\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 4527902450975401512,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &4527902450975401512\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 870665079570805091}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 987358417819507707,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Body Viewport/Body Content/Vertical Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &987358417819507707\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1475403711972025972}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 24\n  m_PreferredWidth: 0\n  m_PreferredHeight: 24\n  m_FlexibleWidth: -1\n  m_FlexibleHeight: -1\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 8198213600023809596,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &8198213600023809596\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1499923363390541678}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: 0\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7941471116671233907,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7941471116671233907\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 1499923363390541678}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 22\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 1\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 8346372162415868038,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Body Viewport/Body Content/Content Row",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &8346372162415868038\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2021588425987841467}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: -1\n  m_MinHeight: 96\n  m_PreferredWidth: -1\n  m_PreferredHeight: 96\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 4317681784442795719,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Body Viewport/Body Content/Content Row",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &4317681784442795719\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2021588425987841467}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 1\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 8468593458320598651,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Body Viewport",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &8468593458320598651\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2060026700802010272}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Content: {fileID: 922294598889332561}\n  m_Horizontal: 1\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 1\n  m_Viewport: {fileID: 1413332476490023217}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 0}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 0\n  m_HorizontalScrollbarSpacing: 0\n  m_VerticalScrollbarSpacing: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 5048626526954351470,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Body Viewport/Body Content/Content Row/Horizontal Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &5048626526954351470\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2445639190745948853}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: 40\n  m_PreferredHeight: 0\n  m_FlexibleWidth: -1\n  m_FlexibleHeight: -1\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 882889282326916201,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &882889282326916201\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4144940980924194178}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 24\n    m_Right: 24\n    m_Top: 18\n    m_Bottom: 18\n  m_ChildAlignment: 0\n  m_Spacing: 12\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 4455043775113840328,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Body Viewport/Body Content",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &4455043775113840328\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4714321714982140629}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 502784485533808194,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Body Viewport/Body Content",
+    "script": "ContentSizeFitter.cs",
+    "configuration": "--- !u!114 &502784485533808194\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4714321714982140629}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_HorizontalFit: 0\n  m_VerticalFit: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 6214024117483912527,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Body Viewport/Body Content/Vertical Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &6214024117483912527\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5085511336088191315}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 10\n  m_PreferredWidth: 0\n  m_PreferredHeight: 10\n  m_FlexibleWidth: -1\n  m_FlexibleHeight: -1\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 5585667633378993190,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Body Viewport/Body Content/Content Row/Special Action Warning Confirmation Message Slot",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &5585667633378993190\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 5771070920188678296}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 120\n  m_MinHeight: -1\n  m_PreferredWidth: 540\n  m_PreferredHeight: -1\n  m_FlexibleWidth: -1\n  m_FlexibleHeight: -1\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7165879278995916123,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Body Viewport/Body Content/Content Row/Horizontal Gap",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7165879278995916123\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7753821915865271469}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name: \n  m_EditorClassIdentifier: \n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: 40\n  m_PreferredHeight: 0\n  m_FlexibleWidth: -1\n  m_FlexibleHeight: -1\n  m_LayoutPriority: 1\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000001,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Header",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000001\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 663308599841420504}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 63.0\n  m_PreferredWidth: -1\n  m_PreferredHeight: 63.0\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000002,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Body Viewport",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000002\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2060026700802010272}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: 0\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000003,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/Footer",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000003\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3361580141729426505}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 80.0\n  m_PreferredWidth: -1\n  m_PreferredHeight: 80.0\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000004,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Header",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000004\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8221884432917584971}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 48\n  m_PreferredWidth: -1\n  m_PreferredHeight: 48\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000006,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Footer",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000006\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 862366972730295745}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 52\n  m_PreferredWidth: -1\n  m_PreferredHeight: 52\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000007,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000007\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4061946333970669003}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 4\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000008,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000008\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 870665079570805091}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: 620.0\n  m_PreferredHeight: 280.0\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000009,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000009\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7463819487622586599}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 4\n  m_Spacing: 0\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000010,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000010\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4144940980924194178}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: 1520.0\n  m_PreferredHeight: 900.0\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000011,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000011\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 582117087181242525}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 360\n  m_MinHeight: 0\n  m_PreferredWidth: 908\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000012,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Board Section",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000012\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6580422916087343783}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 200\n  m_MinHeight: 0\n  m_PreferredWidth: 500\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000013,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000013\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 582117087181242525}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 16\n    m_Right: 16\n    m_Top: 12\n    m_Bottom: 12\n  m_ChildAlignment: 0\n  m_Spacing: 8\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000014,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Board Section",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000014\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6580422916087343783}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 16\n    m_Right: 16\n    m_Top: 12\n    m_Bottom: 12\n  m_ChildAlignment: 0\n  m_Spacing: 8\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000015,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Header",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000015\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8221884432917584971}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 12\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 1\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000016,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Header/City Style Declaration Preview Title",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000016\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 84634555266946548}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 100\n  m_MinHeight: 0\n  m_PreferredWidth: 0\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000017,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Header/Close City Style Declaration Preview Button",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000017\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 4046547580711502928}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 44\n  m_MinHeight: 0\n  m_PreferredWidth: 44\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000018,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Footer",
+    "script": "HorizontalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000018\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 862366972730295745}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 12\n  m_ChildForceExpandWidth: 0\n  m_ChildForceExpandHeight: 1\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000019,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Board Section/City Style Preview Board Title",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000019\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2415123925814282616}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 36\n  m_PreferredWidth: -1\n  m_PreferredHeight: 36\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000022,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Board Section/City Artwork Area",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000022\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000020}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: 0\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000026,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/Style List Viewport",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000026\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000024}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: 0\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000028,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/Style List Viewport",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &7451260000000000028\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000024}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Content: {fileID: 7451260000000000030}\n  m_Horizontal: 0\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 1\n  m_Viewport: {fileID: 7451260000000000025}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 0}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 0\n  m_HorizontalScrollbarSpacing: 0\n  m_VerticalScrollbarSpacing: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000031,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/Style List Viewport/Style Cards",
+    "script": "GridLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000031\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000029}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 6\n    m_Right: 6\n    m_Top: 6\n    m_Bottom: 6\n  m_ChildAlignment: 0\n  m_StartCorner: 0\n  m_StartAxis: 0\n  m_CellSize: {x: 376, y: 265}\n  m_Spacing: {x: 16, y: 16}\n  m_Constraint: 1\n  m_ConstraintCount: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000033,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/Style List Viewport/Style Cards",
+    "script": "ContentSizeFitter.cs",
+    "configuration": "--- !u!114 &7451260000000000033\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000029}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_HorizontalFit: 0\n  m_VerticalFit: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000034,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/City Style Preview Card Frame",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000034\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7694496030004324301}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: 0\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 1\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000038,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/Summary Viewport",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000038\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000036}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 54\n  m_PreferredWidth: -1\n  m_PreferredHeight: 100\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000040,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/Summary Viewport",
+    "script": "ScrollRect.cs",
+    "configuration": "--- !u!114 &7451260000000000040\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000036}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Content: {fileID: 7451260000000000042}\n  m_Horizontal: 1\n  m_Vertical: 1\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 1\n  m_Viewport: {fileID: 7451260000000000037}\n  m_HorizontalScrollbar: {fileID: 0}\n  m_VerticalScrollbar: {fileID: 0}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 0\n  m_HorizontalScrollbarSpacing: 0\n  m_VerticalScrollbarSpacing: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000043,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/Summary Viewport/Summary Content",
+    "script": "VerticalLayoutGroup.cs",
+    "configuration": "--- !u!114 &7451260000000000043\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000041}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  m_Spacing: 6\n  m_ChildForceExpandWidth: 1\n  m_ChildForceExpandHeight: 0\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000044,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/Summary Viewport/Summary Content",
+    "script": "ContentSizeFitter.cs",
+    "configuration": "--- !u!114 &7451260000000000044\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000041}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_HorizontalFit: 0\n  m_VerticalFit: 2\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000045,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/Summary Viewport/Summary Content/City Style Match Status",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000045\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 36780869818563197}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 30\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000046,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/Summary Viewport/Summary Content/City Style Special Action Hint",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000046\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 8189140726101245254}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 30\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000047,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Footer/Previous City Style",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000047\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3795952976645943575}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 80\n  m_MinHeight: 0\n  m_PreferredWidth: 170\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000048,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Footer/Next City Style",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000048\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 2834545336964505983}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 80\n  m_MinHeight: 0\n  m_PreferredWidth: 170\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000049,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Footer/Confirm City Style Declaration",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000049\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 6592339073835432024}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 80\n  m_MinHeight: 0\n  m_PreferredWidth: 170\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000050,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/City Style Preview Name",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000050\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 3351226672632372460}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 34\n  m_PreferredWidth: -1\n  m_PreferredHeight: 34\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000053,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Footer/View Original Card",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000053\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000051}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 120\n  m_MinHeight: 0\n  m_PreferredWidth: 180\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 0\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000063,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Footer/Footer Space",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000063\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000061}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 0\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000066,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Frame",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000066\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000064}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 1\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000071,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Section/Frame",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000071\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000069}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 1\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  },
+  {
+    "source": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "fileID": 7451260000000000076,
+    "object": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Content Row/City Style Preview Board Section/Frame",
+    "script": "LayoutElement.cs",
+    "configuration": "--- !u!114 &7451260000000000076\nMonoBehaviour:\n  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n  m_GameObject: {fileID: 7451260000000000074}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}\n  m_Name:\n  m_EditorClassIdentifier:\n  m_IgnoreLayout: 1\n  m_MinWidth: 0\n  m_MinHeight: 0\n  m_PreferredWidth: -1\n  m_PreferredHeight: -1\n  m_FlexibleWidth: 1\n  m_FlexibleHeight: 0\n  m_LayoutPriority: 10\n"
+  }
+]

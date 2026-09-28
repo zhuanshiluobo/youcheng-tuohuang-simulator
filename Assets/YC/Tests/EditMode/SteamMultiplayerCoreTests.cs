@@ -550,7 +550,7 @@ namespace YC.Tests.EditMode
             StringAssert.Contains("!(connection is LocalConnectionToClient)", detach);
             var broadcast = ExtractMethod(source, "private void BroadcastAccepted", "private void SendRejected");
             Assert.Less(broadcast.IndexOf("connection.Send"), broadcast.IndexOf("ConfirmedStateViewApplied?.Invoke"));
-            StringAssert.Contains("GameLaunchContext.ReturnToStartScene", ReadSource("YC/Presentation/RoundTrackerController.cs"));
+            StringAssert.Contains("GameLaunchContext.ReturnToStartScene", ReadSource("YC/Presentation/FinalScoreController.cs"));
             StringAssert.Contains("GameLaunchContext.ReturnToStartScene", ReadSource("YC/Presentation/GameSettingsMenuController.cs"));
         }
 
@@ -618,7 +618,7 @@ namespace YC.Tests.EditMode
                 new[]
                 {
                     "YC/Presentation/GameSettingsMenuController.cs",
-                    "YC/Presentation/RoundTrackerController.cs"
+                    "YC/Presentation/FinalScoreController.cs"
                 },
                 relativePath =>
                 {

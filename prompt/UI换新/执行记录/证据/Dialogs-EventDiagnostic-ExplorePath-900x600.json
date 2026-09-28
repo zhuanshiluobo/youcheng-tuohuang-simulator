@@ -1,0 +1,461 @@
+{
+    "mode": "ExplorePath",
+    "source": "组件诊断：SampleScene 当前 Registry 与实际 EventChoiceDialog Prefab；调用既有 Show 方法。路线、收款人和文字样本为诊断数据，卡图来自正式目录。回调仅计数，不提交命令；不代表规则结算或联机验收。",
+    "requestedSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "actualSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "panel": {
+        "serializedVersion": "2",
+        "x": 240.77273559570313,
+        "y": 101.99954986572266,
+        "width": 418.4545593261719,
+        "height": 380.69158935546877
+    },
+    "availableContent": {
+        "serializedVersion": "2",
+        "x": 3.409659257158637e-7,
+        "y": 52.051658630371097,
+        "width": 900.0,
+        "height": 511.2060241699219
+    },
+    "diagnosticCallbacks": 0,
+    "issues": [],
+    "objects": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 240.77273559570313,
+                "y": 101.99954986572266,
+                "width": 418.4545593261719,
+                "height": 380.69158935546877
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 240.77273559570313,
+                "y": 101.99954986572266,
+                "width": 418.4545593261719,
+                "height": 380.69158935546877
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Title",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 240.77273559570313,
+                "y": 455.6446838378906,
+                "width": 418.4545593261719,
+                "height": 23.47430419921875
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 240.77273559570313,
+                "y": 101.99956512451172,
+                "width": 418.4545593261719,
+                "height": 349.5626220703125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 240.77273559570313,
+                "y": 101.99956512451172,
+                "width": 418.4545593261719,
+                "height": 349.5626220703125
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 240.77273559570313,
+                "y": 101.99956512451172,
+                "width": 418.4545593261719,
+                "height": 349.5626220703125
+            },
+            "layoutDrivers": [
+                "ScrollRect",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 101.99956512451172,
+                "width": 376.6091003417969,
+                "height": 349.5626220703125
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 141.29345703125,
+                "width": 376.6091003417969,
+                "height": 310.26873779296877
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "ContentSizeFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 141.29345703125,
+                "width": 376.6091003417969,
+                "height": 310.26873779296877
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 1",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 426.04669189453127,
+                "width": 376.6091003417969,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 1/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 267.8191833496094,
+                "y": 426.04669189453127,
+                "width": 364.3616638183594,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 2",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 394.4074401855469,
+                "width": 376.6091003417969,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 2/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 267.8191833496094,
+                "y": 394.4074401855469,
+                "width": 364.3616638183594,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 3",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 362.7681884765625,
+                "width": 376.6091003417969,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 3/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 267.8191833496094,
+                "y": 362.7681884765625,
+                "width": 364.3616638183594,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 4",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 331.1289367675781,
+                "width": 376.6091003417969,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 4/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 267.8191833496094,
+                "y": 331.1289367675781,
+                "width": 364.3616638183594,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 5",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 299.48968505859377,
+                "width": 376.6091003417969,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 5/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 267.8191833496094,
+                "y": 299.48968505859377,
+                "width": 364.3616638183594,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 6",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 267.8504638671875,
+                "width": 376.6091003417969,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 6/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 267.8191833496094,
+                "y": 267.8504638671875,
+                "width": 364.3616638183594,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 7",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 236.21119689941407,
+                "width": 376.6091003417969,
+                "height": 25.515518188476564
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 7/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 267.8191833496094,
+                "y": 236.21119689941407,
+                "width": 364.3616638183594,
+                "height": 25.515518188476564
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 8",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 204.5719451904297,
+                "width": 376.6091003417969,
+                "height": 25.515533447265626
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 8/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 267.8191833496094,
+                "y": 204.5719451904297,
+                "width": 364.3616638183594,
+                "height": 25.515533447265626
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 9",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 172.9326934814453,
+                "width": 376.6091003417969,
+                "height": 25.515533447265626
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 9/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 267.8191833496094,
+                "y": 172.9326934814453,
+                "width": 364.3616638183594,
+                "height": 25.515533447265626
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 10",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 141.29345703125,
+                "width": 376.6091003417969,
+                "height": 25.515533447265626
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 10/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 267.8191833496094,
+                "y": 141.29345703125,
+                "width": 364.3616638183594,
+                "height": 25.515533447265626
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Dynamic Templates",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 240.77273559570313,
+                "y": 101.99954986572266,
+                "width": 418.4545593261719,
+                "height": 380.69158935546877
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        }
+    ],
+    "scrolls": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll",
+            "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 10",
+            "contentHeight": 608.0,
+            "viewportHeight": 685.0,
+            "contentOverflows": false,
+            "lastButtonVisibleAtTop": true,
+            "lastButtonReachesViewportAtEnd": true,
+            "viewportAtEnd": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 101.99956512451172,
+                "width": 376.6091003417969,
+                "height": 349.5626220703125
+            },
+            "lastButtonAtEnd": {
+                "serializedVersion": "2",
+                "x": 261.6954650878906,
+                "y": 141.29345703125,
+                "width": 376.6091003417969,
+                "height": 25.515533447265626
+            }
+        }
+    ]
+}

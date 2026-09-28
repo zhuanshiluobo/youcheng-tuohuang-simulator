@@ -14,19 +14,58 @@ namespace YC.Presentation
         [SerializeField] private RectTransform expandedContent;
         [SerializeField] private Text titleText;
         [SerializeField] private Text descriptionText;
-        [SerializeField] private EffectDialogDragHandle dragHandle;
-        [SerializeField] private Text collapsedSummaryText;
-        [SerializeField] private Button collapseButton;
-        [SerializeField] private Text collapseButtonText;
-        [SerializeField] private Image collapseButtonIcon;
-        [SerializeField] private EffectDialogCollapsiblePanel collapsiblePanel;
         [SerializeField] private ScrollRect optionScroll;
         [SerializeField] private RectTransform optionContent;
         [SerializeField] private EffectDialogOptionRowView optionRowTemplate;
+        [SerializeField] private EffectDialogOptionRowView executionRowTemplate;
         [SerializeField] private EffectDialogResourceRowView resourceRowTemplate;
         [SerializeField] private Text resourceSummaryText;
         [SerializeField] private EffectDialogActionButtonView[] actionButtons;
         [SerializeField] private FacilityEffectCardView facilityCardTemplate;
+        [SerializeField] private RectTransform footer;
+        [SerializeField] private UiWindowSizeInput boundedLayout;
+        [SerializeField] private UiEffectRowView effectRowTemplate;
+        [SerializeField] private UiCardCollectionLayout cardGrid;
+        [SerializeField] private CardPickerRowLayout cardPickerRow;
+        [SerializeField] private Text cardPickerHint;
+        [SerializeField] private string cardPickerSelectionHint;
+        [SerializeField] private string cardPickerReadOnlyHint;
+        private float? pendingScrollPosition;
+        public bool IsCardPicker => cardPickerRow != null;
+        // 保留既有“1 = 列表开头”的草稿协议；卡牌页将其映射到横向滚动。
+        public float ScrollPosition => pendingScrollPosition ?? (optionScroll == null ? 1f :
+            IsCardPicker ? 1f - optionScroll.horizontalNormalizedPosition : optionScroll.verticalNormalizedPosition);
+
+        public void RestoreScrollPosition(float position)
+        {
+            pendingScrollPosition = Mathf.Clamp01(position);
+            Canvas.willRenderCanvases -= ApplyPendingScroll;
+            if (isActiveAndEnabled) Canvas.willRenderCanvases += ApplyPendingScroll;
+        }
+
+        private void OnEnable()
+        {
+            if (!pendingScrollPosition.HasValue) return;
+            Canvas.willRenderCanvases -= ApplyPendingScroll;
+            Canvas.willRenderCanvases += ApplyPendingScroll;
+        }
+
+        private void OnDisable() { Canvas.willRenderCanvases -= ApplyPendingScroll; }
+        private void OnDestroy() { Canvas.willRenderCanvases -= ApplyPendingScroll; }
+        private void ApplyPendingScroll()
+        {
+            if (this == null)
+            {
+                Canvas.willRenderCanvases -= ApplyPendingScroll;
+                return;
+            }
+            if (!isActiveAndEnabled || !pendingScrollPosition.HasValue || optionScroll == null) return;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(expandedContent);
+            if (IsCardPicker) optionScroll.horizontalNormalizedPosition = 1f - pendingScrollPosition.Value;
+            else optionScroll.verticalNormalizedPosition = pendingScrollPosition.Value;
+            pendingScrollPosition = null;
+            Canvas.willRenderCanvases -= ApplyPendingScroll;
+        }
 
         public Canvas OverlayCanvas => overlayCanvas;
         public EffectDialogLayoutProfile LayoutProfile => layoutProfile;
@@ -35,42 +74,64 @@ namespace YC.Presentation
         public RectTransform ExpandedContent => expandedContent;
         public Text TitleText => titleText;
         public Text DescriptionText => descriptionText;
-        public EffectDialogDragHandle DragHandle => dragHandle;
-        public Text CollapsedSummaryText => collapsedSummaryText;
-        public Button CollapseButton => collapseButton;
-        public Text CollapseButtonText => collapseButtonText;
-        public Image CollapseButtonIcon => collapseButtonIcon;
-        public EffectDialogCollapsiblePanel CollapsiblePanel => collapsiblePanel;
         public ScrollRect OptionScroll => optionScroll;
-        public RectTransform OptionContent => optionContent;
+        public RectTransform OptionContent => IsCardPicker || cardGrid == null ? optionContent : cardGrid.Content;
         public EffectDialogOptionRowView OptionRowTemplate => optionRowTemplate;
         public EffectDialogResourceRowView ResourceRowTemplate => resourceRowTemplate;
         public Text ResourceSummaryText => resourceSummaryText;
         public FacilityEffectCardView FacilityCardTemplate => facilityCardTemplate;
 
+        public void ConfigureSelectionMode(bool readOnly, string hintOverride = null)
+        {
+            if (IsCardPicker && cardPickerHint != null)
+                cardPickerHint.text = hintOverride ?? (readOnly ? cardPickerReadOnlyHint : cardPickerSelectionHint);
+        }
+
         public bool TryValidateConfiguration(out string reason)
         {
-            reason = string.Empty;
-            if (layoutProfile == null ||
-                !layoutProfile.TryValidateConfiguration(out reason) ||
-                overlayCanvas == null || overlayImage == null || panel == null || expandedContent == null ||
-                titleText == null || descriptionText == null ||
-                collapsedSummaryText == null || collapseButton == null || collapseButtonText == null ||
-                collapseButtonIcon == null || collapsiblePanel == null || optionScroll == null ||
-                optionContent == null || optionRowTemplate == null || resourceRowTemplate == null ||
-                resourceSummaryText == null || actionButtons == null || actionButtons.Length < 2 ||
-                facilityCardTemplate == null)
+            var missing = new System.Collections.Generic.List<string>();
+            void Require(UnityEngine.Object value, string field)
             {
-                reason = string.IsNullOrEmpty(reason)
-                    ? "效果对话框固定壳的序列化引用不完整。"
-                    : reason;
+                if (value == null) missing.Add(field);
+            }
+            Require(layoutProfile, nameof(layoutProfile));
+            Require(overlayCanvas, nameof(overlayCanvas));
+            Require(overlayImage, nameof(overlayImage));
+            Require(panel, nameof(panel));
+            Require(expandedContent, nameof(expandedContent));
+            Require(titleText, nameof(titleText));
+            Require(descriptionText, nameof(descriptionText));
+            Require(optionScroll, nameof(optionScroll));
+            Require(optionContent, nameof(optionContent));
+            Require(resourceSummaryText, nameof(resourceSummaryText));
+            Require(facilityCardTemplate, nameof(facilityCardTemplate));
+            Require(footer, nameof(footer));
+            if (actionButtons == null || actionButtons.Length < 2) missing.Add(nameof(actionButtons));
+            if (!IsCardPicker)
+            {
+                Require(optionRowTemplate, nameof(optionRowTemplate));
+                Require(resourceRowTemplate, nameof(resourceRowTemplate));
+                Require(boundedLayout, nameof(boundedLayout));
+                Require(effectRowTemplate, nameof(effectRowTemplate));
+                Require(cardGrid, nameof(cardGrid));
+                // 卡牌页没有普通选项行；单独提示其模式组件断绑，避免误报为普通弹窗。
+                if (cardPickerHint != null) Require(cardPickerRow, nameof(cardPickerRow));
+            }
+            if (missing.Count > 0)
+            {
+                reason = "效果对话框“" + name + "”缺少序列化引用：" + string.Join("、", missing) + "。";
+                return false;
+            }
+            if (!layoutProfile.TryValidateConfiguration(out reason))
+            {
+                reason = "效果对话框“" + name + "”的布局配置无效：" + reason;
                 return false;
             }
 
-            if (!collapsiblePanel.TryValidateVisualConfiguration(out reason) ||
-                !optionRowTemplate.TryValidateConfiguration(out reason) ||
-                !resourceRowTemplate.TryValidateConfiguration(out reason) ||
-                !facilityCardTemplate.TryValidateConfiguration(out reason))
+            if (!facilityCardTemplate.TryValidateConfiguration(out reason) ||
+                (IsCardPicker && !cardPickerRow.TryValidateConfiguration(out reason)) ||
+                (!IsCardPicker && (!optionRowTemplate.TryValidateConfiguration(out reason) ||
+                !resourceRowTemplate.TryValidateConfiguration(out reason))))
             {
                 return false;
             }
@@ -93,9 +154,7 @@ namespace YC.Presentation
         {
             gameObject.name = overlayName ?? string.Empty;
             panel.gameObject.name = panelName ?? string.Empty;
-            layoutProfile.PanelLayout.ApplyTo(panel);
-            panel.sizeDelta = panelSize;
-            panel.anchoredPosition = panelPosition;
+            // 窗口尺寸由实际预制体决定。旧调用方的候选数量不能缩小窗口、裁掉支付项。
             overlayCanvas.overrideSorting = true;
             overlayCanvas.sortingOrder = EffectDialogShell.SortingOrder;
             overlayImage.color = layoutProfile.OverlayColor;
@@ -103,16 +162,13 @@ namespace YC.Presentation
             expandedContent.gameObject.SetActive(true);
             titleText.gameObject.SetActive(true);
             descriptionText.gameObject.SetActive(true);
-            if (dragHandle != null) dragHandle.enabled = false;
-            collapsedSummaryText.gameObject.SetActive(false);
-            collapseButton.gameObject.SetActive(false);
-            collapseButton.onClick.RemoveAllListeners();
-            collapsiblePanel.Configure(null);
             optionScroll.gameObject.SetActive(false);
-            optionRowTemplate.gameObject.SetActive(false);
-            resourceRowTemplate.gameObject.SetActive(false);
+            if (optionRowTemplate != null) optionRowTemplate.gameObject.SetActive(false);
+            if (executionRowTemplate != null) executionRowTemplate.gameObject.SetActive(false);
+            if (resourceRowTemplate != null) resourceRowTemplate.gameObject.SetActive(false);
             resourceSummaryText.gameObject.SetActive(false);
-            facilityCardTemplate.gameObject.SetActive(false);
+            footer.gameObject.SetActive(false);
+            if (facilityCardTemplate.gameObject.scene.IsValid()) facilityCardTemplate.gameObject.SetActive(false);
             for (var i = 0; i < actionButtons.Length; i++)
             {
                 actionButtons[i].Button.onClick.RemoveAllListeners();
@@ -126,60 +182,73 @@ namespace YC.Presentation
             float descriptionHeight,
             string titleName,
             string descriptionName,
-            int titleSize,
-            bool enableDrag)
+            int titleSize)
         {
             titleText.gameObject.name = titleName ?? string.Empty;
             titleText.text = title ?? string.Empty;
-            titleText.fontSize = titleSize;
-            titleText.fontStyle = FontStyle.Bold;
-            titleText.color = UiTheme.GoldText;
-            layoutProfile.TitleLayout.ApplyTo(titleText.rectTransform);
+            titleText.fontStyle = FontStyle.Normal;
 
             descriptionText.gameObject.name = descriptionName ?? string.Empty;
             descriptionText.text = description ?? string.Empty;
-            descriptionText.fontSize = 16;
-            descriptionText.color = UiTheme.ValueText;
-            descriptionText.alignment = TextAnchor.UpperLeft;
-            var descriptionLayout = layoutProfile.DescriptionLayout;
-            descriptionLayout.SizeDelta = new Vector2(
-                descriptionLayout.SizeDelta.x,
-                descriptionHeight);
-            descriptionLayout.ApplyTo(descriptionText.rectTransform);
-            if (dragHandle != null) dragHandle.enabled = false;
+            descriptionText.gameObject.SetActive(!string.IsNullOrEmpty(description));
+            LayoutRebuilder.MarkLayoutForRebuild(expandedContent);
         }
 
         public RectTransform ConfigureOptionScroll(string objectName, float bottom, float top)
         {
             optionScroll.gameObject.name = objectName ?? string.Empty;
             optionScroll.gameObject.SetActive(true);
-            var rect = optionScroll.GetComponent<RectTransform>();
-            var scrollLayout = layoutProfile.OptionScrollLayout;
-            rect.anchorMin = scrollLayout.AnchorMin;
-            rect.anchorMax = scrollLayout.AnchorMax;
-            rect.pivot = scrollLayout.Pivot;
-            rect.offsetMin = new Vector2(scrollLayout.OffsetMin.x, bottom);
-            rect.offsetMax = new Vector2(scrollLayout.OffsetMax.x, -top);
-            return optionContent;
+            if (cardGrid != null) cardGrid.UseList();
+            LayoutRebuilder.MarkLayoutForRebuild(expandedContent);
+            return OptionContent;
         }
 
-        public EffectDialogOptionRowView CreateOptionRow(RectTransform parent)
+        public RectTransform ConfigureResourceScroll() => ConfigureOptionScroll("Resource Scroll", 0, 0);
+
+        public RectTransform ConfigureCardScroll(Vector2 preferredCardSize, float minimumCardWidth = 140f)
         {
-            var row = Instantiate(optionRowTemplate, parent == null ? optionContent : parent, false);
+            optionScroll.gameObject.SetActive(true);
+            if (IsCardPicker)
+            {
+                optionScroll.horizontal = true;
+                optionScroll.vertical = false;
+                LayoutRebuilder.MarkLayoutForRebuild(optionContent);
+            }
+            else if (cardGrid != null)
+            {
+                cardGrid.Configure(preferredCardSize, minimumCardWidth);
+                cardGrid.enabled = true;
+            }
+            LayoutRebuilder.MarkLayoutForRebuild(expandedContent);
+            return OptionContent;
+        }
+
+        public UiEffectRowView CreateEffectRow()
+        {
+            ConfigureOptionScroll("Option Scroll", 0, 0);
+            var row = Instantiate(effectRowTemplate, OptionContent, false);
+            row.gameObject.SetActive(true);
+            return row;
+        }
+
+        public EffectDialogOptionRowView CreateOptionRow(RectTransform parent, bool execution = false)
+        {
+            var row = Instantiate(execution ? executionRowTemplate : optionRowTemplate, parent == null ? OptionContent : parent, false);
             row.gameObject.SetActive(true);
             return row;
         }
 
         public EffectDialogResourceRowView CreateResourceRow()
         {
-            var row = Instantiate(resourceRowTemplate, expandedContent, false);
+            ConfigureResourceScroll();
+            var row = Instantiate(resourceRowTemplate, OptionContent, false);
             row.gameObject.SetActive(true);
             return row;
         }
 
-        public EffectDialogActionButtonView AcquireActionButton(RectTransform parent)
+        public EffectDialogActionButtonView AcquireActionButton(RectTransform parent, bool primary = true)
         {
-            for (var i = 0; i < actionButtons.Length; i++)
+            for (var i = primary ? 0 : 1; i < actionButtons.Length; i++)
             {
                 var action = actionButtons[i];
                 if (action.gameObject.activeSelf)
@@ -187,7 +256,8 @@ namespace YC.Presentation
                     continue;
                 }
 
-                action.transform.SetParent(parent == null ? expandedContent : parent, false);
+                if (!IsCardPicker) action.transform.SetParent(footer == null ? expandedContent : footer, false);
+                if (footer != null) footer.gameObject.SetActive(true);
                 action.Button.onClick.RemoveAllListeners();
                 action.gameObject.SetActive(true);
                 return action;
@@ -198,7 +268,7 @@ namespace YC.Presentation
 
         public FacilityEffectCardView CreateFacilityCard()
         {
-            var card = Instantiate(facilityCardTemplate, expandedContent, false);
+            var card = Instantiate(facilityCardTemplate, OptionContent, false);
             card.gameObject.SetActive(true);
             return card;
         }

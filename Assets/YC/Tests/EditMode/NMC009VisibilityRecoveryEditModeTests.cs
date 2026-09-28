@@ -10,6 +10,38 @@ namespace YC.Tests.EditMode
 {
     public sealed class NMC009VisibilityRecoveryEditModeTests
     {
+        [TestCase(GameStateViewerRole.Player)]
+        [TestCase(GameStateViewerRole.Spectator)]
+        public void PublicResources_RoundTripWithoutExposingPrivateCards(GameStateViewerRole role)
+        {
+            var player = new PlayerState { PlayerId = 2, Score = 123 };
+            player.Resources = new ResourceSet
+            {
+                Originium = 101, OriginiumShard = 202, Iron = 303,
+                PureOriginium = 404, GoldVoucher = 505
+            };
+            player.HandCardIds.Add("private-hand");
+            player.DiscardCardIds.Add("private-discard");
+            player.CoveredCharacterCardId = "private-covered";
+            var state = new GameState();
+            state.Players.Add(player);
+            var viewer = new GameStateViewer { Role = role, PlayerId = 1 };
+            var view = GameStateViewProjector.Project(state, viewer);
+            var json = JsonUtility.ToJson(view);
+            var restored = GameStateViewProjector.ToClientState(JsonUtility.FromJson<GameStateView>(json));
+            Assert.That(view.Players[0].Resources, Is.Not.SameAs(player.Resources));
+            var publicPlayer = restored.FindPlayer(2);
+            Assert.That(publicPlayer.Score, Is.EqualTo(123));
+            Assert.That(publicPlayer.Resources.Originium, Is.EqualTo(101));
+            Assert.That(publicPlayer.Resources.OriginiumShard, Is.EqualTo(202));
+            Assert.That(publicPlayer.Resources.Iron, Is.EqualTo(303));
+            Assert.That(publicPlayer.Resources.PureOriginium, Is.EqualTo(404));
+            Assert.That(publicPlayer.Resources.GoldVoucher, Is.EqualTo(505));
+            Assert.That(json, Does.Not.Contain("private-hand"));
+            Assert.That(json, Does.Not.Contain("private-discard"));
+            Assert.That(json, Does.Not.Contain("private-covered"));
+        }
+
         [Test]
         public void PlayerView_HidesOtherPrivateCardsEventsAndCandidates()
         {

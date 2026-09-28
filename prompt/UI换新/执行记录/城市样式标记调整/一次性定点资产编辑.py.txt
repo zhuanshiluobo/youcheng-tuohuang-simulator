@@ -1,0 +1,61 @@
+from pathlib import Path
+import re,json
+exec(Path('Logs/patch_city_style_assets.py').read_text(encoding='utf-8-sig').split('# Catalog binds')[0])
+P='Assets/YC/Presentation/'
+sprites=[P+'Effects/Sprites/EffectRows/markers/cooperation-'+bit+'-64.png' for bit in ['08','04','01','02']]
+refs=[f'{{fileID: 21300000, guid: {guid(p+".meta")}, type: 3}}' for p in sprites]
+gridguid=meta(Path(P+'Layout/CityStylePlayerMarkerGrid.cs'))
+changed=[]
+for file in ['BuildInfoPanel','Dialogs/CityStyleDeclarationPreviewDialog','GameplayInteractionHud']:
+ a=Asset(P+'Prefabs/Gameplay/'+file+'.prefab')
+ # The four basic markers replace all old digit bases in both live HUD and standalone rows.
+ for col,name in enumerate(['red','blue','green','yellow']):
+  old=guid(P+'CommonUi/Sprites/CityStyle/digit-base-'+name+'-32.png.meta')
+  for i,(k,t) in list(a.docs.items()):
+   if k==114 and NATIVE['Image'] in t and old in t:
+    a.set(i,'m_Sprite',refs[col]);a.set(i,'m_Type','0');a.set(i,'m_PreserveAspect','1');a.set(i,'m_Color','{r: 1, g: 1, b: 1, a: 1}')
+ overlays=[i for i,(k,t) in a.docs.items() if k==114 and guid(P+'CityStyleTrackOverlay.cs.meta') in t]
+ for overlay in overlays:
+  t=a.text(overlay)
+  tracks=re.findall(r'  - layout: ([^\n]+)\n    area: ([^\n]+)\n    root: \{fileID: (\d+)\}\n    zeroBlocks:\n((?:    - \{fileID: \d+\}\n)+)',t)
+  for layout,area,go,zeros in tracks:
+   r=next(i for i,(k,rt) in a.docs.items() if k==224 and ref(rt,'m_GameObject')==int(go))
+   for child in list(a.children(r)):
+    if 'm_Name: State Label\n' in a.text(a.go(child)):a.remove_tree(child)
+   group=a.node('Player Markers',r);a.fill(group)
+   a.component(a.go(group),NATIVE['GridLayoutGroup'],'''  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 4
+  m_StartCorner: 0
+  m_StartAxis: 0
+  m_CellSize: {x: 48, y: 48}
+  m_Spacing: {x: 7.2, y: 7.2}
+  m_Constraint: 1
+  m_ConstraintCount: 4
+''')
+   a.component(a.go(group),gridguid,'  heightFraction: 0.8\n  gapRatio: 0.15\n')
+   zeroGos=[int(n) for n in re.findall(r'fileID: (\d+)',zeros)]
+   slots={}
+   for col in [0,1,3,2]:
+    zr=next(i for i,(k,rt) in a.docs.items() if k==224 and ref(rt,'m_GameObject')==zeroGos[col])
+    slot=a.node('Player Slot '+str(col),group);slots[col]=slot
+    a.move(zr,slot);a.fill(zr)
+    im=comp(a,zr,NATIVE['Image']);a.set(im,'m_Sprite',refs[col]);a.set(im,'m_Type','0');a.set(im,'m_PreserveAspect','1');a.set(im,'m_Color','{r: 1, g: 1, b: 1, a: 0.23}')
+   t=t.replace('    zeroBlocks:\n'+zeros,'    zeroBlocks:\n'+zeros+'    playerSlots:\n'+''.join(f'    - {{fileID: {slots[c]}}}\n' for c in range(4)))
+  a.docs[overlay]=(114,t)
+ if file=='Dialogs/CityStyleDeclarationPreviewDialog':
+  close=89532057176552478
+  a.set(comp(a,close,NATIVE['Image']),'m_Color','{r: 1, g: 1, b: 1, a: 0}')
+  remove_comp(a,comp(a,close,NATIVE['Outline']))
+  marker=2393387431826385065
+  remove_comp(a,comp(a,marker,NATIVE['Outline']))
+  im=comp(a,marker,NATIVE['Image']);a.set(im,'m_Sprite',refs[0]);a.set(im,'m_PreserveAspect','1')
+ a.save();changed.append(file)
+cat=Path(P+'Content/CityStyleVisualCatalog.asset');s=cat.read_text(encoding='utf-8-sig')
+s=re.sub(r'(  - id: city_style_source_stone_industrial_hub\n)',r'\1    hideUnavailableLock: 1\n',s)
+s+='  playerMarkerSprites:\n'+''.join('  - '+r+'\n' for r in refs)
+cat.write_text(s,encoding='utf8')
+print('已定点更新：'+', '.join(changed)+'；18条四人原生布局；保留三资产 GUID 和存续对象 fileID。')

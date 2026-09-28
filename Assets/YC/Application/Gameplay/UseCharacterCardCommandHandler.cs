@@ -144,7 +144,12 @@ namespace YC.Application.Gameplay
             }
 
             var player = state.FindPlayer(command.PlayerId);
-            var validation = ValidateUnifiedActivation(state, player, cardId);
+            var pending = state.PendingCharacterEffect;
+            var confirmedSecondEffect = pending != null && pending.IsValid() &&
+                pending.ChoiceType == CharacterPendingChoiceTypes.SecondEffectExecution &&
+                pending.PlayerId == command.PlayerId && pending.CardId == cardId &&
+                pending.RemainingEffectMode == mode;
+            var validation = ValidateUnifiedActivation(state, player, cardId, confirmedSecondEffect);
             if (!validation.IsValid)
             {
                 result = CommandResult.Invalid(validation);
@@ -196,6 +201,9 @@ namespace YC.Application.Gameplay
                 return true;
             }
 
+            // 已经通过正式继续命令确认的剩余效果，交给当前统一 Effect 流程征集参数。
+            // 创建成功前保留旧待选状态，错误一侧不能绕过待选守卫。
+            if (confirmedSecondEffect) state.PendingCharacterEffect = null;
             var report = executor.RunUntilQuiescent();
             if (report.Faulted)
             {
@@ -214,7 +222,8 @@ namespace YC.Application.Gameplay
         private static ValidationResult ValidateUnifiedActivation(
             GameState state,
             PlayerState player,
-            string cardId)
+            string cardId,
+            bool confirmedSecondEffect)
         {
             if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
             {
@@ -231,7 +240,11 @@ namespace YC.Application.Gameplay
                 return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "只能在自己的行动窗口使用角色牌。");
             }
 
-            if (state.HasPendingChoice() || state.HasOpenActionableInteraction())
+            if (state.HasOpenActionableInteraction() ||
+                (state.PendingChoice != null && state.PendingChoice.IsValid()) ||
+                (state.PendingCardSession != null && state.PendingCardSession.IsValid()) ||
+                (state.PendingSpecialAction != null && state.PendingSpecialAction.IsValid(state)) ||
+                (state.PendingCharacterEffect != null && state.PendingCharacterEffect.IsValid() && !confirmedSecondEffect))
             {
                 return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择效果。");
             }

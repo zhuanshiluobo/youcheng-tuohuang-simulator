@@ -1,0 +1,66 @@
+[
+  {
+    "path": "Assets/YC/Presentation/Prefabs/GameSettings/GameSettingsMenu.prefab",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/YC/Presentation/Prefabs/GameSettings/GameSettingsMenu.prefab.meta",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab.meta",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/YC/Presentation/Prefabs/Viewers/ActionLogViewer.prefab",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/YC/Presentation/Prefabs/Viewers/ActionLogViewer.prefab.meta",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/YC/Presentation/Prefabs/Viewers/RulebookViewer.prefab",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/YC/Presentation/Prefabs/Viewers/RulebookViewer.prefab.meta",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/YC/Presentation/Prefabs/Viewers/ZoomableImageViewer.prefab",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/YC/Presentation/Prefabs/Viewers/ZoomableImageViewer.prefab.meta",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/Scenes/CollectionRoom.unity",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/Scenes/CollectionRoom.unity.meta",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/Scenes/LoadingScene.unity",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/Scenes/LoadingScene.unity.meta",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/Scenes/StartScene.unity",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/Scenes/StartScene.unity.meta",
+    "unchanged": true
+  }
+]

@@ -1,0 +1,1779 @@
+{
+    "asset": "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab",
+    "evidenceKind": "离线资产参考矩形；不是实际运行屏幕验收。包含相同对象迁移前后坐标、活动状态和层级。",
+    "referenceResolution": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "capturePhase": "-corrected",
+    "objects": [
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Start Game",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/Start Game",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 880.5,
+                "y": 345.5,
+                "width": 159.0,
+                "height": 54.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 880.5,
+                "y": 345.5,
+                "width": 159.0,
+                "height": 54.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/Room Code Input/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Room Code Input Slot/Room Code Input/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 756.0,
+                "y": 527.0,
+                "width": 316.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 756.0,
+                "y": 527.0,
+                "width": 316.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Validation Notice",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Header/Validation Notice",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 680.0,
+                "y": 655.0,
+                "width": 560.0,
+                "height": 34.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 680.0,
+                "y": 655.0,
+                "width": 560.0,
+                "height": 34.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Count Frame/Next Count",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Count Frame Slot/Count Frame/Next Count",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1112.0,
+                "y": 562.5,
+                "width": 52.0,
+                "height": 62.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1112.0,
+                "y": 562.5,
+                "width": 52.0,
+                "height": 62.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Actions/邀请好友 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Footer/Actions/邀请好友 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 902.0,
+                "y": 393.0,
+                "width": 116.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 782.0,
+                "y": 393.0,
+                "width": 116.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": -120.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/进入收藏室 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Footer/进入收藏室 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 885.0,
+                "y": 344.0,
+                "width": 150.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 885.0,
+                "y": 344.0,
+                "width": 150.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/Room Code Input",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Room Code Input Slot/Room Code Input",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 744.0,
+                "y": 527.0,
+                "width": 340.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 744.0,
+                "y": 527.0,
+                "width": 340.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Count Label",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Count Label Slot/Count Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 682.0,
+                "y": 562.5,
+                "width": 128.0,
+                "height": 51.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 682.0,
+                "y": 562.5,
+                "width": 128.0,
+                "height": 51.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 390.0,
+                "width": 620.0,
+                "height": 300.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 390.0,
+                "width": 620.0,
+                "height": 300.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Map Frame",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Map Frame Slot/Map Frame",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 843.0,
+                "y": 466.0,
+                "width": 322.0,
+                "height": 63.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 843.0,
+                "y": 466.0,
+                "width": 322.0,
+                "height": 63.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Actions/开始 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Footer/Actions/开始 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 912.0,
+                "y": 393.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 922.0,
+                "y": 393.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 10.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/Title",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Header/Title",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 810.0,
+                "y": 689.0,
+                "width": 300.0,
+                "height": 50.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 810.0,
+                "y": 689.0,
+                "width": 300.0,
+                "height": 50.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/加入联机 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 加入联机 Button Slot/加入联机 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 980.0,
+                "y": 518.0,
+                "width": 210.0,
+                "height": 68.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 980.0,
+                "y": 518.0,
+                "width": 210.0,
+                "height": 68.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/进入收藏室 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Footer/进入收藏室 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 885.0,
+                "y": 344.0,
+                "width": 150.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 885.0,
+                "y": 344.0,
+                "width": 150.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Map Frame/Map",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Map Frame Slot/Map Frame/Map",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 899.0,
+                "y": 467.5,
+                "width": 210.0,
+                "height": 60.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 899.0,
+                "y": 467.5,
+                "width": 210.0,
+                "height": 60.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/Achievement List",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Achievement List Slot/Achievement List",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 660.0,
+                "y": 415.0,
+                "width": 600.0,
+                "height": 250.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 660.0,
+                "y": 415.0,
+                "width": 600.0,
+                "height": 250.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/粘贴 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 粘贴 Button Slot/粘贴 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1130.0,
+                "y": 528.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1130.0,
+                "y": 528.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 680.0,
+                "y": 430.0,
+                "width": 560.0,
+                "height": 220.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 680.0,
+                "y": 430.0,
+                "width": 560.0,
+                "height": 220.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Close/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Header/Close/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1237.5,
+                "y": 693.0,
+                "width": 65.0,
+                "height": 65.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1237.5,
+                "y": 693.0,
+                "width": 65.0,
+                "height": 65.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 585.0,
+                "y": 291.5,
+                "width": 750.0,
+                "height": 500.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 585.0,
+                "y": 291.5,
+                "width": 750.0,
+                "height": 500.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Map Frame/Previous Map/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Map Frame Slot/Map Frame/Previous Map/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 843.0,
+                "y": 466.0,
+                "width": 52.0,
+                "height": 63.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 843.0,
+                "y": 466.0,
+                "width": 52.0,
+                "height": 63.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/加入联机 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 加入联机 Button Slot/加入联机 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 980.0,
+                "y": 518.0,
+                "width": 210.0,
+                "height": 68.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 980.0,
+                "y": 518.0,
+                "width": 210.0,
+                "height": 68.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/返回 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Footer/返回 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 982.0,
+                "y": 413.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 982.0,
+                "y": 413.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/Description",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Description Slot/Description",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 585.0,
+                "width": 540.0,
+                "height": 34.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 585.0,
+                "width": 540.0,
+                "height": 34.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel/Message",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Message Slot/Message",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 516.0,
+                "width": 520.0,
+                "height": 52.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 516.0,
+                "width": 520.0,
+                "height": 52.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Map Frame/Next Map/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Map Frame Slot/Map Frame/Next Map/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1113.0,
+                "y": 466.0,
+                "width": 52.0,
+                "height": 63.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1113.0,
+                "y": 466.0,
+                "width": 52.0,
+                "height": 63.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Count Frame",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Count Frame Slot/Count Frame",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 844.0,
+                "y": 562.5,
+                "width": 320.0,
+                "height": 62.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 844.0,
+                "y": 562.5,
+                "width": 320.0,
+                "height": 62.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Room Code",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Header/Room Code",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 697.0,
+                "y": 686.0,
+                "width": 410.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 697.0,
+                "y": 686.0,
+                "width": 410.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Room Status",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Room Status Slot/Room Status",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 680.0,
+                "y": 452.0,
+                "width": 560.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 680.0,
+                "y": 452.0,
+                "width": 560.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel/Action Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel/UI007 Footer/Action Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 912.0,
+                "y": 448.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 912.0,
+                "y": 448.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Actions/开始 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Footer/Actions/开始 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 912.0,
+                "y": 393.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 922.0,
+                "y": 393.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 10.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/粘贴 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 粘贴 Button Slot/粘贴 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1130.0,
+                "y": 528.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1130.0,
+                "y": 528.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Close",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Header/Close",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1237.5,
+                "y": 693.0,
+                "width": 65.0,
+                "height": 65.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1237.5,
+                "y": 693.0,
+                "width": 65.0,
+                "height": 65.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Map Frame/Next Map",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Map Frame Slot/Map Frame/Next Map",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1113.0,
+                "y": 466.0,
+                "width": 52.0,
+                "height": 63.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1113.0,
+                "y": 466.0,
+                "width": 52.0,
+                "height": 63.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Count Frame/Next Count/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Count Frame Slot/Count Frame/Next Count/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1112.0,
+                "y": 562.5,
+                "width": 52.0,
+                "height": 62.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1112.0,
+                "y": 562.5,
+                "width": 52.0,
+                "height": 62.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/Room Code Input/Placeholder",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Room Code Input Slot/Room Code Input/Placeholder",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 756.0,
+                "y": 527.0,
+                "width": 316.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 756.0,
+                "y": 527.0,
+                "width": 316.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/返回 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Footer/返回 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 905.0,
+                "y": 420.0,
+                "width": 110.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 905.0,
+                "y": 420.0,
+                "width": 110.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Map Label",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Map Label Slot/Map Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 682.0,
+                "y": 466.0,
+                "width": 128.0,
+                "height": 48.5
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 682.0,
+                "y": 466.0,
+                "width": 128.0,
+                "height": 48.5
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Actions/返回 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Footer/Actions/返回 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 912.0,
+                "y": 393.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1042.0,
+                "y": 393.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 130.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/返回 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Header/返回 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1178.0,
+                "y": 689.0,
+                "width": 110.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1178.0,
+                "y": 689.0,
+                "width": 110.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/创建联机 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 创建联机 Button Slot/创建联机 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 730.0,
+                "y": 518.0,
+                "width": 210.0,
+                "height": 68.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 730.0,
+                "y": 518.0,
+                "width": 210.0,
+                "height": 68.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/Status",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Status Slot/Status",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 485.0,
+                "width": 540.0,
+                "height": 34.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 485.0,
+                "width": 540.0,
+                "height": 34.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Seat List",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Seat List Slot/Seat List",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 501.0,
+                "width": 540.0,
+                "height": 150.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 501.0,
+                "width": 540.0,
+                "height": 150.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 385.0,
+                "width": 620.0,
+                "height": 310.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 385.0,
+                "width": 620.0,
+                "height": 310.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/复制 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Header/复制 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1147.0,
+                "y": 688.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1147.0,
+                "y": 688.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Map Frame/Previous Map",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Map Frame Slot/Map Frame/Previous Map",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 843.0,
+                "y": 466.0,
+                "width": 52.0,
+                "height": 63.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 843.0,
+                "y": 466.0,
+                "width": 52.0,
+                "height": 63.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Count Frame/Previous Count",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Count Frame Slot/Count Frame/Previous Count",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 844.0,
+                "y": 562.5,
+                "width": 52.0,
+                "height": 62.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 844.0,
+                "y": 562.5,
+                "width": 52.0,
+                "height": 62.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel/Title",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel/UI007 Header/Title",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 569.0,
+                "width": 520.0,
+                "height": 34.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 569.0,
+                "width": 520.0,
+                "height": 34.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/加入 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Footer/加入 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 842.0,
+                "y": 413.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 842.0,
+                "y": 413.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Count Frame/Previous Count/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Count Frame Slot/Count Frame/Previous Count/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 844.0,
+                "y": 562.5,
+                "width": 52.0,
+                "height": 62.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 844.0,
+                "y": 562.5,
+                "width": 52.0,
+                "height": 62.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 310.0,
+                "width": 720.0,
+                "height": 460.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 310.0,
+                "width": 720.0,
+                "height": 460.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Start Game/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/Start Game/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 880.5,
+                "y": 345.5,
+                "width": 159.0,
+                "height": 54.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 880.5,
+                "y": 345.5,
+                "width": 159.0,
+                "height": 54.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/复制 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Header/复制 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1147.0,
+                "y": 688.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1147.0,
+                "y": 688.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Seat List/Seat Template",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Seat List Slot/Seat List/Seat Template",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 560.0,
+                "width": 540.0,
+                "height": 32.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 560.0,
+                "width": 540.0,
+                "height": 32.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Count Frame/Count",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Count Frame Slot/Count Frame/Count",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 899.0,
+                "y": 563.5,
+                "width": 210.0,
+                "height": 60.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 899.0,
+                "y": 563.5,
+                "width": 210.0,
+                "height": 60.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/创建联机 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 创建联机 Button Slot/创建联机 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 730.0,
+                "y": 518.0,
+                "width": 210.0,
+                "height": 68.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 730.0,
+                "y": 518.0,
+                "width": 210.0,
+                "height": 68.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/返回 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Footer/返回 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 982.0,
+                "y": 413.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 982.0,
+                "y": 413.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel/Action Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel/UI007 Footer/Action Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 912.0,
+                "y": 448.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 912.0,
+                "y": 448.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Actions/返回 Button/Text",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Footer/Actions/返回 Button/Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 912.0,
+                "y": 393.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1042.0,
+                "y": 393.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 130.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/Title",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Header/Title",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 628.0,
+                "width": 540.0,
+                "height": 34.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 628.0,
+                "width": 540.0,
+                "height": 34.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 325.0,
+                "width": 620.0,
+                "height": 430.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 325.0,
+                "width": 620.0,
+                "height": 430.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/返回 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Header/返回 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1178.0,
+                "y": 689.0,
+                "width": 110.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1178.0,
+                "y": 689.0,
+                "width": 110.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/加入 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Footer/加入 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 842.0,
+                "y": 413.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 842.0,
+                "y": 413.0,
+                "width": 96.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Actions",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Footer/Actions",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 740.0,
+                "y": 393.0,
+                "width": 440.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 740.0,
+                "y": 393.0,
+                "width": 440.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/Actions/邀请好友 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Footer/Actions/邀请好友 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 902.0,
+                "y": 393.0,
+                "width": 116.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 782.0,
+                "y": 393.0,
+                "width": 116.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": -120.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/返回 Button",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Footer/返回 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 905.0,
+                "y": 420.0,
+                "width": 110.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 905.0,
+                "y": 420.0,
+                "width": 110.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/Title",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Header/Title",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 810.0,
+                "y": 684.0,
+                "width": 300.0,
+                "height": 65.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 810.0,
+                "y": 684.0,
+                "width": 300.0,
+                "height": 65.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/Title",
+            "afterPath": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Header/Title",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 613.0,
+                "width": 540.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 613.0,
+                "width": 540.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        }
+    ]
+}

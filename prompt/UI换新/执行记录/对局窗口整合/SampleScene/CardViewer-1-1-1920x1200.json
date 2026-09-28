@@ -1,0 +1,258 @@
+{
+    "scene": "SampleScene",
+    "mode": "use-character（组件诊断）",
+    "settingsFirstHit": "Settings Button",
+    "endActionFirstHit": "结束本回合 Button",
+    "size": {
+        "x": 1920.0,
+        "y": 1200.0
+    },
+    "content": {
+        "serializedVersion": "2",
+        "x": 0.000028990019927732646,
+        "y": 107.51741790771485,
+        "width": 1920.0,
+        "height": 1016.5879516601563
+    },
+    "window": {
+        "serializedVersion": "2",
+        "x": 25.019929885864259,
+        "y": 148.3213653564453,
+        "width": 1869.960205078125,
+        "height": 934.9800415039063
+    },
+    "card": {
+        "serializedVersion": "2",
+        "x": 752.40576171875,
+        "y": 362.3020935058594,
+        "width": 415.1884765625,
+        "height": 588.18359375
+    },
+    "plot": {
+        "serializedVersion": "2",
+        "x": 491.9829406738281,
+        "y": 214.72918701171876,
+        "width": 295.1459045410156,
+        "height": 88.54376220703125
+    },
+    "strategy": {
+        "serializedVersion": "2",
+        "x": 812.4270629882813,
+        "y": 214.72918701171876,
+        "width": 295.14593505859377,
+        "height": 88.54376220703125
+    },
+    "actionsHidden": false,
+    "objects": [
+        {
+            "name": "CardViewer(Clone)",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 0.000028990019927732646,
+                "y": 107.51741790771485,
+                "width": 1920.0,
+                "height": 1016.5879516601563
+            }
+        },
+        {
+            "name": "Window Bounds",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 25.019929885864259,
+                "y": 148.3213653564453,
+                "width": 1869.960205078125,
+                "height": 934.9800415039063
+            }
+        },
+        {
+            "name": "Window",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 25.019929885864259,
+                "y": 148.3213653564453,
+                "width": 1869.960205078125,
+                "height": 934.9800415039063
+            }
+        },
+        {
+            "name": "Window Artwork",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 25.019929885864259,
+                "y": 148.3213653564453,
+                "width": 1869.960205078125,
+                "height": 934.9800415039063
+            }
+        },
+        {
+            "name": "Window Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 25.019929885864259,
+                "y": 148.3213653564453,
+                "width": 1869.960205078125,
+                "height": 934.9800415039063
+            }
+        },
+        {
+            "name": "Title",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 126.21281433105469,
+                "y": 969.45947265625,
+                "width": 1667.574462890625,
+                "height": 50.596435546875
+            }
+        },
+        {
+            "name": "Header Spacing",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 126.21281433105469,
+                "y": 950.4857788085938,
+                "width": 1667.574462890625,
+                "height": 18.9736328125
+            }
+        },
+        {
+            "name": "Card Viewport",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 126.21281433105469,
+                "y": 362.3020935058594,
+                "width": 1667.574462890625,
+                "height": 588.18359375
+            }
+        },
+        {
+            "name": "Card Contain",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 685.9359130859375,
+                "y": 362.3020935058594,
+                "width": 548.128173828125,
+                "height": 588.18359375
+            }
+        },
+        {
+            "name": "Card Image",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 752.40576171875,
+                "y": 362.3020935058594,
+                "width": 415.1884765625,
+                "height": 588.18359375
+            }
+        },
+        {
+            "name": "Divider Spacing",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 126.21281433105469,
+                "y": 337.00390625,
+                "width": 1667.574462890625,
+                "height": 25.2982177734375
+            }
+        },
+        {
+            "name": "Use Hint",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 126.21281433105469,
+                "y": 311.7056884765625,
+                "width": 1667.574462890625,
+                "height": 25.2982177734375
+            }
+        },
+        {
+            "name": "Action Spacing",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 126.21281433105469,
+                "y": 303.27294921875,
+                "width": 1667.574462890625,
+                "height": 8.4327392578125
+            }
+        },
+        {
+            "name": "Footer",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 126.21281433105469,
+                "y": 214.72918701171876,
+                "width": 1667.574462890625,
+                "height": 88.54376220703125
+            }
+        },
+        {
+            "name": "Actions",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 126.21281433105469,
+                "y": 214.72918701171876,
+                "width": 1667.574462890625,
+                "height": 88.54376220703125
+            }
+        },
+        {
+            "name": "Plot",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 491.9829406738281,
+                "y": 214.72918701171876,
+                "width": 295.1459045410156,
+                "height": 88.54376220703125
+            }
+        },
+        {
+            "name": "Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 491.9829406738281,
+                "y": 214.72918701171876,
+                "width": 295.1459045410156,
+                "height": 88.54376220703125
+            }
+        },
+        {
+            "name": "Strategy",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 812.4270629882813,
+                "y": 214.72918701171876,
+                "width": 295.14593505859377,
+                "height": 88.54376220703125
+            }
+        },
+        {
+            "name": "Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 812.4270629882813,
+                "y": 214.72918701171876,
+                "width": 295.14593505859377,
+                "height": 88.54376220703125
+            }
+        },
+        {
+            "name": "Cancel",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1132.87109375,
+                "y": 214.72918701171876,
+                "width": 295.14599609375,
+                "height": 88.54376220703125
+            }
+        },
+        {
+            "name": "Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1132.87109375,
+                "y": 214.72918701171876,
+                "width": 295.14599609375,
+                "height": 88.54376220703125
+            }
+        }
+    ]
+}

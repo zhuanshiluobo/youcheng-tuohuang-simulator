@@ -44,7 +44,6 @@ namespace YC.Presentation
         [SerializeField] private Vector2 canvasReferenceResolution;
         [SerializeField, Range(0f, 1f)] private float canvasMatchWidthOrHeight;
         [SerializeField] private Vector2 dialogActionButtonSize;
-        [SerializeField] private Vector2 collapsibleMapPromptSize;
         [SerializeField] private Vector2 viewerCloseButtonSize;
         [SerializeField] private Vector2 viewerCloseButtonOffset;
 
@@ -72,7 +71,6 @@ namespace YC.Presentation
         public Vector2 CanvasReferenceResolution => canvasReferenceResolution;
         public float CanvasMatchWidthOrHeight => canvasMatchWidthOrHeight;
         public Vector2 DialogActionButtonSize => dialogActionButtonSize;
-        public Vector2 CollapsibleMapPromptSize => collapsibleMapPromptSize;
         public Vector2 ViewerCloseButtonSize => viewerCloseButtonSize;
         public Vector2 ViewerCloseButtonOffset => viewerCloseButtonOffset;
 
@@ -107,7 +105,6 @@ namespace YC.Presentation
             canvasReferenceResolution = new Vector2(1920f, 1080f);
             canvasMatchWidthOrHeight = 0.5f;
             dialogActionButtonSize = new Vector2(220f, 48f);
-            collapsibleMapPromptSize = new Vector2(650f, 260f);
             viewerCloseButtonSize = new Vector2(42f, 42f);
             viewerCloseButtonOffset = new Vector2(-18f, -12f);
         }
@@ -165,7 +162,6 @@ namespace YC.Presentation
 
             if (!IsPositiveFinite(canvasReferenceResolution) ||
                 !IsPositiveFinite(dialogActionButtonSize) ||
-                !IsPositiveFinite(collapsibleMapPromptSize) ||
                 !IsPositiveFinite(viewerCloseButtonSize))
             {
                 reason = "UI 主题中的共享尺寸必须是有限正数。";

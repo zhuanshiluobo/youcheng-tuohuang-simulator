@@ -15,7 +15,8 @@ namespace YC.Presentation
         Dragging,
         Focused,
         Ghosted,
-        Confirming
+        Confirming,
+        Placing
     }
 
     public sealed class BuildFacilitySelectionController
@@ -39,6 +40,7 @@ namespace YC.Presentation
         public int CityBoardSlotIndex { get; private set; } = -1;
         public string PaymentMode { get; private set; } = string.Empty;
         public string ErrorMessage { get; private set; } = string.Empty;
+        public bool IsSupplySource => !isAdditionalBuild;
         public bool IsActive => Phase != BuildFacilityDraftPhase.Inactive;
 
         public void Begin(int playerId)
@@ -101,6 +103,20 @@ namespace YC.Presentation
             return true;
         }
 
+        public bool TrySelectFacility(GameState state, string facilityId, out string reason)
+        {
+            if (isAdditionalBuild && !additionalBuildFacilityIds.Contains(facilityId))
+            { reason = "设施不在本次候选中。"; return false; }
+            var option = QueryOption(state, facilityId);
+            reason = option == null ? "设施不在本次候选中。" : option.Reason;
+            if (!IsActive || option == null || !option.CanBuild) return false;
+            FacilityId = facilityId;
+            CityBoardSlotIndex = -1;
+            PaymentMode = ErrorMessage = string.Empty;
+            Phase = BuildFacilityDraftPhase.Focused;
+            return true;
+        }
+
         public bool TryBeginGhostDrag(out string reason)
         {
             reason = string.Empty;
@@ -160,7 +176,7 @@ namespace YC.Presentation
             reason = string.Empty;
             if (Phase != BuildFacilityDraftPhase.Focused)
             {
-                reason = "请先把建设卡放到合法槽位。";
+                reason = "请先选择设施牌。";
                 return false;
             }
 
@@ -190,9 +206,12 @@ namespace YC.Presentation
         public GameCommand CreateConfirmationCommand()
         {
             if (Phase != BuildFacilityDraftPhase.Confirming || string.IsNullOrEmpty(FacilityId) ||
-                CityBoardSlotIndex < 0 || string.IsNullOrEmpty(PaymentMode))
+                string.IsNullOrEmpty(PaymentMode))
                 throw new InvalidOperationException("建设草稿尚未进入最终确认状态。");
-            return CreateCommand(PlayerId, FacilityId, CityBoardSlotIndex, PaymentMode);
+            if (CityBoardSlotIndex >= 0) return CreateCommand(PlayerId, FacilityId, CityBoardSlotIndex, PaymentMode);
+            var command = new GameCommand { Kind = GameCommandKind.BuildFacility, PlayerId = PlayerId, TargetId = FacilityId };
+            command.Parameters[BuildFacilityCommandHandler.PaymentModeParameter] = PaymentMode;
+            return command;
         }
 
         public void MarkSubmissionFailed(string reason)

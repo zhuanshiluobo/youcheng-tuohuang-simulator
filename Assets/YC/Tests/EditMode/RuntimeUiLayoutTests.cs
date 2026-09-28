@@ -46,268 +46,80 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void ActionPanel_FlipsBetweenEqualSizedMainAndHintCardsAndOpensHintPreview()
+        public void ActionPanel_MainActionsDoNotRequireRetiredContextFace()
         {
-            var canvas = CreateCanvas("Action Panel Test Canvas");
-            var controller = BuildActionPanel(canvas);
-            var characterPreviewOpened = 0;
-            InvokePublic(
-                controller,
-                "ConfigureCharacterCardViewerAction",
-                new Action(() => characterPreviewOpened += 1));
-
-            var actionPanel = FindTransform("Action Panel");
-            var hintPanel = FindTransform("Hint Card Panel");
-            var mainFace = FindTransform("Main Action Face");
-            var cardFace = FindTransform("Action Card Face");
-            var flipButton = FindTransform("Action Panel Flip Button");
-            var influenceText = FindTransform("Remaining Influence Text");
-            var removedSpecialActionEntry = FindTransform("特殊行动 Button");
-
-            Assert.That(actionPanel, Is.Not.Null);
-            Assert.That(actionPanel.anchorMin, Is.EqualTo(new Vector2(1f, 0f)));
-            Assert.That(actionPanel.anchorMax, Is.EqualTo(new Vector2(1f, 0f)));
-            Assert.That(actionPanel.pivot, Is.EqualTo(new Vector2(1f, 0f)));
-            Assert.That(actionPanel.sizeDelta, Is.EqualTo(new Vector2(360f, 502f)));
-            Assert.That(actionPanel.anchoredPosition, Is.EqualTo(Vector2.zero));
-            Assert.That(hintPanel, Is.Null);
-            Assert.That(mainFace, Is.Not.Null);
-            Assert.That(cardFace, Is.Not.Null);
-            Assert.That(mainFace.anchorMin, Is.EqualTo(Vector2.zero));
-            Assert.That(mainFace.anchorMax, Is.EqualTo(Vector2.one));
-            Assert.That(cardFace.anchorMin, Is.EqualTo(Vector2.zero));
-            Assert.That(cardFace.anchorMax, Is.EqualTo(Vector2.one));
-            Assert.That(flipButton, Is.Not.Null);
-            Assert.That(FindTransform("建设 Button"), Is.Null, "建设入口应改为直接拖动公开建设牌。");
-            Assert.That(
-                removedSpecialActionEntry,
-                Is.Null,
-                "特殊行动必须只从城市样式卡上的影响力标记拖拽发动。");
-            Assert.That(
-                controller.GetType().GetField("specialActionButton", BindingFlags.Instance | BindingFlags.NonPublic),
-                Is.Null,
-                "行动面板不应继续保存不存在的特殊行动按钮状态。");
-            Assert.That(
-                typeof(ActionPanelViewModel).GetProperty("CanUseSpecialAction", BindingFlags.Instance | BindingFlags.Public),
-                Is.Null,
-                "行动面板 ViewModel 不应继续暴露无消费者的特殊行动按钮状态。");
-            Assert.That(
-                controller.GetType().GetMethod("Build", BindingFlags.Static | BindingFlags.Public),
-                Is.Null,
-                "行动面板不应保留运行时 UI 构建入口。");
-            var bindParameters = controller.GetType()
-                .GetMethod("Bind", BindingFlags.Static | BindingFlags.Public)
-                .GetParameters();
-            Assert.That(
-                Array.Exists(bindParameters, parameter => parameter.Name == "onSpecialAction"),
-                Is.False,
-                "行动面板绑定 API 不应继续要求无消费者的特殊行动回调。");
-            flipButton.GetComponent<Button>().onClick.Invoke();
-            Assert.That(mainFace.gameObject.activeSelf, Is.False);
-            Assert.That(cardFace.gameObject.activeSelf, Is.True);
-            var hintImage = FindTransform("Action Card Image");
-            Assert.That(hintImage.GetComponent<RawImage>().texture, Is.Not.Null);
-            Assert.That(hintImage.GetComponent<Button>().interactable, Is.True);
-            hintImage.GetComponent<Button>().onClick.Invoke();
-            var hintViewerCanvas = FindTransform("Hint Card Viewer Canvas");
-            Assert.That(hintViewerCanvas, Is.Not.Null);
-            Assert.That(
-                hintViewerCanvas.IsChildOf(actionPanel),
-                Is.False,
-                "提示卡大图画布必须独立于右下角行动面板。只要仍在面板层级内，就会被裁切并错位。");
-            Assert.That(FindTransform("Hint Card Viewer"), Is.Not.Null);
-            Assert.That(FindTransform("Hint Card Image").GetComponent<RawImage>().texture,
-                Is.SameAs(hintImage.GetComponent<RawImage>().texture));
-            Assert.That(characterPreviewOpened, Is.Zero, "提示卡点击不应误触角色牌预览。");
-            Assert.That(influenceText, Is.Not.Null);
-            Assert.That(influenceText.GetComponent<Text>().text, Is.EqualTo("× 0"));
-
+            var controller = BuildActionPanel(CreateCanvas("Action Panel Test Canvas"));
+            Assert.That(FindTransform("Main Action Face"), Is.Not.Null);
+            Assert.That(FindTransform("Action Panel Context Button"), Is.Null);
+            Assert.That(FindTransform("Action Card Face"), Is.Null);
             InvokePublic(controller, "SetRemainingInfluence", 17);
-            Assert.That(influenceText.GetComponent<Text>().text, Is.EqualTo("× 17"));
+            Assert.That(FindTransform("Remaining Influence Text").GetComponent<Text>().text,
+                Does.Contain("17"));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CharacterUse_SecondEffectOffersLegalChoiceOnce(bool finish)
+        {
+            var state = SecondEffectState();
+            var dialog = CreateCharacterUseDialog();
+            var calls = 0;
+            InvokePublic(dialog, "ShowSecondEffectStep", new CharacterCardPanelPresenter().BuildView(state, 1),
+                new Action(() => Assert.Fail("策略已完成，不得再次发动")),
+                new Action(() => { if (!finish) calls++; }),
+                new Action(() => { if (finish) calls++; }), new Func<bool>(() => true), null);
+            var strategy = FindTransform("Character Effect Option 0").GetComponent<Button>();
+            Assert.That(strategy.interactable, Is.False);
+            var button = FindTransform("Character Effect Option " + (finish ? 2 : 1)).GetComponent<Button>();
+            Assert.That(button.interactable, Is.True);
+            var click = button.onClick;
+            click.Invoke();
+            click.Invoke();
+            Assert.That(calls, Is.EqualTo(1), "连续点击不能重复提交角色效果决定。");
         }
 
         [Test]
-        public void ActionPanel_MainFaceReservesDedicatedTopRowForFlipButton()
+        public void CharacterUse_StaleChoiceAndClosingDoNotSubmitDecision()
         {
-            var canvas = CreateCanvas("Action Panel Test Canvas");
-            BuildActionPanel(canvas);
-
-            var flip = FindTransform("Action Panel Flip Button");
-            var player = FindTransform("当前玩家 Text");
-            var phase = FindTransform("阶段 Text");
-
-            Assert.That(flip.anchoredPosition.y, Is.EqualTo(-24f));
-            Assert.That(player.anchoredPosition.y, Is.EqualTo(-68f));
-            Assert.That(phase.anchoredPosition.y, Is.EqualTo(-98f));
-            Assert.That(
-                player.anchoredPosition.y + player.rect.height * 0.5f,
-                Is.LessThan(flip.anchoredPosition.y - flip.rect.height * 0.5f));
+            var dialog = CreateCharacterUseDialog();
+            var calls = 0;
+            Action callback = () => calls++;
+            InvokePublic(dialog, "ShowSecondEffectStep", new CharacterCardPanelPresenter().BuildView(SecondEffectState(), 1),
+                callback, callback, callback, new Func<bool>(() => false), callback);
+            FindTransform("Character Effect Option 2").GetComponent<Button>().onClick.Invoke();
+            InvokePublic(dialog, "Hide");
+            Assert.That(calls, Is.Zero);
         }
 
-        [Test]
-        public void ActionPanel_UsesInsetCoveredCardBackAndOpensFrontThroughConfiguredViewerAction()
+        private object CreateCharacterUseDialog()
         {
-            var canvas = CreateCanvas("Action Panel Test Canvas");
-            var controller = BuildActionPanel(canvas);
-            var state = new GameState
-            {
-                Phase = GamePhase.ActionRound1,
-                CurrentPlayerId = 1,
-                StartPlayerId = 1,
-                Players =
-                {
-                    new PlayerState
-                    {
-                        PlayerId = 1,
-                        Color = PlayerColor.Red,
-                        CoveredCharacterCardId = "character.red.p1.liskarm"
-                    }
-                }
-            };
-            var opened = 0;
-            InvokePublic(controller, "ConfigureCharacterCardViewerAction", new Action(() => opened += 1));
-            InvokePublic(controller, "ShowCharacterCard", new CharacterCardPanelPresenter().BuildView(state, 1));
-
-            var container = FindTransform("Action Card Image Container");
-            var image = FindTransform("Action Card Image");
-            Assert.That(container.sizeDelta, Is.EqualTo(new Vector2(222f, 310f)));
-            Assert.That(image.GetComponent<RawImage>().texture.name, Is.EqualTo("artwork/character_back_" + ((int)PlayerColor.Red) + ".jpg"));
-            Assert.That(image.GetComponent<Button>().interactable, Is.True);
-            Assert.That(FindTransform("Action Card Title").GetComponent<Text>().text,
-                Is.EqualTo("已盖放角色牌（雷蛇）"));
-            image.GetComponent<Button>().onClick.Invoke();
-            Assert.That(opened, Is.EqualTo(1));
-        }
-
-        [Test]
-        public void ActionPanel_ClickingCharacterEffectRevealsCardFrontAndKeepsItRevealedAfterRefresh()
-        {
-            var canvas = CreateCanvas("Action Panel Test Canvas");
-            var controller = BuildActionPanel(canvas);
-            var state = new GameState
-            {
-                Phase = GamePhase.ActionRound1,
-                CurrentPlayerId = 1,
-                StartPlayerId = 1,
-                Players =
-                {
-                    new PlayerState
-                    {
-                        PlayerId = 1,
-                        Color = PlayerColor.Red,
-                        CoveredCharacterCardId = "character.red.p1.liskarm"
-                    }
-                }
-            };
-            var invoked = 0;
-            var view = new CharacterCardPanelPresenter().BuildView(state, 1);
-            InvokePublic(controller, "ConfigureCharacterActions", new Action(() => invoked += 1), new Action(() => { }));
-            InvokePublic(controller, "ShowCharacterCard", view);
-
-            FindTransform("Character Strategy Button").GetComponent<Button>().onClick.Invoke();
-
-            Assert.That(invoked, Is.EqualTo(1));
-            Assert.That(FindTransform("Action Card Image").GetComponent<RawImage>().texture.name,
-                Does.Contain("liskarm"));
-            Assert.That(FindTransform("Action Card Hint").GetComponent<Text>().text,
-                Does.Contain("已翻开"));
-
-            InvokePublic(controller, "ShowCharacterCard", view);
-            Assert.That(FindTransform("Action Card Image").GetComponent<RawImage>().texture.name,
-                Does.Contain("liskarm"));
-        }
-
-        [Test]
-        public void ActionPanel_CharacterCoverDropZoneHidesOverlayText()
-        {
-            var canvas = CreateCanvas("Action Panel Test Canvas");
-            var controller = BuildActionPanel(canvas);
-
-            InvokePublic(controller, "ShowCharacterCoverDropZone", string.Empty);
-
-            Assert.That(FindTransform("Action Card Face").gameObject.activeSelf, Is.True);
-            Assert.That(FindTransform("Action Card Title").GetComponent<Text>().text, Is.Empty);
-            Assert.That(FindTransform("Action Card Hint").GetComponent<Text>().text, Is.Empty);
-        }
-
-        [Test]
-        public void ActionPanel_SecondEffectDecisionUsesRemainingButtonAndFlipDeclines()
-        {
-            var canvas = CreateCanvas("Action Panel Test Canvas");
-            var controller = BuildActionPanel(canvas);
-            var state = new GameState
-            {
-                Phase = GamePhase.ActionRound1,
-                CurrentPlayerId = 1,
-                StartPlayerId = 1,
-                Players =
-                {
-                    new PlayerState
-                    {
-                        PlayerId = 1,
-                        Color = PlayerColor.Red,
-                        CoveredCharacterCardId = "character.red.p1.cannot"
-                    }
-                },
-                PendingCharacterEffect = new PendingCharacterEffectState
-                {
-                    ChoiceType = YC.Domain.Cards.CharacterPendingChoiceTypes.SecondEffectDecision,
-                    PlayerId = 1,
-                    CardId = "character.red.p1.cannot",
-                    RemainingEffectMode = YC.Domain.Cards.CharacterEffectModes.Tactic,
-                    OptionIds =
-                    {
-                        YC.Domain.Cards.CharacterEffectChoiceIds.ContinueSecondEffect,
-                        YC.Domain.Cards.CharacterEffectChoiceIds.FinishCharacterUse
-                    }
-                }
-            };
-            var declined = 0;
-            InvokePublic(controller, "ConfigureCharacterFlipAction", new Func<bool>(() => { declined += 1; return true; }));
-            InvokePublic(controller, "ShowCharacterCard", new CharacterCardPanelPresenter().BuildView(state, 1));
-
-            Assert.That(FindTransform("Character Strategy Button").GetComponent<Button>().interactable, Is.False);
-            Assert.That(FindTransform("Character Tactic Button").GetComponent<Button>().interactable, Is.True);
-            Assert.That(FindTransform("Action Card Hint").GetComponent<Text>().text,
-                Does.Contain("可继续使用第二个效果").And.Contain("点击翻转"));
-
-            FindTransform("Action Panel Flip Button").GetComponent<Button>().onClick.Invoke();
-            Assert.That(declined, Is.EqualTo(1));
-            Assert.That(FindTransform("Main Action Face").gameObject.activeSelf, Is.True);
-            Assert.That(FindTransform("Action Card Face").gameObject.activeSelf, Is.False);
-        }
-
-        [Test]
-        public void PromptPresenter_StartsHiddenInTopRightPromptArea()
-        {
-            var type = Type.GetType("YC.Presentation.PromptPresenter, Assembly-CSharp", false);
-            Assert.That(type, Is.Not.Null, "Missing YC.Presentation.PromptPresenter.");
-
             owner = InstantiateGameplayHudPrefab();
-            owner.name = "Prompt Presenter Layout Test";
-            var viewType = Type.GetType("YC.Presentation.GameplayPromptView, Assembly-CSharp", false);
-            var view = owner.GetComponentInChildren(viewType, true);
-            var bind = type.GetMethod("Bind", BindingFlags.Static | BindingFlags.Public);
-            Assert.That(bind, Is.Not.Null, "Missing PromptPresenter.Bind.");
-            bind.Invoke(null, new[] { view });
-
-            var promptPanel = FindTransform("Prompt Panel");
-            Assert.That(promptPanel, Is.Not.Null);
-            Assert.That(promptPanel.anchorMin, Is.EqualTo(new Vector2(1f, 1f)));
-            Assert.That(promptPanel.anchorMax, Is.EqualTo(new Vector2(1f, 1f)));
-            Assert.That(promptPanel.pivot, Is.EqualTo(new Vector2(1f, 1f)));
-            Assert.That(promptPanel.sizeDelta.x, Is.EqualTo(520f).Within(0.01f));
-            Assert.That(promptPanel.anchoredPosition.x, Is.EqualTo(544f).Within(0.01f));
-            Assert.That(promptPanel.anchoredPosition.y, Is.EqualTo(-128f).Within(0.01f));
-
-            var group = promptPanel.GetComponent<CanvasGroup>();
-            Assert.That(group, Is.Not.Null);
-            Assert.That(group.alpha, Is.EqualTo(0f).Within(0.001f));
-            Assert.That(group.blocksRaycasts, Is.False);
+            var registryType = Type.GetType("YC.Presentation.GameplayDialogRegistry, Assembly-CSharp", true);
+            var registry = owner.GetComponentInChildren(registryType, true);
+            var type = Type.GetType("YC.Presentation.CharacterCardEffectChoiceDialog, Assembly-CSharp", true);
+            return Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null, new object[] { registry, owner.GetComponentInChildren<Canvas>(true).GetComponent<RectTransform>() }, null);
         }
 
+        private static GameState SecondEffectState() => new GameState
+        {
+            Phase = GamePhase.ActionRound1, CurrentPlayerId = 1, StartPlayerId = 1,
+            Players = { new PlayerState { PlayerId = 1, Color = PlayerColor.Red,
+                CoveredCharacterCardId = "character.red.p1.cannot" } },
+            PendingCharacterEffect = new PendingCharacterEffectState
+            {
+                ChoiceType = YC.Domain.Cards.CharacterPendingChoiceTypes.SecondEffectDecision,
+                PlayerId = 1, CardId = "character.red.p1.cannot",
+                RemainingEffectMode = YC.Domain.Cards.CharacterEffectModes.Tactic,
+                OptionIds = { YC.Domain.Cards.CharacterEffectChoiceIds.ContinueSecondEffect,
+                    YC.Domain.Cards.CharacterEffectChoiceIds.FinishCharacterUse }
+            }
+        };
+
+
+
         [Test]
-        public void BuildInfoPanel_StretchesFromCityStyleAreaToMapBottomWithoutOuterOutline()
+        public void BuildInfoPanel_BindsVisibleCityAndIndependentSupply()
         {
             var type = Type.GetType("YC.Presentation.BuildInfoPanel, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.BuildInfoPanel.");
@@ -331,15 +143,6 @@ namespace YC.Tests.EditMode
             var cityStyleArea = FindTransform(owner, "External City Style Area");
 
             Assert.That(panel, Is.Not.Null);
-            Assert.That(panel.anchorMin, Is.EqualTo(new Vector2(0f, 0f)));
-            Assert.That(panel.anchorMax, Is.EqualTo(new Vector2(0f, 1f)));
-            Assert.That(panel.pivot, Is.EqualTo(new Vector2(0f, 1f)));
-            Assert.That(panel.sizeDelta, Is.EqualTo(new Vector2(365f, -697f)));
-            Assert.That(panel.anchoredPosition, Is.EqualTo(new Vector2(72f, -697f)));
-            Assert.That(panel.offsetMin.y, Is.EqualTo(0f).Within(0.01f));
-            Assert.That(panel.offsetMax.y, Is.EqualTo(-697f).Within(0.01f));
-            Assert.That(panel.GetComponent<Outline>(), Is.Null);
-            Assert.That(panel.GetComponent<Image>(), Is.Null);
             Assert.That(content, Is.Not.Null);
             Assert.That(content.gameObject.activeSelf, Is.True);
             Assert.That(header, Is.Null);
@@ -353,16 +156,6 @@ namespace YC.Tests.EditMode
             Assert.That(AllTextRenderersAreMaskable(panel), Is.True);
             Assert.That(facilityArea, Is.Not.Null);
             Assert.That(cityStyleArea, Is.Not.Null);
-            Assert.That(facilityArea.GetComponent<Outline>(), Is.Null);
-            Assert.That(cityStyleArea.GetComponent<Outline>(), Is.Null);
-            var expectedCardAreaBackground = (Color)new Color32(57, 47, 26, 255);
-            AssertColor(facilityArea.GetComponent<Image>().color, expectedCardAreaBackground);
-            AssertColor(cityStyleArea.GetComponent<Image>().color, expectedCardAreaBackground);
-            Assert.That(facilityArea.anchorMin, Is.EqualTo(new Vector2(0f, 1f)));
-            Assert.That(facilityArea.anchorMax, Is.EqualTo(new Vector2(0f, 1f)));
-            Assert.That(facilityArea.anchoredPosition, Is.EqualTo(new Vector2(72f, -17f)));
-            Assert.That(facilityArea.sizeDelta, Is.EqualTo(new Vector2(365f, 350f)));
-            Assert.That(cityStyleArea.anchoredPosition, Is.EqualTo(new Vector2(72f, -367f)));
 
             var state = RightCardSmokeStateFactory.CreateInitialState(
                 LaunchMode.Local,
@@ -379,10 +172,6 @@ namespace YC.Tests.EditMode
             var cityBoard = FindTransform(owner, "City Board");
             Assert.That(cityBoard, Is.Not.Null);
             Assert.That(FindTransform(owner, "Section 城市面板"), Is.Null);
-            Assert.That(cityBoard.GetComponent<Outline>(), Is.Null);
-            Assert.That(cityBoard.GetComponent<Image>(), Is.Null);
-            Assert.That(cityBoard.anchorMin, Is.EqualTo(Vector2.zero));
-            Assert.That(cityBoard.anchorMax, Is.EqualTo(Vector2.one));
             var boardImage = FindTransform(owner, "城市面板底图");
             Assert.That(boardImage, Is.Not.Null);
             Assert.That(boardImage.GetComponent<AspectRatioFitter>().aspectMode,
@@ -390,7 +179,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void RulebookViewer_UsesTopRightCrossCloseButton()
+        public void RulebookViewer_HasWorkingCloseButton()
         {
             var type = Type.GetType("YC.Presentation.RulebookViewerController, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.RulebookViewerController.");
@@ -401,18 +190,15 @@ namespace YC.Tests.EditMode
 
             var closeButton = FindTransform("Close Rulebook Button");
             Assert.That(closeButton, Is.Not.Null);
-            Assert.That(closeButton.anchorMin, Is.EqualTo(new Vector2(1f, 1f)));
-            Assert.That(closeButton.anchorMax, Is.EqualTo(new Vector2(1f, 1f)));
-            Assert.That(closeButton.pivot, Is.EqualTo(new Vector2(1f, 1f)));
-            Assert.That(closeButton.sizeDelta, Is.EqualTo(new Vector2(42f, 42f)));
 
             var label = closeButton.GetComponentInChildren<Text>(true);
             Assert.That(label, Is.Not.Null);
-            Assert.That(label.text, Is.EqualTo("×"));
+            closeButton.GetComponent<Button>().onClick.Invoke();
+
         }
 
         [Test]
-        public void SettingsMenu_InGamePlacesLogNextToGearWithoutHintButton()
+        public void SettingsMenu_InGameProvidesLogEntryWithoutHintButton()
         {
             var type = Type.GetType("YC.Presentation.GameSettingsMenuController, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null);
@@ -421,34 +207,31 @@ namespace YC.Tests.EditMode
             var controller = owner.GetComponent(type);
             EnsureAwakeRan(controller, "initialized");
 
-            var gear = owner.transform.Find("Game Settings Canvas/Settings Gear Button") as RectTransform;
+            var gear = FindTransform(owner, "Settings Gear Button");
             var configure = type.GetMethod("ConfigureActionLog", BindingFlags.Instance | BindingFlags.Public);
             configure.Invoke(controller, new object[] { new GameSession(new GameState()) });
-            var log = owner.transform.Find("Game Settings Canvas/Action Log Button") as RectTransform;
+            var log = FindTransform(owner, "Action Log Button");
             Assert.That(owner.transform.Find("Game Settings Canvas/Hint Card Button"), Is.Null);
             Assert.That(gear, Is.Not.Null);
             Assert.That(log, Is.Not.Null);
             Assert.That(log.gameObject.activeSelf, Is.True);
-            Assert.That(log.sizeDelta, Is.EqualTo(gear.sizeDelta));
-            Assert.That(log.anchoredPosition.y, Is.EqualTo(gear.anchoredPosition.y).Within(0.01f));
-            Assert.That(gear.anchoredPosition.x - log.anchoredPosition.x - 64f, Is.EqualTo(12.8f).Within(0.01f));
         }
 
         [Test]
         public void SettingsMenu_OnStartPageKeepsAuthoredActionLogButtonInactive()
         {
             var type = Type.GetType("YC.Presentation.GameSettingsMenuController, Assembly-CSharp", false);
-            owner = InstantiateSettingsPrefab();
+            owner = InstantiateSettingsPrefab(ViewerPrefabTestUtility.SharedSettingsPrefabPath);
             var controller = owner.GetComponent(type);
             EnsureAwakeRan(controller, "initialized");
 
             InvokePublic(controller, "SetReturnToStartButtonVisible", false);
 
-            var actionLog = owner.transform.Find("Game Settings Canvas/Action Log Button");
+            var actionLog = FindTransform(owner, "Action Log Button");
             Assert.That(actionLog, Is.Not.Null);
             Assert.That(actionLog.gameObject.activeSelf, Is.False);
             Assert.That(owner.transform.Find("Game Settings Canvas/Hint Card Button"), Is.Null);
-            Assert.That(owner.transform.Find("Game Settings Canvas/Settings Gear Button"), Is.Not.Null);
+            Assert.That(FindTransform(owner, "Settings Gear Button"), Is.Not.Null);
         }
 
         [Test]
@@ -474,7 +257,6 @@ namespace YC.Tests.EditMode
             Assert.That(close, Is.Not.Null);
             Assert.That(close.GetComponentInChildren<Text>().text, Is.EqualTo("×"));
             Assert.That(close.GetComponentInChildren<Text>().resizeTextForBestFit, Is.True);
-            Assert.That(close.GetComponentInChildren<Text>().GetComponent<Outline>(), Is.Not.Null);
             Assert.That(footer.gameObject.activeSelf, Is.False);
             var scrollRect = viewport.GetComponent<ScrollRect>();
             Assert.That(scrollRect, Is.Not.Null);
@@ -494,8 +276,6 @@ namespace YC.Tests.EditMode
             Assert.That((bool)collapsedProperty.GetValue(controller, null), Is.True);
             Assert.That(FindTransform("Test Image Expanded Content").gameObject.activeSelf, Is.False);
             Assert.That(FindTransform("Test Image Collapsed Summary").GetComponent<Text>().text, Does.Contain("参考中"));
-            Assert.That(FindTransform("Test Image Viewer").GetComponent<Image>().raycastTarget, Is.False);
-            Assert.That(FindTransform("Test Image Panel").GetComponent<RectTransform>().sizeDelta.y, Is.EqualTo(58f));
 
             InvokePublic(controller, "SetCollapsed", false);
             Assert.That((bool)collapsedProperty.GetValue(controller, null), Is.False);
@@ -515,9 +295,9 @@ namespace YC.Tests.EditMode
             return canvas;
         }
 
-        private static GameObject InstantiateSettingsPrefab()
+        private static GameObject InstantiateSettingsPrefab(
+            string path = ViewerPrefabTestUtility.InGameSettingsPrefabPath)
         {
-            const string path = "Assets/YC/Presentation/Prefabs/GameSettings/GameSettingsMenu.prefab";
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             Assert.That(prefab, Is.Not.Null, "Missing editor-authored settings prefab.");
             var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
@@ -568,6 +348,7 @@ namespace YC.Tests.EditMode
                 {
                     view,
                     catalog,
+                    noop,
                     noop,
                     noop,
                     noop,

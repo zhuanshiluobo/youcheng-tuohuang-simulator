@@ -26,6 +26,8 @@ namespace YC.Presentation
         [SerializeField] private Button collapseToggleButton;
         [SerializeField] private Text collapseToggleLabel;
         [SerializeField] private Text collapsedSummaryText;
+        [SerializeField] private string expandLabel = "▼ 展开卡牌";
+        [SerializeField] private string collapseLabel = "▲ 收起卡牌";
 
         public GameObject CanvasObject => canvasObject;
         public ZoomableViewerLayoutProfile LayoutProfile => layoutProfile;
@@ -48,6 +50,8 @@ namespace YC.Presentation
         public Button CollapseToggleButton => collapseToggleButton;
         public Text CollapseToggleLabel => collapseToggleLabel;
         public Text CollapsedSummaryText => collapsedSummaryText;
+        public string ExpandLabel => expandLabel;
+        public string CollapseLabel => collapseLabel;
 
         public bool TryValidateConfiguration(out string reason)
         {

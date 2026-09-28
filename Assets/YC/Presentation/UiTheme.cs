@@ -35,7 +35,6 @@ namespace YC.Presentation
         public static Vector2 CanvasReferenceResolution => RequireCatalog().CanvasReferenceResolution;
         public static float CanvasMatchWidthOrHeight => RequireCatalog().CanvasMatchWidthOrHeight;
         public static Vector2 DialogActionButtonSize => RequireCatalog().DialogActionButtonSize;
-        public static Vector2 CollapsibleMapPromptSize => RequireCatalog().CollapsibleMapPromptSize;
         public static Vector2 ViewerCloseButtonSize => RequireCatalog().ViewerCloseButtonSize;
         public static Vector2 ViewerCloseButtonOffset => RequireCatalog().ViewerCloseButtonOffset;
 

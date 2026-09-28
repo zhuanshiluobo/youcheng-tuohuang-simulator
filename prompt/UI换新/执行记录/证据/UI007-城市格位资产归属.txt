@@ -1,0 +1,5 @@
+本次只解包共享 GameplayInteractionHud.prefab 中的 BuildInfoPanel 嵌套实例。
+原独立 BuildInfoPanel.prefab 保留；该 HUD 实例后续结构由共享 HUD 维护，不再继承该独立源。
+原城市面板底图与原 12 个格位完整移到 UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork 下。
+原底图 Graphic 与 AspectRatioFitter 停用；显示原图、格位布局和拖放坐标均使用同一最终矩形。
+保留 Button、DropTarget、槽位引用和现有命令事件，不修改两场景覆盖或地图相机。

@@ -11,11 +11,8 @@ namespace YC.Presentation
     internal static class CardImagePreviewUtility
     {
         public static void Open(
-            ref ZoomableImageViewerController viewer,
+            ref CardViewer viewer,
             Transform owner,
-            string viewerObjectName,
-            string viewerName,
-            string cardName,
             Texture2D texture)
         {
             if (owner == null || texture == null)
@@ -25,15 +22,14 @@ namespace YC.Presentation
 
             if (viewer == null)
             {
-                viewer = ZoomableImageViewerController.InstantiateRegistered(owner, viewerObjectName);
+                viewer = CardViewer.InstantiateFor(owner);
                 if (viewer == null)
                 {
                     return;
                 }
             }
 
-            viewer.Configure(viewerName, cardName, 1, _ => texture);
-            viewer.Open();
+            viewer.OpenInspect(texture);
         }
     }
 
@@ -218,9 +214,6 @@ namespace YC.Presentation
     {
         public static string ResolveDisplayArea(string cityStyleId, string markerArea)
         {
-            if (cityStyleId == CityStyleDatabase.MilitaryIndustrialArea &&
-                (string.IsNullOrEmpty(markerArea) || markerArea == CityStyleMarkerAreas.Declared))
-                return CityStyleMarkerAreas.Unused;
             return string.IsNullOrEmpty(markerArea)
                 ? CityStyleMarkerAreas.Declared
                 : markerArea;
@@ -240,61 +233,17 @@ namespace YC.Presentation
             string markerArea)
         {
             RequireLayout(layout);
-            var definition = CityStyleDatabase.Get(cityStyleId);
-            var isLevelTwo = definition != null && definition.Level >= 2;
-            if (!isLevelTwo && markerArea == CityStyleMarkerAreas.Used)
-            {
-                return layout.LevelOneUsedSpecialActionArea;
-            }
-
-            if (isLevelTwo && markerArea == SpecialActionMarkerAreas.UsedFromTwo)
-            {
-                return layout.LevelTwoUsedFromTwoSpecialActionArea;
-            }
-
-            if (isLevelTwo && markerArea == SpecialActionMarkerAreas.UsedFromOne)
-            {
-                return layout.LevelTwoUsedFromOneSpecialActionArea;
-            }
-
-            var anchor = ResolveAnchor(layout, cityStyleId, markerArea, 0, 0, 0);
-            var halfExtents = layout.FallbackSpecialActionAreaHalfExtents;
-            return Rect.MinMaxRect(
-                anchor.x - halfExtents.x,
-                anchor.y - halfExtents.y,
-                anchor.x + halfExtents.x,
-                anchor.y + halfExtents.y);
+            return layout.CityStyleVisuals.Bounds(cityStyleId, markerArea);
         }
 
         public static Vector2 ResolveAnchor(
             CardBoardVisualLayout layout, string cityStyleId, string markerArea,
             int areaMarkerIndex, int playerLaneIndex, int playerMarkerIndex)
         {
-            return ResolveGroupAnchor(layout, cityStyleId, markerArea,
-                areaMarkerIndex, playerLaneIndex, playerMarkerIndex, 3);
-        }
-
-        private static Vector2 ResolveGroupAnchor(
-            CardBoardVisualLayout layout, string cityStyleId, string markerArea,
-            int areaMarkerIndex, int playerLaneIndex, int playerMarkerIndex,
-            int playerMarkerCount)
-        {
             RequireLayout(layout);
-            var definition = CityStyleDatabase.Get(cityStyleId);
-            var isLevelOne = definition != null && definition.Level < 2;
-            // 同一玩家固定在同一列；移入已使用区不会横向跳位。
-            var lane = Mathf.Clamp(playerLaneIndex, 0, layout.MilitaryUnusedPlayerLaneCount - 1);
-            var x = layout.MilitaryUnusedFirstLaneX + lane * layout.MilitaryUnusedLaneSpacingX;
-            if (isLevelOne)
-            {
-                var top = markerArea == CityStyleMarkerAreas.Used ? 0.40f : 0.84f;
-                var spacing = 0.28f / Mathf.Max(2, playerMarkerCount - 1);
-                return new Vector2(x, top - Mathf.Clamp(playerMarkerIndex, 0, Mathf.Max(2, playerMarkerCount - 1)) * spacing);
-            }
-
-            var baseAnchor = layout.GetMarkerAreaAnchor(markerArea);
-            return new Vector2(x,
-                baseAnchor.y + 0.025f - playerMarkerIndex * 0.05f / Mathf.Max(1, playerMarkerCount - 1));
+            var bounds = layout.CityStyleVisuals.Bounds(cityStyleId, markerArea);
+            var lane = Mathf.Clamp(playerLaneIndex, 0, 3);
+            return new Vector2(bounds.xMin + bounds.width * (.28f + lane * .173f), bounds.center.y);
         }
 
         public static void Configure(
@@ -309,43 +258,35 @@ namespace YC.Presentation
         {
             RequireLayout(layout);
             var rect = marker.rectTransform;
-            var anchor = ResolveGroupAnchor(
-                layout,
-                cityStyleId,
-                placement.MarkerArea,
-                placement.AreaMarkerIndex,
-                placement.PlayerLaneIndex,
-                placement.PlayerMarkerIndex,
-                placement.PlayerMarkerCount);
-            rect.anchorMin = anchor;
-            rect.anchorMax = anchor;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            var definition = CityStyleDatabase.Get(cityStyleId);
-            var parentRect = rect.parent as RectTransform;
-            var isLevelOne = definition != null && definition.Level < 2;
-            var rowSpacing = isLevelOne
-                ? 0.28f / Mathf.Max(2, placement.PlayerMarkerCount - 1)
-                : 0.05f / Mathf.Max(1, placement.PlayerMarkerCount - 1);
-            if (parentRect != null && parentRect.rect.height > 0f)
-                size *= Mathf.Min(1f, parentRect.rect.height * rowSpacing * 0.85f / size.y);
-            rect.sizeDelta = size;
-            rect.anchoredPosition = Vector2.zero;
-            rect.anchoredPosition3D = Vector3.zero;
+            var bounds = layout.CityStyleVisuals == null ? Rect.zero : layout.CityStyleVisuals.Bounds(cityStyleId, placement.MarkerArea);
+            var lane = layout.CityStyleVisuals.VisualLane(color);
+            var width = Mathf.Min(bounds.width * .1484f, bounds.height * 600f / 930f * .8f);
+            var center = ResolveAnchor(layout, cityStyleId, placement.MarkerArea, 0, lane, 0);
+            rect.anchorMin = center - new Vector2(width, width * 930f / 600f) * .5f;
+            rect.anchorMax = center + new Vector2(width, width * 930f / 600f) * .5f;
+            var artwork = marker.GetComponentInParent<RawImage>(true);
+            var overlay = artwork == null ? null : artwork.GetComponentInChildren<CityStyleTrackOverlay>(true);
+            var slot = overlay == null ? null : overlay.FindSlot(cityStyleId, placement.MarkerArea,
+                layout.CityStyleVisuals.PlayerIndex(color), layout.CityStyleVisuals);
+            if (slot != null)
+            {
+                rect.SetParent(slot, false);
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+            }
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+            var position = rect.anchoredPosition3D; position.z = 0; rect.anchoredPosition3D = position;
             rect.localRotation = Quaternion.identity;
             rect.localScale = Vector3.one;
             marker.gameObject.name = objectName;
-            marker.sprite = null;
+            marker.sprite = layout.CityStyleVisuals.PlayerMarkerSprite(color);
+            marker.type = Image.Type.Simple;
             marker.preserveAspect = true;
-            marker.color = color;
+            marker.color = Color.white;
             marker.raycastTarget = false;
-            marker.gameObject.SetActive(true);
-            InfluenceModelUiAnchor.Configure(marker, layout.InfluencePiecePrefab, color);
-            var outline = marker.GetComponent<Outline>();
-            if (outline != null)
-            {
-                outline.effectColor = Color.white;
-                outline.effectDistance = new Vector2(1f, -1f);
-            }
+            marker.gameObject.SetActive(placement.PlayerMarkerIndex == 0 && bounds.width > 0);
+            var label = marker.GetComponentInChildren<Text>(true);
+            if (label != null) label.text = placement.PlayerMarkerCount.ToString();
         }
 
         private static void RequireLayout(CardBoardVisualLayout layout)

@@ -74,3 +74,4 @@ MonoBehaviour:
   buildInfoMarkerSizePixels: 12
   declarationPreviewMarkerSizePixels: 20
   influencePiecePrefab: {fileID: 6517906077051129128, guid: 350e29242a600bb47bf45ece04c3d7f9, type: 3}
+  cityStyleVisuals: {fileID: 11400000, guid: c7654215ea2f45558c83a33072910d37, type: 2}

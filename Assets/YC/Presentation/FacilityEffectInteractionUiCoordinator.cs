@@ -507,7 +507,7 @@ namespace YC.Presentation
                 additionalBuildSelection.PaymentMode,
                 additionalBuildSelection.ErrorMessage,
                 additionalBuildSelection.QueryLegalSlotIndexes(state),
-                intent => DispatchAdditionalBuildIntent(pending, intent)));
+                intent => DispatchAdditionalBuildIntent(pending, intent), false));
         }
 
         private void DispatchAdditionalBuildIntent(
@@ -800,7 +800,6 @@ namespace YC.Presentation
                 ShowOrBranchOptions(
                     pending,
                     "佣兵指挥部",
-                    "佣兵指挥部 · 选择分支",
                     options,
                     canClose);
                 return;
@@ -809,7 +808,7 @@ namespace YC.Presentation
             if (stage == SelectionStage.MercenaryReplace)
             {
                 setHighlights(BuildOpponentInfluenceHighlights());
-                dialog.ShowCollapsibleMapPrompt(
+                dialog.ShowMapSelection(
                     "佣兵指挥部 · 替换",
                     "点击地图上的高亮影响力，将它替换为你的影响力。",
                     "佣兵指挥部 · 替换影响力",
@@ -825,7 +824,7 @@ namespace YC.Presentation
             }
 
             setHighlights(BuildDeployInfluenceSlotHighlights());
-            dialog.ShowCollapsibleMapPrompt(
+            dialog.ShowMapSelection(
                 "佣兵指挥部 · 放置",
                 "点击地图上的一个高亮空槽位，放置你的影响力。",
                 "佣兵指挥部 · 放置影响力",
@@ -842,7 +841,7 @@ namespace YC.Presentation
         private void ShowDeployInfluences(PendingCardSessionState pending)
         {
             setHighlights(BuildDeployInfluenceSlotHighlights());
-            dialog.ShowCollapsibleMapPrompt(
+            dialog.ShowMapSelection(
                 "护航调度中心",
                 "请依次点击地图上的两个高亮空槽位。",
                 "护航调度中心 · 放置两个影响力",
@@ -860,7 +859,7 @@ namespace YC.Presentation
         private void ShowFreeCityMove()
         {
             setHighlights(BuildAllLocationHighlights(WorkflowHighlightSemantic.MoveTarget));
-            dialog.ShowCollapsibleMapPrompt(
+            dialog.ShowMapSelection(
                 "高性能动力设施",
                 "点击地图地点，尝试执行一次免费城市移动。",
                 "高性能动力设施 · 免费城市移动",
@@ -897,7 +896,6 @@ namespace YC.Presentation
                 ShowOrBranchOptions(
                     pending,
                     "载具仓库",
-                    "载具仓库 · 选择分支",
                     options,
                     canClose);
                 return;
@@ -906,7 +904,7 @@ namespace YC.Presentation
             if (stage == SelectionStage.WarehouseExplore)
             {
                 clearHighlights();
-                dialog.ShowCollapsibleMapPrompt(
+                dialog.ShowMapSelection(
                     "载具仓库 · 探索",
                     "请按正常探索流程选择目标、同优路线与路费接收者。",
                     "载具仓库 · 探索",
@@ -924,7 +922,7 @@ namespace YC.Presentation
             if (stage == SelectionStage.WarehouseRemove)
             {
                 setHighlights(BuildPlacedInfluenceHighlights(null, WorkflowHighlightSemantic.EventInfluenceTarget));
-                dialog.ShowCollapsibleMapPrompt(
+                dialog.ShowMapSelection(
                     "载具仓库 · 移除",
                     "点击一个已有影响力。完成移除选择后还必须执行一次调度。",
                     "载具仓库 · 移除影响力",
@@ -941,7 +939,7 @@ namespace YC.Presentation
             if (stage == SelectionStage.WarehouseSource)
             {
                 setHighlights(BuildPlacedInfluenceHighlights(getLocalPlayerId(), WorkflowHighlightSemantic.DispatchSource));
-                dialog.ShowCollapsibleMapPrompt(
+                dialog.ShowMapSelection(
                     "载具仓库 · 调度来源",
                     "点击自己的一个影响力作为调度来源。",
                     "载具仓库 · 选择调度来源",
@@ -956,7 +954,7 @@ namespace YC.Presentation
             }
 
             setHighlights(BuildAllInfluenceSlotHighlights(WorkflowHighlightSemantic.DispatchTarget));
-            dialog.ShowCollapsibleMapPrompt(
+            dialog.ShowMapSelection(
                 "载具仓库 · 调度目标",
                 "点击调度目标槽位。",
                 "载具仓库 · 选择调度目标",
@@ -972,14 +970,12 @@ namespace YC.Presentation
         private void ShowOrBranchOptions(
             PendingCardSessionState pending,
             string title,
-            string summary,
             IReadOnlyList<EffectDialogOption> options,
             bool canClose)
         {
-            dialog.ShowCollapsibleOptions(
+            dialog.ShowEffectOptions(
                 title,
                 canClose ? "当前没有合法目标，请关闭以完成入场结算。" : "选择本次入场效果的执行分支。",
-                summary,
                 options,
                 canClose ? (Action)(() => Submit(pending, FacilityPendingChoiceTypes.SkipOption, null)) : null,
                 canClose ? "关闭" : null);

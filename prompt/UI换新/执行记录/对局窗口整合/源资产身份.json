@@ -1,0 +1,77 @@
+[
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\CardViewer.prefab",
+    "sha256": "52b2ab2035be686546e33135e2ab4eb79bc444eb1a3769307f379558c744405f",
+    "guid": "faeb0b4f55bf40eba58c422e76a0a0fe"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EffectDialogShell.prefab",
+    "sha256": "c065f56f58cdcec7164c7838455f6c933a6ccbd9384df23396deee5fa237e466",
+    "guid": "a247544ff081c484cb987604277e8d90"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\CardPickerDialog.prefab",
+    "sha256": "5becfdb72d40a897ac137882b3508b795a36394f245ecf870fad1b53b9f232ca",
+    "guid": "6d8b51b104807394397ca905501b1166"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "sha256": "0b87ea5dfa416118e1e4e09308f51f70965770a6aea01781fa5f04a538d32c0b",
+    "guid": "3fe2d5d7571d9e4488d62bd519017c21"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\DispatchDecisionDialog.prefab",
+    "sha256": "0f21f7cff1fe065a2849ebdeb15c7b3d28c995264f9e1b98bd93c9e8d211281f",
+    "guid": "1c0b0f7b42286f74e8db0bf6ebf22662"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameActionLogViewer.prefab",
+    "sha256": "bf7551a9280818921c1483eabc595a001e499beb5496705d9d125401377dfe1f",
+    "guid": "1fc95d1e6d2747459695a182ea14d6cd"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameRulebookViewer.prefab",
+    "sha256": "71042311fa367a117d0da15d9d2b0f7e884be085cf6daf99e242b7e5830c10cf",
+    "guid": "ce44ea1631a540b19eb688544f5be114"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "sha256": "cdf4088e2f92a5bf3399fe69c981fd5d1a675c2d52f39b91c462f1220f3e6c60",
+    "guid": "d97985143f884a50b8c25ed4e9aa77ff"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameZoomableImageViewer.prefab",
+    "sha256": "51c97faefb5d495a10a3e98312a560b35e08ef83ec71bc11ca9f8705833743f0",
+    "guid": "614428667ff64ea39b60e3c39ad85a2c"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\GameplayInteractionHud.prefab",
+    "sha256": "96aea3e3702b10c305102e4ff76d56519789844e0d5fce5057e93001d841cc1b",
+    "guid": "97d4d860d450f7247969c8aca5a9d934"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\CharacterHandPanel.prefab",
+    "sha256": "4187a7a159999f8a71219cb01c278d2741b9f90e5a6601081a1e8806ed560b67",
+    "guid": "27b9634b346b16d4a94675f9cae8679a"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\BuildInfoPanel.prefab",
+    "sha256": "03fab216caf1511a25f4f93a39f7ad768460954f48507c42c812d2a1d9ab44cf",
+    "guid": "ef7a6113f9a64a54db2444d968697123"
+  },
+  {
+    "path": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "sha256": "a640f64a9c224947dd873c7dd7c50531834c7e7094718b732cbba900640fb108",
+    "guid": "ef0e53d243030d74ca2bdd92050a2f84"
+  },
+  {
+    "path": "Assets\\Scenes\\SampleScene.unity",
+    "sha256": "ce1fd955d1100985ba8a96aa211e0adde881477d454a7c049c0f64e3e4408848",
+    "guid": "2cda990e2423bbf4892e6590ba056729"
+  },
+  {
+    "path": "Assets\\Scenes\\ThreePlayerScene.unity",
+    "sha256": "eb1c7dfd84c2717544fd06b9aab818664cd748c841c5427f03805d8003747e36",
+    "guid": "d7cac0f032ca3d5428528a09f4b83a70"
+  }
+]

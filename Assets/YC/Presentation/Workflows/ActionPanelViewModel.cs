@@ -54,6 +54,8 @@ namespace YC.Presentation.Workflows
         public bool CanExplore { get; private set; }
         public bool CanMoveCity { get; private set; }
         public bool CanBuild { get; private set; }
+        public bool CanViewFacilitySupply { get; internal set; }
+        public bool CanUseSpecialAction { get; internal set; }
         public bool CanEndAction { get; private set; }
         public bool IsWaitingForOtherPlayers { get; private set; }
     }

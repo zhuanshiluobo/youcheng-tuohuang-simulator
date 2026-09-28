@@ -1,0 +1,624 @@
+{
+    "scene": "SampleScene",
+    "state": "CityStyle",
+    "stateSource": "真实场景当前公开供应中的城市样式，调用现有正式点击处理入口；未宣告或支付。",
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "actualSize": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1920.0,
+        "height": 1080.0
+    },
+    "objects": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 105.0,
+                "width": 1520.0,
+                "height": 900.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 931.0,
+                "width": 1520.0,
+                "height": 74.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Header/City Style Declaration Preview Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 620.0,
+                "y": 939.0,
+                "width": 680.0,
+                "height": 52.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Header/Close City Style Declaration Preview Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1660.0,
+                "y": 951.0,
+                "width": 42.0,
+                "height": 42.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Header/Close City Style Declaration Preview Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1668.0,
+                "y": 951.0,
+                "width": 26.0,
+                "height": 42.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 131.0,
+                "width": 1520.0,
+                "height": 800.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 131.0,
+                "width": 1520.0,
+                "height": 800.0
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "UiScrollContentWidth",
+                "ContentSizeFitter"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 131.0,
+                "width": 1520.0,
+                "height": 800.0
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 131.0,
+                "width": 20.0,
+                "height": 800.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 220.0,
+                "y": 131.0,
+                "width": 920.0,
+                "height": 800.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 220.0,
+                "y": 131.0,
+                "width": 920.0,
+                "height": 800.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/City Style Preview Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 330.0,
+                "y": 871.0,
+                "width": 700.0,
+                "height": 40.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/City Style Preview Card Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 255.0,
+                "y": 297.0,
+                "width": 850.0,
+                "height": 548.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/City Style Preview Card Frame/City Style Preview Card",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 261.0,
+                "y": 303.0,
+                "width": 838.0,
+                "height": 536.0
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/City Style Preview Card Frame/City Style Preview Card/City Style Preview Influence Markers",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 261.0,
+                "y": 303.0,
+                "width": 838.0,
+                "height": 536.0
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/Previous City Style",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 226.0,
+                "y": 512.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/Previous City Style/Previous City Style Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 226.0,
+                "y": 512.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/Next City Style",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1076.0,
+                "y": 512.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/Next City Style/Next City Style Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1076.0,
+                "y": 512.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/Confirm City Style Declaration",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 590.0,
+                "y": 197.0,
+                "width": 180.0,
+                "height": 48.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/Confirm City Style Declaration/Confirm City Style Declaration Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 590.0,
+                "y": 197.0,
+                "width": 180.0,
+                "height": 48.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/City Style Special Action Hint",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 270.0,
+                "y": 254.0,
+                "width": 820.0,
+                "height": 38.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Section Slot/City Style Preview Section/City Style Match Status",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 260.0,
+                "y": 129.0,
+                "width": 840.0,
+                "height": 54.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1140.0,
+                "y": 131.0,
+                "width": 60.0,
+                "height": 800.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1200.0,
+                "y": 131.0,
+                "width": 500.0,
+                "height": 800.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1200.0,
+                "y": 131.0,
+                "width": 500.0,
+                "height": 800.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1235.0,
+                "y": 880.0,
+                "width": 430.0,
+                "height": 42.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1251.5,
+                "y": 144.5,
+                "width": 397.0,
+                "height": 733.0
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1270.7811279296875,
+                "y": 683.4989624023438,
+                "width": 115.687255859375,
+                "height": 163.9173583984375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1392.2528076171875,
+                "y": 683.4989624023438,
+                "width": 115.687255859375,
+                "height": 163.9173583984375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1513.724365234375,
+                "y": 683.4989624023438,
+                "width": 115.687255859375,
+                "height": 163.9173583984375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1270.7811279296875,
+                "y": 513.796142578125,
+                "width": 115.687255859375,
+                "height": 163.91748046875
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1392.2528076171875,
+                "y": 513.796142578125,
+                "width": 115.687255859375,
+                "height": 163.91748046875
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 6",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1513.724365234375,
+                "y": 513.796142578125,
+                "width": 115.687255859375,
+                "height": 163.91748046875
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 7",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1270.7811279296875,
+                "y": 344.093505859375,
+                "width": 115.687255859375,
+                "height": 163.91741943359376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 8",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1392.2528076171875,
+                "y": 344.093505859375,
+                "width": 115.687255859375,
+                "height": 163.91741943359376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 8/设施卡图",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1392.2528076171875,
+                "y": 344.093505859375,
+                "width": 115.687255859375,
+                "height": 163.91741943359376
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 9",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1513.724365234375,
+                "y": 344.093505859375,
+                "width": 115.687255859375,
+                "height": 163.91741943359376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 10",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1270.7811279296875,
+                "y": 174.39077758789063,
+                "width": 115.687255859375,
+                "height": 163.91741943359376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 11",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1392.2528076171875,
+                "y": 174.39077758789063,
+                "width": 115.687255859375,
+                "height": 163.91741943359376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 12",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1513.724365234375,
+                "y": 174.39077758789063,
+                "width": 115.687255859375,
+                "height": 163.91741943359376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Body Viewport/Body Content/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1700.0,
+                "y": 131.0,
+                "width": 20.0,
+                "height": 800.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/City Style Declaration Preview Canvas/City Style Declaration Preview Overlay/City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 105.0,
+                "width": 1520.0,
+                "height": 26.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        }
+    ]
+}

@@ -77,17 +77,20 @@ namespace YC.Presentation
         [SerializeField] private Text titleText;
         [SerializeField] private Text metadataText;
         [SerializeField] private Text descriptionText;
-        [SerializeField] private Text collapsedSummaryText;
         [SerializeField] private RectTransform actionArea;
         [SerializeField] private Button closeButton;
         [SerializeField] private Text closeButtonLabel;
-        [SerializeField] private Button collapseButton;
-        [SerializeField] private Text collapseButtonLabel;
-        [SerializeField] private Image collapseButtonIcon;
-        [SerializeField] private EffectDialogCollapsiblePanel collapsiblePanel;
-        [SerializeField] private EffectDialogDragHandle dragHandle;
         [SerializeField] private WindowCloseInputHandler closeInputHandler;
         [SerializeField] private EventChoiceDialogLayoutProfile layoutProfile;
+        [SerializeField] private UiWindowSizeInput boundedLayout;
+        [SerializeField] private UiEventHeaderInput pageLayout;
+        [SerializeField] private GameObject artworkLayoutRoot;
+        [SerializeField] private RectTransform artworkChoiceHost;
+        [SerializeField] private GameObject eventTextScroll;
+        [SerializeField] private string[] modeTitles =
+        {
+            "", "选择探索路线", "选择过路费接收者", "是否支付路费", "", "最终确认建设", "是否发动第二个效果？"
+        };
 
         [Header("互斥模式块")]
         [SerializeField] private GameObject eventCardMode;
@@ -152,17 +155,13 @@ namespace YC.Presentation
         public Text TitleText => titleText;
         public Text MetadataText => metadataText;
         public Text DescriptionText => descriptionText;
-        public Text CollapsedSummaryText => collapsedSummaryText;
         public RectTransform ActionArea => actionArea;
         public Button CloseButton => closeButton;
         public Text CloseButtonLabel => closeButtonLabel;
-        public Button CollapseButton => collapseButton;
-        public Text CollapseButtonLabel => collapseButtonLabel;
-        public Image CollapseButtonIcon => collapseButtonIcon;
-        public EffectDialogCollapsiblePanel CollapsiblePanel => collapsiblePanel;
-        public EffectDialogDragHandle DragHandle => dragHandle;
         public WindowCloseInputHandler CloseInputHandler => closeInputHandler;
         public EventChoiceDialogLayoutProfile LayoutProfile => layoutProfile;
+        public RectTransform ArtworkChoiceHost => artworkChoiceHost;
+        public GameObject[] ModeBlocks => GetModeBlocks();
         public RawImage EventCardArtworkImage => eventCardArtworkImage;
         public GameObject EventCardMetadataRibbon => eventCardMetadataRibbon;
         public Image EventCardMetadataRibbonImage => eventCardMetadataRibbonImage;
@@ -203,9 +202,8 @@ namespace YC.Presentation
         {
             if (overlayCanvas == null || overlayRect == null || overlayImage == null || panel == null ||
                 expandedContent == null || titleText == null || metadataText == null || descriptionText == null ||
-                collapsedSummaryText == null || actionArea == null || closeButton == null ||
-                closeButtonLabel == null || collapseButton == null || collapseButtonLabel == null ||
-                collapseButtonIcon == null || collapsiblePanel == null ||
+                actionArea == null || closeButton == null ||
+                closeButtonLabel == null ||
                 closeInputHandler == null || layoutProfile == null)
             {
                 reason = "事件选择窗口固定壳引用不完整。";
@@ -274,8 +272,7 @@ namespace YC.Presentation
             ClearForReuse();
             gameObject.name = overlayName ?? string.Empty;
             panel.gameObject.name = panelName ?? string.Empty;
-            panel.sizeDelta = panelSize;
-            panel.anchoredPosition = panelPosition;
+            if (boundedLayout != null) boundedLayout.Configure(panelSize, panelPosition);
             overlayCanvas.overrideSorting = true;
             overlayCanvas.sortingOrder = GameplayUiLayers.Page;
             overlayImage.color = new Color(0f, 0f, 0f, layoutProfile.OverlayAlpha);
@@ -286,12 +283,23 @@ namespace YC.Presentation
 
         public void SetMode(EventChoiceDialogMode mode)
         {
+            if (pageLayout != null) pageLayout.Configure(mode);
+            if (artworkLayoutRoot != null) artworkLayoutRoot.SetActive(false);
+            if (eventTextScroll != null) eventTextScroll.SetActive(true);
             var blocks = GetModeBlocks();
             var selected = (int)mode;
             for (var i = 0; i < blocks.Length; i++)
             {
                 blocks[i].SetActive(i == selected);
             }
+        }
+
+        public void ConfigureArtworkMode()
+        {
+            if (pageLayout != null) pageLayout.Configure(EventChoiceDialogMode.EventCard, true);
+            if (artworkLayoutRoot != null) artworkLayoutRoot.SetActive(true);
+            if (eventTextScroll != null) eventTextScroll.SetActive(false);
+            titleText.gameObject.SetActive(false);
         }
 
         public ButtonRow CreateChoiceRow(RectTransform parent) =>
@@ -335,17 +343,13 @@ namespace YC.Presentation
 
             dynamicInstances.Clear();
             titleText.text = string.Empty;
+            titleText.gameObject.SetActive(true);
             metadataText.text = string.Empty;
             descriptionText.text = string.Empty;
-            collapsedSummaryText.text = string.Empty;
             metadataText.gameObject.SetActive(false);
             descriptionText.gameObject.SetActive(false);
-            collapsedSummaryText.gameObject.SetActive(false);
             closeButton.gameObject.SetActive(false);
-            collapseButton.gameObject.SetActive(false);
             expandedContent.gameObject.SetActive(true);
-            if (dragHandle != null) dragHandle.enabled = false;
-            collapsiblePanel.Configure(null);
             eventCardArtworkImage.texture = null;
             eventCardArtworkImage.gameObject.SetActive(false);
             eventCardMetadataRibbonLabel.text = string.Empty;
@@ -374,7 +378,6 @@ namespace YC.Presentation
             }
 
             closeButton.onClick.RemoveAllListeners();
-            collapseButton.onClick.RemoveAllListeners();
             exploreConfirmButton.onClick.RemoveAllListeners();
             resourcePaymentBankButton.onClick.RemoveAllListeners();
             buildResourceButton.onClick.RemoveAllListeners();
@@ -402,6 +405,7 @@ namespace YC.Presentation
 
         private void ConfigureModeFixedPresentation(EventChoiceDialogMode mode)
         {
+            titleText.text = modeTitles != null && (int)mode < modeTitles.Length ? modeTitles[(int)mode] : string.Empty;
             EventChoiceDialogRectLayout titleLayout;
             EventChoiceDialogTextStyle titleStyle;
             switch (mode)
@@ -409,10 +413,8 @@ namespace YC.Presentation
                 case EventChoiceDialogMode.EventCard:
                     titleLayout = layoutProfile.EventTitleLayout;
                     titleStyle = layoutProfile.EventTitleTextStyle;
-                    layoutProfile.EventMetadataLayout.ApplyTo(metadataText.rectTransform);
                     ApplyTextStyle(metadataText, layoutProfile.EventMetadataTextStyle);
                     metadataText.color = UiTheme.LabelText;
-                    layoutProfile.EventDescriptionLayout.ApplyTo(descriptionText.rectTransform);
                     ApplyTextStyle(descriptionText, layoutProfile.EventDescriptionTextStyle);
                     descriptionText.color = UiTheme.ValueText;
                     titleText.gameObject.name = "Title";
@@ -461,7 +463,6 @@ namespace YC.Presentation
                 case EventChoiceDialogMode.CharacterSecondEffectDecision:
                     titleLayout = layoutProfile.CharacterTitleLayout;
                     titleStyle = layoutProfile.CharacterTitleTextStyle;
-                    layoutProfile.CharacterDescriptionLayout.ApplyTo(descriptionText.rectTransform);
                     ApplyTextStyle(descriptionText, layoutProfile.CharacterDescriptionTextStyle);
                     descriptionText.color = UiTheme.GoldText;
                     titleText.gameObject.name = "Character Second Effect Title";
@@ -471,7 +472,6 @@ namespace YC.Presentation
                     throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
             }
 
-            titleLayout.ApplyTo(titleText.rectTransform);
             ApplyTextStyle(titleText, titleStyle);
         }
 
@@ -505,8 +505,6 @@ namespace YC.Presentation
             EventChoiceDialogButtonStyle buttonStyle)
         {
             closeButton.gameObject.name = objectName;
-            closeButtonLabel.text = label;
-            buttonLayout.ApplyTo(closeButton.GetComponent<RectTransform>());
             ApplyButtonStyle(closeButton, closeButtonLabel, buttonStyle);
             closeButton.gameObject.SetActive(true);
             closeButton.transform.SetAsLastSibling();
@@ -537,7 +535,7 @@ namespace YC.Presentation
         private static void ApplyTextStyle(Text text, EventChoiceDialogTextStyle style)
         {
             text.fontSize = style.FontSize;
-            text.fontStyle = style.FontStyle;
+            text.fontStyle = FontStyle.Normal;
             text.alignment = style.Alignment;
             text.horizontalOverflow = style.HorizontalOverflow;
             text.verticalOverflow = style.VerticalOverflow;

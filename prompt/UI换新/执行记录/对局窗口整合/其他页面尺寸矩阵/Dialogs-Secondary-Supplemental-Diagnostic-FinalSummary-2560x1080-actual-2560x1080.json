@@ -1,0 +1,1031 @@
+{
+    "scene": "SampleScene",
+    "state": "FinalSummary",
+    "stateSource": "实际场景终局View，独立四玩家诊断GameState；未改session、未实际结束游戏、未提交命令。",
+    "componentDiagnostic": true,
+    "sourceAsset": "Assets/YC/Presentation/Prefabs/RoundTracker/RoundTracker.prefab（SampleScene有效实例）",
+    "validatedSceneSources": {
+        "phase": "进入Play Mode前，读取实际SampleScene中的序列化引用与Prefab实例来源；不保存资产。",
+        "scene": "Assets/Scenes/SampleScene.unity",
+        "settingsAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab",
+        "settingsSceneObject": "GlobalObjectId_V1-2-2cda990e2423bbf4892e6590ba056729-3483565071125839763-205474404",
+        "rulebookAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameRulebookViewer.prefab",
+        "rulebookSceneObject": "GlobalObjectId_V1-2-2cda990e2423bbf4892e6590ba056729-1716631333306062023-205474404",
+        "nestedImageAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameZoomableImageViewer.prefab",
+        "registeredImageAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameZoomableImageViewer.prefab"
+    },
+    "commandSubmissionEnabled": false,
+    "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": -0.000042149185901507735,
+        "y": 117.77944946289063,
+        "width": 2560.0,
+        "height": 879.08203125
+    },
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 2560.0,
+        "y": 1080.0
+    },
+    "actualSize": {
+        "x": 2560.0,
+        "y": 1080.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 2560.0,
+        "height": 1080.0
+    },
+    "objects": [
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 182.04283142089845,
+                "width": 1039.23046875,
+                "height": 750.5552978515625
+            },
+            "layoutDrivers": [
+                "Image",
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 821.7468872070313,
+                "width": 1039.23046875,
+                "height": 110.85125732421875
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Header/Game Over Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 792.7163696289063,
+                "y": 812.50927734375,
+                "width": 974.5671997070313,
+                "height": 99.3043212890625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 306.7505187988281,
+                "width": 1039.23046875,
+                "height": 514.9964599609375
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport/Body Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 306.7505187988281,
+                "width": 1039.23046875,
+                "height": 514.9964599609375
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "UiScrollContentWidth",
+                "ContentSizeFitter"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport/Body Content/Vertical Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 820.0148315429688,
+                "width": 0.0,
+                "height": 1.7320556640625
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport/Body Content/Content Row",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 756.2176513671875,
+                "width": 1039.23046875,
+                "height": 63.7972412109375
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport/Body Content/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 756.2176513671875,
+                "width": 46.18798828125,
+                "height": 63.7972412109375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport/Body Content/Content Row/Final Score Winner Bar Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 806.5728149414063,
+                "y": 756.2176513671875,
+                "width": 946.8544311523438,
+                "height": 63.7972412109375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport/Body Content/Content Row/Final Score Winner Bar Slot/Final Score Winner Bar",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 806.5728149414063,
+                "y": 756.2176513671875,
+                "width": 946.8544311523438,
+                "height": 63.7972412109375
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport/Body Content/Content Row/Final Score Winner Bar Slot/Final Score Winner Bar/Final Score Winner",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 806.5728149414063,
+                "y": 756.2176513671875,
+                "width": 750.5553588867188,
+                "height": 63.7972412109375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport/Body Content/Content Row/Final Score Winner Bar Slot/Final Score Winner Bar/Final Score Details Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1580.22216796875,
+                "y": 761.5581665039063,
+                "width": 173.205078125,
+                "height": 53.1162109375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport/Body Content/Content Row/Final Score Winner Bar Slot/Final Score Winner Bar/Final Score Details Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1580.22216796875,
+                "y": 761.5581665039063,
+                "width": 173.205078125,
+                "height": 53.1162109375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport/Body Content/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1753.42724609375,
+                "y": 756.2176513671875,
+                "width": 46.18798828125,
+                "height": 63.7972412109375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport/Body Content/Vertical Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 306.75048828125,
+                "width": 0.0,
+                "height": 449.4671630859375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 182.04283142089845,
+                "width": 1039.23046875,
+                "height": 124.70765686035156
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Footer/Return Start Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1054.8333740234375,
+                "y": 209.75564575195313,
+                "width": 450.333251953125,
+                "height": 78.51962280273438
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Footer/Return Start Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1054.8333740234375,
+                "y": 209.7556610107422,
+                "width": 450.333251953125,
+                "height": 78.51963806152344
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 182.04283142089845,
+                "width": 1039.23046875,
+                "height": 750.5552978515625
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 811.1915893554688,
+                "y": 380.9399719238281,
+                "width": 937.6167602539063,
+                "height": 375.2776794433594
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 811.1915893554688,
+                "y": 681.162109375,
+                "width": 937.6167602539063,
+                "height": 75.0555419921875
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Header/Cell 玩家",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 822.7385864257813,
+                "y": 681.162109375,
+                "width": 274.49542236328127,
+                "height": 75.0555419921875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Header/Cell 实时分",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1101.852783203125,
+                "y": 681.162109375,
+                "width": 136.023681640625,
+                "height": 75.0555419921875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Header/Cell 区控",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1242.495361328125,
+                "y": 681.162109375,
+                "width": 117.271240234375,
+                "height": 75.0555419921875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Header/Cell 资源",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1364.385498046875,
+                "y": 681.162109375,
+                "width": 117.271484375,
+                "height": 75.0555419921875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Header/Cell 总分",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1486.275634765625,
+                "y": 681.162109375,
+                "width": 117.271484375,
+                "height": 75.0555419921875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Header/Cell 详情",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1608.1658935546875,
+                "y": 681.162109375,
+                "width": 136.023681640625,
+                "height": 75.0555419921875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 811.1915893554688,
+                "y": 380.9399719238281,
+                "width": 937.6167602539063,
+                "height": 300.2221374511719
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 811.1915893554688,
+                "y": 413.2715759277344,
+                "width": 937.6167602539063,
+                "height": 267.8905334472656
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "ContentSizeFitter"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 811.1915893554688,
+                "y": 614.189453125,
+                "width": 937.6167602539063,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P4/Player Color",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 829.6668090820313,
+                "y": 631.5099487304688,
+                "width": 32.33160400390625,
+                "height": 32.3316650390625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P4/Cell Player Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 883.6837158203125,
+                "y": 614.189453125,
+                "width": 213.55029296875,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P4/Cell Live Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1101.852783203125,
+                "y": 614.189453125,
+                "width": 136.023681640625,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P4/Cell Region Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1242.495361328125,
+                "y": 614.189453125,
+                "width": 117.271240234375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P4/Cell Resource Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1364.385498046875,
+                "y": 614.189453125,
+                "width": 117.271484375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P4/Cell Total Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1486.275634765625,
+                "y": 614.189453125,
+                "width": 117.271484375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P4/Final Score Player Details Button P4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1622.230224609375,
+                "y": 624.9050903320313,
+                "width": 112.513916015625,
+                "height": 45.5413818359375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P4/Final Score Player Details Button P4/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1622.230224609375,
+                "y": 624.9050903320313,
+                "width": 112.513916015625,
+                "height": 45.5413818359375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 811.1915893554688,
+                "y": 547.2168579101563,
+                "width": 937.6167602539063,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P3/Player Color",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 829.6668090820313,
+                "y": 564.537353515625,
+                "width": 32.33160400390625,
+                "height": 32.3316650390625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P3/Cell Player Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 883.6837158203125,
+                "y": 547.2168579101563,
+                "width": 213.55029296875,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P3/Cell Live Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1101.852783203125,
+                "y": 547.2168579101563,
+                "width": 136.023681640625,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P3/Cell Region Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1242.495361328125,
+                "y": 547.2168579101563,
+                "width": 117.271240234375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P3/Cell Resource Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1364.385498046875,
+                "y": 547.2168579101563,
+                "width": 117.271484375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P3/Cell Total Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1486.275634765625,
+                "y": 547.2168579101563,
+                "width": 117.271484375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P3/Final Score Player Details Button P3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1622.230224609375,
+                "y": 557.9324951171875,
+                "width": 112.513916015625,
+                "height": 45.5413818359375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P3/Final Score Player Details Button P3/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1622.230224609375,
+                "y": 557.9324951171875,
+                "width": 112.513916015625,
+                "height": 45.5413818359375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 811.1915893554688,
+                "y": 480.24420166015627,
+                "width": 937.6167602539063,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P2/Player Color",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 829.6668090820313,
+                "y": 497.5647277832031,
+                "width": 32.33160400390625,
+                "height": 32.331634521484378
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P2/Cell Player Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 883.6837158203125,
+                "y": 480.24420166015627,
+                "width": 213.55029296875,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P2/Cell Live Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1101.852783203125,
+                "y": 480.24420166015627,
+                "width": 136.023681640625,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P2/Cell Region Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1242.495361328125,
+                "y": 480.24420166015627,
+                "width": 117.271240234375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P2/Cell Resource Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1364.385498046875,
+                "y": 480.24420166015627,
+                "width": 117.271484375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P2/Cell Total Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1486.275634765625,
+                "y": 480.24420166015627,
+                "width": 117.271484375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P2/Final Score Player Details Button P2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1622.230224609375,
+                "y": 490.9598388671875,
+                "width": 112.513916015625,
+                "height": 45.5413818359375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P2/Final Score Player Details Button P2/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1622.230224609375,
+                "y": 490.9598388671875,
+                "width": 112.513916015625,
+                "height": 45.5413818359375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 811.1915893554688,
+                "y": 413.2716064453125,
+                "width": 937.6167602539063,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P1/Player Color",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 829.6668090820313,
+                "y": 430.5921325683594,
+                "width": 32.33160400390625,
+                "height": 32.33160400390625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P1/Cell Player Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 883.6837158203125,
+                "y": 413.2716064453125,
+                "width": 213.55029296875,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P1/Cell Live Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1101.852783203125,
+                "y": 413.2716064453125,
+                "width": 136.023681640625,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P1/Cell Region Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1242.495361328125,
+                "y": 413.2716064453125,
+                "width": 117.271240234375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P1/Cell Resource Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1364.385498046875,
+                "y": 413.2716064453125,
+                "width": 117.271484375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P1/Cell Total Score",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1486.275634765625,
+                "y": 413.2716064453125,
+                "width": 117.271484375,
+                "height": 66.97265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P1/Final Score Player Details Button P1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1622.230224609375,
+                "y": 423.98724365234377,
+                "width": 112.513916015625,
+                "height": 45.5413818359375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport/Final Score Ranking Rows/Final Score Row P1/Final Score Player Details Button P1/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1622.230224609375,
+                "y": 423.98724365234377,
+                "width": 112.513916015625,
+                "height": 45.5413818359375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Tiebreak",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 813.5009765625,
+                "y": 290.87335205078127,
+                "width": 932.998046875,
+                "height": 86.3138427734375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Window Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 182.04283142089845,
+                "width": 1039.23046875,
+                "height": 750.5552978515625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        }
+    ],
+    "scrolls": [
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport",
+            "normalizedPosition": 0.0,
+            "viewportScreenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 306.7505187988281,
+                "width": 1039.23046875,
+                "height": 514.9964599609375
+            },
+            "contentScreenRect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 306.7505187988281,
+                "width": 1039.23046875,
+                "height": 514.9964599609375
+            }
+        },
+        {
+            "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport",
+            "normalizedPosition": 0.0,
+            "viewportScreenRect": {
+                "serializedVersion": "2",
+                "x": 811.1915893554688,
+                "y": 380.9399719238281,
+                "width": 937.6167602539063,
+                "height": 300.2221374511719
+            },
+            "contentScreenRect": {
+                "serializedVersion": "2",
+                "x": 811.1915893554688,
+                "y": 413.2715759277344,
+                "width": 937.6167602539063,
+                "height": 267.8905334472656
+            }
+        }
+    ]
+}

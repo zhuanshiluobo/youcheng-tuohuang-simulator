@@ -11,14 +11,7 @@ namespace YC.Presentation
 {
     public sealed class BuildInfoPanel : MonoBehaviour
     {
-        private const float ExternalCardFramePadding = 6f;
         private const int ExternalFacilitySlotCount = 6;/*建设卡部分*/
-        private const float ExternalCityStyleLeftPadding = 20f;
-        private const float ExternalCityStyleCardWidth = 143f;
-        private const float ExternalCityStyleCardHeight = 91f;
-        private const float ExternalCityStyleCardHorizontalSpacing = 40f;
-        private const float ExternalCityStyleCardVerticalSpacing = 20f;/*样式卡部分*/
-        private const int ExternalCityStyleColumnCount = 2;
         private static readonly Color OccupiedCityBoardSlotBackground = new Color(0.18f, 0.105f, 0.055f, 0.82f);
         private static readonly Color InvisibleCityBoardSlotColor = new Color(1f, 1f, 1f, 0f);
         private static readonly Color ExternalCardAreaBackground = new Color32(57, 47, 26, 255);
@@ -33,7 +26,7 @@ namespace YC.Presentation
         [SerializeField] private CardBoardVisualLayout cardBoardVisualLayout;
         private CardVisualCatalog cardVisualCatalog;
         private readonly List<ExternalCardBinding> facilityCardBindings = new List<ExternalCardBinding>();
-        private readonly List<ExternalCardBinding> cityStyleCardBindings = new List<ExternalCardBinding>();
+        private readonly List<CityStyleStatusRowView> cityStyleRows = new List<CityStyleStatusRowView>();
         private readonly List<CityBoardSlotBinding> cityBoardSlotBindings = new List<CityBoardSlotBinding>();
         private readonly HashSet<string> draggableFacilityIds = new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> selectableFacilityEffectIds = new HashSet<string>(StringComparer.Ordinal);
@@ -47,7 +40,7 @@ namespace YC.Presentation
         private GameState currentState;
         private int currentPlayerId;
         private string selectedFacilityId = string.Empty;
-        private ZoomableImageViewerController cardImageViewer;
+        private CardViewer cardImageViewer;
         private bool buildInteractionActive;
         private RectTransform facilityDragGhost;
         private RectTransform pendingBuildGhost;
@@ -58,7 +51,6 @@ namespace YC.Presentation
         private Action<string> selectFacilityForEffect;
         private Action cancelFacilityEffectSelection;
 
-        public event Action<string> CityStyleClicked;
         public event Action<string> FacilityDragStarted;
         public event Action<string, int> FacilityDropped;
         public event Action FacilityDragCanceled;
@@ -69,6 +61,9 @@ namespace YC.Presentation
         public bool IsFacilityEffectSelectionActive => facilityEffectSelectionActive;
         public BuildInfoPanelView View => view;
         public CardBoardVisualLayout CardBoardVisualLayout => cardBoardVisualLayout;
+
+        public void SetExternalFacilitySupplyVisible(bool visible) =>
+            view?.SetExternalFacilitySupplyVisible(visible);
 
         public bool ConfigureCardVisualCatalog(CardVisualCatalog configuredCatalog)
         {
@@ -417,21 +412,15 @@ namespace YC.Presentation
             ClearExternalCityStyleCards();
             AddCityBoardSection();
             RebuildExternalFacilityCards();
-            RebuildExternalCityStyleCards();
+            RefreshCityStyleRows();
             RebuildLayout();
         }
 
         private void ClearExternalCityStyleCards()
         {
-            for (var i = cityStyleCardBindings.Count - 1; i >= 0; i--)
-            {
-                if (cityStyleCardBindings[i] != null && cityStyleCardBindings[i].Item != null)
-                {
-                    DestroyDynamicObject(cityStyleCardBindings[i].Item.gameObject);
-                }
-            }
-
-            cityStyleCardBindings.Clear();
+            foreach (var row in cityStyleRows)
+                if (row != null) DestroyDynamicObject(row.gameObject);
+            cityStyleRows.Clear();
         }
 
         private void RebuildExternalFacilityCards()
@@ -717,125 +706,22 @@ namespace YC.Presentation
             }
         }
 
-        private void RebuildExternalCityStyleCards()
+        private void RefreshCityStyleRows()
         {
-            if (externalCityStyleArea == null)
+            if (externalCityStyleArea == null) return;
+            var ids = GetCurrentCityStyleSupplyIds();
+            foreach (var id in ids)
             {
-                return;
+                var definition = CityStyleDatabase.Get(id);
+                var layout = cardBoardVisualLayout.CityStyleVisuals.Find(id)?.trackLayout;
+                var template = view.GetCityStyleRowTemplate(layout);
+                if (template == null) continue;
+                var row = Instantiate(template, externalCityStyleArea, false);
+                row.gameObject.SetActive(true);
+                row.name = id;
+                row.Render(id, definition == null ? id : definition.Name, currentState);
+                cityStyleRows.Add(row);
             }
-
-            var styleIds = GetCurrentCityStyleSupplyIds();
-            var count = Mathf.Min(6, styleIds.Count);
-            for (var i = 0; i < count; i++)
-            {
-                var cityStyleId = styleIds[i];
-                var cityStyle = CityStyleDatabase.Get(cityStyleId);
-                var label = cityStyle == null ? cityStyleId : cityStyle.Name;
-                var item = InstantiateItem(
-                    view.CityStyleCardTemplate,
-                    externalCityStyleArea,
-                    "城市样式 " + (i + 1));
-                SetExternalCardRect(
-                    item.Root,
-                    i,
-                    ExternalCityStyleColumnCount,
-                    ExternalCityStyleCardWidth,
-                    ExternalCityStyleCardHeight,
-                    ExternalCityStyleCardHorizontalSpacing,
-                    ExternalCityStyleCardVerticalSpacing,
-                    ExternalCityStyleLeftPadding);
-                var texture = TryLoadCityStyleCardTexture(cityStyleId);
-                item.RawImage.texture = texture;
-                item.RawImage.gameObject.SetActive(texture != null);
-                item.FallbackText.text = texture == null ? label : string.Empty;
-                item.FallbackText.gameObject.SetActive(texture == null);
-                SetExternalCardOutline(item.Outline, false);
-                cityStyleCardBindings.Add(new ExternalCardBinding
-                {
-                    Id = cityStyleId,
-                    Label = label,
-                    Item = item,
-                    Button = item.Button,
-                    Outline = item.Outline,
-                    CardImage = item.RawImage,
-                    FallbackText = item.FallbackText
-                });
-                AddCityStyleInfluenceMarkers(item.MarkerRoot, cityStyleId);
-                item.PointerInteraction.ConfigureClick(
-                    item.Button,
-                    () => CityStyleClicked?.Invoke(cityStyleId),
-                    null);
-            }
-        }
-
-        private void AddCityStyleInfluenceMarkers(RectTransform cardRect, string cityStyleId)
-        {
-            if (cardRect == null || currentState == null || currentState.Players == null)
-            {
-                return;
-            }
-
-            var markerLayout = new CityStyleMarkerLayoutTracker(cardBoardVisualLayout);
-            foreach (var player in currentState.Players)
-            {
-                if (player == null || player.DeclaredCityStyles == null) continue;
-                foreach (var declaration in player.DeclaredCityStyles)
-                    if (declaration != null && declaration.CityStyleId == cityStyleId)
-                        markerLayout.Register(cityStyleId, declaration.MarkerArea, player.PlayerId);
-            }
-            for (var playerIndex = 0; playerIndex < currentState.Players.Count; playerIndex++)
-            {
-                var player = currentState.Players[playerIndex];
-                if (player == null)
-                {
-                    continue;
-                }
-
-                if (player.DeclaredCityStyles != null)
-                {
-                    for (var declarationIndex = 0; declarationIndex < player.DeclaredCityStyles.Count; declarationIndex++)
-                    {
-                        var declaration = player.DeclaredCityStyles[declarationIndex];
-                        if (declaration == null || declaration.CityStyleId != cityStyleId)
-                        {
-                            continue;
-                        }
-
-                        AddCityStyleInfluenceMarker(
-                            cardRect,
-                            player,
-                            cityStyleId,
-                            string.IsNullOrEmpty(declaration.MarkerArea)
-                                ? CityStyleMarkerAreas.Declared
-                                : declaration.MarkerArea,
-                            markerLayout);
-                    }
-                }
-
-            }
-        }
-
-        private void AddCityStyleInfluenceMarker(
-            RectTransform cardRect,
-            PlayerState player,
-            string cityStyleId,
-            string markerArea,
-            CityStyleMarkerLayoutTracker markerLayout)
-        {
-            var placement = markerLayout.Next(cityStyleId, markerArea, player.PlayerId);
-            var marker = InstantiateItem(
-                view.InfluenceMarkerTemplate,
-                cardRect,
-                "样式影响力 玩家" + player.PlayerId + " 标记" + (placement.PlayerMarkerIndex + 1));
-            CityStyleMarkerRenderer.Configure(
-                cardBoardVisualLayout,
-                marker.Background,
-                marker.gameObject.name,
-                UiTheme.GetPlayerColor(player.Color, 1f),
-                view.InfluenceMarkerTemplate.Background.sprite,
-                cardBoardVisualLayout.BuildInfoMarkerSize,
-                cityStyleId,
-                placement);
         }
 
         private void OpenCardImage(string cardName, Texture2D texture)
@@ -843,9 +729,6 @@ namespace YC.Presentation
             CardImagePreviewUtility.Open(
                 ref cardImageViewer,
                 transform,
-                "Card Image Viewer",
-                "Card Image",
-                cardName,
                 texture);
         }
 
@@ -861,27 +744,9 @@ namespace YC.Presentation
             return CityStyleDatabase.PresentationSupplyIds;
         }
 
-        private void SetExternalCardRect(
-            RectTransform rect,
-            int index,
-            int columnCount,
-            float cardWidth,
-            float cardHeight,
-            float horizontalSpacing,
-            float verticalSpacing,
-            float leftPadding = ExternalCardFramePadding)
-        {
-            view.CardInteractionLayoutProfile.ExternalCardAnchorLayout.ApplyTo(rect);
-            rect.sizeDelta = new Vector2(cardWidth, cardHeight);
-            rect.anchoredPosition = new Vector2(
-                leftPadding + (index % columnCount) * (cardWidth + horizontalSpacing),
-                -ExternalCardFramePadding - (index / columnCount) * (cardHeight + verticalSpacing));
-        }
-
         private void UpdateExternalCardHighlights()
         {
             UpdateExternalFacilityAvailability();
-            UpdateExternalCardHighlights(cityStyleCardBindings, string.Empty);
         }
 
         private void UpdateExternalCardHighlights(List<ExternalCardBinding> bindings, string selectedId)

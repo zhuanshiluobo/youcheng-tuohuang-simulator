@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4de4dcbfa9a951428819f56f73b7f82, type: 3}
   m_Name: CardInteractionLayoutProfile
   m_EditorClassIdentifier: Assembly-CSharp:YC.Presentation:CardInteractionLayoutProfile
-  sourceManifestSha256: 6FB4251B920FF7680E688394065DB5DCE430C637F9BA15379C2FDCA7AAC05BCE
+  sourceManifestSha256: F10B291AC890E6CE00D2BB66C7BC3472793F1DE8F6E2B23F98B19D512DD0F94B
   pendingBuildGhostAnchorMin: {x: 0.08, y: 0.08}
   pendingBuildGhostAnchorMax: {x: 0.92, y: 0.92}
   dragGhostLayout:

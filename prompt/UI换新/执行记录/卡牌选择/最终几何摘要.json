@@ -1,0 +1,93 @@
+[
+  {
+    "file": "CardPicker-Component-2-Start-1920x1080-actual-1920x1080.json",
+    "count": 2,
+    "actualSize": {
+      "x": 1920,
+      "y": 1080
+    },
+    "scrollbarVisible": false,
+    "contentWidth": 1582.0,
+    "viewportWidth": 1582.0,
+    "fitsAvailableHeight": true,
+    "horizontalNormalizedPosition": 0.0
+  },
+  {
+    "file": "CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+    "count": 6,
+    "actualSize": {
+      "x": 1920,
+      "y": 1080
+    },
+    "scrollbarVisible": false,
+    "contentWidth": 1582.0,
+    "viewportWidth": 1582.0,
+    "fitsAvailableHeight": true,
+    "horizontalNormalizedPosition": 0.0
+  },
+  {
+    "file": "CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+    "count": 7,
+    "actualSize": {
+      "x": 1920,
+      "y": 1080
+    },
+    "scrollbarVisible": false,
+    "contentWidth": 1582.0,
+    "viewportWidth": 1582.0,
+    "fitsAvailableHeight": true,
+    "horizontalNormalizedPosition": 0.0
+  },
+  {
+    "file": "CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+    "count": 7,
+    "actualSize": {
+      "x": 1920,
+      "y": 1200
+    },
+    "scrollbarVisible": false,
+    "contentWidth": 1667.017822265625,
+    "viewportWidth": 1667.017822265625,
+    "fitsAvailableHeight": true,
+    "horizontalNormalizedPosition": 0.0
+  },
+  {
+    "file": "CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+    "count": 9,
+    "actualSize": {
+      "x": 1920,
+      "y": 1080
+    },
+    "scrollbarVisible": true,
+    "contentWidth": 2038.0,
+    "viewportWidth": 1582.0,
+    "fitsAvailableHeight": true,
+    "horizontalNormalizedPosition": 1.0
+  },
+  {
+    "file": "CardPicker-Component-9-End-900x600-actual-900x600.json",
+    "count": 9,
+    "actualSize": {
+      "x": 900,
+      "y": 600
+    },
+    "scrollbarVisible": true,
+    "contentWidth": 1040.0126953125,
+    "viewportWidth": 777.5255126953125,
+    "fitsAvailableHeight": true,
+    "horizontalNormalizedPosition": 1.0000001192092896
+  },
+  {
+    "file": "CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+    "count": 9,
+    "actualSize": {
+      "x": 1920,
+      "y": 1080
+    },
+    "scrollbarVisible": true,
+    "contentWidth": 2038.0,
+    "viewportWidth": 1582.0,
+    "fitsAvailableHeight": true,
+    "horizontalNormalizedPosition": 0.0
+  }
+]

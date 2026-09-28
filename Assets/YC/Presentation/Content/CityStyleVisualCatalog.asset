@@ -1,0 +1,159 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24cc5cfc24fc4c95af1f01777063c2dd, type: 3}
+  m_Name: CityStyleVisualCatalog
+  cards:
+  - id: city_style_composite_power_system
+    version: formal-1.0.0-original
+    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_composite_power_system.jpg
+    atlasId: asset-056
+    sourceRect:
+      serializedVersion: 2
+      x: 1860
+      y: 0
+      width: 930
+      height: 600
+    trackLayout: active
+  - id: city_style_efficient_mobile_management_system
+    version: formal-1.0.0-original
+    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_efficient_mobile_management_system.jpg
+    atlasId: asset-073
+    sourceRect:
+      serializedVersion: 2
+      x: 930
+      y: 0
+      width: 930
+      height: 600
+    trackLayout: limited
+  - id: city_style_material_relay_station
+    version: formal-1.0.0-original
+    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_material_relay_station.jpg
+    atlasId: asset-056
+    sourceRect:
+      serializedVersion: 2
+      x: 1860
+      y: 1200
+      width: 930
+      height: 600
+    trackLayout: reward
+  - id: city_style_military_industrial_area
+    version: formal-1.0.0-base
+    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_military_industrial_area.jpg
+    atlasId: asset-056
+    sourceRect:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 930
+      height: 600
+    trackLayout: active
+  - id: city_style_mobilization_support_system
+    version: formal-1.0.0-original
+    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_mobilization_support_system.jpg
+    atlasId: asset-056
+    sourceRect:
+      serializedVersion: 2
+      x: 930
+      y: 0
+      width: 930
+      height: 600
+    trackLayout: active
+  - id: city_style_source_stone_industrial_hub
+    version: formal-1.0.0-original
+    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_source_stone_industrial_hub.jpg
+    atlasId: asset-073
+    sourceRect:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 930
+      height: 600
+    trackLayout: limited
+  tracks:
+  - layout: active
+    area: "unused"
+    sourceKey: unused
+    safeRect:
+      serializedVersion: 2
+      x: 530
+      y: 76
+      width: 300
+      height: 229
+  - layout: active
+    area: "used"
+    sourceKey: used
+    safeRect:
+      serializedVersion: 2
+      x: 530
+      y: 309
+      width: 300
+      height: 225
+  - layout: reward
+    area: "declared"
+    sourceKey: declared
+    safeRect:
+      serializedVersion: 2
+      x: 530
+      y: 76
+      width: 300
+      height: 458
+  - layout: limited
+    area: "2"
+    sourceKey: ready2
+    safeRect:
+      serializedVersion: 2
+      x: 530
+      y: 76
+      width: 300
+      height: 71
+  - layout: limited
+    area: "used_from_2"
+    sourceKey: used2
+    safeRect:
+      serializedVersion: 2
+      x: 530
+      y: 151
+      width: 300
+      height: 87
+  - layout: limited
+    area: "1"
+    sourceKey: ready1
+    safeRect:
+      serializedVersion: 2
+      x: 530
+      y: 242
+      width: 300
+      height: 127
+  - layout: limited
+    area: "used_from_1"
+    sourceKey: used1
+    safeRect:
+      serializedVersion: 2
+      x: 530
+      y: 373
+      width: 300
+      height: 87
+  - layout: limited
+    area: "0"
+    sourceKey: zero
+    safeRect:
+      serializedVersion: 2
+      x: 530
+      y: 464
+      width: 300
+      height: 70
+  cardSize: {x: 930, y: 600}
+  playerColors:
+  - {r: 0.9254902, g: 0, b: 0, a: 1}
+  - {r: 0, g: 0.4235294, b: 1, a: 1}
+  - {r: 0.372549, g: 0.8235294, b: 0, a: 1}
+  - {r: 1, g: 0.7490196, b: 0, a: 1}
+  visualPlayerOrder: 00000000010000000300000002000000
+  playerMarkerSprites:
+  - {fileID: 21300000, guid: d8e9dcadd3e3fb24bb85d7f34e062e31, type: 3}
+  - {fileID: 21300000, guid: b859f758d01777b429c6bf8ae21edaf4, type: 3}
+  - {fileID: 21300000, guid: d2a36eaffcff7c64c80b212aed5e18bb, type: 3}
+  - {fileID: 21300000, guid: 7722385aa1bdd9f41a422730b70eabb3, type: 3}

@@ -12,7 +12,6 @@ namespace YC.Presentation
         private readonly Func<RectTransform> getCanvas;
         private readonly EffectDialogShell shell;
         private readonly EffectDialogLayoutProfile layoutProfile;
-        private EffectDialogCollapsiblePanel collapsiblePanel;
 
         internal SpecialActionChoiceDialog(
             GameplayDialogRegistry dialogRegistry,
@@ -36,10 +35,7 @@ namespace YC.Presentation
             get { return shell.IsShowing; }
         }
 
-        public bool IsCollapsed
-        {
-            get { return collapsiblePanel != null && collapsiblePanel.IsCollapsed; }
-        }
+
 
         public void ShowCompositePayment(
             int maximumOriginium,
@@ -59,7 +55,6 @@ namespace YC.Presentation
             Action<IReadOnlyList<int>> confirm,
             Action cancel)
         {
-            collapsiblePanel = null;
             var canvas = getCanvas();
             var panel = shell.Rebuild(
                 canvas,
@@ -103,12 +98,11 @@ namespace YC.Presentation
             });
         }
 
-        public void ShowCollapsibleMapPrompt(
+        public void ShowMapSelection(
             string title,
             string description,
             string summary)
         {
-            collapsiblePanel = null;
             var canvas = getCanvas();
             var panel = shell.Rebuild(
                 canvas,
@@ -121,29 +115,13 @@ namespace YC.Presentation
                 return;
             }
 
-            var expandedContent = shell.ConfigureCollapsiblePanel(
-                canvas,
-                layoutProfile.SpecialActionMapPromptPanelSize,
-                summary,
-                true,
-                "Special Action Expanded Content",
-                "Special Action Collapsed Summary",
-                "Special Action Collapse Toggle",
-                "Special Action Collapse Triangle");
-            collapsiblePanel = shell.CollapsiblePanel;
-            EffectDialogShell.AddHeading(
-                expandedContent,
-                title,
-                description,
-                layoutProfile.MapPromptDescriptionHeight,
-                addDragHandle: false);
-
+            EffectDialogShell.AddHeading(panel, title, description, layoutProfile.MapPromptDescriptionHeight);
+            shell.SuspendForMapInteraction(summary);
         }
 
         public void Hide()
         {
             shell.Hide();
-            collapsiblePanel = null;
         }
     }
 }

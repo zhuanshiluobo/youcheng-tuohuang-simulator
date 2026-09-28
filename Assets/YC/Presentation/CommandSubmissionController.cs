@@ -16,6 +16,7 @@ namespace YC.Presentation
         private readonly Action refreshFromState;
         private readonly Action<string> setPrompt;
         private readonly Action<string> commandSettled;
+        private readonly Action<string, bool> cityStyleCommandResolved;
         private INetworkCommandTransport commandTransport;
         private bool sessionNoticeSubscribed;
 
@@ -26,7 +27,7 @@ namespace YC.Presentation
             UnityEngine.Object logContext,
             Action refreshFromState,
             Action<string> setPrompt,
-            Action<string> commandSettled)
+            Action<string> commandSettled, Action<string, bool> cityStyleCommandResolved = null)
         {
             this.session = session;
             this.launchContext = launchContext;
@@ -35,6 +36,7 @@ namespace YC.Presentation
             this.refreshFromState = refreshFromState;
             this.setPrompt = setPrompt;
             this.commandSettled = commandSettled;
+            this.cityStyleCommandResolved = cityStyleCommandResolved;
         }
 
         public void Initialize()
@@ -68,6 +70,12 @@ namespace YC.Presentation
 
         public CommandResult Submit(GameCommand command, out bool appliedLocally)
         {
+            if (launchContext != null && launchContext.IsLeavingGameplay)
+            {
+                appliedLocally = false;
+                return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand,
+                    "当前对局连接已结束，请返回开始页。"));
+            }
             if (commandTransport != null)
             {
                 return commandTransport.SubmitOrSend(command, out appliedLocally);
@@ -114,6 +122,7 @@ namespace YC.Presentation
 
         private void OnConfirmedNetworkCommandApplied(ConfirmedGameStateViewDto confirmed)
         {
+            cityStyleCommandResolved?.Invoke(confirmed?.Command?.CommandId, true);
             commandSettled?.Invoke(confirmed == null || confirmed.Command == null
                 ? string.Empty
                 : confirmed.Command.CommandId);
@@ -122,12 +131,14 @@ namespace YC.Presentation
 
         private void OnInitialNetworkStateApplied(InitialGameStateViewDto snapshot)
         {
+            cityStyleCommandResolved?.Invoke(string.Empty, false);
             commandSettled?.Invoke(string.Empty);
             refreshFromState();
         }
 
         private void OnNetworkCommandRejected(RejectedGameCommandDto rejected)
         {
+            cityStyleCommandResolved?.Invoke(rejected?.Command?.CommandId, false);
             commandSettled?.Invoke(rejected == null || rejected.Command == null
                 ? string.Empty
                 : rejected.Command.CommandId);

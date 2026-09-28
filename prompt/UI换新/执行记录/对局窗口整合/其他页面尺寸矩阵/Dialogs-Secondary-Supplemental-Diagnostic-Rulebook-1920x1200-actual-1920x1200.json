@@ -1,0 +1,288 @@
+{
+    "scene": "SampleScene",
+    "state": "Rulebook",
+    "stateSource": "实际局内规则书第1页；正式控制器不支持收起，此状态保持其正常行为。",
+    "componentDiagnostic": true,
+    "sourceAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameRulebookViewer.prefab",
+    "validatedSceneSources": {
+        "phase": "进入Play Mode前，读取实际SampleScene中的序列化引用与Prefab实例来源；不保存资产。",
+        "scene": "Assets/Scenes/SampleScene.unity",
+        "settingsAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab",
+        "settingsSceneObject": "GlobalObjectId_V1-2-2cda990e2423bbf4892e6590ba056729-3483565071125839763-205474404",
+        "rulebookAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameRulebookViewer.prefab",
+        "rulebookSceneObject": "GlobalObjectId_V1-2-2cda990e2423bbf4892e6590ba056729-1716631333306062023-205474404",
+        "nestedImageAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameZoomableImageViewer.prefab",
+        "registeredImageAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameZoomableImageViewer.prefab"
+    },
+    "commandSubmissionEnabled": false,
+    "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 0.000028990019927732646,
+        "y": 107.51741790771485,
+        "width": 1920.0,
+        "height": 1016.5879516601563
+    },
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 1920.0,
+        "y": 1200.0
+    },
+    "actualSize": {
+        "x": 1920.0,
+        "y": 1200.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1920.0,
+        "height": 1200.0
+    },
+    "objects": [
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 473.3958435058594,
+                "y": 148.18092346191407,
+                "width": 973.208251953125,
+                "height": 935.260986328125
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 473.3958435058594,
+                "y": 148.18092346191407,
+                "width": 973.208251953125,
+                "height": 935.260986328125
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 473.3958435058594,
+                "y": 1005.4390258789063,
+                "width": 973.208251953125,
+                "height": 78.00286865234375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Header/Rulebook Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 473.3958435058594,
+                "y": 1015.97998046875,
+                "width": 973.208251953125,
+                "height": 67.4619140625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Header/Close Rulebook Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1383.358642578125,
+                "y": 1026.5208740234375,
+                "width": 44.2718505859375,
+                "height": 44.2718505859375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Header/Close Rulebook Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1391.791259765625,
+                "y": 1026.5208740234375,
+                "width": 27.406494140625,
+                "height": 44.27197265625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Body Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 473.3958435058594,
+                "y": 234.6165008544922,
+                "width": 973.208251953125,
+                "height": 770.822509765625
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Body Viewport/Rulebook Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 574.5887451171875,
+                "y": 234.6165008544922,
+                "width": 770.822509765625,
+                "height": 770.822509765625
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Body Viewport/Rulebook Viewport/Rulebook Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 574.5887451171875,
+                "y": 234.6165008544922,
+                "width": 770.822509765625,
+                "height": 770.822509765625
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Body Viewport/Previous Rulebook Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 502.9104309082031,
+                "y": 553.6199340820313,
+                "width": 61.137359619140628,
+                "height": 124.3829345703125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Body Viewport/Previous Rulebook Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 511.3431701660156,
+                "y": 553.6199340820313,
+                "width": 44.271881103515628,
+                "height": 124.3829345703125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Body Viewport/Next Rulebook Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1355.9522705078125,
+                "y": 553.6199340820313,
+                "width": 61.1373291015625,
+                "height": 124.3829345703125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Body Viewport/Next Rulebook Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1364.3848876953125,
+                "y": 553.6199340820313,
+                "width": 44.27197265625,
+                "height": 124.3829345703125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 473.3958435058594,
+                "y": 148.18089294433595,
+                "width": 973.208251953125,
+                "height": 86.43559265136719
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Footer/Rulebook Page Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 685.9359130859375,
+                "y": 171.37094116210938,
+                "width": 548.128173828125,
+                "height": 46.38006591796875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Window Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 473.3958435058594,
+                "y": 148.18092346191407,
+                "width": 973.208251953125,
+                "height": 935.260986328125
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        }
+    ],
+    "scrolls": [
+        {
+            "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Body Viewport/Rulebook Viewport",
+            "normalizedPosition": 1.0,
+            "viewportScreenRect": {
+                "serializedVersion": "2",
+                "x": 574.5887451171875,
+                "y": 234.6165008544922,
+                "width": 770.822509765625,
+                "height": 770.822509765625
+            },
+            "contentScreenRect": {
+                "serializedVersion": "2",
+                "x": 574.5887451171875,
+                "y": 234.6165008544922,
+                "width": 770.822509765625,
+                "height": 770.822509765625
+            }
+        }
+    ]
+}

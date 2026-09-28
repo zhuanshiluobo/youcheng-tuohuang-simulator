@@ -1,0 +1,660 @@
+{
+    "asset": "Assets/Scenes/CollectionRoom.unity",
+    "evidenceKind": "离线资产参考矩形；不是实际运行屏幕验收。包含相同对象迁移前后坐标、活动状态和层级。",
+    "referenceResolution": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "objects": [
+        {
+            "beforePath": "Collection Room/Collection Canvas",
+            "afterPath": "Collection Room/Collection Canvas",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1919.9998779296875,
+                "height": 1080.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1919.9998779296875,
+                "height": 1080.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Background",
+            "afterPath": "Collection Room/Collection Canvas/Background",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1919.9998779296875,
+                "height": 1080.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1919.9998779296875,
+                "height": 1080.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Top Bar",
+            "afterPath": "Collection Room/Collection Canvas/Top Bar",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 968.0,
+                "width": 1919.9998779296875,
+                "height": 112.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 968.0,
+                "width": 1919.9998779296875,
+                "height": 112.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Top Bar/Back Button",
+            "afterPath": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row/UI007 Back Button Slot/Back Button",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 36.00006103515625,
+                "y": 997.9999389648438,
+                "width": 149.99993896484376,
+                "height": 52.00006103515625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 36.00006103515625,
+                "y": 997.9999389648438,
+                "width": 149.99993896484376,
+                "height": 52.00006103515625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Top Bar/Back Button/Label",
+            "afterPath": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row/UI007 Back Button Slot/Back Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 36.00006103515625,
+                "y": 997.9999389648438,
+                "width": 150.0,
+                "height": 52.00006103515625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 36.0001220703125,
+                "y": 997.9999389648438,
+                "width": 149.9998779296875,
+                "height": 52.00006103515625
+            },
+            "delta": {
+                "x": 0.00006103515625,
+                "y": 0.0,
+                "z": -0.0001220703125,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Top Bar/Title",
+            "afterPath": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row/UI007 Title Slot/Title",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 230.0,
+                "y": 992.0,
+                "width": 300.0,
+                "height": 64.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 230.0,
+                "y": 992.0,
+                "width": 300.0,
+                "height": 64.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Top Bar/Gold Line",
+            "afterPath": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row/UI007 Gold Line Slot/Gold Line",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 968.0,
+                "width": 1919.9998779296875,
+                "height": 2.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 967.9998779296875,
+                "width": 1919.9998779296875,
+                "height": 2.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -0.0001220703125,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Collection List",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 36.00006103515625,
+                "y": 20.0,
+                "width": 279.99993896484377,
+                "height": 928.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 36.00006103515625,
+                "y": 20.0,
+                "width": 279.99993896484377,
+                "height": 928.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Collection List/Caption",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Caption Slot/Caption",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 60.00006103515625,
+                "y": 882.0,
+                "width": 232.0,
+                "height": 38.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 60.0001220703125,
+                "y": 506.0,
+                "width": 232.0,
+                "height": 414.0
+            },
+            "delta": {
+                "x": 0.00006103515625,
+                "y": -376.0,
+                "z": 0.0,
+                "w": 376.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Collection List/Originite Item",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Originite Item Slot/Originite Item",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 60.00006103515625,
+                "y": 772.0000610351563,
+                "width": 232.0,
+                "height": 93.99993896484375
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 60.0001220703125,
+                "y": 396.0,
+                "width": 232.0,
+                "height": 94.0
+            },
+            "delta": {
+                "x": 0.00006103515625,
+                "y": -376.00006103515627,
+                "z": 0.0,
+                "w": 0.00006103515625
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Collection List/Originite Item/Selected Marker",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Originite Item Slot/Originite Item/Selected Marker",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 60.00006103515625,
+                "y": 772.0,
+                "width": 4.0,
+                "height": 94.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 60.0001220703125,
+                "y": 396.0,
+                "width": 4.00006103515625,
+                "height": 93.99996948242188
+            },
+            "delta": {
+                "x": 0.00006103515625,
+                "y": -376.0,
+                "z": 0.00006103515625,
+                "w": -0.000030517578125
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Collection List/Originite Item/Index",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Originite Item Slot/Originite Item/Index",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 74.0,
+                "y": 794.0,
+                "width": 46.0,
+                "height": 50.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 74.00006103515625,
+                "y": 418.0,
+                "width": 46.0,
+                "height": 50.0
+            },
+            "delta": {
+                "x": 0.00006103515625,
+                "y": -376.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Collection List/Originite Item/Name",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Originite Item Slot/Originite Item/Name",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 126.00006103515625,
+                "y": 805.0,
+                "width": 148.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 126.0001220703125,
+                "y": 429.0,
+                "width": 147.99993896484376,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.00006103515625,
+                "y": -376.0,
+                "z": -0.00006103515625,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Collection List/Originite Item/Type",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Originite Item Slot/Originite Item/Type",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 126.00006103515625,
+                "y": 786.0,
+                "width": 148.0,
+                "height": 28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 126.0001220703125,
+                "y": 410.0,
+                "width": 147.99993896484376,
+                "height": 28.0
+            },
+            "delta": {
+                "x": 0.00006103515625,
+                "y": -376.0,
+                "z": -0.00006103515625,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Preview Frame",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Preview Frame",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 562.0,
+                "y": 105.99996948242188,
+                "width": 800.0,
+                "height": 800.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 562.0,
+                "y": 105.99996948242188,
+                "width": 800.0,
+                "height": 800.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Preview Frame/Originite Preview",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Preview Frame/Originite Preview",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 582.0,
+                "y": 126.0,
+                "width": 760.0,
+                "height": 759.9999389648438
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 582.0,
+                "y": 126.0,
+                "width": 760.0,
+                "height": 759.9999389648438
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Preview Frame/Specimen Number",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Preview Frame/Specimen Number",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 586.0,
+                "y": 858.0,
+                "width": 230.0,
+                "height": 30.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 586.0,
+                "y": 858.0,
+                "width": 230.0,
+                "height": 30.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Model Information",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1543.9998779296875,
+                "y": 20.0,
+                "width": 340.0001220703125,
+                "height": 928.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1543.9998779296875,
+                "y": 20.0,
+                "width": 340.0001220703125,
+                "height": 928.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Model Information/Category",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Category Slot/Category",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1574.0,
+                "y": 878.0,
+                "width": 270.0,
+                "height": 32.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1574.0,
+                "y": 865.5000610351563,
+                "width": 270.0,
+                "height": 44.49993896484375
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -12.49993896484375,
+                "z": 0.0,
+                "w": 12.49993896484375
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Model Information/Model Name",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Model Name Slot/Model Name",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1574.0,
+                "y": 809.9999389648438,
+                "width": 280.0,
+                "height": 58.00006103515625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1574.0,
+                "y": 784.9998779296875,
+                "width": 280.0,
+                "height": 70.5
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -25.00006103515625,
+                "z": 0.0,
+                "w": 12.49993896484375
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Model Information/Latin Name",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Latin Name Slot/Latin Name",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1574.0,
+                "y": 778.0000610351563,
+                "width": 280.0,
+                "height": 29.99993896484375
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1574.0,
+                "y": 740.5000610351563,
+                "width": 280.0,
+                "height": 42.49993896484375
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -37.5,
+                "z": 0.0,
+                "w": 12.5
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Model Information/Separator",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Separator Slot/Separator",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1574.0,
+                "y": 757.0,
+                "width": 280.0,
+                "height": 1.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1574.0,
+                "y": 719.5,
+                "width": 280.0,
+                "height": 1.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -37.5,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Model Information/Description",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Description Slot/Description",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1574.0,
+                "y": 466.0,
+                "width": 280.0,
+                "height": 260.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1574.0,
+                "y": 403.5000305175781,
+                "width": 280.0,
+                "height": 272.4999694824219
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -62.499969482421878,
+                "z": 0.0,
+                "w": 12.499969482421875
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Model Information/Reset View Button",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Reset View Button Slot/Reset View Button",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1573.9998779296875,
+                "y": 95.00003051757813,
+                "width": 280.0001220703125,
+                "height": 53.999969482421878
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1573.9998779296875,
+                "y": 26.25006103515625,
+                "width": 280.0001220703125,
+                "height": 53.999969482421878
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -68.74996948242188,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Collection Room/Collection Canvas/Model Information/Reset View Button/Label",
+            "afterPath": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Reset View Button Slot/Reset View Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1573.9998779296875,
+                "y": 95.00003051757813,
+                "width": 280.0001220703125,
+                "height": 53.999969482421878
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1573.9998779296875,
+                "y": 26.25006103515625,
+                "width": 280.0001220703125,
+                "height": 53.999969482421878
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -68.74996948242188,
+                "z": 0.0,
+                "w": 0.0
+            }
+        }
+    ]
+}

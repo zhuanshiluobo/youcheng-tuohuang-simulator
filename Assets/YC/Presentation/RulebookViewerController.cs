@@ -5,6 +5,7 @@ namespace YC.Presentation
     public sealed class RulebookViewerController : MonoBehaviour
     {
         [SerializeField] private RulebookViewerView view;
+        [SerializeField] private string viewerTitle = "规则书";
 
         private bool initialized;
         private int pageIndex;
@@ -52,7 +53,7 @@ namespace YC.Presentation
             }
 
             // 规则书内容边界：28 张图片由 View 的序列化数组绑定，不在运行时查找资源。
-            view.ImageViewer.Configure("Rulebook", "规则书", view.PageCount, view.GetPage);
+            view.ImageViewer.Configure("Rulebook", viewerTitle, view.PageCount, view.GetPage);
             view.ImageViewer.ConfigureActions(string.Empty, null);
             view.ImageViewer.DisableReferenceCollapse();
             initialized = true;

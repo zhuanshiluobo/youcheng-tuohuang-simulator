@@ -1,0 +1,259 @@
+{
+    "mode": "ResourceBank",
+    "source": "组件诊断：SampleScene 当前 Registry 与实际 EventChoiceDialog Prefab；调用既有 Show 方法。路线、收款人和文字样本为诊断数据，卡图来自正式目录。回调仅计数，不提交命令；不代表规则结算或联机验收。",
+    "requestedSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "actualSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "panel": {
+        "serializedVersion": "2",
+        "x": 291.80377197265627,
+        "y": 241.31430053710938,
+        "width": 316.3924560546875,
+        "height": 102.06207275390625
+    },
+    "availableContent": {
+        "serializedVersion": "2",
+        "x": 3.409659257158637e-7,
+        "y": 52.051658630371097,
+        "width": 900.0,
+        "height": 511.2060241699219
+    },
+    "diagnosticCallbacks": 0,
+    "issues": [],
+    "objects": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 291.80377197265627,
+                "y": 241.31430053710938,
+                "width": 316.3924560546875,
+                "height": 102.06207275390625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 291.80377197265627,
+                "y": 241.31430053710938,
+                "width": 316.3924560546875,
+                "height": 102.06207275390625
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Title",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 291.80377197265627,
+                "y": 316.3299255371094,
+                "width": 316.3924560546875,
+                "height": 23.47430419921875
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 291.80377197265627,
+                "y": 241.31431579589845,
+                "width": 316.3924560546875,
+                "height": 70.93315124511719
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 291.80377197265627,
+                "y": 241.31431579589845,
+                "width": 316.3924560546875,
+                "height": 70.93315124511719
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 291.80377197265627,
+                "y": 241.31431579589845,
+                "width": 316.3924560546875,
+                "height": 70.93315124511719
+            },
+            "layoutDrivers": [
+                "ScrollRect",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 310.7873229980469,
+                "y": 241.31431579589845,
+                "width": 278.4253234863281,
+                "height": 70.93315124511719
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 310.7873229980469,
+                "y": 269.38134765625,
+                "width": 278.4253234863281,
+                "height": 42.8660888671875
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "ContentSizeFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Receiver",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 310.7873229980469,
+                "y": 294.89691162109377,
+                "width": 278.4253234863281,
+                "height": 17.35052490234375
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 310.7873229980469,
+                "y": 269.3813781738281,
+                "width": 278.4253234863281,
+                "height": 21.43304443359375
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Pay Bank",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 329.6688232421875,
+                "y": 269.3813781738281,
+                "width": 240.662353515625,
+                "height": 21.43304443359375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Pay Bank/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 335.79254150390627,
+                "y": 269.3813781738281,
+                "width": 228.4149169921875,
+                "height": 21.43304443359375
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Dynamic Templates",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 291.80377197265627,
+                "y": 241.31430053710938,
+                "width": 316.3924560546875,
+                "height": 102.06207275390625
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Close Payment",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 577.5775756835938,
+                "y": 315.8196105957031,
+                "width": 21.43304443359375,
+                "height": 21.43304443359375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Close Payment/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 583.7013549804688,
+                "y": 315.8196105957031,
+                "width": 9.185546875,
+                "height": 21.43304443359375
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        }
+    ],
+    "scrolls": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll",
+            "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Pay Bank",
+            "contentHeight": 84.0,
+            "viewportHeight": 139.0,
+            "contentOverflows": false,
+            "lastButtonVisibleAtTop": true,
+            "lastButtonReachesViewportAtEnd": true,
+            "viewportAtEnd": {
+                "serializedVersion": "2",
+                "x": 310.7873229980469,
+                "y": 241.31431579589845,
+                "width": 278.4253234863281,
+                "height": 70.93315124511719
+            },
+            "lastButtonAtEnd": {
+                "serializedVersion": "2",
+                "x": 329.6688232421875,
+                "y": 269.3813781738281,
+                "width": 240.662353515625,
+                "height": 21.43304443359375
+            }
+        }
+    ]
+}

@@ -1,0 +1,116 @@
+{
+    "scene": "SampleScene",
+    "state": "ZoomCollapsed",
+    "stateSource": "局内实际注册图片查看器，使用正式规则书图片素材；展开/收起组件诊断，无业务回调。",
+    "componentDiagnostic": true,
+    "sourceAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameZoomableImageViewer.prefab",
+    "validatedSceneSources": {
+        "phase": "进入Play Mode前，读取实际SampleScene中的序列化引用与Prefab实例来源；不保存资产。",
+        "scene": "Assets/Scenes/SampleScene.unity",
+        "settingsAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab",
+        "settingsSceneObject": "GlobalObjectId_V1-2-2cda990e2423bbf4892e6590ba056729-3483565071125839763-205474404",
+        "rulebookAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameRulebookViewer.prefab",
+        "rulebookSceneObject": "GlobalObjectId_V1-2-2cda990e2423bbf4892e6590ba056729-1716631333306062023-205474404",
+        "nestedImageAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameZoomableImageViewer.prefab",
+        "registeredImageAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameZoomableImageViewer.prefab"
+    },
+    "commandSubmissionEnabled": false,
+    "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 3.409659257158637e-7,
+        "y": 52.051658630371097,
+        "width": 900.0,
+        "height": 511.2060241699219
+    },
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "actualSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 900.0,
+        "height": 600.0
+    },
+    "objects": [
+        {
+            "path": "DialogsDiagnostic Viewer Canvas/DialogsDiagnostic Viewer/DialogsDiagnostic Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 205.65963745117188,
+                "y": 513.3097534179688,
+                "width": 488.6806945800781,
+                "height": 29.5980224609375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "DialogsDiagnostic Viewer Canvas/DialogsDiagnostic Viewer/DialogsDiagnostic Panel/DialogsDiagnostic Collapsed Summary",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.7833709716797,
+                "y": 517.3922729492188,
+                "width": 407.031005859375,
+                "height": 21.4329833984375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "DialogsDiagnostic Viewer Canvas/DialogsDiagnostic Viewer/DialogsDiagnostic Panel/DialogsDiagnostic Collapse Toggle Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 615.7525634765625,
+                "y": 519.4334716796875,
+                "width": 72.46405029296875,
+                "height": 17.3505859375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "DialogsDiagnostic Viewer Canvas/DialogsDiagnostic Viewer/DialogsDiagnostic Panel/DialogsDiagnostic Collapse Toggle Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 619.8350830078125,
+                "y": 519.4334716796875,
+                "width": 64.299072265625,
+                "height": 17.3505859375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "DialogsDiagnostic Viewer Canvas/DialogsDiagnostic Viewer/DialogsDiagnostic Panel/Window Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 205.65963745117188,
+                "y": 513.3097534179688,
+                "width": 488.6806945800781,
+                "height": 29.5980224609375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        }
+    ],
+    "scrolls": []
+}

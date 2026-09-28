@@ -23,7 +23,8 @@ namespace YC.Tests.EditMode
             Assert.That(view.HandCards[0].DisplayName, Is.EqualTo("雷蛇"));
             Assert.That(view.HandCards[1].DisplayName, Is.EqualTo("expansion-card-7"));
             Assert.That(view.HandCards[0].CanCover, Is.True);
-            Assert.That(view.InteractionStatus, Is.EqualTo("拖动到主要行动卡上即可盖放"));
+            Assert.That(view.InteractionStatus, Does.Contain("单选后确认"));
+            Assert.That(view.InteractionStatus, Does.Not.Contain("拖动"));
         }
 
         [Test]
@@ -186,11 +187,11 @@ namespace YC.Tests.EditMode
             Assert.That(view.CanUseStrategy, Is.False);
             Assert.That(view.CanUseTactic, Is.True);
             Assert.That(view.IsSecondEffectDecision, Is.True);
-            Assert.That(view.InteractionStatus, Does.Contain("可继续使用第二个效果").And.Contain("点击翻转"));
+            Assert.That(view.InteractionStatus, Does.Contain("可继续使用第二个效果").And.Contain("结束角色牌使用"));
         }
 
         [Test]
-        public void PendingSecondEffectDecision_WithoutContinueOption_OnlyAllowsFlipToFinish()
+        public void PendingSecondEffectDecision_WithoutContinueOption_OnlyAllowsEndAction()
         {
             var state = CreateState(GamePhase.ActionRound1);
             state.FindPlayer(1).CoveredCharacterCardId = "character.red.p1.liskarm";
@@ -209,8 +210,7 @@ namespace YC.Tests.EditMode
             Assert.That(view.CanUse, Is.True, "角色牌结算未完成时仍应允许从主界面重新打开角色牌。");
             Assert.That(view.CanUseStrategy, Is.False);
             Assert.That(view.CanUseTactic, Is.False);
-            Assert.That(view.InteractionStatus,
-                Is.EqualTo("当前角色牌效果没有合法的地图目标，请点击翻转完成结算。"));
+            Assert.That(view.InteractionStatus, Does.Contain("结束操作完成结算").And.Not.Contain("翻转"));
         }
 
         [Test]

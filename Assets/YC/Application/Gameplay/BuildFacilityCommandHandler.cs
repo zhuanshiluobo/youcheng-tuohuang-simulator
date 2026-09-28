@@ -56,7 +56,7 @@ namespace YC.Application.Gameplay
             var facilityId = GetFacilityId(command);
             int cityBoardSlotIndex;
             var slotValidation = ResolveCityBoardSlotIndex(command, out cityBoardSlotIndex);
-            if (!slotValidation.IsValid)
+            if (!slotValidation.IsValid && !(effectRegistry != null && cityBoardSlotIndex == -1 && string.IsNullOrEmpty(GetParameter(command, CityBoardSlotIndexParameter))))
             {
                 return CommandResult.Invalid(slotValidation);
             }
@@ -135,6 +135,13 @@ namespace YC.Application.Gameplay
                     cityBoardSlotIndex,
                     paymentMode);
             }
+
+            if (effectRegistry != null && cityBoardSlotIndex < 0)
+                return CommandResult.SuccessResult(new List<GameEvent>
+                {
+                    new GameEvent { Kind = GameEventKind.ResourceChanged, PlayerId = command.PlayerId,
+                        SubjectId = facilityId, Message = "建设已支付并补充设施供应区，等待放置。" }
+                }, "建设已支付，等待放入城市面板。");
 
             var message = "Player " + command.PlayerId + " built " + result.Facility.Name + ".";
             return CommandResult.SuccessResult(new List<GameEvent>

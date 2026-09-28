@@ -2,47 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using YC.Domain.Interactions;
 
 namespace YC.Presentation
 {
-    internal sealed class EffectDialogCollapseSpec
-    {
-        public EffectDialogCollapseSpec(EffectDialogLayoutProfile layoutProfile)
-        {
-            var reason = string.Empty;
-            if (layoutProfile == null || !layoutProfile.TryValidateConfiguration(out reason))
-            {
-                throw new InvalidOperationException(
-                    "EffectDialogCollapseSpec 缺少有效的显式布局 Profile：" + reason);
-            }
-
-            CollapsedHeight = layoutProfile.CollapsedHeight;
-            CollapsedOverlayColor = layoutProfile.CollapsedOverlayColor;
-            CollapsedOverlayRaycastTarget = layoutProfile.CollapsedOverlayRaycastTarget;
-            CollapsedToggleLayout = layoutProfile.CollapsedToggleLayout;
-            ExpandedToggleLayout = layoutProfile.ExpandedToggleLayout;
-        }
-
-        public RectTransform Panel;
-        public Canvas Canvas;
-        public Image OverlayImage;
-        public GameObject ExpandedContent;
-        public Text CollapsedSummaryText;
-        public RectTransform ToggleRect;
-        public Text ToggleText;
-        public Image ToggleIcon;
-        public Vector2 ExpandedSize;
-        public float CollapsedHeight = 58f;
-        public string CollapseLabel = "\u6536\u8d77\u5361\u7247";
-        public string ExpandLabel = "\u5c55\u5f00\u5361\u7247";
-        public bool StartCollapsed;
-        public bool ClampToCanvasBounds;
-        public Color CollapsedOverlayColor = Color.clear;
-        public bool CollapsedOverlayRaycastTarget;
-        public EffectDialogRectLayout CollapsedToggleLayout;
-        public EffectDialogRectLayout ExpandedToggleLayout;
-    }
-
     internal sealed class EffectDialogOption
     {
         public EffectDialogOption(string label, Action select, bool enabled = true)
@@ -57,6 +20,44 @@ namespace YC.Presentation
         public Action Select { get; private set; }
 
         public bool Enabled { get; private set; }
+
+        public string StableId;
+        public string RequestId;
+        public int Revision;
+        public Func<bool> IsCurrent;
+        public bool ExecuteImmediately;
+        public string SourceLabel;
+        public string DescriptionLabel;
+    }
+
+    internal sealed class EffectDialogSelectionSpec
+    {
+        public InteractionRequestProjection Request;
+        public IReadOnlyCollection<string> SelectedIds;
+        public Func<string, string> Label;
+        public Func<string, string> SourceLabel;
+        public Func<string, string> DescriptionLabel;
+        public Func<string, Texture2D> CardTexture;
+        public Action<string> Select;
+        public Action Confirm;
+        public Action Cancel;
+        public Func<bool> IsCurrent;
+        public Func<string, bool> CanSelect;
+        public string OptionNamePrefix;
+        public string ConfirmLabel;
+        public string CancelLabel;
+        public bool IsEffectPage = true;
+        public string CardPickerHint;
+        public bool AllowStageFolding;
+        public bool ReadOnly;
+
+        internal bool HasCardArtwork()
+        {
+            if (CardTexture == null || Request?.CandidateIds == null) return false;
+            foreach (var id in Request.CandidateIds)
+                if (!string.IsNullOrEmpty(id) && CardTexture(id) != null) return true;
+            return false;
+        }
     }
 
     internal sealed class ResourceAllocationSpec
@@ -76,6 +77,7 @@ namespace YC.Presentation
         public string ConfirmLabel = "确认结算";
         public string CancelName = "Skip";
         public string CancelLabel = "跳过";
+        public string CancelDraftLabel;
         public string SummaryName = string.Empty;
         public float RowStartY = -168f;
         public float RowSpacing = 68f;
@@ -91,6 +93,9 @@ namespace YC.Presentation
         public Action Cancel;
         public bool CloseBeforeConfirm;
         public bool CloseBeforeCancel;
+        public IReadOnlyList<int> InitialValues;
+        public Action<IReadOnlyList<int>> DraftChanged;
+        public Func<bool> IsCurrent;
     }
 
     /// <summary>运行时效果弹窗共享的无领域语义 UI 壳层。</summary>
@@ -101,6 +106,20 @@ namespace YC.Presentation
 
         private readonly GameplayDialogRegistry registry;
         private EffectDialogShellView view;
+        private CardViewer cardViewer;
+        private float savedScrollPosition = 1f;
+        private bool openingDetails;
+        internal bool IsVisible => view != null && view.gameObject.activeInHierarchy;
+        internal bool OwnsPage(GameObject page) => !openingDetails && view != null && view.gameObject == page;
+
+        internal float ScrollPosition => view == null ? savedScrollPosition : view.ScrollPosition;
+
+        internal void RestoreScroll(float value)
+        {
+            if (view == null) return;
+            savedScrollPosition = Mathf.Clamp01(value);
+            view.RestoreScrollPosition(savedScrollPosition);
+        }
 
         internal EffectDialogShell(GameplayDialogRegistry configuredRegistry)
         {
@@ -118,7 +137,8 @@ namespace YC.Presentation
             string panelName,
             Vector2 size,
             Vector2 position,
-            bool blockBackgroundInput = false)
+            bool blockBackgroundInput = false, bool effectPage = true, bool informationPage = false,
+            bool cardPicker = false)
         {
             Hide();
             if (canvas == null)
@@ -131,7 +151,7 @@ namespace YC.Presentation
                 throw new InvalidOperationException("EffectDialogShell 缺少显式 GameplayDialogRegistry 注入。");
             }
 
-            view = registry.InstantiateEffectDialogShell(canvas);
+            view = registry.InstantiateEffectDialogShell(canvas, effectPage, !informationPage, cardPicker);
             if (view == null)
             {
                 return null;
@@ -151,80 +171,25 @@ namespace YC.Presentation
 
         public void Hide()
         {
+            if (cardViewer != null) cardViewer.Dismiss();
             if (view == null)
             {
                 return;
             }
 
             var releasedView = view;
+            savedScrollPosition = releasedView.ScrollPosition;
             view = null;
             DestroyView(releasedView);
         }
 
-        internal RectTransform ConfigureCollapsiblePanel(
-            RectTransform canvas,
-            Vector2 expandedSize,
-            string summary,
-            bool startCollapsed,
-            string expandedContentName = null,
-            string collapsedSummaryName = null,
-            string toggleName = null,
-            string toggleIconName = null)
+        internal void SuspendForMapInteraction(string message)
         {
-            if (view == null)
-            {
-                return null;
-            }
-
-            if (!string.IsNullOrEmpty(expandedContentName))
-            {
-                view.ExpandedContent.gameObject.name = expandedContentName;
-            }
-
-            if (!string.IsNullOrEmpty(collapsedSummaryName))
-            {
-                view.CollapsedSummaryText.gameObject.name = collapsedSummaryName;
-            }
-
-            if (!string.IsNullOrEmpty(toggleName))
-            {
-                view.CollapseButton.gameObject.name = toggleName;
-            }
-
-            if (!string.IsNullOrEmpty(toggleIconName))
-            {
-                view.CollapseButtonIcon.gameObject.name = toggleIconName;
-            }
-
-            view.CollapsedSummaryText.text = summary ?? string.Empty;
-            view.CollapsedSummaryText.fontStyle = FontStyle.Bold;
-            view.CollapsedSummaryText.color = UiTheme.GoldText;
-            view.LayoutProfile.CollapsedSummaryLayout.ApplyTo(
-                view.CollapsedSummaryText.rectTransform);
-            view.CollapsedSummaryText.gameObject.SetActive(false);
-            view.CollapseButton.gameObject.SetActive(true);
-            if (view.DragHandle != null) view.DragHandle.enabled = false;
-            view.CollapsiblePanel.Configure(new EffectDialogCollapseSpec(view.LayoutProfile)
-            {
-                Panel = view.Panel,
-                Canvas = canvas == null ? null : canvas.GetComponentInParent<Canvas>(),
-                OverlayImage = view.OverlayImage,
-                ExpandedContent = view.ExpandedContent.gameObject,
-                CollapsedSummaryText = view.CollapsedSummaryText,
-                ToggleRect = view.CollapseButton.GetComponent<RectTransform>(),
-                ToggleText = view.CollapseButtonText,
-                ToggleIcon = view.CollapseButtonIcon,
-                ExpandedSize = expandedSize,
-                StartCollapsed = startCollapsed,
-                ClampToCanvasBounds = true
-            });
-            view.CollapseButton.onClick.RemoveAllListeners();
-            view.CollapseButton.onClick.AddListener(view.CollapsiblePanel.Toggle);
-            return view.ExpandedContent;
+            var frame = GameplayHudFrame.Active;
+            if (frame == null || view == null) return;
+            frame.SetInteractionMessage(message);
+            frame.SuspendEffectForMapInteraction();
         }
-
-        internal EffectDialogCollapsiblePanel CollapsiblePanel =>
-            view == null ? null : view.CollapsiblePanel;
 
         private static void DestroyView(EffectDialogShellView target)
         {
@@ -234,6 +199,7 @@ namespace YC.Presentation
             }
 
             target.gameObject.SetActive(false);
+            GameplayHudFrame.Active?.ReleaseStagePage(target.gameObject);
             if (UnityEngine.Application.isPlaying)
             {
                 UnityEngine.Object.Destroy(target.gameObject);
@@ -268,17 +234,36 @@ namespace YC.Presentation
             for (var i = 0; i < options.Count; i++)
             {
                 var option = options[i];
+                if (option == null) continue;
+                if (option.ExecuteImmediately)
+                {
+                    var effectRow = ResolveView(content).CreateEffectRow();
+                    effectRow.gameObject.name = buttonNamePrefix + i;
+                    effectRow.Bind(new UiEffectRowView.Binding
+                    {
+                        StableItemId = option.StableId,
+                        RequestId = option.RequestId,
+                        Revision = option.Revision,
+                        RowMode = UiEffectRowView.Mode.ChoiceExecute,
+                        RightStatus = UiEffectRowView.Status.Use,
+                        Enabled = option.Enabled,
+                        Title = option.Label
+                    }, (_, __) => effectRow != null && effectRow.gameObject.activeInHierarchy &&
+                        !GameplayHudFrame.EffectInputSuspended && (option.IsCurrent == null || option.IsCurrent()), null,
+                    _ => { beforeSelect?.Invoke(); option.Select?.Invoke(); });
+                    continue;
+                }
                 var row = ResolveView(content).CreateOptionRow(content);
+                row.ResetSelection();
                 row.gameObject.name = buttonNamePrefix + i;
                 row.Label.text = option.Label;
-                row.Label.fontSize = 18;
-                row.LayoutElement.preferredHeight = 54f;
                 var button = row.Button;
+                if (!string.IsNullOrEmpty(option.StableId))
+                    YC.PlayerJourney.PlayerAutomationId.Attach(button.gameObject, option.StableId);
                 button.onClick.RemoveAllListeners();
                 button.interactable = option.Enabled;
-                row.Background.color = option.Enabled
-                    ? UiTheme.ButtonBackground
-                    : UiTheme.DisabledButtonBackground;
+                row.Background.color = option.Enabled ? Color.white :
+                    new Color(.75f, .75f, .75f, 1f);
                 if (!option.Enabled)
                 {
                     continue;
@@ -288,7 +273,8 @@ namespace YC.Presentation
                 var invoked = false;
                 button.onClick.AddListener(() =>
                 {
-                    if (invoked)
+                    if (invoked || !button.isActiveAndEnabled || !button.IsInteractable() ||
+                        (option.IsCurrent != null && !option.IsCurrent()))
                     {
                         return;
                     }
@@ -300,197 +286,253 @@ namespace YC.Presentation
             }
         }
 
+        public void AddSelection(RectTransform panel, EffectDialogSelectionSpec spec)
+        {
+            var shellView = ResolveView(panel);
+            if (!spec.IsEffectPage && !spec.ReadOnly)
+                GameplayHudFrame.Active?.ConfigureStagePageFolding(shellView.gameObject, spec.AllowStageFolding);
+            var profile = shellView.LayoutProfile;
+            var request = spec.Request;
+            var selected = new HashSet<string>(spec.SelectedIds ?? new string[0], StringComparer.Ordinal);
+            var candidates = request.CandidateIds ?? new List<string>();
+            shellView.ResourceSummaryText.gameObject.SetActive(!spec.ReadOnly);
+            shellView.ConfigureSelectionMode(spec.ReadOnly, spec.CardPickerHint);
+            shellView.ResourceSummaryText.text = string.Format(profile.SelectionSummaryFormat,
+                selected.Count, request.MinSelections, request.MaxSelections);
+            var cardMode = false;
+            foreach (var candidate in candidates)
+                if (spec.CardTexture != null && spec.CardTexture(candidate) != null) { cardMode = true; break; }
+            var content = cardMode
+                ? shellView.ConfigureCardScroll(profile.SelectionCardSize, profile.SelectionMinimumCardWidth)
+                : shellView.ConfigureOptionScroll("Selection Scroll", profile.OptionsScrollBottomWithBack,
+                    profile.OptionsScrollTop);
+            bool CanAct() => shellView != null && shellView.gameObject.activeInHierarchy &&
+                (!spec.IsEffectPage || !GameplayHudFrame.EffectInputSuspended) &&
+                (spec.IsCurrent == null || spec.IsCurrent());
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < candidates.Count; i++)
+            {
+                var id = candidates[i];
+                if (string.IsNullOrEmpty(id) || !seen.Add(id)) continue;
+                var label = spec.Label == null ? id : spec.Label(id);
+                if (cardMode)
+                {
+                    var card = shellView.CreateFacilityCard();
+                    card.gameObject.name = (spec.OptionNamePrefix ?? "Selection Card ") + i;
+                    YC.PlayerJourney.PlayerAutomationId.Attach(card.Button.gameObject, "selection.card." + id);
+                    var texture = spec.CardTexture == null ? null : spec.CardTexture(id);
+                    card.CardImage.texture = texture;
+                    card.CardImage.color = texture == null ? Color.clear : Color.white;
+                    card.FallbackLabel.text = label;
+                    card.FallbackLabel.gameObject.SetActive(texture == null);
+                    if (card.SelectionImage != null) card.SelectionImage.enabled = selected.Contains(id);
+                    else card.Outline.enabled = selected.Contains(id);
+                    card.Button.onClick.RemoveAllListeners();
+                    card.PointerInteraction.ConfigureClick(card.Button, null, null);
+                    card.PointerInteraction.ConfigureDrag(null, null, null, null);
+                    card.Button.interactable = !spec.ReadOnly && (spec.CanSelect == null || spec.CanSelect(id));
+                    card.Button.onClick.AddListener(() =>
+                    {
+                        if (!spec.ReadOnly && CanAct() && (spec.CanSelect == null || spec.CanSelect(id)))
+                            spec.Select?.Invoke(id);
+                    });
+                    void OpenDetails()
+                    {
+                            if (!CanAct() || texture == null) return;
+                            var savedScroll = shellView.ScrollPosition;
+                            openingDetails = true;
+                            try
+                            {
+                                if (cardViewer == null)
+                                    cardViewer = registry.InstantiateCardViewer(shellView.transform.parent as RectTransform);
+                                CardImagePreviewUtility.Open(ref cardViewer, shellView.transform.parent,
+                                    texture);
+                            }
+                            finally { openingDetails = false; }
+                            if (cardViewer == null) return;
+                            cardViewer.SetReturn(() =>
+                            {
+                                if (spec.IsCurrent != null && !spec.IsCurrent())
+                                {
+                                    Hide();
+                                    return;
+                                }
+                                if (spec.IsEffectPage) GameplayHudFrame.Active?.ResumeEffectPage();
+                                else if (shellView != null)
+                                {
+                                    if (spec.ReadOnly) GameplayHudFrame.Active?.ShowPage(shellView.gameObject, false);
+                                    else GameplayHudFrame.Active?.ShowStagePage(shellView.gameObject);
+                                    shellView.gameObject.SetActive(true);
+                                    shellView.RestoreScrollPosition(savedScroll);
+                                    UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(card.Button.gameObject);
+                                }
+                            }, () => shellView != null && (spec.IsCurrent == null || spec.IsCurrent()));
+                    }
+                    card.ConfigureInspection(OpenDetails, CanAct);
+                }
+                else
+                {
+                    var row = shellView.CreateOptionRow(content, spec.SourceLabel != null);
+                    row.gameObject.name = (spec.OptionNamePrefix ?? "Selection Option ") + i;
+                    if (spec.SourceLabel != null)
+                        row.SetSourceAndDescription(spec.SourceLabel(id), spec.DescriptionLabel == null ? label : spec.DescriptionLabel(id));
+                    else row.Label.text = label;
+                    row.SetSelected(selected.Contains(id));
+                    row.Button.onClick.RemoveAllListeners();
+                    row.Button.interactable = !spec.ReadOnly && (spec.CanSelect == null || spec.CanSelect(id));
+                    row.Button.onClick.AddListener(() =>
+                    {
+                        if (CanAct() && (spec.CanSelect == null || spec.CanSelect(id)))
+                            spec.Select?.Invoke(id);
+                    });
+                }
+            }
+            if (seen.Count == 0)
+                CreateText(content, "Selection Empty", profile.SelectionEmptyText, 18, TextAnchor.MiddleCenter);
+            var submitted = false;
+            if (!spec.ReadOnly)
+            {
+            var confirm = CreateButton(panel, "Confirm Selection",
+                string.IsNullOrEmpty(spec.ConfirmLabel) ? profile.SelectionConfirmLabel : spec.ConfirmLabel, 18);
+            confirm.interactable = selected.Count >= request.MinSelections && selected.Count <= request.MaxSelections;
+            confirm.onClick.AddListener(() =>
+            {
+                if (submitted || !confirm.IsInteractable() || !CanAct()) return;
+                submitted = true;
+                spec.Confirm?.Invoke();
+            });
+            }
+            if (spec.Cancel != null && request.AllowDecline)
+            {
+                var cancel = CreateButton(panel, "Cancel Selection",
+                    string.IsNullOrEmpty(spec.CancelLabel) ? profile.SelectionCancelLabel : spec.CancelLabel, 18, false);
+                cancel.onClick.AddListener(() =>
+                {
+                    if (submitted || (!spec.ReadOnly && !CanAct())) return;
+                    submitted = true;
+                    spec.Cancel();
+                });
+            }
+        }
+
         public void AddResourceAllocation(RectTransform panel, ResourceAllocationSpec spec)
         {
             AddHeading(panel, spec.Title, spec.Description);
             var shellView = ResolveView(panel);
+            shellView.ConfigureResourceScroll();
             var count = spec.Labels == null ? 0 : spec.Labels.Count;
             var values = new int[count];
-            if (spec.ExactTotal >= 0 && count > 0)
-            {
-                values[0] = Mathf.Min(
-                    spec.ExactTotal,
-                    spec.Maximums != null && spec.Maximums.Count > 0 ? spec.Maximums[0] : spec.ExactTotal);
-            }
-
+            int Maximum(int index) => Mathf.Max(0, spec.Maximums != null && index < spec.Maximums.Count
+                ? spec.Maximums[index] : (spec.ExactTotal >= 0 ? spec.ExactTotal : int.MaxValue));
+            for (var i = 0; i < count; i++)
+                values[i] = Mathf.Clamp(spec.InitialValues != null && i < spec.InitialValues.Count
+                    ? spec.InitialValues[i] : (spec.ExactTotal >= 0 && i == 0 ? spec.ExactTotal : 0), 0, Maximum(i));
             var valueTexts = new Text[count];
-            var decreaseButtons = new Button[count];
-            var increaseButtons = new Button[count];
-            Text summaryText = null;
-            if (!string.IsNullOrEmpty(spec.SummaryName))
-            {
-                summaryText = shellView.ResourceSummaryText;
-                summaryText.gameObject.name = spec.SummaryName;
-                summaryText.gameObject.SetActive(true);
-                summaryText.text = string.Empty;
-                summaryText.color = UiTheme.GoldText;
-                summaryText.fontStyle = FontStyle.Bold;
-                shellView.LayoutProfile.ResourceSummaryLayout.ApplyTo(
-                    summaryText.rectTransform);
-            }
-
+            var rows = new EffectDialogResourceRowView[count];
+            var validInputs = new bool[count];
+            for (var i = 0; i < count; i++) validInputs[i] = true;
+            var decreases = new Button[count];
+            var increases = new Button[count];
+            var summary = shellView.ResourceSummaryText;
+            summary.gameObject.SetActive(!string.IsNullOrEmpty(spec.SummaryName));
+            if (summary.gameObject.activeSelf) summary.gameObject.name = spec.SummaryName;
+            var submitted = false;
+            bool CanAct() => !submitted && shellView != null && shellView.gameObject.activeInHierarchy &&
+                !GameplayHudFrame.EffectInputSuspended && (spec.IsCurrent == null || spec.IsCurrent());
+            int Total() { var total = 0; foreach (var value in values) total += value; return total; }
+            bool Valid() => Total() >= spec.MinimumTotal && (spec.ExactTotal < 0 || Total() == spec.ExactTotal);
             Button confirmButton = null;
+            Button cancelButton = null;
             Action refresh = () =>
             {
-                var total = 0;
+                var total = Total();
                 for (var i = 0; i < count; i++)
                 {
-                    total += values[i];
-                }
-
-                for (var i = 0; i < count; i++)
-                {
-                    valueTexts[i].text = values[i].ToString();
-                    decreaseButtons[i].interactable = values[i] > 0;
-                    var maximum = spec.Maximums != null && i < spec.Maximums.Count
-                        ? spec.Maximums[i]
-                        : int.MaxValue;
-                    increaseButtons[i].interactable =
-                        values[i] < maximum &&
+                    values[i] = Mathf.Clamp(values[i], 0, Maximum(i));
+                    if (rows[i].ValueInput != null) { if (validInputs[i]) rows[i].ValueInput.SetTextWithoutNotify(values[i].ToString()); }
+                    else valueTexts[i].text = values[i].ToString();
+                    rows[i].RenderDraft(spec.Labels[i], Maximum(i), values[i],
+                        spec.UnitPrices != null && i < spec.UnitPrices.Count ? (int?)spec.UnitPrices[i] : null);
+                    decreases[i].interactable = !submitted && values[i] > 0;
+                    increases[i].interactable = !submitted && values[i] < Maximum(i) &&
                         (spec.ExactTotal < 0 || total < spec.ExactTotal);
                 }
-
-                if (confirmButton != null)
-                {
-                    confirmButton.interactable = total >= spec.MinimumTotal &&
-                                                 (spec.ExactTotal < 0 || total == spec.ExactTotal);
-                }
-
-                if (summaryText != null && spec.FormatSummary != null)
-                {
-                    summaryText.text = spec.FormatSummary(new List<int>(values).AsReadOnly());
-                }
+                if (confirmButton != null) confirmButton.interactable = !submitted && Valid() && Array.TrueForAll(validInputs, valid => valid);
+                if (cancelButton != null && !string.IsNullOrEmpty(spec.CancelDraftLabel))
+                    cancelButton.GetComponentInChildren<Text>().text = total > 0 ? spec.CancelDraftLabel : spec.CancelLabel;
+                var snapshot = new List<int>(values).AsReadOnly();
+                if (summary.gameObject.activeSelf && spec.FormatSummary != null)
+                    summary.text = spec.FormatSummary(snapshot);
+                spec.DraftChanged?.Invoke(snapshot);
             };
-
             for (var i = 0; i < count; i++)
             {
-                var rowIndex = i;
-                var rowY = spec.RowStartY - i * spec.RowSpacing;
+                var index = i;
                 var row = shellView.CreateResourceRow();
+                rows[i] = row;
                 row.gameObject.name = "Resource Allocation Row " + i;
-                var labelValue = spec.FormatRowLabel == null
-                    ? spec.Labels[i]
-                    : spec.FormatRowLabel(
-                        i,
-                        spec.Labels[i],
-                        spec.UnitPrices != null && i < spec.UnitPrices.Count ? spec.UnitPrices[i] : 0);
                 row.Label.gameObject.name = spec.LabelNamePrefix + i;
-                row.Label.text = labelValue;
-                SetRect(
-                    row.Label.rectTransform,
-                    shellView.LayoutProfile.ResourceRowAnchor,
-                    shellView.LayoutProfile.ResourceRowAnchor,
-                    new Vector2(spec.LabelWidth, spec.LabelHeight),
-                    new Vector2(spec.LabelX, rowY));
-
-                decreaseButtons[i] = row.DecreaseButton;
-                decreaseButtons[i].gameObject.name = spec.DecreaseNamePrefix + i;
-                decreaseButtons[i].onClick.RemoveAllListeners();
-                SetRect(
-                    decreaseButtons[i].GetComponent<RectTransform>(),
-                    shellView.LayoutProfile.ResourceRowAnchor,
-                    shellView.LayoutProfile.ResourceRowAnchor,
-                    shellView.LayoutProfile.ResourceDecreaseButtonSize,
-                    new Vector2(spec.DecreaseX, rowY));
-                decreaseButtons[i].onClick.AddListener(() =>
-                {
-                    if (values[rowIndex] > 0)
-                    {
-                        values[rowIndex]--;
-                        refresh();
-                    }
-                });
-
+                row.Label.text = spec.FormatRowLabel == null ? spec.Labels[i] : spec.FormatRowLabel(i,
+                    spec.Labels[i], spec.UnitPrices != null && i < spec.UnitPrices.Count ? spec.UnitPrices[i] : 0);
                 valueTexts[i] = row.ValueText;
                 valueTexts[i].gameObject.name = spec.ValueNamePrefix + i;
-                valueTexts[i].text = "0";
-                SetRect(
-                    valueTexts[i].rectTransform,
-                    shellView.LayoutProfile.ResourceRowAnchor,
-                    shellView.LayoutProfile.ResourceRowAnchor,
-                    shellView.LayoutProfile.ResourceValueSize,
-                    new Vector2(spec.ValueX, rowY));
-
-                increaseButtons[i] = row.IncreaseButton;
-                increaseButtons[i].gameObject.name = spec.IncreaseNamePrefix + i;
-                increaseButtons[i].onClick.RemoveAllListeners();
-                SetRect(
-                    increaseButtons[i].GetComponent<RectTransform>(),
-                    shellView.LayoutProfile.ResourceRowAnchor,
-                    shellView.LayoutProfile.ResourceRowAnchor,
-                    shellView.LayoutProfile.ResourceIncreaseButtonSize,
-                    new Vector2(spec.IncreaseX, rowY));
-                increaseButtons[i].onClick.AddListener(() =>
+                if (row.ValueInput != null)
                 {
-                    var maximum = spec.Maximums != null && rowIndex < spec.Maximums.Count
-                        ? spec.Maximums[rowIndex]
-                        : int.MaxValue;
-                    var total = 0;
-                    for (var valueIndex = 0; valueIndex < values.Length; valueIndex++)
+                    row.ValueInput.onValueChanged.RemoveAllListeners();
+                    row.ValueInput.onEndEdit.RemoveAllListeners();
+                    row.ValueInput.onValueChanged.AddListener(value =>
                     {
-                        total += values[valueIndex];
-                    }
-
-                    if (values[rowIndex] < maximum && (spec.ExactTotal < 0 || total < spec.ExactTotal))
+                        if (!CanAct()) return;
+                        validInputs[index] = int.TryParse(value, out var amount) && amount >= 0 && amount <= Maximum(index);
+                        if (validInputs[index]) { values[index] = amount; refresh(); }
+                        if (confirmButton != null) confirmButton.interactable = Valid() && Array.TrueForAll(validInputs, valid => valid);
+                    });
+                    row.ValueInput.onEndEdit.AddListener(_ =>
                     {
-                        values[rowIndex]++;
+                        if (!CanAct()) return;
+                        validInputs[index] = true;
                         refresh();
-                    }
+                    });
+                }
+                decreases[i] = row.DecreaseButton;
+                decreases[i].gameObject.name = spec.DecreaseNamePrefix + i;
+                decreases[i].onClick.RemoveAllListeners();
+                decreases[i].onClick.AddListener(() =>
+                {
+                    if (!CanAct() || values[index] <= 0) return;
+                    values[index]--; validInputs[index] = true; refresh();
+                });
+                increases[i] = row.IncreaseButton;
+                increases[i].gameObject.name = spec.IncreaseNamePrefix + i;
+                increases[i].onClick.RemoveAllListeners();
+                increases[i].onClick.AddListener(() =>
+                {
+                    if (!CanAct() || values[index] >= Maximum(index) ||
+                        (spec.ExactTotal >= 0 && Total() >= spec.ExactTotal)) return;
+                    values[index]++; validInputs[index] = true; refresh();
                 });
             }
-
             confirmButton = CreateButton(panel, spec.ConfirmName, spec.ConfirmLabel, 18);
-            SetRect(
-                confirmButton.GetComponent<RectTransform>(),
-                shellView.LayoutProfile.BottomCenterAnchor,
-                shellView.LayoutProfile.BottomCenterAnchor,
-                UiTheme.DialogActionButtonSize,
-                new Vector2(spec.Cancel == null ? 0f : -125f, 34f));
-            var confirmInvoked = false;
             confirmButton.onClick.AddListener(() =>
             {
-                if (confirmInvoked)
-                {
-                    return;
-                }
-
-                confirmInvoked = true;
+                if (!CanAct() || !Valid() || !Array.TrueForAll(validInputs, valid => valid)) return;
+                submitted = true;
                 var result = new List<int>(values).AsReadOnly();
-                if (spec.CloseBeforeConfirm)
-                {
-                    Hide();
-                }
-
+                if (spec.CloseBeforeConfirm) Hide();
                 spec.Confirm?.Invoke(result);
             });
-
             if (spec.Cancel != null)
             {
-                var cancelButton = CreateButton(panel, spec.CancelName, spec.CancelLabel, 18);
-                SetRect(
-                    cancelButton.GetComponent<RectTransform>(),
-                    shellView.LayoutProfile.BottomCenterAnchor,
-                    shellView.LayoutProfile.BottomCenterAnchor,
-                    UiTheme.DialogActionButtonSize,
-                    shellView.LayoutProfile.ResourceCancelButtonPosition);
-                var cancelInvoked = false;
-                cancelButton.onClick.AddListener(() =>
+                var cancel = CreateButton(panel, spec.CancelName, spec.CancelLabel, 18, false);
+                cancelButton = cancel;
+                cancel.onClick.AddListener(() =>
                 {
-                    if (cancelInvoked)
-                    {
-                        return;
-                    }
-
-                    cancelInvoked = true;
-                    if (spec.CloseBeforeCancel)
-                    {
-                        Hide();
-                    }
-
+                    if (!CanAct()) return;
+                    submitted = true;
+                    if (spec.CloseBeforeCancel) Hide();
                     spec.Cancel();
                 });
             }
-
             refresh();
         }
 
@@ -501,8 +543,7 @@ namespace YC.Presentation
             float descriptionHeight = 70f,
             string titleName = "Title",
             string descriptionName = "Description",
-            int titleSize = 27,
-            bool addDragHandle = true)
+            int titleSize = 27)
         {
             if (panel == null)
             {
@@ -515,8 +556,7 @@ namespace YC.Presentation
                 descriptionHeight,
                 titleName,
                 descriptionName,
-                titleSize,
-                addDragHandle);
+                titleSize);
         }
 
         public static Text CreateText(Transform parent, string name, string value, int fontSize, TextAnchor alignment)
@@ -534,16 +574,12 @@ namespace YC.Presentation
             return text;
         }
 
-        public static Button CreateButton(Transform parent, string name, string label, int fontSize)
+        public static Button CreateButton(Transform parent, string name, string label, int fontSize, bool primary = true)
         {
             var shellView = ResolveView(parent);
-            var action = shellView.AcquireActionButton(parent as RectTransform);
+            var action = shellView.AcquireActionButton(parent as RectTransform, primary);
             action.gameObject.name = name ?? string.Empty;
-            action.Background.color = UiTheme.ButtonBackground;
             action.Label.text = label ?? string.Empty;
-            action.Label.fontSize = fontSize;
-            action.Label.color = UiTheme.GoldText;
-            action.Label.fontStyle = FontStyle.Bold;
             action.Label.raycastTarget = false;
             action.Button.onClick.RemoveAllListeners();
             return action.Button;
@@ -553,8 +589,12 @@ namespace YC.Presentation
         {
             var shellView = ResolveView(parent);
             var card = shellView.CreateFacilityCard();
-            card.transform.SetParent(parent == null ? shellView.ExpandedContent : parent, false);
             return card;
+        }
+
+        internal static RectTransform ConfigureCardScroll(RectTransform parent, Vector2 cardSize)
+        {
+            return ResolveView(parent).ConfigureCardScroll(cardSize);
         }
 
         private static EffectDialogShellView ResolveView(Transform source)
@@ -588,6 +628,13 @@ namespace YC.Presentation
             Vector2 size,
             Vector2 position)
         {
+            var parentLayout = rect.parent == null ? null : rect.parent.GetComponent<LayoutGroup>();
+            if (parentLayout != null && parentLayout.enabled)
+            {
+                var element = rect.GetComponent<LayoutElement>();
+                if (element != null) { element.preferredWidth = size.x; element.preferredHeight = size.y; }
+                return;
+            }
             rect.anchorMin = anchorMin;
             rect.anchorMax = anchorMax;
             rect.pivot = new Vector2(0.5f, 0.5f);

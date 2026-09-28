@@ -1,0 +1,20 @@
+from pathlib import Path
+import json,re
+exec(Path('Logs/patch_city_style_assets.py').read_text(encoding='utf-8-sig').split('# Catalog binds')[0]);P='Assets/YC/Presentation/';SPR=P+'CommonUi/Sprites/'
+meta(Path(P+'CityStyleTrackOverlay.cs'))
+tracks=[('active','unused','未用',(530,76,300,229)),('active','used','已用',(530,309,300,225)),('reward','declared','宣告',(530,76,300,458)),('limited','2','2',(530,76,300,71)),('limited','used_from_2','已用',(530,151,300,87)),('limited','1','1',(530,242,300,127)),('limited','used_from_1','已用',(530,373,300,87)),('limited','0','0',(530,464,300,70)),('all','extra','',(190,608,720,44))]
+def bounds(a,r,x,y,w,h):
+ a.set(r,'m_AnchorMin',f'{{x: {x}, y: {y}}}');a.set(r,'m_AnchorMax',f'{{x: {x+w}, y: {y+h}}}');a.set(r,'m_AnchoredPosition','{x: 0, y: 0}');a.set(r,'m_SizeDelta','{x: 0, y: 0}')
+for file,art in [('BuildInfoPanel',7672488502453589007),('Dialogs/CityStyleDeclarationPreviewDialog',6130611447716182152)]:
+ a=Asset(P+'Prefabs/Gameplay/'+file+'.prefab');root=a.node('State Track Backgrounds',art);ordered=a.children(art);ordered.remove(root);a.children_set(art,[root]+ordered)
+ refs=[]
+ for layout,area,caption,(x,y,w,h) in tracks:
+  r=a.node('Track '+layout+' '+area,root);bounds(a,r,x/930,1-(y+h)/600,w/930,h/600)
+  if area!='extra':
+   im=image(a,r,SPR+'Frontier31/module-bg.png');a.set(im,'m_Sprite','{fileID: 0}');a.set(im,'m_Color','{r: 0.153, g: 0.157, b: 0.125, a: 0.98}')
+   l=a.node('State Label',r);bounds(a,l,.03,0,.18,1);ti=text(a,l,caption,48);a.docs[ti]=(114,a.text(ti).replace('m_BestFit: 0','m_BestFit: 1').replace('m_MinSize: 8','m_MinSize: 1'))
+  gos={};chip=min(w*.1484,h*.8)
+  for lane,col in enumerate([0,1,3,2]):
+   cr=a.node('Zero '+str(col),r);bounds(a,cr,.28+lane*.173-chip/(w*2),.5-chip/(h*2),chip/w,chip/h);im=image(a,cr,SPR+'Frontier31/module-bg.png');a.set(im,'m_Sprite','{fileID: 0}');color=[(236/255,0,0),(0,108/255,1),(95/255,210/255,0),(1,191/255,0)][col];a.set(im,'m_Color',f'{{r: {color[0]}, g: {color[1]}, b: {color[2]}, a: 0.23}}');tr=a.node('Zero Count',cr);ti=text(a,tr,'0',48);a.docs[ti]=(114,a.text(ti).replace('m_BestFit: 0','m_BestFit: 1').replace('m_MinSize: 8','m_MinSize: 1'));a.set(ti,'m_Color','{r: 1, g: 1, b: 1, a: 0.23}' if col==0 else '{r: 0, g: 0, b: 0, a: 0.23}');gos[col]=a.go(cr)
+  refs.append(f'  - layout: {layout}\n    area: '+json.dumps(area)+f'\n    root: {{fileID: {a.go(r)}}}\n    zeroBlocks:\n'+''.join(f'    - {{fileID: {gos[c]}}}\n' for c in range(4)))
+ a.component(a.go(root),guid(P+'CityStyleTrackOverlay.cs.meta'),'  tracks:\n'+''.join(refs));a.save()

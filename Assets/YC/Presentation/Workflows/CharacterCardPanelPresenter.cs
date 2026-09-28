@@ -140,14 +140,14 @@ namespace YC.Presentation.Workflows
             }
             else if (state.Phase == GamePhase.CharacterCover)
             {
-                interactionStatus = canCover ? "拖动到主要行动卡上即可盖放" : coveredStatus;
+                interactionStatus = canCover ? "查看手牌，单选后确认" : coveredStatus;
             }
             else if (actionPhase)
             {
                 interactionStatus = isSecondEffectDecision
                     ? (canContinueSecondEffect
-                        ? "可继续使用第二个效果；点击翻转则结束角色卡使用"
-                        : "当前角色牌效果没有合法的地图目标，请点击翻转完成结算。")
+                        ? "可继续使用第二个效果，也可结束角色牌使用。"
+                        : "当前角色牌效果没有合法的地图目标，请使用结束操作完成结算。")
                     : canUse && !hasImplementedEffect
                     ? "效果尚未接入"
                     : (canUse ? "可使用本回合盖放的角色牌" : coveredStatus);
@@ -190,6 +190,16 @@ namespace YC.Presentation.Workflows
             IReadOnlyDictionary<string, string> selectedParameters)
         {
             return optionQueryService.Query(state, localPlayerId, effect, selectedParameters);
+        }
+
+        public string GetEffectUnavailableReason(GameState state, int playerId, bool strategy)
+        {
+            var model = BuildView(state, playerId);
+            if (strategy ? model.CanUseStrategy : model.CanUseTactic) return string.Empty;
+            if (!model.CanUse) return model.InteractionStatus;
+            if ((strategy ? model.StrategyEffect : model.TacticEffect) == CharacterCardEffectKind.Unsupported)
+                return "该效果尚未接入";
+            return "该效果当前不可使用";
         }
 
         public CharacterCardOptionQueryResult QueryPendingOptions(

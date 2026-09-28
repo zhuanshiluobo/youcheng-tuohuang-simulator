@@ -1,0 +1,6 @@
+from pathlib import Path
+ns={'__name__':'library'};exec(Path('Logs/patch_city_style_assets.py').read_text(encoding='utf8').split('# Catalog binds')[0],ns)
+a=ns['Asset']('Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab');r=7367961917703128430
+state=ns['clone_comp'](a,a.text(7824036530768646965),r)
+for key,ident in [('face',6847694510835563803),('label',2620360456936208898),('icon',0),('lightIcon',0),('darkIcon',0),('mutedIcon',0)]:a.set(state,key,'{fileID: '+str(ident)+'}')
+a.set(a.go(r),'m_Name','Declare City Style Button');font=2620360456936208898;k,t=a.docs[font];t=t.replace('36dc20363ed04374b8e0ffab577935af','43e9d69dcca63724db85852acd46004d').replace('m_FontStyle: 1','m_FontStyle: 0').replace('m_FontSize: 16','m_FontSize: 22').replace('m_MaxSize: 16','m_MaxSize: 22');a.docs[font]=(k,t);a.save()

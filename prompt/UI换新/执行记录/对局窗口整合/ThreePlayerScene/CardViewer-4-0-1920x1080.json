@@ -1,0 +1,198 @@
+{
+    "scene": "ThreePlayerScene",
+    "mode": "inspect",
+    "settingsFirstHit": "Settings Button",
+    "endActionFirstHit": "结束本回合 Button",
+    "size": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "content": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 102.0,
+        "width": 1920.0,
+        "height": 906.0
+    },
+    "window": {
+        "serializedVersion": "2",
+        "x": 73.0,
+        "y": 111.5,
+        "width": 1774.0,
+        "height": 887.0
+    },
+    "card": {
+        "serializedVersion": "2",
+        "x": 763.058837890625,
+        "y": 314.5,
+        "width": 393.88232421875,
+        "height": 558.0
+    },
+    "plot": {
+        "serializedVersion": "2",
+        "x": 514.4110717773438,
+        "y": 175.0699462890625,
+        "width": 278.3636474609375,
+        "height": 83.4300537109375
+    },
+    "strategy": {
+        "serializedVersion": "2",
+        "x": 816.6343994140625,
+        "y": 175.0699462890625,
+        "width": 278.3636474609375,
+        "height": 83.4300537109375
+    },
+    "actionsHidden": true,
+    "objects": [
+        {
+            "name": "CardViewer(Clone)",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 102.0,
+                "width": 1920.0,
+                "height": 906.0
+            }
+        },
+        {
+            "name": "Window Bounds",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 73.0,
+                "y": 111.5,
+                "width": 1774.0,
+                "height": 887.0
+            }
+        },
+        {
+            "name": "Window",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 73.0,
+                "y": 111.5,
+                "width": 1774.0,
+                "height": 887.0
+            }
+        },
+        {
+            "name": "Window Artwork",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 73.0,
+                "y": 111.5,
+                "width": 1774.0,
+                "height": 887.0
+            }
+        },
+        {
+            "name": "Window Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 73.0,
+                "y": 111.5,
+                "width": 1774.0,
+                "height": 887.0
+            }
+        },
+        {
+            "name": "Title",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 890.5,
+                "width": 1582.0,
+                "height": 48.0
+            }
+        },
+        {
+            "name": "Header Spacing",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 872.5,
+                "width": 1582.0,
+                "height": 18.0
+            }
+        },
+        {
+            "name": "Card Viewport",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 314.5,
+                "width": 1582.0,
+                "height": 558.0
+            }
+        },
+        {
+            "name": "Card Contain",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 314.5,
+                "width": 520.0,
+                "height": 558.0
+            }
+        },
+        {
+            "name": "Card Image",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 763.058837890625,
+                "y": 314.5,
+                "width": 393.88232421875,
+                "height": 558.0
+            }
+        },
+        {
+            "name": "Divider Spacing",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 290.5,
+                "width": 1582.0,
+                "height": 24.0
+            }
+        },
+        {
+            "name": "Use Hint",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 266.5,
+                "width": 1582.0,
+                "height": 24.0
+            }
+        },
+        {
+            "name": "Action Spacing",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 258.5,
+                "width": 1582.0,
+                "height": 8.0
+            }
+        },
+        {
+            "name": "Footer",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 174.5,
+                "width": 1582.0,
+                "height": 84.0
+            }
+        },
+        {
+            "name": "Inspect Hint",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 174.5,
+                "width": 1582.0,
+                "height": 84.0
+            }
+        }
+    ]
+}

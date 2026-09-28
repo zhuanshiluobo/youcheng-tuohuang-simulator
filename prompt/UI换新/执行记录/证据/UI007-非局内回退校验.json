@@ -1,0 +1,53 @@
+{
+  "scope": "用户要求仅局内UI；以下资产开工未修改，经核实使用HEAD作为回退基线。",
+  "files": [
+    {
+      "path": "G:\\NoMadCity\\Assets\\Scenes\\StartScene.unity",
+      "equalToVerifiedBaseline": true,
+      "currentSha256": "c41aecc68e9df15a54434b1b000beda9c3488cd80e075bc814b5cee82ce73da6",
+      "baselineSha256": "c41aecc68e9df15a54434b1b000beda9c3488cd80e075bc814b5cee82ce73da6"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\Scenes\\LoadingScene.unity",
+      "equalToVerifiedBaseline": true,
+      "currentSha256": "8b492e4e640839d4bf71773163143631a28e1c2b28f77ff4d4755f891c35aa25",
+      "baselineSha256": "8b492e4e640839d4bf71773163143631a28e1c2b28f77ff4d4755f891c35aa25"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\Scenes\\CollectionRoom.unity",
+      "equalToVerifiedBaseline": true,
+      "currentSha256": "70e7dfeb448bae52bfb83bec7fcbb50ee8dfb0ab8c949601ce7bd0bd4d472cdb",
+      "baselineSha256": "70e7dfeb448bae52bfb83bec7fcbb50ee8dfb0ab8c949601ce7bd0bd4d472cdb"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\StartMenu\\StartMenuRoot.prefab",
+      "equalToVerifiedBaseline": true,
+      "currentSha256": "b83a1041c74e66f49da9feddbdddf786f13e455e3741e9d9393c52d17865ec48",
+      "baselineSha256": "b83a1041c74e66f49da9feddbdddf786f13e455e3741e9d9393c52d17865ec48"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\LoadingSceneController.cs",
+      "equalToVerifiedBaseline": true,
+      "currentSha256": "4c60ac79e30e375cedd29d80380918014a1ed1db143ea82a2bf678b968b2fe62",
+      "baselineSha256": "4c60ac79e30e375cedd29d80380918014a1ed1db143ea82a2bf678b968b2fe62"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\GameSettings\\GameSettingsMenu.prefab",
+      "equalToVerifiedBaseline": true,
+      "currentSha256": "9f50bd61eb675fe45a79db850acbcbb0699501bed7d9ca52ed7b0790ccefdac2",
+      "baselineSha256": "9f50bd61eb675fe45a79db850acbcbb0699501bed7d9ca52ed7b0790ccefdac2"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Viewers\\ActionLogViewer.prefab",
+      "equalToVerifiedBaseline": true,
+      "currentSha256": "3fbaad5f68b07ef561180ae9e5fb0307c9d5880213cf404c759ee5232d6c1d70",
+      "baselineSha256": "3fbaad5f68b07ef561180ae9e5fb0307c9d5880213cf404c759ee5232d6c1d70"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Viewers\\ZoomableImageViewer.prefab",
+      "equalToVerifiedBaseline": true,
+      "currentSha256": "062ba95420fe66c482d29f23ef16b22fa13295afbac0b659d7c8e3eeb3142912",
+      "baselineSha256": "062ba95420fe66c482d29f23ef16b22fa13295afbac0b659d7c8e3eeb3142912"
+    }
+  ]
+}

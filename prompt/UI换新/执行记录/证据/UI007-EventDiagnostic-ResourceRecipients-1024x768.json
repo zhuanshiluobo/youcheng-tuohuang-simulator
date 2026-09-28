@@ -1,0 +1,451 @@
+{
+    "mode": "ResourceRecipients",
+    "source": "组件诊断：SampleScene 当前 Registry 与实际 EventChoiceDialog Prefab；调用既有 Show 方法。路线、收款人和文字样本为诊断数据，卡图来自正式目录。回调仅计数，不提交命令；不代表规则结算或联机验收。",
+    "requestedSize": {
+        "x": 1024.0,
+        "y": 768.0
+    },
+    "actualSize": {
+        "x": 1024.0,
+        "y": 768.0
+    },
+    "panel": {
+        "serializedVersion": "2",
+        "x": 321.0895080566406,
+        "y": 173.99844360351563,
+        "width": 381.8210144042969,
+        "height": 364.5774841308594
+    },
+    "availableContent": {
+        "serializedVersion": "2",
+        "x": 0.000006485941412393004,
+        "y": 62.815704345703128,
+        "width": 1024.0,
+        "height": 623.8934326171875
+    },
+    "diagnosticCallbacks": 0,
+    "issues": [],
+    "objects": [
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 173.99844360351563,
+                "width": 381.8210144042969,
+                "height": 364.5774841308594
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 173.99844360351563,
+                "width": 381.8210144042969,
+                "height": 364.5774841308594
+            },
+            "layoutDrivers": [
+                "UiEventDialogLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Title",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 505.9363708496094,
+                "width": 381.8210144042969,
+                "height": 28.328643798828126
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 173.9984588623047,
+                "width": 381.8210144042969,
+                "height": 329.47454833984377
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 173.9984588623047,
+                "width": 381.8210144042969,
+                "height": 329.47454833984377
+            },
+            "layoutDrivers": [
+                "UiPageSectionsLayout"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 173.9984588623047,
+                "width": 381.8210144042969,
+                "height": 329.47454833984377
+            },
+            "layoutDrivers": [
+                "ScrollRect"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 343.998779296875,
+                "y": 173.9984588623047,
+                "width": 336.00244140625,
+                "height": 329.47454833984377
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 343.998779296875,
+                "y": 210.33303833007813,
+                "width": 336.00244140625,
+                "height": 293.1399841308594
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "ContentSizeFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Receiver",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 343.998779296875,
+                "y": 482.534423828125,
+                "width": 336.00244140625,
+                "height": 20.9385986328125
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 343.998779296875,
+                "y": 210.33302307128907,
+                "width": 336.00244140625,
+                "height": 267.27471923828127
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 366.78485107421877,
+                "y": 210.33302307128907,
+                "width": 290.4302978515625,
+                "height": 267.27471923828127
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 2",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 366.78485107421877,
+                "y": 451.742431640625,
+                "width": 290.4302978515625,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 2/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 374.1749572753906,
+                "y": 451.742431640625,
+                "width": 275.6501159667969,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 3",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 366.78485107421877,
+                "y": 417.25537109375,
+                "width": 290.4302978515625,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 3/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 374.1749572753906,
+                "y": 417.25537109375,
+                "width": 275.6501159667969,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 4",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 366.78485107421877,
+                "y": 382.768310546875,
+                "width": 290.4302978515625,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 4/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 374.1749572753906,
+                "y": 382.768310546875,
+                "width": 275.6501159667969,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 5",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 366.78485107421877,
+                "y": 348.28125,
+                "width": 290.4302978515625,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 5/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 374.1749572753906,
+                "y": 348.28125,
+                "width": 275.6501159667969,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 6",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 366.78485107421877,
+                "y": 313.7942199707031,
+                "width": 290.4302978515625,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 6/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 374.1749572753906,
+                "y": 313.7942199707031,
+                "width": 275.6501159667969,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 7",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 366.78485107421877,
+                "y": 279.3071594238281,
+                "width": 290.4302978515625,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 7/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 374.1749572753906,
+                "y": 279.3071594238281,
+                "width": 275.6501159667969,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 8",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 366.78485107421877,
+                "y": 244.82009887695313,
+                "width": 290.4302978515625,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 8/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 374.1749572753906,
+                "y": 244.82009887695313,
+                "width": 275.6501159667969,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 9",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 366.78485107421877,
+                "y": 210.33302307128907,
+                "width": 290.4302978515625,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 9/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 374.1749572753906,
+                "y": 210.33302307128907,
+                "width": 275.6501159667969,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Dynamic Templates",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 173.99844360351563,
+                "width": 381.8210144042969,
+                "height": 364.5774841308594
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Close Payment",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 665.9600830078125,
+                "y": 505.320556640625,
+                "width": 25.86529541015625,
+                "height": 25.86529541015625
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Close Payment/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 673.3501586914063,
+                "y": 505.3205261230469,
+                "width": 11.0850830078125,
+                "height": 25.865264892578126
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        }
+    ],
+    "scrolls": [
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll",
+            "lastButton": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 9",
+            "contentHeight": 476.0,
+            "viewportHeight": 535.0,
+            "contentOverflows": false,
+            "lastButtonVisibleAtTop": true,
+            "lastButtonReachesViewportAtEnd": true,
+            "viewportAtEnd": {
+                "serializedVersion": "2",
+                "x": 343.998779296875,
+                "y": 173.9984588623047,
+                "width": 336.00244140625,
+                "height": 329.47454833984377
+            },
+            "lastButtonAtEnd": {
+                "serializedVersion": "2",
+                "x": 366.78485107421877,
+                "y": 210.33302307128907,
+                "width": 290.4302978515625,
+                "height": 25.86529541015625
+            }
+        }
+    ]
+}

@@ -22,6 +22,8 @@ namespace YC.PlayerJourney
             public int width, height, deployConfirmations, cancelledDeployments, characterActivations, mapSelections;
             public int cleanupRemovals, requisitionSelections, resourceSelections;
             public string finalScores;
+            public List<string> settledAbilities = new List<string>();
+            public List<string> completedMainActions = new List<string>();
         }
         [Serializable] private sealed class Trace
         {
@@ -39,6 +41,10 @@ namespace YC.PlayerJourney
         private bool testedCancel;
         private bool running;
         private bool enteredGame;
+        private int currentRound;
+        private string pendingAbility, pendingMainAction;
+        private readonly HashSet<string> attemptedActions = new HashSet<string>();
+        private readonly HashSet<string> triedBuildCandidates = new HashSet<string>();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
@@ -91,11 +97,25 @@ namespace YC.PlayerJourney
             while (running)
             {
                 if (result.errors > 0) { Finish("PROCESS_OR_LOG_FAILURE"); yield break; }
-                if (Time.realtimeSinceStartup - started > 300) { Finish("PLAYER_DEADLOCK"); yield break; }
+                if (Time.realtimeSinceStartup - started > (result.characterScenario.StartsWith("all-") ? 600 : 300)) { Finish("PROCESS_TIMEOUT"); yield break; }
                 var scene = SceneManager.GetActiveScene().name;
                 var text = VisibleText(); result.lastVisible = text;
-                foreach (Match match in Regex.Matches(text, @"第\s*(\d+)\s*回合"))
-                    if (int.TryParse(match.Groups[1].Value, out var round) && round >= 1 && round <= 8) rounds.Add(round);
+                var roundLabel = FindObjectsOfType<Text>().FirstOrDefault(t => t.name == "Round Number" && t.isActiveAndEnabled);
+                if (roundLabel != null && int.TryParse(roundLabel.text, out var displayedRound))
+                {
+                    rounds.Add(displayedRound);
+                    if (currentRound != displayedRound)
+                    {
+                        currentRound = displayedRound;
+                        if (result.characterScenario.StartsWith("all-")) usedCharacter = currentRound > 5;
+                    }
+                }
+                var coveredCount = FindObjectsOfType<Text>().FirstOrDefault(t => t.name == "Covered Count" && t.isActiveAndEnabled);
+                if (pendingAbility != null && (text.Contains("请选择一项主要行动") || coveredCount?.text == "0"))
+                {
+                    if (!result.settledAbilities.Contains(pendingAbility)) result.settledAbilities.Add(pendingAbility);
+                    pendingAbility = null;
+                }
                 var markers = FindObjectsOfType<PlayerAutomationId>().Where(m => PlayerPointerDriver.Reachable(m.gameObject)).ToList();
                 var buttons = FindObjectsOfType<Button>().Where(b => PlayerPointerDriver.Reachable(b.gameObject)).ToList();
                 var signature = scene + text + string.Join(";", markers.Select(m => m.Id + m.Highlighted));
@@ -108,19 +128,36 @@ namespace YC.PlayerJourney
                 GameObject target = buttons.FirstOrDefault(b => Label(b).Contains("确认盖放"))?.gameObject;
                 var characterTemplate = result.characterScenario == "cannot-tactic" ? "cannot" :
                     result.characterScenario == "elysium-strategy" ? "elysium" : "liskarm";
+                if (result.characterScenario.StartsWith("all-"))
+                    characterTemplate = new[] { "elysium", "liskarm", "texas", "cannot", "tin-man" }[Mathf.Clamp(currentRound - 1, 0, 4)];
                 var hand = markers.Where(m => m.Id.StartsWith("character.hand.")).OrderByDescending(m => m.Id.Contains(characterTemplate)).FirstOrDefault();
                 var cover = markers.FirstOrDefault(m => m.Id == "character.cover_slot");
                 bool drag = target == null && hand != null && cover != null && text.Contains("拖动手牌");
                 if (drag) target = hand.gameObject;
+                if (target == null && text.Contains("盖放角色牌"))
+                    target = buttons.FirstOrDefault(b => b.name == "Confirm Selection")?.gameObject ??
+                        markers.Where(m => m.Id.StartsWith("selection.card."))
+                            .OrderByDescending(m => m.Id.Contains(characterTemplate)).FirstOrDefault()?.gameObject;
                 if (target == null && result.finalScoringVisible)
                     target = buttons.FirstOrDefault(b => Label(b).Contains("返回开始") || Label(b).Contains("返回主菜单"))?.gameObject;
+                if (target == null && text.Contains("可以再调度一个影响力"))
+                    target = buttons.FirstOrDefault(b => Label(b).Contains("取消"))?.gameObject;
                 if (target == null) target = markers.FirstOrDefault(m => m.Id == "start.local_game" || m.Id == "start.four_player_map")?.gameObject;
 
                 // 模态弹窗的可达按钮先于地图和行动面板。
+                if (target == null && text.Contains("使用角色牌"))
+                {
+                    var ability = result.characterScenario.EndsWith("tactic") ? "action.character.tactic" : "action.character.strategy";
+                    target = markers.FirstOrDefault(m => m.Id == ability)?.gameObject;
+                    if (target != null) { usedCharacter = true; result.characterActivations++; pendingAbility = characterTemplate + ":" + ability; }
+                }
                 if (target == null) target = markers.FirstOrDefault(m => m.Id.StartsWith("event.option."))?.gameObject;
+                if (target == null && text.Contains("采集阶段：已选择"))
+                    target = buttons.FirstOrDefault(b => b.name == "Pay Bank")?.gameObject ??
+                        markers.FirstOrDefault(m => m.Id == "action.end")?.gameObject;
                 if (target == null && !testedCancel && text.Contains("确认将影响力放置到"))
                 {
-                    target = buttons.FirstOrDefault(b => Label(b) == "取消")?.gameObject;
+                    target = buttons.FirstOrDefault(b => Label(b).Contains("取消") || Label(b).Contains("放弃选择"))?.gameObject;
                     if (target != null) { testedCancel = true; result.cancelledDeployments++; }
                 }
                 if (target == null)
@@ -128,6 +165,13 @@ namespace YC.PlayerJourney
                         (Label(b).Contains("确认") || Label(b).Contains("确定")))?.gameObject;
                 if (target == null)
                     target = buttons.FirstOrDefault(b => IsDialog(b) && !Excluded(Label(b)))?.gameObject;
+                if (target == null) target = markers.FirstOrDefault(m => m.Id.StartsWith("selection.card."))?.gameObject;
+                if (target == null) target = markers.FirstOrDefault(m => m.Id.StartsWith("build.slot."))?.gameObject;
+                if (target == null)
+                {
+                    var candidate = markers.FirstOrDefault(m => m.Id.StartsWith("build.candidate.") && !triedBuildCandidates.Contains(m.Id));
+                    if (candidate != null) { target = candidate.gameObject; triedBuildCandidates.Add(candidate.Id); }
+                }
                 if (target == null && text.Contains("请选择高亮的入场地点"))
                 {
                     var entrance = Argument("--yc-player-journey-entrance=");
@@ -149,12 +193,27 @@ namespace YC.PlayerJourney
                     target = markers.FirstOrDefault(m => m.Id == abilityButton)?.gameObject;
                     if (target != null) { usedCharacter = true; result.characterActivations++; }
                     else target = markers.FirstOrDefault(m => m.Id == "action.character")?.gameObject;
+                    if (target == null) target = markers.FirstOrDefault(m => m.Id == "action.tab.1")?.gameObject;
                 }
-                if (target == null) target = markers.FirstOrDefault(m => m.Id == "action.end")?.gameObject;
+                if (target == null)
+                {
+                    target = markers.FirstOrDefault(m => m.Id == "action.end")?.gameObject;
+                    if (target != null && pendingMainAction != null)
+                    {
+                        if (!result.completedMainActions.Contains(pendingMainAction)) result.completedMainActions.Add(pendingMainAction);
+                        pendingMainAction = null;
+                        attemptedActions.Clear();
+                    }
+                }
+                if (target == null && result.characterScenario.StartsWith("all-"))
+                {
+                    var next = new[] { "action.build", "action.move", "action.dispatch", "action.explore", "action.deploy" }
+                        .FirstOrDefault(id => !result.completedMainActions.Contains(id) && !attemptedActions.Contains(id) && markers.Exists(m => m.Id == id));
+                    if (next != null) target = markers.First(m => m.Id == next).gameObject;
+                }
                 if (target == null) target = markers.FirstOrDefault(m => m.Id == "action.deploy")?.gameObject;
+                if (target == null && usedCharacter) target = markers.FirstOrDefault(m => m.Id == "action.tab.0")?.gameObject;
                 if (target == null) target = buttons.FirstOrDefault(b => Label(b).Contains("采集") && !Excluded(Label(b)))?.gameObject;
-                if (target == null && !text.Contains("请选择事件牌") && !text.Contains("入场阶段"))
-                    target = markers.FirstOrDefault(m => m.Id == "action.flip" && lastTarget != "action.flip")?.gameObject;
 
                 if (target == null || (signature == lastSignature && Id(target) == lastTarget))
                 {
@@ -170,6 +229,8 @@ namespace YC.PlayerJourney
                 if (repeatedTarget > 3) { Finish("NO_VISIBLE_PROGRESS"); yield break; }
                 lastSignature = signature; lastTarget = Id(target); lastAction = Time.realtimeSinceStartup;
                 result.steps++;
+                if (new[] { "action.build", "action.move", "action.dispatch", "action.explore", "action.deploy", "action.special" }.Contains(lastTarget))
+                { pendingMainAction = lastTarget; attemptedActions.Add(lastTarget); if (lastTarget == "action.build") triedBuildCandidates.Clear(); }
                 if (text.Contains("请选择高亮的入场地点") && lastTarget.StartsWith("map.location."))
                     result.entranceLocation = lastTarget.Substring("map.location.".Length);
                 if (lastTarget.StartsWith("map.")) result.mapSelections++;
@@ -179,7 +240,7 @@ namespace YC.PlayerJourney
                     result.requisitionSelections++;
                 if (clickedButton != null && lastTarget.StartsWith("Character Effect Option") && text.Contains("极境策略"))
                     result.resourceSelections++;
-                if (clickedButton != null && Label(clickedButton) == "确认放置") result.deployConfirmations++;
+                if (clickedButton != null && Label(clickedButton).Contains("确认放置")) result.deployConfirmations++;
                 File.AppendAllText(Path.Combine(directory, "actions.jsonl"), JsonUtility.ToJson(new Trace
                 { step = result.steps, time = lastAction - started, scene = scene, action = drag ? "drag" : "click", target = lastTarget, visible = text }) + "\n");
                 var action = drag ? pointer.Drag(target, cover.gameObject) : pointer.Click(target);
@@ -200,7 +261,9 @@ namespace YC.PlayerJourney
         private static bool IsDialog(Button button)
         {
             for (var parent = button.transform; parent != null; parent = parent.parent)
-                if (parent.name.Contains("Dialog") || parent.name.Contains("Options") || parent.name.Contains("Confirmation")) return true;
+                if (parent.name.Contains("Dialog") || parent.name.Contains("Options") || parent.name.Contains("Confirmation") ||
+                    parent.name.Contains("Character Effect") || parent.name.Contains("Character Card Effect") || parent.name == "Confirm Selection" ||
+                    parent.name.Contains("Special Action Option")) return true;
             return false;
         }
         private void Finish(string failure)
@@ -211,8 +274,10 @@ namespace YC.PlayerJourney
             bool characterVerified = result.characterScenario == "cannot-tactic"
                 ? result.requisitionSelections == 1 : result.characterScenario == "elysium-strategy"
                     ? result.resourceSelections == 1 : result.cleanupRemovals >= 1;
-            bool requiredActions = characterVerified && result.cancelledDeployments >= 1 &&
-                result.characterActivations >= 1 && result.deployConfirmations >= 16;
+            bool requiredActions = result.characterScenario.StartsWith("all-")
+                ? result.settledAbilities.Count >= 5 && result.completedMainActions.Count >= 5
+                : characterVerified && result.cancelledDeployments >= 1 &&
+                    result.characterActivations >= 1 && result.deployConfirmations >= 16;
             result.success = failure == null && result.finalScoringVisible && result.returnedToStart &&
                 rounds.Count == 8 && result.errors == 0 && requiredActions;
             result.failureCode = failure ?? (result.success ? string.Empty :

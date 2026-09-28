@@ -31,6 +31,13 @@ namespace YC.Presentation
 
         public void Synchronize()
         {
+            if (!panel.IsFacilityEffectSelectionActive)
+            {
+                SetLegacyBuildViewVisible(false);
+                panel.SetBuildInteraction(false, new List<string>(), null, string.Empty);
+                panel.SetPendingBuildGhost(false, string.Empty, -1, null, null);
+                return;
+            }
             var model = presenter.BuildBuildFacilityDraftViewModel();
             if (model == null)
             {

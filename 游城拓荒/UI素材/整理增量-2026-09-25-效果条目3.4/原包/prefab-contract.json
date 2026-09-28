@@ -1,0 +1,743 @@
+{
+  "contractVersion": "3.4.0",
+  "component": "EffectRow",
+  "format": "engine-neutral",
+  "description": "三种用途共用暖灰棕纸面底图和独立米灰细边框，保留 v3.3 的模式、数据、交互和布局约定喵。",
+  "baseline": {
+    "mainInterface": "3.1",
+    "mainButtons": "3.2",
+    "integration": "在现有引擎内依据该契约组装组件，JSON 本身不是可直接导入的 Unity prefab 喵。"
+  },
+  "entryPoints": {
+    "guide": "EFFECT_ROW_PATCH.md",
+    "component": "components/effect-row.mjs",
+    "interactivePreview": "preview/effect-rows.html",
+    "comparisonPreview": "preview/effect-rows.png",
+    "mainExpandedPreview": "preview/main-expanded-details.png",
+    "mainQuickPreview": "preview/main-quick.png",
+    "beforeAfterPreview": "preview/before-after.png",
+    "mainCollapsedPreview": "preview/main-collapsed-details.png",
+    "mainScrolledPreview": "preview/main-scrolled-details.png"
+  },
+  "modes": {
+    "choice_execute": {
+      "markerSlotsAllowed": [
+        0
+      ],
+      "rightStatusesAllowed": [
+        "use"
+      ],
+      "description": "选择执行时只保留右侧使用入口，强制无左侧玩家标记喵。"
+    },
+    "persistent_detail": {
+      "markerSlotsAllowed": [
+        0,
+        1,
+        2
+      ],
+      "rightStatusesAllowed": [
+        "none",
+        "unused",
+        "used",
+        "use"
+      ],
+      "description": "永续明细允许没有次数状态，查看他人时通常为只读喵。"
+    },
+    "quick_action": {
+      "markerSlotsAllowed": [
+        0,
+        1,
+        2
+      ],
+      "rightStatusesAllowed": [
+        "none",
+        "unused",
+        "used",
+        "use"
+      ],
+      "description": "快速行动依规则层给定的数据选择插槽和状态喵。"
+    }
+  },
+  "rowSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "EffectRowV33",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "mode",
+      "title",
+      "x",
+      "y",
+      "w"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "mode": {
+        "enum": [
+          "choice_execute",
+          "persistent_detail",
+          "quick_action"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": {
+        "type": "string",
+        "default": ""
+      },
+      "markers": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/marker"
+        },
+        "minItems": 0,
+        "maxItems": 2,
+        "default": []
+      },
+      "right": {
+        "$ref": "#/$defs/right",
+        "default": {
+          "status": "none"
+        }
+      },
+      "x": {
+        "type": "number"
+      },
+      "y": {
+        "type": "number"
+      },
+      "w": {
+        "type": "number",
+        "minimum": 160
+      },
+      "h": {
+        "type": "number",
+        "minimum": 48,
+        "default": 76
+      },
+      "bodyAction": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "$defs": {
+      "marker": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mask"
+        ],
+        "properties": {
+          "mask": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 15
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "label": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "mask": {
+                  "not": {
+                    "enum": [
+                      1,
+                      2,
+                      4,
+                      8
+                    ]
+                  }
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "count"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "right": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "none",
+              "unused",
+              "used",
+              "use"
+            ]
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      }
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "mode": {
+              "const": "choice_execute"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "right"
+          ],
+          "properties": {
+            "markers": {
+              "maxItems": 0
+            },
+            "right": {
+              "properties": {
+                "status": {
+                  "const": "use"
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "defaults": {
+    "mode": "persistent_detail",
+    "markers": [],
+    "right": {
+      "status": "none"
+    },
+    "rightEnabledWhenOmitted": true,
+    "description": "",
+    "h": 76
+  },
+  "layout": {
+    "units": "logical-pixels",
+    "standardHeight": 76,
+    "compactHeight": 60,
+    "horizontalPadding": 12,
+    "markerSize": 28,
+    "markerGap": 4,
+    "slotTextGap": 12,
+    "rightIconSize": 32,
+    "useHitTargetSize": 32,
+    "nineSlice": {
+      "order": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "oneX": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "twoX": [
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    "formulas": {
+      "markerGroupWidth": "N === 0 ? 0 : N * 28 + (N - 1) * 4",
+      "textLeft": "12 + (N > 0 ? markerGroupWidth + 12 : 0)",
+      "textRight": "W - 12 - (right.status !== \"none\" ? 32 + 12 : 0)",
+      "textWidth": "textRight - textLeft",
+      "markerX": "12 + markerIndex * 32",
+      "markerY": "(H - 28) / 2",
+      "rightIconX": "W - 12 - 32",
+      "rightIconY": "(H - 32) / 2"
+    },
+    "optionalSlotsCollapse": true,
+    "textRasterizedIntoTexture": false,
+    "markerNumbersRasterizedIntoTexture": false,
+    "recommendedTouchHitTargetSize": 44,
+    "heightInComparisonPreview": 84
+  },
+  "players": {
+    "order": [
+      "Green",
+      "Yellow",
+      "Blue",
+      "Red"
+    ],
+    "colors": {
+      "Green": {
+        "hex": "#5FD200",
+        "bit": 1
+      },
+      "Yellow": {
+        "hex": "#FFBF00",
+        "bit": 2
+      },
+      "Blue": {
+        "hex": "#006CFF",
+        "bit": 4
+      },
+      "Red": {
+        "hex": "#EC0000",
+        "bit": 8
+      }
+    },
+    "maskRange": [
+      1,
+      15
+    ],
+    "combinations": [
+      {
+        "mask": 1,
+        "players": [
+          "Green"
+        ]
+      },
+      {
+        "mask": 2,
+        "players": [
+          "Yellow"
+        ]
+      },
+      {
+        "mask": 3,
+        "players": [
+          "Green",
+          "Yellow"
+        ]
+      },
+      {
+        "mask": 4,
+        "players": [
+          "Blue"
+        ]
+      },
+      {
+        "mask": 5,
+        "players": [
+          "Green",
+          "Blue"
+        ]
+      },
+      {
+        "mask": 6,
+        "players": [
+          "Yellow",
+          "Blue"
+        ]
+      },
+      {
+        "mask": 7,
+        "players": [
+          "Green",
+          "Yellow",
+          "Blue"
+        ]
+      },
+      {
+        "mask": 8,
+        "players": [
+          "Red"
+        ]
+      },
+      {
+        "mask": 9,
+        "players": [
+          "Green",
+          "Red"
+        ]
+      },
+      {
+        "mask": 10,
+        "players": [
+          "Yellow",
+          "Red"
+        ]
+      },
+      {
+        "mask": 11,
+        "players": [
+          "Green",
+          "Yellow",
+          "Red"
+        ]
+      },
+      {
+        "mask": 12,
+        "players": [
+          "Blue",
+          "Red"
+        ]
+      },
+      {
+        "mask": 13,
+        "players": [
+          "Green",
+          "Blue",
+          "Red"
+        ]
+      },
+      {
+        "mask": 14,
+        "players": [
+          "Yellow",
+          "Blue",
+          "Red"
+        ]
+      },
+      {
+        "mask": 15,
+        "players": [
+          "Green",
+          "Yellow",
+          "Blue",
+          "Red"
+        ]
+      }
+    ],
+    "countRules": {
+      "multiColorCounts": "多色方块不叠加多个数字，将各色数量写入 label，作为提示与辅助阅读文本喵。",
+      "emptySlot": "不需要槽时从 markers 中移除，不以 mask=0 表示空槽喵。",
+      "singleColorCount": "单色方块用 count 非负整数叠加独立文字，count=0 保持显示，省略字段才隐藏数字喵。"
+    }
+  },
+  "rightStates": [
+    {
+      "status": "none",
+      "interactive": false,
+      "reserveWidth": false
+    },
+    {
+      "status": "unused",
+      "interactive": false,
+      "reserveWidth": true,
+      "meaning": "尚未使用的只读状态喵。"
+    },
+    {
+      "status": "used",
+      "interactive": false,
+      "reserveWidth": true,
+      "meaning": "已使用的只读状态喵。"
+    },
+    {
+      "status": "use",
+      "enabled": true,
+      "interactive": true,
+      "reserveWidth": true,
+      "visualStates": [
+        "default",
+        "hover",
+        "pressed"
+      ],
+      "meaning": "当前可执行的使用操作喵。"
+    },
+    {
+      "status": "use",
+      "enabled": false,
+      "interactive": false,
+      "reserveWidth": true,
+      "visualStates": [
+        "disabled"
+      ],
+      "meaning": "当前不能执行的使用操作，不等同于已经使用喵。"
+    }
+  ],
+  "interaction": {
+    "domActionPattern": "row-use-{id}",
+    "bodyAction": "可选，正文区域独立的详情入口，不覆盖右侧使用或状态图标喵。",
+    "pointerAndKeyboardGuard": "right.status === \"use\" && right.enabled === true",
+    "readOnlyFocusable": false,
+    "autoSetUsedOnClick": false,
+    "postExecuteStateOwner": "game-rule-layer",
+    "focusOverlaySeparate": true,
+    "hostBinding": "宿主根据 row.id 映射自己的 actionId，组件不消费 actionId 字段喵。",
+    "disabledReason": "宿主可补充禁用原因提示，组件默认文字为当前不可使用喵。",
+    "enabledDefaultWarning": "当前组件省略 enabled 时默认可用，正式接入应显式传入规则判定结果喵。",
+    "description": "点击仅派发界面操作标识，实际结算、剩余次数与状态变更由游戏逻辑确认喵。"
+  },
+  "leftPanelExpansion": {
+    "referenceCanvas": [
+      1920,
+      1080
+    ],
+    "maxExpandedPlayers": 1,
+    "defaultExpansionHeight": 224,
+    "cityCollapsed": {
+      "top": 424,
+      "height": 554,
+      "bottom": 978
+    },
+    "cityExpanded": {
+      "top": 648,
+      "height": 330,
+      "bottom": 978
+    },
+    "formulas": {
+      "cityTop": "424 + E",
+      "cityHeight": "554 - E",
+      "cityBottom": "cityTop + cityHeight = 978"
+    },
+    "laterPlayerPanelsMoveDown": true,
+    "cityArtworkFit": "contain",
+    "cityArtworkAspectRatioPreserved": true,
+    "scrollContainer": "expanded-details-list",
+    "scrollbarSide": "right",
+    "scrollbarOwnGutter": true,
+    "constraints": [
+      "同一时间只展开一名其他玩家，点击另一名时切换展开对象喵。",
+      "明细插入对应玩家摘要下方，后续摘要顺次下移喵。",
+      "内容溢出在明细内部滚动，不覆盖状态图标喵。",
+      "缩放只改变显示尺寸，不改变游戏状态与城市数值喵。"
+    ]
+  },
+  "examplesAreRules": false,
+  "exampleDisclaimer": "以下名称、文字、数量和状态都是排版占位，不是游戏规则结论喵。",
+  "examples": [
+    {
+      "id": "example-choice-a",
+      "mode": "choice_execute",
+      "title": "执行选项 A",
+      "description": "示例效果说明，由实际规则文本填充",
+      "markers": [],
+      "right": {
+        "status": "use",
+        "enabled": true
+      },
+      "x": 0,
+      "y": 0,
+      "w": 520,
+      "h": 76
+    },
+    {
+      "id": "example-choice-disabled",
+      "mode": "choice_execute",
+      "title": "执行选项 B",
+      "description": "展示当前暂不可执行的选项",
+      "right": {
+        "status": "use",
+        "enabled": false
+      },
+      "x": 0,
+      "y": 0,
+      "w": 520,
+      "h": 76
+    },
+    {
+      "id": "example-permanent-none",
+      "mode": "persistent_detail",
+      "title": "持续生效的能力",
+      "description": "无次数状态，也无需显示玩家标记",
+      "markers": [],
+      "right": {
+        "status": "none"
+      },
+      "x": 0,
+      "y": 0,
+      "w": 520,
+      "h": 60,
+      "bodyAction": "detail-example-permanent-none"
+    },
+    {
+      "id": "example-permanent-two",
+      "mode": "persistent_detail",
+      "title": "带两个标记区域的能力",
+      "description": "两个方块分别代表两个对应区域",
+      "markers": [
+        {
+          "mask": 5,
+          "label": "区域一，绿色玩家标记 2 个，蓝色玩家标记 1 个"
+        },
+        {
+          "mask": 2,
+          "label": "区域二，黄色玩家标记 3 个",
+          "count": 3
+        }
+      ],
+      "right": {
+        "status": "unused"
+      },
+      "x": 0,
+      "y": 0,
+      "w": 520,
+      "h": 60
+    },
+    {
+      "id": "example-permanent-used",
+      "mode": "persistent_detail",
+      "title": "已使用的效果",
+      "description": "图标只展示使用状态",
+      "markers": [
+        {
+          "mask": 8,
+          "label": "卡上标记，红色玩家，显示数量 0",
+          "count": 0
+        }
+      ],
+      "right": {
+        "status": "used"
+      },
+      "x": 0,
+      "y": 0,
+      "w": 520,
+      "h": 60
+    },
+    {
+      "id": "example-quick-use",
+      "mode": "quick_action",
+      "title": "可执行的快速行动",
+      "description": "共用同一条目和使用入口",
+      "markers": [
+        {
+          "mask": 15,
+          "label": "参与玩家，绿色、黄色、蓝色、红色各 1 个标记"
+        }
+      ],
+      "right": {
+        "status": "use",
+        "enabled": true
+      },
+      "x": 0,
+      "y": 0,
+      "w": 520,
+      "h": 76
+    }
+  ],
+  "assetCatalog": "assets/effect-assets.json",
+  "assetBindings": {
+    "background": "row-bg-{state}",
+    "frame": "row-frame-{state}",
+    "rightBackground": "status-bg-{state}",
+    "rightIcon": "icon-{status}-{ink}",
+    "detailToggle": "toggle-bg-{default,hover,pressed,expanded}",
+    "detailChevron": "icon-chevron-{down,up}-{ink}",
+    "rowStates": [
+      "default",
+      "hover",
+      "pressed",
+      "disabled"
+    ],
+    "iconInks": [
+      "light",
+      "dark",
+      "muted"
+    ],
+    "rendererAssetPrefix": "v33-"
+  },
+  "validationNotes": [
+    "模式与右侧状态等业务字段建议严格验证，renderer 的容错归一化不等于改变规则数据喵。",
+    "renderer 对 choice_execute 强制移除标记并使用 use 状态喵。",
+    "renderer 只显示单色方块上的 count，多色数量需要预先写入 label 喵。",
+    "所有坐标和尺寸都属于显示层，label 是玩家标记的提示和辅助阅读文本喵。",
+    "无效、非整数或超出 1 至 15 的 mask 会被归一化过滤，不会转成绿色标记喵。"
+  ],
+  "installation": {
+    "requires": [
+      "完整主界面 v3.1",
+      "已应用 v3.2 按钮补丁"
+    ],
+    "command": "python tools/apply_patch.py \"FrontierUI-v3-Patch完整目录\"",
+    "installedAssetDirectory": "effect-assets-v3.4/",
+    "installedComponent": "preview/effect-row.mjs",
+    "standalonePreview": "preview/effect-rows.html",
+    "standalonePreviewNeedsInstallation": false,
+    "targetDescription": "安装目标是已应用 v3.2 按钮补丁的完整主界面根目录，可以尚未安装 EffectRows，也可以已经安装 v3.3，不是单独的增量补丁目录喵。",
+    "supportedEffectRowsBaselines": [
+      "none",
+      "3.3"
+    ],
+    "requiresEffectRowsV33First": false,
+    "validatesBaselineBeforeWriting": true,
+    "backsUpReplacedFiles": true,
+    "upgradeNote": "新素材安装到 effect-assets-v3.4/，渲染器继续使用兼容的 v33- 素材标识，旧交付包独立保留喵。"
+  },
+  "visualRevision": {
+    "version": "3.4",
+    "supersedesVisualVersion": "3.3",
+    "scope": "visual-only",
+    "surface": "暖灰棕底色与轻微纸面纹理喵。",
+    "frame": "米灰色细边框，弱化双层轮廓喵。",
+    "accentUsage": "工程黄用于可执行入口与交互强调，已使用和未使用状态保持中性色喵。",
+    "dataContractChanged": false,
+    "layoutChanged": false,
+    "behaviorChanged": false,
+    "rendererAssetPrefixPreserved": "v33-",
+    "palette": {
+      "states": {
+        "default": {
+          "fill": "#453E35",
+          "bottom": "#3B352D",
+          "edge": "#9A8D78",
+          "glint": "#E5D6B8",
+          "accent": "#BDA45D"
+        },
+        "hover": {
+          "fill": "#50463A",
+          "bottom": "#443B30",
+          "edge": "#C7B172",
+          "glint": "#F0E1C3",
+          "accent": "#E4C86F"
+        },
+        "pressed": {
+          "fill": "#39332B",
+          "bottom": "#302A23",
+          "edge": "#C4A95B",
+          "glint": "#D2BF92",
+          "accent": "#C4A95B"
+        },
+        "disabled": {
+          "fill": "#37332D",
+          "bottom": "#302C26",
+          "edge": "#716759",
+          "glint": "#B0A28A",
+          "accent": "#746851"
+        }
+      },
+      "text": {
+        "light": "#E8DDC3",
+        "dark": "#332E27",
+        "muted": "#A89B83"
+      },
+      "glyph": {
+        "useLight": "#DFBE68",
+        "usedLight": "#CABB9D",
+        "unusedLight": "#E8DDC3"
+      },
+      "divider": "#BAA88B",
+      "paper": {
+        "fiber": "#E7D6B5",
+        "grain": "#1F1B16",
+        "opacityRange": [
+          0.025,
+          0.08
+        ],
+        "deterministic": true
+      },
+      "backgroundInteriorOpaque": true,
+      "frameStyle": "single fine rounded outline, no secondary complete inset frame"
+    }
+  }
+}

@@ -22,6 +22,63 @@ namespace YC.Tests.EditMode
     public sealed class TurnActionPresenterTests
     {
         [Test]
+        public void CityStyle_ViewHasNoDeclarationAndPlayerChangeInvalidatesTheDraft()
+        {
+            var f = CreateFixture();
+            f.Presenter.CityStyleInteraction.OpenPreview(CityStyleDatabase.MilitaryIndustrialArea);
+            var read = f.View.CityStyleOptions;
+            Assert.That(read.DeclareMode, Is.False);
+            Assert.That(read.ConfirmSelection, Is.Null);
+            Assert.That(f.Commands.SubmitCount, Is.Zero);
+            f.Context.LocalPlayerId = 2;
+            Assert.That(read.Refresh(), Is.Null);
+        }
+
+        [Test]
+        public void CityStyle_PendingRejectRetryAndLateReplyAreBoundToTheExactCommand()
+        {
+            var f = CreateFixture();
+            f.Presenter.BeginDeclareCityStyle(CityStyleDatabase.MilitaryIndustrialArea);
+            var p = f.View.CityStyleOptions;
+            f.Commands.NextResult = Success(false);
+            Assert.That(p.ConfirmSelection(CityStyleDatabase.MilitaryIndustrialArea, new[] {0,1}), Is.True);
+            var first = f.Commands.LastCommand.CommandId;
+            Assert.That(p.SubmissionStatus(), Is.EqualTo(CityStyleSubmissionStatus.Pending));
+            Assert.That(p.ConfirmSelection(CityStyleDatabase.MilitaryIndustrialArea, new[] {0,1}), Is.False);
+            Assert.That(f.Commands.SubmitCount, Is.EqualTo(1));
+            f.Presenter.BeginDeclareCityStyle(CityStyleDatabase.MilitaryIndustrialArea);
+            Assert.That(f.View.CityStyleOptions.ConfirmSelection(CityStyleDatabase.MilitaryIndustrialArea, new[] {0,1}), Is.False,
+                "关闭并重新打开页面不能绕过仍在途的同一业务命令。");
+            Assert.That(f.Commands.SubmitCount, Is.EqualTo(1));
+            f.Presenter.CityStyleInteraction.ResolveSubmission("old", true);
+            Assert.That(p.SubmissionStatus(), Is.EqualTo(CityStyleSubmissionStatus.Pending));
+            f.Presenter.CityStyleInteraction.ResolveSubmission(first, false);
+            Assert.That(p.SubmissionStatus(), Is.EqualTo(CityStyleSubmissionStatus.Rejected));
+            Assert.That(p.ConfirmSelection(CityStyleDatabase.MilitaryIndustrialArea, new[] {0,1}), Is.True);
+            var second = f.Commands.LastCommand.CommandId;
+            f.Presenter.CityStyleInteraction.ResolveSubmission(first, true);
+            Assert.That(p.SubmissionStatus(), Is.EqualTo(CityStyleSubmissionStatus.Pending));
+            f.Presenter.CityStyleInteraction.ResolveSubmission(second, true);
+            Assert.That(p.SubmissionStatus(), Is.EqualTo(CityStyleSubmissionStatus.Applied));
+        }
+
+        [Test]
+        public void CityStyle_RepeatedDeclarationsFollowTheSharedTrackWithoutChangingTheirCount()
+        {
+            var player = new PlayerState { PlayerId = 1 };
+            var first = new CityStyleDeclarationState { CityStyleId = CityStyleDatabase.SourceStoneIndustrialHub, MarkerArea = "used_from_2", RemainingSpecialActionUses = 2 };
+            var extra = new CityStyleDeclarationState { CityStyleId = first.CityStyleId, MarkerArea = "declared" };
+            player.DeclaredCityStyles.Add(first); player.DeclaredCityStyles.Add(extra);
+            Assert.That(CityStyleInteraction.DisplayMarkerArea(player, first), Is.EqualTo("used_from_2"));
+            Assert.That(CityStyleInteraction.DisplayMarkerArea(player, extra), Is.EqualTo("used_from_2"));
+            first.MarkerArea = "1";
+            Assert.That(CityStyleInteraction.DisplayMarkerArea(player, first), Is.EqualTo("1"));
+            Assert.That(CityStyleInteraction.DisplayMarkerArea(player, extra), Is.EqualTo("1"));
+            Assert.That(player.DeclaredCityStyles.Count, Is.EqualTo(2));
+            Assert.That(first.RemainingSpecialActionUses, Is.EqualTo(2));
+        }
+
+        [Test]
         public void BuildDraftViewModel_UsesOneClosedIntentDispatchChannel()
         {
             var delegateProperties = new List<string>();
@@ -298,12 +355,13 @@ namespace YC.Tests.EditMode
         public void CharacterCoverPhase_PromptsCurrentPlayerToCoverFirst()
         {
             var fixture = CreateFixture();
+            fixture.Presenter.ActionPanelPresenter.CharacterCoverPrompt = "测试配置中的盖牌提示";
             fixture.Context.State.Phase = GamePhase.CharacterCover;
             fixture.Context.State.CurrentPlayerId = 1;
             fixture.Context.State.FindPlayer(1).CoveredCharacterCardId = string.Empty;
 
             Assert.That(fixture.Presenter.BuildActionPanelViewModel().StatusText,
-                Is.EqualTo("拖动手牌到右侧面板盖放"));
+                Is.EqualTo(fixture.Presenter.ActionPanelPresenter.CharacterCoverPrompt));
         }
 
         [Test]
@@ -756,7 +814,7 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.Exploration.IsSelectingExploreTarget, Is.True);
             Assert.That(fixture.View.Prompt, Does.Contain("正在进行的行动"));
 
-            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
+            fixture.Presenter.CityStyleInteraction.OpenPreview(CityStyleDatabase.MilitaryIndustrialArea);
 
             Assert.That(fixture.View.CityStyleOptions, Is.Not.Null);
             Assert.That(
@@ -824,7 +882,7 @@ namespace YC.Tests.EditMode
                 RemainingSpecialActionUses = 0
             });
 
-            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
+            fixture.Presenter.CityStyleInteraction.OpenPreview(CityStyleDatabase.MilitaryIndustrialArea);
 
             var markers = fixture.View.CityStyleOptions.CityStyleMarkers;
             var military = FindMarker(markers, "military-marker");
@@ -892,7 +950,7 @@ namespace YC.Tests.EditMode
                 UnlockedSpecialActionId = SpecialActionDatabase.CompositePowerSystem,
                 RemainingSpecialActionUses = 1
             });
-            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.CompositePowerSystem);
+            fixture.Presenter.CityStyleInteraction.OpenPreview(CityStyleDatabase.CompositePowerSystem);
             var marker = FindMarker(
                 fixture.View.CityStyleOptions.CityStyleMarkers,
                 "composite-marker");
@@ -951,7 +1009,7 @@ namespace YC.Tests.EditMode
             var markerState = AddMilitarySpecialActionMarker(fixture, "draft-marker");
             fixture.Presenter.BeginBuildFacilityDrag(FacilityCardDatabase.TradeDistrict);
 
-            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
+            fixture.Presenter.CityStyleInteraction.OpenPreview(CityStyleDatabase.MilitaryIndustrialArea);
 
             var marker = FindMarker(fixture.View.CityStyleOptions.CityStyleMarkers, markerState.InfluenceMarkerId);
             Assert.That(marker.CanDragForSpecialAction, Is.False);
@@ -976,7 +1034,7 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.Busy));
             Assert.That(fixture.Flow.IsActive(fixture.Exploration), Is.True);
             Assert.That(fixture.Exploration.IsSelectingExploreTarget, Is.True);
-            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
+            fixture.Presenter.CityStyleInteraction.OpenPreview(CityStyleDatabase.MilitaryIndustrialArea);
             var marker = FindMarker(fixture.View.CityStyleOptions.CityStyleMarkers, markerState.InfluenceMarkerId);
             Assert.That(marker.CanDragForSpecialAction, Is.False, "旧选择模式中不应向玩家显示可拖标记。");
 
@@ -1002,7 +1060,7 @@ namespace YC.Tests.EditMode
             fixture.Presenter.DropBuildFacility(3);
             Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Focused));
 
-            fixture.Presenter.OpenCityStylePreview(CityStyleDatabase.MilitaryIndustrialArea);
+            fixture.Presenter.CityStyleInteraction.OpenPreview(CityStyleDatabase.MilitaryIndustrialArea);
             Assert.That(fixture.View.CityStyleOptions, Is.Not.Null);
             for (var i = 0; i < fixture.View.CityStyleOptions.Options.Count; i++)
             {

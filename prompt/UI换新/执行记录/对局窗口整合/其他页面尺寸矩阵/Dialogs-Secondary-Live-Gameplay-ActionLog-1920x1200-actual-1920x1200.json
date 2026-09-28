@@ -1,0 +1,252 @@
+{
+    "scene": "SampleScene",
+    "state": "ActionLog",
+    "stateSource": "实际场景与源资产；调用既有页面按钮/控制器，仅查看、不提交命令。",
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 1920.0,
+        "y": 1200.0
+    },
+    "actualSize": {
+        "x": 1920.0,
+        "y": 1200.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1920.0,
+        "height": 1200.0
+    },
+    "objects": [
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 504.63201904296877,
+                "y": 257.4199523925781,
+                "width": 910.7359008789063,
+                "height": 716.782958984375
+            },
+            "layoutDrivers": [
+                "Image",
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 504.63201904296877,
+                "y": 906.740966796875,
+                "width": 910.7359008789063,
+                "height": 67.4619140625
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Header/Action Log Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 504.63201904296877,
+                "y": 906.740966796875,
+                "width": 910.7359008789063,
+                "height": 67.4619140625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Header/Close Action Log Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1352.1224365234375,
+                "y": 921.4982299804688,
+                "width": 48.48828125,
+                "height": 37.94732666015625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Header/Close Action Log Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1360.55517578125,
+                "y": 921.4982299804688,
+                "width": 31.622802734375,
+                "height": 37.9473876953125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Body Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 504.63201904296877,
+                "y": 282.71820068359377,
+                "width": 910.7359008789063,
+                "height": 624.0227661132813
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Body Viewport/Action Log Scroll View",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 532.0384521484375,
+                "y": 282.7181396484375,
+                "width": 855.923095703125,
+                "height": 611.3736572265625
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Body Viewport/Action Log Scroll View/Action Log Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 540.47119140625,
+                "y": 291.15087890625,
+                "width": 807.434814453125,
+                "height": 594.5081787109375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Body Viewport/Action Log Scroll View/Action Log Viewport/Action Log Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 540.47119140625,
+                "y": 797.1152954101563,
+                "width": 807.434814453125,
+                "height": 88.54376220703125
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "ContentSizeFitter"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Body Viewport/Action Log Scroll View/Action Log Viewport/Action Log Content/Action Log Row",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 548.9039306640625,
+                "y": 805.5480346679688,
+                "width": 790.5693359375,
+                "height": 71.6783447265625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement",
+                "UiMeasuredTextRow"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Body Viewport/Action Log Scroll View/Action Log Viewport/Action Log Content/Action Log Row/Action Log Row Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 565.7694091796875,
+                "y": 811.8726196289063,
+                "width": 756.83837890625,
+                "height": 59.0291748046875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Body Viewport/Action Log Scroll View/Action Log Scrollbar",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1356.3388671875,
+                "y": 291.15087890625,
+                "width": 23.18994140625,
+                "height": 594.5081787109375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Body Viewport/Action Log Scroll View/Action Log Scrollbar/Sliding Area",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1359.5010986328125,
+                "y": 294.3131408691406,
+                "width": 16.865478515625,
+                "height": 588.18359375
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Body Viewport/Action Log Scroll View/Action Log Scrollbar/Sliding Area/Handle",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1359.5010986328125,
+                "y": 294.3131408691406,
+                "width": 16.865478515625,
+                "height": 588.18359375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 504.63201904296877,
+                "y": 257.419921875,
+                "width": 910.7359008789063,
+                "height": 25.2982177734375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Window Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 504.63201904296877,
+                "y": 257.4199523925781,
+                "width": 910.7359008789063,
+                "height": 716.782958984375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        }
+    ]
+}

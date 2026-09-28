@@ -1,0 +1,423 @@
+{
+    "mode": "BuildFocus",
+    "source": "组件诊断：SampleScene 当前 Registry 与实际 EventChoiceDialog Prefab；调用既有 Show 方法。路线、收款人和文字样本为诊断数据，卡图来自正式目录。回调仅计数，不提交命令；不代表规则结算或联机验收。",
+    "requestedSize": {
+        "x": 2560.0,
+        "y": 1080.0
+    },
+    "actualSize": {
+        "x": 2560.0,
+        "y": 1080.0
+    },
+    "panel": {
+        "serializedVersion": "2",
+        "x": 760.384765625,
+        "y": 193.58984375,
+        "width": 1039.23046875,
+        "height": 681.2733154296875
+    },
+    "availableContent": {
+        "serializedVersion": "2",
+        "x": -0.000042149185901507735,
+        "y": 117.77944946289063,
+        "width": 2560.0,
+        "height": 879.08203125
+    },
+    "diagnosticCallbacks": 0,
+    "issues": [],
+    "objects": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 193.58984375,
+                "width": 1039.23046875,
+                "height": 681.2733154296875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 193.58984375,
+                "width": 1039.23046875,
+                "height": 681.2733154296875
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Title",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 802.1170043945313,
+                "width": 1039.23046875,
+                "height": 62.3538818359375
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 193.58982849121095,
+                "width": 1039.23046875,
+                "height": 599.28955078125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 193.58982849121095,
+                "width": 1039.23046875,
+                "height": 599.28955078125
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 193.58982849121095,
+                "width": 1039.23046875,
+                "height": 599.28955078125
+            },
+            "layoutDrivers": [
+                "ScrollRect",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 193.58982849121095,
+                "width": 1039.23046875,
+                "height": 599.28955078125
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 325.2256774902344,
+                "width": 1039.23046875,
+                "height": 467.6537170410156
+            },
+            "layoutDrivers": [
+                "ContentSizeFitter",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Facility Card Preview",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 812.3462524414063,
+                "y": 325.2257080078125,
+                "width": 394.90753173828127,
+                "height": 467.6536865234375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Facility Card Preview/Facility Card Image",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 844.7457885742188,
+                "y": 325.2257080078125,
+                "width": 330.10845947265627,
+                "height": 467.6536865234375
+            },
+            "layoutDrivers": [
+                "AspectRatioFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1238.4307861328125,
+                "y": 325.2257080078125,
+                "width": 498.83056640625,
+                "height": 467.6536865234375
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Details",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1238.4307861328125,
+                "y": 534.2265014648438,
+                "width": 498.83056640625,
+                "height": 251.7247314453125
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Payment Gap",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1238.4307861328125,
+                "y": 508.8230895996094,
+                "width": 498.83056640625,
+                "height": 25.403411865234376
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1238.4307861328125,
+                "y": 432.61285400390627,
+                "width": 498.83056640625,
+                "height": 76.210205078125
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions/Choose Resource Payment",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1259.2154541015625,
+                "y": 432.61285400390627,
+                "width": 228.630615234375,
+                "height": 76.210205078125
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions/Choose Resource Payment/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1273.07177734375,
+                "y": 432.61285400390627,
+                "width": 200.91796875,
+                "height": 76.210205078125
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions/Choose Gold Payment",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1508.6307373046875,
+                "y": 432.61285400390627,
+                "width": 228.630615234375,
+                "height": 76.210205078125
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions/Choose Gold Payment/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1522.487060546875,
+                "y": 432.61285400390627,
+                "width": 200.91796875,
+                "height": 76.210205078125
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Reason Gap",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1238.4307861328125,
+                "y": 431.4581298828125,
+                "width": 498.83056640625,
+                "height": 1.15472412109375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Payment Reasons",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1238.4307861328125,
+                "y": 382.9607238769531,
+                "width": 498.83056640625,
+                "height": 48.4974365234375
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Payment Reasons/Resource Payment Reason",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1248.822998046875,
+                "y": 382.9607238769531,
+                "width": 244.21923828125,
+                "height": 48.4974365234375
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Payment Reasons/Gold Payment Reason",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1493.042236328125,
+                "y": 382.9607238769531,
+                "width": 244.21923828125,
+                "height": 48.4974365234375
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Error Gap",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1238.4307861328125,
+                "y": 325.2256774902344,
+                "width": 498.83056640625,
+                "height": 57.73504638671875
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Dynamic Templates",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 193.58984375,
+                "width": 1039.23046875,
+                "height": 681.2733154296875
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Window Frame",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 193.58984375,
+                "width": 1039.23046875,
+                "height": 681.2733154296875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Close Build Facility Focus Button",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1730.3331298828125,
+                "y": 812.50927734375,
+                "width": 48.4974365234375,
+                "height": 48.4974365234375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Close Build Facility Focus Button/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1739.57080078125,
+                "y": 812.5093383789063,
+                "width": 30.022216796875,
+                "height": 48.4974365234375
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        }
+    ],
+    "scrolls": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll",
+            "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions/Choose Gold Payment",
+            "contentHeight": 405.0,
+            "viewportHeight": 519.0,
+            "contentOverflows": false,
+            "lastButtonVisibleAtTop": true,
+            "lastButtonReachesViewportAtEnd": true,
+            "viewportAtEnd": {
+                "serializedVersion": "2",
+                "x": 760.384765625,
+                "y": 193.58982849121095,
+                "width": 1039.23046875,
+                "height": 599.28955078125
+            },
+            "lastButtonAtEnd": {
+                "serializedVersion": "2",
+                "x": 1508.6307373046875,
+                "y": 432.61285400390627,
+                "width": 228.630615234375,
+                "height": 76.210205078125
+            }
+        }
+    ]
+}

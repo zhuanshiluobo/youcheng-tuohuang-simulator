@@ -31,6 +31,33 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void VisibleRequestSource_UsesClientViewWithoutFallingBackToHostState()
+        {
+            var host = new GameState();
+            var own = Request(); own.OwnerEffectId = "owner-effect"; own.SourceNodeId = "source-node";
+            host.EffectRuntime.InteractionRequests.Add(own);
+            var privateOther = Request(); privateOther.InteractionId = "hidden-request"; privateOther.AnsweringPlayerId = 2;
+            host.EffectRuntime.InteractionRequests.Add(privateOther);
+            var view = GameStateViewProjector.ProjectForPlayer(host, 1);
+            var session = new YC.Application.Sessions.GameSession(new GameState());
+            session.ReplaceView(view);
+            Assert.That(session.State.EffectRuntime, Is.Null);
+            var requests = VisibleInteractionRequestSource.Read(session.State, session.View, 1);
+            Assert.That(requests, Has.Count.EqualTo(1));
+            Assert.That(requests[0].OwnerEffectId, Is.EqualTo("owner-effect"));
+            Assert.That(requests[0].SourceNodeId, Is.EqualTo("source-node"));
+            var router = new InteractionRequestRouter(); var renderer = new Renderer(); router.Register(renderer);
+            Assert.That(router.RouteOpen(requests, 1), Is.True);
+            Assert.That(renderer.Projection.CandidateIds, Is.EqualTo(new[] { "iron" }));
+            requests[0].CandidateIds.Clear();
+            Assert.That(view.Interactions[0].CandidateIds, Has.Count.EqualTo(1), "请求适配不能反写可见快照。");
+            view.Interactions.Clear();
+            Assert.That(VisibleInteractionRequestSource.Read(host, view, 1), Is.Empty,
+                "已有客户端快照时，即使同时传入含隐藏请求的State，也不能回退读取。");
+            Assert.That(VisibleInteractionRequestSource.Read(host, GameStateViewProjector.ProjectForPlayer(host, 2), 1), Is.Empty);
+        }
+
+        [Test]
         public void AnswerProtocol_PreservesObservedRevisionAndUsesUniqueCommandIdentity()
         {
             var request = Request();

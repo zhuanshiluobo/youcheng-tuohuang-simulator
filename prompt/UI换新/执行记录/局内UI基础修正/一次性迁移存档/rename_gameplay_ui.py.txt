@@ -1,0 +1,64 @@
+from pathlib import Path
+import re,json
+ROOT=Path('G:/NoMadCity');OUT=ROOT/'prompt/UI换新/执行记录/局内UI基础修正'
+paths={'Assets/YC/Presentation/Ui002':'Assets/YC/Presentation/CommonUi',
+ 'Assets/YC/Presentation/Ui005':'Assets/YC/Presentation/GameplayHud',
+ 'Assets/YC/Presentation/Ui006':'Assets/YC/Presentation/Effects',
+ 'Assets/YC/Presentation/Ui007/Prefabs':'Assets/YC/Presentation/Prefabs/Gameplay/InGame',
+ 'Assets/YC/Presentation/Ui007':'Assets/YC/Presentation/Layout'}
+names={
+ 'Ui002AssetBuilder':'SharedUiAssetBuilder','Ui002PreviewCapture':'SharedUiPreviewCapture',
+ 'Ui003HierarchyReport':'GameplayHudHierarchyReport','Ui003SceneAudit':'GameplaySceneAudit',
+ 'Ui003VisualCapture':'GameplayHudCapture','Ui007SupplementalPageCapture':'GameplaySupplementalPageCapture',
+ 'Ui007SecondaryPageCapture':'GameplaySecondaryPageCapture','Ui007EventDialogCapture':'GameplayEventDialogCapture',
+ 'Ui002FontRolesTests':'UiFontRolesTests','Ui006EffectRowTests':'EffectRowTests',
+ 'Ui007DialogLayoutTests':'GameplayDialogLayoutTests','Ui007InGameAssetIsolationTests':'InGameAssetIsolationTests',
+ 'Ui003HudFramePlayModeTests':'GameplayHudFramePlayModeTests','Ui005MainHudPlayModeTests':'GameplayMainHudPlayModeTests',
+ 'Ui006OpponentDetailPlayModeTests':'OpponentDetailPlayModeTests','Ui006EffectPagePlayModeTests':'EffectPagePlayModeTests',
+ 'Ui007RoundPagePlayModeTests':'RoundPagePlayModeTests',
+ 'UiBoundedPanelLayout':'UiWindowSizeInput','UiEventDialogLayoutGroup':'UiEventHeaderInput',
+ 'UiPromptLayout':'UiPromptSizeInput','UiPlayerCityLayout':'UiOpponentDetailInput',
+ 'UiCardGridLayoutGroup':'UiCardCollectionLayout',
+ 'verify_ui002_assets':'verify_shared_ui_assets','ui002_sprite_manifest':'shared_ui_sprite_manifest',
+ 'import_ui002_assets':'import_shared_ui_assets','verify_ui007_geometry':'verify_gameplay_ui_geometry',
+ 'write_ui006_asset_map':'write_effect_asset_map'}
+moves=[]
+for base in ['Assets/YC','tools']:
+ for p in (ROOT/base).rglob('*'):
+  if not p.is_file():continue
+  old=p.relative_to(ROOT).as_posix();new=old
+  for a,b in paths.items():
+   if new==a+'.meta' or new.startswith(a+'/'):new=new.replace(a,b,1);break
+  if new.endswith('ResourceSaleReceiptProjection.cs') or new.endswith('ResourceSaleReceiptProjection.cs.meta'):
+   new=new.replace('/Layout/','/Effects/')
+  for a,b in names.items():new=new.replace(a,b)
+  if new!=old:
+   assert not (ROOT/new).exists(),new
+   meta=p if p.suffix=='.meta' else Path(str(p)+'.meta')
+   g=re.search(r'^guid: (\w+)',meta.read_text(encoding='utf-8-sig'),re.M).group(1) if meta.exists() else None
+   moves.append(dict(old=str(p),new=str(ROOT/new),guid=g))
+(OUT/'命名文件映射.json').write_text(json.dumps(moves,ensure_ascii=False,indent=2),encoding='utf-8')
+print('预检文件数',len(moves))
+for m in moves:
+ old,new=Path(m['old']),Path(m['new']); assert old.is_relative_to(ROOT) and new.is_relative_to(ROOT)
+ new.parent.mkdir(parents=True,exist_ok=True);old.rename(new)
+# 保留目录 GUID，其余新职责目录由 Unity 创建 meta。
+objects=[]
+for base in ['Assets/YC','Assets/Scenes','tools']:
+ for p in (ROOT/base).rglob('*'):
+  if not p.is_file() or p.suffix not in ['.cs','.py','.json','.prefab','.unity','.asset','.asmdef','.anim']:continue
+  s=p.read_text(encoding='utf-8-sig');old=s
+  for a,b in paths.items():s=s.replace(a,b)
+  for a,b in names.items():s=s.replace(a,b)
+  if p.suffix in ['.prefab','.unity']:
+   for match in re.finditer(r'--- !u!\d+ &(-?\d+)(.*?)(?=--- !u!|\Z)',s,re.S):
+    name=re.search(r'^  m_Name: (.*)',match[2],re.M)
+    if name and re.search(r'UI00[2-8]',name[1]):objects.append(dict(asset=str(p),fileID=match[1],old=name[1],new=re.sub(r'UI00[2-8] ','',name[1])))
+   s=re.sub(r'UI00[2-8] ', '',s)
+  if p.suffix in ['.cs','.py','.json']:
+   # 工具入口、诊断前缀与变量统一按内容命名；历史文件本身不修改。
+   for number,label in [('002','SharedUi'),('003','Hud'),('005','MainHud'),('006','Effects'),('007','Dialogs'),('008','Actions')]:
+    s=s.replace('UI'+number+' ', '').replace('UI-'+number,label).replace('Ui'+number,label).replace('ui'+number,label[0].lower()+label[1:]).replace('UI'+number,label)
+  if s!=old:p.write_text(s,encoding='utf-8')
+(OUT/'命名对象映射.json').write_text(json.dumps(objects,ensure_ascii=False,indent=2),encoding='utf-8')
+print('对象映射',len(objects))

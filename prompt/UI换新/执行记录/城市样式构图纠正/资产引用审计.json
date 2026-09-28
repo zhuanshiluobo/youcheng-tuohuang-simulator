@@ -1,0 +1,30 @@
+[
+  {
+    "path": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "duplicateIds": 0,
+    "preexistingMissing": [
+      "6610471206676212675"
+    ],
+    "missing": [
+      "6610471206676212675"
+    ],
+    "newMissing": [],
+    "removedIds": 30
+  },
+  {
+    "path": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "duplicateIds": 0,
+    "preexistingMissing": [],
+    "missing": [],
+    "newMissing": [],
+    "removedIds": 2
+  },
+  {
+    "path": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "duplicateIds": 0,
+    "preexistingMissing": [],
+    "missing": [],
+    "newMissing": [],
+    "removedIds": 31
+  }
+]

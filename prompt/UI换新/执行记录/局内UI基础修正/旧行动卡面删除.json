@@ -1,0 +1,66 @@
+[
+  {
+    "fileID": 4314101551998570809,
+    "name": "Label"
+  },
+  {
+    "fileID": 6611503067194563039,
+    "name": "Action Panel Context Button"
+  },
+  {
+    "fileID": 2403772395972225231,
+    "name": "Action Card Title"
+  },
+  {
+    "fileID": 7922747531860362537,
+    "name": "Action Card Image"
+  },
+  {
+    "fileID": 8703730295625366132,
+    "name": "Action Card Shade"
+  },
+  {
+    "fileID": 653936165047196759,
+    "name": "Action Card Empty Message"
+  },
+  {
+    "fileID": 8771307614404802789,
+    "name": "Action Card Image Container"
+  },
+  {
+    "fileID": 4777456867820346474,
+    "name": "Action Card Hint"
+  },
+  {
+    "fileID": 7575940887434135248,
+    "name": "UI007 Action Card Content"
+  },
+  {
+    "fileID": 5467166266814540742,
+    "name": "UI007 Action Card Viewport"
+  },
+  {
+    "fileID": 4162964063607229482,
+    "name": "Label"
+  },
+  {
+    "fileID": 3953899018562404260,
+    "name": "Character Strategy Button"
+  },
+  {
+    "fileID": 7857752801078357217,
+    "name": "Label"
+  },
+  {
+    "fileID": 3654249933084319080,
+    "name": "Character Tactic Button"
+  },
+  {
+    "fileID": 8274076835250191539,
+    "name": "UI007 Action Card Footer"
+  },
+  {
+    "fileID": 8770520497582150675,
+    "name": "Action Card Face"
+  }
+]

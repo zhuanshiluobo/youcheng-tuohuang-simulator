@@ -1,0 +1,183 @@
+"""本次授权的定点 YAML 编辑。保留已有对象 ID；不运行旧生成器。"""
+from audit_gameplay_ui import ROOT, OUT, documents, field, ref
+from pathlib import Path
+import re, json
+
+def guid(path):
+    return re.search(r'^guid: (\w+)', (ROOT/path).read_text(encoding='utf-8-sig'), re.M).group(1)
+
+NATIVE = {}
+for p in (ROOT/'Library/PackageCache').rglob('*.cs.meta'):
+    if p.name[:-8] in ('VerticalLayoutGroup','HorizontalLayoutGroup','LayoutElement','GridLayoutGroup'):
+        NATIVE[p.name[:-8]] = re.search(r'^guid: (\w+)',p.read_text(),re.M).group(1)
+
+class Asset:
+    def __init__(self,path):
+        self.path=ROOT/path; self.docs=documents(self.path); self.next=max([7451260000000000000]+[i for i in self.docs if 7451260000000000000 <= i < 7451270000000000000])
+        self.removed=[]
+    def uid(self):
+        self.next+=1
+        assert self.next not in self.docs
+        return self.next
+    def text(self,i): return self.docs[i][1]
+    def set(self,i,key,value):
+        k,t=self.docs[i]; pattern=r'^  '+re.escape(key)+r':.*?(?=^  [\w]|\Z)'
+        assert re.search(pattern,t,re.M|re.S), (self.path,i,key)
+        self.docs[i]=(k,re.sub(pattern,lambda m:f'  {key}: {value}\n',t,flags=re.M|re.S))
+    def go(self,r): return ref(self.text(r),'m_GameObject')
+    def children(self,r):
+        t=re.search(r'^  m_Children:(.*?)(?=^  m_Father:)',self.text(r),re.M|re.S).group(1)
+        return [int(x) for x in re.findall(r'fileID: (-?\d+)',t)]
+    def children_set(self,r,items): self.set(r,'m_Children','\n'+'\n'.join('  - {fileID: %d}'%i for i in items) if items else '[]')
+    def move(self,r,parent):
+        old=ref(self.text(r),'m_Father')
+        self.children_set(old,[i for i in self.children(old) if i!=r])
+        self.children_set(parent,self.children(parent)+[r]); self.set(r,'m_Father','{fileID: %d}'%parent)
+    def fill(self,r):
+        for k,v in [('m_AnchorMin','{x: 0, y: 0}'),('m_AnchorMax','{x: 1, y: 1}'),('m_SizeDelta','{x: 0, y: 0}'),('m_AnchoredPosition','{x: 0, y: 0}')]: self.set(r,k,v)
+    def component(self,go,script,body='',ident=None):
+        if ident is None:
+            ident=self.uid(); k,t=self.docs[go]
+            self.docs[go]=(k,t.replace('  m_Layer:',f'  - component: {{fileID: {ident}}}\n  m_Layer:'))
+        self.docs[ident]=(114,f'''--- !u!114 &{ident}
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {{fileID: 0}}
+  m_PrefabInstance: {{fileID: 0}}
+  m_PrefabAsset: {{fileID: 0}}
+  m_GameObject: {{fileID: {go}}}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {{fileID: 11500000, guid: {script}, type: 3}}
+  m_Name:
+  m_EditorClassIdentifier:
+{body}''')
+        return ident
+    def components(self,r):
+        go=self.go(r)
+        return [i for i,(k,t) in self.docs.items() if k==114 and ref(t,'m_GameObject')==go]
+    def element(self,r,mw=0,pw=-1,fw=1,mh=0,ph=-1,fh=0,ignore=False):
+        old=next((i for i in self.components(r) if NATIVE['LayoutElement'] in self.text(i)),None)
+        return self.component(self.go(r),NATIVE['LayoutElement'],f'''  m_IgnoreLayout: {int(ignore)}
+  m_MinWidth: {mw}
+  m_MinHeight: {mh}
+  m_PreferredWidth: {pw}
+  m_PreferredHeight: {ph}
+  m_FlexibleWidth: {fw}
+  m_FlexibleHeight: {fh}
+  m_LayoutPriority: 10
+''',old)
+    def group(self,r,vertical=True,spacing=0,padding=(0,0,0,0),ident=None):
+        return self.component(self.go(r),NATIVE['VerticalLayoutGroup' if vertical else 'HorizontalLayoutGroup'],f'''  m_Padding:
+    m_Left: {padding[0]}
+    m_Right: {padding[1]}
+    m_Top: {padding[2]}
+    m_Bottom: {padding[3]}
+  m_ChildAlignment: 0
+  m_Spacing: {spacing}
+  m_ChildForceExpandWidth: {int(vertical)}
+  m_ChildForceExpandHeight: {int(not vertical)}
+  m_ChildControlWidth: 1
+  m_ChildControlHeight: 1
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+''',ident)
+    def node(self,name,parent):
+        go,r=self.uid(),self.uid()
+        self.docs[go]=(1,f'''--- !u!1 &{go}
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {{fileID: 0}}
+  m_PrefabInstance: {{fileID: 0}}
+  m_PrefabAsset: {{fileID: 0}}
+  serializedVersion: 6
+  m_Component:
+  - component: {{fileID: {r}}}
+  m_Layer: 5
+  m_Name: {name}
+  m_TagString: Untagged
+  m_IsActive: 1
+''')
+        self.docs[r]=(224,f'''--- !u!224 &{r}
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {{fileID: 0}}
+  m_PrefabInstance: {{fileID: 0}}
+  m_PrefabAsset: {{fileID: 0}}
+  m_GameObject: {{fileID: {go}}}
+  m_LocalRotation: {{x: 0, y: 0, z: 0, w: 1}}
+  m_LocalPosition: {{x: 0, y: 0, z: 0}}
+  m_LocalScale: {{x: 1, y: 1, z: 1}}
+  m_Children: []
+  m_Father: {{fileID: {parent}}}
+  m_AnchorMin: {{x: 0, y: 0}}
+  m_AnchorMax: {{x: 1, y: 1}}
+  m_AnchoredPosition: {{x: 0, y: 0}}
+  m_SizeDelta: {{x: 0, y: 0}}
+  m_Pivot: {{x: 0.5, y: 0.5}}
+''')
+        self.children_set(parent,self.children(parent)+[r]); return r
+    def remove_tree(self,r):
+        for child in self.children(r): self.remove_tree(child)
+        go=self.go(r); parent=ref(self.text(r),'m_Father')
+        self.children_set(parent,[i for i in self.children(parent) if i!=r])
+        self.removed.append(dict(fileID=go,name=field(self.text(go),'m_Name')))
+        for i in [i for i,(k,t) in self.docs.items() if i==go or ref(t,'m_GameObject')==go]: del self.docs[i]
+    def save(self):
+        self.path.write_text('%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n'+''.join(t for k,t in self.docs.values()),encoding='utf-8')
+
+def main():
+    a=Asset('Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab')
+    safe,top,bottom,page,surface,columns=7003000000000000008,7003000000000000010,7003000000000000014,7003000000000000018,4605007833305756418,2303750512166892191
+    assert len(a.children(safe)) == 2, '禁止重复执行'
+    content=a.node('ContentRoot',safe)
+    a.children_set(safe,[top,content,bottom]); a.group(safe,spacing=8,padding=(0,0,0,12))
+    a.element(top,mh=64,ph=64); a.element(bottom,mh=82,ph=82); a.element(content,ph=0,fh=1)
+    a.move(surface,content); a.fill(surface); a.move(page,content); a.fill(page); a.fill(columns)
+    # 内容使用独立低排序 Canvas；两栏仍继承常驻栏的最高排序。
+    canvas=a.uid(); template=a.text(7003000000000000003)
+    template=template.replace('&7003000000000000003',f'&{canvas}').replace('m_GameObject: {fileID: 7003000000000000001}',f'm_GameObject: {{fileID: {a.go(content)}}}').replace('m_OverrideSorting: 0','m_OverrideSorting: 1').replace('m_SortingOrder: 30000','m_SortingOrder: 15')
+    a.docs[canvas]=(223,template); go=a.go(content); k,t=a.docs[go]; a.docs[go]=(k,t.replace('  m_Layer:',f'  - component: {{fileID: {canvas}}}\n  m_Layer:'))
+    ray=next(t for k,t in a.docs.values() if k==114 and ref(t,'m_GameObject')==7003000000000000001 and 'm_IgnoreReversedGraphics' in t)
+    script=re.search(r'guid: (\w+)',field(ray,'m_Script')).group(1)
+    a.component(go,script,ray[ray.index('  m_IgnoreReversedGraphics:'):])
+    a.group(columns,False,12,(16,16,0,0),7314584355813578902)
+    for r,m,p,f in zip(a.children(columns),(240,360,360),(416,896,552),(0,1,0)): a.element(r,mw=m,pw=p,fw=f,fh=1)
+    # 左列：保留状态控制组件 GUID；只让它更新明细布局输入，VLG 独占矩形。
+    left=6620749963254166401; a.group(left)
+    data=a.text(2040180129774975964)
+    seats=[int(x) for x in re.findall(r'fileID: (\d+)',data.split('  seats:')[1].split('  details:')[0])]
+    details=[int(x) for x in re.findall(r'fileID: (\d+)',data.split('  details:')[1].split('  city:')[0])]
+    city=3705433733909304703; ordered=[]
+    for i,(seat,detail) in enumerate(zip(seats,details)):
+        a.element(seat,mh=108,ph=108); a.element(detail,mh=112,ph=160)
+        ordered.extend([seat,detail]); gap=a.node('Player City Gap' if i==2 else 'Player Seat Gap',left)
+        a.element(gap,mh=12 if i==2 else 8,ph=12 if i==2 else 8); ordered.append(gap)
+    a.element(city,mh=180,ph=0,fh=1); ordered.append(city); a.children_set(left,ordered)
+    # 右列保留各已有分区和区内滚动，去掉整列的手写分配。
+    layout=7441152035638270001; data=a.text(layout); right=next(i for i,(k,t) in a.docs.items() if k==224 and ref(t,'m_GameObject')==ref(data,'m_GameObject'))
+    a.group(right,ident=layout)
+    for key,m,p,f in [('cooperation',100,282,0),('deck',120,220,0),('tabs',48,48,0),('actions',120,324,1)]: a.element(ref(data,key),mh=m,ph=p,fh=f)
+    # 顶栏：首选间距作为可压缩 spacer，HLG 负责所有普通排列。
+    bar=6411941799098997274; original=a.children(bar); ordered=[]
+    a.group(bar,False,0,(28,20,4,4),7602053498032870273)
+    for i,r in enumerate(original):
+        if i:
+            gap=a.node('Bar Flexible Gap',bar); a.element(gap,mw=8,pw=[126,17,52,34,14][i-1],fw=0,mh=0,ph=56); ordered.append(gap)
+        for le in a.components(r):
+            if NATIVE['LayoutElement'] in a.text(le):
+                a.set(le,'m_FlexibleHeight','0'); a.set(le,'m_MinHeight','56'); a.set(le,'m_PreferredHeight','56')
+        ordered.append(r)
+    a.children_set(bar,ordered)
+    # 主列分页节点实际删除，记录每个原对象。
+    a.remove_tree(7932284773769230966)
+    k,t=a.docs[7003000000000000006]
+    t=re.sub(r'^  (?:compact\w+|wideMinWidth|wideTopHeight|wideBottomHeight|contentGap|bottomScreenMargin):.*?(?=^  [\w]|\Z)','',t,flags=re.M|re.S)
+    a.docs[7003000000000000006]=(k,t)
+    a.set(a.go(safe),'m_Name','SafeAreaRoot'); a.set(a.go(page),'m_Name','PageHost')
+    a.save()
+    (OUT/'分页节点删除.json').write_text(json.dumps(a.removed,ensure_ascii=False,indent=2),encoding='utf-8')
+    print('共享 HUD 原生根/三列/左列/右列/顶栏已编辑，保留既有业务对象身份。')
+
+if __name__=='__main__': main()

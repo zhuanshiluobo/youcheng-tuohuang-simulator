@@ -355,11 +355,6 @@ namespace YC.Presentation.Workflows
             CityStyleInteraction.BeginDeclare(initialCityStyleId);
         }
 
-        public void OpenCityStylePreview(string initialCityStyleId)
-        {
-            CityStyleInteraction.OpenPreview(initialCityStyleId);
-        }
-
         public void SubmitDeclareCityStyle(string cityStyleId, IReadOnlyList<int> selectedSlotIndexes)
         {
             CityStyleInteraction.SubmitDeclare(cityStyleId, selectedSlotIndexes);
@@ -372,7 +367,12 @@ namespace YC.Presentation.Workflows
             view.CompleteMainActionPresentation(completedMainActionName);
         }
 
-        public ActionPanelViewModel BuildActionPanelViewModel() => ActionPanelPresenter.BuildViewModel();
+        public ActionPanelViewModel BuildActionPanelViewModel()
+        {
+            var model = ActionPanelPresenter.BuildViewModel();
+            model.CanUseSpecialAction = CityStyleInteraction.CanUseSpecialAction;
+            return model;
+        }
 
         private bool CanStartMainAction() => ActionPanelPresenter.CanStartMainAction();
 

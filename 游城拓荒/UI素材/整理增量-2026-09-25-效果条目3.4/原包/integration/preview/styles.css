@@ -1,0 +1,20 @@
+*{box-sizing:border-box}html,body{margin:0;background:#222422;color:#d3d6c9;font-family:'Noto Sans CJK SC','Microsoft YaHei',sans-serif}body{min-width:780px}header{display:flex;align-items:center;justify-content:space-between;gap:24px;max-width:1944px;margin:auto;padding:16px 18px 12px}h1{font-size:17px;margin:0 0 5px;font-weight:600}p{margin:0;color:#9aa690;font-size:12px}nav{display:flex;gap:8px;flex-shrink:0}button{font:inherit;font-size:13px;background:#30392b;color:#dedccd;border:1px solid #767b6c;padding:8px 13px;cursor:pointer}.active{background:#d4b14c;color:#222a1e;border-color:#edce72}#game{max-width:1920px;margin:auto;box-shadow:0 15px 70px #0006}#game>svg{display:block;width:100%;height:auto}.hotspot{cursor:pointer}.hotspot:focus{outline:none}.hotspot:focus>path:first-child,.hotspot:focus>rect:first-child{stroke:#f7d45f;stroke-width:2}.hotspot:hover{filter:brightness(1.07)}.disabled{cursor:not-allowed}#notice{max-width:1920px;min-height:35px;padding:9px 16px;margin:auto;font-size:12px;color:#9aa88e}footer{max-width:1920px;margin:auto;padding:0 16px 20px;font-size:11px;color:#78886a}
+
+/* v3.2 control states: scoped to the eleven replacement buttons. */
+.ui32.hotspot:hover{filter:none}.ui32 .skin-hover,.ui32 .skin-pressed{display:none!important}
+.ui32.hotspot:hover .skin-normal{display:none}.ui32.hotspot:hover .skin-hover{display:inline!important}
+.ui32.hotspot:active .skin-normal,.ui32.hotspot:active .skin-hover{display:none!important}.ui32.hotspot:active .skin-pressed{display:inline!important}
+.ui32:focus-visible{outline:none}.ui32:focus-visible .focus-ring{opacity:1}
+
+/* v3.3: expandable details and internal row scrolling. */
+header{gap:16px}nav{flex-wrap:wrap;justify-content:flex-end}.detail-toggle:focus-visible{outline:none;filter:brightness(1.2)}[data-scroll-zone]{outline:none}[data-scroll-zone]:focus-visible>rect:first-child{stroke:#a79551;stroke-width:1}.row-scrollbar{touch-action:none;user-select:none}.row-scrollbar [role=slider]{cursor:ns-resize}.row-scrollbar [role=slider]:focus-visible{outline:none;stroke:#d8bb69;stroke-width:1}.row-scrollbar [data-scroll-track]{cursor:pointer}
+
+
+.effect-row .row-hover,.use-control .use-hover,.use-control .use-pressed{display:none!important}
+.effect-row.interactive:hover .row-normal{display:none}.effect-row.interactive:hover .row-hover{display:inline!important}
+.use-control.enabled,.row-detail-hit{cursor:pointer}.use-control.disabled{cursor:not-allowed}
+.use-control.enabled:hover .use-normal{display:none}.use-control.enabled:hover .use-hover{display:inline!important}
+.use-control.enabled:active .use-normal,.use-control.enabled:active .use-hover{display:none!important}.use-control.enabled:active .use-pressed{display:inline!important}
+.use-control:focus-visible,.row-detail-hit:focus-visible{outline:none}.use-control:focus-visible .effect-focus,.row-detail-hit:focus-visible .effect-focus{opacity:1}
+
+.detail-toggle.hotspot:hover{filter:none}.detail-toggle .toggle-hover,.detail-toggle .toggle-pressed{display:none!important}.detail-toggle:hover .toggle-normal{display:none}.detail-toggle:hover .toggle-hover{display:inline!important}.detail-toggle:active .toggle-normal,.detail-toggle:active .toggle-hover{display:none!important}.detail-toggle:active .toggle-pressed{display:inline!important}

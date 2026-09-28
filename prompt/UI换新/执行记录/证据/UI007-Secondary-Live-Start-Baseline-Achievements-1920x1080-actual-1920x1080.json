@@ -1,0 +1,263 @@
+{
+    "scene": "StartScene",
+    "state": "Achievements",
+    "stateSource": "实际场景与源资产；调用既有页面按钮/控制器，仅查看、不提交命令。",
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "actualSize": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1920.0,
+        "height": 1080.0
+    },
+    "objects": [
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 310.0,
+                "width": 720.0,
+                "height": 460.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "UiPageSectionsLayout"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 686.0,
+                "width": 720.0,
+                "height": 84.0
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Header/Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 810.0,
+                "y": 689.0,
+                "width": 300.0,
+                "height": 50.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Header/返回 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1178.0,
+                "y": 689.0,
+                "width": 110.0,
+                "height": 44.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Header/返回 Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1178.0,
+                "y": 689.0,
+                "width": 110.0,
+                "height": 44.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 386.0,
+                "width": 720.0,
+                "height": 300.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport/UI007 Body Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 386.0,
+                "width": 720.0,
+                "height": 300.0
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "UiScrollContentWidth",
+                "ContentSizeFitter"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport/UI007 Body Content/UI007 Vertical Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 665.0,
+                "width": 0.0,
+                "height": 21.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 415.0,
+                "width": 720.0,
+                "height": 250.0
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "UiMeasuredTextRow",
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 415.0,
+                "width": 60.0,
+                "height": 250.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Achievement List Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 660.0,
+                "y": 415.0,
+                "width": 600.0,
+                "height": 250.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Achievement List Slot/Achievement List",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 660.0,
+                "y": 415.0,
+                "width": 600.0,
+                "height": 250.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1260.0,
+                "y": 415.0,
+                "width": 60.0,
+                "height": 250.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport/UI007 Body Content/UI007 Vertical Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 386.0,
+                "width": 0.0,
+                "height": 29.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 310.0,
+                "width": 720.0,
+                "height": 76.0
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Footer/进入收藏室 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 885.0,
+                "y": 344.0,
+                "width": 150.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Footer/进入收藏室 Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 885.0,
+                "y": 344.0,
+                "width": 150.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        }
+    ]
+}

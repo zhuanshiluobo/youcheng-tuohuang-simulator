@@ -1,0 +1,62 @@
+import sys,re,json
+from pathlib import Path
+sys.path.insert(0,'tools')
+from correct_gameplay_native_layout import Asset,guid,NATIVE,ROOT,OUT,ref,field
+types=['UiBoundedPanelLayout','UiEventDialogLayoutGroup','UiEffectRowLayout','UiSupplyRegionsLayout','UiPromptLayout']
+gs={n:guid('Assets/YC/Presentation/Ui007/'+n+'.cs.meta') for n in types}
+report=[]
+def rect(a,component):
+ go=ref(a.text(component),'m_GameObject')
+ return next(i for i,(k,t) in a.docs.items() if k==224 and ref(t,'m_GameObject')==go)
+def ignore_others(a,r,participating):
+ for c in a.children(r):
+  if c not in participating: a.element(c,ignore=True)
+def remove_comp(a,i):
+ go=ref(a.text(i),'m_GameObject');k,t=a.docs[go];a.docs[go]=(k,t.replace('  - component: {fileID: %d}\n'%i,''));del a.docs[i]
+for p in (ROOT/'Assets/YC/Presentation').rglob('*.prefab'):
+ a=Asset(p.relative_to(ROOT)); dirty=False
+ for i,(k,t) in list(a.docs.items()):
+  name=next((n for n,g in gs.items() if k==114 and g in t),None)
+  if not name: continue
+  dirty=True;r=rect(a,i);report.append(dict(asset=str(p.relative_to(ROOT)),fileID=i,role=name))
+  if name=='UiBoundedPanelLayout':
+   panel=ref(t,'panel');size=[float(v) for v in re.findall(r'[xy]: ([-\d.]+)',field(t,'preferredSize'))]
+   pads=tuple(int(re.search('    m_'+n+': (\\d+)',t).group(1)) for n in ['Left','Right','Top','Bottom'])
+   g=a.group(r,padding=pads);a.set(g,'m_ChildAlignment',4);a.set(g,'m_ChildForceExpandWidth',0)
+   a.element(panel,pw=size[0],fw=0,ph=size[1]);ignore_others(a,r,[panel])
+  elif name=='UiEffectRowLayout':
+   title,desc,body,frame,status=[ref(t,n) for n in ['title','description','body','frame','status']]
+   markers=[int(x) for x in re.findall(r'fileID: (\d+)',t.split('  markers:')[1].split('  minimumHeight:')[0])]
+   text=a.node('Effect Text',r)
+   a.move(title,text);a.move(desc,text)
+   a.group(text,spacing=1,padding=(0,22,0,4));a.element(title,mw=0,pw=0,mh=28,ph=28)
+   a.element(desc,mw=0,pw=0);a.element(text,mw=0,pw=0,fw=1,mh=64)
+   # 原正文按钮仍为同一对象，仅包住正文和标记；右侧执行区是平行兄弟，互不抢射线。
+   for c in markers+[text]: a.move(c,body)
+   a.group(body,False,6,padding=(8,0,4,0));a.element(body,mw=0,pw=0,fw=1)
+   for m in markers: a.element(m,mw=28,pw=28,fw=0,mh=28,ph=28)
+   a.group(r,False,10,padding=(8,9,2,2),ident=i)
+   a.element(r,mh=76);a.element(status,mw=48,pw=48,fw=0,mh=48,ph=48)
+   # 状态图固定高居中；正文根据换行自然增高。
+   a.set(i,'m_ChildForceExpandHeight',0);a.set(i,'m_ChildAlignment',3)
+   a.fill(frame);ignore_others(a,r,[body,status])
+  elif name=='UiEventDialogLayoutGroup':
+   title,metadata,description=[rect(a,ref(t,n)) for n in ['title','metadata','description']]
+   content=ref(t,'content');g=a.group(r,spacing=8,padding=(0,0,7,0))
+   for c in [title,metadata,description]: a.element(c,pw=0)
+   a.element(title,mh=46,ph=46);a.element(metadata,mh=31,ph=31)
+   a.element(content,ph=0,fh=1);ignore_others(a,r,[title,metadata,description,content])
+   a.children_set(r,[title,metadata,description,content]+[c for c in a.children(r) if c not in [title,metadata,description,content]])
+  elif name=='UiSupplyRegionsLayout':
+   facility,city=[ref(t,n) for n in ['facilityArea','cityStyleArea']]
+   remove_comp(a,i)
+   g=a.group(r,padding=(72,0,17,0));a.set(g,'m_ChildForceExpandWidth',0)
+   a.element(facility,mw=0,pw=365,fw=0,mh=80,ph=350);a.element(city,mw=0,pw=365,fw=0,mh=80,ph=330)
+   ignore_others(a,r,[facility,city]);a.children_set(r,[facility,city]+[c for c in a.children(r) if c not in [facility,city]])
+   if p.name=='GameplayInteractionHud.prefab':
+    a.move(r,7003000000000000018);a.fill(r)
+  elif name=='UiPromptLayout':
+   f=ref(t,'frame');g=a.group(r,padding=(0,0,58,0));a.set(g,'m_ChildAlignment',1);a.set(g,'m_ChildForceExpandWidth',0)
+   a.element(f,pw=590,fw=0,ph=80);ignore_others(a,r,[f])
+ if dirty:a.save()
+(OUT/'页面剩余原生迁移.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')

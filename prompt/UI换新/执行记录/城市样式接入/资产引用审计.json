@@ -1,0 +1,34 @@
+{
+  "prefabs": [
+    {
+      "newDanglingLocalReferences": [],
+      "existingAtStart": [],
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+      "guid": "ef7a6113f9a64a54db2444d968697123",
+      "duplicateFileIds": 0,
+      "danglingLocalReferences": []
+    },
+    {
+      "newDanglingLocalReferences": [],
+      "existingAtStart": [
+        6610471206676212675
+      ],
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+      "guid": "97d4d860d450f7247969c8aca5a9d934",
+      "duplicateFileIds": 0,
+      "danglingLocalReferences": [
+        6610471206676212675
+      ]
+    },
+    {
+      "newDanglingLocalReferences": [],
+      "existingAtStart": [],
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+      "guid": "8b2296b0534cbde498ff279f40283ff0",
+      "duplicateFileIds": 0,
+      "danglingLocalReferences": []
+    }
+  ],
+  "scenesChangedFromStart": [],
+  "filesDeleted": []
+}

@@ -7,10 +7,8 @@ namespace YC.Presentation
         [SerializeField] private Canvas canvas;
         [SerializeField] private GameplayHudFrame frame;
         [SerializeField] private TabletopCanvasLayout tabletopCanvas;
-        [SerializeField] private GameplayPromptView promptView;
         [SerializeField] private ActionPanelView actionPanelView;
         [SerializeField] private CharacterHandPanel characterHandPanel;
-        [SerializeField] private ResourceCounterBoard resourceCounterBoard;
         [SerializeField] private BuildInfoPanel buildInfoPanel;
         [SerializeField] private GameplayDialogRegistry dialogRegistry;
         [SerializeField] private MobileCityInteractionController cityInteractionController;
@@ -19,18 +17,16 @@ namespace YC.Presentation
         public Canvas Canvas => canvas;
         public GameplayHudFrame Frame => frame;
         public TabletopCanvasLayout TabletopCanvas => tabletopCanvas;
-        public GameplayPromptView PromptView => promptView;
         public ActionPanelView ActionPanelView => actionPanelView;
         public CharacterHandPanel CharacterHandPanel => characterHandPanel;
-        public ResourceCounterBoard ResourceCounterBoard => resourceCounterBoard;
         public BuildInfoPanel BuildInfoPanel => buildInfoPanel;
         public GameplayDialogRegistry DialogRegistry => dialogRegistry;
         public MobileCityInteractionController CityInteractionController => cityInteractionController;
         public GameplayMainModules MainModules => mainModules;
         public bool TryValidateConfiguration(out string reason)
         {
-            if (canvas == null || frame == null || tabletopCanvas == null || promptView == null || actionPanelView == null ||
-                characterHandPanel == null || resourceCounterBoard == null || buildInfoPanel == null ||
+            if (canvas == null || frame == null || tabletopCanvas == null || actionPanelView == null ||
+                characterHandPanel == null || buildInfoPanel == null ||
                 dialogRegistry == null || mainModules == null)
             {
                 reason = "交互 HUD 总 View 引用不完整。";
@@ -39,10 +35,8 @@ namespace YC.Presentation
 
             if (!frame.TryValidateConfiguration(out reason) ||
                 !tabletopCanvas.TryValidateConfiguration(out reason) ||
-                !promptView.TryValidateConfiguration(out reason) ||
                 !actionPanelView.TryValidateConfiguration(out reason) ||
                 !characterHandPanel.TryValidateConfiguration(out reason) ||
-                !resourceCounterBoard.TryValidateConfiguration(out reason) ||
                 !mainModules.TryValidateConfiguration(out reason) ||
                 buildInfoPanel.View == null ||
                 !buildInfoPanel.View.IsBoundTo(buildInfoPanel) ||
@@ -64,7 +58,6 @@ namespace YC.Presentation
         public static bool TryValidateSceneBinding(
             GameplayInteractionHudView view,
             MobileCityInteractionController controller,
-            ResourceCounterBoard configuredResourceCounterBoard,
             BuildInfoPanel configuredBuildInfoPanel,
             out string reason)
         {
@@ -85,11 +78,10 @@ namespace YC.Presentation
                 return false;
             }
 
-            if (configuredResourceCounterBoard == null || configuredBuildInfoPanel == null ||
-                view.ResourceCounterBoard != configuredResourceCounterBoard ||
+            if (configuredBuildInfoPanel == null ||
                 view.BuildInfoPanel != configuredBuildInfoPanel)
             {
-                reason = "MobileCity 与 HUD 的资源卡板/建造面板序列化引用不一致。";
+                reason = "MobileCity 与 HUD 的建造面板序列化引用不一致。";
                 return false;
             }
 

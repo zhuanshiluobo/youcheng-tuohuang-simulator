@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-25 17:23:14Z" end-time="2026-09-25 17:23:14Z" duration="0.1236993">
+  <test-suite type="TestSuite" id="2308" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="1143" result="Passed" start-time="2026-09-25 17:23:14Z" end-time="2026-09-25 17:23:14Z" duration="0.123699" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="3612" name="YC.Tests.EditMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.EditMode.dll" runstate="Runnable" testcasecount="1143" result="Passed" start-time="2026-09-25 17:23:14Z" end-time="2026-09-25 17:23:14Z" duration="0.103835" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="43968" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="3613" name="YC" fullname="YC" runstate="Runnable" testcasecount="1143" result="Passed" start-time="2026-09-25 17:23:14Z" end-time="2026-09-25 17:23:14Z" duration="0.091928" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="3614" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="1143" result="Passed" start-time="2026-09-25 17:23:14Z" end-time="2026-09-25 17:23:14Z" duration="0.079881" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="SetUpFixture" id="2679" name="EditMode" fullname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" classname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" runstate="Runnable" testcasecount="1143" result="Passed" start-time="2026-09-25 17:23:14Z" end-time="2026-09-25 17:23:14Z" duration="0.067713" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="3592" name="Ui006EffectRowTests" fullname="YC.Tests.EditMode.Ui006EffectRowTests" classname="YC.Tests.EditMode.Ui006EffectRowTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-25 17:23:14Z" end-time="2026-09-25 17:23:14Z" duration="0.035143" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="3593" name="SharedRow_GuardsExecutionAndSeparatesBodyFromStatus" fullname="YC.Tests.EditMode.Ui006EffectRowTests.SharedRow_GuardsExecutionAndSeparatesBodyFromStatus" methodname="SharedRow_GuardsExecutionAndSeparatesBodyFromStatus" classname="YC.Tests.EditMode.Ui006EffectRowTests" runstate="Runnable" seed="1173247989" result="Passed" start-time="2026-09-25 17:23:14Z" end-time="2026-09-25 17:23:14Z" duration="0.028526" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

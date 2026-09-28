@@ -1,0 +1,190 @@
+{
+    "scene": "StartScene",
+    "state": "OnlineMode",
+    "stateSource": "实际场景与源资产；调用既有页面按钮/控制器，仅查看、不提交命令。",
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 1024.0,
+        "y": 768.0
+    },
+    "actualSize": {
+        "x": 1024.0,
+        "y": 768.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1024.0,
+        "height": 768.0
+    },
+    "objects": [
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 291.62396240234377,
+                "width": 381.8210144042969,
+                "height": 184.7520751953125
+            },
+            "layoutDrivers": [
+                "Image",
+                "UiPageSectionsLayout"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 424.64544677734377,
+                "width": 381.8210144042969,
+                "height": 51.7305908203125
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Body Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 338.42779541015627,
+                "width": 381.8210144042969,
+                "height": 86.2176513671875
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Body Viewport/UI007 Body Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 424.64544677734377,
+                "width": 381.8210144042969,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "UiScrollContentWidth",
+                "ContentSizeFitter"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 321.0895080566406,
+                "y": 291.62396240234377,
+                "width": 381.8210144042969,
+                "height": 46.803863525390628
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Footer/Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -79.20672607421875,
+                "y": 51.44622802734375,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Footer/创建联机 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -79.20672607421875,
+                "y": 51.44622802734375,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Footer/创建联机 Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -79.20672607421875,
+                "y": 51.44622802734375,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Footer/加入联机 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -79.20672607421875,
+                "y": 51.44622802734375,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Footer/加入联机 Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -79.20672607421875,
+                "y": 51.44622802734375,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Footer/返回 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -79.20672607421875,
+                "y": 51.44622802734375,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Footer/返回 Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -79.20672607421875,
+                "y": 51.44622802734375,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        }
+    ]
+}

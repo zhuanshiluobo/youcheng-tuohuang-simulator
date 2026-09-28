@@ -1,0 +1,200 @@
+from pathlib import Path
+import sys,re,json,uuid
+sys.path.insert(0,'tools')
+ns={'__name__':'migration_library'}
+exec(Path('prompt/UI换新/执行记录/局内UI基础修正/一次性迁移存档/主框架原生布局迁移.py.txt').read_text(encoding='utf-8-sig'),ns)
+Asset,ROOT,guid,NATIVE,ref,field=[ns[n] for n in ('Asset','ROOT','guid','NATIVE','ref','field')]
+for p in (ROOT/'Library/PackageCache').rglob('*.cs.meta'):
+ if 'com.unity.ugui' not in str(p) or '/Runtime/UI/' not in str(p).replace('\\','/'): continue
+ NATIVE[p.name[:-8]]=re.search(r'^guid: (\w+)',p.read_text(encoding='utf-8-sig'),re.M)[1]
+
+def meta(path):
+ p=Path(str(path)+'.meta')
+ if not p.exists():p.write_text('fileFormatVersion: 2\nguid: '+uuid.uuid4().hex+'\n',encoding='utf8')
+ return re.search('guid: (\w+)',p.read_text())[1]
+
+def comp(a,r,script):return next(i for i in a.components(r) if script in a.text(i))
+def remove_comp(a,i):
+ go=ref(a.text(i),'m_GameObject');k,t=a.docs[go];a.docs[go]=(k,t.replace('  - component: {fileID: %d}\n'%i,''));del a.docs[i]
+def clone_comp(a,source,r):
+ t=source
+ script=re.search(r'm_Script: .*guid: (\w+)',t)[1]
+ body=t.split('  m_EditorClassIdentifier:')[1].split('\n',1)[1]
+ return a.component(a.go(r),script,body)
+def text(a,r,label,size=20,font='43e9d69dcca63724db85852acd46004d'):
+ template=next(t for k,t in a.docs.values() if k==114 and NATIVE['Text'] in t)
+ i=clone_comp(a,template,r)
+ # CanvasRenderer required.
+ go=a.go(r);cr=a.uid();a.docs[cr]=(222,f'--- !u!222 &{cr}\nCanvasRenderer:\n  m_ObjectHideFlags: 0\n  m_GameObject: {{fileID: {go}}}\n  m_CullTransparentMesh: 1\n')
+ k,t=a.docs[go];a.docs[go]=(k,t.replace('  m_Layer:',f'  - component: {{fileID: {cr}}}\n  m_Layer:'))
+ a.set(i,'m_Text',json.dumps(label,ensure_ascii=False));a.set(i,'m_FontData',f'''\n    m_Font: {{fileID: 12800000, guid: {font}, type: 3}}
+    m_FontSize: {size}
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 8
+    m_MaxSize: {size}
+    m_Alignment: 4
+    m_AlignByGeometry: 0
+    m_RichText: 0
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1''')
+ a.set(i,'m_RaycastTarget','0');a.set(i,'m_Color','{r: 0.96, g: 0.94, b: 0.84, a: 1}');return i
+
+def image(a,r,sprite):
+ template=next(t for k,t in a.docs.values() if k==114 and NATIVE['Image'] in t)
+ i=clone_comp(a,template,r)
+ go=a.go(r);cr=a.uid();a.docs[cr]=(222,f'--- !u!222 &{cr}\nCanvasRenderer:\n  m_ObjectHideFlags: 0\n  m_GameObject: {{fileID: {go}}}\n  m_CullTransparentMesh: 1\n')
+ k,t=a.docs[go];a.docs[go]=(k,t.replace('  m_Layer:',f'  - component: {{fileID: {cr}}}\n  m_Layer:'))
+ a.set(i,'m_Sprite',f'{{fileID: 21300000, guid: {guid(sprite+".meta")}, type: 3}}');a.set(i,'m_Type','1');a.set(i,'m_Color','{r: 1, g: 1, b: 1, a: 1}');a.set(i,'m_RaycastTarget','0');return i
+
+# Catalog binds actual formal card identities, not the six preview examples.
+cg=meta(Path('Assets/YC/Presentation/CityStyleVisualCatalog.cs'))
+cat=ROOT/'Assets/YC/Presentation/Content/CityStyleVisualCatalog.asset'
+source=ROOT/'Assets/StreamingAssets/Content/core/city_style'
+rows=[]
+indices={'military_industrial_area':0,'mobilization_support_system':1,'composite_power_system':2,'material_relay_station':8,'source_stone_industrial_hub':0,'efficient_mobile_management_system':1}
+for p in sorted(source.glob('*.json')):
+ d=json.loads(p.read_text(encoding='utf-8-sig'));id=d['definitionId'];short=id.removeprefix('city_style_');idx=indices[short];level=d['data']['level'];cols=3 if level==1 else 2
+ rows.append(f'''  - id: {id}
+    version: formal-{d['version']}-{'base' if short=='military_industrial_area' else 'original'}
+    artworkPath: Assets/StreamingAssets/Content/core/{d['artwork']}
+    atlasId: asset-{'056' if level==1 else '073'}
+    sourceRect:
+      serializedVersion: 2
+      x: {(idx%cols)*930}
+      y: {(idx//cols)*600}
+      width: 930
+      height: 600
+    trackLayout: {'reward' if short=='material_relay_station' else 'active' if level==1 else 'limited'}
+''')
+tracks=[]
+for layout,area,key,r in [('active','unused','unused',(530,76,300,229)),('active','used','used',(530,309,300,225)),('reward','declared','declared',(530,76,300,458)),('limited','2','ready2',(530,76,300,71)),('limited','used_from_2','used2',(530,151,300,87)),('limited','1','ready1',(530,242,300,127)),('limited','used_from_1','used1',(530,373,300,87)),('limited','0','zero',(530,464,300,70)),('all','extra','extraDeclarations',(190,608,720,44)),('all','declared','extraDeclarations',(190,608,720,44))]:
+ tracks.append(f'''  - layout: {layout}
+    area: {json.dumps(area)}
+    sourceKey: {key}
+    safeRect:
+      serializedVersion: 2
+      x: {r[0]}
+      y: {r[1]}
+      width: {r[2]}
+      height: {r[3]}
+''')
+cat.write_text(f'''%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {{fileID: 11500000, guid: {cg}, type: 3}}
+  m_Name: CityStyleVisualCatalog
+  cards:
+'''+''.join(rows)+'  tracks:\n'+''.join(tracks)+'''  cardSize: {x: 930, y: 600}
+  playerColors:
+  - {r: 0.9254902, g: 0, b: 0, a: 1}
+  - {r: 0, g: 0.4235294, b: 1, a: 1}
+  - {r: 0.372549, g: 0.8235294, b: 0, a: 1}
+  - {r: 1, g: 0.7490196, b: 0, a: 1}
+''',encoding='utf8')
+catguid=meta(cat)
+layout=ROOT/'Assets/YC/Presentation/Content/CardBoardVisualLayout.asset'
+s=layout.read_text();s+='  cityStyleVisuals: {fileID: 11400000, guid: '+catguid+', type: 2}\n';layout.write_text(s,encoding='utf8')
+
+b=Asset('Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab')
+# Markers are a serialized numeric block, not 3D pieces created over the card.
+num=b.node('Marker Count',175179830789405547);text(b,num,'0',48,'3eddf79db7bec9c4193e00ae800bfd4e')
+i=comp(b,num,NATIVE['Text']);k,t=b.docs[i];b.docs[i]=(k,t.replace('m_BestFit: 0','m_BestFit: 1'))
+# Reserve a band below the full original card; markers share the image rectangle.
+card=99005863826040201;art=7672488502453589007;markers=5281224112616071949
+b.set(art,'m_AnchorMin','{x: 0, y: 0.085}');b.set(art,'m_AnchorMax','{x: 1, y: 1}');b.set(art,'m_SizeDelta','{x: 0, y: 0}');b.set(art,'m_AnchoredPosition','{x: 0, y: 0}')
+b.move(markers,art);b.fill(markers)
+# Template layout is the same in the right tab and modal list.
+ci=comp(b,card,guid('Assets/YC/Presentation/BuildInfoItemView.cs.meta'))
+b.save()
+
+p='Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab';a=Asset(p)
+# Reuse original identities, remove only the obsolete fixed-height wrapper tree after moving retained content.
+panel=2059879358986445709;header=1850109734157661560;footer=7261241829534297204;row=6991880172389881343;left=6377259472351329508;right=5421241481182337959
+scroll_template=a.text(comp(a,1843154276539177779,NATIVE['ScrollRect']))
+mask_template=a.text(comp(a,1843154276539177779,NATIVE['RectMask2D']))
+a.move(row,panel);a.move(left,row);a.move(right,row)
+for child in list(a.children(row)):
+ if child not in (left,right):a.remove_tree(child)
+a.remove_tree(1843154276539177779)
+a.children_set(panel,[header,row,footer]);a.group(panel,spacing=12,padding=(24,24,18,18),ident=882889282326916201)
+a.group(row,False,22,ident=7941471116671233907);a.element(row,ph=0,fh=1)
+a.element(left,mw=360,pw=908,fw=1,fh=1);a.element(right,mw=200,pw=500,fw=0,fh=1)
+a.group(left,spacing=8,padding=(16,16,12,12));a.group(right,spacing=8,padding=(16,16,12,12))
+a.element(header,ph=48,mh=48);a.group(header,False,12)
+a.element(3948227551203327562,mw=100,pw=0,fw=1);a.element(89532057176552478,mw=44,pw=44,fw=0)
+a.element(footer,mh=52,ph=52);a.group(footer,False,12)
+# Full source aspect only inside the allocated body.
+a.element(4286330865456497803,mh=36,ph=36)
+boardhost=a.node('City Artwork Area',right);a.element(boardhost,ph=0,fh=1)
+a.move(1694088725214893729,boardhost);a.fill(1694088725214893729)
+a.component(a.go(1694088725214893729),NATIVE['AspectRatioFitter'],'  m_AspectMode: 3\n  m_AspectRatio: 0.54169955\n')
+# Left title, list or detail, and independently scrollable summary.
+name=6394404177124821186;detail=479980190620614069;cardimage=6130611447716182152
+listroot=a.node('Style List Viewport',left);a.element(listroot,ph=0,fh=1)
+clone_comp(a,mask_template,listroot);si=clone_comp(a,scroll_template,listroot)
+content=a.node('Style Cards',listroot);a.set(content,'m_AnchorMin','{x: 0, y: 1}');a.set(content,'m_AnchorMax','{x: 1, y: 1}');a.set(content,'m_Pivot','{x: 0.5, y: 1}')
+a.set(si,'m_Content',f'{{fileID: {content}}}');a.set(si,'m_Viewport',f'{{fileID: {listroot}}}');a.set(si,'m_Horizontal','0');a.set(si,'m_Vertical','1')
+a.component(a.go(content),NATIVE['GridLayoutGroup'],'''  m_Padding:
+    m_Left: 6
+    m_Right: 6
+    m_Top: 6
+    m_Bottom: 6
+  m_ChildAlignment: 0
+  m_StartCorner: 0
+  m_StartAxis: 0
+  m_CellSize: {x: 376, y: 265}
+  m_Spacing: {x: 16, y: 16}
+  m_Constraint: 1
+  m_ConstraintCount: 2
+''')
+a.component(a.go(content),guid('Assets/YC/Presentation/Layout/UiAdaptiveGridColumns.cs.meta'),'  preferredCardSize: {x: 376, y: 265}\n  minimumCardWidth: 250\n  maximumColumns: 6\n')
+a.component(a.go(content),NATIVE['ContentSizeFitter'],'  m_HorizontalFit: 0\n  m_VerticalFit: 2\n')
+a.element(detail,ph=0,fh=1)
+# Keep image and its state root at the full 31:20 ratio, with space for repeat band.
+a.fill(cardimage);a.set(cardimage,'m_AnchorMin','{x: 0, y: 0.085}')
+a.component(a.go(cardimage),NATIVE['AspectRatioFitter'],'  m_AspectMode: 3\n  m_AspectRatio: 1.55\n')
+summary=a.node('Summary Viewport',left);a.element(summary,mh=54,ph=100)
+clone_comp(a,mask_template,summary);ss=clone_comp(a,scroll_template,summary);sc=a.node('Summary Content',summary)
+a.set(sc,'m_AnchorMin','{x: 0, y: 1}');a.set(sc,'m_AnchorMax','{x: 1, y: 1}');a.set(sc,'m_Pivot','{x: 0.5, y: 1}');a.group(sc,spacing=6)
+a.component(a.go(sc),NATIVE['ContentSizeFitter'],'  m_HorizontalFit: 0\n  m_VerticalFit: 2\n')
+a.set(ss,'m_Content',f'{{fileID: {sc}}}');a.set(ss,'m_Viewport',f'{{fileID: {summary}}}')
+for r in (2990355142862489253,8793271626604342046):a.move(r,sc);a.element(r,mh=30,ph=-1)
+for r in (3819286571567218074,7872978146613621456,7994224994684917141):a.move(r,footer);a.element(r,mw=80,pw=170,fw=0)
+a.children_set(left,[name,listroot,detail,summary]);a.element(name,mh=34,ph=34)
+# Detail toggle button uses the existing button style, in the fixed footer.
+db=a.node('View Original Card',footer);a.element(db,mw=120,pw=180,fw=0)
+bi=clone_comp(a,a.text(comp(a,3819286571567218074,NATIVE['Button'])),db)
+dbi=image(a,db,'Assets/YC/Presentation/CommonUi/Sprites/Frontier31/button-secondary.png');a.set(bi,'m_TargetGraphic',f'{{fileID: {dbi}}}')
+dl=a.node('Label',db);dlt=text(a,dl,'查看原卡',20,'5c5a187d1eb86944c93f847ec521c324')
+sp=a.node('Footer Space',footer);a.element(sp,fw=1)
+a.children_set(footer,[db,3819286571567218074,7872978146613621456,sp,7994224994684917141])
+# Sprite decoration participates in no layout and receives no raycasts.
+for r in (panel,left,right):
+ im=comp(a,r,NATIVE['Image']);a.set(im,'m_Sprite',f'{{fileID: 21300000, guid: {guid("Assets/YC/Presentation/CommonUi/Sprites/Frontier31/module-bg.png.meta")}, type: 3}}');a.set(im,'m_Type','1');a.set(im,'m_Color','{r: 1, g: 1, b: 1, a: 1}')
+ fr=a.node('Frame',r);a.fill(fr);a.element(fr,ignore=True);image(a,fr,'Assets/YC/Presentation/CommonUi/Sprites/Frontier31/module-frame.png')
+# Numeric template in the detail and candidate cards.
+nr=a.node('Marker Count',2393387431826385065);ni=text(a,nr,'0',80,'3eddf79db7bec9c4193e00ae800bfd4e');k,t=a.docs[ni];a.docs[ni]=(k,t.replace('m_BestFit: 0','m_BestFit: 1'))
+vc=comp(a,742084626674335045,guid('Assets/YC/Presentation/CityStyleDeclarationPreviewView.cs.meta'))
+k,t=a.docs[vc];a.docs[vc]=(k,t+f'''  optionsContent: {{fileID: {content}}}
+  optionTemplate: {{fileID: {ci}, guid: {guid('Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab.meta')}, type: 3}}
+  listPage: {{fileID: {a.go(listroot)}}}
+  detailPage: {{fileID: {a.go(detail)}}}
+  detailButton: {{fileID: {bi}}}
+  detailButtonLabel: {{fileID: {dlt}}}
+''')
+# Static labels and fonts reside in the asset, not in controllers.
+for i,(k,t) in list(a.docs.items()):
+ if k==114 and NATIVE['Text'] in t:
+  if i!=ni:
+   t=re.sub(r'm_Font: \{[^}]+\}','m_Font: {fileID: 12800000, guid: 43e9d69dcca63724db85852acd46004d, type: 3}',t)
+   t=t.replace('m_FontStyle: 1','m_FontStyle: 0');a.docs[i]=(k,t)
+a.set(comp(a,3948227551203327562,NATIVE['Text']),'m_Text','城市样式')
+a.set(comp(a,4286330865456497803,NATIVE['Text']),'m_Text','当前玩家的城市')
+# The warning is an actual user-driven substep, not an overlapping parent page.
+a.save()
+(ROOT/'prompt/UI换新/执行记录/城市样式接入/旧外壳节点清理.json').write_text(json.dumps(a.removed,ensure_ascii=False,indent=2),encoding='utf8')
+print('已编辑城市样式源 Prefab、卡片模板及安全区配置；保留源 GUID 和存续对象 fileID。')

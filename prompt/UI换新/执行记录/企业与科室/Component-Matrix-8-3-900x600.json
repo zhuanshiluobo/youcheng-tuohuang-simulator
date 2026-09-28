@@ -1,0 +1,1841 @@
+{
+    "componentDiagnostic": true,
+    "businessVerified": false,
+    "sourceAsset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/Enterprise/DepartmentSelectionDialog.prefab",
+    "mode": "SwitchDepartment",
+    "selectedId": "target-1",
+    "requestedSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "actualSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "entries": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 3.409659257158637e-7,
+                "y": 52.051658630371097,
+                "width": 900.0,
+                "height": 511.2060241699219
+            },
+            "drivers": [
+                "Image",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.164966583251954,
+                "y": 60.21662521362305,
+                "width": 883.6700439453125,
+                "height": 494.8760986328125
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.164966583251954,
+                "y": 60.21662521362305,
+                "width": 883.6700439453125,
+                "height": 494.8760986328125
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412416458129884,
+                "y": 504.0616455078125,
+                "width": 859.1751708984375,
+                "height": 38.7835693359375
+            },
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Header/Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412416458129884,
+                "y": 521.4122314453125,
+                "width": 859.1751708984375,
+                "height": 21.4329833984375
+            },
+            "drivers": [
+                "LayoutElement",
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Header/Context",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412416458129884,
+                "y": 505.082275390625,
+                "width": 859.1751708984375,
+                "height": 14.2886962890625
+            },
+            "drivers": [
+                "LayoutElement",
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412416458129884,
+                "y": 115.33013916015625,
+                "width": 859.1751708984375,
+                "height": 382.6077880859375
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412429809570314,
+                "y": 115.33013916015625,
+                "width": 168.40243530273438,
+                "height": 382.6077880859375
+            },
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Player Levels",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412429809570314,
+                "y": 482.62860107421877,
+                "width": 168.40243530273438,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Player Levels/Player 0",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 58.685707092285159,
+                "y": 482.62860107421877,
+                "width": 15.309310913085938,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Player Levels/Player 0/Level",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 58.685707092285159,
+                "y": 482.62860107421877,
+                "width": 15.309310913085938,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Player Levels/Player 1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 84.20121002197266,
+                "y": 482.62860107421877,
+                "width": 15.309310913085938,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Player Levels/Player 1/Level",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 84.20121002197266,
+                "y": 482.62860107421877,
+                "width": 15.309310913085938,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Player Levels/Player 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 109.71674346923828,
+                "y": 482.62860107421877,
+                "width": 15.309310913085938,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Player Levels/Player 2/Level",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 109.71674346923828,
+                "y": 482.62860107421877,
+                "width": 15.309310913085938,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Player Levels/Player 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 135.23223876953126,
+                "y": 482.62860107421877,
+                "width": 15.309326171875,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Player Levels/Player 3/Level",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 135.23223876953126,
+                "y": 482.62860107421877,
+                "width": 15.309326171875,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Board Area",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412429809570314,
+                "y": 209.2272491455078,
+                "width": 168.40243530273438,
+                "height": 269.31884765625
+            },
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Board Area/Original Board",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 57.300872802734378,
+                "y": 209.2272491455078,
+                "width": 94.62554931640625,
+                "height": 269.31884765625
+            },
+            "drivers": [
+                "AspectRatioFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Board Area/Original Board/Targets",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 57.300872802734378,
+                "y": 209.2272491455078,
+                "width": 94.62554931640625,
+                "height": 269.31884765625
+            },
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Board Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412429809570314,
+                "y": 185.75299072265626,
+                "width": 168.40243530273438,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Board Footer/Board Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412429809570314,
+                "y": 196.144775390625,
+                "width": 120.43325805664063,
+                "height": 9.0
+            },
+            "drivers": [
+                "LayoutElement",
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Board Footer/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 144.9281463623047,
+                "y": 192.8973388671875,
+                "width": 43.886688232421878,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Board Footer/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 144.9281463623047,
+                "y": 192.8973388671875,
+                "width": 43.886688232421878,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Details Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412429809570314,
+                "y": 115.33014678955078,
+                "width": 168.40243530273438,
+                "height": 66.3403549194336
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Details Panel/Description",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 26.53615379333496,
+                "y": 121.45386505126953,
+                "width": 156.15499877929688,
+                "height": 54.09290313720703
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image",
+                "ScrollRect"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Details Panel/Description/Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 26.53615379333496,
+                "y": 121.45386505126953,
+                "width": 156.15499877929688,
+                "height": 54.09290313720703
+            },
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Details Panel/Description/Viewport/Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 26.53615379333496,
+                "y": -136.70069885253907,
+                "width": 156.15499877929688,
+                "height": 312.2474670410156
+            },
+            "drivers": [
+                "VerticalLayoutGroup",
+                "ContentSizeFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Details Panel/Description/Viewport/Content/Description Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 32.65987777709961,
+                "y": -130.57696533203126,
+                "width": 143.90753173828126,
+                "height": 300.0
+            },
+            "drivers": [
+                "LayoutElement",
+                "Text",
+                "UiFlowLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Shared Rhine Company/Details Panel/Description/Viewport/Content/Description Text/Segment4(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 32.65987777709961,
+                "y": -130.57696533203126,
+                "width": 143.90753173828126,
+                "height": 300.0
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 196.9798126220703,
+                "y": 115.33013916015625,
+                "width": 682.6077880859375,
+                "height": 382.6077880859375
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image",
+                "ScrollRect"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 196.9798126220703,
+                "y": 129.61883544921876,
+                "width": 682.6077880859375,
+                "height": 368.319091796875
+            },
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 196.9798126220703,
+                "y": 129.61883544921876,
+                "width": 858.3421020507813,
+                "height": 368.319091796875
+            },
+            "drivers": [
+                "HorizontalLayoutGroup",
+                "UiScrollContentWidth"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 203.10353088378907,
+                "y": 135.7425537109375,
+                "width": 126.55699157714844,
+                "height": 356.0716552734375
+            },
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Player Levels",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 203.10353088378907,
+                "y": 476.5048828125,
+                "width": 126.55699157714844,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 203.10353088378907,
+                "y": 159.21682739257813,
+                "width": 126.55699157714844,
+                "height": 313.20556640625
+            },
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 203.10353088378907,
+                "y": 193.18687438964845,
+                "width": 126.55699157714844,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "AspectRatioFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 203.10353088378907,
+                "y": 193.18687438964845,
+                "width": 126.55699157714844,
+                "height": 245.26548767089845
+            },
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 203.10353088378907,
+                "y": 193.18687438964845,
+                "width": 126.55699157714844,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 203.10353088378907,
+                "y": 193.18687438964845,
+                "width": 126.55699157714844,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 329.6605224609375,
+                "y": 428.24615478515627,
+                "width": 10.206207275390625,
+                "height": 10.206207275390625
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 187.7942352294922,
+                "y": 402.40625,
+                "width": 15.309310913085938,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 187.7942352294922,
+                "y": 338.88250732421877,
+                "width": 15.309310913085938,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 187.7942352294922,
+                "y": 277.1982421875,
+                "width": 15.309310913085938,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 187.7942352294922,
+                "y": 215.88186645507813,
+                "width": 15.309310913085938,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 203.10353088378907,
+                "y": 135.74256896972657,
+                "width": 126.55699157714844,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Board Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 203.10354614257813,
+                "y": 146.1343536376953,
+                "width": 78.58779907226563,
+                "height": 9.0
+            },
+            "drivers": [
+                "LayoutElement",
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 285.7738037109375,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 285.7738037109375,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 347.0110778808594,
+                "y": 135.7425537109375,
+                "width": 126.5570068359375,
+                "height": 356.0716552734375
+            },
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Player Levels",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 347.0110778808594,
+                "y": 476.5048828125,
+                "width": 126.5570068359375,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 347.0110778808594,
+                "y": 159.21682739257813,
+                "width": 126.5570068359375,
+                "height": 313.20556640625
+            },
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 347.0110778808594,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "AspectRatioFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 347.0110778808594,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 347.0110778808594,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 347.0110778808594,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 473.56805419921877,
+                "y": 428.24615478515627,
+                "width": 10.206207275390625,
+                "height": 10.206207275390625
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 331.7017517089844,
+                "y": 402.40625,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 331.7017517089844,
+                "y": 338.88250732421877,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 331.7017517089844,
+                "y": 277.1982421875,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 331.7017517089844,
+                "y": 215.88186645507813,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 347.0110778808594,
+                "y": 135.74256896972657,
+                "width": 126.5570068359375,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Board Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 347.0110778808594,
+                "y": 146.1343536376953,
+                "width": 78.58782958984375,
+                "height": 9.0
+            },
+            "drivers": [
+                "LayoutElement",
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 429.6813659667969,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 429.6813659667969,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 490.9185791015625,
+                "y": 135.7425537109375,
+                "width": 126.5570068359375,
+                "height": 356.0716552734375
+            },
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Player Levels",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 490.9185791015625,
+                "y": 476.5048828125,
+                "width": 126.5570068359375,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 490.9185791015625,
+                "y": 159.21682739257813,
+                "width": 126.5570068359375,
+                "height": 313.20556640625
+            },
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 490.9185791015625,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "AspectRatioFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 490.9185791015625,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 490.9185791015625,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 490.9185791015625,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 617.4755859375,
+                "y": 428.24615478515627,
+                "width": 10.20623779296875,
+                "height": 10.206207275390625
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 475.6092834472656,
+                "y": 402.40625,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 475.6092834472656,
+                "y": 338.88250732421877,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 475.6092834472656,
+                "y": 277.1982421875,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 475.6092834472656,
+                "y": 215.88186645507813,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 490.9185791015625,
+                "y": 135.74256896972657,
+                "width": 126.5570068359375,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Board Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 490.9186096191406,
+                "y": 146.1343536376953,
+                "width": 78.58779907226563,
+                "height": 9.0
+            },
+            "drivers": [
+                "LayoutElement",
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 573.5888671875,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 573.5888671875,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.8261108398438,
+                "y": 135.7425537109375,
+                "width": 126.5570068359375,
+                "height": 356.0716552734375
+            },
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Player Levels",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.8261108398438,
+                "y": 476.5048828125,
+                "width": 126.5570068359375,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.8261108398438,
+                "y": 159.21682739257813,
+                "width": 126.5570068359375,
+                "height": 313.20556640625
+            },
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.8261108398438,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "AspectRatioFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.8261108398438,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.8261108398438,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.8261108398438,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 761.3831787109375,
+                "y": 428.24615478515627,
+                "width": 10.20623779296875,
+                "height": 10.206207275390625
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 619.516845703125,
+                "y": 402.40625,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 619.516845703125,
+                "y": 338.88250732421877,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 619.516845703125,
+                "y": 277.1982421875,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 619.516845703125,
+                "y": 215.88186645507813,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.8261108398438,
+                "y": 135.74256896972657,
+                "width": 126.5570068359375,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Board Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.826171875,
+                "y": 146.1343536376953,
+                "width": 78.5877685546875,
+                "height": 9.0
+            },
+            "drivers": [
+                "LayoutElement",
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 717.4964599609375,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 717.4964599609375,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 778.7337036132813,
+                "y": 135.7425537109375,
+                "width": 126.5570068359375,
+                "height": 356.0716552734375
+            },
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Player Levels",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 778.7337036132813,
+                "y": 476.5048828125,
+                "width": 126.5570068359375,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 778.7337036132813,
+                "y": 159.21682739257813,
+                "width": 126.5570068359375,
+                "height": 313.20556640625
+            },
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 778.7337036132813,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "AspectRatioFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 778.7337036132813,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 778.7337036132813,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 778.7337036132813,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 905.2906494140625,
+                "y": 428.24615478515627,
+                "width": 10.20623779296875,
+                "height": 10.206207275390625
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 763.42431640625,
+                "y": 402.40625,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 763.42431640625,
+                "y": 338.88250732421877,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 763.42431640625,
+                "y": 277.1982421875,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 763.42431640625,
+                "y": 215.88186645507813,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 778.7337036132813,
+                "y": 135.74256896972657,
+                "width": 126.5570068359375,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Board Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 778.7337036132813,
+                "y": 146.1343536376953,
+                "width": 78.5877685546875,
+                "height": 9.0
+            },
+            "drivers": [
+                "LayoutElement",
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 861.4039306640625,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 861.4039306640625,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 922.6412353515625,
+                "y": 135.7425537109375,
+                "width": 126.5570068359375,
+                "height": 356.0716552734375
+            },
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Player Levels",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 922.6412353515625,
+                "y": 476.5048828125,
+                "width": 126.5570068359375,
+                "height": 15.309326171875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 922.6412353515625,
+                "y": 159.21682739257813,
+                "width": 126.5570068359375,
+                "height": 313.20556640625
+            },
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 922.6412353515625,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "AspectRatioFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 922.6412353515625,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 922.6412353515625,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 922.6412353515625,
+                "y": 193.18687438964845,
+                "width": 126.5570068359375,
+                "height": 245.26548767089845
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Targets/EnterpriseTarget(Clone)/State Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1049.1982421875,
+                "y": 428.24615478515627,
+                "width": 10.2061767578125,
+                "height": 10.206207275390625
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 907.3319091796875,
+                "y": 402.40625,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 907.3319091796875,
+                "y": 338.88250732421877,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 907.3319091796875,
+                "y": 277.1982421875,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Area/Original Board/Reward Level 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 907.3319091796875,
+                "y": 215.88186645507813,
+                "width": 15.309326171875,
+                "height": 12.2474365234375
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 922.6412353515625,
+                "y": 135.74256896972657,
+                "width": 126.5570068359375,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Board Name",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 922.6412353515625,
+                "y": 146.1343536376953,
+                "width": 78.5877685546875,
+                "height": 9.0
+            },
+            "drivers": [
+                "LayoutElement",
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1005.3115234375,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Viewport/Content/EnterpriseBoardItem(Clone)/Board Footer/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1005.3115234375,
+                "y": 135.74256896972657,
+                "width": 43.88671875,
+                "height": 19.39178466796875
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Candidate Scrollbar",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 201.06228637695313,
+                "y": 115.33013916015625,
+                "width": 674.4427490234375,
+                "height": 11.226829528808594
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Body/Candidates/Candidate Scrollbar/Handle",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 201.0623016357422,
+                "y": 115.33014678955078,
+                "width": 536.359375,
+                "height": 11.226821899414063
+            },
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412416458129884,
+                "y": 72.46405792236328,
+                "width": 859.1751708984375,
+                "height": 36.74235534667969
+            },
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Footer/Selection Summary",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 20.412416458129884,
+                "y": 72.46405792236328,
+                "width": 653.009765625,
+                "height": 36.74235534667969
+            },
+            "drivers": [
+                "LayoutElement",
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Footer/Cancel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 679.5459594726563,
+                "y": 72.46405792236328,
+                "width": 91.8558349609375,
+                "height": 36.74235534667969
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Footer/Cancel/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 679.5459594726563,
+                "y": 72.46405792236328,
+                "width": 91.8558349609375,
+                "height": 36.74235534667969
+            },
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Footer/Confirm",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 777.5254516601563,
+                "y": 72.46405792236328,
+                "width": 102.0621337890625,
+                "height": 36.74235534667969
+            },
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DepartmentSelectionDialog(Clone)/Panel/Footer/Confirm/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 777.5254516601563,
+                "y": 72.46405792236328,
+                "width": 102.0621337890625,
+                "height": 36.74235534667969
+            },
+            "drivers": [
+                "Text"
+            ]
+        }
+    ]
+}

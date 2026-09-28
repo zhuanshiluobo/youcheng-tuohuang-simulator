@@ -11,6 +11,9 @@ namespace YC.Presentation
         menuName = "YC/Presentation/Card Board Visual Layout")]
     public sealed class CardBoardVisualLayout : ScriptableObject
     {
+        [SerializeField] private CityStyleVisualCatalog cityStyleVisuals;
+        public CityStyleVisualCatalog CityStyleVisuals => cityStyleVisuals;
+
         public const int ExpectedCityBoardSlotCount = 12;
         public const int ExpectedMarkerAnchorCount = 7;
 
@@ -96,6 +99,11 @@ namespace YC.Presentation
 
         public bool TryValidateConfiguration(out string reason)
         {
+            if (cityStyleVisuals == null)
+            {
+                reason = "CardBoardVisualLayout 缺少城市样式版本与状态安全区配置。";
+                return false;
+            }
             if (!IsSha256(sourceManifestSha256))
             {
                 reason = "CardBoardVisualLayout 缺少有效 manifest SHA-256。";

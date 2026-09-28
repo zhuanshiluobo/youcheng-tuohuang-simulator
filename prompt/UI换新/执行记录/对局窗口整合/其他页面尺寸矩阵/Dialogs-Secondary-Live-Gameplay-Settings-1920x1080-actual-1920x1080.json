@@ -1,0 +1,650 @@
+{
+    "scene": "SampleScene",
+    "state": "Settings",
+    "stateSource": "实际场景与源资产；调用既有页面按钮/控制器，仅查看、不提交命令。",
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "actualSize": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1920.0,
+        "height": 1080.0
+    },
+    "objects": [
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 340.0,
+                "width": 640.0,
+                "height": 430.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 704.0,
+                "width": 640.0,
+                "height": 66.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Header/Settings Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 708.0,
+                "width": 520.0,
+                "height": 54.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Header/Close Settings Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1220.0,
+                "y": 720.0,
+                "width": 46.0,
+                "height": 36.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Header/Close Settings Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1228.0,
+                "y": 720.0,
+                "width": 30.0,
+                "height": 36.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 420.0,
+                "width": 640.0,
+                "height": 284.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 420.0,
+                "width": 640.0,
+                "height": 284.0
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "UiScrollContentWidth",
+                "ContentSizeFitter"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Vertical Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 694.0,
+                "width": 0.0,
+                "height": 10.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 424.0,
+                "width": 640.0,
+                "height": 270.0
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 424.0,
+                "width": 28.0,
+                "height": 270.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 424.0,
+                "width": 584.0,
+                "height": 270.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 424.0,
+                "width": 584.0,
+                "height": 270.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "VerticalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Vertical Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 676.0,
+                "width": 0.0,
+                "height": 18.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 630.0,
+                "width": 584.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 630.0,
+                "width": 18.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/通用 Button Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 686.0,
+                "y": 630.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/通用 Button Slot/通用 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 686.0,
+                "y": 630.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/通用 Button Slot/通用 Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 694.0,
+                "y": 630.0,
+                "width": 158.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 860.0,
+                "y": 630.0,
+                "width": 13.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/规则书 Button Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 873.0,
+                "y": 630.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/规则书 Button Slot/规则书 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 873.0,
+                "y": 630.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/规则书 Button Slot/规则书 Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 881.0,
+                "y": 630.0,
+                "width": 158.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1047.0,
+                "y": 630.0,
+                "width": 13.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/占位 Button Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1060.0,
+                "y": 630.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/占位 Button Slot/占位 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1060.0,
+                "y": 630.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/占位 Button Slot/占位 Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1068.0,
+                "y": 630.0,
+                "width": 158.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1234.0,
+                "y": 630.0,
+                "width": 18.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Vertical Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 616.0,
+                "width": 0.0,
+                "height": 14.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 442.0,
+                "width": 584.0,
+                "height": 174.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/通用 Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 686.0,
+                "y": 442.0,
+                "width": 548.0,
+                "height": 174.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/通用 Content/分辨率 Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 710.0,
+                "y": 546.0,
+                "width": 120.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/通用 Content/分辨率 Dropdown",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 546.0,
+                "width": 260.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/通用 Content/分辨率 Dropdown/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 868.0,
+                "y": 546.0,
+                "width": 204.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Content Row/通用 Content/分辨率 Dropdown/Arrow",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1074.0,
+                "y": 546.0,
+                "width": 30.0,
+                "height": 46.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Settings Body Slot/Settings Body/Vertical Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 424.0,
+                "width": 0.0,
+                "height": 18.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1252.0,
+                "y": 424.0,
+                "width": 28.0,
+                "height": 270.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Body Viewport/Body Content/Vertical Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 420.0,
+                "width": 0.0,
+                "height": 4.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 340.0,
+                "width": 640.0,
+                "height": 80.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Footer/返回主菜单 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1078.0,
+                "y": 360.0,
+                "width": 174.0,
+                "height": 48.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Footer/返回主菜单 Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1086.0,
+                "y": 360.0,
+                "width": 158.0,
+                "height": 48.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Footer/Action Log Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 360.0,
+                "width": 174.0,
+                "height": 48.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Footer/Action Log Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 676.0,
+                "y": 360.0,
+                "width": 158.0,
+                "height": 48.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Header Separator",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 704.0,
+                "width": 640.0,
+                "height": 2.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Game Settings Menu/Game Settings Canvas/Settings Overlay/Settings Panel/Window Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 340.0,
+                "width": 640.0,
+                "height": 430.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        }
+    ]
+}

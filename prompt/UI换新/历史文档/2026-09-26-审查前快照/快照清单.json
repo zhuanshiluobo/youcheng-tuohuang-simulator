@@ -1,0 +1,127 @@
+[
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\00-共同执行约束.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\00-共同执行约束.md",
+    "Sha256": "B6EA9BEA71DC28A2C0D0032FC8E90BF4943526C9D97B5E13D9847298EAA4B4A6"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\01-UI更新实施计划.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\01-UI更新实施计划.md",
+    "Sha256": "CEA240E5F37D7854AC494479A8061B7D4573C391F9B8CEDAC23E519CC035CA57"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\02-单页面与字体补充规范.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\02-单页面与字体补充规范.md",
+    "Sha256": "EC86141DC23C1439FB49CB837330DE48F0C3C03E13228B659571C3633096B6D1"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\03-视觉搭建优先与分阶段验收.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\03-视觉搭建优先与分阶段验收.md",
+    "Sha256": "493BCF18414DA990A585ECAF32BDF6EF9E83384321407AAB8B68B3BADAE2A129"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\04-主界面按钮3.2增量规范.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\04-主界面按钮3.2增量规范.md",
+    "Sha256": "0EF8B7846598C9E40BED3956D79956904E7D257D6CA12C93F5DB91306766463E"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\05-地图俯视改造期间的任务安排.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\05-地图俯视改造期间的任务安排.md",
+    "Sha256": "5E6E10E595CF41570F273B780DFC1EC138E588A49E0A17A1B20A898D4DCEF200"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\06-效果条目3.4与主框3.5增量规范.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\06-效果条目3.4与主框3.5增量规范.md",
+    "Sha256": "EF8136B336A328152EBD876B0C19014CF3059058762E5C4D3CEB1511F67B1E6C"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\README.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\README.md",
+    "Sha256": "255453E93FE2999E5255178C8868B74B89614C888FD6AF33676A9BD5D72E3CEB"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-001-当前入口与资产接入核对.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-001-当前入口与资产接入核对.md",
+    "Sha256": "1FCF742CBF387846B8EE6AD7746E1DDE34507866756DFB141A7CBCDB8466B687"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-002-新版素材导入与共用组件.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-002-新版素材导入与共用组件.md",
+    "Sha256": "A7983135A840CF48A9D157C77D003A77483FFA6A2A73FFF28F9C16FE912CFC3F"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-003-常驻顶底栏与自适应框架.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-003-常驻顶底栏与自适应框架.md",
+    "Sha256": "D03A85A9B22321D12D833B377BF5B83D09FD69FC0A26B5119B45319B3C0F8915"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-004-地图视口与城市坐标适配.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-004-地图视口与城市坐标适配.md",
+    "Sha256": "2291EF908A2D0FEFFE1C0F1A0C0C5213A7B6A7B48BE12A9828916E76AFA7508E"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-005-补充-主界面按钮3.2.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-005-补充-主界面按钮3.2.md",
+    "Sha256": "B24851F3508D7C2A8BBEBC8E14F94C26F7A71C336B85B893F66E4CBB8E2A6FD1"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-005-主界面模块与行动入口迁移.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-005-主界面模块与行动入口迁移.md",
+    "Sha256": "B26F2FBDC9193DF60D0BD655A0FCF14747E0A6EC0589DDEF14DE1E5CC6F59433"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-006-补充-效果条目3.4与主框3.5.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-006-补充-效果条目3.4与主框3.5.md",
+    "Sha256": "B6CFBB2C1BCAAB5F9DC1A8F7B38C7DB9F86E955B2047C5CCB6719BFE1C5AED53"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-006-全局结算抽屉与撤销接入.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-006-全局结算抽屉与撤销接入.md",
+    "Sha256": "821496DB9853DBA3B372DCC984C55E096EB43F945AF9F8F0B728278DC7A4BC6E"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-007-补充-布局结构与自适应重构.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-007-补充-布局结构与自适应重构.md",
+    "Sha256": "CCAD7F9EAABD24CB7D8F738C3F0539AE9377A85647079882BED8B5B7A42F308D"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-007-通用卡牌与选项窗口.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-007-通用卡牌与选项窗口.md",
+    "Sha256": "EC40417244FC01D14511BFA898981AE63668A6546C6DA9C2ECA5758AD516901F"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-008-补充-盖牌选择右栏适配与旧UI清理.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-008-补充-盖牌选择右栏适配与旧UI清理.md",
+    "Sha256": "246CFC9201CDA4CF2820DAD7F789B7BEF3F0CD50165ED84AAC526526A6CB49A4"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-008-设施建设与报价联动.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-008-设施建设与报价联动.md",
+    "Sha256": "276271EF50DBFF4A3079E11D841CDFC8994817DB7B0B2CEC14AF7400E6829E50"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-009-企业与科室选择.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-009-企业与科室选择.md",
+    "Sha256": "194F49DD994C4FE5DE95FA5FB38B496200E2DA5D867240F43DAAB6A45D171153"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-010-城市样式详情与宣告.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-010-城市样式详情与宣告.md",
+    "Sha256": "B2C4EB5B79DF20E72F57634F7DA691622CCD78E1DF1DAF82F01DF09D4025DB24"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-011-其他对局弹窗与查看器整合.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-011-其他对局弹窗与查看器整合.md",
+    "Sha256": "308E8D7F212E7FDB51BA81BFF779316DB14A2F4EA69D0199E19566FA46577634"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\UI换新\\UI-012-多尺寸实际对局与联机验收.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\UI-012-多尺寸实际对局与联机验收.md",
+    "Sha256": "4B81BCEFEF2AFA8E750E112676E8ADF75A74EA0554A90BB10C8858DE7B91953E"
+  },
+  {
+    "Source": "G:\\NoMadCity\\prompt\\README.md",
+    "Snapshot": "G:\\NoMadCity\\prompt\\UI换新\\历史文档\\2026-09-26-审查前快照\\提示词总索引.md",
+    "Sha256": "6B58DFF1DF3F925D096D0ED8C77FFDC7803194D2E3C7A81E1539C3D01880A892"
+  }
+]

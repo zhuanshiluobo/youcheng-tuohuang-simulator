@@ -104,48 +104,6 @@ namespace YC.Presentation
         }
     }
 
-    public abstract class ActionPanelLayoutProfileBase : ScriptableObject
-    {
-        [SerializeField] private string sourceManifestSha256 = string.Empty;
-        [SerializeField] private Vector2 cardImageOffsetMin;
-        [SerializeField] private Vector2 cardImageOffsetMax;
-        [SerializeField] private SecondaryRectLayout characterContainerLayout;
-
-        public string SourceManifestSha256 => sourceManifestSha256;
-        public Vector2 CardImageOffsetMin => cardImageOffsetMin;
-        public Vector2 CardImageOffsetMax => cardImageOffsetMax;
-        public SecondaryRectLayout CharacterContainerLayout => characterContainerLayout;
-
-        public bool TryValidateConfiguration(out string reason)
-        {
-            if (!SecondaryLayoutProfileValidation.IsSha256(sourceManifestSha256) ||
-                !SecondaryLayoutProfileValidation.IsFinite(cardImageOffsetMin) ||
-                !SecondaryLayoutProfileValidation.IsFinite(cardImageOffsetMax) ||
-                !characterContainerLayout.TryValidate(true, out reason))
-            {
-                reason = "ActionPanelLayoutProfile 缺少有效 manifest 或布局数据。";
-                return false;
-            }
-
-            reason = string.Empty;
-            return true;
-        }
-
-#if UNITY_EDITOR
-        public void ConfigureForEditor(
-            string sourceSha256,
-            Vector2 imageOffsetMin,
-            Vector2 imageOffsetMax,
-            SecondaryRectLayout containerLayout)
-        {
-            sourceManifestSha256 = sourceSha256 ?? string.Empty;
-            cardImageOffsetMin = imageOffsetMin;
-            cardImageOffsetMax = imageOffsetMax;
-            characterContainerLayout = containerLayout;
-        }
-#endif
-    }
-
     public abstract class CardInteractionLayoutProfileBase : ScriptableObject
     {
         [SerializeField] private string sourceManifestSha256 = string.Empty;

@@ -65,12 +65,17 @@ namespace YC.Application.Interactions
 
             string diagnostic;
             var isCollectionTask = false;
+            string paidFacilityId = null;
             if (state.EffectRuntime != null && state.EffectRuntime.InteractionRequests != null)
             {
                 var request = state.EffectRuntime.InteractionRequests.Find(candidate =>
                     candidate != null && candidate.Status == "open" &&
                     (candidate.RequestId == interactionId || candidate.GetStableInteractionId() == interactionId));
                 isCollectionTask = request != null && request.InteractionTypeId == "collection.task";
+                if (request != null && request.InteractionTypeId == FacilityBuildEffectExecutor.PlacementInteractionType &&
+                    request.PromptParameters?.Properties != null)
+                    foreach (var entry in request.PromptParameters.Properties)
+                        if (entry.Name == "facilityId") paidFacilityId = entry.Value?.StringValue;
             }
             var executor = roundExecutionService == null
                 ? new EffectTreeExecutor(state, registry)
@@ -112,9 +117,29 @@ namespace YC.Application.Interactions
             // 立即投影回兼容的阶段/当前玩家字段，避免回答成功但外层仍停在旧阶段。
             new RoundExecutionProjector().Project(state);
 
-            return CommandResult.SuccessResult(
-                new List<YC.Domain.Events.GameEvent>(),
-                "交互回答已提交。");
+            var events = new List<YC.Domain.Events.GameEvent>();
+            if (!string.IsNullOrEmpty(paidFacilityId))
+            {
+                var placement = state.Map.Facilities.Find(item => item.PlayerId == command.PlayerId && item.FacilityCardId == paidFacilityId);
+                var facility = YC.Domain.Facilities.FacilityCardDatabase.Get(paidFacilityId);
+                if (placement != null && facility != null)
+                {
+                    events.Add(new YC.Domain.Events.GameEvent
+                    {
+                        Kind = YC.Domain.Rules.GameEventKind.FacilityBuilt, PlayerId = command.PlayerId,
+                        SubjectId = paidFacilityId, Message = "已将 " + facility.Name + " 放入城市面板。",
+                        Data = { { "facilityName", facility.Name },
+                            { "cityBoardSlotIndex", placement.CityBoardSlotIndex.ToString(CultureInfo.InvariantCulture) },
+                            { "score", facility.Score.ToString(CultureInfo.InvariantCulture) }, { "effectType", facility.EffectType } }
+                    });
+                    events.Add(new YC.Domain.Events.GameEvent
+                    {
+                        Kind = YC.Domain.Rules.GameEventKind.ScoreChanged, PlayerId = command.PlayerId,
+                        SubjectId = paidFacilityId, Message = "设施放置完成，获得牌面分数。"
+                    });
+                }
+            }
+            return CommandResult.SuccessResult(events, "交互回答已提交。");
         }
 
         private static bool TryBuildAnswer(

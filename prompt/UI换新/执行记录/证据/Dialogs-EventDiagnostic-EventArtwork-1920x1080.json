@@ -1,0 +1,353 @@
+{
+    "mode": "EventArtwork",
+    "source": "组件诊断：SampleScene 当前 Registry 与实际 EventChoiceDialog Prefab；调用既有 Show 方法。路线、收款人和文字样本为诊断数据，卡图来自正式目录。回调仅计数，不提交命令；不代表规则结算或联机验收。",
+    "requestedSize": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "actualSize": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "panel": {
+        "serializedVersion": "2",
+        "x": 535.0,
+        "y": 215.0,
+        "width": 850.0,
+        "height": 600.0
+    },
+    "availableContent": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 102.0,
+        "width": 1920.0,
+        "height": 906.0
+    },
+    "diagnosticCallbacks": 0,
+    "issues": [],
+    "objects": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 215.0,
+                "width": 850.0,
+                "height": 600.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 249.0,
+                "width": 850.0,
+                "height": 566.0
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 249.0,
+                "width": 850.0,
+                "height": 566.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 249.0,
+                "width": 850.0,
+                "height": 566.0
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 249.0,
+                "width": 850.0,
+                "height": 566.0
+            },
+            "layoutDrivers": [
+                "UiEventArtworkLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 559.0833740234375,
+                "y": 249.0,
+                "width": 801.833251953125,
+                "height": 566.0
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Event Card Artwork",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 559.0833740234375,
+                "y": 249.0,
+                "width": 801.833251953125,
+                "height": 566.0
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 559.0833740234375,
+                "y": 249.0,
+                "width": 801.833251953125,
+                "height": 566.0
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 643.9833374023438,
+                "y": 366.9166564941406,
+                "width": 679.2000122070313,
+                "height": 70.75
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1/Hover Border",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 643.9833374023438,
+                "y": 366.9166564941406,
+                "width": 679.2000122070313,
+                "height": 70.75
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1/Hover Border/Top",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 643.9833374023438,
+                "y": 434.6666564941406,
+                "width": 679.2000122070313,
+                "height": 3.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1/Hover Border/Bottom",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 643.9833374023438,
+                "y": 366.9166564941406,
+                "width": 679.2000122070313,
+                "height": 3.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1/Hover Border/Left",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 643.9833374023438,
+                "y": 366.9166564941406,
+                "width": 3.0,
+                "height": 70.75
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1/Hover Border/Right",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1320.183349609375,
+                "y": 366.9166564941406,
+                "width": 3.0,
+                "height": 70.75
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 643.9833374023438,
+                "y": 291.4499816894531,
+                "width": 679.2000122070313,
+                "height": 75.4666748046875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2/Hover Border",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 643.9833374023438,
+                "y": 291.4499816894531,
+                "width": 679.2000122070313,
+                "height": 75.4666748046875
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2/Hover Border/Top",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 643.9833374023438,
+                "y": 363.9166564941406,
+                "width": 679.2000122070313,
+                "height": 3.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2/Hover Border/Bottom",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 643.9833374023438,
+                "y": 291.4499816894531,
+                "width": 679.2000122070313,
+                "height": 3.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2/Hover Border/Left",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 643.9833374023438,
+                "y": 291.4499816894531,
+                "width": 3.0,
+                "height": 75.4666748046875
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2/Hover Border/Right",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1320.183349609375,
+                "y": 291.4499816894531,
+                "width": 3.0,
+                "height": 75.4666748046875
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Resource Point Ribbon",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 611.9100341796875,
+                "y": 775.3800048828125,
+                "width": 358.4666748046875,
+                "height": 39.6199951171875
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Resource Point Ribbon/Resource Point Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 627.9099731445313,
+                "y": 775.3800048828125,
+                "width": 338.4666748046875,
+                "height": 39.6199951171875
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Collapse",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 849.0,
+                "y": 215.0,
+                "width": 222.0,
+                "height": 34.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Collapse/Collapse Triangle",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 974.0,
+                "y": 222.0,
+                "width": -28.0,
+                "height": 20.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Dynamic Templates",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 215.0,
+                "width": 850.0,
+                "height": 600.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        }
+    ],
+    "scrolls": []
+}

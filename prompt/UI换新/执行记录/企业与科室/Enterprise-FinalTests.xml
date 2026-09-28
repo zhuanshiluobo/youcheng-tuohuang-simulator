@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="19" result="Passed" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-26 12:49:55Z" end-time="2026-09-26 12:49:58Z" duration="3.2471543">
+  <test-suite type="TestSuite" id="2378" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="1197" result="Passed" start-time="2026-09-26 12:49:55Z" end-time="2026-09-26 12:49:58Z" duration="3.247154" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="3752" name="YC.Tests.EditMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.EditMode.dll" runstate="Runnable" testcasecount="1197" result="Passed" start-time="2026-09-26 12:49:55Z" end-time="2026-09-26 12:49:58Z" duration="3.210292" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="47660" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="3753" name="YC" fullname="YC" runstate="Runnable" testcasecount="1197" result="Passed" start-time="2026-09-26 12:49:55Z" end-time="2026-09-26 12:49:58Z" duration="3.192002" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="3754" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="1197" result="Passed" start-time="2026-09-26 12:49:55Z" end-time="2026-09-26 12:49:58Z" duration="3.186102" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="SetUpFixture" id="2785" name="EditMode" fullname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" classname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" runstate="Runnable" testcasecount="1197" result="Passed" start-time="2026-09-26 12:49:55Z" end-time="2026-09-26 12:49:58Z" duration="3.179308" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="2636" name="EnterpriseSelectionAssetTests" fullname="YC.Tests.EditMode.EnterpriseSelectionAssetTests" classname="YC.Tests.EditMode.EnterpriseSelectionAssetTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-26 12:49:55Z" end-time="2026-09-26 12:49:58Z" duration="3.132626" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="2645" name="ActualScenes_RegistrySelectionFoldAndInputAreComponentOnly" fullname="YC.Tests.EditMode.EnterpriseSelectionAssetTests.ActualScenes_RegistrySelectionFoldAndInputAreComponentOnly" methodname="ActualScenes_RegistrySelectionFoldAndInputAreComponentOnly" classname="YC.Tests.EditMode.EnterpriseSelectionAssetTests" runstate="Runnable" seed="587611478" result="Passed" start-time="2026-09-26 12:49:55Z" end-time="2026-09-26 12:49:58Z" duration="2.734489" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2644" name="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable" fullname="YC.Tests.EditMode.EnterpriseSelectionAssetTests.Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable" classname="YC.Tests.EditMode.EnterpriseSelectionAssetTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.380065" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2638" name="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(False,0)" fullname="YC.Tests.EditMode.EnterpriseSelectionAssetTests.Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(False,0)" methodname="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable" classname="YC.Tests.EditMode.EnterpriseSelectionAssetTests" runstate="Runnable" seed="245114581" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.072090" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2639" name="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(False,2)" fullname="YC.Tests.EditMode.EnterpriseSelectionAssetTests.Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(False,2)" methodname="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable" classname="YC.Tests.EditMode.EnterpriseSelectionAssetTests" runstate="Runnable" seed="755411117" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.035121" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2640" name="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(False,12)" fullname="YC.Tests.EditMode.EnterpriseSelectionAssetTests.Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(False,12)" methodname="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable" classname="YC.Tests.EditMode.EnterpriseSelectionAssetTests" runstate="Runnable" seed="1107756289" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.093992" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2641" name="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(True,0)" fullname="YC.Tests.EditMode.EnterpriseSelectionAssetTests.Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(True,0)" methodname="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable" classname="YC.Tests.EditMode.EnterpriseSelectionAssetTests" runstate="Runnable" seed="206339335" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.025830" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2642" name="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(True,3)" fullname="YC.Tests.EditMode.EnterpriseSelectionAssetTests.Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(True,3)" methodname="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable" classname="YC.Tests.EditMode.EnterpriseSelectionAssetTests" runstate="Runnable" seed="1062758190" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.048342" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2643" name="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(True,12)" fullname="YC.Tests.EditMode.EnterpriseSelectionAssetTests.Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable(True,12)" methodname="Assets_NativeLayoutKeepsBodyFooterAndLastCandidateReachable" classname="YC.Tests.EditMode.EnterpriseSelectionAssetTests" runstate="Runnable" seed="946710905" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.102523" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="2637" name="View_RefreshesBeforeSubmittingAndRejectsLateReplies_ComponentAdapterOnly" fullname="YC.Tests.EditMode.EnterpriseSelectionAssetTests.View_RefreshesBeforeSubmittingAndRejectsLateReplies_ComponentAdapterOnly" methodname="View_RefreshesBeforeSubmittingAndRejectsLateReplies_ComponentAdapterOnly" classname="YC.Tests.EditMode.EnterpriseSelectionAssetTests" runstate="Runnable" seed="1092641851" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.009900" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2646" name="EnterpriseSelectionTests" fullname="YC.Tests.EditMode.EnterpriseSelectionTests" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.010753" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="2651" name="Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.001167" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2647" name="Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget(Company)" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget(Company)" methodname="Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" seed="2079477277" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.000563" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2648" name="Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget(Effect)" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget(Effect)" methodname="Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" seed="2144120678" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.000091" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2649" name="Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget(InitialDepartment)" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget(InitialDepartment)" methodname="Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" seed="1591902260" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.000043" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2650" name="Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget(SwitchDepartment)" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget(SwitchDepartment)" methodname="Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" seed="314846475" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.000040" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="2659" name="HostCapability_IsStillMissing_NotAnExampleSuccessCallback" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.HostCapability_IsStillMissing_NotAnExampleSuccessCallback" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.006936" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2656" name="HostCapability_IsStillMissing_NotAnExampleSuccessCallback(&quot;effect.enterprise.upgrade&quot;)" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.HostCapability_IsStillMissing_NotAnExampleSuccessCallback(&quot;effect.enterprise.upgrade&quot;)" methodname="HostCapability_IsStillMissing_NotAnExampleSuccessCallback" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" seed="207684111" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.003560" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2657" name="HostCapability_IsStillMissing_NotAnExampleSuccessCallback(&quot;effect.enterprise.activate_special&quot;)" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.HostCapability_IsStillMissing_NotAnExampleSuccessCallback(&quot;effect.enterprise.activate_special&quot;)" methodname="HostCapability_IsStillMissing_NotAnExampleSuccessCallback" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" seed="1104559376" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.001441" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2658" name="HostCapability_IsStillMissing_NotAnExampleSuccessCallback(&quot;effect.enterprise.switch_department&quot;)" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.HostCapability_IsStillMissing_NotAnExampleSuccessCallback(&quot;effect.enterprise.switch_department&quot;)" methodname="HostCapability_IsStillMissing_NotAnExampleSuccessCallback" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" seed="1986275193" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.001394" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="2654" name="MissingCapabilityAndOlderProjectionFailClosed" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.MissingCapabilityAndOlderProjectionFailClosed" methodname="MissingCapabilityAndOlderProjectionFailClosed" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" seed="1145973714" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.000178" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2653" name="Pending_DuplicateAndLateCompletionsCannotAffectNewRequest" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.Pending_DuplicateAndLateCompletionsCannotAffectNewRequest" methodname="Pending_DuplicateAndLateCompletionsCannotAffectNewRequest" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" seed="1355161708" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.000217" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2655" name="ProjectionMutationCannotRewriteDraftAndRemovedPendingTargetInvalidatesReply" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.ProjectionMutationCannotRewriteDraftAndRemovedPendingTargetInvalidatesReply" methodname="ProjectionMutationCannotRewriteDraftAndRemovedPendingTargetInvalidatesReply" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" seed="1554492393" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.000238" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2652" name="SharedDepartment_CurrentIsViewableButNotConfirmable_InitialMayHaveNoCurrent" fullname="YC.Tests.EditMode.EnterpriseSelectionTests.SharedDepartment_CurrentIsViewableButNotConfirmable_InitialMayHaveNoCurrent" methodname="SharedDepartment_CurrentIsViewableButNotConfirmable_InitialMayHaveNoCurrent" classname="YC.Tests.EditMode.EnterpriseSelectionTests" runstate="Runnable" seed="397063320" result="Passed" start-time="2026-09-26 12:49:58Z" end-time="2026-09-26 12:49:58Z" duration="0.000133" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -1,0 +1,2372 @@
+[
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui002AssetBuilder.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\SharedUiAssetBuilder.cs",
+    "guid": "7169f056912432a449ca7e09a956f499"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui002AssetBuilder.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\SharedUiAssetBuilder.cs.meta",
+    "guid": "7169f056912432a449ca7e09a956f499"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui002PreviewCapture.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\SharedUiPreviewCapture.cs",
+    "guid": "b1d757cc3e5a35346a08f437fc805138"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui002PreviewCapture.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\SharedUiPreviewCapture.cs.meta",
+    "guid": "b1d757cc3e5a35346a08f437fc805138"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui003HierarchyReport.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplayHudHierarchyReport.cs",
+    "guid": "c89bf0123a0046098213f0c23194de66"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui003HierarchyReport.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplayHudHierarchyReport.cs.meta",
+    "guid": "c89bf0123a0046098213f0c23194de66"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui003SceneAudit.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplaySceneAudit.cs",
+    "guid": "85930baa22824601ab2943e195290bcb"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui003SceneAudit.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplaySceneAudit.cs.meta",
+    "guid": "85930baa22824601ab2943e195290bcb"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui003VisualCapture.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplayHudCapture.cs",
+    "guid": "a660bd9ef5dd40c0a8ffae45979c88db"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui003VisualCapture.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplayHudCapture.cs.meta",
+    "guid": "a660bd9ef5dd40c0a8ffae45979c88db"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui007EventDialogCapture.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplayEventDialogCapture.cs",
+    "guid": "b0c969ef0808455585116b60ce3401b4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui007EventDialogCapture.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplayEventDialogCapture.cs.meta",
+    "guid": "b0c969ef0808455585116b60ce3401b4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui007SecondaryPageCapture.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplaySecondaryPageCapture.cs",
+    "guid": "628bdf15270ad4c46b957b47b1a7e62d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui007SecondaryPageCapture.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplaySecondaryPageCapture.cs.meta",
+    "guid": "628bdf15270ad4c46b957b47b1a7e62d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui007SupplementalPageCapture.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplaySupplementalPageCapture.cs",
+    "guid": "fed80194e7cf477594a43f9a6f9bbf92"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Editor\\Ui007SupplementalPageCapture.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Editor\\GameplaySupplementalPageCapture.cs.meta",
+    "guid": "fed80194e7cf477594a43f9a6f9bbf92"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi.meta",
+    "guid": "f6a339187d712e54cb5e765195ae76e8"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud.meta",
+    "guid": "143a04e358a0b7f4c90a34712556bd93"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects.meta",
+    "guid": "cf916678a99a8454b8bd270ebf7ef1a9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout.meta",
+    "guid": "0fbc30a675811e9419e651de65b147fb"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\Ui002FontRolesTests.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\UiFontRolesTests.cs",
+    "guid": "7a45c1c4b816a454f96b5aae4596a516"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\Ui002FontRolesTests.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\UiFontRolesTests.cs.meta",
+    "guid": "7a45c1c4b816a454f96b5aae4596a516"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\Ui006EffectRowTests.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\EffectRowTests.cs",
+    "guid": "25fd2553c3597c7439f531c804b8a240"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\Ui006EffectRowTests.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\EffectRowTests.cs.meta",
+    "guid": "25fd2553c3597c7439f531c804b8a240"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\Ui007DialogLayoutTests.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\GameplayDialogLayoutTests.cs",
+    "guid": "538c341655510b54a93bc5e8d45ffa63"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\Ui007DialogLayoutTests.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\GameplayDialogLayoutTests.cs.meta",
+    "guid": "538c341655510b54a93bc5e8d45ffa63"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\Ui007InGameAssetIsolationTests.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\InGameAssetIsolationTests.cs",
+    "guid": "5a053b1750574cf88d3cfdd2804e2e3f"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\Ui007InGameAssetIsolationTests.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\InGameAssetIsolationTests.cs.meta",
+    "guid": "5a053b1750574cf88d3cfdd2804e2e3f"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\Ui003HudFramePlayModeTests.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\GameplayHudFramePlayModeTests.cs",
+    "guid": "1011b1e03c934a0da4c5829d90cae45e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\Ui003HudFramePlayModeTests.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\GameplayHudFramePlayModeTests.cs.meta",
+    "guid": "1011b1e03c934a0da4c5829d90cae45e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\Ui005MainHudPlayModeTests.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\GameplayMainHudPlayModeTests.cs",
+    "guid": "577daaaf6cd7d014fae5d4fd9eb99da3"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\Ui005MainHudPlayModeTests.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\GameplayMainHudPlayModeTests.cs.meta",
+    "guid": "577daaaf6cd7d014fae5d4fd9eb99da3"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\Ui006EffectPagePlayModeTests.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\EffectPagePlayModeTests.cs",
+    "guid": "b644d040f9cb72847a164127d3624abb"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\Ui006EffectPagePlayModeTests.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\EffectPagePlayModeTests.cs.meta",
+    "guid": "b644d040f9cb72847a164127d3624abb"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\Ui006OpponentDetailPlayModeTests.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\OpponentDetailPlayModeTests.cs",
+    "guid": "fdb3f75ac64c7f94585abc1386b951c0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\Ui006OpponentDetailPlayModeTests.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\OpponentDetailPlayModeTests.cs.meta",
+    "guid": "fdb3f75ac64c7f94585abc1386b951c0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\Ui007RoundPagePlayModeTests.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\RoundPagePlayModeTests.cs",
+    "guid": "70591bb791894f1b9ed8a3b6aa74b749"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\Ui007RoundPagePlayModeTests.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Tests\\PlayMode\\FacilityCatalog\\RoundPagePlayModeTests.cs.meta",
+    "guid": "70591bb791894f1b9ed8a3b6aa74b749"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Content.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Content.meta",
+    "guid": "572a4379447a70942905476da29a0fef"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Fonts.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Fonts.meta",
+    "guid": "8f25aec9842492044a3eca437283dfc9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs.meta",
+    "guid": "fa9326448a2ebe84898aa89bc99eacd5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites.meta",
+    "guid": "10fc24b6b5e359d45b3f1a6b39175e02"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiCardSlotView.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiCardSlotView.cs",
+    "guid": "7b901d39b08664c4abfaa81aacd78f51"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiCardSlotView.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiCardSlotView.cs.meta",
+    "guid": "7b901d39b08664c4abfaa81aacd78f51"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiFlowLayoutGroup.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiFlowLayoutGroup.cs",
+    "guid": "9df331a5a89cee345afbdca68a1dc254"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiFlowLayoutGroup.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiFlowLayoutGroup.cs.meta",
+    "guid": "9df331a5a89cee345afbdca68a1dc254"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiFontRoles.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiFontRoles.cs",
+    "guid": "979bcdb110355644db9a52c0b5969f4b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiFontRoles.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiFontRoles.cs.meta",
+    "guid": "979bcdb110355644db9a52c0b5969f4b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiSelectionState.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiSelectionState.cs",
+    "guid": "5334759779b2c164a91743fe13e524ac"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiSelectionState.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiSelectionState.cs.meta",
+    "guid": "5334759779b2c164a91743fe13e524ac"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiSemanticText.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiSemanticText.cs",
+    "guid": "4d1747f7b708ad54696515993174a2c2"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiSemanticText.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiSemanticText.cs.meta",
+    "guid": "4d1747f7b708ad54696515993174a2c2"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiSharedButtonState.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiSharedButtonState.cs",
+    "guid": "e6c96e32057311a49bc9db041921d82a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiSharedButtonState.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiSharedButtonState.cs.meta",
+    "guid": "e6c96e32057311a49bc9db041921d82a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiSharedComponentTheme.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiSharedComponentTheme.cs",
+    "guid": "2c44ce11e350dc84fa291717a6c2ee0d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\UiSharedComponentTheme.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\UiSharedComponentTheme.cs.meta",
+    "guid": "2c44ce11e350dc84fa291717a6c2ee0d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Verification.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Verification.meta",
+    "guid": "34d198cf54d5b194dbabe8b7d72b236b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\GameplayMainModules.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\GameplayMainModules.cs",
+    "guid": "0e832c6f383dfa840a4592dbc7f3164a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\GameplayMainModules.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\GameplayMainModules.cs.meta",
+    "guid": "0e832c6f383dfa840a4592dbc7f3164a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites.meta",
+    "guid": "05972b3a5ff6f734c85f0fa3e623fd27"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\UiMainActionTabs.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\UiMainActionTabs.cs",
+    "guid": "48bc7aa7d50e6b64e99d095c046545fb"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\UiMainActionTabs.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\UiMainActionTabs.cs.meta",
+    "guid": "48bc7aa7d50e6b64e99d095c046545fb"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\UiMainButtonState.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\UiMainButtonState.cs",
+    "guid": "7c82572ba4aca834795ef54316667b69"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\UiMainButtonState.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\UiMainButtonState.cs.meta",
+    "guid": "7c82572ba4aca834795ef54316667b69"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Prefabs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Prefabs.meta",
+    "guid": "a492c709709851349b48d9820cb05b07"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites.meta",
+    "guid": "94a1834d18cb7564cae1625d3b285a4b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\UiEffectRowView.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\UiEffectRowView.cs",
+    "guid": "4b403c00dab89ae43a825cfff1242196"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\UiEffectRowView.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\UiEffectRowView.cs.meta",
+    "guid": "4b403c00dab89ae43a825cfff1242196"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\card-selected.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\card-selected.png",
+    "guid": "4314884ccfb8de54ab623cf8cbbaba6d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\card-selected.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\card-selected.png.meta",
+    "guid": "4314884ccfb8de54ab623cf8cbbaba6d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\Prefabs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame.meta",
+    "guid": "98ea128c755b45ae91b81548d75380d1"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\ResourceSaleReceiptProjection.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\ResourceSaleReceiptProjection.cs",
+    "guid": "43aa8e0e92fa40c3b5e027f3e47cc679"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\ResourceSaleReceiptProjection.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\ResourceSaleReceiptProjection.cs.meta",
+    "guid": "43aa8e0e92fa40c3b5e027f3e47cc679"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiAdaptiveGridColumns.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiAdaptiveGridColumns.cs",
+    "guid": "8fc2a6dac6df3924e8109bb79362b630"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiAdaptiveGridColumns.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiAdaptiveGridColumns.cs.meta",
+    "guid": "8fc2a6dac6df3924e8109bb79362b630"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiAspectContentLayout.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiAspectContentLayout.cs",
+    "guid": "d6e84888924ae68458ccb418ce65a93c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiAspectContentLayout.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiAspectContentLayout.cs.meta",
+    "guid": "d6e84888924ae68458ccb418ce65a93c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiBoundedPanelLayout.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiWindowSizeInput.cs",
+    "guid": "4a011df7b28e4ef4cbbab66a68c4300c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiBoundedPanelLayout.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiWindowSizeInput.cs.meta",
+    "guid": "4a011df7b28e4ef4cbbab66a68c4300c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiCardFaceLayoutGroup.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiCardFaceLayoutGroup.cs",
+    "guid": "1c3d0a7b389900543921dcce044f275e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiCardFaceLayoutGroup.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiCardFaceLayoutGroup.cs.meta",
+    "guid": "1c3d0a7b389900543921dcce044f275e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiCardGridLayoutGroup.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiCardCollectionLayout.cs",
+    "guid": "6260df0bd419c994ca567e45356c5567"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiCardGridLayoutGroup.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiCardCollectionLayout.cs.meta",
+    "guid": "6260df0bd419c994ca567e45356c5567"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiCitySlotsLayout.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiCitySlotsLayout.cs",
+    "guid": "0379d9a42669ea247b7fd96bfe440c6b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiCitySlotsLayout.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiCitySlotsLayout.cs.meta",
+    "guid": "0379d9a42669ea247b7fd96bfe440c6b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiEventArtworkLayoutGroup.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiEventArtworkLayoutGroup.cs",
+    "guid": "dd89f18967365e34da81fd9303d86b7a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiEventArtworkLayoutGroup.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiEventArtworkLayoutGroup.cs.meta",
+    "guid": "dd89f18967365e34da81fd9303d86b7a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiEventDialogLayoutGroup.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiEventHeaderInput.cs",
+    "guid": "f04466dfdd7571e459a6571cd0caca76"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiEventDialogLayoutGroup.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiEventHeaderInput.cs.meta",
+    "guid": "f04466dfdd7571e459a6571cd0caca76"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiFlexibleCanvasContent.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiFlexibleCanvasContent.cs",
+    "guid": "bf328ec26e8b1c848b4d2794232e1e59"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiFlexibleCanvasContent.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiFlexibleCanvasContent.cs.meta",
+    "guid": "bf328ec26e8b1c848b4d2794232e1e59"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiMapSurroundLayout.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiMapSurroundLayout.cs",
+    "guid": "88e097e961639b44f97859d8b2e9fae1"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiMapSurroundLayout.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiMapSurroundLayout.cs.meta",
+    "guid": "88e097e961639b44f97859d8b2e9fae1"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiMeasuredTextRow.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiMeasuredTextRow.cs",
+    "guid": "e2681686299f42a7b694aa548c34b83b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiMeasuredTextRow.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiMeasuredTextRow.cs.meta",
+    "guid": "e2681686299f42a7b694aa548c34b83b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiPlayerCityLayout.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiOpponentDetailInput.cs",
+    "guid": "943981fdcafab234fb43bce5025ec770"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiPlayerCityLayout.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiOpponentDetailInput.cs.meta",
+    "guid": "943981fdcafab234fb43bce5025ec770"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiPromptLayout.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiPromptSizeInput.cs",
+    "guid": "8a192ec359db7c3459aff20de4d9bd1b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiPromptLayout.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiPromptSizeInput.cs.meta",
+    "guid": "8a192ec359db7c3459aff20de4d9bd1b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiScrollContentWidth.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiScrollContentWidth.cs",
+    "guid": "55131882f9ccafe44bb1a56357717193"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiScrollContentWidth.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiScrollContentWidth.cs.meta",
+    "guid": "55131882f9ccafe44bb1a56357717193"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiSemanticLabel.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiSemanticLabel.cs",
+    "guid": "8794106eabe49b74694172d3466b5417"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiSemanticLabel.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiSemanticLabel.cs.meta",
+    "guid": "8794106eabe49b74694172d3466b5417"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiViewerViewportLayout.cs",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiViewerViewportLayout.cs",
+    "guid": "b62d2dc277da1b04291361a68251bc42"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiViewerViewportLayout.cs.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Layout\\UiViewerViewportLayout.cs.meta",
+    "guid": "b62d2dc277da1b04291361a68251bc42"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\Prefabs\\InGameActionLogViewer.prefab",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameActionLogViewer.prefab",
+    "guid": "1fc95d1e6d2747459695a182ea14d6cd"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\Prefabs\\InGameActionLogViewer.prefab.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameActionLogViewer.prefab.meta",
+    "guid": "1fc95d1e6d2747459695a182ea14d6cd"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\Prefabs\\InGameRulebookViewer.prefab",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameRulebookViewer.prefab",
+    "guid": "ce44ea1631a540b19eb688544f5be114"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\Prefabs\\InGameRulebookViewer.prefab.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameRulebookViewer.prefab.meta",
+    "guid": "ce44ea1631a540b19eb688544f5be114"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\Prefabs\\InGameSettingsMenu.prefab",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "guid": "d97985143f884a50b8c25ed4e9aa77ff"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\Prefabs\\InGameSettingsMenu.prefab.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab.meta",
+    "guid": "d97985143f884a50b8c25ed4e9aa77ff"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\Prefabs\\InGameZoomableImageViewer.prefab",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameZoomableImageViewer.prefab",
+    "guid": "614428667ff64ea39b60e3c39ad85a2c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\Prefabs\\InGameZoomableImageViewer.prefab.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameZoomableImageViewer.prefab.meta",
+    "guid": "614428667ff64ea39b60e3c39ad85a2c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Prefabs\\EffectRow.prefab",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Prefabs\\EffectRow.prefab",
+    "guid": "e7d7659f2ac7476459acc50ce9a08a6d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Prefabs\\EffectRow.prefab.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Prefabs\\EffectRow.prefab.meta",
+    "guid": "e7d7659f2ac7476459acc50ce9a08a6d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows.meta",
+    "guid": "16dceef8427c08e4ebfe3d92a9172cf5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\Frames.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\Frames.meta",
+    "guid": "3165b9904d53eb2418e19211b91db6c5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons.meta",
+    "guid": "52bc93a3d8b1da04bbbafb5800442ed3"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers.meta",
+    "guid": "14ab73d0f6071744b99dab03e9fdd640"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows.meta",
+    "guid": "00fd5867e161e804f9b12467e6c0a2b0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\status.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\status.meta",
+    "guid": "35abb4a314c64e548ae379f27f6693d9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\toggle.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\toggle.meta",
+    "guid": "339e01d95d4514a4b8c32104f1d2511f"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\Frames\\bottom-bar-clean.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\Frames\\bottom-bar-clean.png",
+    "guid": "0b82898d3d00e534a87b2876ef19ca94"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\Frames\\bottom-bar-clean.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\Frames\\bottom-bar-clean.png.meta",
+    "guid": "0b82898d3d00e534a87b2876ef19ca94"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\Frames\\bottom-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\Frames\\bottom-frame.png",
+    "guid": "2d606f464c58709488217ca9ee5fe94e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\Frames\\bottom-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\Frames\\bottom-frame.png.meta",
+    "guid": "2d606f464c58709488217ca9ee5fe94e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\Frames\\chain-slot-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\Frames\\chain-slot-frame.png",
+    "guid": "3ec57d85cf4f03b4db6735e85da99df3"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\Frames\\chain-slot-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\Frames\\chain-slot-frame.png.meta",
+    "guid": "3ec57d85cf4f03b4db6735e85da99df3"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\Frames\\outer-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\Frames\\outer-frame.png",
+    "guid": "d914be6582d14b14785a040bfc72f931"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\Frames\\outer-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\Frames\\outer-frame.png.meta",
+    "guid": "d914be6582d14b14785a040bfc72f931"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-down-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-down-dark.png",
+    "guid": "83e8e2cbb7acdd54ab2a90e64617f569"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-down-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-down-dark.png.meta",
+    "guid": "83e8e2cbb7acdd54ab2a90e64617f569"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-down-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-down-light.png",
+    "guid": "0d71d892b4238924ca47f1835ac420a9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-down-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-down-light.png.meta",
+    "guid": "0d71d892b4238924ca47f1835ac420a9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-down-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-down-muted.png",
+    "guid": "2c4dc610deb1f9640b9f90d336d55067"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-down-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-down-muted.png.meta",
+    "guid": "2c4dc610deb1f9640b9f90d336d55067"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-up-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-up-dark.png",
+    "guid": "89f290fae59128c40853bc9e6bf3d029"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-up-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-up-dark.png.meta",
+    "guid": "89f290fae59128c40853bc9e6bf3d029"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-up-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-up-light.png",
+    "guid": "3793400a4835d644f875224641e026c4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-up-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-up-light.png.meta",
+    "guid": "3793400a4835d644f875224641e026c4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-up-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-up-muted.png",
+    "guid": "0dced0670892bec438c60edfa45001de"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-chevron-up-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-chevron-up-muted.png.meta",
+    "guid": "0dced0670892bec438c60edfa45001de"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-unused-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-unused-dark.png",
+    "guid": "a96765daccba36a4ea0799133d1d6f30"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-unused-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-unused-dark.png.meta",
+    "guid": "a96765daccba36a4ea0799133d1d6f30"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-unused-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-unused-light.png",
+    "guid": "f3ad2d3589dabc04998c693c8d9788f9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-unused-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-unused-light.png.meta",
+    "guid": "f3ad2d3589dabc04998c693c8d9788f9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-unused-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-unused-muted.png",
+    "guid": "9fdebae3ec35c7a4ab0353a56198eb29"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-unused-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-unused-muted.png.meta",
+    "guid": "9fdebae3ec35c7a4ab0353a56198eb29"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-use-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-use-dark.png",
+    "guid": "8e1ebdc5a00b87048aa1a8f9f6fe30c2"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-use-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-use-dark.png.meta",
+    "guid": "8e1ebdc5a00b87048aa1a8f9f6fe30c2"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-use-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-use-light.png",
+    "guid": "704da96e0ae40b1449631a9f3447bf0a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-use-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-use-light.png.meta",
+    "guid": "704da96e0ae40b1449631a9f3447bf0a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-use-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-use-muted.png",
+    "guid": "ca4f5f2c5da9e89499118c811a11208b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-use-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-use-muted.png.meta",
+    "guid": "ca4f5f2c5da9e89499118c811a11208b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-used-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-used-dark.png",
+    "guid": "5916d005d19d2b748ad69dc1711c428a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-used-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-used-dark.png.meta",
+    "guid": "5916d005d19d2b748ad69dc1711c428a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-used-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-used-light.png",
+    "guid": "64d0cce9912f40a4ca47739a03c7e0e6"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-used-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-used-light.png.meta",
+    "guid": "64d0cce9912f40a4ca47739a03c7e0e6"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-used-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-used-muted.png",
+    "guid": "ad18d21fb82dec6419b9b845371268df"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\icons\\icon-used-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\icons\\icon-used-muted.png.meta",
+    "guid": "ad18d21fb82dec6419b9b845371268df"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-01-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-01-64.png",
+    "guid": "d2a36eaffcff7c64c80b212aed5e18bb"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-01-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-01-64.png.meta",
+    "guid": "d2a36eaffcff7c64c80b212aed5e18bb"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-02-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-02-64.png",
+    "guid": "7722385aa1bdd9f41a422730b70eabb3"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-02-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-02-64.png.meta",
+    "guid": "7722385aa1bdd9f41a422730b70eabb3"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-03-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-03-64.png",
+    "guid": "57d16a9ebc313f949ae2f1c74d721242"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-03-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-03-64.png.meta",
+    "guid": "57d16a9ebc313f949ae2f1c74d721242"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-04-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-04-64.png",
+    "guid": "b859f758d01777b429c6bf8ae21edaf4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-04-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-04-64.png.meta",
+    "guid": "b859f758d01777b429c6bf8ae21edaf4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-05-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-05-64.png",
+    "guid": "20e248e377acc2b4bac7cb0f2ca271e0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-05-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-05-64.png.meta",
+    "guid": "20e248e377acc2b4bac7cb0f2ca271e0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-06-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-06-64.png",
+    "guid": "40eda79e57c4a464d8bd6b325c328447"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-06-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-06-64.png.meta",
+    "guid": "40eda79e57c4a464d8bd6b325c328447"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-07-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-07-64.png",
+    "guid": "d056f4f9a22ac2e45a1734467996e79b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-07-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-07-64.png.meta",
+    "guid": "d056f4f9a22ac2e45a1734467996e79b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-08-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-08-64.png",
+    "guid": "d8e9dcadd3e3fb24bb85d7f34e062e31"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-08-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-08-64.png.meta",
+    "guid": "d8e9dcadd3e3fb24bb85d7f34e062e31"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-09-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-09-64.png",
+    "guid": "15eb4fe249fc56d47b7d203f8bc7da70"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-09-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-09-64.png.meta",
+    "guid": "15eb4fe249fc56d47b7d203f8bc7da70"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0a-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0a-64.png",
+    "guid": "904bdbe3f6028d047b5d3a7f4be93f4c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0a-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0a-64.png.meta",
+    "guid": "904bdbe3f6028d047b5d3a7f4be93f4c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0b-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0b-64.png",
+    "guid": "eba9485fce57d5a45877be83d0e3491b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0b-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0b-64.png.meta",
+    "guid": "eba9485fce57d5a45877be83d0e3491b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0c-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0c-64.png",
+    "guid": "85d8d47708ead5c4ea44f0f65cfa2664"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0c-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0c-64.png.meta",
+    "guid": "85d8d47708ead5c4ea44f0f65cfa2664"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0d-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0d-64.png",
+    "guid": "0c317edea57df7b44871d82a44abde6a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0d-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0d-64.png.meta",
+    "guid": "0c317edea57df7b44871d82a44abde6a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0e-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0e-64.png",
+    "guid": "b12981d731ab1a64d92fb16f434a01f9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0e-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0e-64.png.meta",
+    "guid": "b12981d731ab1a64d92fb16f434a01f9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0f-64.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0f-64.png",
+    "guid": "3565717282fb6104385c5164ed15f32e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\markers\\cooperation-0f-64.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\markers\\cooperation-0f-64.png.meta",
+    "guid": "3565717282fb6104385c5164ed15f32e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-bg-default.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-bg-default.png",
+    "guid": "33a675824c051574480110b6105b0089"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-bg-default.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-bg-default.png.meta",
+    "guid": "33a675824c051574480110b6105b0089"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-bg-disabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-bg-disabled.png",
+    "guid": "fbd050d909d87c6498f66081c0df81af"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-bg-disabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-bg-disabled.png.meta",
+    "guid": "fbd050d909d87c6498f66081c0df81af"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-bg-hover.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-bg-hover.png",
+    "guid": "6d537045049af50498e738698252398c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-bg-hover.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-bg-hover.png.meta",
+    "guid": "6d537045049af50498e738698252398c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-bg-pressed.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-bg-pressed.png",
+    "guid": "371f080550298ae44a74cac23c870233"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-bg-pressed.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-bg-pressed.png.meta",
+    "guid": "371f080550298ae44a74cac23c870233"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-divider.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-divider.png",
+    "guid": "524efb46d6375674cbd4f88eeb4e7625"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-divider.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-divider.png.meta",
+    "guid": "524efb46d6375674cbd4f88eeb4e7625"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-frame-default.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-frame-default.png",
+    "guid": "fb5d9b0fc274099428281871dd10c6a8"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-frame-default.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-frame-default.png.meta",
+    "guid": "fb5d9b0fc274099428281871dd10c6a8"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-frame-disabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-frame-disabled.png",
+    "guid": "5dc9a365ba0dd8546b13bf067598a3a4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-frame-disabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-frame-disabled.png.meta",
+    "guid": "5dc9a365ba0dd8546b13bf067598a3a4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-frame-hover.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-frame-hover.png",
+    "guid": "a354bec79df2bdd4c8eefea365596ed4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-frame-hover.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-frame-hover.png.meta",
+    "guid": "a354bec79df2bdd4c8eefea365596ed4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-frame-pressed.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-frame-pressed.png",
+    "guid": "396170332c0c383498f5f8f15e8a8900"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\rows\\row-frame-pressed.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\rows\\row-frame-pressed.png.meta",
+    "guid": "396170332c0c383498f5f8f15e8a8900"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\status\\status-bg-default.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\status\\status-bg-default.png",
+    "guid": "b3633e8d6e6be1f4a9c9975ed2a2c791"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\status\\status-bg-default.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\status\\status-bg-default.png.meta",
+    "guid": "b3633e8d6e6be1f4a9c9975ed2a2c791"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\status\\status-bg-disabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\status\\status-bg-disabled.png",
+    "guid": "a1912134ac0c8ba40a21c1c0290e903b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\status\\status-bg-disabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\status\\status-bg-disabled.png.meta",
+    "guid": "a1912134ac0c8ba40a21c1c0290e903b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\status\\status-bg-hover.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\status\\status-bg-hover.png",
+    "guid": "36a6452e2f7a43e489cb530128b4af10"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\status\\status-bg-hover.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\status\\status-bg-hover.png.meta",
+    "guid": "36a6452e2f7a43e489cb530128b4af10"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\status\\status-bg-pressed.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\status\\status-bg-pressed.png",
+    "guid": "0cd5d34ac6bf58c41b6112b0d4ce5a1a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\status\\status-bg-pressed.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\status\\status-bg-pressed.png.meta",
+    "guid": "0cd5d34ac6bf58c41b6112b0d4ce5a1a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\toggle\\toggle-bg-default.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\toggle\\toggle-bg-default.png",
+    "guid": "06559436c8530a74c949a02c1f5b4226"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\toggle\\toggle-bg-default.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\toggle\\toggle-bg-default.png.meta",
+    "guid": "06559436c8530a74c949a02c1f5b4226"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\toggle\\toggle-bg-expanded.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\toggle\\toggle-bg-expanded.png",
+    "guid": "44b977feb3bba084a90dc8509ee521c7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\toggle\\toggle-bg-expanded.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\toggle\\toggle-bg-expanded.png.meta",
+    "guid": "44b977feb3bba084a90dc8509ee521c7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\toggle\\toggle-bg-hover.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\toggle\\toggle-bg-hover.png",
+    "guid": "981c5fa8d50584841a0bcfbb4858b14b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\toggle\\toggle-bg-hover.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\toggle\\toggle-bg-hover.png.meta",
+    "guid": "981c5fa8d50584841a0bcfbb4858b14b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\toggle\\toggle-bg-pressed.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\toggle\\toggle-bg-pressed.png",
+    "guid": "5059ed32f0a0682478fb585d441bf44b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui006\\Sprites\\EffectRows\\toggle\\toggle-bg-pressed.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Effects\\Sprites\\EffectRows\\toggle\\toggle-bg-pressed.png.meta",
+    "guid": "5059ed32f0a0682478fb585d441bf44b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases.meta",
+    "guid": "18a3bd2fa1ba6c144978034f937f7322"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons.meta",
+    "guid": "cb9e8b3547f617649aee7c7d20315d64"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\action-default.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\action-default.png",
+    "guid": "181c454b33768d046b5ab0213470c335"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\action-default.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\action-default.png.meta",
+    "guid": "181c454b33768d046b5ab0213470c335"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\action-disabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\action-disabled.png",
+    "guid": "dc69849ac050a064389e92d8d4cb180a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\action-disabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\action-disabled.png.meta",
+    "guid": "dc69849ac050a064389e92d8d4cb180a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\action-hover.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\action-hover.png",
+    "guid": "6726c2c22f45bdf488f68621f3a8d0c6"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\action-hover.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\action-hover.png.meta",
+    "guid": "6726c2c22f45bdf488f68621f3a8d0c6"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\action-pressed.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\action-pressed.png",
+    "guid": "d88bc479e5c6aa54b9523b772f47b5ab"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\action-pressed.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\action-pressed.png.meta",
+    "guid": "d88bc479e5c6aa54b9523b772f47b5ab"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\primary-default.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\primary-default.png",
+    "guid": "4648f077c8bba6140ba688ff6c667e07"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\primary-default.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\primary-default.png.meta",
+    "guid": "4648f077c8bba6140ba688ff6c667e07"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\primary-disabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\primary-disabled.png",
+    "guid": "fe0fabb5c1097a6408bacc222a1791f4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\primary-disabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\primary-disabled.png.meta",
+    "guid": "fe0fabb5c1097a6408bacc222a1791f4"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\primary-hover.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\primary-hover.png",
+    "guid": "40315786549c4b14db92a72b4123365b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\primary-hover.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\primary-hover.png.meta",
+    "guid": "40315786549c4b14db92a72b4123365b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\primary-pressed.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\primary-pressed.png",
+    "guid": "3d381acf67d68e84c920c0be62cec33f"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\primary-pressed.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\primary-pressed.png.meta",
+    "guid": "3d381acf67d68e84c920c0be62cec33f"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-default.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-default.png",
+    "guid": "4c03bcfbebd9f0248ab5627102bcd986"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-default.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-default.png.meta",
+    "guid": "4c03bcfbebd9f0248ab5627102bcd986"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-disabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-disabled.png",
+    "guid": "6e587c190e22e8244bc0461d9b3b30e6"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-disabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-disabled.png.meta",
+    "guid": "6e587c190e22e8244bc0461d9b3b30e6"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-hover.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-hover.png",
+    "guid": "24cdd87bb716a44438096b1472c23b8d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-hover.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-hover.png.meta",
+    "guid": "24cdd87bb716a44438096b1472c23b8d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-pressed.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-pressed.png",
+    "guid": "d12dff33659b4a04080d89d2dc104a1b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-pressed.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-pressed.png.meta",
+    "guid": "d12dff33659b4a04080d89d2dc104a1b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-selected-hover.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-selected-hover.png",
+    "guid": "9559cd5a9b3f2ec41b8b15e83f53a0e8"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-selected-hover.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-selected-hover.png.meta",
+    "guid": "9559cd5a9b3f2ec41b8b15e83f53a0e8"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-selected.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-selected.png",
+    "guid": "3ab0226eae7a92c42a6c0f34e81d7ba0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\tab-selected.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\tab-selected.png.meta",
+    "guid": "3ab0226eae7a92c42a6c0f34e81d7ba0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\undo-default.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\undo-default.png",
+    "guid": "690bd512e893abf459e1894539e5e943"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\undo-default.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\undo-default.png.meta",
+    "guid": "690bd512e893abf459e1894539e5e943"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\undo-disabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\undo-disabled.png",
+    "guid": "423708fe7e7c57041962c1490952a8c7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\undo-disabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\undo-disabled.png.meta",
+    "guid": "423708fe7e7c57041962c1490952a8c7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\undo-hover.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\undo-hover.png",
+    "guid": "5b705b2932761a7498e1bf4917e96f55"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\undo-hover.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\undo-hover.png.meta",
+    "guid": "5b705b2932761a7498e1bf4917e96f55"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\undo-pressed.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\undo-pressed.png",
+    "guid": "5b584d77161214c47adf29b807ec477c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Bases\\undo-pressed.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Bases\\undo-pressed.png.meta",
+    "guid": "5b584d77161214c47adf29b807ec477c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\build-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\build-dark.png",
+    "guid": "8fd19cceb358d2741901bb6e45bd0928"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\build-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\build-dark.png.meta",
+    "guid": "8fd19cceb358d2741901bb6e45bd0928"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\build-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\build-light.png",
+    "guid": "4748afb9106283b418e934ea67448ed3"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\build-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\build-light.png.meta",
+    "guid": "4748afb9106283b418e934ea67448ed3"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\build-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\build-muted.png",
+    "guid": "f6b3087977bd7384e8b7b15bedbfd07e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\build-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\build-muted.png.meta",
+    "guid": "f6b3087977bd7384e8b7b15bedbfd07e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-move-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-move-dark.png",
+    "guid": "27aefec65ea0a3d429b2eb90f2f72754"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-move-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-move-dark.png.meta",
+    "guid": "27aefec65ea0a3d429b2eb90f2f72754"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-move-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-move-light.png",
+    "guid": "94e6cbb7459373e428e5ce161e16e684"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-move-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-move-light.png.meta",
+    "guid": "94e6cbb7459373e428e5ce161e16e684"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-move-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-move-muted.png",
+    "guid": "6858ae19bc4783144a2d9c885cdb0ce7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-move-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-move-muted.png.meta",
+    "guid": "6858ae19bc4783144a2d9c885cdb0ce7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-patterns-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-patterns-dark.png",
+    "guid": "0932423c92353044692f55fc1a9233db"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-patterns-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-patterns-dark.png.meta",
+    "guid": "0932423c92353044692f55fc1a9233db"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-patterns-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-patterns-light.png",
+    "guid": "25e3129ae867c3a49aa2a57e1fb12fe1"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-patterns-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-patterns-light.png.meta",
+    "guid": "25e3129ae867c3a49aa2a57e1fb12fe1"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-patterns-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-patterns-muted.png",
+    "guid": "469eedc93ccb77548bd61b797c265794"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\city-patterns-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\city-patterns-muted.png.meta",
+    "guid": "469eedc93ccb77548bd61b797c265794"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\deploy-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\deploy-dark.png",
+    "guid": "ae7bdf6d1ba04b74589cbe92a53fe060"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\deploy-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\deploy-dark.png.meta",
+    "guid": "ae7bdf6d1ba04b74589cbe92a53fe060"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\deploy-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\deploy-light.png",
+    "guid": "5a6a18917c472d84ca0733d979f087f9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\deploy-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\deploy-light.png.meta",
+    "guid": "5a6a18917c472d84ca0733d979f087f9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\deploy-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\deploy-muted.png",
+    "guid": "0f265f6ae82b40a44abab12ab85f31b2"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\deploy-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\deploy-muted.png.meta",
+    "guid": "0f265f6ae82b40a44abab12ab85f31b2"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\dispatch-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\dispatch-dark.png",
+    "guid": "5a4dd07687410b545912e328bb8bd7a5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\dispatch-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\dispatch-dark.png.meta",
+    "guid": "5a4dd07687410b545912e328bb8bd7a5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\dispatch-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\dispatch-light.png",
+    "guid": "4efa33da0c27b8742a1f1bf869f6fac2"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\dispatch-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\dispatch-light.png.meta",
+    "guid": "4efa33da0c27b8742a1f1bf869f6fac2"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\dispatch-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\dispatch-muted.png",
+    "guid": "89c8a5a4d299b5e44ade92b237b9b038"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\dispatch-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\dispatch-muted.png.meta",
+    "guid": "89c8a5a4d299b5e44ade92b237b9b038"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\end-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\end-dark.png",
+    "guid": "2517208cb6f14ea4bb5d7363f28e0a09"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\end-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\end-dark.png.meta",
+    "guid": "2517208cb6f14ea4bb5d7363f28e0a09"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\end-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\end-light.png",
+    "guid": "f57440115fb293a40a727c4d16132716"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\end-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\end-light.png.meta",
+    "guid": "f57440115fb293a40a727c4d16132716"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\end-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\end-muted.png",
+    "guid": "99494dee9257fb84fa0b2ba97c02e532"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\end-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\end-muted.png.meta",
+    "guid": "99494dee9257fb84fa0b2ba97c02e532"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\explore-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\explore-dark.png",
+    "guid": "8827a46ca887fa34985a52b68588eda9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\explore-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\explore-dark.png.meta",
+    "guid": "8827a46ca887fa34985a52b68588eda9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\explore-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\explore-light.png",
+    "guid": "b0a501bdd54b1cf49ab7f009a6923069"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\explore-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\explore-light.png.meta",
+    "guid": "b0a501bdd54b1cf49ab7f009a6923069"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\explore-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\explore-muted.png",
+    "guid": "a2af9bd8e57a4fc48ae37a7a2bdc27aa"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\explore-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\explore-muted.png.meta",
+    "guid": "a2af9bd8e57a4fc48ae37a7a2bdc27aa"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\main-actions-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\main-actions-dark.png",
+    "guid": "89307759a171da247a7c343678bd71b9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\main-actions-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\main-actions-dark.png.meta",
+    "guid": "89307759a171da247a7c343678bd71b9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\main-actions-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\main-actions-light.png",
+    "guid": "5fcb37818f6fbe9478c1617977999e30"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\main-actions-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\main-actions-light.png.meta",
+    "guid": "5fcb37818f6fbe9478c1617977999e30"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\main-actions-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\main-actions-muted.png",
+    "guid": "c28c2c4a6e135c741801cddd70233800"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\main-actions-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\main-actions-muted.png.meta",
+    "guid": "c28c2c4a6e135c741801cddd70233800"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\quick-actions-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\quick-actions-dark.png",
+    "guid": "8aeaa360d9c29e44eaf9a10d7f1b2981"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\quick-actions-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\quick-actions-dark.png.meta",
+    "guid": "8aeaa360d9c29e44eaf9a10d7f1b2981"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\quick-actions-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\quick-actions-light.png",
+    "guid": "9a1e3927e8b7ff648b54cac8d86f38fb"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\quick-actions-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\quick-actions-light.png.meta",
+    "guid": "9a1e3927e8b7ff648b54cac8d86f38fb"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\quick-actions-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\quick-actions-muted.png",
+    "guid": "60c50bc074b9d434c9f2e9d9fd3c562c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\quick-actions-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\quick-actions-muted.png.meta",
+    "guid": "60c50bc074b9d434c9f2e9d9fd3c562c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\special-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\special-dark.png",
+    "guid": "25b5722a1c55dc74b905ceeb7e6120f2"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\special-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\special-dark.png.meta",
+    "guid": "25b5722a1c55dc74b905ceeb7e6120f2"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\special-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\special-light.png",
+    "guid": "3b15758f4f656f043bbcd72835d38625"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\special-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\special-light.png.meta",
+    "guid": "3b15758f4f656f043bbcd72835d38625"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\special-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\special-muted.png",
+    "guid": "9be53ce9729894848b59c5eca255ecda"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\special-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\special-muted.png.meta",
+    "guid": "9be53ce9729894848b59c5eca255ecda"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\undo-dark.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\undo-dark.png",
+    "guid": "a754ea2ba4d75aa4b94571eb31fb31f9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\undo-dark.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\undo-dark.png.meta",
+    "guid": "a754ea2ba4d75aa4b94571eb31fb31f9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\undo-light.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\undo-light.png",
+    "guid": "8aa4f67a924d7164aa87642165711c86"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\undo-light.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\undo-light.png.meta",
+    "guid": "8aa4f67a924d7164aa87642165711c86"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\undo-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\undo-muted.png",
+    "guid": "69649fe51a299c745bd28650e948f6d1"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui005\\Sprites\\Icons\\undo-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\GameplayHud\\Sprites\\Icons\\undo-muted.png.meta",
+    "guid": "69649fe51a299c745bd28650e948f6d1"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Content\\UiFontRoles.asset",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Content\\UiFontRoles.asset",
+    "guid": "28fb9ecaab0c9024699a38366cdeb6aa"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Content\\UiFontRoles.asset.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Content\\UiFontRoles.asset.meta",
+    "guid": "28fb9ecaab0c9024699a38366cdeb6aa"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Content\\UiSharedComponentTheme.asset",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Content\\UiSharedComponentTheme.asset",
+    "guid": "add9a55ae60bbd64cbfc33f7094ed462"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Content\\UiSharedComponentTheme.asset.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Content\\UiSharedComponentTheme.asset.meta",
+    "guid": "add9a55ae60bbd64cbfc33f7094ed462"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Fonts\\FangZhengHeiTiJianTi-1.ttf",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Fonts\\FangZhengHeiTiJianTi-1.ttf",
+    "guid": "43e9d69dcca63724db85852acd46004d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Fonts\\FangZhengHeiTiJianTi-1.ttf.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Fonts\\FangZhengHeiTiJianTi-1.ttf.meta",
+    "guid": "43e9d69dcca63724db85852acd46004d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Fonts\\HanYiCuHeiJian-1.ttf",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Fonts\\HanYiCuHeiJian-1.ttf",
+    "guid": "5c5a187d1eb86944c93f847ec521c324"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Fonts\\HanYiCuHeiJian-1.ttf.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Fonts\\HanYiCuHeiJian-1.ttf.meta",
+    "guid": "5c5a187d1eb86944c93f847ec521c324"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Fonts\\MicrosoftYaHei-Regular-face0.ttf",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Fonts\\MicrosoftYaHei-Regular-face0.ttf",
+    "guid": "583ab100aa403d043b49362948eef356"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Fonts\\MicrosoftYaHei-Regular-face0.ttf.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Fonts\\MicrosoftYaHei-Regular-face0.ttf.meta",
+    "guid": "583ab100aa403d043b49362948eef356"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Fonts\\Novecento NarrowBold.otf",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Fonts\\Novecento NarrowBold.otf",
+    "guid": "3eddf79db7bec9c4193e00ae800bfd4e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Fonts\\Novecento NarrowBold.otf.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Fonts\\Novecento NarrowBold.otf.meta",
+    "guid": "3eddf79db7bec9c4193e00ae800bfd4e"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Fonts\\Novecento wide Normal Regular.ttf",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Fonts\\Novecento wide Normal Regular.ttf",
+    "guid": "0a6c131175d7afb4daca1a87a679f835"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Fonts\\Novecento wide Normal Regular.ttf.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Fonts\\Novecento wide Normal Regular.ttf.meta",
+    "guid": "0a6c131175d7afb4daca1a87a679f835"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\CardSlot.prefab",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\CardSlot.prefab",
+    "guid": "70a517a6f04d7cf4c97021cb3c6806f5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\CardSlot.prefab.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\CardSlot.prefab.meta",
+    "guid": "70a517a6f04d7cf4c97021cb3c6806f5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\MixedLine.prefab",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\MixedLine.prefab",
+    "guid": "4e40d5fee46f0e7499796af0cb4566db"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\MixedLine.prefab.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\MixedLine.prefab.meta",
+    "guid": "4e40d5fee46f0e7499796af0cb4566db"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\ScrollView.prefab",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\ScrollView.prefab",
+    "guid": "11425ac97a5da514fbaeeb1abf420760"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\ScrollView.prefab.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\ScrollView.prefab.meta",
+    "guid": "11425ac97a5da514fbaeeb1abf420760"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\SharedButton.prefab",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\SharedButton.prefab",
+    "guid": "42591533ff9ba814cb244d9b275ef9f8"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\SharedButton.prefab.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\SharedButton.prefab.meta",
+    "guid": "42591533ff9ba814cb244d9b275ef9f8"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\SharedFrame.prefab",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\SharedFrame.prefab",
+    "guid": "2d444a379a0b7134abc3f816aef8ee9a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\SharedFrame.prefab.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\SharedFrame.prefab.meta",
+    "guid": "2d444a379a0b7134abc3f816aef8ee9a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\StatusRow.prefab",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\StatusRow.prefab",
+    "guid": "976104aab8efa144e948d63df3b0a6b5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Prefabs\\StatusRow.prefab.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Prefabs\\StatusRow.prefab.meta",
+    "guid": "976104aab8efa144e948d63df3b0a6b5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Compatible.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Compatible.meta",
+    "guid": "f2e5ffa4af781b7428c98c15885a7f44"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31.meta",
+    "guid": "962a272504feffc4db4ae20a54aa496a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls.meta",
+    "guid": "8dd97f14ead95da49bf5f16c8771dd70"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates.meta",
+    "guid": "e1768367373d0584a8680f4d438160cc"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Verification\\Ui002Preview.unity",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Verification\\Ui002Preview.unity",
+    "guid": "59976ada7e40a8847bbdc354ed44b2e7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Verification\\Ui002Preview.unity.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Verification\\Ui002Preview.unity.meta",
+    "guid": "59976ada7e40a8847bbdc354ed44b2e7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Compatible\\redzone-paper.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Compatible\\redzone-paper.png",
+    "guid": "58bbb0239b0a1ae41ab0b240765da19c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Compatible\\redzone-paper.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Compatible\\redzone-paper.png.meta",
+    "guid": "58bbb0239b0a1ae41ab0b240765da19c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Compatible\\turn-tag.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Compatible\\turn-tag.png",
+    "guid": "9bfc2fdc9785eda4db396ac69b265955"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Compatible\\turn-tag.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Compatible\\turn-tag.png.meta",
+    "guid": "9bfc2fdc9785eda4db396ac69b265955"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\bottom-bar.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\bottom-bar.png",
+    "guid": "f3bd7d54f6fdf104f95f2d7de4a9cac5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\bottom-bar.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\bottom-bar.png.meta",
+    "guid": "f3bd7d54f6fdf104f95f2d7de4a9cac5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\bottom-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\bottom-frame.png",
+    "guid": "6d720a18321297c47b7eb6dd3e8400fd"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\bottom-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\bottom-frame.png.meta",
+    "guid": "6d720a18321297c47b7eb6dd3e8400fd"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\button-disabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\button-disabled.png",
+    "guid": "d7a006428d20cd34796eebd067221015"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\button-disabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\button-disabled.png.meta",
+    "guid": "d7a006428d20cd34796eebd067221015"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\button-primary.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\button-primary.png",
+    "guid": "6b15b2f14a32abc4f802520d29150fb7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\button-primary.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\button-primary.png.meta",
+    "guid": "6b15b2f14a32abc4f802520d29150fb7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\button-secondary.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\button-secondary.png",
+    "guid": "89d566eed90cc4a4b9e60335c7e60377"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\button-secondary.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\button-secondary.png.meta",
+    "guid": "89d566eed90cc4a4b9e60335c7e60377"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\card-bg.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\card-bg.png",
+    "guid": "e26ca69b2fc150242b66a471fbdddb55"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\card-bg.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\card-bg.png.meta",
+    "guid": "e26ca69b2fc150242b66a471fbdddb55"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\card-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\card-frame.png",
+    "guid": "328813539f533c2449046fb16398784a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\card-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\card-frame.png.meta",
+    "guid": "328813539f533c2449046fb16398784a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\chain-slot-bg.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\chain-slot-bg.png",
+    "guid": "8fd2c38459717494b8012dc4b75a4ae0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\chain-slot-bg.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\chain-slot-bg.png.meta",
+    "guid": "8fd2c38459717494b8012dc4b75a4ae0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\chain-slot-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\chain-slot-frame.png",
+    "guid": "95e0eb3e5d6e1504b8e78df545bc7209"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\chain-slot-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\chain-slot-frame.png.meta",
+    "guid": "95e0eb3e5d6e1504b8e78df545bc7209"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\drawer-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\drawer-frame.png",
+    "guid": "ba406cda5d8729a419c7c8a2b464f3c1"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\drawer-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\drawer-frame.png.meta",
+    "guid": "ba406cda5d8729a419c7c8a2b464f3c1"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\header-bg.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\header-bg.png",
+    "guid": "8cc4ba9975aca514aa6e0a19d59ee8ff"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\header-bg.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\header-bg.png.meta",
+    "guid": "8cc4ba9975aca514aa6e0a19d59ee8ff"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-action.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-action.png",
+    "guid": "80d294ca6068e64449c55286748fa166"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-action.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-action.png.meta",
+    "guid": "80d294ca6068e64449c55286748fa166"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-chevron.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-chevron.png",
+    "guid": "feb50351e94bfab45b306ebc7f965d3d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-chevron.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-chevron.png.meta",
+    "guid": "feb50351e94bfab45b306ebc7f965d3d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-close.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-close.png",
+    "guid": "2c1d2ab8731a8b54883677b8573c753c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-close.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-close.png.meta",
+    "guid": "2c1d2ab8731a8b54883677b8573c753c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-frontier.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-frontier.png",
+    "guid": "7b19411755d77684aba1bc52887a6ea7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-frontier.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-frontier.png.meta",
+    "guid": "7b19411755d77684aba1bc52887a6ea7"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-panels.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-panels.png",
+    "guid": "4740f364741ed314a8552ce6b5d5aa1f"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-panels.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-panels.png.meta",
+    "guid": "4740f364741ed314a8552ce6b5d5aa1f"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-redzone.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-redzone.png",
+    "guid": "073e69e2b16b13746a3e47be0b724c55"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-redzone.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-redzone.png.meta",
+    "guid": "073e69e2b16b13746a3e47be0b724c55"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-settings.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-settings.png",
+    "guid": "5e757ee9ac70dd84e8e8569178e4b51d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-settings.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-settings.png.meta",
+    "guid": "5e757ee9ac70dd84e8e8569178e4b51d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-undo-active.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-undo-active.png",
+    "guid": "648ead4237233a94fa3cd31ab5d039fe"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-undo-active.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-undo-active.png.meta",
+    "guid": "648ead4237233a94fa3cd31ab5d039fe"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-undo-muted.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-undo-muted.png",
+    "guid": "ee87e10bf6c3f64459ba5c7a38b380e8"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\icon-undo-muted.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\icon-undo-muted.png.meta",
+    "guid": "ee87e10bf6c3f64459ba5c7a38b380e8"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\module-bg.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\module-bg.png",
+    "guid": "3b717c670b1a52843bcc7592be6fe504"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\module-bg.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\module-bg.png.meta",
+    "guid": "3b717c670b1a52843bcc7592be6fe504"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\module-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\module-frame.png",
+    "guid": "b4ca9e75c1cae354aa1b2ce17d12d467"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\module-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\module-frame.png.meta",
+    "guid": "b4ca9e75c1cae354aa1b2ce17d12d467"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\outer-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\outer-frame.png",
+    "guid": "aa1b97a5365d1bc43a2347ecf9652512"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\outer-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\outer-frame.png.meta",
+    "guid": "aa1b97a5365d1bc43a2347ecf9652512"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\paper-bg.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\paper-bg.png",
+    "guid": "9abda3d4730078e43951140a94b0d95f"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\paper-bg.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\paper-bg.png.meta",
+    "guid": "9abda3d4730078e43951140a94b0d95f"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\redzone-plaque.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\redzone-plaque.png",
+    "guid": "c79343bbb1e6cb1438ea597de47defdd"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\redzone-plaque.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\redzone-plaque.png.meta",
+    "guid": "c79343bbb1e6cb1438ea597de47defdd"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\round-plaque.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\round-plaque.png",
+    "guid": "513482765a5e09145bc7ec1e44a42f10"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\round-plaque.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\round-plaque.png.meta",
+    "guid": "513482765a5e09145bc7ec1e44a42f10"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\topbar-bg.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\topbar-bg.png",
+    "guid": "4063137078155734387e101b7c4d0694"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\topbar-bg.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\topbar-bg.png.meta",
+    "guid": "4063137078155734387e101b7c4d0694"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\topbar-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\topbar-frame.png",
+    "guid": "fe4383dc244dde14ab43eee4887762d5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\topbar-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\topbar-frame.png.meta",
+    "guid": "fe4383dc244dde14ab43eee4887762d5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\topbar-tool-default.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\topbar-tool-default.png",
+    "guid": "62b367e7ba0ae1847a4e5a14b48c9cec"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\topbar-tool-default.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\topbar-tool-default.png.meta",
+    "guid": "62b367e7ba0ae1847a4e5a14b48c9cec"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\topbar-tool-hover.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\topbar-tool-hover.png",
+    "guid": "bb25b9c5b96b4c24eb8fbd2a062915d9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\topbar-tool-hover.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\topbar-tool-hover.png.meta",
+    "guid": "bb25b9c5b96b4c24eb8fbd2a062915d9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\turn-tag-refined.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\turn-tag-refined.png",
+    "guid": "8aa368b684c78444193a29caddfa5ada"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\turn-tag-refined.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\turn-tag-refined.png.meta",
+    "guid": "8aa368b684c78444193a29caddfa5ada"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\undo-disabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\undo-disabled.png",
+    "guid": "8c4be36ac94260443a4620d6f8ba7029"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\undo-disabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\undo-disabled.png.meta",
+    "guid": "8c4be36ac94260443a4620d6f8ba7029"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\undo-enabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\undo-enabled.png",
+    "guid": "661a513ea80fec44c83458b1e2a51bcc"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\Frontier31\\undo-enabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\Frontier31\\undo-enabled.png.meta",
+    "guid": "661a513ea80fec44c83458b1e2a51bcc"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\scrollbar-thumb-h.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-thumb-h.png",
+    "guid": "913ac7c6635003c4197996086558e31d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\scrollbar-thumb-h.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-thumb-h.png.meta",
+    "guid": "913ac7c6635003c4197996086558e31d"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\scrollbar-thumb-v.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-thumb-v.png",
+    "guid": "22c8711713c66eb499c9858e3f0db6fe"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\scrollbar-thumb-v.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-thumb-v.png.meta",
+    "guid": "22c8711713c66eb499c9858e3f0db6fe"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\scrollbar-track-h.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-track-h.png",
+    "guid": "75fc96ab6371c5145aacaba3edf45ce0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\scrollbar-track-h.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-track-h.png.meta",
+    "guid": "75fc96ab6371c5145aacaba3edf45ce0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\scrollbar-track-v.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-track-v.png",
+    "guid": "f57fe0a04165ea3419d5c605c76a32e9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\scrollbar-track-v.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\scrollbar-track-v.png.meta",
+    "guid": "f57fe0a04165ea3419d5c605c76a32e9"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\stepper-fill-default.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\stepper-fill-default.png",
+    "guid": "5858d84a8ac977c45bea8383cb6ec21a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\stepper-fill-default.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\stepper-fill-default.png.meta",
+    "guid": "5858d84a8ac977c45bea8383cb6ec21a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\stepper-fill-disabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\stepper-fill-disabled.png",
+    "guid": "bf41d850080257a479001459f5477636"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\stepper-fill-disabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\stepper-fill-disabled.png.meta",
+    "guid": "bf41d850080257a479001459f5477636"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\stepper-fill-hover.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\stepper-fill-hover.png",
+    "guid": "a3cd4c975e890564393168928af70635"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\stepper-fill-hover.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\stepper-fill-hover.png.meta",
+    "guid": "a3cd4c975e890564393168928af70635"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\stepper-fill-pressed.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\stepper-fill-pressed.png",
+    "guid": "ad2cd01c8cbf3be429cf558ce4e20d99"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\stepper-fill-pressed.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\stepper-fill-pressed.png.meta",
+    "guid": "ad2cd01c8cbf3be429cf558ce4e20d99"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\stepper-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\stepper-frame.png",
+    "guid": "d0a98c681237d08459dde3ed760804aa"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\stepper-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\stepper-frame.png.meta",
+    "guid": "d0a98c681237d08459dde3ed760804aa"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\tab-fill-active.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\tab-fill-active.png",
+    "guid": "5a73541090e1c1f4dbe6cd3e794dd1d0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\tab-fill-active.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\tab-fill-active.png.meta",
+    "guid": "5a73541090e1c1f4dbe6cd3e794dd1d0"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\tab-fill-default.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\tab-fill-default.png",
+    "guid": "ccd750b522a859c408e7a8b45cf48d45"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\tab-fill-default.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\tab-fill-default.png.meta",
+    "guid": "ccd750b522a859c408e7a8b45cf48d45"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\tab-fill-disabled.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\tab-fill-disabled.png",
+    "guid": "32f155a021f17c9419d81c4c3dab5746"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\tab-fill-disabled.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\tab-fill-disabled.png.meta",
+    "guid": "32f155a021f17c9419d81c4c3dab5746"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\tab-frame.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\tab-frame.png",
+    "guid": "17064b77a0e2e6641998852f69b1e009"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\LegacyControls\\tab-frame.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\LegacyControls\\tab-frame.png.meta",
+    "guid": "17064b77a0e2e6641998852f69b1e009"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\fill-unavailable.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\fill-unavailable.png",
+    "guid": "ef6787945273ace429d355a171d958c5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\fill-unavailable.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\fill-unavailable.png.meta",
+    "guid": "ef6787945273ace429d355a171d958c5"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\frame-available.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\frame-available.png",
+    "guid": "60da9888730f47940a4996898a80b18c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\frame-available.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\frame-available.png.meta",
+    "guid": "60da9888730f47940a4996898a80b18c"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\frame-selected.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\frame-selected.png",
+    "guid": "f74fdea60ee0c6d45806b6411416ba4a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\frame-selected.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\frame-selected.png.meta",
+    "guid": "f74fdea60ee0c6d45806b6411416ba4a"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\frame-unavailable.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\frame-unavailable.png",
+    "guid": "a772bf793ea41d54c8a4e9198c2c6b2b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\frame-unavailable.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\frame-unavailable.png.meta",
+    "guid": "a772bf793ea41d54c8a4e9198c2c6b2b"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\icon-check.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\icon-check.png",
+    "guid": "7d33d8aaa12b8484ab725526bf9aeebe"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\icon-check.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\icon-check.png.meta",
+    "guid": "7d33d8aaa12b8484ab725526bf9aeebe"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\icon-lock.png",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\icon-lock.png",
+    "guid": "cc9cea303e29af54b9138a367f3c2401"
+  },
+  {
+    "old": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui002\\Sprites\\SelectionStates\\icon-lock.png.meta",
+    "new": "G:\\NoMadCity\\Assets\\YC\\Presentation\\CommonUi\\Sprites\\SelectionStates\\icon-lock.png.meta",
+    "guid": "cc9cea303e29af54b9138a367f3c2401"
+  },
+  {
+    "old": "G:\\NoMadCity\\tools\\import_ui002_assets.py",
+    "new": "G:\\NoMadCity\\tools\\import_shared_ui_assets.py",
+    "guid": null
+  },
+  {
+    "old": "G:\\NoMadCity\\tools\\ui002_sprite_manifest.json",
+    "new": "G:\\NoMadCity\\tools\\shared_ui_sprite_manifest.json",
+    "guid": null
+  },
+  {
+    "old": "G:\\NoMadCity\\tools\\verify_ui002_assets.py",
+    "new": "G:\\NoMadCity\\tools\\verify_shared_ui_assets.py",
+    "guid": null
+  },
+  {
+    "old": "G:\\NoMadCity\\tools\\verify_ui007_geometry.py",
+    "new": "G:\\NoMadCity\\tools\\verify_gameplay_ui_geometry.py",
+    "guid": null
+  },
+  {
+    "old": "G:\\NoMadCity\\tools\\write_ui006_asset_map.py",
+    "new": "G:\\NoMadCity\\tools\\write_effect_asset_map.py",
+    "guid": null
+  },
+  {
+    "old": "G:\\NoMadCity\\tools\\__pycache__\\verify_ui007_geometry.cpython-313.pyc",
+    "new": "G:\\NoMadCity\\tools\\__pycache__\\verify_gameplay_ui_geometry.cpython-313.pyc",
+    "guid": null
+  }
+]

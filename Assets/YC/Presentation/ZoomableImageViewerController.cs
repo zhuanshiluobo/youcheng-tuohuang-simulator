@@ -280,8 +280,9 @@ namespace YC.Presentation
 
             if (value)
             {
-                expandedPanelSize = view.PanelTransform.sizeDelta;
-                expandedPanelPosition = view.PanelTransform.anchoredPosition;
+                var layout = ResolvePanelLayout();
+                expandedPanelSize = layout == null ? view.PanelTransform.sizeDelta : layout.PreferredSize;
+                expandedPanelPosition = layout == null ? view.PanelTransform.anchoredPosition : layout.PreferredOffset;
             }
 
             collapsed = value;
@@ -290,7 +291,7 @@ namespace YC.Presentation
 
         public void Close()
         {
-            if (initialized)
+            if (initialized && view != null && view.RootObject != null)
             {
                 view.RootObject.SetActive(false);
                 GameplayHudFrame.Active?.HidePage(view.RootObject);
@@ -331,8 +332,9 @@ namespace YC.Presentation
             BindButton(view.PrimaryActionButton, () => primaryAction?.Invoke());
             BindButton(view.SecondaryActionButton, () => secondaryAction?.Invoke());
             BindButton(view.CollapseToggleButton, () => SetCollapsed(!collapsed));
-            expandedPanelSize = view.PanelTransform.sizeDelta;
-            expandedPanelPosition = view.PanelTransform.anchoredPosition;
+            var panelLayout = ResolvePanelLayout();
+            expandedPanelSize = panelLayout == null ? view.PanelTransform.sizeDelta : panelLayout.PreferredSize;
+            expandedPanelPosition = panelLayout == null ? view.PanelTransform.anchoredPosition : panelLayout.PreferredOffset;
             view.RootObject.SetActive(false);
             view.PrimaryActionButton.gameObject.SetActive(false);
             view.SecondaryActionButton.gameObject.SetActive(false);
@@ -395,13 +397,16 @@ namespace YC.Presentation
                 maximumViewportSize.x / texture.width,
                 maximumViewportSize.y / texture.height);
             var fittedImageSize = new Vector2(texture.width, texture.height) * fitScale;
-            view.PanelTransform.sizeDelta = new Vector2(
+            var requestedSize = new Vector2(
                 fittedImageSize.x + PanelHorizontalChrome,
                 fittedImageSize.y + PanelVerticalChrome);
+            var requestedOffset = ResolvePanelLayout() == null
+                ? view.PanelTransform.anchoredPosition : expandedPanelPosition;
+            ConfigurePanelLayout(requestedSize, requestedOffset);
             if (!collapsed)
             {
-                expandedPanelSize = view.PanelTransform.sizeDelta;
-                expandedPanelPosition = view.PanelTransform.anchoredPosition;
+                expandedPanelSize = requestedSize;
+                expandedPanelPosition = requestedOffset;
             }
 
             Canvas.ForceUpdateCanvases();
@@ -424,18 +429,16 @@ namespace YC.Presentation
                 view.LayoutProfile.ExpandedToggleLayout.ApplyTo(toggleRect);
             }
 
-            view.CollapseToggleLabel.text = collapsed ? "▼ 展开卡牌" : "▲ 收起卡牌";
+            view.CollapseToggleLabel.text = collapsed ? view.ExpandLabel : view.CollapseLabel;
             if (collapsed)
             {
                 var width = Mathf.Max(560f, expandedPanelSize.x);
-                view.PanelTransform.sizeDelta = new Vector2(width, CollapsedPanelHeight);
-                view.PanelTransform.anchoredPosition = expandedPanelPosition +
-                    new Vector2(0f, (expandedPanelSize.y - CollapsedPanelHeight) * 0.5f);
+                ConfigurePanelLayout(new Vector2(width, CollapsedPanelHeight), expandedPanelPosition +
+                    new Vector2(0f, (expandedPanelSize.y - CollapsedPanelHeight) * 0.5f));
             }
             else if (expandedPanelSize.x > 0f && expandedPanelSize.y > 0f)
             {
-                view.PanelTransform.sizeDelta = expandedPanelSize;
-                view.PanelTransform.anchoredPosition = expandedPanelPosition;
+                ConfigurePanelLayout(expandedPanelSize, expandedPanelPosition);
             }
 
             view.RootBackgroundImage.color = collapsed
@@ -457,6 +460,44 @@ namespace YC.Presentation
             view.ImageTransform.sizeDelta =
                 new Vector2(texture.width * scale, texture.height * scale) * zoom;
             view.ImageTransform.anchoredPosition = Vector2.zero;
+        }
+
+        private void ConfigurePanelLayout(Vector2 size, Vector2 offset)
+        {
+            var layout = ResolvePanelLayout();
+            if (layout != null)
+            {
+                layout.Configure(size, offset);
+                LayoutRebuilder.ForceRebuildLayoutImmediate(layout.transform as RectTransform);
+            }
+            else
+            {
+                // 开始页使用原共享资产；局内副本的此轴由 UiWindowSizeInput 独占。
+                view.PanelTransform.sizeDelta = size;
+                view.PanelTransform.anchoredPosition = offset;
+            }
+        }
+
+        private UiWindowSizeInput ResolvePanelLayout()
+        {
+            return view == null || view.PanelTransform == null || view.PanelTransform.parent == null
+                ? null : view.PanelTransform.parent.GetComponent<UiWindowSizeInput>();
+        }
+
+        public void RefreshViewportGeometry()
+        {
+            if (!initialized || view == null || view.Image.texture == null) return;
+            var viewport = view.ViewportTransform.rect.size;
+            if (viewport.x <= 0 || viewport.y <= 0) return;
+            var texture = view.Image.texture;
+            var scale = Mathf.Min(viewport.x / texture.width, viewport.y / texture.height) * zoom;
+            var oldSize = view.ImageTransform.rect.size;
+            var nextSize = new Vector2(texture.width, texture.height) * scale;
+            var position = view.ImageTransform.anchoredPosition;
+            if (oldSize.x > 0) position.x *= nextSize.x / oldSize.x;
+            if (oldSize.y > 0) position.y *= nextSize.y / oldSize.y;
+            view.ImageTransform.sizeDelta = nextSize;
+            view.ImageTransform.anchoredPosition = position;
         }
 
         private void UpdateControls()

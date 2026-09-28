@@ -1,0 +1,218 @@
+{
+    "asset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/DispatchDecisionDialog.prefab",
+    "evidenceKind": "离线资产参考矩形；不是实际运行屏幕验收。包含相同对象迁移前后坐标、活动状态和层级。",
+    "referenceResolution": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "objects": [
+        {
+            "beforePath": "DispatchDecisionDialog",
+            "afterPath": "DispatchDecisionDialog",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "DispatchDecisionDialog/Dispatch Decision Panel",
+            "afterPath": "DispatchDecisionDialog/Dispatch Decision Panel",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 425.0,
+                "width": 520.0,
+                "height": 190.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 425.0,
+                "width": 520.0,
+                "height": 190.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "DispatchDecisionDialog/Dispatch Decision Panel/Dispatch Decision Title",
+            "afterPath": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Header/Dispatch Decision Title",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 730.0,
+                "y": 558.0,
+                "width": 460.0,
+                "height": 30.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 730.0,
+                "y": 558.0,
+                "width": 460.0,
+                "height": 30.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "DispatchDecisionDialog/Dispatch Decision Panel/Dispatch Decision Message",
+            "afterPath": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Dispatch Decision Message Slot/Dispatch Decision Message",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 730.0,
+                "y": 522.0,
+                "width": 460.0,
+                "height": 30.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 730.0,
+                "y": 522.0,
+                "width": 460.0,
+                "height": 30.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "DispatchDecisionDialog/Dispatch Decision Panel/Continue Dispatch",
+            "afterPath": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Footer/Continue Dispatch",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 755.0,
+                "y": 463.0,
+                "width": 170.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 755.0,
+                "y": 463.0,
+                "width": 170.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "DispatchDecisionDialog/Dispatch Decision Panel/Continue Dispatch/Label",
+            "afterPath": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Footer/Continue Dispatch/Label",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 765.0,
+                "y": 463.0,
+                "width": 150.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 765.0,
+                "y": 463.0,
+                "width": 150.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "DispatchDecisionDialog/Dispatch Decision Panel/Finish Dispatch",
+            "afterPath": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Footer/Finish Dispatch",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 995.0,
+                "y": 463.0,
+                "width": 170.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 995.0,
+                "y": 463.0,
+                "width": 170.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "DispatchDecisionDialog/Dispatch Decision Panel/Finish Dispatch/Label",
+            "afterPath": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Footer/Finish Dispatch/Label",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1005.0,
+                "y": 463.0,
+                "width": 150.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1005.0,
+                "y": 463.0,
+                "width": 150.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        }
+    ]
+}

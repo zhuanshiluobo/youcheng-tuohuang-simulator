@@ -11,7 +11,6 @@ namespace YC.Presentation
 
         private Action clearSelectionRequested;
         private Action closeRequested;
-        private Action<int> pageChangeRequested;
 
         public static bool WasEscapeConsumedThisFrame()
         {
@@ -34,12 +33,10 @@ namespace YC.Presentation
 
         public void Configure(
             Action configuredClearSelectionRequested,
-            Action configuredCloseRequested,
-            Action<int> configuredPageChangeRequested)
+            Action configuredCloseRequested)
         {
             clearSelectionRequested = configuredClearSelectionRequested;
             closeRequested = configuredCloseRequested;
-            pageChangeRequested = configuredPageChangeRequested;
         }
 
         private void Update()
@@ -53,18 +50,14 @@ namespace YC.Presentation
                 escapeConsumedFrame = Time.frameCount;
                 closeRequested?.Invoke();
             }
-            else if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                pageChangeRequested?.Invoke(-1);
-            }
-            else if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                pageChangeRequested?.Invoke(1);
-            }
+
         }
 
         private void HandleRightClick(GameObject pointerTarget)
         {
+            // 卡牌右键由自己的查看手势处理，不能同时触发页面关闭。
+            if (pointerTarget != null && pointerTarget.GetComponentInParent<CityStyleCardGesture>()?.CanOpen == true)
+                return;
             if (IsDeclarationSlot(pointerTarget))
             {
                 clearSelectionRequested?.Invoke();

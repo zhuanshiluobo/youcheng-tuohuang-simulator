@@ -1,0 +1,54 @@
+from pathlib import Path
+import ast,re,json
+R=Path('G:/NoMadCity'); P=R/'Assets/YC/Presentation'
+ns={'__name__':'asset_helpers'}
+for n in ast.parse((R/'Logs/author_enterprise_assets.py').read_text(encoding='utf8')).body:
+ if isinstance(n,(ast.Import,ast.ImportFrom,ast.FunctionDef,ast.ClassDef)):exec(compile(ast.Module(body=[n],type_ignores=[]),'helpers','exec'),ns)
+ns.update(R=R,P=P,base='  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n',header='%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n')
+guid=ns['guid'];ext=ns['ext'];ref=ns['ref'];ns['scripts']={p.name[:-8]:guid(Path(str(p)[:-5])) for p in (R/'Library/PackageCache/com.unity.ugui@1.0.0/Runtime').rglob('*.cs.meta')}
+ns['scripts'].update({p.stem:guid(p) for p in P.rglob('*.cs')});ns['F']={k:ext(P/'CommonUi/Fonts'/f,12800000) for k,f in [('normal','FangZhengHeiTiJianTi-1.ttf'),('number','Novecento NarrowBold.otf')]}
+def docs(t):return {int(m[1]):m[0] for m in re.finditer(r'^--- !u!\d+ &(\d+)\n.*?(?=^--- !u!|\Z)',t,re.M|re.S)}
+def go(t):return int(re.search(r'm_GameObject: {fileID: (\d+)',t)[1])
+def rt(d,g):return next(i for i,t in d.items() if t.startswith('--- !u!224 ') and go(t)==g)
+def append(a,d):
+ collected=[];ns['new']=lambda p,t,k:collected.append(t);a.save(None)
+ return ns['header']+''.join(d.values())+collected[0][len(ns['header']):]
+catalog=P/'Enterprise/EnterpriseBoardCatalog.asset';t=catalog.read_text(encoding='utf8')
+boardmap=json.loads((R/'游城拓荒/UI素材/整理版-2026-09-24/原包参数/RhineDepartment-UI-v1.0/sources/board-map.json').read_text(encoding='utf8'))
+for b in boardmap['departments']:
+ key=Path(b['source']).stem
+ match=re.search(r'  - visualKey: '+key+r'\n.*?(?=  - visualKey:|\Z)',t,re.S)
+ block=match[0]+'    rewardAnchors:\n'
+ for zone in b['rewardZones']:
+  x,y,w,h=zone['sourceRect'];block+=f'    - {{x: 0, y: {1-(y+h/2)/1000}}}\n'
+ t=t[:match.start()]+block+t[match.end():]
+catalog.write_text(t,encoding='utf8')
+
+p=P/'Prefabs/Gameplay/Dialogs/Enterprise/EnterpriseBoardItem.prefab';d=docs(p.read_text(encoding='utf8'));a=ns['Asset']();a.i=12000
+image=next(i for i,t in d.items() if f'guid: {ns["scripts"]["RawImage"]}' in t);parent={'rt':rt(d,go(d[image])),'children':[]};ids=[]
+for level in [5,4,3,2]:
+ n=a.node('Reward Level '+str(level),parent,False,amin=(0,.5),amax=(0,.5),size=(30,24),pivot=(1,.5));ids.append(a.text(n,str(level),'number',19,5))
+pr=parent['rt'];d[pr]=d[pr].replace('  m_Father:',''.join(f'  - {ref(n["rt"])}\n' for n in a.objs if n['parent']==parent)+'  m_Father:')
+view=next(i for i,t in d.items() if f'guid: {ns["scripts"]["EnterpriseBoardItemView"]}' in t)
+d[view]+='  rewardLabels:\n'+''.join(f'  - {ref(i)}\n' for i in ids)
+for i,t in list(d.items()):
+ if f'guid: {ns["scripts"]["Text"]}' in t:
+  # 红色数字用白字，其余三位用深色；对象身份沿用新模板。
+  rtid=rt(d,go(t));parentid=int(re.search(r'm_Father: {fileID: (\d+)',d[rtid])[1]);parentgo=go(d[parentid]);name=re.search(r'm_Name: (.*)',d[parentgo])[1]
+  if name.strip('"') in ['Player 1','Player 2','Player 3']:d[i]=t.replace('m_Color: {r: 0.95, g: 0.93, b: 0.86, a: 1}','m_Color: {r: 0.12, g: 0.1, b: 0.07, a: 1}')
+p.write_text(append(a,d),encoding='utf8')
+# 复用共用混排行中的现有 Text 模板，新增字段由现有 UiSemanticLabel 负责。
+mixed=P/'CommonUi/Prefabs/MixedLine.prefab';md=docs(mixed.read_text(encoding='utf8'))
+textid=next(i for i,t in md.items() if f'guid: {ns["scripts"]["Text"]}' in t)
+for p in (P/'Prefabs/Gameplay/Dialogs/Enterprise').glob('*SelectionDialog.prefab'):
+ d=docs(p.read_text(encoding='utf8'));a=ns['Asset']();a.i=14000
+ for i,t in list(d.items()):
+  if f'guid: {ns["scripts"]["Text"]}' not in t:continue
+  g=go(t);name=re.search(r'm_Name: (.*)',d[g])[1].strip('"')
+  if name not in ['Description Text','Cost']:continue
+  node={'go':g,'rt':rt(d,g),'components':[]}
+  a.comp(node,'UiFlowLayoutGroup','  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 0\n  horizontalSpacing: 0\n  verticalSpacing: 2\n  minimumRowHeight: 26\n')
+  a.comp(node,'UiSemanticLabel',f'  host: {ref(node["rt"])}\n  fragmentTemplate: {ext(mixed,textid)}\n  fonts: '+ext(P/'CommonUi/Content/UiFontRoles.asset',11400000).replace('type: 3','type: 2')+'\n  ink: {r: 0.95, g: 0.93, b: 0.86, a: 1}\n')
+  d[g]=d[g].replace('  m_Layer:',''.join(f'  - component: {ref(c)}\n' for c in node['components'])+'  m_Layer:')
+ p.write_text(ns['header']+''.join(d.values())+''.join(a.docs),encoding='utf8')
+print('已添加信息性奖励标签与共用语义混排')

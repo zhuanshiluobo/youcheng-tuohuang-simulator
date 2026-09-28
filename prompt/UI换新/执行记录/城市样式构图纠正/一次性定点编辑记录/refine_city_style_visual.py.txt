@@ -1,0 +1,31 @@
+from pathlib import Path
+import re
+exec(Path('Logs/patch_city_style_assets.py').read_text(encoding='utf-8-sig').split('# Catalog binds')[0]);P='Assets/YC/Presentation/';SPR=P+'CommonUi/Sprites/'
+for file in ['BuildInfoPanel','GameplayInteractionHud']:
+ a=Asset(P+'Prefabs/Gameplay/'+file+'.prefab')
+ for i,(k,t) in list(a.docs.items()):
+  if k==114 and guid(P+'CityStyleStatusRowView.cs.meta') in t:
+   nt=ref(t,'nameText');go=ref(a.text(nt),'m_GameObject');nr=next(r for r,(kind,body) in a.docs.items() if kind==224 and ref(body,'m_GameObject')==go)
+   ch=a.node('Name Text',nr);new=clone_comp(a,a.text(nt),ch);cr=a.uid();a.docs[cr]=(222,f'--- !u!222 &{cr}\nCanvasRenderer:\n  m_ObjectHideFlags: 0\n  m_GameObject: {{fileID: {a.go(ch)}}}\n  m_CullTransparentMesh: 1\n');g=a.go(ch);kk,tt=a.docs[g];a.docs[g]=(kk,tt.replace('  m_Layer:',f'  - component: {{fileID: {cr}}}\n  m_Layer:'));remove_comp(a,nt);a.set(i,'nameText',f'{{fileID: {new}}}')
+   row=next(r for r,(kind,body) in a.docs.items() if kind==224 and ref(body,'m_GameObject')==ref(t,'m_GameObject'));limited='trackLayout: limited' in t;a.element(row,mh=58 if limited else 26,ph=58 if limited else 26)
+   group=comp(a,row,NATIVE['HorizontalLayoutGroup']);a.set(group,'m_Padding','\n    m_Left: 6\n    m_Right: 6\n    m_Top: 1\n    m_Bottom: 1')
+   for r in a.children(a.children(row)[2]):
+    if limited:
+     a.set(comp(a,r,NATIVE['VerticalLayoutGroup']),'m_Spacing','0');a.element(a.children(r)[0],ph=12,mh=12)
+    elif 'declared' in field(a.text(a.go(r)),'m_Name'):a.element(a.children(r)[0],pw=42,mw=42,fw=0,mh=14,ph=14)
+ for r,(k,t) in list(a.docs.items()):
+  if k==224 and a.go(r) in a.docs and 'City Style Status Table Content' in field(a.text(a.go(r)),'m_Name'):
+   a.set(comp(a,r,NATIVE['VerticalLayoutGroup']),'m_Padding','\n    m_Left: 4\n    m_Right: 4\n    m_Top: 2\n    m_Bottom: 2')
+ a.save()
+for file,art in [('BuildInfoPanel',7672488502453589007),('Dialogs/CityStyleDeclarationPreviewDialog',6130611447716182152)]:
+ a=Asset(P+'Prefabs/Gameplay/'+file+'.prefab');cs=a.children(art);overlay=next(c for c in cs if 'State Track Backgrounds' in field(a.text(a.go(c)),'m_Name'));cs.remove(overlay);cs.insert(1,overlay);a.children_set(art,cs)
+ for r,(k,t) in list(a.docs.items()):
+  if k==224 and 'State Label'==field(a.text(a.go(r)),'m_Name'):
+   ti=comp(a,r,NATIVE['Text']);a.docs[ti]=(114,a.text(ti).replace('m_FontSize: 48','m_FontSize: 24').replace('m_MaxSize: 48','m_MaxSize: 24'))
+  if k==224 and 'Additional Declaration Label'==field(a.text(a.go(r)),'m_Name'):
+   ti=comp(a,r,NATIVE['Text']);a.docs[ti]=(114,a.text(ti).replace('m_FontSize: 20','m_FontSize: 12'))
+ if file.startswith('Dialogs'):
+  im=comp(a,479980190620614069,NATIVE['Image']);a.set(im,'m_Color','{r: 1, g: 1, b: 1, a: 0}');remove_comp(a,comp(a,479980190620614069,NATIVE['Outline']))
+  # 主按钮浅字改为源的深色大字，装饰边框仍按新版自身切片。
+  vi=next(i for i,(k,t) in a.docs.items() if k==114 and guid(P+'CityStyleDeclarationPreviewView.cs.meta') in t);ti=ref(a.text(vi),'confirmDeclarationButtonLabel');a.set(ti,'m_Color','{r: 0.14, g: 0.11, b: 0.07, a: 1}');s=a.text(ti);s=re.sub('m_FontSize: \\d+','m_FontSize: 24',s);a.docs[ti]=(114,s)
+ a.save()

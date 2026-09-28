@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
@@ -7,9 +8,16 @@ using UnityEngine.UI;
 
 namespace YC.Tests.EditMode
 {
+    [TestFixture(ViewerPrefabTestUtility.InGameSettingsPrefabPath)]
+    [TestFixture(ViewerPrefabTestUtility.SharedSettingsPrefabPath)]
     public sealed class GameSettingsMenuControllerTests
     {
-        private const string PrefabPath = "Assets/YC/Presentation/Prefabs/GameSettings/GameSettingsMenu.prefab";
+        private readonly string prefabPath;
+
+        public GameSettingsMenuControllerTests(string prefabPath)
+        {
+            this.prefabPath = prefabPath;
+        }
 
         private GameObject root;
         private Component controller;
@@ -20,7 +28,7 @@ namespace YC.Tests.EditMode
             var type = Type.GetType("YC.Presentation.GameSettingsMenuController, Assembly-CSharp", false);
             Assert.That(type, Is.Not.Null, "Missing YC.Presentation.GameSettingsMenuController.");
 
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             Assert.That(prefab, Is.Not.Null, "Missing editor-authored settings prefab.");
             root = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
             Assert.That(root, Is.Not.Null);
@@ -45,10 +53,7 @@ namespace YC.Tests.EditMode
             Assert.That(overlay, Is.Not.Null);
             Assert.That(overlay.gameObject.activeSelf, Is.True);
             Assert.That(GetPublicProperty<bool>(controller, "IsOpen"), Is.True);
-            Assert.That(
-                root.transform.Find("Game Settings Canvas/Settings Overlay/Settings Panel")
-                    .GetComponent<RectTransform>().anchoredPosition,
-                Is.EqualTo(Vector2.zero));
+            Assert.That(FindNamed("Settings Panel").gameObject.activeInHierarchy, Is.True);
         }
 
         [Test]
@@ -99,14 +104,10 @@ namespace YC.Tests.EditMode
         [Test]
         public void Prefab_DefaultsToGeneralTabWithFourResolutionOptions()
         {
-            var generalContent = root.transform.Find(
-                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content");
-            var futureContent = root.transform.Find(
-                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/占位 Content");
-            var generalTab = root.transform.Find(
-                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Button");
-            var dropdownTransform = root.transform.Find(
-                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Dropdown");
+            var generalContent = FindNamed("通用 Content");
+            var futureContent = FindNamed("占位 Content");
+            var generalTab = FindNamed("通用 Button");
+            var dropdownTransform = FindNamed("分辨率 Dropdown");
 
             Assert.That(generalContent, Is.Not.Null);
             Assert.That(generalContent.gameObject.activeSelf, Is.True);
@@ -127,13 +128,9 @@ namespace YC.Tests.EditMode
         [Test]
         public void PlaceholderTab_ShowsFutureContentAndHidesGeneralContent()
         {
-            var generalContent = root.transform.Find(
-                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content");
-            var futureContent = root.transform.Find(
-                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/占位 Content");
-            var placeholderTab = root.transform.Find(
-                "Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/占位 Button")
-                .GetComponent<Button>();
+            var generalContent = FindNamed("通用 Content");
+            var futureContent = FindNamed("占位 Content");
+            var placeholderTab = FindNamed("占位 Button").GetComponent<Button>();
 
             placeholderTab.onClick.Invoke();
 
@@ -147,8 +144,9 @@ namespace YC.Tests.EditMode
         {
             var viewerType = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", false);
             Assert.That(viewerType, Is.Not.Null);
-            var viewerObject = ViewerPrefabTestUtility.Instantiate(
-                ViewerPrefabTestUtility.ZoomablePrefabPath);
+            var viewerPrefab = new SerializedObject(controller)
+                .FindProperty("zoomableImageViewerPrefab").objectReferenceValue;
+            var viewerObject = ViewerPrefabTestUtility.Instantiate(AssetDatabase.GetAssetPath(viewerPrefab));
             viewerObject.name = "Open Image Viewer";
             viewerObject.transform.SetParent(root.transform, false);
             var viewer = viewerObject.GetComponent(viewerType);
@@ -179,6 +177,13 @@ namespace YC.Tests.EditMode
             InvokePublic(controller, "HandleEscapePressed");
 
             Assert.That(GetPublicProperty<bool>(controller, "IsOpen"), Is.False);
+        }
+
+        private Transform FindNamed(string name)
+        {
+            var value = root.GetComponentsInChildren<Transform>(true).SingleOrDefault(item => item.name == name);
+            Assert.That(value, Is.Not.Null, "缺少实际设置控件：" + name);
+            return value;
         }
 
         private static void EnsureAwakeRan(Component component)

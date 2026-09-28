@@ -1,0 +1,66 @@
+from pathlib import Path
+import re,json
+exec(Path('Logs/patch_city_style_assets.py').read_text(encoding='utf-8-sig').split('# Catalog binds')[0])
+P='Assets/YC/Presentation/';SPR=P+'CommonUi/Sprites/'
+exec(Path('Logs/correct_city_style_assets.py').read_text(encoding='utf-8-sig').split('def append')[1].split("for filename in ['BuildInfoPanel'")[0].join(['def append','']))
+meta(Path(P+'CityStyleCardStateView.cs'))
+# 单个完整原卡模板归独立 BuildInfoPanel 所有；HUD不再实例化卡图。
+b=Asset(P+'Prefabs/Gameplay/BuildInfoPanel.prefab');card=99005863826040201;art=7672488502453589007
+# 卡图占父高度减24的区域，原生grid用同一24带高，确保31:20。
+b.fill(art);b.set(art,'m_SizeDelta','{x: 0, y: -24}');b.set(art,'m_AnchoredPosition','{x: 0, y: 12}')
+# 找到旧额外带，改成锚在整卡模板底部的独立24像素区。
+for i,(k,t) in list(b.docs.items()):
+ if k==224 and 'Extra' in field(b.text(b.go(i)),'m_Name'):
+  print('extra',i,field(b.text(b.go(i)),'m_Name'))
+frame=b.node('Card Selection State Frame',art);fi=image(b,frame,SPR+'SelectionStates/frame-available.png');b.set(fi,'m_PixelsPerUnitMultiplier','2.857143')
+check=b.node('Selected Check',art);ci=image(b,check,SPR+'SelectionStates/icon-check.png')
+lock=b.node('Unavailable Lock',art);li=image(b,lock,SPR+'SelectionStates/icon-lock.png')
+for r,x in [(check,-12),(lock,-34)]:
+ b.set(r,'m_AnchorMin','{x: 1, y: 1}');b.set(r,'m_AnchorMax','{x: 1, y: 1}');b.set(r,'m_SizeDelta','{x: 18, y: 18}');b.set(r,'m_AnchoredPosition',f'{{x: {x}, y: -12}}')
+zoom=b.node('Enlarge Card',card);b.set(zoom,'m_AnchorMin','{x: 1, y: 0}');b.set(zoom,'m_AnchorMax','{x: 1, y: 0}');b.set(zoom,'m_Pivot','{x: 1, y: 0}');b.set(zoom,'m_SizeDelta','{x: 48, y: 24}');zbt=button(b,zoom);zr,zt=label(b,zoom,'Label','放大',12)
+b.component(b.go(card),guid(P+'CityStyleCardStateView.cs.meta'),f'  stateFrame: {{fileID: {fi}}}\n'+''.join(f'  {role}Frame: {{fileID: 21300000, guid: {guid(SPR+"SelectionStates/frame-"+role+".png.meta")}, type: 3}}\n' for role in ['available','selected','unavailable'])+f'  checkIcon: {{fileID: {b.go(check)}}}\n  lockIcon: {{fileID: {b.go(lock)}}}\n  enlargeButton: {{fileID: {zbt}}}\n')
+b.save()
+a=Asset(P+'Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab');vi=next(i for i,(k,t) in a.docs.items() if k==114 and guid(P+'CityStyleDeclarationPreviewView.cs.meta') in t)
+panel=2059879358986445709;header=1850109734157661560;footer=7261241829534297204;left=6377259472351329508;right=5421241481182337959
+for i,(k,t) in list(a.docs.items()):
+ if k==114 and 'preferredSize: {x: 1520, y: 900}' in t:a.set(i,'preferredSize','{x: 1744, y: 944}')
+existing_group(a,panel,True,12,(24,24,14,14));a.element(header,mh=74,ph=74);a.element(footer,mh=60,ph=60)
+a.element(left,mw=360,pw=1234,fw=1,fh=1);a.element(right,mw=200,pw=404,fw=0,fh=1)
+existing_group(a,left,True,8,(20,20,12,12));existing_group(a,right,True,8,(24,24,12,12))
+# 页头模式标题说明与玩家状态。
+title=3948227551203327562;stack=a.node('Window Heading',header);a.move(title,stack);a.group(stack,True,4);a.element(stack,pw=0,fw=1);a.element(title,mh=38,ph=38);a.fill(title)
+titletext=comp(a,title,NATIVE['Text']);a.docs[titletext]=(114,a.text(titletext).replace('m_FontSize: 28','m_FontSize: 32').replace('m_Alignment: 4','m_Alignment: 3'))
+dr,dt=label(a,stack,'Mode Description','',18);a.element(dr,mh=26,ph=26)
+pr,pt=label(a,header,'Player And Available Markers','',20);a.element(pr,mw=220,pw=360,fw=0)
+a.children_set(header,[stack,pr,89532057176552478])
+# 左分区标题与返回：返回仅在放大状态出现。
+oldtitle=6394404177124821186;summary=7451260000000000037;summarycontent=7451260000000000042
+sub=a.node('Overview Header',left);a.group(sub,False,8);a.element(sub,mh=28,ph=28)
+sr,st=label(a,sub,'Overview Caption','本局城市样式',22);a.element(sr,pw=0,fw=1)
+back=7451260000000000052;a.move(back,sub);a.element(back,mw=120,pw=120,fw=0,mh=28,ph=28);a.set(7451260000000000059,'m_Text','"返回总览"')
+a.move(oldtitle,summarycontent);a.element(oldtitle,mh=26,ph=26);ti=comp(a,oldtitle,NATIVE['Text']);a.set(ti,'m_Color','{r: 0.2, g: 0.18, b: 0.14, a: 1}');a.docs[ti]=(114,a.text(ti).replace('m_Alignment: 4','m_Alignment: 3').replace('m_FontSize: 26','m_FontSize: 22'))
+# 摘要固定纸底、长正文仅局部滚动。
+a.element(summary,mh=86,ph=86);im=next((i for i in a.components(summary) if NATIVE['Image'] in a.text(i)),None)
+if im is None:im=image(a,summary,SPR+'Frontier31/paper-bg.png')
+else:a.set(im,'m_Sprite','{fileID: 21300000, guid: '+guid(SPR+'Frontier31/paper-bg.png.meta')+', type: 3}');a.set(im,'m_Color','{r: 1, g: 1, b: 1, a: 1}')
+existing_group(a,summarycontent,True,2,(14,14,6,6))
+rr,rt=label(a,summarycontent,'Condition And Reward','',17,True);a.element(rr,mh=22,ph=-1)
+match=2990355142862489253;a.element(match,mh=22,ph=-1);mt=comp(a,match,NATIVE['Text']);a.docs[mt]=(114,a.text(mt).replace('m_Alignment: 4','m_Alignment: 3').replace('m_FontSize: 22','m_FontSize: 17'))
+# 特殊行动提示归页脚左侧，不挤占纸面条件。
+special=8793271626604342046;ft=a.node('Footer Information',footer);a.group(ft,True,2);a.element(ft,pw=0,fw=1);a.move(special,ft);a.element(special,mh=22,ph=-1);spt=comp(a,special,NATIVE['Text']);a.docs[spt]=(114,a.text(spt).replace('m_Alignment: 4','m_Alignment: 3').replace('m_FontSize: 20','m_FontSize: 16'))
+fr,fmt=label(a,ft,'Footer Status','',18);a.element(fr,mh=24,ph=24);a.children_set(ft,[fr,special]);a.children_set(summarycontent,[oldtitle,rr,match])
+a.children_set(left,[sub,7451260000000000025,479980190620614069,summary])
+# 固定三列grid，允许低高局部滚动。
+grid=7451260000000000030;gi=comp(a,grid,NATIVE['GridLayoutGroup']);a.set(gi,'m_Spacing','{x: 20, y: 12}');a.set(gi,'m_ConstraintCount','3');a.set(gi,'m_ChildAlignment','1')
+remove_comp(a,comp(a,grid,guid(P+'Layout/UiAdaptiveGridColumns.cs.meta')))
+a.component(a.go(grid),guid(P+'Layout/CityStyleOverviewGrid.cs.meta'),'  viewport: {fileID: 7451260000000000025}\n  columns: 3\n  minimumCardWidth: 250\n  bandHeight: 24\n  cardAspect: 1.55\n')
+# 原页脚按钮移除，保留confirm身份，加入取消模式按钮。
+for r in [3819286571567218074,7872978146613621456,7451260000000000062]:a.remove_tree(r)
+cancel=a.node('Cancel Declaration',footer);image(a,cancel,SPR+'Frontier31/button-secondary.png');cb=button(a,cancel);lr,lt=label(a,cancel,'Label','取消',24);a.docs[lt]=(114,a.text(lt).replace('m_Alignment: 3','m_Alignment: 4'));a.element(cancel,mw=150,pw=236,fw=0,mh=60,ph=60)
+a.element(7994224994684917141,mw=160,pw=252,fw=0,mh=60,ph=60);a.children_set(footer,[ft,cancel,7994224994684917141])
+# 删除旧导航序列化字段；模式固定文案归资产。
+k,t=a.docs[vi];t=re.sub(r'^  (previousButton|previousButtonLabel|nextButton|nextButtonLabel|detailLabel|listLabel):.*\n','',t,flags=re.M);a.docs[vi]=(k,t)
+append(a,vi,f'  windowTitle: {{fileID: {titletext}}}\n  windowDescription: {{fileID: {dt}}}\n  playerStatus: {{fileID: {pt}}}\n  footerStatus: {{fileID: {fmt}}}\n  summaryDescription: {{fileID: {rt}}}\n  cancelButton: {{fileID: {cb}}}\n'+''.join('  '+key+': '+json.dumps(value,ensure_ascii=False)+'\n' for key,value in {
+'viewTitle':'城市样式详情','declareTitle':'宣告城市样式','viewDescription':'查看原卡、各玩家使用状态与额外宣告标记','declareDescription':'选择样式与参与设施 · 确认前不使用设施或玩家标记','closeDetailsLabel':'关闭详情','confirmLabel':'确认宣告','playerStatusFormat':'{0} · 可用标记 {1}','footerView':'五槽记录Ⅱ级使用状态；额外宣告标记单独显示','footerDeclareFormat':'已选设施 {0} 个 · 可用玩家标记 {1}','unavailableFormat':'当前不可宣告：{0}','unmetCondition':'尚未满足宣告条件。','specialUnavailableFormat':'特殊行动当前不可发动：{0}'}.items())+'  summaryColor: {r: 0.25, g: 0.23, b: 0.18, a: 1}\n')
+a.save()
+print('总览与模式资产已定点修改')

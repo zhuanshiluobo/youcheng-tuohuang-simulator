@@ -9,11 +9,15 @@ namespace YC.Tests.EditMode
     internal static class ViewerPrefabTestUtility
     {
         public const string ZoomablePrefabPath =
-            "Assets/YC/Presentation/Prefabs/Viewers/ZoomableImageViewer.prefab";
+            "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameZoomableImageViewer.prefab";
         public const string RulebookPrefabPath =
-            "Assets/YC/Presentation/Prefabs/Viewers/RulebookViewer.prefab";
+            "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameRulebookViewer.prefab";
         public const string ActionLogPrefabPath =
-            "Assets/YC/Presentation/Prefabs/Viewers/ActionLogViewer.prefab";
+            "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameActionLogViewer.prefab";
+        public const string InGameSettingsPrefabPath =
+            "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab";
+        public const string SharedSettingsPrefabPath =
+            "Assets/YC/Presentation/Prefabs/GameSettings/GameSettingsMenu.prefab";
 
         public static GameObject Instantiate(string path)
         {

@@ -1,0 +1,60 @@
+{
+  "日期": "2026-09-25",
+  "版本": "3.4",
+  "阶段": "源素材整理；Unity 接入未验证",
+  "源包文件数": 144,
+  "源包清单哈希通过": 143,
+  "安装清单源哈希通过": 126,
+  "PNG签名CRC及解压通过": 85,
+  "包外包内说明逐字节一致": true,
+  "顶层逻辑素材数": 32,
+  "八片拆分逻辑素材数": 0,
+  "标记PNG数": 15,
+  "运行时源素材文件数": 111,
+  "3.2基线内存核对": [
+    {
+      "path": "asset-manifest.json",
+      "sha256": "395895c09ccedda985c940e8976c51f72884cf4c0a7128afae54cbeee8586af9",
+      "matched": true
+    },
+    {
+      "path": "preview/scene.mjs",
+      "sha256": "db2bbdc415b5dfdf3d0bad251bdc0ec7714b5e2f0d78255edd39a382426532d9",
+      "matched": true
+    },
+    {
+      "path": "preview/data.mjs",
+      "sha256": "f1f88d6a64db1c83836bab94c47a619924c1ad976a2def53f8954efed5ddcd86",
+      "matched": true
+    },
+    {
+      "path": "preview/app.js",
+      "sha256": "81e6b3377d33b3adb226f9fc56296f201c35f7232030ec39eacc7edb5c52cf59",
+      "matched": true
+    },
+    {
+      "path": "preview/styles.css",
+      "sha256": "fabeee0b8b204cb73c85b84fa7d33e07f468aea96283390283569c391802dce3",
+      "matched": true
+    },
+    {
+      "path": "preview/index.html",
+      "sha256": "b0e451462f1680f691634d13486ca8a9733a55f578aab2a73b5e2f9c186aa667",
+      "matched": true
+    },
+    {
+      "path": "preview/preview.bundle.js",
+      "sha256": "e85a756d81aa0342b81c43d0c41898f83dd7434d74927d45efff114e9dd32245",
+      "matched": true
+    },
+    {
+      "path": "tools/render_preview.mjs",
+      "sha256": "ff8947ae2289b9e0a24e28fd6590af9b028589d07882d06c8d5ffc07b9bbca2a",
+      "matched": true
+    }
+  ],
+  "安装脚本已执行": false,
+  "浏览器交互已验证": false,
+  "Unity接入已验证": false,
+  "说明": "源包 QA 保留原声明；PNG 校验是结构与压缩数据检查，不等于实际引擎画面验证。"
+}

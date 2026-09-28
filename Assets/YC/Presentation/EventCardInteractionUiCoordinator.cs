@@ -31,7 +31,9 @@ namespace YC.Presentation
 
         private string renderedInteractionId = string.Empty;
         private int renderedRevision = -1;
+        private bool needsRefresh;
         private string inFlightCommandId = string.Empty;
+        public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
 
         public EventCardInteractionUiCoordinator(
             Func<GameState> getState,
@@ -73,7 +75,7 @@ namespace YC.Presentation
         public bool CanRender(InteractionRequestProjection request)
         {
             return request != null && request.VisibleToViewer &&
-                   request.AnsweringPlayerId == getLocalPlayerId() &&
+                   request.AnsweringPlayerId == getLocalPlayerId() && request.Status == "open" &&
                    IsEventCardInteraction(request.InteractionTypeId);
         }
 
@@ -85,16 +87,16 @@ namespace YC.Presentation
                 return;
             }
 
-            if (projection.InteractionId == renderedInteractionId &&
-                projection.StateRevision == renderedRevision &&
-                string.IsNullOrEmpty(inFlightCommandId))
-            {
-                return;
-            }
+            var sameRequest = projection.InteractionId == renderedInteractionId;
+            if (sameRequest && projection.StateRevision < renderedRevision) return;
+            if (!sameRequest) { inFlightCommandId = string.Empty; selectedInfluenceSlots.Clear(); }
+            if (!string.IsNullOrEmpty(inFlightCommandId)) return;
+            if (sameRequest && !needsRefresh && projection.StateRevision == renderedRevision) return;
 
             renderedInteractionId = projection.InteractionId;
             renderedRevision = projection.StateRevision;
-            selectedInfluenceSlots.Clear();
+            needsRefresh = false;
+            selectedInfluenceSlots.RemoveAll(id => projection.CandidateIds == null || !projection.CandidateIds.Contains(id));
             clearHighlights();
 
             if (projection.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId)
@@ -176,15 +178,13 @@ namespace YC.Presentation
 
         public override void NotifyCommandSettled(string commandId)
         {
-            if (string.IsNullOrEmpty(inFlightCommandId) ||
-                (!string.IsNullOrEmpty(commandId) && commandId != inFlightCommandId))
+            if (string.IsNullOrEmpty(inFlightCommandId) || string.IsNullOrEmpty(commandId) || commandId != inFlightCommandId)
             {
                 return;
             }
 
             inFlightCommandId = string.Empty;
-            renderedInteractionId = string.Empty;
-            renderedRevision = -1;
+            needsRefresh = true;
         }
 
         public void Dispose()
@@ -196,6 +196,7 @@ namespace YC.Presentation
         {
             renderedInteractionId = string.Empty;
             renderedRevision = -1;
+            needsRefresh = false;
             inFlightCommandId = string.Empty;
             selectedInfluenceSlots.Clear();
             dialog.Hide();
@@ -233,6 +234,7 @@ namespace YC.Presentation
 
         private bool TryHandleInfluenceSlotClicked(InteractionRequest request, string slotId)
         {
+            if (GameplayHudFrame.EffectInputSuspended) return false;
             if (request == null || string.IsNullOrEmpty(slotId) ||
                 request.CandidateIds == null || !request.CandidateIds.Contains(slotId))
             {
@@ -268,11 +270,19 @@ namespace YC.Presentation
 
         private void SubmitCandidates(InteractionRequestProjection projection, IList<string> selected)
         {
-            if (projection == null || selected == null || selected.Count == 0 ||
-                !string.IsNullOrEmpty(inFlightCommandId))
+            if (GameplayHudFrame.EffectInputSuspended || projection == null || selected == null ||
+                selected.Count < projection.MinSelections || selected.Count > projection.MaxSelections ||
+                !string.IsNullOrEmpty(inFlightCommandId) || !TryGetRequest(out var current))
             {
                 return;
             }
+            var visible = InteractionRequestProjector.ProjectForPlayer(current, getLocalPlayerId());
+            if (!CanRender(visible) || visible.InteractionId != projection.InteractionId ||
+                visible.StateRevision != projection.StateRevision || visible.CandidateSetId != projection.CandidateSetId ||
+                visible.CandidateSetVersion != projection.CandidateSetVersion) return;
+            var distinct = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var id in selected)
+                if (!distinct.Add(id) || visible.CandidateIds == null || !visible.CandidateIds.Contains(id)) return;
 
             var command = EffectInteractionCommands.Answer(projection, getLocalPlayerId(), selected);
 
@@ -286,6 +296,7 @@ namespace YC.Presentation
             catch
             {
                 inFlightCommandId = string.Empty;
+                needsRefresh = true;
                 throw;
             }
         }
@@ -301,17 +312,11 @@ namespace YC.Presentation
         private bool TryGetRequest(out InteractionRequest request)
         {
             request = null;
-            var state = getState();
-            if (state == null || state.EffectRuntime == null ||
-                state.EffectRuntime.InteractionRequests == null)
-            {
-                return false;
-            }
-
             var localPlayerId = getLocalPlayerId();
-            for (var i = 0; i < state.EffectRuntime.InteractionRequests.Count; i++)
+            var requests = GetVisibleRequests == null ? VisibleInteractionRequestSource.Read(getState(), null, localPlayerId) : GetVisibleRequests();
+            for (var i = 0; requests != null && i < requests.Count; i++)
             {
-                var candidate = state.EffectRuntime.InteractionRequests[i];
+                var candidate = requests[i];
                 if (candidate != null && candidate.Status == "open" &&
                     candidate.AnsweringPlayerId == localPlayerId &&
                     IsEventCardInteraction(candidate.InteractionTypeId))

@@ -1,0 +1,323 @@
+{
+    "asset": "Assets/YC/Presentation/Prefabs/Viewers/ActionLogViewer.prefab",
+    "evidenceKind": "离线资产参考矩形；不是实际运行屏幕验收。包含相同对象迁移前后坐标、活动状态和层级。",
+    "referenceResolution": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "capturePhase": "-corrected",
+    "objects": [
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 528.0,
+                "y": 200.0,
+                "width": 864.0,
+                "height": 680.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 528.0,
+                "y": 200.0,
+                "width": 864.0,
+                "height": 680.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Action Log Scroll View/Action Log Scrollbar/Sliding Area",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Body Viewport/Action Log Scroll View/Action Log Scrollbar/Sliding Area",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1339.0,
+                "y": 235.0,
+                "width": 16.0,
+                "height": 558.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1339.0,
+                "y": 235.0,
+                "width": 16.0,
+                "height": 558.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Close Action Log Button",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Header/Close Action Log Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1332.0,
+                "y": 830.0,
+                "width": 46.0,
+                "height": 36.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1332.0,
+                "y": 830.0,
+                "width": 46.0,
+                "height": 36.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Close Action Log Button/Label",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Header/Close Action Log Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1340.0,
+                "y": 830.0,
+                "width": 30.0,
+                "height": 36.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1340.0,
+                "y": 830.0,
+                "width": 30.0,
+                "height": 36.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Action Log Scroll View/Action Log Viewport/Action Log Content/Action Log Row Template",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Body Viewport/Action Log Scroll View/Action Log Viewport/Action Log Content/Action Log Row Template",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 895.0,
+                "y": 746.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 895.0,
+                "y": 738.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -8.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Action Log Scroll View",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Body Viewport/Action Log Scroll View",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 554.0,
+                "y": 224.0,
+                "width": 812.0,
+                "height": 580.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 554.0,
+                "y": 224.0,
+                "width": 812.0,
+                "height": 580.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Action Log Scroll View/Action Log Viewport",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Body Viewport/Action Log Scroll View/Action Log Viewport",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 562.0,
+                "y": 232.0,
+                "width": 766.0,
+                "height": 564.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 562.0,
+                "y": 232.0,
+                "width": 766.0,
+                "height": 564.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Action Log Scroll View/Action Log Viewport/Action Log Content",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Body Viewport/Action Log Scroll View/Action Log Viewport/Action Log Content",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 562.0,
+                "y": 796.0,
+                "width": 766.0,
+                "height": 0.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 562.0,
+                "y": 780.0,
+                "width": 766.0,
+                "height": 16.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -16.0,
+                "z": 0.0,
+                "w": 16.0
+            }
+        },
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Action Log Scroll View/Action Log Scrollbar/Sliding Area/Handle",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Body Viewport/Action Log Scroll View/Action Log Scrollbar/Sliding Area/Handle",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1339.0,
+                "y": 681.4000244140625,
+                "width": 16.0,
+                "height": 111.5999755859375
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1339.0,
+                "y": 235.0,
+                "width": 16.0,
+                "height": 558.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -446.4000244140625,
+                "z": 0.0,
+                "w": 446.4000244140625
+            }
+        },
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Action Log Scroll View/Action Log Viewport/Action Log Content/Action Log Row Template/Action Log Row Text",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Body Viewport/Action Log Scroll View/Action Log Viewport/Action Log Content/Action Log Row Template/Action Log Row Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 911.0,
+                "y": 752.0,
+                "width": 68.0,
+                "height": 88.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 911.0,
+                "y": 744.0,
+                "width": 68.0,
+                "height": 88.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": -8.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Action Log Scroll View/Action Log Scrollbar",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Body Viewport/Action Log Scroll View/Action Log Scrollbar",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1336.0,
+                "y": 232.0,
+                "width": 22.0,
+                "height": 564.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1336.0,
+                "y": 232.0,
+                "width": 22.0,
+                "height": 564.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/Action Log Title",
+            "afterPath": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Header/Action Log Title",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 528.0,
+                "y": 816.0,
+                "width": 864.0,
+                "height": 64.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 528.0,
+                "y": 816.0,
+                "width": 864.0,
+                "height": 64.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        }
+    ]
+}

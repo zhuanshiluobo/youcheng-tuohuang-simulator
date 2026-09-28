@@ -21,7 +21,8 @@ namespace YC.Editor
         private static readonly string[] ProductionScenePaths =
         {
             StartScenePath,
-            GameScenePath
+            GameScenePath,
+            "Assets/Scenes/ThreePlayerScene.unity"
         };
 
         public static CityStyleSpecialActionCatalog LoadRequiredCatalog()
@@ -77,12 +78,19 @@ namespace YC.Editor
         public static void ValidateGameSettingsPrefab(
             CityStyleSpecialActionCatalog expectedCatalog)
         {
+            foreach (var prefabPath in GameSettingsAssetSources.PrefabPaths)
+                ValidateSettingsPrefabAsset(expectedCatalog, prefabPath);
+        }
+
+        private static void ValidateSettingsPrefabAsset(
+            CityStyleSpecialActionCatalog expectedCatalog, string prefabPath)
+        {
             if (expectedCatalog == null)
             {
                 throw new InvalidOperationException("联合目录引用为空。");
             }
 
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(GameSettingsPrefabPath);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null)
             {
                 throw new InvalidOperationException("缺少 GameSettings Prefab。");
@@ -129,13 +137,20 @@ namespace YC.Editor
 
         internal static void ValidateSavedProductionSceneConnections()
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(GameSettingsPrefabPath);
+            foreach (var scenePath in ProductionScenePaths)
+                ValidateSavedSceneConnection(NormalizePath(scenePath));
+        }
+
+        private static void ValidateSavedSceneConnection(string scenePath)
+        {
+            var prefabPath = GameSettingsAssetSources.ForScene(scenePath);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null)
             {
                 throw new InvalidOperationException("缺少 GameSettings Prefab。");
             }
 
-            var prefabGuid = AssetDatabase.AssetPathToGUID(GameSettingsPrefabPath);
+            var prefabGuid = AssetDatabase.AssetPathToGUID(prefabPath);
             if (string.IsNullOrEmpty(prefabGuid))
             {
                 throw new InvalidOperationException("GameSettings Prefab 缺少 GUID。");
@@ -194,30 +209,26 @@ namespace YC.Editor
                 }
             }
 
-            for (var i = 0; i < ProductionScenePaths.Length; i++)
+            if (!enabledScenePaths.Contains(scenePath))
             {
-                var scenePath = NormalizePath(ProductionScenePaths[i]);
-                if (!enabledScenePaths.Contains(scenePath))
-                {
-                    throw new InvalidOperationException(
-                        scenePath + " 未位于启用的 EditorBuildSettings 场景中。");
-                }
-
-                if (!File.Exists(scenePath))
-                {
-                    throw new InvalidOperationException("缺少正式场景：" + scenePath);
-                }
-
-                ValidateSavedSceneYaml(
-                    scenePath,
-                    File.ReadAllText(scenePath),
-                    prefabGuid,
-                    rootLocalId,
-                    componentLocalId,
-                    catalogGuid,
-                    catalogLocalId,
-                    bootstrapScriptGuid);
+                throw new InvalidOperationException(
+                    scenePath + " 未位于启用的 EditorBuildSettings 场景中。");
             }
+
+            if (!File.Exists(scenePath))
+            {
+                throw new InvalidOperationException("缺少正式场景：" + scenePath);
+            }
+
+            ValidateSavedSceneYaml(
+                scenePath,
+                File.ReadAllText(scenePath),
+                prefabGuid,
+                rootLocalId,
+                componentLocalId,
+                catalogGuid,
+                catalogLocalId,
+                bootstrapScriptGuid);
         }
 
         internal static void ValidateSavedSceneYaml(

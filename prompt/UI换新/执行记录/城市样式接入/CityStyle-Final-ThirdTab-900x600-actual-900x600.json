@@ -1,0 +1,4378 @@
+{
+    "scene": "SampleScene",
+    "state": "ThirdTab",
+    "stateSource": "真实场景、实际公开供应、正式第三页/点击入口；仅查看，未宣告或支付。",
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "actualSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 900.0,
+        "height": 600.0
+    },
+    "objects": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 3.409659257158637e-7,
+                "y": -0.000010154981282539666,
+                "width": 900.0,
+                "height": 600.0
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 3.409659257158637e-7,
+                "y": -0.000010154981282539666,
+                "width": 900.0,
+                "height": 600.0
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 3.409659257158637e-7,
+                "y": 567.3401489257813,
+                "width": 900.0,
+                "height": 32.65985107421875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 567.3401489257813,
+                "width": 900.0,
+                "height": 32.65985107421875
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Brand Group",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 14.2886962890625,
+                "y": 569.38134765625,
+                "width": 173.63235473632813,
+                "height": 28.577392578125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Brand Group/Brand Mark",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 14.2886962890625,
+                "y": 573.4638671875,
+                "width": 20.41241455078125,
+                "height": 20.41241455078125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Brand Group/Brand Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 42.35577392578125,
+                "y": 570.4020385742188,
+                "width": 76.54656219482422,
+                "height": 25.5155029296875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Brand Group/Brand Subtitle",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 117.37139892578125,
+                "y": 571.422607421875,
+                "width": 86.75277709960938,
+                "height": 23.47430419921875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Bar Flexible Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 187.92103576660157,
+                "y": 569.38134765625,
+                "width": 59.159423828125,
+                "height": 28.577392578125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 247.08045959472657,
+                "y": 569.38134765625,
+                "width": 235.71058654785157,
+                "height": 28.577392578125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Prefix",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 247.08045959472657,
+                "y": 573.9741821289063,
+                "width": 13.268081665039063,
+                "height": 19.39178466796875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Plaque",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 262.90008544921877,
+                "y": 572.9535522460938,
+                "width": 30.618621826171876,
+                "height": 22.45367431640625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Plaque/Round Number",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 262.9000549316406,
+                "y": 572.95361328125,
+                "width": 30.61865234375,
+                "height": 22.45361328125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Total",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 301.68365478515627,
+                "y": 573.9741821289063,
+                "width": 63.788787841796878,
+                "height": 19.39178466796875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Progress",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 263.4103698730469,
+                "y": 568.8710327148438,
+                "width": 137.7838134765625,
+                "height": 2.55157470703125
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Progress/Round Tick 1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 263.4103698730469,
+                "y": 569.38134765625,
+                "width": 8.16497802734375,
+                "height": 2.041259765625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Progress/Round Tick 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 274.63720703125,
+                "y": 570.4019775390625,
+                "width": 8.16497802734375,
+                "height": 1.0206298828125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Progress/Round Tick 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 285.864013671875,
+                "y": 570.4019775390625,
+                "width": 8.16497802734375,
+                "height": 1.0206298828125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Progress/Round Tick 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 297.09088134765627,
+                "y": 570.4019775390625,
+                "width": 8.16497802734375,
+                "height": 1.0206298828125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Progress/Round Tick 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 308.31768798828127,
+                "y": 570.4019775390625,
+                "width": 8.16497802734375,
+                "height": 1.0206298828125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Progress/Round Tick 6",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 319.5445251464844,
+                "y": 570.4019775390625,
+                "width": 8.16497802734375,
+                "height": 1.0206298828125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Progress/Round Tick 7",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 330.7713623046875,
+                "y": 570.4019775390625,
+                "width": 8.16497802734375,
+                "height": 1.0206298828125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Round Progress/Round Tick 8",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 341.9981689453125,
+                "y": 570.4019775390625,
+                "width": 8.16497802734375,
+                "height": 1.0206298828125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Phase Caption",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 393.0292053222656,
+                "y": 585.7113037109375,
+                "width": 91.85586547851563,
+                "height": 10.20623779296875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Round Phase Group/Current Phase",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 392.5189208984375,
+                "y": 569.8916625976563,
+                "width": 112.26828002929688,
+                "height": 16.3299560546875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Bar Flexible Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 482.791015625,
+                "y": 569.38134765625,
+                "width": 8.28326416015625,
+                "height": 28.577392578125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Turn Group",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 491.07427978515627,
+                "y": 569.38134765625,
+                "width": 104.55279541015625,
+                "height": 28.577392578125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Turn Group/Current Action Flag",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 491.07427978515627,
+                "y": 572.4432373046875,
+                "width": 114.30950927734375,
+                "height": 22.45367431640625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Turn Group/Current Action Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 502.3011169433594,
+                "y": 578.056640625,
+                "width": 11.226837158203125,
+                "height": 11.226806640625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Turn Group/Current Action Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 517.6104125976563,
+                "y": 573.9741821289063,
+                "width": 78.58782958984375,
+                "height": 19.39178466796875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Bar Flexible Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 595.6271362304688,
+                "y": 569.38134765625,
+                "width": 24.61962890625,
+                "height": 28.577392578125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Red Zone Group",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 620.246826171875,
+                "y": 569.38134765625,
+                "width": 117.62188720703125,
+                "height": 28.577392578125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Red Zone Group/Red Zone Plaque",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 620.246826171875,
+                "y": 572.4432373046875,
+                "width": 128.59820556640626,
+                "height": 22.45367431640625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Red Zone Group/Red Zone Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.9014892578125,
+                "y": 577.0360717773438,
+                "width": 13.77838134765625,
+                "height": 13.77838134765625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Red Zone Group/Red Zone Caption",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 647.8035888671875,
+                "y": 585.2009887695313,
+                "width": 60.21661376953125,
+                "height": 10.20623779296875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Red Zone Group/Red Zone Open Round",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 647.8035888671875,
+                "y": 572.4432373046875,
+                "width": 66.34033203125,
+                "height": 13.26806640625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Red Zone Group/Red Zone State",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 712.1026611328125,
+                "y": 577.0360107421875,
+                "width": 33.68048095703125,
+                "height": 12.2474365234375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Bar Flexible Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 737.8687744140625,
+                "y": 569.38134765625,
+                "width": 16.218017578125,
+                "height": 28.577392578125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Effect Toggle Group",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 754.0867919921875,
+                "y": 569.38134765625,
+                "width": 100.81878662109375,
+                "height": 28.577392578125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Effect Toggle Group/Effect Fold Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 754.0867919921875,
+                "y": 572.4432373046875,
+                "width": 110.22705078125,
+                "height": 22.45367431640625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Effect Toggle Group/Effect Fold Button/Effect Fold Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 776.5404052734375,
+                "y": 572.4432373046875,
+                "width": 63.788818359375,
+                "height": 22.45367431640625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Effect Toggle Group/Effect Fold Button/Fold Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 761.741455078125,
+                "y": 577.54638671875,
+                "width": 12.2474365234375,
+                "height": 12.2474365234375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Effect Toggle Group/Effect Fold Button/Fold Chevron",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 842.8807983398438,
+                "y": 579.0772705078125,
+                "width": 9.18560791015625,
+                "height": 9.18560791015625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Bar Flexible Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 854.905517578125,
+                "y": 569.38134765625,
+                "width": 6.883056640625,
+                "height": 28.577392578125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Settings Group",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 861.78857421875,
+                "y": 569.38134765625,
+                "width": 28.0052490234375,
+                "height": 28.577392578125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Settings Group/Settings Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 861.78857421875,
+                "y": 572.4432373046875,
+                "width": 30.61865234375,
+                "height": 22.45367431640625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Bar Content/Settings Group/Settings Button/Settings Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 870.4638671875,
+                "y": 577.0360107421875,
+                "width": 13.26806640625,
+                "height": 13.26806640625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/Persistent Top Bar/Top Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 3.409659257158637e-7,
+                "y": 567.340087890625,
+                "width": 900.0,
+                "height": 32.659912109375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 3.409659257158637e-7,
+                "y": 52.051658630371097,
+                "width": 900.0,
+                "height": 511.2060241699219
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 3.409659257158637e-7,
+                "y": 52.051658630371097,
+                "width": 900.0,
+                "height": 511.2060241699219
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 52.05168151855469,
+                "width": 196.75363159179688,
+                "height": 511.20599365234377
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 508.1441650390625,
+                "width": 196.75363159179688,
+                "height": 55.113525390625
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 1/Module Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 508.1441650390625,
+                "width": 196.75363159179688,
+                "height": 55.113525390625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 1/Header Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 10.206207275390625,
+                "y": 544.886474609375,
+                "width": 192.671142578125,
+                "height": 16.3299560546875
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 1/Header Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 545.3967895507813,
+                "width": 180.42369079589845,
+                "height": 15.309326171875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 1/Module Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 508.1441650390625,
+                "width": 196.75363159179688,
+                "height": 55.113525390625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 1/Paper Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 12.2474365234375,
+                "y": 512.2266235351563,
+                "width": 188.5886688232422,
+                "height": 31.63922119140625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 1/Portrait Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 514.2678833007813,
+                "width": 27.5567626953125,
+                "height": 27.5567626953125
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 1/Portrait Slot/Card Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 514.2678833007813,
+                "width": 27.5567626953125,
+                "height": 27.5567626953125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 1/Portrait Slot/Card Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 514.2678833007813,
+                "width": 27.5567626953125,
+                "height": 27.5567626953125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 1/Opponent Empty State",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 50.010406494140628,
+                "y": 517.8400268554688,
+                "width": 137.5576171875,
+                "height": 20.41241455078125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Player Seat Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.164963722229004,
+                "y": 504.0616760253906,
+                "width": 196.75363159179688,
+                "height": 4.08245849609375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 448.9481201171875,
+                "width": 196.75363159179688,
+                "height": 55.113525390625
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 2/Module Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 448.9481201171875,
+                "width": 196.75363159179688,
+                "height": 55.113525390625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 2/Header Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 10.206207275390625,
+                "y": 485.69049072265627,
+                "width": 192.671142578125,
+                "height": 16.329925537109376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 2/Header Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 486.2007751464844,
+                "width": 180.42369079589845,
+                "height": 15.309326171875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 2/Module Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 448.9481201171875,
+                "width": 196.75363159179688,
+                "height": 55.113525390625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 2/Paper Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 12.2474365234375,
+                "y": 453.0306091308594,
+                "width": 188.5886688232422,
+                "height": 31.639251708984376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 2/Portrait Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 455.07183837890627,
+                "width": 27.5567626953125,
+                "height": 27.5567626953125
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 2/Portrait Slot/Card Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 455.07183837890627,
+                "width": 27.5567626953125,
+                "height": 27.5567626953125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 2/Portrait Slot/Card Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 455.07183837890627,
+                "width": 27.5567626953125,
+                "height": 27.5567626953125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 2/Opponent Empty State",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 50.010406494140628,
+                "y": 458.64404296875,
+                "width": 137.5576171875,
+                "height": 20.41241455078125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Player Seat Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.164963722229004,
+                "y": 444.86566162109377,
+                "width": 196.75363159179688,
+                "height": 4.08245849609375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 389.75213623046877,
+                "width": 196.75363159179688,
+                "height": 55.113525390625
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 3/Module Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 389.75213623046877,
+                "width": 196.75363159179688,
+                "height": 55.113525390625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 3/Header Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 10.206207275390625,
+                "y": 426.4944763183594,
+                "width": 192.671142578125,
+                "height": 16.329925537109376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 3/Header Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 427.0047607421875,
+                "width": 180.42369079589845,
+                "height": 15.309326171875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 3/Module Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 389.75213623046877,
+                "width": 196.75363159179688,
+                "height": 55.113525390625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 3/Paper Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 12.2474365234375,
+                "y": 393.8345947265625,
+                "width": 188.5886688232422,
+                "height": 31.639251708984376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 3/Portrait Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 395.8758544921875,
+                "width": 27.5567626953125,
+                "height": 27.5567626953125
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 3/Portrait Slot/Card Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 395.8758544921875,
+                "width": 27.5567626953125,
+                "height": 27.5567626953125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 3/Portrait Slot/Card Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 395.8758544921875,
+                "width": 27.5567626953125,
+                "height": 27.5567626953125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Opponent Seat 3/Opponent Empty State",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 50.010406494140628,
+                "y": 399.4480285644531,
+                "width": 137.5576171875,
+                "height": 20.41241455078125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/Player City Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.164963722229004,
+                "y": 383.6283874511719,
+                "width": 196.75363159179688,
+                "height": 6.12371826171875
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 52.05164337158203,
+                "width": 196.75363159179688,
+                "height": 331.5767517089844
+            },
+            "layoutDrivers": [
+                "UiAspectContentLayout",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/Module Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 52.05164337158203,
+                "width": 196.75363159179688,
+                "height": 331.5767517089844
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/Header Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 10.206207275390625,
+                "y": 363.2159729003906,
+                "width": 192.671142578125,
+                "height": 18.371185302734376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/Header Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 16.329925537109376,
+                "y": 363.7262878417969,
+                "width": 180.42369079589845,
+                "height": 17.350555419921876
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/Module Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 52.05164337158203,
+                "width": 196.75363159179688,
+                "height": 331.5767517089844
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 37.649871826171878,
+                "y": 106.52985382080078,
+                "width": 137.7838134765625,
+                "height": 255.15521240234376
+            },
+            "layoutDrivers": [
+                "UiCitySlotsLayout"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 37.649871826171878,
+                "y": 106.52984619140625,
+                "width": 137.7838134765625,
+                "height": 255.15521240234376
+            },
+            "layoutDrivers": [
+                "AspectRatioFitter"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 44.341644287109378,
+                "y": 294.15380859375,
+                "width": 40.15069580078125,
+                "height": 57.0592041015625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 1/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 44.341644287109378,
+                "y": 294.15380859375,
+                "width": 40.15069580078125,
+                "height": 57.0592041015625
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 86.4998779296875,
+                "y": 294.15380859375,
+                "width": 40.15069580078125,
+                "height": 57.0592041015625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 2/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 86.4998779296875,
+                "y": 294.15380859375,
+                "width": 40.15069580078125,
+                "height": 57.0592041015625
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 128.65811157226563,
+                "y": 294.15380859375,
+                "width": 40.15069580078125,
+                "height": 57.0592041015625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 3/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 128.65811157226563,
+                "y": 294.15380859375,
+                "width": 40.15069580078125,
+                "height": 57.0592041015625
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 44.341644287109378,
+                "y": 235.08079528808595,
+                "width": 40.15069580078125,
+                "height": 57.05918884277344
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 4/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 44.341644287109378,
+                "y": 235.08079528808595,
+                "width": 40.15069580078125,
+                "height": 57.05918884277344
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 86.4998779296875,
+                "y": 235.08079528808595,
+                "width": 40.15069580078125,
+                "height": 57.05918884277344
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 5/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 86.4998779296875,
+                "y": 235.08079528808595,
+                "width": 40.15069580078125,
+                "height": 57.05918884277344
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 6",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 128.65811157226563,
+                "y": 235.08079528808595,
+                "width": 40.15069580078125,
+                "height": 57.05918884277344
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 6/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 128.65811157226563,
+                "y": 235.08079528808595,
+                "width": 40.15069580078125,
+                "height": 57.05918884277344
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 7",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 44.341644287109378,
+                "y": 176.0077667236328,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 7/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 44.341644287109378,
+                "y": 176.0077667236328,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 8",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 86.4998779296875,
+                "y": 176.0077667236328,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 8/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 86.4998779296875,
+                "y": 176.0077667236328,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 8/ContentRoot/设施卡内容",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 86.4998779296875,
+                "y": 176.0077667236328,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 8/ContentRoot/设施卡内容/设施卡图",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 86.4998779296875,
+                "y": 176.0077667236328,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 9",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 128.65811157226563,
+                "y": 176.0077667236328,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 9/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 128.65811157226563,
+                "y": 176.0077667236328,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 10",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 44.341644287109378,
+                "y": 116.93475341796875,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 10/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 44.341644287109378,
+                "y": 116.93475341796875,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 11",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 86.4998779296875,
+                "y": 116.93475341796875,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 11/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 86.4998779296875,
+                "y": 116.93475341796875,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 12",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 128.65811157226563,
+                "y": 116.93475341796875,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column/City Region/City Board Artwork/城市面板底图/槽位 12/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 128.65811157226563,
+                "y": 116.93475341796875,
+                "width": 40.15069580078125,
+                "height": 57.059173583984378
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.04232788085938,
+                "y": 52.05168151855469,
+                "width": 409.9254455566406,
+                "height": 511.20599365234377
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.04232788085938,
+                "y": 172.4849395751953,
+                "width": 409.9254455566406,
+                "height": 390.77276611328127
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region/Map Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.04232788085938,
+                "y": 172.4849395751953,
+                "width": 409.9254455566406,
+                "height": 390.77276611328127
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region/Map Label Plate",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 219.20729064941407,
+                "y": 537.7421875,
+                "width": 75.52595520019531,
+                "height": 17.35052490234375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region/Map Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 225.3310089111328,
+                "y": 538.7627563476563,
+                "width": 64.29911804199219,
+                "height": 14.2886962890625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region/Prompt Bounds",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.04232788085938,
+                "y": 172.48489379882813,
+                "width": 409.9254455566406,
+                "height": 390.7727355957031
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region/Prompt Bounds/Prompt Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 283.3243713378906,
+                "y": 491.814208984375,
+                "width": 265.3614196777344,
+                "height": 41.845458984375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region/Prompt Bounds/Prompt Frame/Prompt Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 560.9331665039063,
+                "y": 491.814208984375,
+                "width": 265.3614501953125,
+                "height": 41.845458984375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region/Prompt Bounds/Prompt Frame/Prompt Panel/Prompt Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 572.1600341796875,
+                "y": 491.814208984375,
+                "width": 242.90771484375,
+                "height": 41.845458984375
+            },
+            "layoutDrivers": [
+                "ScrollRect"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Map Region/Prompt Bounds/Prompt Frame/Prompt Panel/Prompt Viewport/Prompt Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 572.1600341796875,
+                "y": 491.814208984375,
+                "width": 242.90771484375,
+                "height": 41.845458984375
+            },
+            "layoutDrivers": [
+                "Text",
+                "UiFlexibleCanvasContent"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.04232788085938,
+                "y": 143.9075164794922,
+                "width": 409.9254455566406,
+                "height": 24.494903564453126
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Module Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.04232788085938,
+                "y": 143.9075164794922,
+                "width": 409.9254455566406,
+                "height": 24.494903564453126
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Module Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.04232788085938,
+                "y": 143.9075164794922,
+                "width": 409.9254455566406,
+                "height": 24.494903564453126
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Self Summary Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 219.20729064941407,
+                "y": 146.45907592773438,
+                "width": 50.01042175292969,
+                "height": 19.391799926757814
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Self Summary Value",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 267.17645263671877,
+                "y": 146.45907592773438,
+                "width": 93.89712524414063,
+                "height": 19.391799926757814
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 364.13543701171877,
+                "y": 145.9487762451172,
+                "width": 295.98004150390627,
+                "height": 20.41241455078125
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 0",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 364.13543701171877,
+                "y": 146.96939086914063,
+                "width": 54.0928955078125,
+                "height": 18.371170043945314
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 0/Resource Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 364.13543701171877,
+                "y": 149.01063537597657,
+                "width": 15.309326171875,
+                "height": 15.309310913085938
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 0/Resource Amount",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 381.9963073730469,
+                "y": 146.96939086914063,
+                "width": 34.70111083984375,
+                "height": 18.371170043945314
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 420.26959228515627,
+                "y": 146.96939086914063,
+                "width": 54.0928955078125,
+                "height": 18.371170043945314
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 1/Resource Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 420.26959228515627,
+                "y": 149.01063537597657,
+                "width": 15.309326171875,
+                "height": 15.309310913085938
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 1/Resource Amount",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 438.1304626464844,
+                "y": 146.96939086914063,
+                "width": 34.70111083984375,
+                "height": 18.371170043945314
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 476.40374755859377,
+                "y": 146.96939086914063,
+                "width": 54.0928955078125,
+                "height": 18.371170043945314
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 2/Resource Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 476.40374755859377,
+                "y": 149.01063537597657,
+                "width": 15.309326171875,
+                "height": 15.309310913085938
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 2/Resource Amount",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 494.26458740234377,
+                "y": 146.96939086914063,
+                "width": 34.70111083984375,
+                "height": 18.371170043945314
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 532.5379028320313,
+                "y": 146.96939086914063,
+                "width": 54.0928955078125,
+                "height": 18.371170043945314
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 3/Resource Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 532.5379028320313,
+                "y": 149.01063537597657,
+                "width": 15.309326171875,
+                "height": 15.309310913085938
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 3/Resource Amount",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 550.3987426757813,
+                "y": 146.96939086914063,
+                "width": 34.70111083984375,
+                "height": 18.371170043945314
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Voucher Chip",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 588.6719970703125,
+                "y": 146.96939086914063,
+                "width": 68.89190673828125,
+                "height": 18.371170043945314
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Voucher Chip/Voucher Caption",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 588.6719970703125,
+                "y": 146.96939086914063,
+                "width": 27.5567626953125,
+                "height": 18.371170043945314
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Voucher Chip/Voucher Amount",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 616.228759765625,
+                "y": 146.96939086914063,
+                "width": 39.29388427734375,
+                "height": 18.371170043945314
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.04232788085938,
+                "y": 52.05165100097656,
+                "width": 409.9254455566406,
+                "height": 87.77339172363281
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.04232788085938,
+                "y": 52.05165100097656,
+                "width": 216.37161254882813,
+                "height": 87.77339172363281
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Module Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.04232788085938,
+                "y": 52.05165100097656,
+                "width": 216.37161254882813,
+                "height": 87.77339172363281
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Header Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 213.08355712890626,
+                "y": 120.43324279785156,
+                "width": 212.28912353515626,
+                "height": 17.350555419921876
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Header Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 219.20729064941407,
+                "y": 120.94355010986328,
+                "width": 200.0416717529297,
+                "height": 16.329933166503908
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Module Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 211.04232788085938,
+                "y": 52.05165100097656,
+                "width": 216.37161254882813,
+                "height": 87.77339172363281
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 217.16604614257813,
+                "y": 58.68568420410156,
+                "width": 204.12417602539063,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 217.16604614257813,
+                "y": 58.685691833496097,
+                "width": 36.74235534667969,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 1/Card Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 217.16604614257813,
+                "y": 58.685691833496097,
+                "width": 36.74235534667969,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 1/Card Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 217.16604614257813,
+                "y": 58.685691833496097,
+                "width": 36.74235534667969,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 259.0115051269531,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 2/Card Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 259.0115051269531,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 2/Card Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 259.0115051269531,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 300.85693359375,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 3/Card Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 300.85693359375,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 3/Card Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 300.85693359375,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 342.702392578125,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 4/Card Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 342.702392578125,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 4/Card Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 342.702392578125,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 384.5478515625,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 5/Card Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 384.5478515625,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 5/Card Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 384.5478515625,
+                "y": 58.685691833496097,
+                "width": 36.742340087890628,
+                "height": 59.196006774902347
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Hand Region",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 433.53765869140627,
+                "y": 52.05165100097656,
+                "width": 234.7427978515625,
+                "height": 87.77339172363281
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Hand Region/Module Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 433.53765869140627,
+                "y": 52.05165100097656,
+                "width": 234.7427978515625,
+                "height": 87.77339172363281
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Hand Region/Header Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 435.57891845703127,
+                "y": 120.43324279785156,
+                "width": 230.6602783203125,
+                "height": 17.350555419921876
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Hand Region/Header Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 441.70263671875,
+                "y": 120.94355010986328,
+                "width": 218.412841796875,
+                "height": 16.329933166503908
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Hand Region/Module Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 433.53765869140627,
+                "y": 52.05165100097656,
+                "width": 234.7427978515625,
+                "height": 87.77339172363281
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Hand Region/Hand Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 438.6407775878906,
+                "y": 57.15475845336914,
+                "width": 224.53659057617188,
+                "height": 62.257869720458987
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column/Hand Entrepreneur Row/Hand Region/Hand Content Border",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 437.6201477050781,
+                "y": 55.11351013183594,
+                "width": 226.57785034179688,
+                "height": 65.31973266601563
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 52.05168151855469,
+                "width": 264.7435302734375,
+                "height": 511.20599365234377
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 52.05168151855469,
+                "width": 264.7435302734375,
+                "height": 511.20599365234377
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 52.05168151855469,
+                "width": 264.7435302734375,
+                "height": 511.20599365234377
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Region",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 419.35015869140627,
+                "width": 264.7435302734375,
+                "height": 143.90753173828126
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Region/Module Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 419.35015869140627,
+                "width": 264.7435302734375,
+                "height": 143.90753173828126
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Region/Header Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 629.1327514648438,
+                "y": 540.8040161132813,
+                "width": 260.6610107421875,
+                "height": 20.41241455078125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Region/Header Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 635.2564697265625,
+                "y": 541.3143310546875,
+                "width": 248.41357421875,
+                "height": 19.39178466796875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Region/Module Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 419.35015869140627,
+                "width": 264.7435302734375,
+                "height": 143.90753173828126
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Region/Cooperation Paper",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 631.1740112304688,
+                "y": 423.4326171875,
+                "width": 256.57855224609377,
+                "height": 116.35076904296875
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Region/Cooperation Empty State",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 639.3389892578125,
+                "y": 472.4223937988281,
+                "width": 240.24859619140626,
+                "height": 24.494903564453126
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Region/Cooperation Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 633.2152099609375,
+                "y": 425.4738464355469,
+                "width": 252.49609375,
+                "height": 113.28890991210938
+            },
+            "layoutDrivers": [
+                "ScrollRect"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 413.2264099121094,
+                "width": 264.7435302734375,
+                "height": 6.12371826171875
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 300.9581298828125,
+                "width": 264.7435302734375,
+                "height": 112.26828002929688
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 300.9581298828125,
+                "width": 129.30987548828126,
+                "height": 112.26828002929688
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Module Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 300.9581298828125,
+                "width": 129.30987548828126,
+                "height": 112.26828002929688
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Header Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 629.1327514648438,
+                "y": 392.81396484375,
+                "width": 125.2274169921875,
+                "height": 18.371185302734376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Header Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 635.2564697265625,
+                "y": 393.3243103027344,
+                "width": 112.97998046875,
+                "height": 17.350555419921876
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Module Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 300.9581298828125,
+                "width": 129.30987548828126,
+                "height": 112.26828002929688
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Discard Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 633.2152099609375,
+                "y": 307.0818176269531,
+                "width": 117.06243896484375,
+                "height": 83.18060302734375
+            },
+            "layoutDrivers": [
+                "UiAspectContentLayout"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Discard Content/Discard Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 669.8031005859375,
+                "y": 313.7158508300781,
+                "width": 43.88671875,
+                "height": 72.46408081054688
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Discard Content/Discard Card Slot/Card Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 669.8031005859375,
+                "y": 313.7158508300781,
+                "width": 43.88671875,
+                "height": 72.46408081054688
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Discard Content/Discard Card Slot/Card Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 669.8031005859375,
+                "y": 313.7158508300781,
+                "width": 43.88671875,
+                "height": 72.46408081054688
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Discard Empty State",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 633.2152099609375,
+                "y": 306.06121826171877,
+                "width": 117.06243896484375,
+                "height": 12.75775146484375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Deck Caption",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 704.65869140625,
+                "y": 394.855224609375,
+                "width": 32.1495361328125,
+                "height": 16.329925537109376
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Deck Count",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 736.8082275390625,
+                "y": 394.855224609375,
+                "width": 21.43304443359375,
+                "height": 16.329925537109376
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region/Discard Count",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 682.2050170898438,
+                "y": 394.855224609375,
+                "width": 17.35052490234375,
+                "height": 16.329925537109376
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 762.525146484375,
+                "y": 300.9581298828125,
+                "width": 129.30987548828126,
+                "height": 112.26828002929688
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "UiAspectContentLayout"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region/Module Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 762.525146484375,
+                "y": 300.9581298828125,
+                "width": 129.30987548828126,
+                "height": 112.26828002929688
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region/Header Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 764.56640625,
+                "y": 392.81396484375,
+                "width": 125.2274169921875,
+                "height": 18.371185302734376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region/Header Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 770.6900634765625,
+                "y": 393.3243103027344,
+                "width": 112.97998046875,
+                "height": 17.350555419921876
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region/Module Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 762.525146484375,
+                "y": 300.9581298828125,
+                "width": 129.30987548828126,
+                "height": 112.26828002929688
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region/Face Down Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 805.2366943359375,
+                "y": 314.2261657714844,
+                "width": 43.88671875,
+                "height": 72.46408081054688
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region/Face Down Card Slot/Card Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 805.2366943359375,
+                "y": 314.2261657714844,
+                "width": 43.88671875,
+                "height": 72.46408081054688
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region/Face Down Card Slot/Card Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 805.2366943359375,
+                "y": 314.2261657714844,
+                "width": 43.88671875,
+                "height": 72.46408081054688
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region/Face Down Empty State",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 768.6488647460938,
+                "y": 306.06121826171877,
+                "width": 117.06243896484375,
+                "height": 12.75775146484375
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 294.8343811035156,
+                "width": 264.7435302734375,
+                "height": 6.12371826171875
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 270.3394775390625,
+                "width": 264.7435302734375,
+                "height": 24.494903564453126
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 0",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 270.3394775390625,
+                "width": 86.20660400390625,
+                "height": 24.494903564453126
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 0/Tab Label 0",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 649.545166015625,
+                "y": 271.360107421875,
+                "width": 67.3609619140625,
+                "height": 22.453643798828126
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 0/Icon 3.2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 633.2152099609375,
+                "y": 274.4219665527344,
+                "width": 16.3299560546875,
+                "height": 16.329925537109376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 716.3599853515625,
+                "y": 270.3394775390625,
+                "width": 86.20660400390625,
+                "height": 24.494903564453126
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 1/Tab Label 1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 738.8135986328125,
+                "y": 271.360107421875,
+                "width": 67.3609619140625,
+                "height": 22.453643798828126
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 1/Icon 3.2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 722.4837036132813,
+                "y": 274.4219665527344,
+                "width": 16.3299560546875,
+                "height": 16.329925537109376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 805.62841796875,
+                "y": 270.3394775390625,
+                "width": 86.20660400390625,
+                "height": 24.494903564453126
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 2/Tab Label 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 828.0820922851563,
+                "y": 271.360107421875,
+                "width": 67.3609619140625,
+                "height": 22.453643798828126
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 2/Icon 3.2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 811.7521362304688,
+                "y": 274.4219665527344,
+                "width": 16.3299560546875,
+                "height": 16.329925537109376
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 266.25701904296877,
+                "width": 264.7435302734375,
+                "height": 4.08245849609375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 52.051639556884769,
+                "width": 264.7435302734375,
+                "height": 214.20535278320313
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Module Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 52.051639556884769,
+                "width": 264.7435302734375,
+                "height": 214.20535278320313
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Header Background",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 629.1327514648438,
+                "y": 242.78271484375,
+                "width": 260.6610107421875,
+                "height": 21.43304443359375
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Module Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 627.0914916992188,
+                "y": 52.051639556884769,
+                "width": 264.7435302734375,
+                "height": 214.20535278320313
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 632.194580078125,
+                "y": 57.154754638671878,
+                "width": 254.53729248046876,
+                "height": 184.6073455810547
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 632.1946411132813,
+                "y": 57.154754638671878,
+                "width": 254.53729248046876,
+                "height": 184.6073455810547
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 632.194580078125,
+                "y": 57.154762268066409,
+                "width": 254.537353515625,
+                "height": 184.60733032226563
+            },
+            "layoutDrivers": [
+                "ScrollRect"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 632.194580078125,
+                "y": 57.154754638671878,
+                "width": 254.53729248046876,
+                "height": 184.6073455810547
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "UiFlexibleCanvasContent"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 632.194580078125,
+                "y": 57.154754638671878,
+                "width": 254.53729248046876,
+                "height": 184.6073455810547
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 632.194580078125,
+                "y": 85.73213958740235,
+                "width": 254.53729248046876,
+                "height": 156.02996826171876
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 632.194580078125,
+                "y": -318.9159240722656,
+                "width": 254.53729248046876,
+                "height": 560.6780395507813
+            },
+            "layoutDrivers": [
+                "GridLayoutGroup",
+                "UiAdaptiveGridColumns",
+                "ContentSizeFitter"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": 151.20753479003907,
+                "width": 125.536376953125,
+                "height": 88.51333618164063
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 1/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": 158.73114013671876,
+                "width": 125.536376953125,
+                "height": 80.98971557617188
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 1/Card Image/Additional Declarations",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": 151.20753479003907,
+                "width": 125.536376953125,
+                "height": 7.52362060546875
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 1/Card Image/Additional Declarations/Additional Declaration Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": 151.20753479003907,
+                "width": 25.1072998046875,
+                "height": 7.52362060546875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 1/Card Image/MarkerRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": 158.73114013671876,
+                "width": 125.536376953125,
+                "height": 80.98971557617188
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": 57.59107971191406,
+                "width": 125.536376953125,
+                "height": 88.51333618164063
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 2/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": 65.11471557617188,
+                "width": 125.536376953125,
+                "height": 80.98971557617188
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 2/Card Image/Additional Declarations",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": 57.59107208251953,
+                "width": 125.536376953125,
+                "height": 7.5236358642578129
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 2/Card Image/Additional Declarations/Additional Declaration Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": 57.59107208251953,
+                "width": 25.1072998046875,
+                "height": 7.5236358642578129
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 2/Card Image/MarkerRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": 65.11471557617188,
+                "width": 125.536376953125,
+                "height": 80.98971557617188
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -36.02537536621094,
+                "width": 125.536376953125,
+                "height": 88.51333618164063
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 3/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -28.501752853393556,
+                "width": 125.536376953125,
+                "height": 80.98970794677735
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 3/Card Image/Additional Declarations",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -36.025367736816409,
+                "width": 125.536376953125,
+                "height": 7.52363395690918
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 3/Card Image/Additional Declarations/Additional Declaration Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -36.025367736816409,
+                "width": 25.1072998046875,
+                "height": 7.52363395690918
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 3/Card Image/MarkerRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -28.501752853393556,
+                "width": 125.536376953125,
+                "height": 80.98970794677735
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -129.6417999267578,
+                "width": 125.536376953125,
+                "height": 88.51333618164063
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 4/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -122.11817932128906,
+                "width": 125.536376953125,
+                "height": 80.98971557617188
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 4/Card Image/Additional Declarations",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -129.64178466796876,
+                "width": 125.536376953125,
+                "height": 7.523628234863281
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 4/Card Image/Additional Declarations/Additional Declaration Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -129.64178466796876,
+                "width": 25.1072998046875,
+                "height": 7.523628234863281
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 4/Card Image/MarkerRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -122.11817932128906,
+                "width": 125.536376953125,
+                "height": 80.98971557617188
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -223.25819396972657,
+                "width": 125.536376953125,
+                "height": 88.51333618164063
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 5/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -215.73460388183595,
+                "width": 125.536376953125,
+                "height": 80.98971557617188
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 5/Card Image/Additional Declarations",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -223.25833129882813,
+                "width": 125.536376953125,
+                "height": 7.52362060546875
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 5/Card Image/Additional Declarations/Additional Declaration Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -223.25833129882813,
+                "width": 25.1072998046875,
+                "height": 7.52362060546875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 5/Card Image/MarkerRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -215.73460388183595,
+                "width": 125.536376953125,
+                "height": 80.98971557617188
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 6",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -316.8746643066406,
+                "width": 125.536376953125,
+                "height": 88.51335144042969
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 6/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -309.3510437011719,
+                "width": 125.536376953125,
+                "height": 80.98970031738281
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 6/Card Image/Additional Declarations",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -316.8747253417969,
+                "width": 125.536376953125,
+                "height": 7.52362060546875
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 6/Card Image/Additional Declarations/Additional Declaration Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -316.8747253417969,
+                "width": 25.1072998046875,
+                "height": 7.52362060546875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/City Style List Viewport/City Style Cards/城市样式 6/Card Image/MarkerRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 634.23583984375,
+                "y": -309.3510437011719,
+                "width": 125.536376953125,
+                "height": 80.98970031738281
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/Declare City Style Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 632.194580078125,
+                "y": 57.15475845336914,
+                "width": 254.53729248046876,
+                "height": 24.49489974975586
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Action Groups Content/City Style Actions/Declare City Style Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 636.277099609375,
+                "y": 57.154754638671878,
+                "width": 246.372314453125,
+                "height": 24.494903564453126
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/City Header Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 635.2564697265625,
+                "y": 243.29302978515626,
+                "width": 248.41357421875,
+                "height": 20.41241455078125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 3.409659257158637e-7,
+                "y": 52.051658630371097,
+                "width": 900.0,
+                "height": 511.2060241699219
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 3.409659257158637e-7,
+                "y": 52.051658630371097,
+                "width": 900.0,
+                "height": 511.2060241699219
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 36.742340087890628,
+                "y": 375.9737548828125,
+                "width": 186.2633056640625,
+                "height": 178.608642578125
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 36.74234390258789,
+                "y": 396.3861389160156,
+                "width": 186.2633056640625,
+                "height": 158.19619750976563
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 36.742340087890628,
+                "y": 396.38616943359377,
+                "width": 186.2633056640625,
+                "height": 158.19622802734376
+            },
+            "layoutDrivers": [
+                "GridLayoutGroup",
+                "UiAdaptiveGridColumns",
+                "ContentSizeFitter"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 39.80419921875,
+                "y": 479.5667419433594,
+                "width": 50.520729064941409,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_1/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 39.8042106628418,
+                "y": 479.5667419433594,
+                "width": 50.52073287963867,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_1/ContentRoot/Card Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 39.8042106628418,
+                "y": 479.5667419433594,
+                "width": 50.52073287963867,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_1/ContentRoot/Card Content/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 41.335140228271487,
+                "y": 481.0976867675781,
+                "width": 47.458866119384769,
+                "height": 68.89187622070313
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 103.08270263671875,
+                "y": 479.5667419433594,
+                "width": 50.52073669433594,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_2/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 103.08271026611328,
+                "y": 479.5667419433594,
+                "width": 50.520729064941409,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_2/ContentRoot/Card Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 103.08271026611328,
+                "y": 479.5667419433594,
+                "width": 50.520729064941409,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_2/ContentRoot/Card Content/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 104.6136474609375,
+                "y": 481.0976867675781,
+                "width": 47.4588623046875,
+                "height": 68.89187622070313
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 166.3612060546875,
+                "y": 479.5667419433594,
+                "width": 50.52073669433594,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_3/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 166.36119079589845,
+                "y": 479.5667419433594,
+                "width": 50.520721435546878,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_3/ContentRoot/Card Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 166.36119079589845,
+                "y": 479.5667419433594,
+                "width": 50.520721435546878,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_3/ContentRoot/Card Content/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 167.89212036132813,
+                "y": 481.0976867675781,
+                "width": 47.4588623046875,
+                "height": 68.89187622070313
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 39.80419921875,
+                "y": 396.3861389160156,
+                "width": 50.520729064941409,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_4/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 39.8042106628418,
+                "y": 396.3861389160156,
+                "width": 50.52073287963867,
+                "height": 71.95379638671875
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_4/ContentRoot/Card Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 39.8042106628418,
+                "y": 396.3861389160156,
+                "width": 50.52073287963867,
+                "height": 71.95379638671875
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_4/ContentRoot/Card Content/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 41.335140228271487,
+                "y": 397.9170837402344,
+                "width": 47.458866119384769,
+                "height": 68.89190673828125
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 103.08270263671875,
+                "y": 396.3861389160156,
+                "width": 50.52073669433594,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_5/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 103.08271026611328,
+                "y": 396.3861389160156,
+                "width": 50.520729064941409,
+                "height": 71.95379638671875
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_5/ContentRoot/Card Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 103.08271026611328,
+                "y": 396.3861389160156,
+                "width": 50.520729064941409,
+                "height": 71.95379638671875
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_5/ContentRoot/Card Content/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 104.6136474609375,
+                "y": 397.9170837402344,
+                "width": 47.4588623046875,
+                "height": 68.89190673828125
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_6",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 166.3612060546875,
+                "y": 396.3861389160156,
+                "width": 50.52073669433594,
+                "height": 71.95376586914063
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_6/ContentRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 166.36119079589845,
+                "y": 396.3861389160156,
+                "width": 50.520721435546878,
+                "height": 71.95379638671875
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_6/ContentRoot/Card Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 166.36119079589845,
+                "y": 396.3861389160156,
+                "width": 50.520721435546878,
+                "height": 71.95379638671875
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/External Facility Supply Area/Facility Supply Viewport/Facility Supply Cards/BuildSlot_6/ContentRoot/Card Content/Card Image",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 167.89212036132813,
+                "y": 397.9170837402344,
+                "width": 47.4588623046875,
+                "height": 68.89190673828125
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/Build Sidebar Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 36.742340087890628,
+                "y": 52.05168151855469,
+                "width": 186.2633056640625,
+                "height": 155.5196533203125
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/Build Sidebar Panel/Content Area",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 36.74234390258789,
+                "y": 52.05168151855469,
+                "width": 186.2633056640625,
+                "height": 155.5196533203125
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/Build Sidebar Panel/Content Area/Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 36.74234390258789,
+                "y": 52.05168151855469,
+                "width": 186.2633056640625,
+                "height": 155.5196533203125
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 36.742340087890628,
+                "y": -69.01689910888672,
+                "width": 212.28912353515626,
+                "height": 255.15521240234376
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/BuildInfoPanel/Templates",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 3.409659257158637e-7,
+                "y": 52.051658630371097,
+                "width": 900.0,
+                "height": 511.2060241699219
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 3.409659257158637e-7,
+                "y": 6.123721122741699,
+                "width": 900.0,
+                "height": 41.84545135498047
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.164966583251954,
+                "y": 6.12371826171875,
+                "width": 883.6700439453125,
+                "height": 41.845455169677737
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.16497802734375,
+                "y": 6.123708248138428,
+                "width": 883.6700439453125,
+                "height": 41.845455169677737
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Undo Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 18.371185302734376,
+                "y": 13.778385162353516,
+                "width": 67.36097717285156,
+                "height": 24.49489974975586
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Undo Button/Undo Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 42.35577392578125,
+                "y": 13.778385162353516,
+                "width": 40.8248291015625,
+                "height": 24.49489974975586
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Undo Button/Undo Icon",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 24.494903564453126,
+                "y": 18.37116813659668,
+                "width": 15.309310913085938,
+                "height": 15.30931282043457
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Undo Summary Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 85.73216247558594,
+                "y": 0.5102972984313965,
+                "width": 10.206207275390625,
+                "height": 51.031044006347659
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Resolution Summary Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 95.9383544921875,
+                "y": 10.716519355773926,
+                "width": 646.8860473632813,
+                "height": 30.61862564086914
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Resolution Summary Slot/Resolution Slot Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 95.9383544921875,
+                "y": 10.716519355773926,
+                "width": 726.6820068359375,
+                "height": 30.61862564086914
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Resolution Summary Slot/Resolution Caption",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 109.2064208984375,
+                "y": 25.515506744384767,
+                "width": 91.85588073730469,
+                "height": 14.288692474365235
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Resolution Summary Slot/Action Summary",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 214.3303680419922,
+                "y": 13.268070220947266,
+                "width": 571.5476684570313,
+                "height": 24.49489974975586
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/Summary End Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 742.8244018554688,
+                "y": 0.5102972984313965,
+                "width": 14.2886962890625,
+                "height": 51.031044006347659
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/结束本回合 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 757.1130981445313,
+                "y": 12.757742881774903,
+                "width": 120.4332275390625,
+                "height": 26.53614044189453
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/结束本回合 Button/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 794.36572265625,
+                "y": 12.757742881774903,
+                "width": 78.58782958984375,
+                "height": 26.53614044189453
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Bar Content/结束本回合 Button/Icon 3.2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 776.5048828125,
+                "y": 18.37116813659668,
+                "width": 15.309326171875,
+                "height": 15.30931282043457
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/BottomBarRoot/Persistent Bottom Bar/Bottom Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 8.164966583251954,
+                "y": 6.123721122741699,
+                "width": 883.6700439453125,
+                "height": 41.84545135498047
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        }
+    ]
+}

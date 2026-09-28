@@ -1,0 +1,973 @@
+{
+    "asset": "Assets/YC/Presentation/Prefabs/GameSettings/GameSettingsMenu.prefab",
+    "evidenceKind": "离线资产参考矩形；不是实际运行屏幕验收。包含相同对象迁移前后坐标、活动状态和层级。",
+    "referenceResolution": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "capturePhase": "-corrected",
+    "objects": [
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/返回主菜单 Button",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/返回主菜单 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1078.0,
+                "y": 345.0,
+                "width": 174.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1078.0,
+                "y": 345.0,
+                "width": 174.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Dropdown/Template/Viewport",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/通用 Content/分辨率 Dropdown/Template/Viewport",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 361.0,
+                "width": 260.0,
+                "height": 168.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 361.0,
+                "width": 260.0,
+                "height": 168.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/确认返回 Button/Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/UI007 Footer/确认返回 Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 787.0,
+                "y": 457.0,
+                "width": 138.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 787.0,
+                "y": 457.0,
+                "width": 138.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/规则书 Button/Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/UI007 规则书 Button Slot/规则书 Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 881.0,
+                "y": 615.0,
+                "width": 158.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 881.0,
+                "y": 615.0,
+                "width": 158.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Dropdown/Template/Viewport/Content/Item/Item Background",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/通用 Content/分辨率 Dropdown/Template/Viewport/Content/Item/Item Background",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 487.0,
+                "width": 260.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 487.0,
+                "width": 260.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Action Log Button",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Action Log Button",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 345.0,
+                "width": 174.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 345.0,
+                "width": 174.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Header Separator",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Header Separator",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 689.0,
+                "width": 640.0,
+                "height": 2.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 689.0,
+                "width": 640.0,
+                "height": 2.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Close Settings Button/Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Header/Close Settings Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1228.0,
+                "y": 705.0,
+                "width": 30.0,
+                "height": 36.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1228.0,
+                "y": 705.0,
+                "width": 30.0,
+                "height": 36.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/取消 Button",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/UI007 Footer/取消 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 987.0,
+                "y": 457.0,
+                "width": 154.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 987.0,
+                "y": 457.0,
+                "width": 154.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/Confirmation Message",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Confirmation Message Slot/Confirmation Message",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 735.0,
+                "y": 530.0,
+                "width": 450.0,
+                "height": 40.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 735.0,
+                "y": 530.0,
+                "width": 450.0,
+                "height": 40.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/取消 Button/Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/UI007 Footer/取消 Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 995.0,
+                "y": 457.0,
+                "width": 138.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 995.0,
+                "y": 457.0,
+                "width": 138.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Button/Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/UI007 通用 Button Slot/通用 Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 694.0,
+                "y": 615.0,
+                "width": 158.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 694.0,
+                "y": 615.0,
+                "width": 158.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 325.0,
+                "width": 640.0,
+                "height": 430.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 325.0,
+                "width": 640.0,
+                "height": 430.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Dropdown/Template",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/通用 Content/分辨率 Dropdown/Template",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 361.0,
+                "width": 260.0,
+                "height": 168.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 361.0,
+                "width": 260.0,
+                "height": 168.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Dropdown/Template/Viewport/Content/Item",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/通用 Content/分辨率 Dropdown/Template/Viewport/Content/Item",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 487.0,
+                "width": 260.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 487.0,
+                "width": 260.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Dropdown",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/通用 Content/分辨率 Dropdown",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 531.0,
+                "width": 260.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 531.0,
+                "width": 260.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Dropdown/Arrow",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/通用 Content/分辨率 Dropdown/Arrow",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1074.0,
+                "y": 531.0,
+                "width": 30.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1074.0,
+                "y": 531.0,
+                "width": 30.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 325.0,
+                "width": 640.0,
+                "height": 430.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 325.0,
+                "width": 640.0,
+                "height": 430.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/Confirmation Title",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/UI007 Header/Confirmation Title",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 735.0,
+                "y": 570.0,
+                "width": 450.0,
+                "height": 40.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 735.0,
+                "y": 570.0,
+                "width": 450.0,
+                "height": 40.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Close Settings Button",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Header/Close Settings Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1220.0,
+                "y": 705.0,
+                "width": 46.0,
+                "height": 36.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1220.0,
+                "y": 705.0,
+                "width": 46.0,
+                "height": 36.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/占位 Button/Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/UI007 占位 Button Slot/占位 Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1068.0,
+                "y": 615.0,
+                "width": 158.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1068.0,
+                "y": 615.0,
+                "width": 158.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Action Log Button/Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Action Log Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 676.0,
+                "y": 345.0,
+                "width": 158.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 676.0,
+                "y": 345.0,
+                "width": 158.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/确认返回 Button",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/UI007 Footer/确认返回 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 779.0,
+                "y": 457.0,
+                "width": 154.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 779.0,
+                "y": 457.0,
+                "width": 154.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/通用 Content/分辨率 Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 710.0,
+                "y": 531.0,
+                "width": 120.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 710.0,
+                "y": 531.0,
+                "width": 120.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/占位 Button",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/UI007 占位 Button Slot/占位 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1060.0,
+                "y": 615.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1060.0,
+                "y": 615.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/返回主菜单 Button/Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/返回主菜单 Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1086.0,
+                "y": 345.0,
+                "width": 158.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1086.0,
+                "y": 345.0,
+                "width": 158.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 720.0,
+                "y": 430.0,
+                "width": 480.0,
+                "height": 220.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 720.0,
+                "y": 430.0,
+                "width": 480.0,
+                "height": 220.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Dropdown/Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/通用 Content/分辨率 Dropdown/Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 868.0,
+                "y": 531.0,
+                "width": 204.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 868.0,
+                "y": 531.0,
+                "width": 204.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/规则书 Button",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/UI007 规则书 Button Slot/规则书 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 873.0,
+                "y": 615.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 873.0,
+                "y": 615.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Dropdown/Template/Viewport/Content",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/通用 Content/分辨率 Dropdown/Template/Viewport/Content",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 361.0,
+                "width": 260.0,
+                "height": 168.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 361.0,
+                "width": 260.0,
+                "height": 168.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Button",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/UI007 通用 Button Slot/通用 Button",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 686.0,
+                "y": 615.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 686.0,
+                "y": 615.0,
+                "width": 174.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/占位 Content/Future Content Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/占位 Content/Future Content Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 810.0,
+                "y": 490.0,
+                "width": 300.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 810.0,
+                "y": 490.0,
+                "width": 300.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/占位 Content",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/占位 Content",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 686.0,
+                "y": 427.0,
+                "width": 548.0,
+                "height": 174.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 686.0,
+                "y": 427.0,
+                "width": 548.0,
+                "height": 174.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 409.0,
+                "width": 584.0,
+                "height": 270.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 409.0,
+                "width": 584.0,
+                "height": 270.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Title",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Header/Settings Title",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 693.0,
+                "width": 520.0,
+                "height": 54.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 700.0,
+                "y": 693.0,
+                "width": 520.0,
+                "height": 54.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/通用 Content",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 686.0,
+                "y": 427.0,
+                "width": 548.0,
+                "height": 174.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 686.0,
+                "y": 427.0,
+                "width": 548.0,
+                "height": 174.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Settings Body/通用 Content/分辨率 Dropdown/Template/Viewport/Content/Item/Item Label",
+            "afterPath": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Settings Body Slot/Settings Body/UI007 Content Row/通用 Content/分辨率 Dropdown/Template/Viewport/Content/Item/Item Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 868.0,
+                "y": 487.0,
+                "width": 232.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 868.0,
+                "y": 487.0,
+                "width": 232.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        }
+    ]
+}

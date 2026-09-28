@@ -91,13 +91,6 @@ namespace YC.Presentation
         public Vector2 PanelOutlineDistance;
         public EffectDialogRectLayout TitleLayout;
         public EffectDialogRectLayout DescriptionLayout;
-        public EffectDialogRectLayout CollapsedSummaryLayout;
-        public EffectDialogRectLayout CollapsedToggleLayout;
-        public EffectDialogRectLayout ExpandedToggleLayout;
-        public EffectDialogRectLayout CollapseIconLayout;
-        public float CollapsedHeight;
-        public Color CollapsedOverlayColor;
-        public bool CollapsedOverlayRaycastTarget;
         public EffectDialogInsetLayout OptionScrollLayout;
         public EffectDialogRectLayout ResourceSummaryLayout;
         public Vector2 ResourceRowAnchor;
@@ -140,11 +133,8 @@ namespace YC.Presentation
         public float OptionsScrollTop;
         public float OptionsScrollBottom;
         public float OptionsScrollBottomWithBack;
-        public float CollapsibleOptionsExtraBottom;
-        public float CollapsibleOptionsExtraBottomWithBack;
         public Vector2 OptionsBackButtonSize;
         public float OptionsBackButtonNormalY;
-        public float OptionsBackButtonCollapsibleY;
 
         public Vector2 ResourceAllocationPanelSize;
         public float ResourceLabelWidth;
@@ -156,7 +146,6 @@ namespace YC.Presentation
 
         public float MapPromptPanelWidth;
         public float MapPromptPanelHeight;
-        public float CollapsibleMapPromptPanelHeight;
         public Vector2 MapPromptPanelPosition;
         public float MapPromptDescriptionHeight;
         public Vector2 MapPrimaryButtonSize;
@@ -164,7 +153,6 @@ namespace YC.Presentation
         public float MapPrimaryWithBackX;
         public float MapBackWithPrimaryX;
         public float MapButtonNormalY;
-        public float MapButtonCollapsibleY;
     }
 
     [CreateAssetMenu(
@@ -172,6 +160,127 @@ namespace YC.Presentation
         menuName = "YC/Presentation/Effect Dialog Layout Profile")]
     public sealed class EffectDialogLayoutProfile : ScriptableObject
     {
+        [SerializeField] private string characterUseTitle = "角色牌使用";
+        public string CharacterUseTitle => characterUseTitle;
+
+        [SerializeField] private string characterUseDescription = "请选择本次使用的角色牌效果。";
+        public string CharacterUseDescription => characterUseDescription;
+
+        [SerializeField] private string characterSecondEffectDescription = "第一个效果已结算，可继续使用第二个效果，或结束本次使用。";
+        public string CharacterSecondEffectDescription => characterSecondEffectDescription;
+
+        [SerializeField] private string characterStrategyLabel = "策略";
+        public string CharacterStrategyLabel => characterStrategyLabel;
+
+        [SerializeField] private string characterTacticLabel = "计谋";
+        public string CharacterTacticLabel => characterTacticLabel;
+
+        [SerializeField] private string characterFinishLabel = "结束使用";
+        public string CharacterFinishLabel => characterFinishLabel;
+
+        [SerializeField] private string discardListTitleFormat = "弃牌（{0}）";
+        public string DiscardListTitleFormat => discardListTitleFormat;
+
+        [SerializeField] private string discardListDescription = "此页面仅供查看，不能使用或移动弃牌。";
+        public string DiscardListDescription => discardListDescription;
+
+        [SerializeField] private string readOnlyCloseLabel = "关闭";
+        public string ReadOnlyCloseLabel => readOnlyCloseLabel;
+
+        [Header("通用选择与出售文案")]
+        [SerializeField] private string selectionConfirmLabel = "确认选择";
+        [SerializeField] private string selectionCancelLabel = "放弃选择";
+        [SerializeField] private string selectionReturnLabel = "返回选择";
+        [SerializeField] private string selectionSummaryFormat = "已选 {0} · 最少 {1} / 最多 {2}";
+        [SerializeField] private string selectionEmptyText = "当前没有可选内容";
+        [SerializeField] private string saleConfirmLabel = "确认出售";
+        [SerializeField] private string saleFinishLabel = "结束出售";
+        [SerializeField] private string saleDiscardDraftLabel = "放弃并结束";
+        [SerializeField] private string saleSummaryFormat = "预计获得 {0} 金券";
+        [SerializeField] private string saleReceiptSummaryFormat = "最近出售实际获得 {0} 金券";
+        [SerializeField] private string saleInventoryFormat = "{0}（库存 {1}，单价 {2} 金券）";
+        public string SelectionConfirmLabel => selectionConfirmLabel;
+        public string SelectionCancelLabel => selectionCancelLabel;
+        [SerializeField] private string specialActionTitle = "选择执行特殊行动";
+        [SerializeField] private string specialActionDescription = "选择已解锁的特殊行动，再确认执行。";
+        public string SpecialActionTitle => specialActionTitle;
+        public string SpecialActionDescription => specialActionDescription;
+        public string SelectionReturnLabel => selectionReturnLabel;
+        public string SelectionSummaryFormat => selectionSummaryFormat;
+        public string SelectionEmptyText => selectionEmptyText;
+        public string SaleConfirmLabel => saleConfirmLabel;
+        public string SaleFinishLabel => saleFinishLabel;
+        public string SaleDiscardDraftLabel => saleDiscardDraftLabel;
+        public string SaleSummaryFormat => saleSummaryFormat;
+        public string SaleReceiptSummaryFormat => saleReceiptSummaryFormat;
+        public string SaleInventoryFormat => saleInventoryFormat;
+        [SerializeField] private string characterSelectionTitle = "角色能力";
+        [SerializeField] private string characterCoverSelectionTitle = "盖放角色牌";
+        [SerializeField] private string characterCoverSelectionDescription = "选择一张手牌并确认。";
+        [SerializeField] private string characterCoverSelectionHint = "单击选择或取消；长按、双击或右键查看角色牌";
+        [SerializeField] private string facilitySelectionTitle = "设施效果";
+        [SerializeField] private string buildFacilitySelectionTitle = "设施建设";
+        [SerializeField] private string buildFacilitySelectionDescription = "选择设施、城市目标和支付方式。";
+        [SerializeField] private string buildSlotSelectionTitle = "选择建设位置";
+        [SerializeField] private string buildPaymentSelectionTitle = "选择支付方式";
+        [SerializeField] private string buildConfirmationTitle = "确认建设报价";
+        [SerializeField] private string buildConfirmLabel = "确认建设";
+        [SerializeField] private string buildBackLabel = "返回修改";
+        [SerializeField] private string buildCancelLabel = "取消建设";
+        [SerializeField] private string buildSlotLabelFormat = "城市槽位 {0}";
+        [SerializeField] private string buildUnavailableReasonFormat = "不可选：{0}";
+        [SerializeField] private string buildPaymentResourcesLabel = "使用资源支付";
+        [SerializeField] private string buildPaymentGoldLabel = "使用金券支付";
+        [SerializeField] private string buildResourceCostFormat = "源岩 {0} · 源石碎片 {1} · 异铁 {2} · 至纯源石 {3}";
+        [SerializeField] private string buildPaymentQuoteFormat = "原价资源：{0}\n当前费用：{1}\n金券费用：{2}";
+        [SerializeField] private string buildQuoteValidLabel = "报价有效";
+        [SerializeField] private string buildQuotePendingLabel = "等待正式报价";
+        [SerializeField] private string saleTitle = "资源出售";
+        [SerializeField] private string saleDescription = "选择要出售的资源数量，然后统一确认结算。";
+        [SerializeField] private string resourceAllocationTitle = "设施资源效果";
+        [SerializeField] private string resourceAllocationDescriptionFormat = "分配总计 {0} 点资源。";
+        [SerializeField] private string optionalEffectTitle = "可选效果";
+        [SerializeField] private string executeLabel = "执行";
+        [SerializeField] private string declineLabel = "放弃";
+        public string CharacterSelectionTitle => characterSelectionTitle;
+        public string CharacterCoverSelectionTitle => characterCoverSelectionTitle;
+        public string CharacterCoverSelectionDescription => characterCoverSelectionDescription;
+        public string CharacterCoverSelectionHint => characterCoverSelectionHint;
+        public string FacilitySelectionTitle => facilitySelectionTitle;
+        public string BuildFacilitySelectionTitle => buildFacilitySelectionTitle;
+        public string BuildFacilitySelectionDescription => buildFacilitySelectionDescription;
+        public string BuildSlotSelectionTitle => buildSlotSelectionTitle;
+        public string BuildPaymentSelectionTitle => buildPaymentSelectionTitle;
+        public string BuildConfirmationTitle => buildConfirmationTitle;
+        public string BuildConfirmLabel => buildConfirmLabel;
+        public string BuildBackLabel => buildBackLabel;
+        public string BuildCancelLabel => buildCancelLabel;
+        public string BuildSlotLabelFormat => buildSlotLabelFormat;
+        public string BuildUnavailableReasonFormat => buildUnavailableReasonFormat;
+        public string BuildPaymentResourcesLabel => buildPaymentResourcesLabel;
+        public string BuildPaymentGoldLabel => buildPaymentGoldLabel;
+        public string BuildPaymentQuoteFormat => buildPaymentQuoteFormat;
+        public string BuildResourceCostFormat => buildResourceCostFormat;
+        public string BuildQuoteValidLabel => buildQuoteValidLabel;
+        public string BuildQuotePendingLabel => buildQuotePendingLabel;
+        [SerializeField] private string buildSelectionPrompt = "建设：选择设施、城市目标和支付方式，再确认建设。";
+        public string BuildSelectionPrompt => buildSelectionPrompt;
+        public string SaleTitle => saleTitle;
+        public string SaleDescription => saleDescription;
+        public string ResourceAllocationTitle => resourceAllocationTitle;
+        public string ResourceAllocationDescriptionFormat => resourceAllocationDescriptionFormat;
+        public string OptionalEffectTitle => optionalEffectTitle;
+        public string ExecuteLabel => executeLabel;
+        public string DeclineLabel => declineLabel;
+        [Header("通用选择自适应尺寸")]
+        [SerializeField] private Vector2 selectionPanelSize = new Vector2(1320f, 820f);
+        [SerializeField] private Vector2 selectionCardSize = new Vector2(240f, 358f);
+        [SerializeField] private float selectionMinimumCardWidth = 180f;
+        [SerializeField] private Vector2 salePanelSize = new Vector2(980f, 720f);
+        public Vector2 SelectionPanelSize => selectionPanelSize;
+        public Vector2 SelectionCardSize => selectionCardSize;
+        public float SelectionMinimumCardWidth => selectionMinimumCardWidth;
+        public Vector2 SalePanelSize => salePanelSize;
         [SerializeField] private string sourceManifestSha256 = string.Empty;
         [SerializeField] private EffectDialogLayoutValues values = new EffectDialogLayoutValues();
 
@@ -181,13 +290,6 @@ namespace YC.Presentation
         public Vector2 PanelOutlineDistance => values.PanelOutlineDistance;
         public EffectDialogRectLayout TitleLayout => values.TitleLayout;
         public EffectDialogRectLayout DescriptionLayout => values.DescriptionLayout;
-        public EffectDialogRectLayout CollapsedSummaryLayout => values.CollapsedSummaryLayout;
-        public EffectDialogRectLayout CollapsedToggleLayout => values.CollapsedToggleLayout;
-        public EffectDialogRectLayout ExpandedToggleLayout => values.ExpandedToggleLayout;
-        public EffectDialogRectLayout CollapseIconLayout => values.CollapseIconLayout;
-        public float CollapsedHeight => values.CollapsedHeight;
-        public Color CollapsedOverlayColor => values.CollapsedOverlayColor;
-        public bool CollapsedOverlayRaycastTarget => values.CollapsedOverlayRaycastTarget;
         public EffectDialogInsetLayout OptionScrollLayout => values.OptionScrollLayout;
         public EffectDialogRectLayout ResourceSummaryLayout => values.ResourceSummaryLayout;
         public Vector2 ResourceRowAnchor => values.ResourceRowAnchor;
@@ -228,11 +330,8 @@ namespace YC.Presentation
         public float OptionsScrollTop => values.OptionsScrollTop;
         public float OptionsScrollBottom => values.OptionsScrollBottom;
         public float OptionsScrollBottomWithBack => values.OptionsScrollBottomWithBack;
-        public float CollapsibleOptionsExtraBottom => values.CollapsibleOptionsExtraBottom;
-        public float CollapsibleOptionsExtraBottomWithBack => values.CollapsibleOptionsExtraBottomWithBack;
         public Vector2 OptionsBackButtonSize => values.OptionsBackButtonSize;
         public float OptionsBackButtonNormalY => values.OptionsBackButtonNormalY;
-        public float OptionsBackButtonCollapsibleY => values.OptionsBackButtonCollapsibleY;
         public Vector2 ResourceAllocationPanelSize => values.ResourceAllocationPanelSize;
         public float ResourceLabelWidth => values.ResourceLabelWidth;
         public float ResourceLabelHeight => values.ResourceLabelHeight;
@@ -242,7 +341,6 @@ namespace YC.Presentation
         public float ResourceIncreaseX => values.ResourceIncreaseX;
         public float MapPromptPanelWidth => values.MapPromptPanelWidth;
         public float MapPromptPanelHeight => values.MapPromptPanelHeight;
-        public float CollapsibleMapPromptPanelHeight => values.CollapsibleMapPromptPanelHeight;
         public Vector2 MapPromptPanelPosition => values.MapPromptPanelPosition;
         public float MapPromptDescriptionHeight => values.MapPromptDescriptionHeight;
         public Vector2 MapPrimaryButtonSize => values.MapPrimaryButtonSize;
@@ -250,7 +348,6 @@ namespace YC.Presentation
         public float MapPrimaryWithBackX => values.MapPrimaryWithBackX;
         public float MapBackWithPrimaryX => values.MapBackWithPrimaryX;
         public float MapButtonNormalY => values.MapButtonNormalY;
-        public float MapButtonCollapsibleY => values.MapButtonCollapsibleY;
 
         public bool TryValidateConfiguration(out string reason)
         {
@@ -264,10 +361,6 @@ namespace YC.Presentation
             if (!PanelLayout.TryValidate(true, out reason) ||
                 !TitleLayout.TryValidate(false, out reason) ||
                 !DescriptionLayout.TryValidate(false, out reason) ||
-                !CollapsedSummaryLayout.TryValidate(false, out reason) ||
-                !CollapsedToggleLayout.TryValidate(true, out reason) ||
-                !ExpandedToggleLayout.TryValidate(true, out reason) ||
-                !CollapseIconLayout.TryValidate(true, out reason) ||
                 !OptionScrollLayout.TryValidate(out reason) ||
                 !ResourceSummaryLayout.TryValidate(false, out reason) ||
                 !CharacterOptionsCancelButtonLayout.TryValidate(true, out reason) ||
@@ -278,7 +371,7 @@ namespace YC.Presentation
                 return false;
             }
 
-            if (!IsFinite(OverlayColor) || !IsFinite(CollapsedOverlayColor) ||
+            if (!IsFinite(OverlayColor) ||
                 !IsFinite(PanelOutlineDistance) || !IsNormalized(ResourceRowAnchor) ||
                 !IsNormalized(BottomCenterAnchor) || !IsNormalized(ExtensionHubCardAnchor) ||
                 !IsPositive(ResourceDecreaseButtonSize) || !IsPositive(ResourceValueSize) ||
@@ -306,7 +399,7 @@ namespace YC.Presentation
                 !IsFinite(ResourceValueX) || !IsFinite(ResourceIncreaseX) ||
                 !IsFinite(MapPromptDescriptionHeight) ||
                 !IsFinite(FacilityCardOutlineDistance) || !IsFinite(MapPromptPanelPosition) ||
-                CollapsedHeight <= 0f || ExtensionHubDescriptionHeight <= 0f ||
+                ExtensionHubDescriptionHeight <= 0f ||
                 CharacterOptionsRowHeight <= 0f ||
                 CharacterOptionsPanelMinHeight <= 0f ||
                 CharacterOptionsPanelMaxHeight < CharacterOptionsPanelMinHeight ||
@@ -318,7 +411,7 @@ namespace YC.Presentation
                 OptionsScrollBottom < 0f || OptionsScrollBottomWithBack < 0f ||
                 ResourceLabelWidth <= 0f || ResourceLabelHeight <= 0f ||
                 MapPromptPanelWidth <= 0f || MapPromptPanelHeight <= 0f ||
-                CollapsibleMapPromptPanelHeight <= 0f || MapPromptDescriptionHeight <= 0f)
+                MapPromptDescriptionHeight <= 0f)
             {
                 reason = "EffectDialogLayoutProfile 包含越界或非有限固定布局值。";
                 return false;

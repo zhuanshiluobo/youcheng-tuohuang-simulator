@@ -1,0 +1,404 @@
+[
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "返回主菜单 Button",
+    "fileID": 7644559726736888607,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "Settings Overlay",
+    "fileID": 1744589213234611549,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "Action Log Button",
+    "fileID": 4759215121227569704,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "取消 Button",
+    "fileID": 7073617440701898185,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "Settings Panel",
+    "fileID": 7413942762178614470,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "Close Settings Button",
+    "fileID": 6899783782207086002,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "确认返回 Button",
+    "fileID": 460273732611438812,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "占位 Button",
+    "fileID": 3958798883601175431,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "Return Confirmation Dialog",
+    "fileID": 5022756055788966440,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "规则书 Button",
+    "fileID": 7916515809129271634,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "通用 Button",
+    "fileID": 6693784106940874258,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameSettingsMenu.prefab",
+    "object": "Settings Body",
+    "fileID": 2984444309621246468,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameActionLogViewer.prefab",
+    "object": "Action Log Panel",
+    "fileID": 1201954574444239781,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameActionLogViewer.prefab",
+    "object": "Close Action Log Button",
+    "fileID": 6949191156956410845,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameActionLogViewer.prefab",
+    "object": "Action Log Row Template",
+    "fileID": 7647658244177704312,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameActionLogViewer.prefab",
+    "object": "Action Log Scroll View",
+    "fileID": 2633506468564033373,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameActionLogViewer.prefab",
+    "object": "Action Log Overlay",
+    "fileID": 1588712156739350947,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameActionLogViewer.prefab",
+    "object": "Handle",
+    "fileID": 6813990970738224503,
+    "artwork": "LegacyControls/scrollbar-thumb-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameActionLogViewer.prefab",
+    "object": "Action Log Scrollbar",
+    "fileID": 4568038910629619542,
+    "artwork": "LegacyControls/scrollbar-track-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameZoomableImageViewer.prefab",
+    "object": "Image Collapse Toggle Button",
+    "fileID": 5054222244380583095,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameZoomableImageViewer.prefab",
+    "object": "Image Panel",
+    "fileID": 8842628590678753254,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameZoomableImageViewer.prefab",
+    "object": "Secondary Image Action Button",
+    "fileID": 7415168162765018970,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameZoomableImageViewer.prefab",
+    "object": "Previous Image Button",
+    "fileID": 5288517717694127448,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameZoomableImageViewer.prefab",
+    "object": "Close Image Button",
+    "fileID": 105968513712327281,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameZoomableImageViewer.prefab",
+    "object": "Primary Image Action Button",
+    "fileID": 1876296298662256070,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\InGame\\InGameZoomableImageViewer.prefab",
+    "object": "Next Image Button",
+    "fileID": 6320800181473662189,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\DispatchDecisionDialog.prefab",
+    "object": "Finish Dispatch",
+    "fileID": 8429865889786843911,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\DispatchDecisionDialog.prefab",
+    "object": "Dispatch Decision Panel",
+    "fileID": 5311651021730276735,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\DispatchDecisionDialog.prefab",
+    "object": "Continue Dispatch",
+    "fileID": 3950600919892583680,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Confirm Build Facility",
+    "fileID": 4653921539898944206,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Back To Build Payment",
+    "fileID": 1621880665948805181,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Handle",
+    "fileID": 247470619762587271,
+    "artwork": "LegacyControls/scrollbar-thumb-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "PaymentRecipientButton",
+    "fileID": 5336035509216799826,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Scrollbar",
+    "fileID": 6372353335503785032,
+    "artwork": "LegacyControls/scrollbar-track-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Pay Bank",
+    "fileID": 3964074223747577177,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Finish Character Use",
+    "fileID": 6437979607546982127,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Scrollbar",
+    "fileID": 7371777672864446378,
+    "artwork": "LegacyControls/scrollbar-track-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Scrollbar",
+    "fileID": 9174455628519313828,
+    "artwork": "LegacyControls/scrollbar-track-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "PathRow",
+    "fileID": 5549946384481831539,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Handle",
+    "fileID": 8577469090853229889,
+    "artwork": "LegacyControls/scrollbar-thumb-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Collapse",
+    "fileID": 6437532942902863461,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Choose Gold Payment",
+    "fileID": 6512745782644621177,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Close",
+    "fileID": 7660716431811613678,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Event Choice Panel",
+    "fileID": 1489823431253544092,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Handle",
+    "fileID": 1904244046679462664,
+    "artwork": "LegacyControls/scrollbar-thumb-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Continue Character Second Effect",
+    "fileID": 7358234993169506494,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Choose Resource Payment",
+    "fileID": 5145042854405928572,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Handle",
+    "fileID": 5290171207475942650,
+    "artwork": "LegacyControls/scrollbar-thumb-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "ResourceCollectionRecipientButton",
+    "fileID": 7002504534071632701,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Handle",
+    "fileID": 4832630636117961138,
+    "artwork": "LegacyControls/scrollbar-thumb-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Scrollbar",
+    "fileID": 2294241227217257542,
+    "artwork": "LegacyControls/scrollbar-track-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Confirm Explore",
+    "fileID": 410496946669123641,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Scrollbar",
+    "fileID": 7738642822913697652,
+    "artwork": "LegacyControls/scrollbar-track-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Handle",
+    "fileID": 769688462706564218,
+    "artwork": "LegacyControls/scrollbar-thumb-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "ChoiceRow",
+    "fileID": 1282356465602343529,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\EventChoiceDialog.prefab",
+    "object": "Scrollbar",
+    "fileID": 1529199844092380116,
+    "artwork": "LegacyControls/scrollbar-track-v.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "object": "Final Score Details Button",
+    "fileID": 5641621523197768862,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "object": "Final Score Details Player List",
+    "fileID": 7947353849629644398,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "object": "Final Score Header",
+    "fileID": 6341085276151640740,
+    "artwork": "Frontier31/header-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "object": "Final Score Details Back Button",
+    "fileID": 339980585258963527,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "object": "Game Over Dialog",
+    "fileID": 2996982083446214443,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "object": "Final Score Details View",
+    "fileID": 1362173421972992594,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "object": "Return Start Button",
+    "fileID": 9196541674872015649,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "object": "Final Score Ranking Row Template",
+    "fileID": 5426336175581818916,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "object": "Final Score Player Details Button",
+    "fileID": 2766532429211117030,
+    "artwork": "Frontier31/button-secondary.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "object": "Final Score Board",
+    "fileID": 8211272780176949836,
+    "artwork": "Frontier31/module-bg.png"
+  },
+  {
+    "source": "Assets\\YC\\Presentation\\Prefabs\\RoundTracker\\RoundTracker.prefab",
+    "object": "Final Score Detail Player Row Template",
+    "fileID": 5643795463245099900,
+    "artwork": "Frontier31/module-bg.png"
+  }
+]

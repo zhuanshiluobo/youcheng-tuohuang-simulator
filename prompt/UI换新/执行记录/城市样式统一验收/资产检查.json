@@ -1,0 +1,417 @@
+{
+  "checks": [
+    {
+      "item": "hud local references",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "item": "hud unique IDs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud removed UI nodes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "hud three row templates",
+      "passed": true,
+      "detail": [
+        {
+          "layout": "active",
+          "root": 7451260000000000085,
+          "nameTextFont": "5c5a187d1eb86944c93f847ec521c324"
+        },
+        {
+          "layout": "reward",
+          "root": 7451260000000000209,
+          "nameTextFont": "5c5a187d1eb86944c93f847ec521c324"
+        },
+        {
+          "layout": "limited",
+          "root": 7451260000000000282,
+          "nameTextFont": "5c5a187d1eb86944c93f847ec521c324"
+        }
+      ]
+    },
+    {
+      "item": "build local references",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "item": "build unique IDs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build removed UI nodes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build zero template alpha",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "build three row templates",
+      "passed": true,
+      "detail": [
+        {
+          "layout": "active",
+          "root": 7451260000000000019,
+          "nameTextFont": "5c5a187d1eb86944c93f847ec521c324"
+        },
+        {
+          "layout": "reward",
+          "root": 7451260000000000143,
+          "nameTextFont": "5c5a187d1eb86944c93f847ec521c324"
+        },
+        {
+          "layout": "limited",
+          "root": 7451260000000000216,
+          "nameTextFont": "5c5a187d1eb86944c93f847ec521c324"
+        }
+      ]
+    },
+    {
+      "item": "dialog local references",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "item": "dialog unique IDs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "dialog removed UI nodes",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "item": "optionTemplate local reference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "art 97 percent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "match font 20",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "frame pixels multiplier 1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "item": "tracks have no Image",
+      "passed": true,
+      "detail": [
+        {
+          "name": "Track active unused",
+          "offset": "{x: 0, y: 5.5}",
+          "image": false
+        },
+        {
+          "name": "Track active used",
+          "offset": "{x: 0, y: -5.5}",
+          "image": false
+        },
+        {
+          "name": "Track reward declared",
+          "offset": "{x: 0, y: 0}",
+          "image": false
+        },
+        {
+          "name": "Track limited 2",
+          "offset": "{x: 0, y: 4}",
+          "image": false
+        },
+        {
+          "name": "Track limited used_from_2",
+          "offset": "{x: 0, y: 0}",
+          "image": false
+        },
+        {
+          "name": "Track limited 1",
+          "offset": "{x: 0, y: 0}",
+          "image": false
+        },
+        {
+          "name": "Track limited used_from_1",
+          "offset": "{x: 0, y: 0}",
+          "image": false
+        },
+        {
+          "name": "Track limited 0",
+          "offset": "{x: 0, y: -4}",
+          "image": false
+        },
+        {
+          "name": "Track active unused",
+          "offset": "{x: 0, y: 5.5}",
+          "image": false
+        },
+        {
+          "name": "Track active used",
+          "offset": "{x: 0, y: -5.5}",
+          "image": false
+        },
+        {
+          "name": "Track reward declared",
+          "offset": "{x: 0, y: 0}",
+          "image": false
+        },
+        {
+          "name": "Track limited 2",
+          "offset": "{x: 0, y: 4}",
+          "image": false
+        },
+        {
+          "name": "Track limited used_from_2",
+          "offset": "{x: 0, y: 0}",
+          "image": false
+        },
+        {
+          "name": "Track limited 1",
+          "offset": "{x: 0, y: 0}",
+          "image": false
+        },
+        {
+          "name": "Track limited used_from_1",
+          "offset": "{x: 0, y: 0}",
+          "image": false
+        },
+        {
+          "name": "Track limited 0",
+          "offset": "{x: 0, y: -4}",
+          "image": false
+        }
+      ]
+    },
+    {
+      "item": "dialog zero block transparency",
+      "passed": true,
+      "detail": {
+        "count": 64,
+        "alphas": [
+          0.0
+        ]
+      }
+    },
+    {
+      "item": "validation preserved assets",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "sceneOverridesAffectingScope": {
+    "SampleScene": [
+      {
+        "target": 5864821001501091140,
+        "override": "propertyPath: m_AnchorMax.x\n      value: 0\n      objectReference: {fileID: 0}"
+      },
+      {
+        "target": 5864821001501091140,
+        "override": "propertyPath: m_AnchorMax.y\n      value: 0\n      objectReference: {fileID: 0}"
+      },
+      {
+        "target": 5864821001501091140,
+        "override": "propertyPath: m_AnchorMin.y\n      value: 0\n      objectReference: {fileID: 0}"
+      },
+      {
+        "target": 5864821001501091140,
+        "override": "propertyPath: m_SizeDelta.x\n      value: 0\n      objectReference: {fileID: 0}"
+      },
+      {
+        "target": 5864821001501091140,
+        "override": "propertyPath: m_SizeDelta.y\n      value: 0\n      objectReference: {fileID: 0}"
+      },
+      {
+        "target": 7925471797570181793,
+        "override": "propertyPath: m_AnchorMax.y\n      value: 0\n      objectReference: {fileID: 0}"
+      },
+      {
+        "target": 7925471797570181793,
+        "override": "propertyPath: m_AnchorMin.y\n      value: 0\n      objectReference: {fileID: 0}"
+      },
+      {
+        "target": 7925471797570181793,
+        "override": "propertyPath: m_SizeDelta.x\n      value: 0\n      objectReference: {fileID: 0}"
+      },
+      {
+        "target": 7925471797570181793,
+        "override": "propertyPath: m_SizeDelta.y\n      value: 0\n      objectReference: {fileID: 0}"
+      },
+      {
+        "target": 7925471797570181793,
+        "override": "propertyPath: m_AnchoredPosition.y\n      value: 0\n      objectReference: {fileID: 0}"
+      }
+    ],
+    "ThreePlayerScene": []
+  }
+}

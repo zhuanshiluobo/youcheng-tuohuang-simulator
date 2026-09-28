@@ -137,8 +137,10 @@ namespace YC.Presentation.Workflows
             string paymentMode,
             string errorMessage,
             IReadOnlyList<int> legalSlotIndexes,
-            Action<BuildFacilityIntent> dispatch)
+            Action<BuildFacilityIntent> dispatch,
+            bool isSupplySource = true)
         {
+            IsSupplySource = isSupplySource;
             Phase = phase;
             Options = options ?? new List<BuildFacilityOptionQueryResult>().AsReadOnly();
             SelectedOption = selectedOption;
@@ -150,6 +152,7 @@ namespace YC.Presentation.Workflows
             Dispatch = dispatch ?? throw new ArgumentNullException(nameof(dispatch));
         }
 
+        public bool IsSupplySource { get; private set; }
         public BuildFacilityDraftPhase Phase { get; private set; }
         public IReadOnlyList<BuildFacilityOptionQueryResult> Options { get; private set; }
         public BuildFacilityOptionQueryResult SelectedOption { get; private set; }
@@ -184,6 +187,8 @@ namespace YC.Presentation.Workflows
         public string UnavailableMessage { get; private set; }
     }
 
+    public enum CityStyleSubmissionStatus { Ready, Pending, Applied, Rejected }
+
     public sealed class CityStyleOptionsViewModel
     {
         public CityStyleOptionsViewModel(
@@ -211,7 +216,8 @@ namespace YC.Presentation.Workflows
             Func<string, IReadOnlyList<int>, bool> confirmSelection,
             Action<string> select,
             Action cancel,
-            Func<string, string, int, int, bool> tryUseSpecialAction = null)
+            Func<string, string, int, int, bool> tryUseSpecialAction = null,
+            bool declareMode = true, Func<CityStyleOptionsViewModel> refresh = null, string contextKey = "", int revision = 0, Func<CityStyleSubmissionStatus> submissionStatus = null, string playerName = "", int availableMarkers = 0)
         {
             Options = options ?? new List<CityStyleOptionViewModel>().AsReadOnly();
             CityBoardSlots = cityBoardSlots ?? new List<CityBoardSlotViewModel>().AsReadOnly();
@@ -222,7 +228,18 @@ namespace YC.Presentation.Workflows
             Select = select;
             Cancel = cancel;
             TryUseSpecialAction = tryUseSpecialAction;
+            DeclareMode = declareMode; Refresh = refresh; ContextKey = contextKey; Revision = revision;
+            SubmissionStatus = submissionStatus;
+            PlayerName = playerName; AvailableMarkers = availableMarkers;
         }
+
+        public string PlayerName { get; }
+        public int AvailableMarkers { get; }
+        public Func<CityStyleSubmissionStatus> SubmissionStatus { get; }
+        public bool DeclareMode { get; }
+        public Func<CityStyleOptionsViewModel> Refresh { get; }
+        public string ContextKey { get; }
+        public int Revision { get; }
 
         public IReadOnlyList<CityStyleOptionViewModel> Options { get; private set; }
 

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-26 09:36:02Z" end-time="2026-09-26 09:36:04Z" duration="2.473861">
+  <test-suite type="TestSuite" id="1031" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-09-26 09:36:02Z" end-time="2026-09-26 09:36:04Z" duration="2.473861" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1058" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-09-26 09:36:02Z" end-time="2026-09-26 09:36:04Z" duration="2.469782" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="27208" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1059" name="YC" fullname="YC" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-09-26 09:36:02Z" end-time="2026-09-26 09:36:04Z" duration="2.469109" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1060" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-09-26 09:36:02Z" end-time="2026-09-26 09:36:04Z" duration="2.468667" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1061" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-09-26 09:36:02Z" end-time="2026-09-26 09:36:04Z" duration="2.468251" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1042" name="Ui005MainHudPlayModeTests" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-26 09:36:02Z" end-time="2026-09-26 09:36:04Z" duration="2.467003" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1050" name="CharacterCover_FormalEntranceSelectionDetailsAndConfirmation" fullname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests.CharacterCover_FormalEntranceSelectionDetailsAndConfirmation" methodname="CharacterCover_FormalEntranceSelectionDetailsAndConfirmation" classname="YC.Tests.PlayMode.Ui005MainHudPlayModeTests" runstate="Runnable" seed="1324063789" result="Passed" start-time="2026-09-26 09:36:02Z" end-time="2026-09-26 09:36:04Z" duration="2.459384" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

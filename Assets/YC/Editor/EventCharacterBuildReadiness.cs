@@ -17,7 +17,8 @@ namespace YC.Editor
         private static readonly string[] ProductionScenePaths =
         {
             StartScenePath,
-            GameScenePath
+            GameScenePath,
+            "Assets/Scenes/ThreePlayerScene.unity"
         };
 
         public static void ValidateReadyForBuild()
@@ -47,13 +48,19 @@ namespace YC.Editor
 
         public static void ValidateGameSettingsPrefab(EventCharacterCardCatalog expectedCatalog)
         {
+            foreach (var prefabPath in GameSettingsAssetSources.PrefabPaths)
+                ValidateSettingsPrefabAsset(expectedCatalog, prefabPath);
+        }
+
+        private static void ValidateSettingsPrefabAsset(
+            EventCharacterCardCatalog expectedCatalog, string prefabPath)
+        {
             if (expectedCatalog == null)
             {
                 throw new InvalidOperationException("Event/Character 目录引用为空。");
             }
 
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
-                EventCharacterCardCatalogEditorAssetBuilder.GameSettingsPrefabPath);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null)
             {
                 throw new InvalidOperationException("缺少 GameSettings Prefab。");
@@ -92,7 +99,13 @@ namespace YC.Editor
 
         internal static void ValidateSavedProductionSceneConnections()
         {
-            var prefabPath = EventCharacterCardCatalogEditorAssetBuilder.GameSettingsPrefabPath;
+            foreach (var scenePath in ProductionScenePaths)
+                ValidateSavedSceneConnection(NormalizePath(scenePath));
+        }
+
+        private static void ValidateSavedSceneConnection(string scenePath)
+        {
+            var prefabPath = GameSettingsAssetSources.ForScene(scenePath);
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null)
             {
@@ -155,30 +168,26 @@ namespace YC.Editor
                 }
             }
 
-            for (var i = 0; i < ProductionScenePaths.Length; i++)
+            if (!enabledScenePaths.Contains(scenePath))
             {
-                var scenePath = NormalizePath(ProductionScenePaths[i]);
-                if (!enabledScenePaths.Contains(scenePath))
-                {
-                    throw new InvalidOperationException(
-                        scenePath + " 未位于启用的 EditorBuildSettings 场景中。");
-                }
-
-                if (!File.Exists(scenePath))
-                {
-                    throw new InvalidOperationException("缺少正式场景：" + scenePath);
-                }
-
-                ValidateSavedSceneYaml(
-                    scenePath,
-                    File.ReadAllText(scenePath),
-                    prefabGuid,
-                    rootLocalId,
-                    componentLocalId,
-                    catalogGuid,
-                    catalogLocalId,
-                    scriptGuid);
+                throw new InvalidOperationException(
+                    scenePath + " 未位于启用的 EditorBuildSettings 场景中。");
             }
+
+            if (!File.Exists(scenePath))
+            {
+                throw new InvalidOperationException("缺少正式场景：" + scenePath);
+            }
+
+            ValidateSavedSceneYaml(
+                scenePath,
+                File.ReadAllText(scenePath),
+                prefabGuid,
+                rootLocalId,
+                componentLocalId,
+                catalogGuid,
+                catalogLocalId,
+                scriptGuid);
         }
 
         internal static void ValidateSavedSceneYaml(

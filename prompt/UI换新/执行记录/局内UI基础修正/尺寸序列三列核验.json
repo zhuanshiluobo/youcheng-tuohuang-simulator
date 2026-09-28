@@ -1,0 +1,3890 @@
+[
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-City-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-City-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-City-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-City-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-City-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-City-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-CityEnd-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-CityEnd-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-CityEnd-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-CityEnd-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-CityEnd-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-CityEnd-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Main-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Main-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Main-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Main-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Main-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Main-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-MainEnd-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-MainEnd-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-MainEnd-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-MainEnd-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-MainEnd-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-MainEnd-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Quick-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Quick-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Quick-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Quick-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Quick-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-Quick-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-QuickEnd-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-QuickEnd-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-QuickEnd-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-QuickEnd-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-QuickEnd-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-SampleScene-QuickEnd-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-City-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-City-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-City-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-City-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-City-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-City-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-CityEnd-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-CityEnd-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-CityEnd-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-CityEnd-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-CityEnd-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-CityEnd-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Main-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Main-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Main-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Main-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Main-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Main-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-MainEnd-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-MainEnd-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-MainEnd-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-MainEnd-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-MainEnd-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-MainEnd-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Quick-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Quick-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Quick-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Quick-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Quick-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-Quick-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-QuickEnd-Step0-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-QuickEnd-Step0-Restored-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-QuickEnd-Step1-1920x1200-actual-1920x1200.json",
+    "actualSize": [
+      1920,
+      1200
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 2.8990019927732646e-05,
+          "y": 107.51741790771484,
+          "width": 1920.0,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.86553955078125,
+          "y": 107.51738739013672,
+          "width": 418.28240966796875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 447.7969970703125,
+          "y": 107.51738739013672,
+          "width": 882.8875732421875,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1343.3336181640625,
+          "y": 107.51738739013672,
+          "width": 559.80078125,
+          "height": 1016.5879516601562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-QuickEnd-Step2-2560x1080-actual-2560x1080.json",
+    "actualSize": [
+      2560,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": -4.2149185901507735e-05,
+          "y": 117.77944946289062,
+          "width": 2560.0,
+          "height": 879.08203125
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 18.4752197265625,
+          "y": 117.77948760986328,
+          "width": 480.35540771484375,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 512.68701171875,
+          "y": 117.77948760986328,
+          "width": 1377.5867919921875,
+          "height": 879.0820922851562
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1904.130126953125,
+          "y": 117.77948760986328,
+          "width": 637.394775390625,
+          "height": 879.0820922851562
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-QuickEnd-Step3-1920x1080-actual-1920x1080.json",
+    "actualSize": [
+      1920,
+      1080
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 102.0,
+          "width": 1920.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 16.0,
+          "y": 102.0,
+          "width": 416.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 444.0,
+          "y": 102.0,
+          "width": 896.0,
+          "height": 906.0
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 1352.0,
+          "y": 102.0,
+          "width": 552.0,
+          "height": 906.0
+        },
+        "active": true
+      }
+    }
+  },
+  {
+    "evidence": "GameplayFoundation-Final-ThreePlayerScene-QuickEnd-Step4-900x600-actual-900x600.json",
+    "actualSize": [
+      900,
+      600
+    ],
+    "issues": [],
+    "regions": {
+      "Main Regions": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 3.409659257158637e-07,
+          "y": 52.051658630371094,
+          "width": 900.0,
+          "height": 511.2060241699219
+        },
+        "active": true
+      },
+      "Player City Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Player City Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 8.16497802734375,
+          "y": 52.05168151855469,
+          "width": 196.75363159179688,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Map Hand Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Map Hand Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 211.04232788085938,
+          "y": 52.05168151855469,
+          "width": 409.9254455566406,
+          "height": 511.20599365234375
+        },
+        "active": true
+      },
+      "Actions Column": {
+        "path": "Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/Main Regions/Actions Column",
+        "screenRect": {
+          "serializedVersion": "2",
+          "x": 627.0914916992188,
+          "y": 52.05168151855469,
+          "width": 264.7435302734375,
+          "height": 511.20599365234375
+        },
+        "active": true
+      }
+    }
+  }
+]

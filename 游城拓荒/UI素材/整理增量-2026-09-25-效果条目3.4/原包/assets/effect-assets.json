@@ -1,0 +1,1159 @@
+{
+  "version": "3.4",
+  "design": "Frontier field operations / warm umber paper, pale linen outlines, engineering yellow",
+  "pixelAlpha": "straight",
+  "sourceSizes": {
+    "row": [
+      512,
+      112
+    ],
+    "status": [
+      64,
+      64
+    ],
+    "toggle": [
+      176,
+      52
+    ],
+    "icon": [
+      64,
+      64
+    ]
+  },
+  "states": [
+    "default",
+    "hover",
+    "pressed",
+    "disabled"
+  ],
+  "sliceOrder": [
+    "left",
+    "top",
+    "right",
+    "bottom"
+  ],
+  "assets": {
+    "row-bg-default": {
+      "path": "assets/rows/row-bg-default.png",
+      "path2x": "assets/rows/row-bg-default@2x.png",
+      "svg": "assets/rows/row-bg-default.svg",
+      "viewBox": [
+        512,
+        112
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "row-background",
+      "family": "effect-row",
+      "state": "default",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        96,
+        48
+      ],
+      "cornerRadius": 8,
+      "contentInset": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    "row-frame-default": {
+      "path": "assets/rows/row-frame-default.png",
+      "path2x": "assets/rows/row-frame-default@2x.png",
+      "svg": "assets/rows/row-frame-default.svg",
+      "viewBox": [
+        512,
+        112
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "row-frame",
+      "family": "effect-row",
+      "state": "default",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        96,
+        48
+      ],
+      "cornerRadius": 8,
+      "centerTransparent": true
+    },
+    "row-bg-hover": {
+      "path": "assets/rows/row-bg-hover.png",
+      "path2x": "assets/rows/row-bg-hover@2x.png",
+      "svg": "assets/rows/row-bg-hover.svg",
+      "viewBox": [
+        512,
+        112
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "row-background",
+      "family": "effect-row",
+      "state": "hover",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        96,
+        48
+      ],
+      "cornerRadius": 8,
+      "contentInset": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    "row-frame-hover": {
+      "path": "assets/rows/row-frame-hover.png",
+      "path2x": "assets/rows/row-frame-hover@2x.png",
+      "svg": "assets/rows/row-frame-hover.svg",
+      "viewBox": [
+        512,
+        112
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "row-frame",
+      "family": "effect-row",
+      "state": "hover",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        96,
+        48
+      ],
+      "cornerRadius": 8,
+      "centerTransparent": true
+    },
+    "row-bg-pressed": {
+      "path": "assets/rows/row-bg-pressed.png",
+      "path2x": "assets/rows/row-bg-pressed@2x.png",
+      "svg": "assets/rows/row-bg-pressed.svg",
+      "viewBox": [
+        512,
+        112
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "row-background",
+      "family": "effect-row",
+      "state": "pressed",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        96,
+        48
+      ],
+      "cornerRadius": 8,
+      "contentInset": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    "row-frame-pressed": {
+      "path": "assets/rows/row-frame-pressed.png",
+      "path2x": "assets/rows/row-frame-pressed@2x.png",
+      "svg": "assets/rows/row-frame-pressed.svg",
+      "viewBox": [
+        512,
+        112
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "row-frame",
+      "family": "effect-row",
+      "state": "pressed",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        96,
+        48
+      ],
+      "cornerRadius": 8,
+      "centerTransparent": true
+    },
+    "row-bg-disabled": {
+      "path": "assets/rows/row-bg-disabled.png",
+      "path2x": "assets/rows/row-bg-disabled@2x.png",
+      "svg": "assets/rows/row-bg-disabled.svg",
+      "viewBox": [
+        512,
+        112
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "row-background",
+      "family": "effect-row",
+      "state": "disabled",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        96,
+        48
+      ],
+      "cornerRadius": 8,
+      "contentInset": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    "row-frame-disabled": {
+      "path": "assets/rows/row-frame-disabled.png",
+      "path2x": "assets/rows/row-frame-disabled@2x.png",
+      "svg": "assets/rows/row-frame-disabled.svg",
+      "viewBox": [
+        512,
+        112
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "row-frame",
+      "family": "effect-row",
+      "state": "disabled",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        96,
+        48
+      ],
+      "cornerRadius": 8,
+      "centerTransparent": true
+    },
+    "row-divider": {
+      "path": "assets/rows/row-divider.png",
+      "path2x": "assets/rows/row-divider@2x.png",
+      "svg": "assets/rows/row-divider.svg",
+      "viewBox": [
+        2,
+        80
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "optional-slot-divider",
+      "family": "effect-row",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "stretch": "vertical",
+      "recommendedDisplayWidth": 1
+    },
+    "status-bg-default": {
+      "path": "assets/status/status-bg-default.png",
+      "path2x": "assets/status/status-bg-default@2x.png",
+      "svg": "assets/status/status-bg-default.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "status-background",
+      "family": "status",
+      "state": "default",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        32,
+        32
+      ],
+      "cornerRadius": 8,
+      "contentInset": [
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    "status-bg-hover": {
+      "path": "assets/status/status-bg-hover.png",
+      "path2x": "assets/status/status-bg-hover@2x.png",
+      "svg": "assets/status/status-bg-hover.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "status-background",
+      "family": "status",
+      "state": "hover",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        32,
+        32
+      ],
+      "cornerRadius": 8,
+      "contentInset": [
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    "status-bg-pressed": {
+      "path": "assets/status/status-bg-pressed.png",
+      "path2x": "assets/status/status-bg-pressed@2x.png",
+      "svg": "assets/status/status-bg-pressed.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "status-background",
+      "family": "status",
+      "state": "pressed",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        32,
+        32
+      ],
+      "cornerRadius": 8,
+      "contentInset": [
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    "status-bg-disabled": {
+      "path": "assets/status/status-bg-disabled.png",
+      "path2x": "assets/status/status-bg-disabled@2x.png",
+      "svg": "assets/status/status-bg-disabled.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "status-background",
+      "family": "status",
+      "state": "disabled",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        32,
+        32
+      ],
+      "cornerRadius": 8,
+      "contentInset": [
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    "toggle-bg-default": {
+      "path": "assets/toggle/toggle-bg-default.png",
+      "path2x": "assets/toggle/toggle-bg-default@2x.png",
+      "svg": "assets/toggle/toggle-bg-default.svg",
+      "viewBox": [
+        176,
+        52
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "detail-toggle-background",
+      "family": "detail-toggle",
+      "state": "default",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        44,
+        26
+      ],
+      "recommendedDisplaySize": [
+        88,
+        26
+      ],
+      "cornerRadius": 6,
+      "contentInset": [
+        14,
+        8,
+        14,
+        8
+      ]
+    },
+    "toggle-bg-hover": {
+      "path": "assets/toggle/toggle-bg-hover.png",
+      "path2x": "assets/toggle/toggle-bg-hover@2x.png",
+      "svg": "assets/toggle/toggle-bg-hover.svg",
+      "viewBox": [
+        176,
+        52
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "detail-toggle-background",
+      "family": "detail-toggle",
+      "state": "hover",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        44,
+        26
+      ],
+      "recommendedDisplaySize": [
+        88,
+        26
+      ],
+      "cornerRadius": 6,
+      "contentInset": [
+        14,
+        8,
+        14,
+        8
+      ]
+    },
+    "toggle-bg-pressed": {
+      "path": "assets/toggle/toggle-bg-pressed.png",
+      "path2x": "assets/toggle/toggle-bg-pressed@2x.png",
+      "svg": "assets/toggle/toggle-bg-pressed.svg",
+      "viewBox": [
+        176,
+        52
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "detail-toggle-background",
+      "family": "detail-toggle",
+      "state": "pressed",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        44,
+        26
+      ],
+      "recommendedDisplaySize": [
+        88,
+        26
+      ],
+      "cornerRadius": 6,
+      "contentInset": [
+        14,
+        8,
+        14,
+        8
+      ]
+    },
+    "toggle-bg-expanded": {
+      "path": "assets/toggle/toggle-bg-expanded.png",
+      "path2x": "assets/toggle/toggle-bg-expanded@2x.png",
+      "svg": "assets/toggle/toggle-bg-expanded.svg",
+      "viewBox": [
+        176,
+        52
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "role": "detail-toggle-background",
+      "family": "detail-toggle",
+      "state": "expanded",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "minSize": [
+        44,
+        26
+      ],
+      "recommendedDisplaySize": [
+        88,
+        26
+      ],
+      "cornerRadius": 6,
+      "contentInset": [
+        14,
+        8,
+        14,
+        8
+      ]
+    },
+    "icon-use-light": {
+      "path": "assets/icons/icon-use-light.png",
+      "path2x": "assets/icons/icon-use-light@2x.png",
+      "svg": "assets/icons/icon-use-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "status-icon",
+      "name": "use",
+      "ink": "light",
+      "color": "#DFBE68",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-use-dark": {
+      "path": "assets/icons/icon-use-dark.png",
+      "path2x": "assets/icons/icon-use-dark@2x.png",
+      "svg": "assets/icons/icon-use-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "status-icon",
+      "name": "use",
+      "ink": "dark",
+      "color": "#332E27",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-use-muted": {
+      "path": "assets/icons/icon-use-muted.png",
+      "path2x": "assets/icons/icon-use-muted@2x.png",
+      "svg": "assets/icons/icon-use-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "status-icon",
+      "name": "use",
+      "ink": "muted",
+      "color": "#A89B83",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-unused-light": {
+      "path": "assets/icons/icon-unused-light.png",
+      "path2x": "assets/icons/icon-unused-light@2x.png",
+      "svg": "assets/icons/icon-unused-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "status-icon",
+      "name": "unused",
+      "ink": "light",
+      "color": "#E8DDC3",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-unused-dark": {
+      "path": "assets/icons/icon-unused-dark.png",
+      "path2x": "assets/icons/icon-unused-dark@2x.png",
+      "svg": "assets/icons/icon-unused-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "status-icon",
+      "name": "unused",
+      "ink": "dark",
+      "color": "#332E27",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-unused-muted": {
+      "path": "assets/icons/icon-unused-muted.png",
+      "path2x": "assets/icons/icon-unused-muted@2x.png",
+      "svg": "assets/icons/icon-unused-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "status-icon",
+      "name": "unused",
+      "ink": "muted",
+      "color": "#A89B83",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-used-light": {
+      "path": "assets/icons/icon-used-light.png",
+      "path2x": "assets/icons/icon-used-light@2x.png",
+      "svg": "assets/icons/icon-used-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "status-icon",
+      "name": "used",
+      "ink": "light",
+      "color": "#CABB9D",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-used-dark": {
+      "path": "assets/icons/icon-used-dark.png",
+      "path2x": "assets/icons/icon-used-dark@2x.png",
+      "svg": "assets/icons/icon-used-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "status-icon",
+      "name": "used",
+      "ink": "dark",
+      "color": "#332E27",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-used-muted": {
+      "path": "assets/icons/icon-used-muted.png",
+      "path2x": "assets/icons/icon-used-muted@2x.png",
+      "svg": "assets/icons/icon-used-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "status-icon",
+      "name": "used",
+      "ink": "muted",
+      "color": "#A89B83",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-chevron-down-light": {
+      "path": "assets/icons/icon-chevron-down-light.png",
+      "path2x": "assets/icons/icon-chevron-down-light@2x.png",
+      "svg": "assets/icons/icon-chevron-down-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "detail-toggle-icon",
+      "name": "chevron-down",
+      "ink": "light",
+      "color": "#E8DDC3",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-chevron-down-dark": {
+      "path": "assets/icons/icon-chevron-down-dark.png",
+      "path2x": "assets/icons/icon-chevron-down-dark@2x.png",
+      "svg": "assets/icons/icon-chevron-down-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "detail-toggle-icon",
+      "name": "chevron-down",
+      "ink": "dark",
+      "color": "#332E27",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-chevron-down-muted": {
+      "path": "assets/icons/icon-chevron-down-muted.png",
+      "path2x": "assets/icons/icon-chevron-down-muted@2x.png",
+      "svg": "assets/icons/icon-chevron-down-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "detail-toggle-icon",
+      "name": "chevron-down",
+      "ink": "muted",
+      "color": "#A89B83",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-chevron-up-light": {
+      "path": "assets/icons/icon-chevron-up-light.png",
+      "path2x": "assets/icons/icon-chevron-up-light@2x.png",
+      "svg": "assets/icons/icon-chevron-up-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "detail-toggle-icon",
+      "name": "chevron-up",
+      "ink": "light",
+      "color": "#E8DDC3",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-chevron-up-dark": {
+      "path": "assets/icons/icon-chevron-up-dark.png",
+      "path2x": "assets/icons/icon-chevron-up-dark@2x.png",
+      "svg": "assets/icons/icon-chevron-up-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "detail-toggle-icon",
+      "name": "chevron-up",
+      "ink": "dark",
+      "color": "#332E27",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    },
+    "icon-chevron-up-muted": {
+      "path": "assets/icons/icon-chevron-up-muted.png",
+      "path2x": "assets/icons/icon-chevron-up-muted@2x.png",
+      "svg": "assets/icons/icon-chevron-up-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": true,
+      "role": "detail-toggle-icon",
+      "name": "chevron-up",
+      "ink": "muted",
+      "color": "#A89B83",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        6,
+        6,
+        52,
+        52
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ]
+    }
+  },
+  "roles": {
+    "row": {
+      "backgroundFamily": "row-bg",
+      "frameFamily": "row-frame",
+      "text": "runtime",
+      "optionalLeftMarkerCount": [
+        0,
+        1,
+        2
+      ],
+      "optionalRightStatus": [
+        "none",
+        "use",
+        "unused",
+        "used"
+      ],
+      "rowStates": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled"
+      ]
+    },
+    "executionChoice": {
+      "leftMarkerCount": 0,
+      "rightStatus": "use",
+      "statusIsInteractive": true
+    },
+    "playerEffectDetail": {
+      "leftMarkerCount": [
+        0,
+        1,
+        2
+      ],
+      "rightStatus": [
+        "none",
+        "unused",
+        "used"
+      ],
+      "statusIsInteractive": false
+    },
+    "quickAction": {
+      "leftMarkerCount": [
+        0,
+        1,
+        2
+      ],
+      "rightStatus": [
+        "none",
+        "use",
+        "unused",
+        "used"
+      ],
+      "statusIsInteractive": "game-owned"
+    },
+    "status": {
+      "baseFamily": "status-bg",
+      "iconNames": [
+        "use",
+        "unused",
+        "used"
+      ],
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled"
+      ],
+      "disabledInk": "muted",
+      "semantics": "Availability, usage and activation are independent runtime fields"
+    },
+    "detailToggle": {
+      "baseFamily": "toggle-bg",
+      "collapsedGlyph": "chevron-down",
+      "expandedGlyph": "chevron-up",
+      "expandedState": "expanded",
+      "text": "runtime"
+    },
+    "playerMarkers": {
+      "source": "Reuse existing originals/markers composite-player squares",
+      "colorMap": {
+        "Green": "#5FD200",
+        "Yellow": "#FFBF00",
+        "Blue": "#006CFF",
+        "Red": "#EC0000"
+      },
+      "numberOverlay": "runtime-optional",
+      "noPlaceholderWhenAbsent": true
+    }
+  },
+  "palette": {
+    "states": {
+      "default": {
+        "fill": "#453E35",
+        "bottom": "#3B352D",
+        "edge": "#9A8D78",
+        "glint": "#E5D6B8",
+        "accent": "#BDA45D"
+      },
+      "hover": {
+        "fill": "#50463A",
+        "bottom": "#443B30",
+        "edge": "#C7B172",
+        "glint": "#F0E1C3",
+        "accent": "#E4C86F"
+      },
+      "pressed": {
+        "fill": "#39332B",
+        "bottom": "#302A23",
+        "edge": "#C4A95B",
+        "glint": "#D2BF92",
+        "accent": "#C4A95B"
+      },
+      "disabled": {
+        "fill": "#37332D",
+        "bottom": "#302C26",
+        "edge": "#716759",
+        "glint": "#B0A28A",
+        "accent": "#746851"
+      }
+    },
+    "text": {
+      "light": "#E8DDC3",
+      "dark": "#332E27",
+      "muted": "#A89B83"
+    },
+    "glyph": {
+      "useLight": "#DFBE68",
+      "usedLight": "#CABB9D",
+      "unusedLight": "#E8DDC3"
+    },
+    "divider": "#BAA88B",
+    "paper": {
+      "fiber": "#E7D6B5",
+      "grain": "#1F1B16",
+      "opacityRange": [
+        0.025,
+        0.08
+      ],
+      "deterministic": true
+    },
+    "backgroundInteriorOpaque": true,
+    "frameStyle": "single fine rounded outline, no secondary complete inset frame"
+  }
+}

@@ -40,6 +40,5 @@ MonoBehaviour:
   canvasReferenceResolution: {x: 1920, y: 1080}
   canvasMatchWidthOrHeight: 0.5
   dialogActionButtonSize: {x: 220, y: 48}
-  collapsibleMapPromptSize: {x: 650, y: 260}
   viewerCloseButtonSize: {x: 42, y: 42}
   viewerCloseButtonOffset: {x: -18, y: -12}

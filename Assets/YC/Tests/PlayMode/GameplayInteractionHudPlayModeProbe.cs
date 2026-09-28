@@ -37,24 +37,21 @@ namespace YC.Tests.PlayMode
 
             var hud = UnityEngine.Object.FindObjectOfType<GameplayInteractionHudView>();
             var city = UnityEngine.Object.FindObjectOfType<MobileCityInteractionController>();
-            var resourceBoards = UnityEngine.Object.FindObjectsOfType<ResourceCounterBoard>();
             var buildInfoPanels = UnityEngine.Object.FindObjectsOfType<BuildInfoPanel>();
             var characterHandPanels = UnityEngine.Object.FindObjectsOfType<CharacterHandPanel>();
-            if (resourceBoards.Length != 1 || buildInfoPanels.Length != 1 || characterHandPanels.Length != 1)
+            if (buildInfoPanels.Length != 1 || characterHandPanels.Length != 1)
             {
-                throw new InvalidOperationException("HUD 内必须且只能有一个资源卡板、建设面板和手牌面板。");
+                throw new InvalidOperationException("HUD 内必须且只能有一个建设面板和手牌面板。");
             }
 
             var reason = string.Empty;
             if (hud == null || city == null ||
-                hud.ResourceCounterBoard != resourceBoards[0] ||
                 hud.BuildInfoPanel != buildInfoPanels[0] ||
                 hud.CharacterHandPanel != characterHandPanels[0] ||
                 !characterHandPanels[0].TryValidateConfiguration(out reason) ||
                 !GameplayInteractionHudView.TryValidateSceneBinding(
                     hud,
                     city,
-                    resourceBoards[0],
                     buildInfoPanels[0],
                     out reason))
             {
@@ -64,66 +61,28 @@ namespace YC.Tests.PlayMode
             var cardVisualCatalog = hud.DialogRegistry.CardVisualCatalog;
             RequireCardVisualCatalogCoverage(cardVisualCatalog);
             RequirePendingBuildGhost(buildInfoPanels[0], cardVisualCatalog);
-            RequireCharacterHandModal(characterHandPanels[0]);
-            RequireResourceCounterBoard(resourceBoards[0]);
-            RequireLocalPlayerResourceRefresh(city, resourceBoards[0]);
+            RequireCharacterHandModal(hud, characterHandPanels[0]);
             RequirePersistentHudCoexistence(hud);
             RunDialogMigrationChecks(hud, rootsBefore);
 
-            var promptField = typeof(MobileCityInteractionController).GetField(
-                "promptPresenter",
-                BindingFlags.Instance | BindingFlags.NonPublic);
             var actionField = typeof(MobileCityInteractionController).GetField(
                 "actionPanel",
                 BindingFlags.Instance | BindingFlags.NonPublic);
-            var prompt = promptField.GetValue(city);
             var action = actionField.GetValue(city);
-            if (prompt == null || action == null)
+            if (action == null)
             {
-                throw new InvalidOperationException("MobileCity 未绑定 Prompt/Action 行为对象。");
+                throw new InvalidOperationException("MobileCity 未绑定行动面板。");
             }
 
-            prompt.GetType().GetMethod("SetPrompt", BindingFlags.Instance | BindingFlags.Public)
-                .Invoke(prompt, new object[] { "SampleScene 交互 HUD 冒烟" });
-            prompt.GetType().GetMethod("Update", BindingFlags.Instance | BindingFlags.Public)
-                .Invoke(prompt, new object[] { true });
-            if (hud.PromptView.PromptText.text != "SampleScene 交互 HUD 冒烟")
-            {
-                throw new InvalidOperationException("Prompt 文本更新失败。");
-            }
+            hud.Frame.SetInteractionMessage("SampleScene 交互 HUD 冒烟");
+            if (hud.Frame.InteractionMessage != "SampleScene 交互 HUD 冒烟")
+                throw new InvalidOperationException("底栏动态消息更新失败。");
 
-            hud.ActionPanelView.FlipButton.onClick.Invoke();
-            if (hud.ActionPanelView.MainFaceObject.activeSelf ||
-                !hud.ActionPanelView.CardFaceObject.activeSelf ||
-                hud.ActionPanelView.CardImage.texture != hud.ActionPanelView.HintCardTexture)
-            {
-                throw new InvalidOperationException("ActionPanel 主面/提示卡面翻转失败。");
-            }
-
-            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects().Length != rootsBefore)
-            {
-                throw new InvalidOperationException("Prompt/ActionPanel 绑定不应在运行时新增场景根。");
-            }
-
-            var verifyDetachedViewerEntry = false;
-            if (verifyDetachedViewerEntry)
-            {
-            hud.ActionPanelView.CardImageButton.onClick.Invoke();
-            var viewer = GameObject.Find("Hint Card Image Viewer");
-            if (viewer == null)
-            {
-                throw new InvalidOperationException("提示卡 Zoomable viewer 入口未打开。");
-            }
-
-            var viewerCanvas = GameObject.Find("Hint Card Viewer Canvas");
-            if (viewerCanvas != null)
-            {
-                UnityEngine.Object.DestroyImmediate(viewerCanvas);
-            }
-            }
+            if (!hud.ActionPanelView.MainFaceObject.activeSelf)
+                throw new InvalidOperationException("正式行动面板必须保持可见。");
 
             RequirePersistentHudCoexistence(hud);
-            RequireRootCount(rootsBefore, "Prompt/ActionPanel 验证完成后");
+            RequireRootCount(rootsBefore, "底栏消息/行动面板 验证完成后");
             if (UnityEngine.Object.FindObjectsOfType<EventSystem>().Length != 1)
             {
                 throw new InvalidOperationException("Play 探针完成后必须仍只有一个 EventSystem。");
@@ -322,21 +281,21 @@ namespace YC.Tests.PlayMode
 
         private static void RequirePersistentHudCoexistence(GameplayInteractionHudView hud)
         {
-            if (hud == null || hud.Canvas == null || hud.PromptView == null || hud.ActionPanelView == null ||
-                hud.ResourceCounterBoard == null || hud.BuildInfoPanel == null || hud.CharacterHandPanel == null ||
+            if (hud == null || hud.Canvas == null || hud.ActionPanelView == null ||
+                hud.BuildInfoPanel == null || hud.CharacterHandPanel == null ||
                 hud.DialogRegistry == null || hud.Frame == null ||
                 hud.Frame.EndActionButton != hud.ActionPanelView.EndRoundButton ||
                 hud.Frame.BarCanvas.sortingOrder <= 150 ||
-                UnityEngine.Object.FindObjectOfType<RoundTrackerController>() == null)
+                UnityEngine.Object.FindObjectOfType<FinalScoreController>() == null)
             {
-                throw new InvalidOperationException("Prompt/Action/Round/Info/Build/DialogRegistry 必须在 Play 中共存。");
+                throw new InvalidOperationException("底栏/行动/回合/信息/建设/对话框注册表 必须在 Play 中共存。");
             }
         }
 
-        private static void RequireCharacterHandModal(CharacterHandPanel handPanel)
+        private static void RequireCharacterHandModal(GameplayInteractionHudView hud, CharacterHandPanel handPanel)
         {
-            if (handPanel.View.DiscardCountText.text.Length == 0 ||
-                !handPanel.View.DiscardOverlayObject.GetComponent<Image>().raycastTarget)
+            if (hud.MainModules.DiscardCountText == null ||
+                hud.MainModules.DiscardCountText.text.Length == 0)
             {
                 throw new InvalidOperationException("手牌弃牌角标或全屏输入遮罩配置无效。");
             }
@@ -347,103 +306,6 @@ namespace YC.Tests.PlayMode
                 throw new InvalidOperationException("弃牌预览窗口无法打开。");
             }
             handPanel.CloseDiscardPreview();
-        }
-
-        private static void RequireResourceCounterBoard(ResourceCounterBoard board)
-        {
-            var resources = new ResourceSet
-            {
-                Originium = 9,
-                OriginiumShard = 99,
-                Iron = 12,
-                PureOriginium = 3,
-                GoldVoucher = 7
-            };
-            board.Render(resources, false);
-            if (board.View.GearCounters[0].TensDigitText.text != "0" ||
-                board.View.GearCounters[0].OnesDigitText.text != "9" ||
-                board.View.GearCounters[1].TensDigitText.text != "9" ||
-                board.View.GearCounters[1].OnesDigitText.text != "9" ||
-                board.View.GearCounters[2].TensDigitText.text != "1" ||
-                board.View.GearCounters[2].OnesDigitText.text != "2" ||
-                board.View.GearCounters[0].TensGearCover == null ||
-                board.View.GearCounters[0].OnesGearCover == null ||
-                board.View.AuxiliaryCounters[0].AmountText.text != "3" ||
-                board.View.AuxiliaryCounters[1].AmountText.text != "7" ||
-                board.GetComponentInChildren<Button>(true) != null)
-            {
-                throw new InvalidOperationException("资源卡板五种资源或只读约束无效。");
-            }
-
-            resources.Originium = 10;
-            resources.OriginiumShard = 100;
-            resources.Iron = 11;
-            resources.PureOriginium = 4;
-            resources.GoldVoucher = 8;
-            board.Render(resources, true);
-            var advance = typeof(ResourceCounterBoard).GetMethod(
-                "AdvanceAnimations",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            advance.Invoke(board, new object[] { 1f });
-            if (board.View.GearCounters[0].TensDigitText.text != "1" ||
-                board.View.GearCounters[0].OnesDigitText.text != "0" ||
-                board.View.GearCounters[1].TensDigitText.text != "0" ||
-                board.View.GearCounters[1].OnesDigitText.text != "0" ||
-                board.View.GearCounters[2].TensDigitText.text != "1" ||
-                board.View.GearCounters[2].OnesDigitText.text != "1" ||
-                board.View.AuxiliaryCounters[0].AmountText.text != "4" ||
-                board.View.AuxiliaryCounters[1].AmountText.text != "8")
-            {
-                throw new InvalidOperationException("资源卡板动画结束后数值不精确。");
-            }
-        }
-
-        private static void RequireLocalPlayerResourceRefresh(
-            MobileCityInteractionController city,
-            ResourceCounterBoard board)
-        {
-            var sessionField = typeof(MobileCityInteractionController).GetField(
-                "session",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            var localPlayerField = typeof(MobileCityInteractionController).GetField(
-                "localPlayerId",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            var refresh = typeof(MobileCityInteractionController).GetMethod(
-                "RefreshResourceDisplay",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            var session = (YC.Application.Sessions.GameSession)sessionField.GetValue(city);
-            var localPlayerId = (int)localPlayerField.GetValue(city);
-            var player = session.State.FindPlayer(localPlayerId);
-            var beforeOriginium = player.Resources.Originium;
-            var beforeShard = player.Resources.OriginiumShard;
-            var beforeIron = player.Resources.Iron;
-            try
-            {
-                player.Resources.Originium = 8;
-                player.Resources.OriginiumShard = 27;
-                player.Resources.Iron = 34;
-                refresh.Invoke(city, null);
-                var advance = typeof(ResourceCounterBoard).GetMethod(
-                    "AdvanceAnimations",
-                    BindingFlags.Instance | BindingFlags.NonPublic);
-                advance.Invoke(board, new object[] { 1f });
-                if (board.View.GearCounters[0].TensDigitText.text != "0" ||
-                    board.View.GearCounters[0].OnesDigitText.text != "8" ||
-                    board.View.GearCounters[1].TensDigitText.text != "2" ||
-                    board.View.GearCounters[1].OnesDigitText.text != "7" ||
-                    board.View.GearCounters[2].TensDigitText.text != "3" ||
-                    board.View.GearCounters[2].OnesDigitText.text != "4")
-                {
-                    throw new InvalidOperationException("本地玩家获得资源后，十位／个位读数未刷新。");
-                }
-            }
-            finally
-            {
-                player.Resources.Originium = beforeOriginium;
-                player.Resources.OriginiumShard = beforeShard;
-                player.Resources.Iron = beforeIron;
-                refresh.Invoke(city, null);
-            }
         }
 
         private static void RequireCardVisualCatalogCoverage(CardVisualCatalog catalog)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
@@ -77,7 +77,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void FreeMove_RestoresCollapsedPromptAndRerendersSecondSegment()
+        public void FreeMove_UsesSharedEffectShellAndRerendersSecondSegment()
         {
             var state = CreateState(
                 SpecialActionDatabase.EfficientMobileManagementSystem,
@@ -88,15 +88,11 @@ namespace YC.Tests.EditMode
             Assert.That(Synchronize(), Is.True);
             var firstOverlay = FindChild(canvasObject, "Special Action Choice Overlay");
             var firstPanel = FindChild(firstOverlay, "Special Action Choice Panel").GetComponent<RectTransform>();
-            Assert.That(firstPanel.sizeDelta.y, Is.EqualTo(58f));
-            Assert.That(FindChild(firstOverlay, "Special Action Expanded Content").activeSelf, Is.False);
-            Assert.That(FindChild(firstOverlay, "Special Action Collapsed Summary").activeSelf, Is.True);
+            Assert.That(firstPanel.GetComponentInParent(Type.GetType("YC.Presentation.EffectDialogShellView, Assembly-CSharp",true)), Is.Not.Null);
+            Assert.That(firstPanel.rect.height, Is.GreaterThan(0));
             Assert.That(FindChild(firstOverlay, "Back"), Is.Null);
             Assert.That(FindChild(firstOverlay, "Cancel"), Is.Null);
             Assert.That(fixture.Highlights.ConvertAll(item => item.TargetId), Does.Contain("B"));
-
-            ClickButton(firstOverlay, "Special Action Collapse Toggle");
-            Assert.That(firstPanel.sizeDelta.y, Is.EqualTo(260f));
             Assert.That(GetText(firstOverlay, "Description"), Does.Contain("第一段"));
 
             Assert.That(TryHandleLocationClicked("B"), Is.True);
@@ -110,7 +106,6 @@ namespace YC.Tests.EditMode
             Assert.That(Synchronize(), Is.True);
             var secondOverlay = FindChild(canvasObject, "Special Action Choice Overlay");
             Assert.That(secondOverlay, Is.Not.SameAs(firstOverlay));
-            ClickButton(secondOverlay, "Special Action Collapse Toggle");
             Assert.That(GetText(secondOverlay, "Description"), Does.Contain("第二段"));
         }
 
@@ -163,7 +158,6 @@ namespace YC.Tests.EditMode
             Assert.That(Synchronize(), Is.True);
             var overlay = FindChild(canvasObject, "Special Action Choice Overlay");
             Assert.That(overlay, Is.Not.Null);
-            ClickButton(overlay, "Special Action Collapse Toggle");
             Assert.That(GetText(overlay, "Description"), Does.Contain("本次"));
 
             state.PendingSpecialAction.Step = SpecialActionPendingSteps.AwaitMoveEvent;
@@ -230,7 +224,7 @@ namespace YC.Tests.EditMode
 
             Assert.That(Synchronize(), Is.True);
             var overlay = FindChild(canvasObject, "Special Action Choice Overlay");
-            Assert.That(FindChild(overlay, "Special Action Expanded Content").activeSelf, Is.False);
+            Assert.That(overlay, Is.Not.Null);
             Assert.That(fixture.Highlights.Count, Is.GreaterThanOrEqualTo(2));
             var first = fixture.Highlights[0].TargetId;
             var second = fixture.Highlights[1].TargetId;

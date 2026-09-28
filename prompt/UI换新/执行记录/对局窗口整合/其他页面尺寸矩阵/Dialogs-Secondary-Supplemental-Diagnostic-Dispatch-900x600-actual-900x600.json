@@ -1,0 +1,324 @@
+{
+    "scene": "SampleScene",
+    "state": "Dispatch",
+    "stateSource": "正式 Registry 的调度窗口，诊断文案，两个操作回调均为空；未派遣或提交命令。",
+    "componentDiagnostic": true,
+    "sourceAsset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/DispatchDecisionDialog.prefab",
+    "validatedSceneSources": {
+        "phase": "进入Play Mode前，读取实际SampleScene中的序列化引用与Prefab实例来源；不保存资产。",
+        "scene": "Assets/Scenes/SampleScene.unity",
+        "settingsAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab",
+        "settingsSceneObject": "GlobalObjectId_V1-2-2cda990e2423bbf4892e6590ba056729-3483565071125839763-205474404",
+        "rulebookAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameRulebookViewer.prefab",
+        "rulebookSceneObject": "GlobalObjectId_V1-2-2cda990e2423bbf4892e6590ba056729-1716631333306062023-205474404",
+        "nestedImageAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameZoomableImageViewer.prefab",
+        "registeredImageAsset": "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameZoomableImageViewer.prefab"
+    },
+    "commandSubmissionEnabled": false,
+    "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 3.409659257158637e-7,
+        "y": 52.051658630371097,
+        "width": 900.0,
+        "height": 511.2060241699219
+    },
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "actualSize": {
+        "x": 900.0,
+        "y": 600.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 900.0,
+        "height": 600.0
+    },
+    "objects": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 317.3193054199219,
+                "y": 248.96896362304688,
+                "width": 265.3614196777344,
+                "height": 96.958984375
+            },
+            "layoutDrivers": [
+                "Image",
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 317.31927490234377,
+                "y": 315.309326171875,
+                "width": 265.36138916015627,
+                "height": 30.618621826171876
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Header/Dispatch Decision Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 332.62860107421877,
+                "y": 316.8402404785156,
+                "width": 234.7427978515625,
+                "height": 15.309326171875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 317.31927490234377,
+                "y": 294.89691162109377,
+                "width": 265.36138916015627,
+                "height": 20.41241455078125
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport/Body Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 317.3193054199219,
+                "y": 292.20623779296877,
+                "width": 265.3614196777344,
+                "height": 23.10308837890625
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "UiScrollContentWidth",
+                "ContentSizeFitter"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport/Body Content/Vertical Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 317.31927490234377,
+                "y": 313.77838134765627,
+                "width": 0.0,
+                "height": 1.53094482421875
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport/Body Content/Content Row",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 317.3193054199219,
+                "y": 295.77838134765627,
+                "width": 265.3614196777344,
+                "height": 18.0
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "UiMeasuredTextRow",
+                "HorizontalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport/Body Content/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 317.31927490234377,
+                "y": 295.77838134765627,
+                "width": 15.309326171875,
+                "height": 18.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport/Body Content/Content Row/Dispatch Decision Message Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 332.62860107421877,
+                "y": 295.77838134765627,
+                "width": 234.7427978515625,
+                "height": 18.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport/Body Content/Content Row/Dispatch Decision Message Slot/Dispatch Decision Message",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 332.62860107421877,
+                "y": 295.77838134765627,
+                "width": 234.7427978515625,
+                "height": 18.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport/Body Content/Content Row/Horizontal Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 567.3713989257813,
+                "y": 295.77838134765627,
+                "width": 15.309326171875,
+                "height": 18.0
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport/Body Content/Vertical Gap",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 317.31927490234377,
+                "y": 292.20623779296877,
+                "width": 0.0,
+                "height": 3.5721435546875
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 317.31927490234377,
+                "y": 248.9689483642578,
+                "width": 265.36138916015627,
+                "height": 45.92793273925781
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Footer/Continue Dispatch",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 345.3863830566406,
+                "y": 268.3607482910156,
+                "width": 86.75274658203125,
+                "height": 22.45367431640625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Footer/Continue Dispatch/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 350.4894714355469,
+                "y": 268.3607482910156,
+                "width": 76.54656982421875,
+                "height": 22.45367431640625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Footer/Finish Dispatch",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 467.8608703613281,
+                "y": 268.3607482910156,
+                "width": 86.75277709960938,
+                "height": 22.45367431640625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Footer/Finish Dispatch/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 472.9639587402344,
+                "y": 268.3607482910156,
+                "width": 76.54653930664063,
+                "height": 22.45367431640625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Window Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 317.3193054199219,
+                "y": 248.96896362304688,
+                "width": 265.3614196777344,
+                "height": 96.958984375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": false
+        }
+    ],
+    "scrolls": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport",
+            "normalizedPosition": 0.9999978542327881,
+            "viewportScreenRect": {
+                "serializedVersion": "2",
+                "x": 317.31927490234377,
+                "y": 294.89691162109377,
+                "width": 265.36138916015627,
+                "height": 20.41241455078125
+            },
+            "contentScreenRect": {
+                "serializedVersion": "2",
+                "x": 317.3193054199219,
+                "y": 292.20623779296877,
+                "width": 265.3614196777344,
+                "height": 23.10308837890625
+            }
+        }
+    ]
+}

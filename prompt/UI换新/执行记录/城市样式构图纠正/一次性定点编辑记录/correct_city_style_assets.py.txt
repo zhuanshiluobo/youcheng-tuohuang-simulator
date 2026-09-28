@@ -1,0 +1,68 @@
+from pathlib import Path
+import re,json,zipfile
+exec(Path('Logs/patch_city_style_assets.py').read_text(encoding='utf-8-sig').split('# Catalog binds')[0])
+P='Assets/YC/Presentation/';SPR=P+'CommonUi/Sprites/'
+for name in ['CityStyleStatusRowView.cs','Layout/CityStyleOverviewGrid.cs']:meta(Path(P+name))
+z=zipfile.ZipFile('游城拓荒/UI素材/MainGameUI-v2.2.zip')
+for color in ['red','blue','green','yellow']:
+ p=Path(SPR+'CityStyle/digit-base-'+color+'-32.png');p.parent.mkdir(exist_ok=True)
+ p.write_bytes(z.read('MainGameUI-v2.2/04-markers/'+p.name))
+ m=Path(SPR+'SelectionStates/icon-check.png.meta').read_text(encoding='utf-8-sig');m=re.sub(r'^guid: \w+', 'guid: '+uuid.uuid4().hex,m,flags=re.M);m=re.sub(r'  spriteBorder: .*','  spriteBorder: {x: 0, y: 0, z: 0, w: 0}',m);Path(str(p)+'.meta').write_text(m,encoding='utf-8')
+
+def append(a,i,s):
+ k,t=a.docs[i];a.docs[i]=(k,t+s)
+def existing_group(a,r,vertical=True,spacing=0,padding=(0,0,0,0)):
+ ids=[i for i in a.components(r) if any(NATIVE[n] in a.text(i) for n in ['HorizontalLayoutGroup','VerticalLayoutGroup','GridLayoutGroup'])]
+ for i in ids:remove_comp(a,i)
+ return a.group(r,vertical,spacing,padding)
+def label(a,parent,name,value,size=18,dark=False):
+ r=a.node(name,parent);t=text(a,r,value,size)
+ if dark:a.set(t,'m_Color','{r: 0.19, g: 0.19, b: 0.15, a: 1}')
+ a.docs[t]=(114,a.text(t).replace('m_Alignment: 4','m_Alignment: 3'))
+ return r,t
+def button(a,r):
+ source=next(t for k,t in a.docs.values() if k==114 and NATIVE['Button'] in t)
+ i=clone_comp(a,source,r)
+ im=next((i for i in a.components(r) if NATIVE['Image'] in a.text(i)),None)
+ if im is None:im=image(a,r,SPR+'Frontier31/module-bg.png');a.set(im,'m_Color','{r: 1, g: 1, b: 1, a: 0}')
+ a.set(im,'m_RaycastTarget','1');a.set(i,'m_TargetGraphic',f'{{fileID: {im}}}');a.set(i,'m_OnClick','\n    m_PersistentCalls:\n      m_Calls: []');a.set(i,'m_Transition','0');return i
+
+def row(a,parent,layout):
+ r=a.node('Status Row Template '+layout,parent);a.set(a.go(r),'m_IsActive','0');a.element(r,mh=40 if layout!='limited' else 66,ph=40 if layout!='limited' else 66);a.group(r,False,6,(6,6,2,2))
+ tr,ti=label(a,r,'Type','Ⅱ' if layout=='limited' else 'Ⅰ',18,True);a.element(tr,mw=24,pw=24,fw=0)
+ nr,nt=label(a,r,'Name','样式名称',17,True);a.element(nr,mw=120,pw=152,fw=0);bt=button(a,nr)
+ sr=a.node('State Slots',r);a.element(sr,pw=0,fw=1);a.group(sr,False,4)
+ slots=[]
+ areas=[('unused','未用'),('used','已用')] if layout=='active' else [('declared','已宣告')] if layout=='reward' else [('2','2'),('used_from_2','已用余1'),('1','1'),('used_from_1','已用余0'),('0','0')]
+ for area,caption in areas:
+  slot=a.node('State '+area,sr);a.element(slot,pw=0,fw=1);a.group(slot,layout=='limited',2,(2,2,0,0))
+  im=image(a,slot,SPR+'Frontier31/module-bg.png');a.set(im,'m_Color','{r: 0.6, g: 0.6, b: 0.52, a: 0.12}')
+  lr,lt=label(a,slot,'State Label',caption,11,True);a.element(lr,mw=0,pw=28 if layout!='limited' else 0,fw=0 if layout!='limited' else 1,mh=14,ph=14)
+  if layout=='limited':a.docs[lt]=(114,a.text(lt).replace('m_Alignment: 3','m_Alignment: 4'))
+  chips=a.node('Player Counts',slot);a.element(chips,mw=0,pw=0,fw=1,mh=44 if layout=='limited' else 24,ph=44 if layout=='limited' else 24)
+  if layout=='limited':a.component(a.go(chips),NATIVE['GridLayoutGroup'],'  m_Padding:\n    m_Left: 0\n    m_Right: 0\n    m_Top: 0\n    m_Bottom: 0\n  m_ChildAlignment: 4\n  m_StartCorner: 0\n  m_StartAxis: 0\n  m_CellSize: {x: 20, y: 20}\n  m_Spacing: {x: 4, y: 4}\n  m_Constraint: 1\n  m_ConstraintCount: 2\n')
+  else:a.group(chips,False,2)
+  ims={};ts={}
+  for col in [0,1,3,2]:
+   color=['red','blue','green','yellow'][col];c=a.node('Count '+color,chips);a.element(c,mw=24,pw=24,fw=0,mh=24,ph=24);ims[col]=image(a,c,SPR+'CityStyle/digit-base-'+color+'-32.png');v=a.node('Number',c);ts[col]=text(a,v,'0',16,'3eddf79db7bec9c4193e00ae800bfd4e');a.set(ts[col],'m_Color','{r: 1, g: 1, b: 1, a: 1}' if col==0 else '{r: 0, g: 0, b: 0, a: 1}')
+  slots.append('  - area: '+json.dumps(area)+'\n    blocks:\n'+''.join(f'    - {{fileID: {ims[c]}}}\n' for c in range(4))+'    counts:\n'+''.join(f'    - {{fileID: {ts[c]}}}\n' for c in range(4)))
+ return a.component(a.go(r),guid(P+'CityStyleStatusRowView.cs.meta'),f'  trackLayout: {layout}\n  nameText: {{fileID: {nt}}}\n  nameButton: {{fileID: {bt}}}\n  slots:\n'+''.join(slots))
+
+for filename in ['BuildInfoPanel','GameplayInteractionHud']:
+ a=Asset(P+'Prefabs/Gameplay/'+filename+'.prefab');vi=next(i for i,(k,t) in a.docs.items() if k==114 and guid(P+'BuildInfoPanelView.cs.meta') in t)
+ root=ref(a.text(vi),'root');content=ref(a.text(vi),'externalCityStyleArea');templates=[row(a,root,l) for l in ['active','reward','limited']]
+ for i in list(a.components(content)):
+  if any(x in a.text(i) for x in [NATIVE['GridLayoutGroup'],guid(P+'Layout/UiAdaptiveGridColumns.cs.meta')]):remove_comp(a,i)
+ existing_group(a,content,True,1,(4,4,4,4));a.set(a.go(content),'m_Name','City Style Status Table Content')
+ if filename=='GameplayInteractionHud':
+  group=2103623688599984290;header=a.node('City Style Table Header',group);a.element(header,mh=30,ph=30);a.group(header,False,6)
+  cr,ct=label(a,header,'Supply Count','本局样式 · 0',18);a.element(cr,pw=0,fw=1)
+  b=7367961917703128430;a.move(b,header);a.element(b,mw=130,pw=130,fw=0,mh=30,ph=30)
+  a.children_set(group,[header,234794363554464732]);existing_group(a,group,True,4,(0,0,0,0))
+  viewport=234794363554464732;im=next((i for i in a.components(viewport) if NATIVE['Image'] in a.text(i)),None)
+  if im: a.set(im,'m_Sprite','{fileID: 21300000, guid: '+guid(SPR+'Frontier31/paper-bg.png.meta')+', type: 3}');a.set(im,'m_Color','{r: 1, g: 1, b: 1, a: 1}')
+  else:image(a,viewport,SPR+'Frontier31/paper-bg.png')
+ else:ct=0
+ append(a,vi,'  cityStyleRowTemplates:\n'+''.join(f'  - {{fileID: {t}}}\n' for t in templates)+f'  cityStyleCount: {{fileID: {ct}}}\n  cityStyleCountFormat: "本局样式 · {{0}}"\n')
+ a.save()
+print('状态表资产已定点修改')

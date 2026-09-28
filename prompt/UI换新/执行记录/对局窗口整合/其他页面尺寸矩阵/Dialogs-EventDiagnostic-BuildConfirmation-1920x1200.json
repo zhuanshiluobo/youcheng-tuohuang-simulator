@@ -1,0 +1,301 @@
+{
+    "mode": "BuildConfirmation",
+    "source": "组件诊断：SampleScene 当前 Registry 与实际 EventChoiceDialog Prefab；调用既有 Show 方法。路线、收款人和文字样本为诊断数据，卡图来自正式目录。回调仅计数，不提交命令；不代表规则结算或联机验收。",
+    "requestedSize": {
+        "x": 1920.0,
+        "y": 1200.0
+    },
+    "actualSize": {
+        "x": 1920.0,
+        "y": 1200.0
+    },
+    "panel": {
+        "serializedVersion": "2",
+        "x": 580.5266723632813,
+        "y": 331.2064208984375,
+        "width": 758.9465942382813,
+        "height": 527.0462646484375
+    },
+    "availableContent": {
+        "serializedVersion": "2",
+        "x": 0.000028990019927732646,
+        "y": 107.51741790771485,
+        "width": 1920.0,
+        "height": 1016.5879516601563
+    },
+    "diagnosticCallbacks": 0,
+    "issues": [],
+    "objects": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 580.5266723632813,
+                "y": 331.2064208984375,
+                "width": 758.9465942382813,
+                "height": 527.0462646484375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 580.5266723632813,
+                "y": 331.2064208984375,
+                "width": 758.9465942382813,
+                "height": 527.0462646484375
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Title",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 580.5266723632813,
+                "y": 788.6825561523438,
+                "width": 758.9465942382813,
+                "height": 59.0291748046875
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 580.5266723632813,
+                "y": 331.2063903808594,
+                "width": 758.9465942382813,
+                "height": 449.0434265136719
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 580.5266723632813,
+                "y": 331.2063903808594,
+                "width": 758.9465942382813,
+                "height": 449.0434265136719
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 580.5266723632813,
+                "y": 445.04840087890627,
+                "width": 758.9465942382813,
+                "height": 335.201416015625
+            },
+            "layoutDrivers": [
+                "ScrollRect",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll/Viewport",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 656.4213256835938,
+                "y": 445.04840087890627,
+                "width": 607.1572875976563,
+                "height": 335.201416015625
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll/Viewport/Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 656.4213256835938,
+                "y": 495.64483642578127,
+                "width": 607.1572875976563,
+                "height": 284.60498046875
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "ContentSizeFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll/Viewport/Content/Summary",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 656.4213256835938,
+                "y": 495.64483642578127,
+                "width": 607.1572875976563,
+                "height": 284.60498046875
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Footer",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 580.5266723632813,
+                "y": 331.2063903808594,
+                "width": 758.9465942382813,
+                "height": 113.84197998046875
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Footer/Back To Build Payment",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 671.7056884765625,
+                "y": 359.6668701171875,
+                "width": 227.6839599609375,
+                "height": 56.9210205078125
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Footer/Back To Build Payment/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 684.3547973632813,
+                "y": 359.6668701171875,
+                "width": 202.3857421875,
+                "height": 56.9210205078125
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Footer/Confirm Build Facility",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1020.6102905273438,
+                "y": 359.6668701171875,
+                "width": 227.68402099609376,
+                "height": 56.9210205078125
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Footer/Confirm Build Facility/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1033.2593994140625,
+                "y": 359.6668701171875,
+                "width": 202.3857421875,
+                "height": 56.9210205078125
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Dynamic Templates",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 580.5266723632813,
+                "y": 331.2064208984375,
+                "width": 758.9465942382813,
+                "height": 527.0462646484375
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Window Frame",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 580.5266723632813,
+                "y": 331.2064208984375,
+                "width": 758.9465942382813,
+                "height": 527.0462646484375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Close Build Facility Confirmation Button",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1276.227783203125,
+                "y": 801.3316650390625,
+                "width": 44.2718505859375,
+                "height": 44.27191162109375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Close Build Facility Confirmation Button/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1284.6605224609375,
+                "y": 801.3317260742188,
+                "width": 27.406494140625,
+                "height": 44.2718505859375
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        }
+    ],
+    "scrolls": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll",
+            "lastButton": "无交互条目",
+            "contentHeight": 270.0,
+            "viewportHeight": 318.0,
+            "contentOverflows": false,
+            "lastButtonVisibleAtTop": false,
+            "lastButtonReachesViewportAtEnd": true,
+            "viewportAtEnd": {
+                "serializedVersion": "2",
+                "x": 656.4213256835938,
+                "y": 445.04840087890627,
+                "width": 607.1572875976563,
+                "height": 335.201416015625
+            },
+            "lastButtonAtEnd": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 0.0,
+                "height": 0.0
+            }
+        }
+    ]
+}

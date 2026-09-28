@@ -1,0 +1,105 @@
+from pathlib import Path
+import sys,re,json
+sys.path.insert(0,'tools')
+from correct_gameplay_native_layout import *
+p=ROOT/'Assets/YC/Presentation/CharacterHandPanel.cs';s=p.read_text(encoding='utf-8-sig')
+s=s.replace('using YC.Presentation.Workflows;','using YC.Presentation.Workflows;\nusing YC.Domain.Interactions;')
+s=s.replace('        private int handPageStart;','        private int handPageStart;\n        private EffectDialogShell discardPage;')
+s=s.replace('initialized && view.DiscardOverlayObject.activeSelf','initialized && discardPage != null && discardPage.IsVisible')
+s=re.sub(r'^.*view.Discard(?:Close|Overlay).*\n','',s,flags=re.M)
+s=s.replace('            CompleteHandCountLayoutAnimation();\n            DestroyDragGhost();','            discardPage?.Hide();\n            CompleteHandCountLayoutAnimation();\n            DestroyDragGhost();')
+a=s.index('        public void OpenDiscardPreview()');b=s.index('        public bool TryHandleEscape()',a)
+s=s[:a]+'''        public void OpenDiscardPreview()
+        {
+            if (!initialized || currentViewModel == null) return;
+            ShowDiscardList(false);
+        }
+
+        public bool OwnsDiscardPage(GameObject page) => discardPage != null && discardPage.OwnsPage(page);
+
+        public void CloseDiscardPreview() => discardPage?.Hide();
+
+'''+s[b:]
+a=s.index('        private void RebuildDiscardPreview()');b=s.index('        private void OpenCardViewer',a)
+s=s[:a]+'''        private void RebuildDiscardPreview() => ShowDiscardList(true);
+
+        private void ShowDiscardList(bool preserveScroll)
+        {
+            var hud = GetComponentInParent<GameplayInteractionHudView>();
+            var registry = hud == null ? FindObjectOfType<GameplayDialogRegistry>() : hud.DialogRegistry;
+            if (registry == null || currentViewModel == null) return;
+            var copy = registry.EffectDialogLayoutProfile;
+            if (discardPage == null) discardPage = new EffectDialogShell(registry);
+            var scroll = preserveScroll ? discardPage.ScrollPosition : 1f;
+            var ids = new List<string>();
+            foreach (var card in currentViewModel.DiscardCards) ids.Add(card.CardId);
+            var owner = currentPlayerId;
+            bool Current() => initialized && owner == currentPlayerId && currentViewModel != null &&
+                ids.TrueForAll(id => ContainsCard(currentViewModel.DiscardCards, id));
+            var panel = discardPage.Rebuild((RectTransform)transform, "Discard Card List", "Discard List Panel",
+                copy.SelectionPanelSize, copy.CharacterPanelPosition, true, false, true);
+            EffectDialogShell.AddHeading(panel, string.Format(copy.DiscardListTitleFormat, ids.Count),
+                copy.DiscardListDescription);
+            discardPage.AddSelection(panel, new EffectDialogSelectionSpec
+            {
+                ReadOnly = true, IsEffectPage = false,
+                Request = new InteractionRequestProjection
+                {
+                    VisibleToViewer = true, CandidateIds = ids, MinSelections = 0, MaxSelections = 0,
+                    AllowDecline = true, InteractionId = "discard-view", Status = "open"
+                },
+                Label = CharacterCardPanelPresenter.ResolveCardDisplayName,
+                CardTexture = id => cardVisualCatalog.GetCharacterFront(id),
+                IsCurrent = Current, CanSelect = _ => false,
+                OptionNamePrefix = "Discard Card ", Cancel = CloseDiscardPreview,
+                CancelLabel = copy.ReadOnlyCloseLabel
+            });
+            discardPage.RestoreScroll(scroll);
+        }
+
+        private static bool ContainsCard(IReadOnlyList<CharacterCardHandItemViewModel> cards, string id)
+        {
+            for (var i = 0; cards != null && i < cards.Count; i++) if (cards[i].CardId == id) return true;
+            return false;
+        }
+
+'''+s[b:]
+s=s.replace('ConfigureCard(entry.View, model.CardId, false, entry)','ConfigureCard(entry.View, model.CardId, entry)').replace('            bool discard,\n','')
+s=s.replace('            if (!discard) YC.PlayerJourney','            YC.PlayerJourney').replace('discard ? view.DiscardGrayscaleMaterial : null','null').replace('discard ? layoutProfile.DiscardAlpha : 1f','1f')
+s=s.replace('                    discard\n                        ? CharacterCardPanelPresenter.ResolveCardDisplayName(cardId) + "（弃牌区）"\n                        : CharacterCardPanelPresenter.ResolveCardDisplayName(cardId),','                    CharacterCardPanelPresenter.ResolveCardDisplayName(cardId),')
+p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Presentation/CharacterHandPanelView.cs';s=p.read_text(encoding='utf-8-sig')
+s=re.sub(r'^.*\[SerializeField\] private .* (?:discard\w+|overlay\w+);\n','',s,flags=re.M)
+s=re.sub(r'^        public .* (?:Discard\w+|Overlay\w+) => .*;\n','',s,flags=re.M)
+a=s.index('                discardOverlayObject == null');b=s.index('            {\n                reason =',a)
+s=s[:a]+'''                handCardTemplate == null || dragGhostTemplate == null ||
+                dragGhostImage == null || dragGhostCanvasGroup == null)
+'''+s[b:]
+s=s.replace('if (!handCardTemplate.TryValidateConfiguration(out reason) ||\n                !overlayCardTemplate.TryValidateConfiguration(out reason))','if (!handCardTemplate.TryValidateConfiguration(out reason))')
+s=s.replace('handCardTemplate.gameObject.activeSelf || overlayCardTemplate.gameObject.activeSelf ||\n                dragGhostTemplate.gameObject.activeSelf || discardOverlayObject.activeSelf','handCardTemplate.gameObject.activeSelf || dragGhostTemplate.gameObject.activeSelf')
+s=s.replace('手牌动态模板和弃牌遮罩必须在 Prefab 中默认禁用。','手牌动态模板必须在 Prefab 中默认禁用。');p.write_text(s,encoding='utf-8')
+# 移除明确旧壳；所有身份和嵌套覆盖删除列入清单。
+a=Asset('Assets/YC/Presentation/Prefabs/Gameplay/CharacterHandPanel.prefab');before=set(a.docs)
+data=a.text(1395987557320672663)
+for key in ('discardOverlayObject','overlayCardTemplate'):
+    ident=ref(data,key)
+    if ident not in a.docs:continue
+    go=ident if a.docs[ident][0]==1 else ref(a.text(ident),'m_GameObject')
+    r=next(r for r,(k,t)in a.docs.items() if k==224 and ref(t,'m_GameObject')==go);a.remove_tree(r)
+k,t=a.docs[1395987557320672663];a.docs[1395987557320672663]=(k,re.sub(r'^  (?:discard\w+|overlay\w+):.*\n','',t,flags=re.M));a.save()
+removed=before-set(a.docs)
+(OUT/'旧弃牌壳删除.json').write_text(json.dumps({'objects':a.removed,'allFileIDs':sorted(removed)},ensure_ascii=False,indent=2),encoding='utf-8')
+g=guid('Assets/YC/Presentation/Prefabs/Gameplay/CharacterHandPanel.prefab.meta')
+for rel in ('Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab','Assets/Scenes/SampleScene.unity','Assets/Scenes/ThreePlayerScene.unity'):
+    p=ROOT/rel;s=p.read_text(encoding='utf-8-sig')
+    def remove_override(m):return '' if int(m.group(1)) in removed and m.group(2)==g else m.group(0)
+    s=re.sub(r'^    - target: \{fileID: (\d+), guid: (\w+), type: 3\}.*?(?=^    - target:|^    m_|\Z)',remove_override,s,flags=re.M|re.S)
+    def stripped(m):
+        q=re.search(r'm_CorrespondingSourceObject: \{fileID: (\d+), guid: (\w+)',m.group(0))
+        return '' if q and int(q.group(1)) in removed and q.group(2)==g else m.group(0)
+    s=re.sub(r'^--- !u!\d+ &\d+ stripped\n.*?(?=^--- !u!|\Z)',stripped,s,flags=re.M|re.S)
+    p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Presentation/CharacterCardEffectChoiceDialog.cs';s=p.read_text(encoding='utf-8');
+for n in ('strategy','tactic','finish'):s=s.replace(f'StableId = "{n}"',f'StableId = "action.character.{n}"')
+p.write_text(s,encoding='utf-8')
+print('弃牌查看已改接共用只读卡牌列表，旧嵌套预览外壳及无效场景覆盖已移除。')

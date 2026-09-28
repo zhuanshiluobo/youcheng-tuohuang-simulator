@@ -1,0 +1,21 @@
+[
+  "Assets/YC/Editor/CityStylePageCapture.cs",
+  "Assets/YC/Editor/GameplaySecondaryPageCapture.cs",
+  "Assets/YC/Presentation/BuildInfoPanel.cs",
+  "Assets/YC/Presentation/BuildInfoPanelView.cs",
+  "Assets/YC/Presentation/CardAndCityBoardPresentation.cs",
+  "Assets/YC/Presentation/CityStyleDeclarationPreviewDialog.cs",
+  "Assets/YC/Presentation/CityStyleDeclarationPreviewInputHandler.cs",
+  "Assets/YC/Presentation/CityStyleDeclarationPreviewView.cs",
+  "Assets/YC/Presentation/CityStyleVisualCatalog.cs",
+  "Assets/YC/Tests/EditMode/CityStylePageTests.cs",
+  "Assets/YC/Tests/EditMode/PresentationReuseArchitectureTests.cs",
+  "Assets/YC/Tests/EditMode/PresentationSelectionControllerTests.cs",
+  "Assets/YC/Tests/EditMode/SpecialActionPreviewUiTests.cs",
+  "Assets/YC/Presentation/Content/CityStyleVisualCatalog.asset",
+  "Assets/YC/Presentation/Workflows/CityStyleInteraction.cs",
+  "Assets/YC/Presentation/Workflows/WorkflowPorts.cs",
+  "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+  "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+  "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab"
+]

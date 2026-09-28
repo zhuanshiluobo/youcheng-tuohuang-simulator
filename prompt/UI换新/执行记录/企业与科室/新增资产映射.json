@@ -1,0 +1,74 @@
+{
+  "artwork": [
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\MainGameUI-v2.2\\enterprise-atlas.jpg",
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\enterprise-atlas.jpg",
+      "guid": "a7f22b8cf9b540e491aca17c12b702d2",
+      "sha256": "e5f0cfd4262b6e58f859249606fd7886070c6eb91adcf33cf51cd51b9a4bc261"
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-business.png",
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-business.png",
+      "guid": "db5976637f1943698151b8a8d2d5585c",
+      "sha256": "cb3384c3d62405822a6aa6d16d670f122c697bd01021b99073581dcfbf6a4732"
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-defense.png",
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-defense.png",
+      "guid": "2409e38580c3415cabc92fecd8ecf4e2",
+      "sha256": "57413b8c9b2ccd0fba0e3befb5ffc6d9e9b08b6f20461ad4f7b1c787c4455021"
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-engineering.png",
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-engineering.png",
+      "guid": "78014d1f67bc469ba2c86852f3b481b7",
+      "sha256": "02dda1ba263cd720545a474534fe1845d143429d8e07641917935d347faec5cf"
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-hr.png",
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-hr.png",
+      "guid": "95c025e3d9b74186aab23092baf338b7",
+      "sha256": "3d7b3833e370a52fb5701ac36975509fe07830ad6b5d3f19d9ed19aea373a9b5"
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-research.png",
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-research.png",
+      "guid": "a02222015a6b435db96b1d398fb70ace",
+      "sha256": "63dd96e0f41370308c2c6d40e677c1608aa2edc999e475da5eb439407b082e30"
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\UI素材\\整理版-2026-09-24\\资产\\原始内容\\RhineDepartment-UI-v1.0\\department-structure.png",
+      "asset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\Artwork\\department-structure.png",
+      "guid": "16eb102e562d47b98f47d0e5fa4e2c0b",
+      "sha256": "72ce39e2e78217267b5a06d09cf4e8dbc8869f1cd845c59837bbd7c606f168b2"
+    }
+  ],
+  "pages": [
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\Enterprise\\EnterpriseSelectionDialog.prefab",
+      "guid": "187940dbd45b4100ac796ca11b022475",
+      "fileID": 1141
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\Gameplay\\Dialogs\\Enterprise\\DepartmentSelectionDialog.prefab",
+      "guid": "a1379ccc469f47cf86a43deba3d9524b",
+      "fileID": 1215
+    }
+  ],
+  "visualKeys": [
+    "enterprise-0",
+    "enterprise-1",
+    "enterprise-2",
+    "enterprise-3",
+    "enterprise-4",
+    "enterprise-5",
+    "enterprise-6",
+    "enterprise-7",
+    "department-business",
+    "department-defense",
+    "department-engineering",
+    "department-hr",
+    "department-research",
+    "department-structure"
+  ]
+}

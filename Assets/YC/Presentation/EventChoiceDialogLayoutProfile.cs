@@ -143,7 +143,6 @@ namespace YC.Presentation
 
         public float EventCardPanelWidth;
         public Vector2 EventCardPanelPosition;
-        public float EventCardCollapsedHeight;
         public float EventCardTopPadding;
         public float EventCardTitleMetadataGap;
         public float EventCardMetadataDescriptionGap;
@@ -162,11 +161,6 @@ namespace YC.Presentation
         public EventChoiceDialogTextStyle EventMetadataTextStyle;
         public EventChoiceDialogRectLayout EventDescriptionLayout;
         public EventChoiceDialogTextStyle EventDescriptionTextStyle;
-        public EventChoiceDialogRectLayout CollapsedSummaryLayout;
-        public EventChoiceDialogTextStyle CollapsedSummaryTextStyle;
-        public EventChoiceDialogRectLayout CollapseButtonLayout;
-        public EventChoiceDialogButtonStyle CollapseButtonStyle;
-        public EventChoiceDialogRectLayout CollapseIconLayout;
 
         public float ExplorePathPanelWidth;
         public float ExplorePathPanelBaseHeight;
@@ -290,7 +284,6 @@ namespace YC.Presentation
         public bool CharacterOverlayRaycastTarget => values.CharacterOverlayRaycastTarget;
         public float EventCardPanelWidth => values.EventCardPanelWidth;
         public Vector2 EventCardPanelPosition => values.EventCardPanelPosition;
-        public float EventCardCollapsedHeight => values.EventCardCollapsedHeight;
         public float EventCardTopPadding => values.EventCardTopPadding;
         public float EventCardTitleMetadataGap => values.EventCardTitleMetadataGap;
         public float EventCardMetadataDescriptionGap => values.EventCardMetadataDescriptionGap;
@@ -310,11 +303,6 @@ namespace YC.Presentation
         public EventChoiceDialogTextStyle EventMetadataTextStyle => values.EventMetadataTextStyle;
         public EventChoiceDialogRectLayout EventDescriptionLayout => values.EventDescriptionLayout;
         public EventChoiceDialogTextStyle EventDescriptionTextStyle => values.EventDescriptionTextStyle;
-        public EventChoiceDialogRectLayout CollapsedSummaryLayout => values.CollapsedSummaryLayout;
-        public EventChoiceDialogTextStyle CollapsedSummaryTextStyle => values.CollapsedSummaryTextStyle;
-        public EventChoiceDialogRectLayout CollapseButtonLayout => values.CollapseButtonLayout;
-        public EventChoiceDialogButtonStyle CollapseButtonStyle => values.CollapseButtonStyle;
-        public EventChoiceDialogRectLayout CollapseIconLayout => values.CollapseIconLayout;
         public float ExplorePathPanelWidth => values.ExplorePathPanelWidth;
         public float ExplorePathPanelBaseHeight => values.ExplorePathPanelBaseHeight;
         public float ExplorePathPanelRowStep => values.ExplorePathPanelRowStep;
@@ -425,7 +413,6 @@ namespace YC.Presentation
 
             if (!AllPositive(
                     values.EventCardPanelWidth,
-                    values.EventCardCollapsedHeight,
                     values.EventCardDescriptionWidthRatio,
                     values.EventCardDescriptionMinHeight,
                     values.EventCardChoiceStep,
@@ -511,9 +498,6 @@ namespace YC.Presentation
                 candidate.EventTitleLayout,
                 candidate.EventMetadataLayout,
                 candidate.EventDescriptionLayout,
-                candidate.CollapsedSummaryLayout,
-                candidate.CollapseButtonLayout,
-                candidate.CollapseIconLayout,
                 candidate.ExplorePathTitleLayout,
                 candidate.ExplorePaymentTitleLayout,
                 candidate.ResourcePaymentTitleLayout,
@@ -568,7 +552,6 @@ namespace YC.Presentation
                 candidate.EventTitleTextStyle,
                 candidate.EventMetadataTextStyle,
                 candidate.EventDescriptionTextStyle,
-                candidate.CollapsedSummaryTextStyle,
                 candidate.ExplorePathTitleTextStyle,
                 candidate.ExplorePaymentTitleTextStyle,
                 candidate.ResourcePaymentTitleTextStyle,
@@ -604,7 +587,6 @@ namespace YC.Presentation
         {
             var styles = new[]
             {
-                candidate.CollapseButtonStyle,
                 candidate.ResourceBankButtonStyle,
                 candidate.ManualCloseButtonStyle,
                 candidate.BuildResourceButtonStyle,

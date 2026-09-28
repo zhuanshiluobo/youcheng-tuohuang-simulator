@@ -1,0 +1,1713 @@
+{
+  "note": "当前序列化布局组件逐项只读审计；Prefab 嵌套组件需沿 source 继续解析，不能以缺少展开的 YAML 块判缺失。非运行验收。",
+  "assets": [
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "BuildInfoPanel/Build Sidebar Panel/Content Area/Content/City Board/\"\\u57CE\\u5E02\\u9762\\u677F\\u5E95\\u56FE\"",
+          "component": "AspectRatioFitter"
+        },
+        {
+          "path": "BuildInfoPanel/External City Style Area/City Style Cards",
+          "component": "GridLayoutGroup"
+        },
+        {
+          "path": "BuildInfoPanel/External City Style Area/City Style Cards",
+          "component": "UiAdaptiveGridColumns"
+        },
+        {
+          "path": "BuildInfoPanel/External City Style Area/City Style Cards",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "BuildInfoPanel/External City Style Area",
+          "component": "ScrollRect"
+        }
+      ],
+      "nestedPrefabGuids": []
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/CharacterHandPanel.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel/Discard Preview",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel/Close Discard Preview Button",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel/Hand Preview/Hand Preview Scroll/Viewport/Content",
+          "component": "GridLayoutGroup"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel/Hand Preview/Hand Preview Scroll/Viewport/Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel/Hand Preview/Hand Preview Scroll/Viewport/Content",
+          "component": "UiAdaptiveGridColumns"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel/Discard Preview/Discard Preview Scroll",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel/Hand Preview/Hand Preview Scroll",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel/Hand Preview",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel/Discard Preview/Discard Preview Scroll/Viewport/Content",
+          "component": "GridLayoutGroup"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel/Discard Preview/Discard Preview Scroll/Viewport/Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "CharacterHandPanel/Discard Preview Overlay/Discard Preview Panel/Discard Preview/Discard Preview Scroll/Viewport/Content",
+          "component": "UiAdaptiveGridColumns"
+        }
+      ],
+      "nestedPrefabGuids": []
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "GameplayInteractionHud/Tabletop UI Canvas/BuildInfoPanel/External City Style Area",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Map Region",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Self Summary Region/Resource Values",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Compact Region Navigation/Region Button 1",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface",
+          "component": "UiMapSurroundLayout"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 1",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Voucher Chip",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork",
+          "component": "UiCitySlotsLayout"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Tabletop UI Canvas/BuildInfoPanel/External City Style Area/City Style Cards",
+          "component": "GridLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Tabletop UI Canvas/BuildInfoPanel/External City Style Area/City Style Cards",
+          "component": "UiAdaptiveGridColumns"
+        },
+        {
+          "path": "GameplayInteractionHud/Tabletop UI Canvas/BuildInfoPanel/External City Style Area/City Style Cards",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Compact Region Navigation",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 3",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 2",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Region",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Cooperation Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 1",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content/No Persistent Effects",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 0",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Top Bar/Top Bar Content/Effect Toggle Group",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 4",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Tabletop UI Canvas",
+          "component": "TabletopCanvasLayout"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Tabs/Tab Background 0",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Discard Region",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Bottom Bar/Bottom Bar Content/Resolution Summary Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region",
+          "component": "UiAspectContentLayout"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 2",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions",
+          "component": "UiHudColumnsLayout"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Top Bar/Top Bar Content/Round Phase Group",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content/No Persistent Effects",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Hand Entrepreneur Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Hand Entrepreneur Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 3",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Bottom Bar/Bottom Bar Content/Summary End Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Bottom Bar/Bottom Bar Content",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Self Summary Region",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Top Bar/Top Bar Content/Red Zone Group",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Top Bar/Top Bar Content/Turn Group",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column",
+          "component": "UiPlayerCityLayout"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Bottom Bar/Bottom Bar Content/Undo Summary Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Bottom Bar/Bottom Bar Content/Undo Button",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Compact Region Navigation/Region Button 2",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Top Bar/Top Bar Content/Settings Group",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 1",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Compact Region Navigation/Region Button 0",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Quick Actions/Quick Effect Row",
+          "component": "UiEffectRowLayout"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Action Region/Action Content/Action Panel/Main Action Face/Quick Actions/Quick Effect Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Hand Entrepreneur Row/Hand Region",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Bottom Bar/Bottom Bar Content/\"\\u7ED3\\u675F\\u672C\\u56DE\\u5408 Button\"",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Self Summary Region/Resource Values/Resource Chip 2",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Top Bar/Top Bar Content/Brand Group",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel/Detail Viewport/Detail Content/No Persistent Effects",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Actions Column/Actions Viewport/Actions Scroll Content/Deck Row/Face Down Region",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Map Hand Column/Hand Entrepreneur Row/Entrepreneurs Region/Entrepreneur Slots/Entrepreneur Slot 5",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameplayInteractionHud/Persistent Gameplay Bars/Screen Safe Area/Persistent Top Bar/Top Bar Content",
+          "component": "UiHudBarLayout"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/Persistent Detail Panel",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "GameplayInteractionHud/Mobile City UI Canvas/UI003 Main Surface/Main Regions/Player City Column/City Region/City Board Artwork/\"\\u57CE\\u5E02\\u9762\\u677F\\u5E95\\u56FE\"",
+          "component": "AspectRatioFitter"
+        }
+      ],
+      "nestedPrefabGuids": [
+        "27b9634b346b16d4a94675f9cae8679a",
+        "eaa6bb01ff997d3459663228d40eb641"
+      ]
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/GameSettings/GameSettingsMenu.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row/\"UI007 \\u901A\\u7528 Content Slot\"",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row/\"UI007 \\u89C4\\u5219\\u4E66 Button Slot\"",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row/\"UI007 \\u901A\\u7528 Content Slot\"/\"\\u901A\\u7528 Content\"/\"\\u5206\\u8FA8\\u7387 Dropdown\"/Template",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row/\"UI007 \\u5360\\u4F4D Button Slot\"",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/Return Confirmation/Return Confirmation Dialog/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row/\"UI007 \\u5360\\u4F4D Content Slot\"",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "GameSettingsMenu/Game Settings Canvas/Settings Overlay/Settings Panel/UI007 Footer/Settings Body/UI007 Content Row/\"UI007 \\u901A\\u7528 Button Slot\"",
+          "component": "LayoutElement"
+        }
+      ],
+      "nestedPrefabGuids": [
+        "e42c856a398178e49abd09fa372978da",
+        "34f7f46113ea89744bee68e92746b0c6"
+      ]
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/RoundTracker/RoundTracker.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/UI007 Final Score Ranking Rows Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Dynamic Templates/Final Score Chart Template/Score Bars",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Details Player List/UI007 Final Score Detail Player Rows Viewport/Final Score Detail Player Rows",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Details Player List/UI007 Final Score Detail Player Rows Viewport/Final Score Detail Player Rows",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Details Player List/UI007 Final Score Detail Player Rows Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Dynamic Templates/Final Score Ranking Row Template",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/UI007 Final Score Ranking Rows Viewport/Final Score Ranking Rows",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/UI007 Final Score Ranking Rows Viewport/Final Score Ranking Rows",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Dynamic Templates/Final Score Bar Template",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Dynamic Templates/Final Score Detail Player Row Template",
+          "component": "LayoutElement"
+        }
+      ],
+      "nestedPrefabGuids": []
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/\"\\u8054\\u673A\\u6A21\\u5F0F Button\"",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Cover Frame",
+          "component": "AspectRatioFitter"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Links/Wiki Link Button",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Links/Official Link Button",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds/Message Panel/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Message Panel Bounds",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/\"\\u6210\\u5C31 Button\"",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Links/Creator Link Button",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Footer/Seat List",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/\"\\u672C\\u5730\\u6E38\\u620F Button\"",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content",
+          "component": "UiStartMenuControlsLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content",
+          "component": "UiFlexibleCanvasContent"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds/Online Mode Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Achievements Panel Bounds/Achievements Panel",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Footer/Seat List/Seat Template",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Online Mode Panel Bounds",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds/Join Room Panel/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Join Room Panel Bounds",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/\"\\u65AD\\u5F00\\u8FDE\\u63A5 Button\"",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/Room Panel Layer/UI007 Waiting Room Panel Bounds/Waiting Room Panel/UI007 Footer/Actions",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Links",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "StartMenuRoot/Start Menu Canvas/UI007 Menu Viewport",
+          "component": "ScrollRect"
+        }
+      ],
+      "nestedPrefabGuids": []
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/Viewers/ActionLogViewer.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Footer/Action Log Scroll View/Action Log Viewport/Action Log Content/Action Log Row Template",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Footer/Action Log Scroll View/Action Log Viewport/Action Log Content/Action Log Row Template",
+          "component": "UiMeasuredTextRow"
+        },
+        {
+          "path": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Footer/Action Log Scroll View",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Footer/Action Log Scroll View/Action Log Viewport/Action Log Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "ActionLogViewer/Action Log Viewer Canvas/Action Log Overlay/Action Log Panel/UI007 Footer/Action Log Scroll View/Action Log Viewport/Action Log Content",
+          "component": "ContentSizeFitter"
+        }
+      ],
+      "nestedPrefabGuids": []
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/Viewers/ZoomableImageViewer.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Footer/Image Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content/UI007 Footer/Image Viewport",
+          "component": "UiViewerViewportLayout"
+        },
+        {
+          "path": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer/Image Panel/Image Expanded Content",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "ZoomableImageViewer/Zoomable Image Viewer Canvas/Image Viewer",
+          "component": "UiBoundedPanelLayout"
+        }
+      ],
+      "nestedPrefabGuids": []
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+          "component": "UiMeasuredTextRow"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Special Action Warning Confirmation Message Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        }
+      ],
+      "nestedPrefabGuids": []
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/DispatchDecisionDialog.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "DispatchDecisionDialog",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+          "component": "UiMeasuredTextRow"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport/UI007 Body Content/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport/UI007 Body Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport/UI007 Body Content/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Dispatch Decision Message Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "DispatchDecisionDialog/Dispatch Decision Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        }
+      ],
+      "nestedPrefabGuids": []
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/EffectDialogShell.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/Facility Card Template",
+          "component": "UiCardFaceLayoutGroup"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/Resource Summary/Semantic Runs",
+          "component": "UiFlowLayoutGroup"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/UI007 Footer/Action Button Slot 2",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EffectDialogShell",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/UI007 Footer",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/Resource Row Template",
+          "component": "UiResourceRowLayoutGroup"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content",
+          "component": "UiDialogLayoutGroup"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/Resource Row Template/Resource Label/Semantic Runs",
+          "component": "UiFlowLayoutGroup"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel",
+          "component": "UiPanelContentLayout"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/Options Scroll/Viewport/Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/Options Scroll/Viewport/Content",
+          "component": "UiCardGridLayoutGroup"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/Options Scroll",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/UI007 Footer/Action Button Slot 1",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/UI007 Footer/Action Button Slot 3",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/Options Scroll/Viewport/Content/Option Row Template",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EffectDialogShell/Effect Dialog Panel/Expanded Content/Options Scroll/Viewport/Content/Option Row Template",
+          "component": "UiMeasuredTextRow"
+        }
+      ],
+      "nestedPrefabGuids": []
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/EventChoiceDialog.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Error",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Payment Reasons/Resource Payment Reason",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Payment Reasons",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Payment Reasons",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/CharacterSecondEffectDecision Mode",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Footer/Confirm Build Facility",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Error Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content",
+          "component": "UiEventBuildColumnsLayout"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Dynamic Templates/PaymentRouteRow/Route Label",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Payment Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Footer/Back To Build Payment",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/EventCard Mode/Event Text Scroll/Viewport/Content/Event Choice Host",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Facility Card Preview/Facility Card Image",
+          "component": "AspectRatioFitter"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Dynamic Templates/PaymentRouteRow/Recipient Host",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Dynamic Templates/PaymentRouteRow/Recipient Host",
+          "component": "UiFlowLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Dynamic Templates/PaymentRecipientButton",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Facility Card Preview",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Pay Bank",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog",
+          "component": "UiBoundedPanelLayout"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/CharacterSecondEffectDecision Mode/Character Footer/Finish Character Use",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePayment Mode",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/EventCard Mode/Event Text Scroll/Viewport/Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/EventCard Mode/Event Text Scroll/Viewport/Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Dynamic Templates/PaymentRouteRow",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll/Viewport/Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll/Viewport/Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Payment Reasons/Gold Payment Reason",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Receiver",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Dynamic Templates/PathRow",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/EventCard Mode/Event Text Scroll",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/EventCard Mode",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll/Viewport/Content/Build Error",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions/Choose Gold Payment",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePath Mode",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content",
+          "component": "ContentSizeFitter"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode",
+          "component": "UiPageSectionsLayout"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/CharacterSecondEffectDecision Mode/Character Footer/Continue Character Second Effect",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions/Choose Resource Payment",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/EventCard Mode/Event Text Scroll/Viewport/Content/Event Payment Route Host",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Details",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Dynamic Templates/ResourceCollectionRecipientButton",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePayment Mode/Payment Footer",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Reason Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/CharacterSecondEffectDecision Mode/Character Footer",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content",
+          "component": "UiEventDialogLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll/Viewport/Content/Summary",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout",
+          "component": "UiEventArtworkLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePayment Mode/Payment Footer/Confirm Explore",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Dynamic Templates/ChoiceRow",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "EventChoiceDialog/Event Choice Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Footer",
+          "component": "HorizontalLayoutGroup"
+        }
+      ],
+      "nestedPrefabGuids": []
+    },
+    {
+      "asset": "Assets/YC/Presentation/Ui006/Prefabs/EffectRow.prefab",
+      "serializedLayoutComponents": [
+        {
+          "path": "EffectRow",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "EffectRow",
+          "component": "UiEffectRowLayout"
+        }
+      ],
+      "nestedPrefabGuids": []
+    },
+    {
+      "asset": "Assets/Scenes/LoadingScene.unity",
+      "serializedLayoutComponents": [
+        {
+          "path": "Scene Transition/Loading Canvas",
+          "component": "UiLoadingPageLayout"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row",
+          "component": "UiMeasuredTextRow"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Progress Track Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Tips Text Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Progress Text Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        }
+      ],
+      "nestedPrefabGuids": [
+        "2836e71516d0b0e4cbbc2a2f7a8e335f"
+      ]
+    },
+    {
+      "asset": "Assets/Scenes/CollectionRoom.unity",
+      "serializedLayoutComponents": [
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "UiMeasuredTextRow"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Model Name Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "UiMeasuredTextRow"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "UiMeasuredTextRow"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row",
+          "component": "UiMeasuredTextRow"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Originite Item Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content",
+          "component": "UiFlexibleCanvasContent"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content",
+          "component": "UiCollectionColumnsLayout"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Latin Name Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row/UI007 Title Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Description Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport",
+          "component": "ScrollRect"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Category Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row/UI007 Gold Line Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row",
+          "component": "UiMeasuredTextRow"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Caption Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Separator Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar",
+          "component": "VerticalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Content Row/UI007 Horizontal Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row/UI007 Reset View Button Slot",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Collection List/UI007 Vertical Gap",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "HorizontalLayoutGroup"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "UiMeasuredTextRow"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/UI007 Collection Viewport/UI007 Collection Content/Model Information/UI007 Content Row",
+          "component": "LayoutElement"
+        },
+        {
+          "path": "Collection Room/Collection Canvas/Top Bar/UI007 Content Row/UI007 Back Button Slot",
+          "component": "LayoutElement"
+        }
+      ],
+      "nestedPrefabGuids": [
+        "2836e71516d0b0e4cbbc2a2f7a8e335f"
+      ]
+    }
+  ]
+}

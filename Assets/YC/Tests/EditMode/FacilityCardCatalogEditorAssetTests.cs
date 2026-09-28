@@ -257,8 +257,10 @@ namespace YC.Tests.EditMode
             EditModeTestCaseRunner.Run(
                 new[]
                 {
-                    new SceneBootstrapCase { ScenePath = "Assets/Scenes/StartScene.unity", ExpectedRoots = 4 },
-                    new SceneBootstrapCase { ScenePath = "Assets/Scenes/SampleScene.unity", ExpectedRoots = 6 }
+                    new SceneBootstrapCase { ScenePath = "Assets/Scenes/StartScene.unity", ExpectedRoots = 4,
+                        SettingsPrefabPath = ViewerPrefabTestUtility.SharedSettingsPrefabPath },
+                    new SceneBootstrapCase { ScenePath = "Assets/Scenes/SampleScene.unity", ExpectedRoots = 6,
+                        SettingsPrefabPath = ViewerPrefabTestUtility.InGameSettingsPrefabPath }
                 },
                 testCase =>
                 {
@@ -293,7 +295,7 @@ namespace YC.Tests.EditMode
 
                         var gameSettingsRoots = roots.Where(root =>
                             AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(root)) ==
-                            GameSettingsPrefabPath).ToArray();
+                            testCase.SettingsPrefabPath).ToArray();
                         Assert.That(gameSettingsRoots, Has.Length.EqualTo(1), scenePath);
                         Assert.That(
                             PrefabUtility.GetPrefabInstanceStatus(gameSettingsRoots[0]),
@@ -321,6 +323,7 @@ namespace YC.Tests.EditMode
         private sealed class SceneBootstrapCase
         {
             public string ScenePath;
+            public string SettingsPrefabPath;
             public int ExpectedRoots;
         }
 

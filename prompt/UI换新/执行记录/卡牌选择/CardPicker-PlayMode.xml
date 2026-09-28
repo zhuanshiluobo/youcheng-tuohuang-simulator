@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-27 03:34:46Z" end-time="2026-09-27 03:34:50Z" duration="3.8409965">
+  <test-suite type="TestSuite" id="1035" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="22" result="Passed" start-time="2026-09-27 03:34:46Z" end-time="2026-09-27 03:34:50Z" duration="3.840997" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1066" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="22" result="Passed" start-time="2026-09-27 03:34:46Z" end-time="2026-09-27 03:34:50Z" duration="3.832034" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="4724" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1067" name="YC" fullname="YC" runstate="Runnable" testcasecount="22" result="Passed" start-time="2026-09-27 03:34:46Z" end-time="2026-09-27 03:34:50Z" duration="3.828161" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1068" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="22" result="Passed" start-time="2026-09-27 03:34:46Z" end-time="2026-09-27 03:34:50Z" duration="3.824762" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1069" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="22" result="Passed" start-time="2026-09-27 03:34:46Z" end-time="2026-09-27 03:34:50Z" duration="3.821099" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1046" name="GameplayMainHudPlayModeTests" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-09-27 03:34:46Z" end-time="2026-09-27 03:34:50Z" duration="3.815682" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1055" name="CardPicker_HorizontalWheelAndScrollbarReachLastCard" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CardPicker_HorizontalWheelAndScrollbarReachLastCard" methodname="CardPicker_HorizontalWheelAndScrollbarReachLastCard" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="1012894295" result="Passed" start-time="2026-09-27 03:34:46Z" end-time="2026-09-27 03:34:48Z" duration="1.648291" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+              <test-case id="1054" name="CharacterCover_FormalEntranceSelectionDetailsAndConfirmation" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CharacterCover_FormalEntranceSelectionDetailsAndConfirmation" methodname="CharacterCover_FormalEntranceSelectionDetailsAndConfirmation" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="1226452395" result="Passed" start-time="2026-09-27 03:34:48Z" end-time="2026-09-27 03:34:50Z" duration="1.776172" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+              <test-case id="1050" name="ResourceProjection_UsesTopbarTextBindingsAndDiscardEntryOpensPreview" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.ResourceProjection_UsesTopbarTextBindingsAndDiscardEntryOpensPreview" methodname="ResourceProjection_UsesTopbarTextBindingsAndDiscardEntryOpensPreview" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="808300916" result="Passed" start-time="2026-09-27 03:34:50Z" end-time="2026-09-27 03:34:50Z" duration="0.378845" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

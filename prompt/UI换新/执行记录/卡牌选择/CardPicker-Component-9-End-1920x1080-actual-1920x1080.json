@@ -1,0 +1,3741 @@
+{
+    "diagnostic": true,
+    "businessVerified": false,
+    "commandSubmissionEnabled": false,
+    "diagnosticDescription": "从实际场景 Registry 实例化正式窗口；循环角色正面纹理构成展示样本，不代表合法业务候选。选中框与计数为组件诊断状态，按钮没有提交回调。",
+    "scrollStateSource": "仅设置运行实例 ScrollRect 的展示位置；不是鼠标或手柄输入验收。",
+    "source": {
+        "scene": "Assets/Scenes/SampleScene.unity",
+        "sceneRegistry": "GlobalObjectId_V1-2-2cda990e2423bbf4892e6590ba056729-7007614311448219973-952091510",
+        "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardPickerDialog.prefab",
+        "prefabGuid": "6d8b51b104807394397ca905501b1166",
+        "catalog": "Assets/YC/Presentation/Content/CardVisualCatalog.asset",
+        "validatedBeforePlay": true
+    },
+    "requestedSize": {
+        "x": 1920,
+        "y": 1080
+    },
+    "actualSize": {
+        "x": 1920,
+        "y": 1080
+    },
+    "count": 9,
+    "distinctTextureCount": 5,
+    "selectedIndex": 8,
+    "requestedEnd": true,
+    "horizontal": true,
+    "vertical": false,
+    "isOverflowing": true,
+    "fitsAvailableHeight": true,
+    "scrollbarVisible": true,
+    "horizontalNormalizedPosition": 1.0,
+    "contentRect": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 102.0,
+        "width": 1920.0,
+        "height": 906.0
+    },
+    "panel": {
+        "serializedVersion": "2",
+        "x": 73.0,
+        "y": 111.5,
+        "width": 1774.0,
+        "height": 887.0
+    },
+    "viewport": {
+        "serializedVersion": "2",
+        "x": 169.0,
+        "y": 318.5,
+        "width": 1582.0,
+        "height": 482.0
+    },
+    "cardRow": {
+        "serializedVersion": "2",
+        "x": -287.0,
+        "y": 318.5,
+        "width": 2038.0,
+        "height": 482.0
+    },
+    "cards": [
+        {
+            "index": 0,
+            "roleId": "liskarm",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg",
+            "itemRect": {
+                "serializedVersion": "2",
+                "x": -286.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "faceRect": {
+                "serializedVersion": "2",
+                "x": -270.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "selectionRect": {
+                "serializedVersion": "2",
+                "x": -286.07147216796877,
+                "y": 415.46484375,
+                "width": 211.74107360839845,
+                "height": 297.43359375
+            },
+            "active": true,
+            "selected": false,
+            "interactable": true,
+            "faceFullyInsideViewport": false
+        },
+        {
+            "index": 1,
+            "roleId": "texas",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg",
+            "itemRect": {
+                "serializedVersion": "2",
+                "x": -58.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "faceRect": {
+                "serializedVersion": "2",
+                "x": -42.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "selectionRect": {
+                "serializedVersion": "2",
+                "x": -58.07145690917969,
+                "y": 415.46484375,
+                "width": 211.74105834960938,
+                "height": 297.43359375
+            },
+            "active": true,
+            "selected": false,
+            "interactable": true,
+            "faceFullyInsideViewport": false
+        },
+        {
+            "index": 2,
+            "roleId": "tin-man",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg",
+            "itemRect": {
+                "serializedVersion": "2",
+                "x": 170.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "faceRect": {
+                "serializedVersion": "2",
+                "x": 186.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "selectionRect": {
+                "serializedVersion": "2",
+                "x": 169.9285430908203,
+                "y": 415.46484375,
+                "width": 211.74107360839845,
+                "height": 297.43359375
+            },
+            "active": true,
+            "selected": false,
+            "interactable": true,
+            "faceFullyInsideViewport": true
+        },
+        {
+            "index": 3,
+            "roleId": "cannot",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg",
+            "itemRect": {
+                "serializedVersion": "2",
+                "x": 398.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "faceRect": {
+                "serializedVersion": "2",
+                "x": 414.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "selectionRect": {
+                "serializedVersion": "2",
+                "x": 397.92852783203127,
+                "y": 415.46484375,
+                "width": 211.7410888671875,
+                "height": 297.43359375
+            },
+            "active": true,
+            "selected": false,
+            "interactable": true,
+            "faceFullyInsideViewport": true
+        },
+        {
+            "index": 4,
+            "roleId": "elysium",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg",
+            "itemRect": {
+                "serializedVersion": "2",
+                "x": 626.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "faceRect": {
+                "serializedVersion": "2",
+                "x": 642.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "selectionRect": {
+                "serializedVersion": "2",
+                "x": 625.9285278320313,
+                "y": 415.46484375,
+                "width": 211.7410888671875,
+                "height": 297.43359375
+            },
+            "active": true,
+            "selected": false,
+            "interactable": true,
+            "faceFullyInsideViewport": true
+        },
+        {
+            "index": 5,
+            "roleId": "liskarm",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg",
+            "itemRect": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "faceRect": {
+                "serializedVersion": "2",
+                "x": 870.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "selectionRect": {
+                "serializedVersion": "2",
+                "x": 853.9285278320313,
+                "y": 415.46484375,
+                "width": 211.74102783203126,
+                "height": 297.43359375
+            },
+            "active": true,
+            "selected": false,
+            "interactable": true,
+            "faceFullyInsideViewport": true
+        },
+        {
+            "index": 6,
+            "roleId": "texas",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg",
+            "itemRect": {
+                "serializedVersion": "2",
+                "x": 1082.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "faceRect": {
+                "serializedVersion": "2",
+                "x": 1098.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "selectionRect": {
+                "serializedVersion": "2",
+                "x": 1081.9285888671875,
+                "y": 415.46484375,
+                "width": 211.740966796875,
+                "height": 297.43359375
+            },
+            "active": true,
+            "selected": false,
+            "interactable": true,
+            "faceFullyInsideViewport": true
+        },
+        {
+            "index": 7,
+            "roleId": "tin-man",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg",
+            "itemRect": {
+                "serializedVersion": "2",
+                "x": 1310.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "faceRect": {
+                "serializedVersion": "2",
+                "x": 1326.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "selectionRect": {
+                "serializedVersion": "2",
+                "x": 1309.9285888671875,
+                "y": 415.46484375,
+                "width": 211.740966796875,
+                "height": 297.43359375
+            },
+            "active": true,
+            "selected": false,
+            "interactable": true,
+            "faceFullyInsideViewport": true
+        },
+        {
+            "index": 8,
+            "roleId": "cannot",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg",
+            "itemRect": {
+                "serializedVersion": "2",
+                "x": 1538.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "faceRect": {
+                "serializedVersion": "2",
+                "x": 1554.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "selectionRect": {
+                "serializedVersion": "2",
+                "x": 1537.9285888671875,
+                "y": 415.46484375,
+                "width": 211.740966796875,
+                "height": 297.43359375
+            },
+            "active": true,
+            "selected": true,
+            "interactable": true,
+            "faceFullyInsideViewport": true
+        }
+    ],
+    "entries": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 102.0,
+                "width": 1920.0,
+                "height": 906.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 73.0,
+                "y": 111.5,
+                "width": 1774.0,
+                "height": 887.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 73.0,
+                "y": 111.5,
+                "width": 1774.0,
+                "height": 887.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "AspectRatioFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 73.0,
+                "y": 111.5,
+                "width": 1774.0,
+                "height": 887.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 73.0,
+                "y": 111.5,
+                "width": 1774.0,
+                "height": 887.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 840.5,
+                "width": 1582.0,
+                "height": 102.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Header/Diagnostic Title",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 886.5,
+                "width": 1582.0,
+                "height": 56.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Header/Title Spacing",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 874.5,
+                "width": 1582.0,
+                "height": 12.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Header/Diagnostic Description",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 840.5,
+                "width": 1582.0,
+                "height": 34.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Header Spacing",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 800.5,
+                "width": 1582.0,
+                "height": 40.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 318.5,
+                "width": 1582.0,
+                "height": 482.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "ScrollRect"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 318.5,
+                "width": 1582.0,
+                "height": 482.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -287.0,
+                "y": 318.5,
+                "width": 2038.0,
+                "height": 482.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "HorizontalLayoutGroup",
+                "LayoutElement",
+                "ContentSizeFitter",
+                "CardPickerRowLayout"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -286.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Card Face",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -270.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Card Face/Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -295.99755859375,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Card Face/Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -270.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Card Face/Missing Artwork Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -270.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Card Face/Selected Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -286.07147216796877,
+                "y": 415.46484375,
+                "width": 211.74107360839845,
+                "height": 297.43359375
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -270.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -270.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -58.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Card Face",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -42.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Card Face/Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -67.99755859375,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Card Face/Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -42.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Card Face/Missing Artwork Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -42.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Card Face/Selected Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -58.07145690917969,
+                "y": 415.46484375,
+                "width": 211.74105834960938,
+                "height": 297.43359375
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -42.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -42.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 170.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Card Face",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 186.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Card Face/Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 160.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Card Face/Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 186.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Card Face/Missing Artwork Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 186.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Card Face/Selected Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.9285430908203,
+                "y": 415.46484375,
+                "width": 211.74107360839845,
+                "height": 297.43359375
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 186.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 186.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 398.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Card Face",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 414.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Card Face/Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 388.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Card Face/Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 414.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Card Face/Missing Artwork Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 414.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Card Face/Selected Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 397.92852783203127,
+                "y": 415.46484375,
+                "width": 211.7410888671875,
+                "height": 297.43359375
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 414.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 414.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 626.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Card Face",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 642.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Card Face/Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 616.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Card Face/Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 642.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Card Face/Missing Artwork Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 642.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Card Face/Selected Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 625.9285278320313,
+                "y": 415.46484375,
+                "width": 211.7410888671875,
+                "height": 297.43359375
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 642.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 642.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 854.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Card Face",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 870.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Card Face/Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 844.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Card Face/Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 870.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Card Face/Missing Artwork Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 870.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Card Face/Selected Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 853.9285278320313,
+                "y": 415.46484375,
+                "width": 211.74102783203126,
+                "height": 297.43359375
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 870.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 870.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1082.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Card Face",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1098.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Card Face/Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1072.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Card Face/Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1098.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Card Face/Missing Artwork Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1098.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Card Face/Selected Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1081.9285888671875,
+                "y": 415.46484375,
+                "width": 211.740966796875,
+                "height": 297.43359375
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1098.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1098.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1310.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Card Face",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1326.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Card Face/Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1300.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Card Face/Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1326.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Card Face/Missing Artwork Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1326.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Card Face/Selected Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1309.9285888671875,
+                "y": 415.46484375,
+                "width": 211.740966796875,
+                "height": 297.43359375
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1326.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1326.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1538.0,
+                "y": 404.0,
+                "width": 212.0,
+                "height": 311.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Card Face",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1554.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Card Face/Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1528.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Card Face/Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1554.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Card Face/Missing Artwork Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1554.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Card Face/Selected Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1537.9285888671875,
+                "y": 415.46484375,
+                "width": 211.740966796875,
+                "height": 297.43359375
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1554.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1554.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Horizontal Scrollbar",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 193.0,
+                "y": 320.5,
+                "width": 1534.0,
+                "height": 40.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Horizontal Scrollbar/Track Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 193.0,
+                "y": 332.5,
+                "width": 1534.0,
+                "height": 16.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Horizontal Scrollbar/Sliding Area",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 193.0,
+                "y": 320.5,
+                "width": 1534.0,
+                "height": 40.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Horizontal Scrollbar/Sliding Area/Handle",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 536.2305297851563,
+                "y": 320.5,
+                "width": 1190.76953125,
+                "height": 40.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Horizontal Scrollbar/Sliding Area/Handle/Thumb Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 536.2305297851563,
+                "y": 334.5,
+                "width": 1190.76953125,
+                "height": 12.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer Spacing",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 254.5,
+                "width": 1582.0,
+                "height": 64.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 170.5,
+                "width": 1582.0,
+                "height": 84.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 170.5,
+                "width": 920.0,
+                "height": 84.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 214.5,
+                "width": 920.0,
+                "height": 40.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count/Counter Text Runs",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 214.5,
+                "width": 920.0,
+                "height": 40.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count/Counter Text Runs/Counter Fragment Template(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 219.0,
+                "width": 92.0,
+                "height": 31.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count/Counter Text Runs/Counter Fragment Template(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 261.0,
+                "y": 218.0,
+                "width": 12.0,
+                "height": 33.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count/Counter Text Runs/Counter Fragment Template(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 273.0,
+                "y": 219.0,
+                "width": 24.0,
+                "height": 31.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count/Counter Text Runs/Counter Fragment Template(Clone)",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 297.0,
+                "y": 218.0,
+                "width": 12.0,
+                "height": 33.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count/Counter Fragment Template",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 629.0,
+                "y": 234.5,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Hint Spacing",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 204.5,
+                "width": 920.0,
+                "height": 10.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Hint",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 174.5,
+                "width": 920.0,
+                "height": 30.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Action Spacing",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1089.0,
+                "y": 170.5,
+                "width": 72.0,
+                "height": 84.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Secondary Action Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1161.0,
+                "y": 170.5,
+                "width": 280.0,
+                "height": 84.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Secondary Action Slot/Secondary Action",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1161.0,
+                "y": 170.5,
+                "width": 280.0,
+                "height": 84.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Secondary Action Slot/Secondary Action/Button Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1161.0,
+                "y": 170.5,
+                "width": 280.0,
+                "height": 84.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Secondary Action Slot/Secondary Action/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1189.0,
+                "y": 194.5,
+                "width": 224.0,
+                "height": 36.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Button Spacing",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1441.0,
+                "y": 170.5,
+                "width": 24.0,
+                "height": 84.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Primary Action Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1465.0,
+                "y": 170.5,
+                "width": 280.0,
+                "height": 84.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Primary Action Slot/Primary Action",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1465.0,
+                "y": 170.5,
+                "width": 280.0,
+                "height": 84.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Primary Action Slot/Primary Action/Button Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1465.0,
+                "y": 170.5,
+                "width": 280.0,
+                "height": 84.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Primary Action Slot/Primary Action/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1493.0,
+                "y": 194.5,
+                "width": 224.0,
+                "height": 36.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Footer End Spacing",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1745.0,
+                "y": 170.5,
+                "width": 6.0,
+                "height": 84.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "drivers": [
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Card Face",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Card Face/Card Slot",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Card Face/Artwork",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "drivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Card Face/Missing Artwork Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Card Face/Selected Frame",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Details",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 944.0,
+                "y": 555.0,
+                "width": 32.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "drivers": [
+                "LayoutElement",
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Details/Label",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 944.0,
+                "y": 555.0,
+                "width": 32.0,
+                "height": 24.0
+            },
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "drivers": [
+                "Text"
+            ]
+        }
+    ],
+    "graphics": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 102.0,
+                "width": 1920.0,
+                "height": 906.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.2199999988079071
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/window.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 73.0,
+                "y": 111.5,
+                "width": 1774.0,
+                "height": 887.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Header/Diagnostic Title",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/HanYiCuHeiJian-1.ttf",
+            "text": "卡牌选择 · 组件诊断",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/HanYiCuHeiJian-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 886.5,
+                "width": 1582.0,
+                "height": 56.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Header/Diagnostic Description",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "使用真实角色正面素材；展示布局与选中状态，不提交游戏命令。",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 840.5,
+                "width": 1582.0,
+                "height": 34.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 318.5,
+                "width": 1582.0,
+                "height": 482.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Card Face",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -270.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Card Face/Card Slot",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -295.99755859375,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Card Face/Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -270.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Card Face/Missing Artwork Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -270.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Card Face/Selected Frame",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/Layout/card-selected.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -286.07147216796877,
+                "y": 415.46484375,
+                "width": 211.74107360839845,
+                "height": 297.43359375
+            },
+            "enabled": false,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Details",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -270.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.18000000715255738
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 0/Details/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "详情",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -270.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Card Face",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -42.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Card Face/Card Slot",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -67.99755859375,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Card Face/Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -42.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Card Face/Missing Artwork Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -42.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Card Face/Selected Frame",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/Layout/card-selected.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -58.07145690917969,
+                "y": 415.46484375,
+                "width": 211.74105834960938,
+                "height": 297.43359375
+            },
+            "enabled": false,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Details",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -42.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.18000000715255738
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 1/Details/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "详情",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -42.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Card Face",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 186.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Card Face/Card Slot",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 160.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Card Face/Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 186.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Card Face/Missing Artwork Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 186.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Card Face/Selected Frame",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/Layout/card-selected.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.9285430908203,
+                "y": 415.46484375,
+                "width": 211.74107360839845,
+                "height": 297.43359375
+            },
+            "enabled": false,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Details",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 186.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.18000000715255738
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 2/Details/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "详情",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 186.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Card Face",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 414.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Card Face/Card Slot",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 388.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Card Face/Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 414.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Card Face/Missing Artwork Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 414.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Card Face/Selected Frame",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/Layout/card-selected.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 397.92852783203127,
+                "y": 415.46484375,
+                "width": 211.7410888671875,
+                "height": 297.43359375
+            },
+            "enabled": false,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Details",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 414.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.18000000715255738
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 3/Details/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "详情",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 414.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Card Face",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 642.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Card Face/Card Slot",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 616.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Card Face/Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 642.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Card Face/Missing Artwork Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 642.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Card Face/Selected Frame",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/Layout/card-selected.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 625.9285278320313,
+                "y": 415.46484375,
+                "width": 211.7410888671875,
+                "height": 297.43359375
+            },
+            "enabled": false,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Details",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 642.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.18000000715255738
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 4/Details/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "详情",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 642.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Card Face",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 870.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Card Face/Card Slot",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 844.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Card Face/Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 870.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Card Face/Missing Artwork Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 870.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Card Face/Selected Frame",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/Layout/card-selected.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 853.9285278320313,
+                "y": 415.46484375,
+                "width": 211.74102783203126,
+                "height": 297.43359375
+            },
+            "enabled": false,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Details",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 870.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.18000000715255738
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 5/Details/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "详情",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 870.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Card Face",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1098.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Card Face/Card Slot",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1072.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Card Face/Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1098.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Card Face/Missing Artwork Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1098.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Card Face/Selected Frame",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/Layout/card-selected.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1081.9285888671875,
+                "y": 415.46484375,
+                "width": 211.740966796875,
+                "height": 297.43359375
+            },
+            "enabled": false,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Details",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1098.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.18000000715255738
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 6/Details/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "详情",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1098.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Card Face",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1326.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Card Face/Card Slot",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1300.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Card Face/Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1326.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Card Face/Missing Artwork Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1326.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Card Face/Selected Frame",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/Layout/card-selected.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1309.9285888671875,
+                "y": 415.46484375,
+                "width": 211.740966796875,
+                "height": 297.43359375
+            },
+            "enabled": false,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Details",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1326.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.18000000715255738
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 7/Details/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "详情",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1326.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Card Face",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1554.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Card Face/Card Slot",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1528.00244140625,
+                "y": 405.1143493652344,
+                "width": 231.9951171875,
+                "height": 308.7712707519531
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Card Face/Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1554.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Card Face/Missing Artwork Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1554.0,
+                "y": 432.0,
+                "width": 180.0,
+                "height": 255.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Card Face/Selected Frame",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/Layout/card-selected.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1537.9285888671875,
+                "y": 415.46484375,
+                "width": 211.740966796875,
+                "height": 297.43359375
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Details",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1554.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.18000000715255738
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Viewport/Card Row/Diagnostic Character Card 8/Details/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "详情",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1554.0,
+                "y": 404.0,
+                "width": 180.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Horizontal Scrollbar",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 193.0,
+                "y": 320.5,
+                "width": 1534.0,
+                "height": 40.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Horizontal Scrollbar/Track Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/scrollbar-track.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 193.0,
+                "y": 332.5,
+                "width": 1534.0,
+                "height": 16.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Horizontal Scrollbar/Sliding Area/Handle",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 536.2305297851563,
+                "y": 320.5,
+                "width": 1190.76953125,
+                "height": 40.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Card Scroll/Horizontal Scrollbar/Sliding Area/Handle/Thumb Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/scrollbar-thumb.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 536.2305297851563,
+                "y": 334.5,
+                "width": 1190.76953125,
+                "height": 12.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "已选择 1 / 1",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 214.5,
+                "width": 920.0,
+                "height": 40.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count/Counter Text Runs/Counter Fragment Template(Clone)",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "已选择 ",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 219.0,
+                "width": 92.0,
+                "height": 31.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count/Counter Text Runs/Counter Fragment Template(Clone)",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/Novecento NarrowBold.otf",
+            "text": "1",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/Novecento NarrowBold.otf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 261.0,
+                "y": 218.0,
+                "width": 12.0,
+                "height": 33.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count/Counter Text Runs/Counter Fragment Template(Clone)",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": " / ",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 273.0,
+                "y": 219.0,
+                "width": 24.0,
+                "height": 31.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count/Counter Text Runs/Counter Fragment Template(Clone)",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/Novecento NarrowBold.otf",
+            "text": "1",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/Novecento NarrowBold.otf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 297.0,
+                "y": 218.0,
+                "width": 12.0,
+                "height": 33.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Count/Counter Fragment Template",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 629.0,
+                "y": 234.5,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Selection Information/Selection Hint",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "点击选择或取消；详情可放大查看",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 169.0,
+                "y": 174.5,
+                "width": 920.0,
+                "height": 30.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Secondary Action Slot/Secondary Action",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1161.0,
+                "y": 170.5,
+                "width": 280.0,
+                "height": 84.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Secondary Action Slot/Secondary Action/Button Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/Enterprise/Artwork/selection-button-secondary.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1161.0,
+                "y": 170.5,
+                "width": 280.0,
+                "height": 84.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Secondary Action Slot/Secondary Action/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/HanYiCuHeiJian-1.ttf",
+            "text": "返回",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/HanYiCuHeiJian-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1189.0,
+                "y": 194.5,
+                "width": 224.0,
+                "height": 36.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Primary Action Slot/Primary Action",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1465.0,
+                "y": 170.5,
+                "width": 280.0,
+                "height": 84.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Primary Action Slot/Primary Action/Button Artwork",
+            "type": "RawImage",
+            "textureAsset": "Assets/YC/Presentation/Enterprise/Artwork/selection-button-primary.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1465.0,
+                "y": 170.5,
+                "width": 280.0,
+                "height": 84.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Window Bounds/Card Picker Window/Window Content/Footer/Primary Action Slot/Primary Action/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/HanYiCuHeiJian-1.ttf",
+            "text": "确认选择",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/HanYiCuHeiJian-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 1493.0,
+                "y": 194.5,
+                "width": 224.0,
+                "height": 36.0
+            },
+            "enabled": true,
+            "active": true,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Card Face",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 0.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Card Face/Card Slot",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/CardPicker/Artwork/card-slot.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Card Face/Artwork",
+            "type": "RawImage",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Card Face/Missing Artwork Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Card Face/Selected Frame",
+            "type": "Image",
+            "textureAsset": "Assets/YC/Presentation/Layout/card-selected.png",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 960.0,
+                "y": 555.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "enabled": false,
+            "active": false,
+            "alpha": 1.0
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Details",
+            "type": "Image",
+            "textureAsset": "",
+            "text": "",
+            "fontAsset": "",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 944.0,
+                "y": 555.0,
+                "width": 32.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 0.18000000715255738
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Card Picker Component Diagnostic/Templates/Card Template/Details/Label",
+            "type": "Text",
+            "textureAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "text": "详情",
+            "fontAsset": "Assets/YC/Presentation/CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 944.0,
+                "y": 555.0,
+                "width": 32.0,
+                "height": 24.0
+            },
+            "enabled": true,
+            "active": false,
+            "alpha": 1.0
+        }
+    ]
+}

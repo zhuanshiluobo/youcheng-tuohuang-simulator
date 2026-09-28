@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -41,12 +42,15 @@ namespace YC.Presentation
         private Text specialActionHintText;
         private Text boardTitleText;
         private RectTransform cityBoardRect;
-        private Button previousButton;
-        private Button nextButton;
         private Button confirmDeclarationButton;
         private Outline boardOutline;
         private int currentCityStyleIndex;
         private bool selectingFacilities;
+        private bool submitting;
+        private float nextRefresh;
+        private string projectionSignature;
+        private bool lastVisible;
+        private int selectionRotation;
         private bool leftPointerHeld;
         private bool hasLastPointerPosition;
         private Vector2 lastPointerPosition;
@@ -76,8 +80,8 @@ namespace YC.Presentation
         {
             get
             {
-                return view != null && view.gameObject.activeSelf &&
-                       overlayObject != null && overlayObject.activeSelf;
+                return view != null && view.gameObject.activeInHierarchy &&
+                       overlayObject != null && overlayObject.activeInHierarchy && view.Panel.gameObject.activeInHierarchy;
             }
         }
 
@@ -122,7 +126,7 @@ namespace YC.Presentation
             model = viewModel;
             currentCityStyleIndex = ResolveInitialCityStyleIndex(viewModel);
             var initialOption = GetCurrentOption();
-            selectingFacilities = initialOption != null && initialOption.CanDeclare;
+            selectingFacilities = model.DeclareMode && initialOption != null && initialOption.CanDeclare;
             BuildUi();
             if (view == null)
             {
@@ -131,6 +135,8 @@ namespace YC.Presentation
                 return;
             }
 
+            view.RenderOptions(model, dialogRegistry.CardVisualCatalog, SelectCityStyle);
+            projectionSignature = Signature(model);
             BuildCityBoard();
             RenderCurrentCityStyle();
             if (initialOption != null)
@@ -138,6 +144,47 @@ namespace YC.Presentation
                 ValidateCurrentSelection();
             }
         }
+
+        public void RefreshProjection(bool force = false)
+        {
+            if (model == null || view == null) return;
+            if (submitting)
+            {
+                var status = model.SubmissionStatus?.Invoke() ?? CityStyleSubmissionStatus.Applied;
+                if (status == CityStyleSubmissionStatus.Pending) return;
+                if (status == CityStyleSubmissionStatus.Applied) { HideInternal(false); return; }
+                submitting = false;
+                force = true;
+            }
+            if (model.Refresh == null) return;
+            if (!force && Time.unscaledTime < nextRefresh) return;
+            nextRefresh = Time.unscaledTime + .25f;
+            var next = model.Refresh();
+            if (next == null || next.ContextKey != model.ContextKey) { HideInternal(false); return; }
+            var signature = Signature(next);
+            if (!IsShowing) { EndLeftPointerGesture(); CancelSpecialActionDrag(); }
+            var visibilityChanged = lastVisible != IsShowing;
+            lastVisible = IsShowing;
+            if (!force && !visibilityChanged && signature == projectionSignature) return;
+            var id = CurrentCityStyleId;
+            model = next;
+            projectionSignature = signature;
+            var index = model.Options.ToList().FindIndex(o => o.CityStyleId == id);
+            if (index < 0) { index = 0; selectedSlotIndexes.Clear(); }
+            currentCityStyleIndex = index;
+            selectedSlotIndexes.RemoveAll(slot => !model.CityBoardSlots.Any(s => s.SlotIndex == slot && !s.Used && !string.IsNullOrEmpty(s.FacilityId)));
+            selectingFacilities = model.DeclareMode && GetCurrentOption() != null && GetCurrentOption().CanDeclare;
+            EndLeftPointerGesture();
+            BuildCityBoard();
+            view.RenderOptions(model, dialogRegistry.CardVisualCatalog, SelectCityStyle);
+            RenderCurrentCityStyle();
+            ValidateCurrentSelection();
+        }
+
+        private static string Signature(CityStyleOptionsViewModel p) => p.Revision + "|" +
+            string.Join(";", p.Options.Select(o => o.CityStyleId + ":" + o.CanDeclare + ":" + o.Reason)) + "|" +
+            string.Join(";", p.CityBoardSlots.Select(s => s.SlotIndex + ":" + s.FacilityId + ":" + s.Used)) + "|" +
+            string.Join(";", p.CityStyleMarkers.Select(m => m.PlayerId + ":" + m.CityStyleId + ":" + m.MarkerArea + ":" + m.CanDragForSpecialAction));
 
         public void Hide()
         {
@@ -163,16 +210,13 @@ namespace YC.Presentation
             specialActionHintText = view.SpecialActionHintText;
             boardTitleText = view.BoardTitleText;
             cityBoardRect = view.CityBoardRect;
-            previousButton = view.PreviousButton;
-            nextButton = view.NextButton;
             confirmDeclarationButton = view.ConfirmDeclarationButton;
             boardOutline = view.BoardOutline;
 
             view.CloseButton.onClick.AddListener(Hide);
-            previousButton.onClick.AddListener(() => ChangeCityStyle(-1));
-            nextButton.onClick.AddListener(() => ChangeCityStyle(1));
-            confirmDeclarationButton.onClick.AddListener(ConfirmDeclaration);
-            view.InputHandler.Configure(ClearCurrentSelection, HandleBackNavigation, ChangeCityStyle);
+            view.RenderMode(model);
+            confirmDeclarationButton.onClick.AddListener(() => { if (model.DeclareMode) ConfirmDeclaration(); else Hide(); });
+            view.InputHandler.Configure(ClearCurrentSelection, HandleBackNavigation);
             view.BoardPointerHandler.Configure(
                 OnBoardLeftPointerDown,
                 OnLeftPointerDrag,
@@ -246,10 +290,9 @@ namespace YC.Presentation
         private void RenderCurrentCityStyle()
         {
             var option = GetCurrentOption();
-            var optionCount = model == null || model.Options == null ? 0 : model.Options.Count;
             if (option == null)
             {
-                cityStyleTitleText.text = "当前没有样式卡";
+                cityStyleTitleText.text = view.EmptyStatus;
                 cityStyleCardImage.texture = null;
                 cityStyleCardImage.gameObject.SetActive(false);
                 cityStyleCardPlaceholder.gameObject.SetActive(true);
@@ -257,18 +300,18 @@ namespace YC.Presentation
             else
             {
                 cityStyleTitleText.text = option.Name;
-            var texture = dialogRegistry.CardVisualCatalog.GetCityStyle(option.CityStyleId);
+                var texture = dialogRegistry.CardVisualCatalog.GetCityStyle(option.CityStyleId);
                 cityStyleCardImage.texture = texture;
                 cityStyleCardImage.gameObject.SetActive(texture != null);
                 cityStyleCardPlaceholder.gameObject.SetActive(texture == null);
             }
 
+            view.SelectOption(option == null ? string.Empty : option.CityStyleId);
+            cityStyleCardImage.GetComponentInChildren<CityStyleTrackOverlay>(true).Render(option?.CityStyleId, view.CardBoardVisualLayout.CityStyleVisuals, model.CityStyleMarkers);
             RenderCityStyleInfluenceMarkers(option == null ? string.Empty : option.CityStyleId);
             RenderSpecialActionDropTargets(option == null ? string.Empty : option.CityStyleId);
             RenderSpecialActionHint(option == null ? string.Empty : option.CityStyleId);
 
-            SetButtonState(previousButton, currentCityStyleIndex > 0, false);
-            SetButtonState(nextButton, currentCityStyleIndex < optionCount - 1, false);
             RenderSelectionState();
         }
 
@@ -323,7 +366,7 @@ namespace YC.Presentation
                 view.CardBoardVisualLayout,
                 marker,
                 "样式预览影响力 玩家" + markerModel.PlayerId + " 标记" + (displayIndex + 1),
-                UiTheme.GetPlayerColor(markerModel.PlayerColor, 1f),
+                view.CardBoardVisualLayout.CityStyleVisuals.PlayerColor((int)markerModel.PlayerColor, Color.white),
                 marker.sprite,
                 view.CardBoardVisualLayout.DeclarationPreviewMarkerSize,
                 markerModel.CityStyleId,
@@ -335,7 +378,7 @@ namespace YC.Presentation
             markerButton.interactable = markerModel.CanDragForSpecialAction;
             marker.GetComponent<CardPointerInteraction>().ConfigureDrag(
                 () => markerModel.CanDragForSpecialAction &&
-                      model != null &&
+                      IsShowing && model != null &&
                       model.TryUseSpecialAction != null &&
                       !IsSpecialActionModalOpen(),
                 eventData => BeginSpecialActionDrag(markerModel, marker, eventData),
@@ -403,8 +446,10 @@ namespace YC.Presentation
                 binding.Rect.anchorMin = new Vector2(bounds.xMin, bounds.yMin);
                 binding.Rect.anchorMax = new Vector2(bounds.xMax, bounds.yMax);
                 binding.Rect.pivot = view.CardInteractionLayoutProfile.DragGhostLayout.RootLayout.Pivot;
-                binding.Rect.offsetMin = Vector2.zero;
-                binding.Rect.offsetMax = Vector2.zero;
+                var offset = cityStyleCardImage.GetComponentInChildren<CityStyleTrackOverlay>(true)
+                    .TrackOffset(cityStyleId, area, view.CardBoardVisualLayout.CityStyleVisuals);
+                binding.Rect.offsetMin = offset;
+                binding.Rect.offsetMax = offset;
                 binding.Rect.gameObject.name = "特殊行动合法落区 " + area;
                 binding.Rect.gameObject.SetActive(false);
             }
@@ -465,14 +510,14 @@ namespace YC.Presentation
 
                 if (marker.CanDragForSpecialAction)
                 {
-                    specialActionHintText.text = "拖动本方可用影响力到绿色高亮的已使用区，发动特殊行动。";
+                    specialActionHintText.text = view.SpecialActionReady;
                     specialActionHintText.color = new Color(0.48f, 1f, 0.42f, 1f);
                     return;
                 }
 
                 if (!string.IsNullOrEmpty(marker.SpecialActionDisabledReason))
                 {
-                    specialActionHintText.text = "特殊行动当前不可发动：" + marker.SpecialActionDisabledReason;
+                    specialActionHintText.text = string.Format(view.SpecialUnavailableFormat, marker.SpecialActionDisabledReason);
                     specialActionHintText.color = new Color(1f, 0.68f, 0.28f, 1f);
                     return;
                 }
@@ -484,7 +529,7 @@ namespace YC.Presentation
             Image markerImage,
             PointerEventData eventData)
         {
-            if (IsSpecialActionModalOpen())
+            if (!IsShowing || submitting || IsSpecialActionModalOpen())
             {
                 return;
             }
@@ -521,7 +566,7 @@ namespace YC.Presentation
                          candidate.CityStyleId == markerModel.CityStyleId &&
                          candidate.PlayerId == markerModel.PlayerId &&
                          candidate.CanDragForSpecialAction);
-                    if (!sameGroup) continue;
+                    if (!sameGroup || !pair.Key.gameObject.activeInHierarchy) continue;
                     var source = pair.Key;
                     var image = FacilityCardDragUtility.CreateDragMemberImage(specialActionDragGhost);
                     image.gameObject.name = "影响力拖动组成员";
@@ -533,8 +578,12 @@ namespace YC.Presentation
                     image.color = source.color;
                     image.preserveAspect = true;
                     image.raycastTarget = false;
-                    InfluenceModelUiAnchor.Configure(image, view.CardBoardVisualLayout.InfluencePiecePrefab, source.color);
-                    source.GetComponent<InfluenceModelUiAnchor>().SetVisible(false);
+                    var countLabel = source.GetComponentInChildren<Text>(true);
+                    if (countLabel != null)
+                        UnityEngine.Object.Instantiate(countLabel, image.transform, false).raycastTarget = false;
+
+                    source.enabled = false;
+                    if (countLabel != null) countLabel.enabled = false;
                     draggedMarkerImages.Add(source);
                 }
 
@@ -544,7 +593,7 @@ namespace YC.Presentation
             SetSpecialActionDropTargetsVisible(markerModel.LegalDropArea, true);
             if (specialActionHintText != null)
             {
-                specialActionHintText.text = "松开到绿色高亮区即可发动；其他区域不会提交命令。";
+                specialActionHintText.text = view.SpecialActionDrop;
                 specialActionHintText.color = new Color(0.48f, 1f, 0.42f, 1f);
             }
         }
@@ -564,7 +613,7 @@ namespace YC.Presentation
             {
                 if (specialActionHintText != null)
                 {
-                    specialActionHintText.text = "未落在合法高亮区，特殊行动未发动。";
+                    specialActionHintText.text = view.SpecialActionCancelled;
                     specialActionHintText.color = new Color(1f, 0.48f, 0.32f, 1f);
                 }
 
@@ -591,11 +640,12 @@ namespace YC.Presentation
             pendingSpecialActionConfirmation = markerModel;
             specialActionConfirmationObject = view.SpecialActionWarningObject;
             view.SpecialActionWarningMessage.text =
-                markerModel.SpecialActionWarning + "\n仍要消耗主要行动与本次样式行动次数吗？";
+                markerModel.SpecialActionWarning + view.WarningSuffix;
             view.CancelSpecialActionWarningButton.onClick.RemoveAllListeners();
             view.ConfirmSpecialActionWarningButton.onClick.RemoveAllListeners();
             view.CancelSpecialActionWarningButton.onClick.AddListener(HideSpecialActionWarningConfirmation);
             view.ConfirmSpecialActionWarningButton.onClick.AddListener(ConfirmPendingSpecialAction);
+            view.Panel.gameObject.SetActive(false);
             specialActionConfirmationObject.SetActive(true);
             specialActionConfirmationObject.transform.SetAsLastSibling();
         }
@@ -628,7 +678,7 @@ namespace YC.Presentation
             RenderSpecialActionHint(markerModel == null ? CurrentCityStyleId : markerModel.CityStyleId);
             if (specialActionHintText != null)
             {
-                specialActionHintText.text = "已取消材料支付，特殊行动未发动。";
+                specialActionHintText.text = view.SpecialActionCancelled;
                 specialActionHintText.color = new Color(1f, 0.68f, 0.28f, 1f);
             }
         }
@@ -638,9 +688,13 @@ namespace YC.Presentation
             int originiumAmount,
             int ironAmount)
         {
+            if (!IsShowing || submitting) return;
+            RefreshProjection(true);
             var activeModel = model;
             var attemptedView = view;
-            if (activeModel == null || activeModel.TryUseSpecialAction == null || markerModel == null)
+            if (activeModel == null || activeModel.TryUseSpecialAction == null || markerModel == null ||
+                !activeModel.CityStyleMarkers.Any(m => m.MarkerId == markerModel.MarkerId &&
+                    m.SpecialActionId == markerModel.SpecialActionId && m.CanDragForSpecialAction))
             {
                 return;
             }
@@ -651,6 +705,7 @@ namespace YC.Presentation
                 attemptedView.gameObject.SetActive(false);
             }
 
+            submitting = true;
             var succeeded = activeModel.TryUseSpecialAction(
                 markerModel.SpecialActionId,
                 markerModel.MarkerId,
@@ -658,6 +713,11 @@ namespace YC.Presentation
                 ironAmount);
             if (succeeded)
             {
+                if (activeModel.SubmissionStatus?.Invoke() == CityStyleSubmissionStatus.Pending)
+                {
+                    if (ReferenceEquals(view, attemptedView)) attemptedView.gameObject.SetActive(true);
+                    return;
+                }
                 if (ReferenceEquals(view, attemptedView))
                 {
                     HideInternal(false);
@@ -668,6 +728,7 @@ namespace YC.Presentation
 
             if (ReferenceEquals(view, attemptedView) && attemptedView != null)
             {
+                submitting = false;
                 attemptedView.gameObject.SetActive(true);
                 RenderSpecialActionHint(markerModel.CityStyleId);
             }
@@ -688,6 +749,7 @@ namespace YC.Presentation
             }
 
             specialActionConfirmationObject.SetActive(false);
+            if (view != null) view.Panel.gameObject.SetActive(true);
             specialActionConfirmationObject = null;
         }
 
@@ -740,7 +802,10 @@ namespace YC.Presentation
         {
             foreach (var image in draggedMarkerImages)
             {
-                if (image != null) image.GetComponent<InfluenceModelUiAnchor>().SetVisible(true);
+                if (image == null) continue;
+                image.enabled = true;
+                var countLabel = image.GetComponentInChildren<Text>(true);
+                if (countLabel != null) countLabel.enabled = true;
             }
             draggedMarkerImages.Clear();
             FacilityCardDragUtility.DestroyDragGhost(ref specialActionDragGhost);
@@ -752,7 +817,8 @@ namespace YC.Presentation
         {
             var option = GetCurrentOption();
             var hasStyleCard = option != null;
-            SetButtonState(confirmDeclarationButton, selectingFacilities && selectionCanConfirm, true);
+            SetButtonState(confirmDeclarationButton, !model.DeclareMode || (selectingFacilities && selectionCanConfirm), true);
+            view.RenderMode(model, selectedSlotIndexes.Count);
 
             if (boardOutline != null)
             {
@@ -767,7 +833,7 @@ namespace YC.Presentation
             if (boardTitleText != null)
             {
                 boardTitleText.color = hasStyleCard ? UiTheme.GoldText : UiTheme.ValueText;
-                boardTitleText.text = hasStyleCard ? "建设面板（单击/拖动选择）" : "建设面板";
+
             }
 
             for (var i = 0; i < slotBindings.Count; i++)
@@ -821,63 +887,52 @@ namespace YC.Presentation
 
             if (option == null)
             {
-                matchStatusText.text = "样式卡区暂无可预览内容。";
-                matchStatusText.color = UiTheme.LabelText;
+                matchStatusText.text = view.EmptyStatus;
+                matchStatusText.color = view.SummaryColor;
+                return;
+            }
+
+            if (!model.DeclareMode)
+            {
+                matchStatusText.text = option.CanDeclare ? view.ViewStatus : string.Format(view.UnavailableFormat, option.Reason);
+                matchStatusText.color = view.SummaryColor;
                 return;
             }
 
             if (!option.CanDeclare)
             {
-                matchStatusText.text = "当前不可宣告：" +
-                                       (string.IsNullOrEmpty(option.Reason) ? "条件尚未满足。" : option.Reason);
-                matchStatusText.color = new Color(1f, 0.48f, 0.32f, 1f);
+                matchStatusText.text = string.Format(view.UnavailableFormat, string.IsNullOrEmpty(option.Reason) ? view.UnmetCondition : option.Reason);
+                matchStatusText.color = view.SummaryColor;
                 return;
             }
 
             if (!selectingFacilities)
             {
-                matchStatusText.text = "当前仅可预览该样式卡。";
-                matchStatusText.color = UiTheme.LabelText;
+                matchStatusText.text = view.ViewStatus;
+                matchStatusText.color = view.SummaryColor;
                 return;
             }
 
-            var countText = selectionRequiredFacilityCount > 0
-                ? "已选 " + selectionSelectedFacilityCount + " / " + selectionRequiredFacilityCount + " 个设施色块。"
-                : "已选 " + selectionSelectedFacilityCount + " 个设施色块。";
+            var countText = string.Format(view.SelectedCountFormat, selectionSelectedFacilityCount, selectionRequiredFacilityCount);
             if (selectionCanConfirm)
             {
-                matchStatusText.text = "满足宣告条件。" + countText;
-                matchStatusText.color = new Color(0.48f, 1f, 0.42f, 1f);
+                matchStatusText.text = string.Format(view.ValidStatusFormat, selectionRotation) + " · " + countText;
+                matchStatusText.color = view.SummaryColor;
             }
             else
             {
-                matchStatusText.text = (string.IsNullOrEmpty(selectionReason) ? "尚未满足宣告条件。" : selectionReason) + countText;
-                matchStatusText.color = new Color(1f, 0.68f, 0.28f, 1f);
+                matchStatusText.text = (string.IsNullOrEmpty(selectionReason) ? view.UnmetCondition : selectionReason) + countText;
+                matchStatusText.color = view.SummaryColor;
             }
         }
 
-        private void ChangeCityStyle(int offset)
+        private void SelectCityStyle(int nextIndex)
         {
-            if (specialActionPaymentDialog.IsShowing || specialActionConfirmationObject != null)
-            {
-                return;
-            }
-
-            var count = model == null || model.Options == null ? 0 : model.Options.Count;
-            if (count <= 0)
-            {
-                return;
-            }
-
-            var nextIndex = Mathf.Clamp(currentCityStyleIndex + offset, 0, count - 1);
-            if (nextIndex == currentCityStyleIndex)
-            {
-                return;
-            }
-
+            if (!IsShowing || submitting || nextIndex < 0 || nextIndex >= model.Options.Count) return;
+            if (nextIndex != currentCityStyleIndex) selectedSlotIndexes.Clear();
             currentCityStyleIndex = nextIndex;
             var option = GetCurrentOption();
-            selectingFacilities = option != null && option.CanDeclare;
+            selectingFacilities = model.DeclareMode && option != null && option.CanDeclare;
             ResetValidationState();
             CancelSpecialActionDrag();
             EndLeftPointerGesture();
@@ -902,6 +957,7 @@ namespace YC.Presentation
                 return;
             }
 
+            if (view != null && view.IsDetail) { view.ShowDetail(false); return; }
             Hide();
         }
 
@@ -919,7 +975,7 @@ namespace YC.Presentation
 
         private void OnBoardLeftPointerDown(Vector2 pointerPosition)
         {
-            if (!selectingFacilities || IsSpecialActionModalOpen())
+            if (!IsShowing || !selectingFacilities || IsSpecialActionModalOpen())
             {
                 return;
             }
@@ -932,7 +988,7 @@ namespace YC.Presentation
 
         private void OnSlotLeftPointerDown(int slotIndex, Vector2 pointerPosition)
         {
-            if (!selectingFacilities || IsSpecialActionModalOpen())
+            if (!IsShowing || !selectingFacilities || IsSpecialActionModalOpen())
             {
                 return;
             }
@@ -945,7 +1001,7 @@ namespace YC.Presentation
 
         private void OnSlotLeftPointerEnter(int slotIndex, Vector2 pointerPosition)
         {
-            if (!selectingFacilities || !leftPointerHeld)
+            if (!IsShowing || !selectingFacilities || !leftPointerHeld)
             {
                 return;
             }
@@ -972,7 +1028,7 @@ namespace YC.Presentation
 
         private void OnLeftPointerDrag(Vector2 pointerPosition)
         {
-            if (!selectingFacilities || !leftPointerHeld)
+            if (!IsShowing || !selectingFacilities || !leftPointerHeld)
             {
                 return;
             }
@@ -1018,7 +1074,7 @@ namespace YC.Presentation
 
         private void OnSlotLeftClick(int slotIndex)
         {
-            if (selectingFacilities)
+            if (IsShowing && selectingFacilities)
             {
                 ToggleSelectedSlot(slotIndex);
             }
@@ -1027,7 +1083,7 @@ namespace YC.Presentation
         private void ToggleSelectedSlot(int slotIndex)
         {
             var binding = FindSlotBinding(slotIndex);
-            if (!selectingFacilities || binding == null || !binding.Occupied || binding.Used)
+            if (!IsShowing || submitting || !selectingFacilities || binding == null || !binding.Occupied || binding.Used)
             {
                 return;
             }
@@ -1044,7 +1100,7 @@ namespace YC.Presentation
         private bool AddSelectedSlot(int slotIndex, bool validate)
         {
             var binding = FindSlotBinding(slotIndex);
-            if (!selectingFacilities || binding == null || !binding.Occupied || binding.Used ||
+            if (!IsShowing || !selectingFacilities || binding == null || !binding.Occupied || binding.Used ||
                 selectedSlotIndexes.Contains(slotIndex))
             {
                 return false;
@@ -1082,11 +1138,11 @@ namespace YC.Presentation
         {
             ResetValidationState();
             var option = GetCurrentOption();
-            if (!selectingFacilities || option == null || model == null || model.ValidateSelection == null)
+            if (!IsShowing || !selectingFacilities || option == null || model == null || model.ValidateSelection == null)
             {
                 selectionReason = option != null && !option.CanDeclare
                     ? option.Reason ?? string.Empty
-                    : "暂时无法校验宣告条件。";
+                    : view.SelectionUnavailable;
                 RenderSelectionState();
                 return;
             }
@@ -1095,13 +1151,14 @@ namespace YC.Presentation
             var result = model.ValidateSelection(option.CityStyleId, selection);
             if (ReferenceEquals(result, null))
             {
-                selectionReason = "暂时无法校验宣告条件。";
+                selectionReason = view.SelectionUnavailable;
                 RenderSelectionState();
                 return;
             }
 
             selectionCanConfirm = result.CanConfirm && model.ConfirmSelection != null;
             selectionReason = result.Reason ?? string.Empty;
+            selectionRotation = result.RotationDegrees;
             selectionRequiredFacilityCount = result.RequiredFacilityCount;
             selectionSelectedFacilityCount = result.SelectedFacilityCount;
             RenderSelectionState();
@@ -1109,8 +1166,13 @@ namespace YC.Presentation
 
         private void ConfirmDeclaration()
         {
+            if (!IsShowing || submitting || model == null || !model.DeclareMode) return;
+            var revision = model.Revision;
+            RefreshProjection(true);
+            if (model == null || model.Revision != revision) return;
+            ValidateCurrentSelection();
             var option = GetCurrentOption();
-            if (!selectingFacilities || !selectionCanConfirm || option == null ||
+            if (!IsShowing || !selectingFacilities || !selectionCanConfirm || option == null ||
                 model == null || model.ConfirmSelection == null)
             {
                 return;
@@ -1120,6 +1182,7 @@ namespace YC.Presentation
             var selection = new List<int>(selectedSlotIndexes).AsReadOnly();
             var activeModel = model;
             var attemptedView = view;
+            submitting = true;
             EndLeftPointerGesture();
             if (attemptedView != null)
             {
@@ -1128,6 +1191,11 @@ namespace YC.Presentation
 
             if (activeModel.ConfirmSelection(styleId, selection))
             {
+                if (activeModel.SubmissionStatus?.Invoke() == CityStyleSubmissionStatus.Pending)
+                {
+                    if (ReferenceEquals(view, attemptedView)) { attemptedView.gameObject.SetActive(true); confirmDeclarationButton.interactable = false; }
+                    return;
+                }
                 if (ReferenceEquals(view, attemptedView))
                 {
                     HideInternal(false);
@@ -1138,7 +1206,9 @@ namespace YC.Presentation
 
             if (ReferenceEquals(view, attemptedView) && attemptedView != null)
             {
+                submitting = false;
                 attemptedView.gameObject.SetActive(true);
+                RefreshProjection(true);
                 ValidateCurrentSelection();
             }
         }
@@ -1210,12 +1280,14 @@ namespace YC.Presentation
             var oldView = view;
             if (oldView != null)
             {
+                GameplayHudFrame.Active?.ReleasePage(oldView.gameObject);
                 oldView.ClearCallbacks();
                 oldView.DestroyDynamicInstances();
                 oldView.gameObject.SetActive(false);
             }
 
             model = null;
+            submitting = false;
             selectingFacilities = false;
             selectedSlotIndexes.Clear();
             slotBindings.Clear();
@@ -1248,8 +1320,6 @@ namespace YC.Presentation
             matchStatusText = null;
             specialActionHintText = null;
             boardTitleText = null;
-            previousButton = null;
-            nextButton = null;
             confirmDeclarationButton = null;
             boardOutline = null;
 
@@ -1335,36 +1405,7 @@ namespace YC.Presentation
 
         private void SetButtonState(Button button, bool interactable, bool emphasizeWhenEnabled)
         {
-            if (button == null)
-            {
-                return;
-            }
-
-            button.interactable = interactable;
-            var image = button.GetComponent<Image>();
-            if (image != null)
-            {
-                image.color = interactable && emphasizeWhenEnabled
-                    ? ConfirmEnabledColor
-                    : interactable ? UiTheme.ButtonBackground : UiTheme.DisabledButtonBackground;
-            }
-
-            var outline = button.GetComponent<Outline>();
-            if (outline != null)
-            {
-                outline.effectColor = interactable && emphasizeWhenEnabled
-                    ? SelectedSlotOutline
-                    : interactable ? UiTheme.GoldOutline : UiTheme.GoldOutlineThin;
-                outline.effectDistance = interactable && emphasizeWhenEnabled
-                    ? view.CardInteractionLayoutProfile.CityStyleEmphasizedButtonOutlineDistance
-                    : view.CardInteractionLayoutProfile.NormalOutlineDistance;
-            }
-
-            var label = button.GetComponentInChildren<Text>();
-            if (label != null)
-            {
-                label.color = interactable ? UiTheme.ValueText : UiTheme.LabelText;
-            }
+            if (button != null) button.interactable = interactable;
         }
 
         private sealed class CityBoardSlotBinding

@@ -1,0 +1,21 @@
+from pathlib import Path
+ns={'__name__':'library'};exec(Path('Logs/patch_city_style_assets.py').read_text(encoding='utf8').split('# Catalog binds')[0],ns)
+Asset,comp,ref,field,NATIVE,text,image=[ns[n] for n in ('Asset','comp','ref','field','NATIVE','text','image')]
+for path in ['Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab','Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab','Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab']:
+ a=Asset(path)
+ if 'Dialog' in path:
+  art=6130611447716182152;frame=479980190620614069
+  fit=comp(a,art,NATIVE['AspectRatioFitter']);ft=a.text(fit);ns['remove_comp'](a,fit)
+  holder=a.node('Complete Card and Declaration Band',frame);a.fill(holder)
+  newfit=ns['clone_comp'](a,ft,holder);a.set(newfit,'m_AspectRatio','1.41825')
+  a.move(art,holder);a.fill(art);a.set(art,'m_AnchorMin','{x: 0, y: 0.085}')
+ else:
+  card=next(i for i,(k,t) in a.docs.items() if k==224 and field(a.text(a.go(i)),'m_Name')=='City Style Card Template')
+  art=next(r for r in a.children(card) if any(NATIVE['RawImage'] in a.text(c) for c in a.components(r)))
+ band=a.node('Additional Declarations',art);a.fill(band)
+ a.set(band,'m_AnchorMin','{x: 0, y: -0.0928961749}');a.set(band,'m_AnchorMax','{x: 1, y: 0}')
+ im=image(a,band,'Assets/YC/Presentation/CommonUi/Sprites/Frontier31/module-bg.png')
+ label=a.node('Additional Declaration Label',band);a.fill(label);a.set(label,'m_AnchorMax','{x: 0.2, y: 1}')
+ txt=text(a,label,'额外宣告',20);k,t=a.docs[txt];a.docs[txt]=(k,t.replace('m_BestFit: 0','m_BestFit: 1'))
+ children=a.children(art);a.children_set(art,[band]+[c for c in children if c!=band])
+ a.save()

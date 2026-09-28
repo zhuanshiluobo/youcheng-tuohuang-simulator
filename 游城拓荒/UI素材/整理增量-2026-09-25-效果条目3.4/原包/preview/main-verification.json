@@ -1,0 +1,59 @@
+{
+  "version": "3.4",
+  "browserTestsRun": false,
+  "browserReason": "No browser executable used; HTML and static previews share the same scene source.",
+  "renderer": "Inkscape",
+  "offlinePreview": true,
+  "sharedScene": true,
+  "assetCount": 87,
+  "originals": 33,
+  "states": [
+    {
+      "name": "main-collapsed-details",
+      "mode": "idle",
+      "expandedPlayer": null
+    },
+    {
+      "name": "main-expanded-details",
+      "mode": "idle",
+      "expandedPlayer": 0
+    },
+    {
+      "name": "main-quick",
+      "mode": "idle",
+      "expandedPlayer": 0,
+      "tab": "quick"
+    },
+    {
+      "name": "main-scrolled-details",
+      "mode": "idle",
+      "expandedPlayer": 0,
+      "detailScroll": 136,
+      "quickScroll": 164,
+      "tab": "quick"
+    }
+  ],
+  "checks": {
+    "assetPathsExist": true,
+    "javascriptSyntax": true,
+    "staticRendersFinished": true,
+    "originalCityAspectPreserved": true,
+    "mapAspectPreserved": true,
+    "cardArtUnmodified": true,
+    "cityBottomFixedAt978": true,
+    "expandedPlayerAccordion": true,
+    "detailsAndQuickShareEffectRow": true
+  },
+  "interactionScope": [
+    "tabs",
+    "collapse and expand UI",
+    "expand and collapse resolution drawer",
+    "open optional-effect child-choice placeholder",
+    "switch undo appearance",
+    "undo demonstration state only",
+    "single expanded opponent persistent effects",
+    "independent internal scrolling via wheel arrows keyboard and draggable thumb",
+    "use icon click notification without consuming the effect"
+  ],
+  "engineFeaturesImplemented": false
+}

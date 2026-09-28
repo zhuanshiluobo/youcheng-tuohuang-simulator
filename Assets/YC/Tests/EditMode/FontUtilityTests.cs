@@ -232,7 +232,8 @@ namespace YC.Tests.EditMode
             Assert.That(cjk, Is.Not.Null, "Missing bundled CJK font asset.");
             Assert.That(latin, Is.Not.Null, "Missing bundled Latin font asset.");
             var type = GetFontUtilityType();
-            var method = type.GetMethod("Configure", BindingFlags.Static | BindingFlags.NonPublic);
+            var method = type.GetMethod("Configure", BindingFlags.Static | BindingFlags.NonPublic,
+                null, new[] { typeof(Font), typeof(Font), typeof(UnityEngine.Object) }, null);
             Assert.That(method, Is.Not.Null, "Missing FontUtility.Configure.");
             method.Invoke(null, new object[] { cjk, latin, owner });
         }

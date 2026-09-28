@@ -1,0 +1,13 @@
+from pathlib import Path
+ns={'__name__':'library'};exec(Path('Logs/patch_city_style_assets.py').read_text(encoding='utf8').split('# Catalog binds')[0],ns)
+a=ns['Asset']('Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab')
+group=2103623688599984290; viewport=234794363554464732; content=1895673891559691262;button=7367961917703128430
+for c in list(a.components(group)):
+ if c!=group and a.docs[c][0]==114:ns['remove_comp'](a,c)
+a.group(group,spacing=8);a.move(viewport,group);a.children_set(group,[viewport,button]);a.fill(viewport)
+a.element(viewport,mh=40,ph=0,fh=1);a.element(button,mh=48,ph=48)
+im=ns['comp'](a,viewport,ns['NATIVE']['Image']);a.set(im,'m_Color','{r: 0, g: 0, b: 0, a: 0.01}')
+sc=ns['comp'](a,viewport,ns['NATIVE']['ScrollRect']);a.set(sc,'m_ScrollSensitivity','35')
+grid=ns['comp'](a,content,ns['NATIVE']['GridLayoutGroup']);a.set(grid,'m_Padding','\n    m_Left: 4\n    m_Right: 4\n    m_Top: 4\n    m_Bottom: 4');a.set(grid,'m_Spacing','{x: 10, y: 10}')
+a.set(a.go(viewport),'m_Name','City Style List Viewport')
+a.save()

@@ -1,0 +1,978 @@
+{
+    "mode": "ExplorePayment",
+    "source": "组件诊断：SampleScene 当前 Registry 与实际 EventChoiceDialog Prefab；调用既有 Show 方法。路线、收款人和文字样本为诊断数据，卡图来自正式目录。回调仅计数，不提交命令；不代表规则结算或联机验收。",
+    "requestedSize": {
+        "x": 2560.0,
+        "y": 1080.0
+    },
+    "actualSize": {
+        "x": 2560.0,
+        "y": 1080.0
+    },
+    "panel": {
+        "serializedVersion": "2",
+        "x": 841.2138061523438,
+        "y": 243.24197387695313,
+        "width": 877.5724487304688,
+        "height": 558.875
+    },
+    "availableContent": {
+        "serializedVersion": "2",
+        "x": -0.000042149185901507735,
+        "y": 117.77944946289063,
+        "width": 2560.0,
+        "height": 879.08203125
+    },
+    "diagnosticCallbacks": 0,
+    "issues": [],
+    "objects": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 841.2138061523438,
+                "y": 243.24197387695313,
+                "width": 877.5724487304688,
+                "height": 558.875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement",
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 841.2138061523438,
+                "y": 243.24197387695313,
+                "width": 877.5724487304688,
+                "height": 558.875
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Title",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 841.2138061523438,
+                "y": 740.9179077148438,
+                "width": 877.5724487304688,
+                "height": 53.1162109375
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 841.2138061523438,
+                "y": 243.24195861816407,
+                "width": 877.5724487304688,
+                "height": 488.4383544921875
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 841.2138061523438,
+                "y": 243.24195861816407,
+                "width": 877.5724487304688,
+                "height": 488.4383544921875
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 841.2138061523438,
+                "y": 349.4743957519531,
+                "width": 877.5724487304688,
+                "height": 382.2058410644531
+            },
+            "layoutDrivers": [
+                "ScrollRect",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681030273438,
+                "y": 349.4743957519531,
+                "width": 772.2637329101563,
+                "height": 382.2058410644531
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681030273438,
+                "y": 373.72314453125,
+                "width": 772.2637329101563,
+                "height": 357.9571533203125
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup",
+                "ContentSizeFitter"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681030273438,
+                "y": 373.72314453125,
+                "width": 772.2637329101563,
+                "height": 357.9571533203125
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-1",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681030273438,
+                "y": 685.4923095703125,
+                "width": 772.2637329101563,
+                "height": 46.18798828125
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-1/Route Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681640625,
+                "y": 685.4923095703125,
+                "width": 230.9400634765625,
+                "height": 46.18798828125
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-1/Recipient Host",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.9739990234375,
+                "y": 688.9564208984375,
+                "width": 525.157958984375,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "UiFlowLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-1/Recipient Host/Payment Recipient 诊断航道-1 2",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.97412109375,
+                "y": 688.9564208984375,
+                "width": 115.469970703125,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-1/Recipient Host/Payment Recipient 诊断航道-1 2/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1150.211669921875,
+                "y": 688.9564208984375,
+                "width": 96.994873046875,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-1/Recipient Host/Payment Recipient 诊断航道-1 3",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1258.7535400390625,
+                "y": 688.9564208984375,
+                "width": 115.469970703125,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-1/Recipient Host/Payment Recipient 诊断航道-1 3/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1267.9910888671875,
+                "y": 688.9564208984375,
+                "width": 96.994873046875,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-1/Recipient Host/Payment Recipient 诊断航道-1 4",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1376.532958984375,
+                "y": 688.9564208984375,
+                "width": 115.469970703125,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-1/Recipient Host/Payment Recipient 诊断航道-1 4/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1385.7705078125,
+                "y": 688.9564208984375,
+                "width": 96.994873046875,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-2",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681030273438,
+                "y": 623.138427734375,
+                "width": 772.2637329101563,
+                "height": 46.18798828125
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-2/Route Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681640625,
+                "y": 623.138427734375,
+                "width": 230.9400634765625,
+                "height": 46.18798828125
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-2/Recipient Host",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.9739990234375,
+                "y": 626.6025390625,
+                "width": 525.157958984375,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "UiFlowLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-2/Recipient Host/Payment Recipient 诊断航道-2 2",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.97412109375,
+                "y": 626.6025390625,
+                "width": 115.469970703125,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-2/Recipient Host/Payment Recipient 诊断航道-2 2/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1150.211669921875,
+                "y": 626.6025390625,
+                "width": 96.994873046875,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-2/Recipient Host/Payment Recipient 诊断航道-2 3",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1258.7535400390625,
+                "y": 626.6025390625,
+                "width": 115.469970703125,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-2/Recipient Host/Payment Recipient 诊断航道-2 3/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1267.9910888671875,
+                "y": 626.6025390625,
+                "width": 96.994873046875,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-2/Recipient Host/Payment Recipient 诊断航道-2 4",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1376.532958984375,
+                "y": 626.6025390625,
+                "width": 115.469970703125,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-2/Recipient Host/Payment Recipient 诊断航道-2 4/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1385.7705078125,
+                "y": 626.6025390625,
+                "width": 96.994873046875,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-3",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681030273438,
+                "y": 560.7846069335938,
+                "width": 772.2637329101563,
+                "height": 46.18798828125
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-3/Route Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681640625,
+                "y": 560.7846069335938,
+                "width": 230.9400634765625,
+                "height": 46.18798828125
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-3/Recipient Host",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.9739990234375,
+                "y": 564.2487182617188,
+                "width": 525.157958984375,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "UiFlowLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-3/Recipient Host/Payment Recipient 诊断航道-3 2",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.97412109375,
+                "y": 564.2487182617188,
+                "width": 115.469970703125,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-3/Recipient Host/Payment Recipient 诊断航道-3 2/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1150.211669921875,
+                "y": 564.2487182617188,
+                "width": 96.994873046875,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-3/Recipient Host/Payment Recipient 诊断航道-3 3",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1258.7535400390625,
+                "y": 564.2487182617188,
+                "width": 115.469970703125,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-3/Recipient Host/Payment Recipient 诊断航道-3 3/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1267.9910888671875,
+                "y": 564.2487182617188,
+                "width": 96.994873046875,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-3/Recipient Host/Payment Recipient 诊断航道-3 4",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1376.532958984375,
+                "y": 564.2487182617188,
+                "width": 115.469970703125,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-3/Recipient Host/Payment Recipient 诊断航道-3 4/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1385.7705078125,
+                "y": 564.2487182617188,
+                "width": 96.994873046875,
+                "height": 39.259765625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-4",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681030273438,
+                "y": 498.4307556152344,
+                "width": 772.2637329101563,
+                "height": 46.188018798828128
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-4/Route Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681640625,
+                "y": 498.4307556152344,
+                "width": 230.9400634765625,
+                "height": 46.188018798828128
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-4/Recipient Host",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.9739990234375,
+                "y": 501.8948669433594,
+                "width": 525.157958984375,
+                "height": 39.259796142578128
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "UiFlowLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-4/Recipient Host/Payment Recipient 诊断航道-4 2",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.97412109375,
+                "y": 501.8948669433594,
+                "width": 115.469970703125,
+                "height": 39.259796142578128
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-4/Recipient Host/Payment Recipient 诊断航道-4 2/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1150.211669921875,
+                "y": 501.8948669433594,
+                "width": 96.994873046875,
+                "height": 39.259796142578128
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-4/Recipient Host/Payment Recipient 诊断航道-4 3",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1258.7535400390625,
+                "y": 501.8948669433594,
+                "width": 115.469970703125,
+                "height": 39.259796142578128
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-4/Recipient Host/Payment Recipient 诊断航道-4 3/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1267.9910888671875,
+                "y": 501.8948669433594,
+                "width": 96.994873046875,
+                "height": 39.259796142578128
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-4/Recipient Host/Payment Recipient 诊断航道-4 4",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1376.532958984375,
+                "y": 501.8948669433594,
+                "width": 115.469970703125,
+                "height": 39.259796142578128
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-4/Recipient Host/Payment Recipient 诊断航道-4 4/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1385.7705078125,
+                "y": 501.8948669433594,
+                "width": 96.994873046875,
+                "height": 39.259796142578128
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-5",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681030273438,
+                "y": 436.0769348144531,
+                "width": 772.2637329101563,
+                "height": 46.18804931640625
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-5/Route Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681640625,
+                "y": 436.0769348144531,
+                "width": 230.9400634765625,
+                "height": 46.18804931640625
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-5/Recipient Host",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.9739990234375,
+                "y": 439.5410461425781,
+                "width": 525.157958984375,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "UiFlowLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-5/Recipient Host/Payment Recipient 诊断航道-5 2",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.97412109375,
+                "y": 439.5410461425781,
+                "width": 115.469970703125,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-5/Recipient Host/Payment Recipient 诊断航道-5 2/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1150.211669921875,
+                "y": 439.5410461425781,
+                "width": 96.994873046875,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-5/Recipient Host/Payment Recipient 诊断航道-5 3",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1258.7535400390625,
+                "y": 439.5410461425781,
+                "width": 115.469970703125,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-5/Recipient Host/Payment Recipient 诊断航道-5 3/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1267.9910888671875,
+                "y": 439.5410461425781,
+                "width": 96.994873046875,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-5/Recipient Host/Payment Recipient 诊断航道-5 4",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1376.532958984375,
+                "y": 439.5410461425781,
+                "width": 115.469970703125,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-5/Recipient Host/Payment Recipient 诊断航道-5 4/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1385.7705078125,
+                "y": 439.5410461425781,
+                "width": 96.994873046875,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681030273438,
+                "y": 373.7231140136719,
+                "width": 772.2637329101563,
+                "height": 46.18804931640625
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Route Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 893.8681640625,
+                "y": 373.7231140136719,
+                "width": 230.9400634765625,
+                "height": 46.18804931640625
+            },
+            "layoutDrivers": [
+                "Text",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Recipient Host",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.9739990234375,
+                "y": 377.1872253417969,
+                "width": 525.157958984375,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "LayoutElement",
+                "UiFlowLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Recipient Host/Payment Recipient 诊断航道-6 2",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1140.97412109375,
+                "y": 377.1872253417969,
+                "width": 115.469970703125,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Recipient Host/Payment Recipient 诊断航道-6 2/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1150.211669921875,
+                "y": 377.1872253417969,
+                "width": 96.994873046875,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Recipient Host/Payment Recipient 诊断航道-6 3",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1258.7535400390625,
+                "y": 377.1872253417969,
+                "width": 115.469970703125,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Recipient Host/Payment Recipient 诊断航道-6 3/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1267.9910888671875,
+                "y": 377.1872253417969,
+                "width": 96.994873046875,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Recipient Host/Payment Recipient 诊断航道-6 4",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1376.532958984375,
+                "y": 377.1872253417969,
+                "width": 115.469970703125,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Recipient Host/Payment Recipient 诊断航道-6 4/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1385.7705078125,
+                "y": 377.1872253417969,
+                "width": 96.994873046875,
+                "height": 39.25982666015625
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payment Footer",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 841.2138061523438,
+                "y": 243.24195861816407,
+                "width": 877.5724487304688,
+                "height": 106.23243713378906
+            },
+            "layoutDrivers": [
+                "HorizontalLayoutGroup",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payment Footer/Confirm Explore",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1152.98291015625,
+                "y": 272.1094665527344,
+                "width": 254.0341796875,
+                "height": 48.4974365234375
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payment Footer/Confirm Explore/Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1166.83935546875,
+                "y": 272.1094665527344,
+                "width": 226.3212890625,
+                "height": 48.4974365234375
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Dynamic Templates",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 841.2138061523438,
+                "y": 243.24197387695313,
+                "width": 877.5724487304688,
+                "height": 558.875
+            },
+            "layoutDrivers": [
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Window Frame",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 841.2138061523438,
+                "y": 243.24197387695313,
+                "width": 877.5724487304688,
+                "height": 558.875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        }
+    ],
+    "scrolls": [
+        {
+            "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll",
+            "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Recipient Host/Payment Recipient 诊断航道-6 4",
+            "contentHeight": 310.0,
+            "viewportHeight": 331.0,
+            "contentOverflows": false,
+            "lastButtonVisibleAtTop": true,
+            "lastButtonReachesViewportAtEnd": true,
+            "viewportAtEnd": {
+                "serializedVersion": "2",
+                "x": 893.8681030273438,
+                "y": 349.4743957519531,
+                "width": 772.2637329101563,
+                "height": 382.2058410644531
+            },
+            "lastButtonAtEnd": {
+                "serializedVersion": "2",
+                "x": 1376.532958984375,
+                "y": 377.1872253417969,
+                "width": 115.469970703125,
+                "height": 39.25982666015625
+            }
+        }
+    ]
+}

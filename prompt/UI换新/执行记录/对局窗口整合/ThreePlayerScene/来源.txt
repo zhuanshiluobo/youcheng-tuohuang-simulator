@@ -1,0 +1,5 @@
+场景：ThreePlayerScene
+Registry：GlobalObjectId_V1-2-d7cac0f032ca3d5428528a09f4b83a70-7007614311448219973-952091510
+源：Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardViewer.prefab
+卡图：Assets/YC/Presentation/Content/CardVisualCatalog.asset
+基准普通查看来自实际手牌入口；使用模式为相同合法卡图的组件构图诊断，不代表正式命令成功。

@@ -1,0 +1,45 @@
+from pathlib import Path
+import json,hashlib,re,zipfile,difflib,sys,shutil
+sys.path.insert(0,'tools')
+from audit_gameplay_ui import documents,inventory,field,ref
+folder=Path('prompt/UI换新/执行记录/城市样式接入');base=json.loads((folder/'开工哈希.json').read_text(encoding='utf8'))
+# 开工清单未含 asmdef，不能把它们误报为本项新增。
+now={str(p).replace('\\','/'):hashlib.sha256(p.read_bytes()).hexdigest() for root in ['Assets/YC','Assets/Scenes','tools'] for p in Path(root).rglob('*') if p.is_file() and p.suffix in ['.cs','.prefab','.unity','.asset','.meta','.py','.ps1']}
+changes={'modified':[p for p,h in base.items() if p in now and now[p]!=h],'new':[p for p in now if p not in base],'removed':[p for p in base if p not in now]}
+(folder/'本项文件变更.json').write_text(json.dumps(changes,indent=2,ensure_ascii=False),encoding='utf8')
+(folder/'完成哈希.json').write_text(json.dumps(now,indent=2,ensure_ascii=False),encoding='utf8')
+with zipfile.ZipFile('Logs/CityStyleBefore.zip') as z:
+ diff=''
+ for p in changes['modified']:
+  if not p.endswith('.cs'):continue
+  b=z.read(p.replace('/','\\') if p not in z.namelist() else p).decode('utf-8-sig').splitlines(True)
+  diff+=''.join(difflib.unified_diff(b,Path(p).read_text(encoding='utf-8-sig').splitlines(True),fromfile='开工/'+p,tofile='完成/'+p))
+ (folder/'本项代码差异.diff').write_text(diff,encoding='utf8')
+scripts={}
+for root in ['Assets/YC','Library/PackageCache']:
+ for p in Path(root).rglob('*.cs.meta'):
+  m=re.search('guid: (\w+)',p.read_text(encoding='utf-8-sig'))
+  if m:scripts[m[1]]=p.name[:-5]
+layouts=[];checks=[]
+for p in changes['modified']:
+ if not p.endswith('.prefab'):continue
+ path=Path(p).resolve();docs=documents(path);raw=path.read_text(encoding='utf-8-sig');ids=re.findall(r'^--- !u!\d+ &(-?\d+)',raw,re.M)
+ dangling=[int(m[1]) for m in re.finditer(r'\{fileID: (-?\d+)\}',raw) if int(m[1])!=0 and int(m[1]) not in docs]
+ with zipfile.ZipFile('Logs/CityStyleBefore.zip') as z:
+  prior=z.read(p).decode('utf-8-sig').replace('\r','')
+ prior_ids=set(int(i) for i in re.findall(r'^--- !u!\d+ &(-?\d+)',prior,re.M))
+ prior_dangling=set(int(m[1]) for m in re.finditer(r'\{fileID: (-?\d+)\}',prior) if int(m[1])!=0 and int(m[1]) not in prior_ids)
+ checks.append({'newDanglingLocalReferences':sorted(set(dangling)-prior_dangling),'existingAtStart':sorted(set(dangling)&prior_dangling),'asset':p,'guid':re.search('guid: (\w+)',Path(p+'.meta').read_text())[1],'duplicateFileIds':len(ids)-len(set(ids)),'danglingLocalReferences':dangling})
+ layouts+=inventory(path,scripts)
+(folder/'最终原生布局组件.json').write_text(json.dumps(layouts,ensure_ascii=False,indent=2),encoding='utf8')
+(folder/'资产引用审计.json').write_text(json.dumps({'prefabs':checks,'scenesChangedFromStart':[p for p in changes['modified'] if p.endswith('.unity')],'filesDeleted':changes['removed']},ensure_ascii=False,indent=2),encoding='utf8')
+rows=[];indices={'military_industrial_area':0,'mobilization_support_system':1,'composite_power_system':2,'material_relay_station':8,'source_stone_industrial_hub':0,'efficient_mobile_management_system':1}
+for p in sorted(Path('Assets/StreamingAssets/Content/core/city_style').glob('*.json')):
+ d=json.loads(p.read_text(encoding='utf-8-sig'));art=Path('Assets/StreamingAssets/Content/core')/d['artwork'];idx=indices[d['definitionId'].removeprefix('city_style_')];cols=3 if d['data']['level']==1 else 2
+ rows.append({'id':d['definitionId'],'name':d['displayName'],'formalVersion':d['version'],'definition':str(p),'artwork':str(art),'artworkGuid':re.search('guid: (\w+)',Path(str(art)+'.meta').read_text())[1],'artworkSHA256':hashlib.sha256(art.read_bytes()).hexdigest(),'atlas':'asset-056' if cols==3 else 'asset-073','index':idx,'sourceRect':[idx%cols*930,idx//cols*600,930,600],'layout':'reward' if idx==8 else 'active' if cols==3 else 'limited'})
+source=Path('游城拓荒/UI素材/整理版-2026-09-24/原包参数/CityPattern-UI-v1.0/sources/pattern-card-map.json')
+(folder/'正式卡图与源版本映射.json').write_text(json.dumps({'source':str(source),'sourceSHA256':hashlib.sha256(source.read_bytes()).hexdigest(),'catalog':'Assets/YC/Presentation/Content/CityStyleVisualCatalog.asset','cards':rows,'playerOrder':['Red','Blue','Green','Yellow'],'note':'示例六卡不是正式供应；军工使用基础版本 index 0。原卡930x600完整呈现；extra位于原卡下方，不占用状态轨道。'},ensure_ascii=False,indent=2),encoding='utf8')
+archive=folder/'一次性资产编辑';archive.mkdir(exist_ok=True)
+for name in ['patch_city_style_assets.py','finish_city_style_assets.py','city_style_band_assets.py','city_style_third_page.py','city_style_button_assets.py']:
+ shutil.copyfile(Path('Logs')/name,archive/(name+'.txt'))
+print(json.dumps(checks,ensure_ascii=False));print('本项修改',len(changes['modified']),'新增',len(changes['new']),'删除',len(changes['removed']))

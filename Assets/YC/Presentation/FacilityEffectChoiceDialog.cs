@@ -30,10 +30,10 @@ namespace YC.Presentation
         private readonly CardVisualCatalog cardVisualCatalog;
         private readonly EffectDialogLayoutProfile layoutProfile;
         private readonly CardInteractionLayoutProfile cardInteractionLayoutProfile;
-        private EffectDialogCollapsiblePanel collapsiblePanel;
         private Action backAction;
         private RectTransform facilityCardDragGhost;
-        private ZoomableImageViewerController facilityCardImageViewer;
+        private CardViewer facilityCardImageViewer;
+        private int presentationRevision;
 
         internal FacilityEffectChoiceDialog(
             GameplayDialogRegistry dialogRegistry,
@@ -62,6 +62,8 @@ namespace YC.Presentation
                 dialogRegistry);
         }
 
+        internal EffectDialogLayoutProfile Copy => layoutProfile;
+
         public bool IsShowing
         {
             get { return shell.IsShowing; }
@@ -73,18 +75,28 @@ namespace YC.Presentation
             IReadOnlyList<EffectDialogOption> options,
             Action back = null)
         {
-            ShowOptionsCore(title, description, options, back, string.Empty, false);
+            ShowOptionsCore(title, description, options, back);
         }
 
-        public void ShowCollapsibleOptions(
+        public void ShowSelection(string title, string description, EffectDialogSelectionSpec spec,
+            bool preserveScroll)
+        {
+            var scroll = preserveScroll ? shell.ScrollPosition : 1f;
+            spec.CardTexture = id => cardVisualCatalog.GetFacility(id);
+            var panel = Rebuild(layoutProfile.SelectionPanelSize, Vector2.zero, cardPicker: spec.HasCardArtwork());
+            AddHeading(panel, title, description);
+            shell.AddSelection(panel, spec);
+            shell.RestoreScroll(scroll);
+        }
+
+        public void ShowEffectOptions(
             string title,
             string description,
-            string summary,
             IReadOnlyList<EffectDialogOption> options,
             Action back = null,
             string backLabel = null)
         {
-            ShowOptionsCore(title, description, options, back, summary, false, backLabel);
+            ShowOptionsCore(title, description, options, back, backLabel);
         }
 
         public void ShowExtensionHubOptions(
@@ -105,12 +117,9 @@ namespace YC.Presentation
                 "选择一个尚未使用的延伸枢纽，拖动到城市面板空槽位进行建设。",
                 layoutProfile.ExtensionHubDescriptionHeight);
 
-            var cardWidth = layoutProfile.ExtensionHubCardSize.x;
-            var cardHeight = layoutProfile.ExtensionHubCardSize.y;
-            var cardGap = layoutProfile.ExtensionHubCardGap;
+            EffectDialogShell.ConfigureCardScroll(panel, layoutProfile.ExtensionHubCardSize + new Vector2(36f, 68f));
+            var displayedRevision = presentationRevision;
             var optionCount = options == null ? 0 : options.Count;
-            var rowWidth = optionCount * cardWidth + Mathf.Max(0, optionCount - 1) * cardGap;
-            var rowStartX = -rowWidth * 0.5f + cardWidth * 0.5f;
             for (var i = 0; i < optionCount; i++)
             {
                 var option = options[i];
@@ -118,15 +127,6 @@ namespace YC.Presentation
                 var card = EffectDialogShell.CreateFacilityCard(panel);
                 card.gameObject.name = "Extension Hub Card " + option.FacilityId;
                 var cardRect = card.CardRect;
-                SetRect(
-                    cardRect,
-                    layoutProfile.ExtensionHubCardAnchor,
-                    layoutProfile.ExtensionHubCardAnchor,
-                    layoutProfile.ExtensionHubCardSize,
-                    new Vector2(
-                        rowStartX + i * (cardWidth + cardGap),
-                        layoutProfile.ExtensionHubCardY));
-
                 card.Background.color = UiTheme.ScrollBackground;
                 card.Outline.effectColor = option.Available ? UiTheme.GoldOutline : UiTheme.GoldOutlineThin;
                 card.Outline.effectDistance = layoutProfile.FacilityCardOutlineDistance;
@@ -149,7 +149,7 @@ namespace YC.Presentation
                 label.text = option.Label;
                 label.fontSize = 18;
                 label.alignment = TextAnchor.MiddleCenter;
-                label.fontStyle = FontStyle.Bold;
+                label.fontStyle = FontStyle.Normal;
                 label.color = UiTheme.GoldText;
                 label.gameObject.SetActive(texture == null);
                 layoutProfile.FacilityCardFallbackLayout.ApplyTo(label.rectTransform);
@@ -158,18 +158,31 @@ namespace YC.Presentation
                 var cardName = option.Label;
                 var available = option.Available;
                 var interaction = card.PointerInteraction;
-                interaction.ConfigureClick(
-                    button,
-                    () => CardImagePreviewUtility.Open(
+                Action showDetails = () =>
+                {
+                    if (presentationRevision != displayedRevision || card == null ||
+                        !card.gameObject.activeInHierarchy || GameplayHudFrame.EffectInputSuspended || texture == null) return;
+                    CardImagePreviewUtility.Open(
                         ref facilityCardImageViewer,
                         canvas,
-                        "Extension Hub Card Image Viewer",
-                        "Extension Hub Card",
-                        cardName,
-                        texture),
-                    null);
+                        texture);
+                    if (facilityCardImageViewer == null) return;
+                    facilityCardImageViewer.SetReturn(() =>
+                    {
+                        if (presentationRevision != displayedRevision) return;
+                        GameplayHudFrame.Active?.ResumeEffectPage();
+                    }, () => presentationRevision == displayedRevision);
+                };
+                interaction.ConfigureClick(button, showDetails, null);
+                if (card.DetailsButton != null)
+                {
+                    card.DetailsButton.gameObject.SetActive(texture != null);
+                    card.DetailsButton.onClick.RemoveAllListeners();
+                    card.DetailsButton.onClick.AddListener(() => showDetails());
+                }
                 interaction.ConfigureDrag(
-                    () => available,
+                    () => available && presentationRevision == displayedRevision &&
+                        card.gameObject.activeInHierarchy && !GameplayHudFrame.EffectInputSuspended,
                     eventData =>
                     {
                         BeginFacilityCardDrag(cardRect, texture, cardName, card.FallbackLabel.font, eventData);
@@ -200,24 +213,14 @@ namespace YC.Presentation
             string description,
             IReadOnlyList<EffectDialogOption> options,
             Action back,
-            string summary,
-            bool startCollapsed,
             string backLabel = null)
         {
-            var isCollapsible = !string.IsNullOrEmpty(summary);
-            var panel = Rebuild(layoutProfile.OptionsPanelSize, Vector2.zero, summary, startCollapsed);
+            var panel = Rebuild(layoutProfile.OptionsPanelSize, Vector2.zero);
             AddHeading(panel, title, description);
 
             var scrollBottom = back == null
                 ? layoutProfile.OptionsScrollBottom
                 : layoutProfile.OptionsScrollBottomWithBack;
-            if (isCollapsible)
-            {
-                scrollBottom += back == null
-                    ? layoutProfile.CollapsibleOptionsExtraBottom
-                    : layoutProfile.CollapsibleOptionsExtraBottomWithBack;
-            }
-
             var content = EffectDialogShell.AddOptionScroll(
                 panel,
                 "Options Scroll",
@@ -239,9 +242,7 @@ namespace YC.Presentation
                     layoutProfile.OptionsBackButtonSize,
                     new Vector2(
                         0f,
-                        isCollapsible
-                            ? layoutProfile.OptionsBackButtonCollapsibleY
-                            : layoutProfile.OptionsBackButtonNormalY));
+                        layoutProfile.OptionsBackButtonNormalY));
                 backAction = back;
                 BindOnce(backButton, back);
             }
@@ -254,8 +255,21 @@ namespace YC.Presentation
             IReadOnlyList<int> maximums,
             int exactTotal,
             Action<IReadOnlyList<int>> confirm,
-            Action skip)
+            Action skip,
+            IReadOnlyList<int> initialValues = null,
+            Action<IReadOnlyList<int>> draftChanged = null,
+            Func<bool> isCurrent = null,
+            IReadOnlyList<int> unitPrices = null)
         {
+            if (unitPrices == null && exactTotal < 0)
+                unitPrices = new[]
+                {
+                    YC.Domain.Economy.ResourceSaleService.OriginiumUnitPrice,
+                    YC.Domain.Economy.ResourceSaleService.OriginiumShardUnitPrice,
+                    YC.Domain.Economy.ResourceSaleService.IronUnitPrice,
+                    YC.Domain.Economy.ResourceSaleService.PureOriginiumUnitPrice
+                };
+            var scroll = initialValues != null && initialValues.Count > 0 ? shell.ScrollPosition : 1f;
             var panel = Rebuild(layoutProfile.ResourceAllocationPanelSize, Vector2.zero);
             shell.AddResourceAllocation(panel, new ResourceAllocationSpec
             {
@@ -264,6 +278,22 @@ namespace YC.Presentation
                 Labels = labels,
                 Maximums = maximums,
                 ExactTotal = exactTotal,
+                MinimumTotal = unitPrices == null ? 0 : 1,
+                InitialValues = initialValues,
+                DraftChanged = draftChanged,
+                IsCurrent = isCurrent,
+                UnitPrices = unitPrices,
+                ConfirmLabel = unitPrices == null ? layoutProfile.SelectionConfirmLabel : layoutProfile.SaleConfirmLabel,
+                CancelLabel = unitPrices == null ? layoutProfile.SelectionCancelLabel : layoutProfile.SaleFinishLabel,
+                SummaryName = unitPrices == null ? string.Empty : "Facility Sale Summary",
+                FormatRowLabel = unitPrices == null ? null : (Func<int, string, int, string>)((index, label, price) =>
+                    string.Format(layoutProfile.SaleInventoryFormat, label, maximums[index], price)),
+                FormatSummary = unitPrices == null ? null : (Func<IReadOnlyList<int>, string>)(values =>
+                {
+                    var revenue = 0;
+                    for (var i = 0; i < values.Count && i < unitPrices.Count; i++) revenue += values[i] * unitPrices[i];
+                    return string.Format(layoutProfile.SaleSummaryFormat, revenue);
+                }),
                 LabelWidth = layoutProfile.ResourceLabelWidth,
                 LabelHeight = layoutProfile.ResourceLabelHeight,
                 LabelX = layoutProfile.ResourceLabelX,
@@ -275,6 +305,7 @@ namespace YC.Presentation
                 CloseBeforeConfirm = true,
                 CloseBeforeCancel = true
             });
+            shell.RestoreScroll(scroll);
         }
 
         public void ShowMapPrompt(
@@ -287,16 +318,16 @@ namespace YC.Presentation
             ShowMapPromptCore(title, description, primaryLabel, primary, back, string.Empty, false);
         }
 
-        public void ShowCollapsibleMapPrompt(
+        public void ShowMapSelection(
             string title,
             string description,
             string summary,
             string primaryLabel,
             Action primary,
             Action back = null,
-            bool startCollapsed = true)
+            bool startOnMap = true)
         {
-            ShowMapPromptCore(title, description, primaryLabel, primary, back, summary, startCollapsed);
+            ShowMapPromptCore(title, description, primaryLabel, primary, back, summary, startOnMap);
         }
 
         private void ShowMapPromptCore(
@@ -306,17 +337,14 @@ namespace YC.Presentation
             Action primary,
             Action back,
             string summary,
-            bool startCollapsed)
+            bool startOnMap)
         {
-            var isCollapsible = !string.IsNullOrEmpty(summary);
-            var panelHeight = isCollapsible
-                ? layoutProfile.CollapsibleMapPromptPanelHeight
-                : layoutProfile.MapPromptPanelHeight;
+            var panelHeight = layoutProfile.MapPromptPanelHeight;
             var panel = Rebuild(
                 new Vector2(layoutProfile.MapPromptPanelWidth, panelHeight),
                 layoutProfile.MapPromptPanelPosition,
                 summary,
-                startCollapsed);
+                startOnMap);
             AddHeading(panel, title, description, layoutProfile.MapPromptDescriptionHeight);
             if (primary != null)
             {
@@ -328,9 +356,7 @@ namespace YC.Presentation
                     layoutProfile.MapPrimaryButtonSize,
                     new Vector2(
                         back == null ? 0f : layoutProfile.MapPrimaryWithBackX,
-                        isCollapsible
-                            ? layoutProfile.MapButtonCollapsibleY
-                            : layoutProfile.MapButtonNormalY));
+                        layoutProfile.MapButtonNormalY));
                 BindOnce(primaryButton, primary);
             }
 
@@ -344,9 +370,7 @@ namespace YC.Presentation
                     layoutProfile.MapBackButtonSize,
                     new Vector2(
                         primary == null ? 0f : layoutProfile.MapBackWithPrimaryX,
-                        isCollapsible
-                            ? layoutProfile.MapButtonCollapsibleY
-                            : layoutProfile.MapButtonNormalY));
+                        layoutProfile.MapButtonNormalY));
                 backAction = back;
                 BindOnce(backButton, back);
             }
@@ -362,53 +386,36 @@ namespace YC.Presentation
 
         public void Hide()
         {
+            presentationRevision++;
             backAction = null;
             DestroyFacilityCardDragGhost();
             facilityCardImageViewer?.Close();
             shell.Hide();
-            collapsiblePanel = null;
         }
 
         private RectTransform Rebuild(
             Vector2 size,
             Vector2 position,
-            string collapseSummary = null,
-            bool startCollapsed = false)
+            string mapMessage = null,
+            bool startOnMap = false, bool cardPicker = false)
         {
+            presentationRevision++;
             backAction = null;
             DestroyFacilityCardDragGhost();
             facilityCardImageViewer?.Close();
-            collapsiblePanel = null;
             var panel = shell.Rebuild(
                 canvas,
                 "Facility Effect Choice Overlay",
                 "Facility Effect Choice Panel",
                 size,
-                position);
-            if (panel == null || string.IsNullOrEmpty(collapseSummary))
+                position, blockBackgroundInput: cardPicker, cardPicker: cardPicker);
+            if (panel == null || string.IsNullOrEmpty(mapMessage))
             {
                 return panel;
             }
 
-            return ConfigureCollapsiblePanel(size, collapseSummary, startCollapsed);
-        }
-
-        private RectTransform ConfigureCollapsiblePanel(
-            Vector2 expandedSize,
-            string summary,
-            bool startCollapsed)
-        {
-            var content = shell.ConfigureCollapsiblePanel(
-                canvas,
-                expandedSize,
-                summary,
-                startCollapsed,
-                "Facility Expanded Content",
-                "Facility Collapsed Summary",
-                "Facility Collapse Toggle",
-                "Facility Collapse Triangle");
-            collapsiblePanel = shell.CollapsiblePanel;
-            return content;
+            if (startOnMap) shell.SuspendForMapInteraction(mapMessage);
+            return panel;
         }
 
         private void BeginFacilityCardDrag(
@@ -445,8 +452,7 @@ namespace YC.Presentation
                 panel,
                 title,
                 description,
-                descriptionHeight,
-                addDragHandle: collapsiblePanel == null);
+                descriptionHeight);
         }
 
         private static Button CreateButton(RectTransform parent, string name, string label, int fontSize)

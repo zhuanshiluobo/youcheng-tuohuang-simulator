@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YC.Application.Gameplay;
@@ -16,7 +16,7 @@ namespace YC.Presentation
     /// <summary>
     /// 将已受理的特殊行动会话映射为地图交互。所有合法性仍由特殊行动命令处理器复核。
     /// </summary>
-    internal sealed class SpecialActionInteractionUiCoordinator : IDisposable
+    internal sealed class SpecialActionInteractionUiCoordinator : IDisposable, IInteractionRequestRenderer
     {
         private readonly Func<GameState> getState;
         private readonly Func<int> getLocalPlayerId;
@@ -35,6 +35,19 @@ namespace YC.Presentation
         private string inFlightSessionId = string.Empty;
         private string genericInteractionId = string.Empty;
         private int genericInteractionRevision = -1;
+        public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
+        public string Id => "effect.city-style.special-action";
+        public int Priority => 300;
+        public bool CanRender(InteractionRequestProjection request) => request != null &&
+            request.VisibleToViewer && request.Status == "open" && request.AnsweringPlayerId == getLocalPlayerId() &&
+            (request.InteractionTypeId.StartsWith("city_style.special_action", StringComparison.Ordinal) ||
+             request.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId);
+        public void Render(InteractionRequestProjection request)
+        {
+            if (CanRender(request)) Synchronize();
+        }
+        public void Clear() => ResetAndHide();
+        public bool HasAuthoritativeRequest => TryGetGenericInteraction(out _);
 
         public SpecialActionInteractionUiCoordinator(
             Func<GameState> getState,
@@ -380,7 +393,7 @@ namespace YC.Presentation
                     RenderRouteInfluence(pending, title);
                     break;
                 default:
-                    dialog.ShowCollapsibleMapPrompt(
+                    dialog.ShowMapSelection(
                         title,
                         "等待特殊行动的下一步结算。",
                         title + "：等待继续结算");
@@ -393,7 +406,7 @@ namespace YC.Presentation
             var legalSlots = optionQuery.GetLegalInfluencePlacementSlotIds(getState(), getLocalPlayerId());
             setHighlights(BuildInfluenceHighlights(legalSlots, WorkflowHighlightSemantic.DeployTarget));
             var requiredCount = optionQuery.GetRequiredMilitaryPlacementCount(getState(), getLocalPlayerId());
-            dialog.ShowCollapsibleMapPrompt(
+            dialog.ShowMapSelection(
                 title,
                 "点击地图上 " + requiredCount + " 个高亮空槽位；再次点击已选槽位可撤回该选择。",
                 title + "：选择 " + requiredCount + " 个影响力槽位");
@@ -404,7 +417,7 @@ namespace YC.Presentation
         {
             var legalSlots = optionQuery.GetReplaceableInfluenceSlotIds(getState(), getLocalPlayerId());
             setHighlights(BuildInfluenceHighlights(legalSlots, WorkflowHighlightSemantic.EventInfluenceTarget));
-            dialog.ShowCollapsibleMapPrompt(
+            dialog.ShowMapSelection(
                 title,
                 "点击一个高亮的对手影响力；结算会先移除它，再尽量放置己方影响力。",
                 title + "：选择对手影响力");
@@ -418,7 +431,7 @@ namespace YC.Presentation
             var segment = pending.SpecialActionId == SpecialActionDatabase.CompositePowerSystem
                 ? "本次"
                 : pending.RemainingRepetitions > 1 ? "第一段" : "第二段";
-            dialog.ShowCollapsibleMapPrompt(
+            dialog.ShowMapSelection(
                 title,
                 "点击一个高亮地点执行" + segment + "免费城市移动；抵达后仍须结算移动事件。",
                 title + "：选择" + segment + "免费移动目标");
@@ -432,7 +445,7 @@ namespace YC.Presentation
                 getLocalPlayerId(),
                 pending.TraversedRouteId);
             setHighlights(BuildInfluenceHighlights(legalSlots, WorkflowHighlightSemantic.DeployTarget));
-            dialog.ShowCollapsibleMapPrompt(
+            dialog.ShowMapSelection(
                 title,
                 "点击刚才经过航道上的一个高亮空槽位，放置 1 个己方影响力。",
                 title + "：在经过航道放置影响力");
@@ -535,6 +548,7 @@ namespace YC.Presentation
 
         private void SubmitGenericAnswer(InteractionRequest request, string candidateId, bool decline)
         {
+            if (GameplayHudFrame.EffectInputSuspended) return;
             if (request == null || (decline ? !request.AllowDecline :
                 string.IsNullOrEmpty(candidateId) || request.CandidateIds == null || !request.CandidateIds.Contains(candidateId)))
             {
@@ -567,10 +581,12 @@ namespace YC.Presentation
         {
             request = null;
             GameState state = getState();
-            if (state == null || state.EffectRuntime == null || state.EffectRuntime.InteractionRequests == null) return false;
-            for (int i = 0; i < state.EffectRuntime.InteractionRequests.Count; i++)
+            var requests = GetVisibleRequests == null
+                ? VisibleInteractionRequestSource.Read(state, null, getLocalPlayerId()) : GetVisibleRequests();
+            if (requests == null) return false;
+            for (int i = 0; i < requests.Count; i++)
             {
-                InteractionRequest candidate = state.EffectRuntime.InteractionRequests[i];
+                InteractionRequest candidate = requests[i];
                 if (candidate != null && candidate.Status == "open" && candidate.AnsweringPlayerId == getLocalPlayerId() &&
                     (candidate.InteractionTypeId.StartsWith("city_style.special_action", StringComparison.Ordinal) || candidate.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId))
                 {

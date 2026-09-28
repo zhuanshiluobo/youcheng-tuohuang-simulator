@@ -1,0 +1,84 @@
+"""定点将已审计的局内页区交给原生布局；不修改局外共享源。"""
+from correct_gameplay_native_layout import *
+
+TYPES=['UiPageSectionsLayout','UiPanelContentLayout','UiDialogLayoutGroup','UiActionGroupLayout','UiResourceRowLayoutGroup','UiEventBuildColumnsLayout']
+GUIDS={guid('Assets/YC/Presentation/Layout/'+n+'.cs.meta'):n for n in TYPES}
+
+def rect(a,component):
+    if component==0:return 0
+    if a.docs[component][0]==224:return component
+    go=ref(a.text(component),'m_GameObject')
+    return next(i for i,(k,t) in a.docs.items() if k==224 and ref(t,'m_GameObject')==go)
+
+def padding(t):
+    return tuple(int(re.search(r'm_'+key+r': (\d+)',t).group(1)) for key in ('Left','Right','Top','Bottom'))
+
+def main():
+    files=list((ROOT/'Assets/YC/Presentation/Prefabs/Gameplay').rglob('*.prefab'))+list((ROOT/'Assets/YC/Presentation/Prefabs/Gameplay/InGame').glob('*.prefab'))+[ROOT/'Assets/YC/Presentation/Prefabs/RoundTracker/RoundTracker.prefab']
+    report=[]
+    for p in files:
+        a=Asset(p.relative_to(ROOT)); changed=False
+        for i,(k,t) in list(a.docs.items()):
+            if k!=114:continue
+            m=re.search(r'm_Script: .*guid: (\w+)',t)
+            name=GUIDS.get(m.group(1)) if m else None
+            if not name:continue
+            host=rect(a,i)
+            if name=='UiPageSectionsLayout':
+                # 角色旧卡面在旧 UI 清理时整体退出，不在此重复迁移。
+                if p.name=='GameplayInteractionHud.prefab':continue
+                items=[ref(t,n) for n in ('header','body','footer')]
+                a.group(host,ident=i,padding=padding(t))
+                others=[r for r in a.children(host) if r not in items]
+                a.children_set(host,[r for r in items if r]+others)
+                for r in others:a.element(r,ignore=True)
+                if items[0]:a.element(items[0],mh=float(field(t,'headerHeight')),ph=float(field(t,'headerHeight')))
+                if items[1]:a.element(items[1],mh=0,ph=0,fh=1)
+                if items[2]:a.element(items[2],mh=float(field(t,'footerHeight')),ph=float(field(t,'footerHeight')))
+            elif name=='UiPanelContentLayout':
+                content=ref(t,'content'); a.group(host,ident=i,padding=padding(t)); a.element(content,ph=0,fh=1)
+                for child in a.children(host):
+                    if child!=content:a.element(child,ignore=True)
+            elif name=='UiDialogLayoutGroup':
+                items=[rect(a,ref(t,n)) for n in ('title','description','scroll','summary','footer')]
+                a.group(host,ident=i,spacing=float(field(t,'spacing')),padding=padding(t))
+                others=[r for r in a.children(host) if r not in items]
+                a.children_set(host,items+others)
+                for r in others:a.element(r,ignore=True)
+                a.element(items[0],mh=42,ph=42); a.element(items[1],mh=26)
+                a.element(items[2],ph=0,fh=1); a.element(items[3],mh=28); a.element(items[4],mh=54,ph=54)
+            elif name=='UiActionGroupLayout':
+                if field(t,'listMode')=='1':a.group(host,ident=i,spacing=10,padding=padding(t))
+                else:
+                    a.component(a.go(host),NATIVE['GridLayoutGroup'],'''  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_StartCorner: 0
+  m_StartAxis: 0
+  m_CellSize: {x: 258, y: 55}
+  m_Spacing: {x: 12, y: 10}
+  m_Constraint: 1
+  m_ConstraintCount: 2
+''',i)
+                    a.component(a.go(host),guid('Assets/YC/Presentation/Layout/UiAdaptiveGridColumns.cs.meta'),'''  preferredCardSize: {x: 258, y: 55}
+  maximumColumns: 2
+''')
+            elif name=='UiResourceRowLayoutGroup':
+                a.group(host,False,8,padding(t),i)
+                label=rect(a,ref(t,'label')); dec=ref(t,'decrease'); value=ref(t,'value'); inc=ref(t,'increase')
+                a.children_set(host,[label,dec,value,inc]); a.element(label,mw=80,fw=1,mh=48)
+                for r,w in ((dec,48),(value,72),(inc,48)):a.element(r,mw=w,pw=w,fw=0,mh=48,ph=48)
+                # 父列表读取 HLG 自身的文本测量高度，不固定整行首选高。
+                a.element(host,mh=48,ph=-1)
+            elif name=='UiEventBuildColumnsLayout':
+                a.group(host,False,float(field(t,'gap','27')),padding(t),i)
+                for n,w in [('artwork',342),('details',432)]:a.element(ref(t,n),mw=140,pw=w,fw=1)
+            changed=True; report.append(dict(source=str(p.relative_to(ROOT)),component=i,previous=name,current='原生 LayoutGroup + LayoutElement',status='已迁移，待运行验证'))
+        if changed:a.save()
+    (OUT/'页面原生迁移.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+    print(f'已替换 {len(report)} 个实际普通布局驱动。')
+
+if __name__=='__main__':main()

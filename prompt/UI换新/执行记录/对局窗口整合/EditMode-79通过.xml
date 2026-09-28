@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="79" result="Passed" total="79" passed="79" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:52Z" duration="3.7548587">
+  <test-suite type="TestSuite" id="2421" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="1231" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:52Z" duration="3.754859" total="79" passed="79" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="3838" name="YC.Tests.EditMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.EditMode.dll" runstate="Runnable" testcasecount="1231" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:52Z" duration="3.735526" total="79" passed="79" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="18172" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestSuite" id="3839" name="YC" fullname="YC" runstate="Runnable" testcasecount="1231" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:52Z" duration="3.729528" total="79" passed="79" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="3840" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="1231" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:52Z" duration="3.723702" total="79" passed="79" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="SetUpFixture" id="2868" name="EditMode" fullname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" classname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" runstate="Runnable" testcasecount="1231" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:52Z" duration="3.716946" total="79" passed="79" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="2427" name="ActionLogViewerControllerTests" fullname="YC.Tests.EditMode.ActionLogViewerControllerTests" classname="YC.Tests.EditMode.ActionLogViewerControllerTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:48Z" duration="0.085045" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="2431" name="BuildDisplayEntries_HidesVagueLegacyEntriesAndLocalizesPublicActions" fullname="YC.Tests.EditMode.ActionLogViewerControllerTests.BuildDisplayEntries_HidesVagueLegacyEntriesAndLocalizesPublicActions" methodname="BuildDisplayEntries_HidesVagueLegacyEntriesAndLocalizesPublicActions" classname="YC.Tests.EditMode.ActionLogViewerControllerTests" runstate="Runnable" seed="443197307" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:48Z" duration="0.015440" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2428" name="BuildDisplayEntries_IncludesAllPlayersAndSortsOldestFirst" fullname="YC.Tests.EditMode.ActionLogViewerControllerTests.BuildDisplayEntries_IncludesAllPlayersAndSortsOldestFirst" methodname="BuildDisplayEntries_IncludesAllPlayersAndSortsOldestFirst" classname="YC.Tests.EditMode.ActionLogViewerControllerTests" runstate="Runnable" seed="376660539" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:48Z" duration="0.000874" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2430" name="Open_AfterClientSnapshotReplacementReadsSynchronizedLogs" fullname="YC.Tests.EditMode.ActionLogViewerControllerTests.Open_AfterClientSnapshotReplacementReadsSynchronizedLogs" methodname="Open_AfterClientSnapshotReplacementReadsSynchronizedLogs" classname="YC.Tests.EditMode.ActionLogViewerControllerTests" runstate="Runnable" seed="1726606918" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:48Z" duration="0.044296" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2429" name="Open_EmptyStateShowsEmptyMessage_AndCloseHidesViewer" fullname="YC.Tests.EditMode.ActionLogViewerControllerTests.Open_EmptyStateShowsEmptyMessage_AndCloseHidesViewer" methodname="Open_EmptyStateShowsEmptyMessage_AndCloseHidesViewer" classname="YC.Tests.EditMode.ActionLogViewerControllerTests" runstate="Runnable" seed="1815227400" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:48Z" duration="0.003120" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2432" name="Open_UsesWideSingleLineRowsAndFastDraggableScrollbar" fullname="YC.Tests.EditMode.ActionLogViewerControllerTests.Open_UsesWideSingleLineRowsAndFastDraggableScrollbar" methodname="Open_UsesWideSingleLineRowsAndFastDraggableScrollbar" classname="YC.Tests.EditMode.ActionLogViewerControllerTests" runstate="Runnable" seed="1841234943" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:48Z" duration="0.006710" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2455" name="CardPickerDialogTests" fullname="YC.Tests.EditMode.CardPickerDialogTests" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:50Z" duration="1.248780" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="2467" name="ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell" fullname="YC.Tests.EditMode.CardPickerDialogTests.ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:49Z" duration="0.998549" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2465" name="ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell(&quot;CharacterCardEffectChoiceDialog&quot;)" fullname="YC.Tests.EditMode.CardPickerDialogTests.ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell(&quot;CharacterCardEffectChoiceDialog&quot;)" methodname="ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="417380007" result="Passed" start-time="2026-09-27 11:15:48Z" end-time="2026-09-27 11:15:49Z" duration="0.990592" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2466" name="ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell(&quot;FacilityEffectChoiceDialog&quot;)" fullname="YC.Tests.EditMode.CardPickerDialogTests.ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell(&quot;FacilityEffectChoiceDialog&quot;)" methodname="ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="396766386" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:49Z" duration="0.007266" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="2464" name="CardRow_KeepsArtworkAspectAndReachesLastCard" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:49Z" duration="0.178969" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2456" name="CardRow_KeepsArtworkAspectAndReachesLastCard(2,1920)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(2,1920)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="413972731" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:49Z" duration="0.055528" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2457" name="CardRow_KeepsArtworkAspectAndReachesLastCard(6,1920)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(6,1920)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="1610519028" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:49Z" duration="0.036928" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2458" name="CardRow_KeepsArtworkAspectAndReachesLastCard(7,1920)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(7,1920)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="1719491445" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:49Z" duration="0.014888" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2459" name="CardRow_KeepsArtworkAspectAndReachesLastCard(9,1920)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(9,1920)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="1641622973" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:49Z" duration="0.024430" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2460" name="CardRow_KeepsArtworkAspectAndReachesLastCard(2,1024)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(2,1024)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="508906353" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:49Z" duration="0.008229" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2461" name="CardRow_KeepsArtworkAspectAndReachesLastCard(6,1024)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(6,1024)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="346604852" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:49Z" duration="0.010723" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2462" name="CardRow_KeepsArtworkAspectAndReachesLastCard(7,1024)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(7,1024)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="843075549" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:49Z" duration="0.011914" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2463" name="CardRow_KeepsArtworkAspectAndReachesLastCard(9,1024)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(9,1024)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="1204400409" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:49Z" duration="0.012729" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="2470" name="CardSelectionIsDraftOnly_AndReadOnlyCardsHaveNoConfirmation" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardSelectionIsDraftOnly_AndReadOnlyCardsHaveNoConfirmation" methodname="CardSelectionIsDraftOnly_AndReadOnlyCardsHaveNoConfirmation" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="1479857364" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:49Z" duration="0.018085" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2469" name="DetailsReturnPreservesHorizontalScrollAndDraftWithoutSelectingOrSubmitting" fullname="YC.Tests.EditMode.CardPickerDialogTests.DetailsReturnPreservesHorizontalScrollAndDraftWithoutSelectingOrSubmitting" methodname="DetailsReturnPreservesHorizontalScrollAndDraftWithoutSelectingOrSubmitting" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="2026276916" result="Passed" start-time="2026-09-27 11:15:49Z" end-time="2026-09-27 11:15:50Z" duration="0.028779" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2468" name="ResourceSaleAndExtensionHubKeepTheirOriginalShell" fullname="YC.Tests.EditMode.CardPickerDialogTests.ResourceSaleAndExtensionHubKeepTheirOriginalShell" methodname="ResourceSaleAndExtensionHubKeepTheirOriginalShell" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="244328299" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.021094" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2473" name="CardViewerTests" fullname="YC.Tests.EditMode.CardViewerTests" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.057394" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="2474" name="Inspect_HasNoExecutionOrCardIdentity_AndCancelOnlyReturns" fullname="YC.Tests.EditMode.CardViewerTests.Inspect_HasNoExecutionOrCardIdentity_AndCancelOnlyReturns" methodname="Inspect_HasNoExecutionOrCardIdentity_AndCancelOnlyReturns" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="1696544296" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.005734" asserts="0">
+                <properties />
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2481" name="ModesKeepSameCardRect_AndContainDifferentImageAspects" fullname="YC.Tests.EditMode.CardViewerTests.ModesKeepSameCardRect_AndContainDifferentImageAspects" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.028901" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2477" name="ModesKeepSameCardRect_AndContainDifferentImageAspects(1920,912)" fullname="YC.Tests.EditMode.CardViewerTests.ModesKeepSameCardRect_AndContainDifferentImageAspects(1920,912)" methodname="ModesKeepSameCardRect_AndContainDifferentImageAspects" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="2121656803" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.012031" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2478" name="ModesKeepSameCardRect_AndContainDifferentImageAspects(1920,1032)" fullname="YC.Tests.EditMode.CardViewerTests.ModesKeepSameCardRect_AndContainDifferentImageAspects(1920,1032)" methodname="ModesKeepSameCardRect_AndContainDifferentImageAspects" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="1554275993" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.006186" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2479" name="ModesKeepSameCardRect_AndContainDifferentImageAspects(2560,912)" fullname="YC.Tests.EditMode.CardViewerTests.ModesKeepSameCardRect_AndContainDifferentImageAspects(2560,912)" methodname="ModesKeepSameCardRect_AndContainDifferentImageAspects" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="60793123" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.004494" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2480" name="ModesKeepSameCardRect_AndContainDifferentImageAspects(900,432)" fullname="YC.Tests.EditMode.CardViewerTests.ModesKeepSameCardRect_AndContainDifferentImageAspects(900,432)" methodname="ModesKeepSameCardRect_AndContainDifferentImageAspects" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="289705884" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.004729" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="2476" name="StaleSource_CannotSubmitOrRestore_AndDismissDoesNotReturn" fullname="YC.Tests.EditMode.CardViewerTests.StaleSource_CannotSubmitOrRestore_AndDismissDoesNotReturn" methodname="StaleSource_CannotSubmitOrRestore_AndDismissDoesNotReturn" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="2000446362" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.002575" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2475" name="Use_RequiresEnabledCurrentChoice_AndOnlyDispatchesOnce" fullname="YC.Tests.EditMode.CardViewerTests.Use_RequiresEnabledCurrentChoice_AndOnlyDispatchesOnce" methodname="Use_RequiresEnabledCurrentChoice_AndOnlyDispatchesOnce" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="282930619" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.003964" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2607" name="CharacterHandPanelUiTests" fullname="YC.Tests.EditMode.CharacterHandPanelUiTests" classname="YC.Tests.EditMode.CharacterHandPanelUiTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.148434" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="2612" name="CoverCardDragOutsideHand_DoesNotRemoveCardOrCompactHand" fullname="YC.Tests.EditMode.CharacterHandPanelUiTests.CoverCardDragOutsideHand_DoesNotRemoveCardOrCompactHand" methodname="CoverCardDragOutsideHand_DoesNotRemoveCardOrCompactHand" classname="YC.Tests.EditMode.CharacterHandPanelUiTests" runstate="Runnable" seed="1513143376" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.046257" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2611" name="CoverCardDropOutsideHand_DoesNotCommitAndDragSuppressesFollowingClick" fullname="YC.Tests.EditMode.CharacterHandPanelUiTests.CoverCardDropOutsideHand_DoesNotCommitAndDragSuppressesFollowingClick" methodname="CoverCardDropOutsideHand_DoesNotCommitAndDragSuppressesFollowingClick" classname="YC.Tests.EditMode.CharacterHandPanelUiTests" runstate="Runnable" seed="1035136453" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.006799" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2613" name="DiscardList_ContainsOnlyVisibleDiscardsAndCannotSubmitSelection" fullname="YC.Tests.EditMode.CharacterHandPanelUiTests.DiscardList_ContainsOnlyVisibleDiscardsAndCannotSubmitSelection" methodname="DiscardList_ContainsOnlyVisibleDiscardsAndCannotSubmitSelection" classname="YC.Tests.EditMode.CharacterHandPanelUiTests" runstate="Runnable" seed="1335074806" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.056379" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2614" name="EmptyHandCover_ProjectsDiscardWithoutChangingGameState" fullname="YC.Tests.EditMode.CharacterHandPanelUiTests.EmptyHandCover_ProjectsDiscardWithoutChangingGameState" methodname="EmptyHandCover_ProjectsDiscardWithoutChangingGameState" classname="YC.Tests.EditMode.CharacterHandPanelUiTests" runstate="Runnable" seed="967559586" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.005432" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2609" name="PassiveAnimatorAndCoverLayouts_ExposeRaiseAndExpandUsingProfile" fullname="YC.Tests.EditMode.CharacterHandPanelUiTests.PassiveAnimatorAndCoverLayouts_ExposeRaiseAndExpandUsingProfile" methodname="PassiveAnimatorAndCoverLayouts_ExposeRaiseAndExpandUsingProfile" classname="YC.Tests.EditMode.CharacterHandPanelUiTests" runstate="Runnable" seed="1789498618" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.012414" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2608" name="Prefab_HasValidHandTemplatesAndAnimationWithoutDiscardShell" fullname="YC.Tests.EditMode.CharacterHandPanelUiTests.Prefab_HasValidHandTemplatesAndAnimationWithoutDiscardShell" methodname="Prefab_HasValidHandTemplatesAndAnimationWithoutDiscardShell" classname="YC.Tests.EditMode.CharacterHandPanelUiTests" runstate="Runnable" seed="514830682" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.002257" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2610" name="Reorder_IsLocalPerPlayerRestoresReturningCardsAndDoesNotMutateAuthorityOrder" fullname="YC.Tests.EditMode.CharacterHandPanelUiTests.Reorder_IsLocalPerPlayerRestoresReturningCardsAndDoesNotMutateAuthorityOrder" methodname="Reorder_IsLocalPerPlayerRestoresReturningCardsAndDoesNotMutateAuthorityOrder" classname="YC.Tests.EditMode.CharacterHandPanelUiTests" runstate="Runnable" seed="1355986748" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.015748" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="3014" name="GameplayDialogLayoutTests" fullname="YC.Tests.EditMode.GameplayDialogLayoutTests" classname="YC.Tests.EditMode.GameplayDialogLayoutTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.120014" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="3021" name="Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore" fullname="YC.Tests.EditMode.GameplayDialogLayoutTests.Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore" classname="YC.Tests.EditMode.GameplayDialogLayoutTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.093553" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="3016" name="Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore(0)" fullname="YC.Tests.EditMode.GameplayDialogLayoutTests.Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore(0)" methodname="Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore" classname="YC.Tests.EditMode.GameplayDialogLayoutTests" runstate="Runnable" seed="439015567" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.013805" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3017" name="Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore(1)" fullname="YC.Tests.EditMode.GameplayDialogLayoutTests.Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore(1)" methodname="Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore" classname="YC.Tests.EditMode.GameplayDialogLayoutTests" runstate="Runnable" seed="1400714834" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.007254" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3018" name="Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore(7)" fullname="YC.Tests.EditMode.GameplayDialogLayoutTests.Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore(7)" methodname="Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore" classname="YC.Tests.EditMode.GameplayDialogLayoutTests" runstate="Runnable" seed="491897161" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.011566" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3019" name="Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore(8)" fullname="YC.Tests.EditMode.GameplayDialogLayoutTests.Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore(8)" methodname="Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore" classname="YC.Tests.EditMode.GameplayDialogLayoutTests" runstate="Runnable" seed="1433997546" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.011790" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3020" name="Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore(40)" fullname="YC.Tests.EditMode.GameplayDialogLayoutTests.Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore(40)" methodname="Cards_KeepAspectAndScrollAtNarrowWidths_AndRestore" classname="YC.Tests.EditMode.GameplayDialogLayoutTests" runstate="Runnable" seed="1370557699" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.046746" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="3015" name="PendingScroll_DoesNotRetainDestroyedHiddenPage" fullname="YC.Tests.EditMode.GameplayDialogLayoutTests.PendingScroll_DoesNotRetainDestroyedHiddenPage" methodname="PendingScroll_DoesNotRetainDestroyedHiddenPage" classname="YC.Tests.EditMode.GameplayDialogLayoutTests" runstate="Runnable" seed="1046196726" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.003830" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3022" name="ResourceRows_ReflowWithoutOverlappingControls_AndKeepFooterOutsideScroll" fullname="YC.Tests.EditMode.GameplayDialogLayoutTests.ResourceRows_ReflowWithoutOverlappingControls_AndKeepFooterOutsideScroll" methodname="ResourceRows_ReflowWithoutOverlappingControls_AndKeepFooterOutsideScroll" classname="YC.Tests.EditMode.GameplayDialogLayoutTests" runstate="Runnable" seed="947038009" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.019657" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="ParameterizedFixture" id="3055" name="GameSettingsMenuControllerTests" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.318320" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="3035" name="GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/Gamepl...&quot;)" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/Gamepl...&quot;)" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.269234" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="3038" name="ClickingOutsidePanel_DoesNotCloseSettings" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/Gamepl...&quot;).ClickingOutsidePanel_DoesNotCloseSettings" methodname="ClickingOutsidePanel_DoesNotCloseSettings" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="406944081" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.146120" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3039" name="HandleEscapePressed_OnStartPageStillOpensSettings" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/Gamepl...&quot;).HandleEscapePressed_OnStartPageStillOpensSettings" methodname="HandleEscapePressed_OnStartPageStillOpensSettings" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="1798994435" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.007351" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3036" name="HandleEscapePressed_WhenClosed_OpensSettingsOverlay" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/Gamepl...&quot;).HandleEscapePressed_WhenClosed_OpensSettingsOverlay" methodname="HandleEscapePressed_WhenClosed_OpensSettingsOverlay" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="1763571826" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.007314" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3037" name="HandleEscapePressed_WhenOpen_ClosesSettingsImmediately" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/Gamepl...&quot;).HandleEscapePressed_WhenOpen_ClosesSettingsImmediately" methodname="HandleEscapePressed_WhenOpen_ClosesSettingsImmediately" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="1371441537" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.007869" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3044" name="HandleEscapePressed_WhileCityStylePreviewIsOpen_DoesNotOpenSettings" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/Gamepl...&quot;).HandleEscapePressed_WhileCityStylePreviewIsOpen_DoesNotOpenSettings" methodname="HandleEscapePressed_WhileCityStylePreviewIsOpen_DoesNotOpenSettings" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="1387752871" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.005982" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3043" name="HandleEscapePressed_WhileImageViewerIsOpen_DoesNotOpenSettings" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/Gamepl...&quot;).HandleEscapePressed_WhileImageViewerIsOpen_DoesNotOpenSettings" methodname="HandleEscapePressed_WhileImageViewerIsOpen_DoesNotOpenSettings" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="731631351" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.071998" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3042" name="PlaceholderTab_ShowsFutureContentAndHidesGeneralContent" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/Gamepl...&quot;).PlaceholderTab_ShowsFutureContentAndHidesGeneralContent" methodname="PlaceholderTab_ShowsFutureContentAndHidesGeneralContent" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="1645968593" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.005631" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3041" name="Prefab_DefaultsToGeneralTabWithFourResolutionOptions" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/Gamepl...&quot;).Prefab_DefaultsToGeneralTabWithFourResolutionOptions" methodname="Prefab_DefaultsToGeneralTabWithFourResolutionOptions" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="328336173" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.005907" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3040" name="Prefab_DoesNotContainHintCardButton" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/Gamepl...&quot;).Prefab_DoesNotContainHintCardButton" methodname="Prefab_DoesNotContainHintCardButton" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="1133694056" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.007505" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="3045" name="GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/GameSe...&quot;)" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/GameSe...&quot;)" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.047244" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="3048" name="ClickingOutsidePanel_DoesNotCloseSettings" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/GameSe...&quot;).ClickingOutsidePanel_DoesNotCloseSettings" methodname="ClickingOutsidePanel_DoesNotCloseSettings" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="1028060525" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.008847" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3049" name="HandleEscapePressed_OnStartPageStillOpensSettings" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/GameSe...&quot;).HandleEscapePressed_OnStartPageStillOpensSettings" methodname="HandleEscapePressed_OnStartPageStillOpensSettings" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="156447534" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.004829" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3046" name="HandleEscapePressed_WhenClosed_OpensSettingsOverlay" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/GameSe...&quot;).HandleEscapePressed_WhenClosed_OpensSettingsOverlay" methodname="HandleEscapePressed_WhenClosed_OpensSettingsOverlay" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="918652807" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.004490" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3047" name="HandleEscapePressed_WhenOpen_ClosesSettingsImmediately" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/GameSe...&quot;).HandleEscapePressed_WhenOpen_ClosesSettingsImmediately" methodname="HandleEscapePressed_WhenOpen_ClosesSettingsImmediately" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="1059071040" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.004708" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3054" name="HandleEscapePressed_WhileCityStylePreviewIsOpen_DoesNotOpenSettings" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/GameSe...&quot;).HandleEscapePressed_WhileCityStylePreviewIsOpen_DoesNotOpenSettings" methodname="HandleEscapePressed_WhileCityStylePreviewIsOpen_DoesNotOpenSettings" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="691067475" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.003970" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3053" name="HandleEscapePressed_WhileImageViewerIsOpen_DoesNotOpenSettings" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/GameSe...&quot;).HandleEscapePressed_WhileImageViewerIsOpen_DoesNotOpenSettings" methodname="HandleEscapePressed_WhileImageViewerIsOpen_DoesNotOpenSettings" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="440297870" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.005926" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3052" name="PlaceholderTab_ShowsFutureContentAndHidesGeneralContent" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/GameSe...&quot;).PlaceholderTab_ShowsFutureContentAndHidesGeneralContent" methodname="PlaceholderTab_ShowsFutureContentAndHidesGeneralContent" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="1333080006" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.003378" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3051" name="Prefab_DefaultsToGeneralTabWithFourResolutionOptions" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/GameSe...&quot;).Prefab_DefaultsToGeneralTabWithFourResolutionOptions" methodname="Prefab_DefaultsToGeneralTabWithFourResolutionOptions" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="642971812" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.003434" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3050" name="Prefab_DoesNotContainHintCardButton" fullname="YC.Tests.EditMode.GameSettingsMenuControllerTests(&quot;Assets/YC/Presentation/Prefabs/GameSe...&quot;).Prefab_DoesNotContainHintCardButton" methodname="Prefab_DoesNotContainHintCardButton" classname="YC.Tests.EditMode.GameSettingsMenuControllerTests" runstate="Runnable" seed="1154805259" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:50Z" duration="0.003466" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestFixture" id="3126" name="InGameAssetIsolationTests" fullname="YC.Tests.EditMode.InGameAssetIsolationTests" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:52Z" duration="1.478909" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="3140" name="BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:52Z" duration="1.365991" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="3136" name="BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets(&quot;YC.Editor.UiThemeBuildReadiness&quot;)" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets(&quot;YC.Editor.UiThemeBuildReadiness&quot;)" methodname="BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" seed="673430341" result="Passed" start-time="2026-09-27 11:15:50Z" end-time="2026-09-27 11:15:51Z" duration="0.346315" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3137" name="BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets(&quot;YC.Editor.EventCharacterBuildReadiness&quot;)" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets(&quot;YC.Editor.EventCharacterBuildReadiness&quot;)" methodname="BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" seed="761964442" result="Passed" start-time="2026-09-27 11:15:51Z" end-time="2026-09-27 11:15:51Z" duration="0.368538" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3138" name="BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets(&quot;YC.Editor.CityStyleSpecialActionBuildReadiness&quot;)" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets(&quot;YC.Editor.CityStyleSpecialActionBuildReadiness&quot;)" methodname="BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" seed="568995703" result="Passed" start-time="2026-09-27 11:15:51Z" end-time="2026-09-27 11:15:51Z" duration="0.338195" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3139" name="BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets(&quot;YC.Editor.FacilityCardCatalogEditorAssetBuilder&quot;)" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets(&quot;YC.Editor.FacilityCardCatalogEditorAssetBuilder&quot;)" methodname="BuildReadiness_AcceptsSeparatedSceneSourcesWithoutSavingAssets" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" seed="1842106875" result="Passed" start-time="2026-09-27 11:15:51Z" end-time="2026-09-27 11:15:52Z" duration="0.310748" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="3135" name="Scenes_ResolveSettingsFromTheirOwnScope" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.Scenes_ResolveSettingsFromTheirOwnScope" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.078210" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="3132" name="Scenes_ResolveSettingsFromTheirOwnScope(&quot;Assets/Scenes/StartScene.unity&quot;,False)" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.Scenes_ResolveSettingsFromTheirOwnScope(&quot;Assets/Scenes/StartScene.unity&quot;,False)" methodname="Scenes_ResolveSettingsFromTheirOwnScope" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" seed="1968543529" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.008333" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3133" name="Scenes_ResolveSettingsFromTheirOwnScope(&quot;Assets/Scenes/SampleScene.unity&quot;,True)" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.Scenes_ResolveSettingsFromTheirOwnScope(&quot;Assets/Scenes/SampleScene.unity&quot;,True)" methodname="Scenes_ResolveSettingsFromTheirOwnScope" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" seed="1819701428" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.034316" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3134" name="Scenes_ResolveSettingsFromTheirOwnScope(&quot;Assets/Scenes/ThreePlayerScene.unity&quot;,True)" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.Scenes_ResolveSettingsFromTheirOwnScope(&quot;Assets/Scenes/ThreePlayerScene.unity&quot;,True)" methodname="Scenes_ResolveSettingsFromTheirOwnScope" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" seed="1758482880" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.032911" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="3131" name="SettingsAndViewerSources_HaveIndependentCompleteDependencies" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.SettingsAndViewerSources_HaveIndependentCompleteDependencies" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.032175" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="3127" name="SettingsAndViewerSources_HaveIndependentCompleteDependencies(0)" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.SettingsAndViewerSources_HaveIndependentCompleteDependencies(0)" methodname="SettingsAndViewerSources_HaveIndependentCompleteDependencies" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" seed="2075754666" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.014090" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3128" name="SettingsAndViewerSources_HaveIndependentCompleteDependencies(1)" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.SettingsAndViewerSources_HaveIndependentCompleteDependencies(1)" methodname="SettingsAndViewerSources_HaveIndependentCompleteDependencies" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" seed="1074044777" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.004746" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3129" name="SettingsAndViewerSources_HaveIndependentCompleteDependencies(2)" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.SettingsAndViewerSources_HaveIndependentCompleteDependencies(2)" methodname="SettingsAndViewerSources_HaveIndependentCompleteDependencies" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" seed="1632815620" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.002660" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3130" name="SettingsAndViewerSources_HaveIndependentCompleteDependencies(3)" fullname="YC.Tests.EditMode.InGameAssetIsolationTests.SettingsAndViewerSources_HaveIndependentCompleteDependencies(3)" methodname="SettingsAndViewerSources_HaveIndependentCompleteDependencies" classname="YC.Tests.EditMode.InGameAssetIsolationTests" runstate="Runnable" seed="1136849115" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.007709" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestFixture" id="3595" name="RoundTrackerControllerTests" fullname="YC.Tests.EditMode.RoundTrackerControllerTests" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.094289" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="3601" name="BuildRoundUi_CreatesTopDockedRoundTrackWithBorderFrame" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.BuildRoundUi_CreatesTopDockedRoundTrackWithBorderFrame" methodname="BuildRoundUi_CreatesTopDockedRoundTrackWithBorderFrame" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" seed="1616497156" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.010102" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3605" name="FinalScorePlayerButtons_OpenAndSwitchDisplayedPlayer" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.FinalScorePlayerButtons_OpenAndSwitchDisplayedPlayer" methodname="FinalScorePlayerButtons_OpenAndSwitchDisplayedPlayer" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" seed="1413672066" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.014076" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3600" name="RefreshFromState_BeforeAwake_InitializesOnDemand" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.RefreshFromState_BeforeAwake_InitializesOnDemand" methodname="RefreshFromState_BeforeAwake_InitializesOnDemand" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" seed="1289770059" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.007862" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3604" name="RefreshFromState_FinalScoreDetailsDefaultToWinnerAndOpenWithBreakdownChart" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.RefreshFromState_FinalScoreDetailsDefaultToWinnerAndOpenWithBreakdownChart" methodname="RefreshFromState_FinalScoreDetailsDefaultToWinnerAndOpenWithBreakdownChart" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" seed="1767663819" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.009136" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3607" name="RefreshFromState_FinalScoreDetailsSupportOneToFourPlayers" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.RefreshFromState_FinalScoreDetailsSupportOneToFourPlayers" methodname="RefreshFromState_FinalScoreDetailsSupportOneToFourPlayers" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" seed="1090415090" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.016017" asserts="0">
+                <properties />
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="3599" name="RefreshFromState_RedBandMatchesPlayerCount" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.RefreshFromState_RedBandMatchesPlayerCount" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.014324" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="3596" name="RefreshFromState_RedBandMatchesPlayerCount(1,4,&quot;map-four-players&quot;)" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.RefreshFromState_RedBandMatchesPlayerCount(1,4,&quot;map-four-players&quot;)" methodname="RefreshFromState_RedBandMatchesPlayerCount" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" seed="880876892" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.006407" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3597" name="RefreshFromState_RedBandMatchesPlayerCount(3,5)" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.RefreshFromState_RedBandMatchesPlayerCount(3,5)" methodname="RefreshFromState_RedBandMatchesPlayerCount" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" seed="426964880" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.003045" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3598" name="RefreshFromState_RedBandMatchesPlayerCount(4,4)" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.RefreshFromState_RedBandMatchesPlayerCount(4,4)" methodname="RefreshFromState_RedBandMatchesPlayerCount" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" seed="1960145829" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.002586" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="3603" name="RefreshFromState_WhenFinalScoringResolved_CreatesStructuredScoreboard" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.RefreshFromState_WhenFinalScoringResolved_CreatesStructuredScoreboard" methodname="RefreshFromState_WhenFinalScoringResolved_CreatesStructuredScoreboard" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" seed="126597399" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.007195" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3606" name="RefreshFromState_WhenWinnersTie_DefaultsToFirstSettlementRow" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.RefreshFromState_WhenWinnersTie_DefaultsToFirstSettlementRow" methodname="RefreshFromState_WhenWinnersTie_DefaultsToFirstSettlementRow" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" seed="1153091096" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.007706" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3602" name="Toggle_DoesNotCollapseFixedRoundTrack" fullname="YC.Tests.EditMode.RoundTrackerControllerTests.Toggle_DoesNotCollapseFixedRoundTrack" methodname="Toggle_DoesNotCollapseFixedRoundTrack" classname="YC.Tests.EditMode.RoundTrackerControllerTests" runstate="Runnable" seed="897060952" result="Passed" start-time="2026-09-27 11:15:52Z" end-time="2026-09-27 11:15:52Z" duration="0.003486" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-27 06:42:54Z" end-time="2026-09-27 06:42:55Z" duration="1.0816063">
+  <test-suite type="TestSuite" id="2406" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="1220" result="Failed" site="Child" start-time="2026-09-27 06:42:54Z" end-time="2026-09-27 06:42:55Z" duration="1.081606" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="3808" name="YC.Tests.EditMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.EditMode.dll" runstate="Runnable" testcasecount="1220" result="Failed" site="Child" start-time="2026-09-27 06:42:54Z" end-time="2026-09-27 06:42:55Z" duration="1.067700" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="10520" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="3809" name="YC" fullname="YC" runstate="Runnable" testcasecount="1220" result="Failed" site="Child" start-time="2026-09-27 06:42:54Z" end-time="2026-09-27 06:42:55Z" duration="1.061632" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="3810" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="1220" result="Failed" site="Child" start-time="2026-09-27 06:42:54Z" end-time="2026-09-27 06:42:55Z" duration="1.055422" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="SetUpFixture" id="2838" name="EditMode" fullname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" classname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" runstate="Runnable" testcasecount="1220" result="Failed" site="Child" start-time="2026-09-27 06:42:54Z" end-time="2026-09-27 06:42:55Z" duration="1.048933" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="2596" name="CityStylePageTests" fullname="YC.Tests.EditMode.CityStylePageTests" classname="YC.Tests.EditMode.CityStylePageTests" runstate="Runnable" testcasecount="7" result="Failed" site="Child" start-time="2026-09-27 06:42:54Z" end-time="2026-09-27 06:42:55Z" duration="1.012945" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="2597" name="MarkerRefreshAndSelectionReuseNativePlayerSlotsWithoutStaleCounts" fullname="YC.Tests.EditMode.CityStylePageTests.MarkerRefreshAndSelectionReuseNativePlayerSlotsWithoutStaleCounts" methodname="MarkerRefreshAndSelectionReuseNativePlayerSlotsWithoutStaleCounts" classname="YC.Tests.EditMode.CityStylePageTests" runstate="Runnable" seed="479704568" result="Failed" start-time="2026-09-27 06:42:54Z" end-time="2026-09-27 06:42:55Z" duration="1.005654" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[  Expected: not equal to < < <empty> >, < <empty> > >
+  But was:  < < <empty> >, < <empty> > >
+]]></message>
+                  <stack-trace><![CDATA[at YC.Tests.EditMode.CityStylePageTests.MarkerRefreshAndSelectionReuseNativePlayerSlotsWithoutStaleCounts () [0x00362] in G:\NoMadCity\Assets\YC\Tests\EditMode\CityStylePageTests.cs:89
+]]></stack-trace>
+                </failure>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

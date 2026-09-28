@@ -1,0 +1,122 @@
+{
+  "source": "游城拓荒\\UI素材\\整理版-2026-09-24\\原包参数\\CityPattern-UI-v1.0\\sources\\pattern-card-map.json",
+  "sourceSHA256": "3424400b6c2b684afdad2583691481efc70897f47df4b9cb74738d57b1a4acc1",
+  "catalog": "Assets/YC/Presentation/Content/CityStyleVisualCatalog.asset",
+  "cards": [
+    {
+      "id": "city_style_composite_power_system",
+      "name": "复合动力系统",
+      "formalVersion": "1.0.0",
+      "definition": "Assets\\StreamingAssets\\Content\\core\\city_style\\city_style_composite_power_system.json",
+      "artwork": "Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_composite_power_system.jpg",
+      "artworkGuid": "8e69913733559924882e729e4c5a62c7",
+      "artworkSHA256": "a2fe29e90790379df59e7cdd65fcb4ba9dc84d12787ae0fe2827703f317e4401",
+      "atlas": "asset-056",
+      "index": 2,
+      "sourceRect": [
+        1860,
+        0,
+        930,
+        600
+      ],
+      "layout": "active"
+    },
+    {
+      "id": "city_style_efficient_mobile_management_system",
+      "name": "高效移动管理体系",
+      "formalVersion": "1.0.0",
+      "definition": "Assets\\StreamingAssets\\Content\\core\\city_style\\city_style_efficient_mobile_management_system.json",
+      "artwork": "Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_efficient_mobile_management_system.jpg",
+      "artworkGuid": "4d3d43ba51280c74dbe870cc43535f38",
+      "artworkSHA256": "d4bca03a42ae150fc4e8ab0518ac84be127ec667f5a65fa00155e37586c3847c",
+      "atlas": "asset-073",
+      "index": 1,
+      "sourceRect": [
+        930,
+        0,
+        930,
+        600
+      ],
+      "layout": "limited"
+    },
+    {
+      "id": "city_style_material_relay_station",
+      "name": "物资中继站",
+      "formalVersion": "1.0.0",
+      "definition": "Assets\\StreamingAssets\\Content\\core\\city_style\\city_style_material_relay_station.json",
+      "artwork": "Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_material_relay_station.jpg",
+      "artworkGuid": "86c8a6f2ad1bd564db75887527b792e4",
+      "artworkSHA256": "6873f968b80be79cb69f82b0b700b5235bba2e2fed9d061914ef4d293714fd02",
+      "atlas": "asset-056",
+      "index": 8,
+      "sourceRect": [
+        1860,
+        1200,
+        930,
+        600
+      ],
+      "layout": "reward"
+    },
+    {
+      "id": "city_style_military_industrial_area",
+      "name": "军工化区域",
+      "formalVersion": "1.0.0",
+      "definition": "Assets\\StreamingAssets\\Content\\core\\city_style\\city_style_military_industrial_area.json",
+      "artwork": "Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_military_industrial_area.jpg",
+      "artworkGuid": "0009b89d6421b3449a45a070687ddf35",
+      "artworkSHA256": "8bd527748154316f8d137a7a713ec5d1c435b00dea705f0e9325a6d29a55b079",
+      "atlas": "asset-056",
+      "index": 0,
+      "sourceRect": [
+        0,
+        0,
+        930,
+        600
+      ],
+      "layout": "active"
+    },
+    {
+      "id": "city_style_mobilization_support_system",
+      "name": "动员配套体系",
+      "formalVersion": "1.0.0",
+      "definition": "Assets\\StreamingAssets\\Content\\core\\city_style\\city_style_mobilization_support_system.json",
+      "artwork": "Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_mobilization_support_system.jpg",
+      "artworkGuid": "2b8e054a8e469a84ba1d9a65ebd3b36f",
+      "artworkSHA256": "256f4c11ae83c18ca8f7effbc4f693e82e76a73c98b1e50154f41fe740e7fb4a",
+      "atlas": "asset-056",
+      "index": 1,
+      "sourceRect": [
+        930,
+        0,
+        930,
+        600
+      ],
+      "layout": "active"
+    },
+    {
+      "id": "city_style_source_stone_industrial_hub",
+      "name": "源石工业中枢",
+      "formalVersion": "1.0.0",
+      "definition": "Assets\\StreamingAssets\\Content\\core\\city_style\\city_style_source_stone_industrial_hub.json",
+      "artwork": "Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_source_stone_industrial_hub.jpg",
+      "artworkGuid": "240a21c4b53e1f746b99057e708047cd",
+      "artworkSHA256": "565b20365741d228cc3cb18afd53d29839ee5d02c2519ead875ad79bc09c8cd8",
+      "atlas": "asset-073",
+      "index": 0,
+      "sourceRect": [
+        0,
+        0,
+        930,
+        600
+      ],
+      "layout": "limited"
+    }
+  ],
+  "playerOrder": [
+    "Red",
+    "Blue",
+    "Green",
+    "Yellow"
+  ],
+  "note": "示例六卡不是正式供应；军工使用基础版本 index 0。原卡930x600完整呈现；extra位于原卡下方，不占用状态轨道。"
+}

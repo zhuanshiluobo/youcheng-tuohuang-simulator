@@ -1,0 +1,996 @@
+[
+  {
+    "evidence": "Dialogs-EventDiagnostic-BuildConfirmation-1920x1080.json",
+    "mode": "BuildConfirmation",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll",
+        "lastButton": "无交互条目",
+        "contentHeight": 270.0,
+        "viewportHeight": 318.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": false,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 672.0,
+          "y": 393.0,
+          "width": 576.0,
+          "height": 318.0
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-BuildConfirmation-900x600.json",
+    "mode": "BuildConfirmation",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Confirmation Overlay/Build Facility Confirmation Panel/Expanded Content/Action Area/BuildFacilityConfirmation Mode/Build Confirmation Scroll",
+        "lastButton": "无交互条目",
+        "contentHeight": 270.0,
+        "viewportHeight": 318.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": false,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 303.0306091308594,
+          "y": 224.98435974121094,
+          "width": 293.9388122558594,
+          "height": 162.27870178222656
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-BuildFocus-1024x768.json",
+    "mode": "BuildFocus",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions/Choose Gold Payment",
+        "contentHeight": 405.0,
+        "viewportHeight": 519.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 234.87185668945312,
+          "y": 199.24790954589844,
+          "width": 554.2562255859375,
+          "height": 319.62109375
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 633.9363403320312,
+          "y": 326.72686767578125,
+          "width": 121.9364013671875,
+          "height": 40.64544677734375
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-BuildFocus-1920x1080.json",
+    "mode": "BuildFocus",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions/Choose Gold Payment",
+        "contentHeight": 405.0,
+        "viewportHeight": 519.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 510.0,
+          "y": 240.0,
+          "width": 900.0,
+          "height": 519.0
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 1158.0,
+          "y": 447.0,
+          "width": 198.0,
+          "height": 66.0
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-BuildFocus-900x600.json",
+    "mode": "BuildFocus",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Build Facility Focus Overlay/Build Facility Focus Panel/Expanded Content/Action Area/BuildFacilityFocus Mode/Build Detail Scroll/Viewport/Content/Build Text Column/Build Payment Actions/Choose Gold Payment",
+        "contentHeight": 405.0,
+        "viewportHeight": 519.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 220.36032104492188,
+          "y": 146.90687561035156,
+          "width": 459.2793884277344,
+          "height": 264.85107421875
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 551.0414428710938,
+          "y": 252.5411376953125,
+          "width": 101.04150390625,
+          "height": 33.68048095703125
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-CharacterSecondEffect-1920x1080.json",
+    "mode": "CharacterSecondEffect",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-CharacterSecondEffect-900x600.json",
+    "mode": "CharacterSecondEffect",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-EventArtwork-1024x768.json",
+    "mode": "EventArtwork",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-EventArtwork-1920x1080.json",
+    "mode": "EventArtwork",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-EventArtwork-900x600.json",
+    "mode": "EventArtwork",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-EventText-1920x1080.json",
+    "mode": "EventText",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Event Text Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Event Text Scroll/Viewport/Content/Event Choice Host/Choice 10",
+        "contentHeight": 836.0,
+        "viewportHeight": 639.0,
+        "contentOverflows": true,
+        "lastButtonVisibleAtTop": false,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 625.5999755859375,
+          "y": 136.0,
+          "width": 668.800048828125,
+          "height": 639.0
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 625.5999755859375,
+          "y": 136.0,
+          "width": 668.800048828125,
+          "height": 62.0
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-EventText-900x600.json",
+    "mode": "EventText",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Event Text Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Event Text Scroll/Viewport/Content/Event Choice Host/Choice 10",
+        "contentHeight": 836.0,
+        "viewportHeight": 733.4015502929688,
+        "contentOverflows": true,
+        "lastButtonVisibleAtTop": false,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 279.3522033691406,
+          "y": 69.40219116210938,
+          "width": 341.2956237792969,
+          "height": 374.262451171875
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 279.3522033691406,
+          "y": 69.40219116210938,
+          "width": 341.2956237792969,
+          "height": 31.639251708984375
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-ExplorePath-1920x1080.json",
+    "mode": "ExplorePath",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 10",
+        "contentHeight": 608.0,
+        "viewportHeight": 685.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 591.0,
+          "y": 152.0,
+          "width": 738.0,
+          "height": 685.0
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 591.0,
+          "y": 229.0,
+          "width": 738.0,
+          "height": 50.0
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-ExplorePath-900x600.json",
+    "mode": "ExplorePath",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Path Overlay/Path Panel/Expanded Content/Action Area/ExplorePath Mode/Paths Scroll/Viewport/Content/Explore Path Host/Path Choice 10",
+        "contentHeight": 608.0,
+        "viewportHeight": 685.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 261.6954650878906,
+          "y": 101.99956512451172,
+          "width": 376.6091003417969,
+          "height": 349.5626220703125
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 261.6954650878906,
+          "y": 141.29345703125,
+          "width": 376.6091003417969,
+          "height": 25.515533447265625
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-ExplorePayment-1024x768.json",
+    "mode": "ExplorePayment",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Recipient Host/Payment Recipient 诊断航道-6 4",
+        "contentHeight": 310.0,
+        "viewportHeight": 331.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 306.06298828125,
+          "y": 282.3863525390625,
+          "width": 411.8740234375,
+          "height": 203.8431396484375
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 563.4842529296875,
+          "y": 297.16650390625,
+          "width": 61.583984375,
+          "height": 20.9385986328125
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-ExplorePayment-1920x1080.json",
+    "mode": "ExplorePayment",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Recipient Host/Payment Recipient 诊断航道-6 4",
+        "contentHeight": 310.0,
+        "viewportHeight": 331.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 625.5999755859375,
+          "y": 375.0,
+          "width": 668.800048828125,
+          "height": 331.0
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 1043.5999755859375,
+          "y": 399.0,
+          "width": 100.0,
+          "height": 34.0
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-ExplorePayment-900x600.json",
+    "mode": "ExplorePayment",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Explore Payment Overlay/Payment Panel/Expanded Content/Action Area/ExplorePayment Mode/Payments Scroll/Viewport/Content/Explore Payment Route Host/Payment 诊断航道-6/Recipient Host/Payment Recipient 诊断航道-6 4",
+        "contentHeight": 310.0,
+        "viewportHeight": 331.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 279.3522033691406,
+          "y": 215.7987823486328,
+          "width": 341.2956237792969,
+          "height": 168.91273498535156
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 492.6619567871094,
+          "y": 228.04623413085938,
+          "width": 51.031036376953125,
+          "height": 17.350555419921875
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-ResourceBank-1920x1080.json",
+    "mode": "ResourceBank",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Pay Bank",
+        "contentHeight": 84.0,
+        "viewportHeight": 139.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 687.2000122070312,
+          "y": 425.0,
+          "width": 545.6000366210938,
+          "height": 139.0
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 724.2000122070312,
+          "y": 480.0,
+          "width": 471.60003662109375,
+          "height": 42.0
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-ResourceBank-900x600.json",
+    "mode": "ResourceBank",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Pay Bank",
+        "contentHeight": 84.0,
+        "viewportHeight": 139.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 310.7873229980469,
+          "y": 241.31431579589844,
+          "width": 278.4253234863281,
+          "height": 70.93315124511719
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 329.6688232421875,
+          "y": 269.3813781738281,
+          "width": 240.662353515625,
+          "height": 21.43304443359375
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-ResourceRecipients-1024x768.json",
+    "mode": "ResourceRecipients",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 9",
+        "contentHeight": 476.0,
+        "viewportHeight": 531.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 343.998779296875,
+          "y": 192.4736785888672,
+          "width": 336.00244140625,
+          "height": 327.01116943359375
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 366.78485107421875,
+          "y": 226.34487915039062,
+          "width": 290.4302978515625,
+          "height": 25.86529541015625
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-ResourceRecipients-1920x1080.json",
+    "mode": "ResourceRecipients",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 9",
+        "contentHeight": 476.0,
+        "viewportHeight": 531.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 687.2000122070312,
+          "y": 229.0,
+          "width": 545.6000366210938,
+          "height": 531.0
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 724.2000122070312,
+          "y": 284.0,
+          "width": 471.60003662109375,
+          "height": 42.0
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-EventDiagnostic-ResourceRecipients-900x600.json",
+    "mode": "ResourceRecipients",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll",
+        "lastButton": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/Resource Collection Payment Overlay/Resource Collection Payment Panel/Expanded Content/Action Area/ResourceCollectionPayment Mode/Resource Payment Scroll/Viewport/Content/Resource Payments/Resource Collection Recipient Host/Pay Player 9",
+        "contentHeight": 476.0,
+        "viewportHeight": 531.0,
+        "contentOverflows": false,
+        "lastButtonVisibleAtTop": true,
+        "lastButtonReachesViewportAtEnd": true,
+        "viewportAtEnd": {
+          "serializedVersion": "2",
+          "x": 310.7873229980469,
+          "y": 141.29347229003906,
+          "width": 278.4253234863281,
+          "height": 270.974853515625
+        },
+        "lastButtonAtEnd": {
+          "serializedVersion": "2",
+          "x": 329.6688232421875,
+          "y": 169.36053466796875,
+          "width": 240.662353515625,
+          "height": 21.43304443359375
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-ActionLog-1024x768-actual-1024x768.json",
+    "mode": "ActionLog",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-ActionLog-1920x1080-actual-1920x1080.json",
+    "mode": "ActionLog",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-ActionLog-Restored-1920x1080-actual-1920x1080.json",
+    "mode": "ActionLog",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-Baseline-ActionLog-1920x1080-actual-1920x1080.json",
+    "mode": "ActionLog",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-Baseline-CityStyle-1920x1080-actual-1920x1080.json",
+    "mode": "CityStyle",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-Baseline-Settings-1920x1080-actual-1920x1080.json",
+    "mode": "Settings",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-CityStyle-1024x768-actual-1024x768.json",
+    "mode": "CityStyle",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-CityStyle-1920x1080-actual-1920x1080.json",
+    "mode": "CityStyle",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-CityStyle-Restored-1920x1080-actual-1920x1080.json",
+    "mode": "CityStyle",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-Settings-1024x768-actual-1024x768.json",
+    "mode": "Settings",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-Settings-1920x1080-actual-1920x1080.json",
+    "mode": "Settings",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Live-Gameplay-Settings-Restored-1920x1080-actual-1920x1080.json",
+    "mode": "Settings",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-Dispatch-1920x1080-actual-1920x1080.json",
+    "mode": "Dispatch",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport",
+        "normalizedPosition": 1.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 700.0,
+          "y": 530.0,
+          "width": 520.0,
+          "height": 40.0
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 700.0,
+          "y": 526.0,
+          "width": 520.0,
+          "height": 44.0
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-Dispatch-900x600-actual-900x600.json",
+    "mode": "Dispatch",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Gameplay Interaction HUD/Persistent Gameplay Bars/SafeAreaRoot/ContentRoot/PageHost/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/Body Viewport",
+        "normalizedPosition": 0.9999978542327881,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 317.31927490234375,
+          "y": 294.89691162109375,
+          "width": 265.36138916015625,
+          "height": 20.41241455078125
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 317.3193054199219,
+          "y": 292.20623779296875,
+          "width": 265.3614196777344,
+          "height": 23.10308837890625
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-FinalDetails-1920x1080-actual-1920x1080.json",
+    "mode": "FinalDetails",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport",
+        "normalizedPosition": 0.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 510.0,
+          "y": 338.0,
+          "width": 900.0,
+          "height": 446.0
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 510.0,
+          "y": 338.0,
+          "width": 900.0,
+          "height": 446.0
+        }
+      },
+      {
+        "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Details Player List/Final Score Detail Player Rows Viewport",
+        "normalizedPosition": 1.000001311302185,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 572.615966796875,
+          "y": 364.3087463378906,
+          "width": 229.10400390625,
+          "height": 237.35995483398438
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 572.615966796875,
+          "y": 341.668701171875,
+          "width": 229.10400390625,
+          "height": 260.0
+        }
+      },
+      {
+        "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Detail Chart Host/Final Score Detail Charts/Final Score Detail Chart P4/Score Formula Viewport",
+        "normalizedPosition": 0.9999886155128479,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 840.9742431640625,
+          "y": 371.19073486328125,
+          "width": 491.3955078125,
+          "height": 48.9940185546875
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 840.9742431640625,
+          "y": 370.18475341796875,
+          "width": 491.3955078125,
+          "height": 50.0
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-FinalDetails-900x600-actual-900x600.json",
+    "mode": "FinalDetails",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport",
+        "normalizedPosition": 1.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 220.36032104492188,
+          "y": 196.91732788085938,
+          "width": 459.2793884277344,
+          "height": 227.59844970703125
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 220.36032104492188,
+          "y": 196.91732788085938,
+          "width": 459.2793884277344,
+          "height": 227.59844970703125
+        }
+      },
+      {
+        "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Details Player List/Final Score Detail Player Rows Viewport",
+        "normalizedPosition": 1.0000033378601074,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 252.3139190673828,
+          "y": 210.34295654296875,
+          "width": 116.91416931152344,
+          "height": 121.12725830078125
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 252.3139190673828,
+          "y": 198.7895050048828,
+          "width": 116.91416931152344,
+          "height": 132.6807098388672
+        }
+      },
+      {
+        "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Detail Chart Host/Final Score Detail Charts/Final Score Detail Chart P4/Score Formula Viewport",
+        "normalizedPosition": 1.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 389.2599182128906,
+          "y": 213.85491943359375,
+          "width": 250.76425170898438,
+          "height": 25.00213623046875
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 389.2599182128906,
+          "y": 213.8549041748047,
+          "width": 250.76425170898438,
+          "height": 25.002151489257812
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-FinalSummary-1920x1080-actual-1920x1080.json",
+    "mode": "FinalSummary",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport",
+        "normalizedPosition": 0.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 510.0,
+          "y": 338.0,
+          "width": 900.0,
+          "height": 446.0
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 510.0,
+          "y": 338.0,
+          "width": 900.0,
+          "height": 446.0
+        }
+      },
+      {
+        "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport",
+        "normalizedPosition": 0.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 554.0,
+          "y": 402.25,
+          "width": 812.0,
+          "height": 260.0
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 554.0,
+          "y": 430.25,
+          "width": 812.0,
+          "height": 232.0
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-FinalSummary-900x600-actual-900x600.json",
+    "mode": "FinalSummary",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Body Viewport",
+        "normalizedPosition": 1.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 220.36032104492188,
+          "y": 196.91732788085938,
+          "width": 459.2793884277344,
+          "height": 227.59844970703125
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 220.36032104492188,
+          "y": 196.91732788085938,
+          "width": 459.2793884277344,
+          "height": 227.59844970703125
+        }
+      },
+      {
+        "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/Final Score Ranking Rows Viewport",
+        "normalizedPosition": 1.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 242.81398010253906,
+          "y": 229.7047576904297,
+          "width": 414.3720703125,
+          "height": 132.6807098388672
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 242.81398010253906,
+          "y": 243.9934539794922,
+          "width": 414.3720703125,
+          "height": 118.39201354980469
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-Rulebook-1920x1080-actual-1920x1080.json",
+    "mode": "Rulebook",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Body Viewport/Rulebook Viewport",
+        "normalizedPosition": 0.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 621.239990234375,
+          "y": 220.239990234375,
+          "width": 677.52001953125,
+          "height": 677.52001953125
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 621.239990234375,
+          "y": 220.239990234375,
+          "width": 677.52001953125,
+          "height": 677.52001953125
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-Rulebook-900x600-actual-900x600.json",
+    "mode": "Rulebook",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/Body Viewport/Rulebook Viewport",
+        "normalizedPosition": 1.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 254.64944458007812,
+          "y": 114.34536743164062,
+          "width": 390.7011413574219,
+          "height": 390.70111083984375
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 254.64944458007812,
+          "y": 114.34536743164062,
+          "width": 390.7011413574219,
+          "height": 390.70111083984375
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-ZoomCollapsed-1920x1080-actual-1920x1080.json",
+    "mode": "ZoomCollapsed",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-ZoomCollapsed-900x600-actual-900x600.json",
+    "mode": "ZoomCollapsed",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-ZoomExpanded-1920x1080-actual-1920x1080.json",
+    "mode": "ZoomExpanded",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "DialogsDiagnostic Viewer Canvas/DialogsDiagnostic Viewer/DialogsDiagnostic Panel/DialogsDiagnostic Expanded Content/Body Viewport/DialogsDiagnostic Viewport",
+        "normalizedPosition": 0.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 621.239990234375,
+          "y": 220.239990234375,
+          "width": 677.52001953125,
+          "height": 677.52001953125
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 621.239990234375,
+          "y": 220.239990234375,
+          "width": 677.52001953125,
+          "height": 677.52001953125
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-Diagnostic-ZoomExpanded-900x600-actual-900x600.json",
+    "mode": "ZoomExpanded",
+    "issues": [],
+    "scrolls": [
+      {
+        "path": "DialogsDiagnostic Viewer Canvas/DialogsDiagnostic Viewer/DialogsDiagnostic Panel/DialogsDiagnostic Expanded Content/Body Viewport/DialogsDiagnostic Viewport",
+        "normalizedPosition": 1.0,
+        "viewportScreenRect": {
+          "serializedVersion": "2",
+          "x": 254.64944458007812,
+          "y": 114.34536743164062,
+          "width": 390.7011413574219,
+          "height": 390.70111083984375
+        },
+        "contentScreenRect": {
+          "serializedVersion": "2",
+          "x": 254.64944458007812,
+          "y": 114.34536743164062,
+          "width": 390.7011413574219,
+          "height": 390.70111083984375
+        }
+      }
+    ]
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-SourceProof-1920x1080.json",
+    "mode": "",
+    "issues": [],
+    "scrolls": []
+  },
+  {
+    "evidence": "Dialogs-Secondary-Supplemental-SourceProof-900x600.json",
+    "mode": "",
+    "issues": [],
+    "scrolls": []
+  }
+]

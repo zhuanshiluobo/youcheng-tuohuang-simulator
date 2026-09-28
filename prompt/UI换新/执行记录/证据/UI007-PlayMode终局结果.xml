@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Passed" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-25 20:49:03Z" end-time="2026-09-25 20:49:04Z" duration="1.8057264">
+  <test-suite type="TestSuite" id="1029" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-09-25 20:49:03Z" end-time="2026-09-25 20:49:04Z" duration="1.805726" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1054" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-09-25 20:49:03Z" end-time="2026-09-25 20:49:04Z" duration="1.801443" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="36896" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1055" name="YC" fullname="YC" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-09-25 20:49:03Z" end-time="2026-09-25 20:49:04Z" duration="1.800659" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1056" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-09-25 20:49:03Z" end-time="2026-09-25 20:49:04Z" duration="1.800147" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1057" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-09-25 20:49:03Z" end-time="2026-09-25 20:49:04Z" duration="1.799693" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1051" name="Ui007RoundPagePlayModeTests" fullname="YC.Tests.PlayMode.Ui007RoundPagePlayModeTests" classname="YC.Tests.PlayMode.Ui007RoundPagePlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-25 20:49:03Z" end-time="2026-09-25 20:49:04Z" duration="1.798433" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1052" name="FinalPage_SampleScene_StaysInsideContentAndReceivesInput" fullname="YC.Tests.PlayMode.Ui007RoundPagePlayModeTests.FinalPage_SampleScene_StaysInsideContentAndReceivesInput" methodname="FinalPage_SampleScene_StaysInsideContentAndReceivesInput" classname="YC.Tests.PlayMode.Ui007RoundPagePlayModeTests" runstate="Runnable" seed="1729694873" result="Passed" start-time="2026-09-25 20:49:03Z" end-time="2026-09-25 20:49:04Z" duration="1.427147" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+              <test-case id="1053" name="FinalPage_ThreePlayerScene_StaysInsideContentAndReceivesInput" fullname="YC.Tests.PlayMode.Ui007RoundPagePlayModeTests.FinalPage_ThreePlayerScene_StaysInsideContentAndReceivesInput" methodname="FinalPage_ThreePlayerScene_StaysInsideContentAndReceivesInput" classname="YC.Tests.PlayMode.Ui007RoundPagePlayModeTests" runstate="Runnable" seed="1621411360" result="Passed" start-time="2026-09-25 20:49:04Z" end-time="2026-09-25 20:49:04Z" duration="0.363632" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

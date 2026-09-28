@@ -17,7 +17,8 @@ namespace YC.Editor
         internal static readonly string[] ProductionScenePaths =
         {
             "Assets/Scenes/StartScene.unity",
-            "Assets/Scenes/SampleScene.unity"
+            "Assets/Scenes/SampleScene.unity",
+            "Assets/Scenes/ThreePlayerScene.unity"
         };
 
         public static UiThemeCatalog LoadRequiredCatalog()
@@ -65,29 +66,32 @@ namespace YC.Editor
             try
             {
                 var catalog = LoadRequiredCatalog();
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(GameSettingsPrefabPath);
-                if (prefab == null || !prefab.activeSelf)
+                foreach (var prefabPath in GameSettingsAssetSources.PrefabPaths)
                 {
-                    throw new InvalidOperationException("GameSettings Prefab 缺失或根对象被禁用。");
-                }
+                    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                    if (prefab == null || !prefab.activeSelf)
+                    {
+                        throw new InvalidOperationException("GameSettings Prefab 缺失或根对象被禁用。");
+                    }
 
-                var bootstraps = prefab.GetComponentsInChildren<UiThemeBootstrap>(true);
-                var reason = string.Empty;
-                if (bootstraps.Length != 1 || bootstraps[0].gameObject != prefab ||
-                    !bootstraps[0].enabled || bootstraps[0].Catalog != catalog ||
-                    !bootstraps[0].TryValidateConfiguration(out reason))
-                {
-                    throw new InvalidOperationException("UiThemeBootstrap 数量、位置、启用状态或目录引用无效：" + reason);
-                }
+                    var bootstraps = prefab.GetComponentsInChildren<UiThemeBootstrap>(true);
+                    var reason = string.Empty;
+                    if (bootstraps.Length != 1 || bootstraps[0].gameObject != prefab ||
+                        !bootstraps[0].enabled || bootstraps[0].Catalog != catalog ||
+                        !bootstraps[0].TryValidateConfiguration(out reason))
+                    {
+                        throw new InvalidOperationException("UiThemeBootstrap 数量、位置、启用状态或目录引用无效：" + reason);
+                    }
 
-                var themeOrder = GetExecutionOrder(typeof(UiThemeBootstrap));
-                if (themeOrder >= GetExecutionOrder(typeof(CityStyleSpecialActionCatalogBootstrap)) ||
-                    themeOrder >= GetExecutionOrder(typeof(FacilityCatalogBootstrap)))
-                {
-                    throw new InvalidOperationException("UiThemeBootstrap 必须早于其他内容 bootstrap 执行。");
-                }
+                    var themeOrder = GetExecutionOrder(typeof(UiThemeBootstrap));
+                    if (themeOrder >= GetExecutionOrder(typeof(CityStyleSpecialActionCatalogBootstrap)) ||
+                        themeOrder >= GetExecutionOrder(typeof(FacilityCatalogBootstrap)))
+                    {
+                        throw new InvalidOperationException("UiThemeBootstrap 必须早于其他内容 bootstrap 执行。");
+                    }
 
-                ValidateSavedProductionSceneConnections(prefab, catalog, bootstraps[0]);
+                    ValidateSavedProductionSceneConnections(prefab, catalog, bootstraps[0]);
+                }
             }
             catch (BuildFailedException)
             {
@@ -125,6 +129,8 @@ namespace YC.Editor
 
             foreach (var scenePath in ProductionScenePaths)
             {
+                if (GameSettingsAssetSources.ForScene(scenePath) != AssetDatabase.GetAssetPath(prefab))
+                    continue;
                 if (!enabledScenes.Contains(scenePath) || !File.Exists(scenePath))
                 {
                     throw new InvalidOperationException("正式场景未启用或缺失：" + scenePath);

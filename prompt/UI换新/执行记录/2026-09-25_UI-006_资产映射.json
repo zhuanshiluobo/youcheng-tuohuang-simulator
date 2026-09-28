@@ -1,0 +1,872 @@
+{
+  "scale": "1x",
+  "assets": [
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-主框3.5/原包/assets/outer-frame.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/Frames/outer-frame.png",
+      "guid": "d914be6582d14b14785a040bfc72f931",
+      "sha256": "b0be0f3c369bcc92dd60e584bd127185c174b90d4b5095a02dcdf0f759a9cc54",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-主框3.5/原包/assets/bottom-frame.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/Frames/bottom-frame.png",
+      "guid": "2d606f464c58709488217ca9ee5fe94e",
+      "sha256": "f74fe03e1637ee4e3fb30a51a713b154595d3c91bbb48b1d64253c5042d079a6",
+      "pixels": [
+        1920,
+        96
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-主框3.5/原包/assets/chain-slot-frame.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/Frames/chain-slot-frame.png",
+      "guid": "3ec57d85cf4f03b4db6735e85da99df3",
+      "sha256": "bac3cbb50809498170df5c9d06ad4cba4f49e78fb8a1371e5054c2a9a0575710",
+      "pixels": [
+        1024,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-主框3.5/原包/assets/bottom-bar-clean.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/Frames/bottom-bar-clean.png",
+      "guid": "0b82898d3d00e534a87b2876ef19ca94",
+      "sha256": "f4eaa3f9c69f626d397f84764845cc77cf959747e1632116bbda8fa6a9f414a3",
+      "pixels": [
+        1920,
+        96
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/rows/row-bg-default.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/rows/row-bg-default.png",
+      "guid": "33a675824c051574480110b6105b0089",
+      "sha256": "9fa9b2ff4cbd1f79dabed356199c38d4a03f9ee7bd4b8f692a7f44f9188e5b6f",
+      "pixels": [
+        512,
+        112
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/rows/row-bg-disabled.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/rows/row-bg-disabled.png",
+      "guid": "fbd050d909d87c6498f66081c0df81af",
+      "sha256": "e3b6fac060ecae10f2b4a0dae6214a168864c1299ddadd90a8186e513e81c31c",
+      "pixels": [
+        512,
+        112
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/rows/row-bg-hover.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/rows/row-bg-hover.png",
+      "guid": "6d537045049af50498e738698252398c",
+      "sha256": "967268809032741af17a848386eaf3a531cc1411e4dea5d4fc1a378d3b97c371",
+      "pixels": [
+        512,
+        112
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/rows/row-bg-pressed.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/rows/row-bg-pressed.png",
+      "guid": "371f080550298ae44a74cac23c870233",
+      "sha256": "bf1b08fe9bf421840a14a8f632fa33c335a9bcb7c5df9dee83f05c82cd1a56fd",
+      "pixels": [
+        512,
+        112
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/rows/row-divider.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/rows/row-divider.png",
+      "guid": "524efb46d6375674cbd4f88eeb4e7625",
+      "sha256": "4aa9ab72c80c28616f844c6976944200eec75136ff9a06d9be0fffe2a9759531",
+      "pixels": [
+        2,
+        80
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/rows/row-frame-default.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/rows/row-frame-default.png",
+      "guid": "fb5d9b0fc274099428281871dd10c6a8",
+      "sha256": "28b0d4c17f3b8b50c07920ea5282ce23af58267d641fab8543496e094e997b9a",
+      "pixels": [
+        512,
+        112
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/rows/row-frame-disabled.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/rows/row-frame-disabled.png",
+      "guid": "5dc9a365ba0dd8546b13bf067598a3a4",
+      "sha256": "9e41ced2d4edea64d9394519cf75e79d4f68f6bbc5fd10204f65839362fc4eb7",
+      "pixels": [
+        512,
+        112
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/rows/row-frame-hover.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/rows/row-frame-hover.png",
+      "guid": "a354bec79df2bdd4c8eefea365596ed4",
+      "sha256": "141aaea66a0e04eb4410317248094e000499ad454c804725125b9e36f32b48a9",
+      "pixels": [
+        512,
+        112
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/rows/row-frame-pressed.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/rows/row-frame-pressed.png",
+      "guid": "396170332c0c383498f5f8f15e8a8900",
+      "sha256": "3d7ef0410dd067d82f4e9c5d35ca4028c8977ebedf6b1e18d334c32ec8ff6669",
+      "pixels": [
+        512,
+        112
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/status/status-bg-default.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/status/status-bg-default.png",
+      "guid": "b3633e8d6e6be1f4a9c9975ed2a2c791",
+      "sha256": "6a33ec9bb026f0d6988f141c2df22c90eca87995ebd17c41df94b3690d0c8d14",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/status/status-bg-disabled.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/status/status-bg-disabled.png",
+      "guid": "a1912134ac0c8ba40a21c1c0290e903b",
+      "sha256": "d0a45bd20caea75f302571425fe97cc9f02c4546356f206b17f47e7be5834220",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/status/status-bg-hover.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/status/status-bg-hover.png",
+      "guid": "36a6452e2f7a43e489cb530128b4af10",
+      "sha256": "6bc6407c309cb9aab782a8d3ca98488aa15ba903a43f7dee32592fc57b005d96",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/status/status-bg-pressed.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/status/status-bg-pressed.png",
+      "guid": "0cd5d34ac6bf58c41b6112b0d4ce5a1a",
+      "sha256": "ba498e93a339b7ae07f5715532b5d57dc8331dd13ec73370364ce2aacf13b94e",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-chevron-down-dark.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-chevron-down-dark.png",
+      "guid": "83e8e2cbb7acdd54ab2a90e64617f569",
+      "sha256": "841a803487b4b5806a3bea9bf1054cbcd639f51fc89bc6a72fb1d6c8cdf8d411",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-chevron-down-light.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-chevron-down-light.png",
+      "guid": "0d71d892b4238924ca47f1835ac420a9",
+      "sha256": "28c86c0eeb82252a8f6c206a6277a9c58c37b53ea8d475000feca7b3148bc0cd",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-chevron-down-muted.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-chevron-down-muted.png",
+      "guid": "2c4dc610deb1f9640b9f90d336d55067",
+      "sha256": "7c44fc65e9782052f9abd2030086d4b90ecb3906cfb78ae0daeb40427581d031",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-chevron-up-dark.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-chevron-up-dark.png",
+      "guid": "89f290fae59128c40853bc9e6bf3d029",
+      "sha256": "d6dde4b1d13ede8303b219dc00f9b17bea9cbd719e6710b0037aa6d065de3c1e",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-chevron-up-light.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-chevron-up-light.png",
+      "guid": "3793400a4835d644f875224641e026c4",
+      "sha256": "911a4700de848ff5ea3fec2bd6900de4f03193f4830c6a5a19fb941b0b879b6c",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-chevron-up-muted.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-chevron-up-muted.png",
+      "guid": "0dced0670892bec438c60edfa45001de",
+      "sha256": "ae5b5eeb79adb272ac499027a00a5e9aaa203c641e3d8d8c1d05e11370e0092d",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-unused-dark.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-unused-dark.png",
+      "guid": "a96765daccba36a4ea0799133d1d6f30",
+      "sha256": "43c2aa4911ba5ca345dc7007e4564d3b69ff541f05073f1012da4a5ff8e2695b",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-unused-light.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-unused-light.png",
+      "guid": "f3ad2d3589dabc04998c693c8d9788f9",
+      "sha256": "5043c2165fd08c066202acac068cbdcc1c04d36744575e453b88a745b191c1b0",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-unused-muted.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-unused-muted.png",
+      "guid": "9fdebae3ec35c7a4ab0353a56198eb29",
+      "sha256": "0cb193f3fdf5be1aa8e5573c5721b372b60eb4f331cb90b52bc09c8529119df8",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-use-dark.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-use-dark.png",
+      "guid": "8e1ebdc5a00b87048aa1a8f9f6fe30c2",
+      "sha256": "3f8e1df0d1e0bbd5c216721d424206f16539dee0486deb0a733338dff97c4a67",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-use-light.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-use-light.png",
+      "guid": "704da96e0ae40b1449631a9f3447bf0a",
+      "sha256": "50c47c41ea450180bc9facdbc1e5d1c6578f3be8b989dd86292ded8fb4dd4aa8",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-use-muted.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-use-muted.png",
+      "guid": "ca4f5f2c5da9e89499118c811a11208b",
+      "sha256": "eb46d5b9aa1dbc258013c63cfdac50644545f32babefc0d67e8177bd15251347",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-used-dark.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-used-dark.png",
+      "guid": "5916d005d19d2b748ad69dc1711c428a",
+      "sha256": "bc2bc6d79420e151db528aaecaa6d75482632e124ce73ceb35faa18166ee3df3",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-used-light.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-used-light.png",
+      "guid": "64d0cce9912f40a4ca47739a03c7e0e6",
+      "sha256": "b5839d9211dae5aca6460f9666bb1adc243c430d0f821608ba0fb39dc36f7dee",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/icons/icon-used-muted.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/icons/icon-used-muted.png",
+      "guid": "ad18d21fb82dec6419b9b845371268df",
+      "sha256": "966da480c1586d47143df370dcd6c8399cad50086e0639ef9dd8515131547647",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/toggle/toggle-bg-default.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/toggle/toggle-bg-default.png",
+      "guid": "06559436c8530a74c949a02c1f5b4226",
+      "sha256": "09b590e49e25d22f35620e05d286e78c77b84bfb4c7aa9664634d06728b7df7f",
+      "pixels": [
+        176,
+        52
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/toggle/toggle-bg-expanded.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/toggle/toggle-bg-expanded.png",
+      "guid": "44b977feb3bba084a90dc8509ee521c7",
+      "sha256": "fdc156368fca8b9104ccf81629f84ec0086b7d1d6abae912e8da8ddef9d87669",
+      "pixels": [
+        176,
+        52
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/toggle/toggle-bg-hover.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/toggle/toggle-bg-hover.png",
+      "guid": "981c5fa8d50584841a0bcfbb4858b14b",
+      "sha256": "210577cb0e7e9ffc7da24863daae9745032788334b5a146a6044ee436d94a51c",
+      "pixels": [
+        176,
+        52
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/toggle/toggle-bg-pressed.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/toggle/toggle-bg-pressed.png",
+      "guid": "5059ed32f0a0682478fb585d441bf44b",
+      "sha256": "4dbeb000b1612461d8a2345ac7506f5f20062c2aa8720876b542de1d7e372f7f",
+      "pixels": [
+        176,
+        52
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-01-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-01-64.png",
+      "guid": "d2a36eaffcff7c64c80b212aed5e18bb",
+      "sha256": "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-02-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-02-64.png",
+      "guid": "7722385aa1bdd9f41a422730b70eabb3",
+      "sha256": "ab6ace1eaff283f15515d152c8a16d198ecd5cdef68a4ba1a791fd9989f01351",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-03-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-03-64.png",
+      "guid": "57d16a9ebc313f949ae2f1c74d721242",
+      "sha256": "3685288cfd853cfddf1606697e7dbc25a436c727ce70c29cb35ff3fe70c3aacf",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-04-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-04-64.png",
+      "guid": "b859f758d01777b429c6bf8ae21edaf4",
+      "sha256": "edcc07d148d018ab557f550f011fc43be0aa005c2b52188d6983596295c21eec",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-05-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-05-64.png",
+      "guid": "20e248e377acc2b4bac7cb0f2ca271e0",
+      "sha256": "7dbcdceb9232273ac00fe120adec8740ff38c003eee98074ccc37278c835338f",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-06-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-06-64.png",
+      "guid": "40eda79e57c4a464d8bd6b325c328447",
+      "sha256": "70f5f0ded2ad276bb0ff7e9872ea03ba2e2121a23ca885d61b64437dda015e2d",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-07-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-07-64.png",
+      "guid": "d056f4f9a22ac2e45a1734467996e79b",
+      "sha256": "1bde096cbaa80534a64e750d7d2979e8277809a82b198ce652bb99f01894c9c8",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-08-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-08-64.png",
+      "guid": "d8e9dcadd3e3fb24bb85d7f34e062e31",
+      "sha256": "afd73d934def1788bfb746251f519ccb6955abd15540f8f7d220a36565d8e64b",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-09-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-09-64.png",
+      "guid": "15eb4fe249fc56d47b7d203f8bc7da70",
+      "sha256": "08ef48a5e20cc96155883e9a3b9df19bf8c6df251015a4e759ed1cef9019ae2c",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-0a-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-0a-64.png",
+      "guid": "904bdbe3f6028d047b5d3a7f4be93f4c",
+      "sha256": "48bf822715419d06deefb8ce6b985a36de79d8ccfb93e809eddccd94b16d83b8",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-0b-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-0b-64.png",
+      "guid": "eba9485fce57d5a45877be83d0e3491b",
+      "sha256": "b93b5b37dcbd4ae3aa7373e7fe653e78e6bb83af50a1b4c6e98d3d8ea296d8b6",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-0c-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-0c-64.png",
+      "guid": "85d8d47708ead5c4ea44f0f65cfa2664",
+      "sha256": "f392615d6f7a54137335e4e085fb8dc1b7f33199946c5263fa8d43a87eebc1f0",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-0d-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-0d-64.png",
+      "guid": "0c317edea57df7b44871d82a44abde6a",
+      "sha256": "8c24503ef3e9c076fcbd7b365c393f5f5189ffa9acf722feb4225a7296ce411a",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-0e-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-0e-64.png",
+      "guid": "b12981d731ab1a64d92fb16f434a01f9",
+      "sha256": "d0bc8e2304d7c79873102701e48dc0efd5ce83ba8347c4b26a9d5e554719c28f",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "游城拓荒/UI素材/整理增量-2026-09-25-效果条目3.4/原包/assets/markers/cooperation-0f-64.png",
+      "unityPath": "Assets/YC/Presentation/Ui006/Sprites/EffectRows/markers/cooperation-0f-64.png",
+      "guid": "3565717282fb6104385c5164ed15f32e",
+      "sha256": "959b8813ee16f67cf170865931510fbdabb5bccb39cdefefc96a4a25c7eb8f86",
+      "pixels": [
+        64,
+        64
+      ],
+      "ppu": 100,
+      "borderLeftBottomRightTop": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

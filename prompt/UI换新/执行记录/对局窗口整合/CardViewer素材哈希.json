@@ -1,0 +1,26 @@
+[
+  {
+    "name": "window.png",
+    "viewer": "e6d9f698114af5c966f085a801963b4bf55aca36ace85e0eab1fc42ec7f9a469",
+    "picker": "e6d9f698114af5c966f085a801963b4bf55aca36ace85e0eab1fc42ec7f9a469",
+    "actual": "e6d9f698114af5c966f085a801963b4bf55aca36ace85e0eab1fc42ec7f9a469",
+    "path": "Assets\\YC\\Presentation\\CardPicker\\Artwork\\window.png",
+    "guid": "ba885087e081fb34fa3c8d23a8543078"
+  },
+  {
+    "name": "button-primary.png",
+    "viewer": "c7a4fe46dff130f2c12b459ea7c3f0f9c19e9001d5b5039618f19143d358607d",
+    "picker": "c7a4fe46dff130f2c12b459ea7c3f0f9c19e9001d5b5039618f19143d358607d",
+    "actual": "c7a4fe46dff130f2c12b459ea7c3f0f9c19e9001d5b5039618f19143d358607d",
+    "path": "Assets\\YC\\Presentation\\Enterprise\\Artwork\\selection-button-primary.png",
+    "guid": "e3feda7d48154536bfc56338e90a2fee"
+  },
+  {
+    "name": "button-secondary.png",
+    "viewer": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
+    "picker": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
+    "actual": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
+    "path": "Assets\\YC\\Presentation\\Enterprise\\Artwork\\selection-button-secondary.png",
+    "guid": "b2b6b6af52cb4b87b5619aa82d2aa5e1"
+  }
+]

@@ -1,0 +1,85 @@
+{
+  "version": "3.4",
+  "scope": "visual warm-paper revision",
+  "assetIdsAndDimensionsCompatibleWithV33": true,
+  "markerPngsByteIdentical": true,
+  "independentAssetVisualReview": true,
+  "mainCompositionVisualReview": true,
+  "comparisonPreviewReviewed": true,
+  "installedFromV32": true,
+  "upgradedFromV33": true,
+  "idempotentUpgrade": true,
+  "installationOperations": 126,
+  "allPngsDecoded": true,
+  "browserTestsRun": false,
+  "engineRulesImplemented": false,
+  "componentBehaviorChanged": false,
+  "previousLayoutContractRetained": true,
+  "assetValidation": {
+    "version": "3.4",
+    "assetCount": 32,
+    "pngCount": 64,
+    "palette": {
+      "states": {
+        "default": {
+          "fill": "#453E35",
+          "bottom": "#3B352D",
+          "edge": "#9A8D78",
+          "glint": "#E5D6B8",
+          "accent": "#BDA45D"
+        },
+        "hover": {
+          "fill": "#50463A",
+          "bottom": "#443B30",
+          "edge": "#C7B172",
+          "glint": "#F0E1C3",
+          "accent": "#E4C86F"
+        },
+        "pressed": {
+          "fill": "#39332B",
+          "bottom": "#302A23",
+          "edge": "#C4A95B",
+          "glint": "#D2BF92",
+          "accent": "#C4A95B"
+        },
+        "disabled": {
+          "fill": "#37332D",
+          "bottom": "#302C26",
+          "edge": "#716759",
+          "glint": "#B0A28A",
+          "accent": "#746851"
+        }
+      },
+      "text": {
+        "light": "#E8DDC3",
+        "dark": "#332E27",
+        "muted": "#A89B83"
+      },
+      "glyph": {
+        "useLight": "#DFBE68",
+        "usedLight": "#CABB9D",
+        "unusedLight": "#E8DDC3"
+      },
+      "divider": "#BAA88B",
+      "paper": {
+        "fiber": "#E7D6B5",
+        "grain": "#1F1B16",
+        "opacityRange": [
+          0.025,
+          0.08
+        ],
+        "deterministic": true
+      },
+      "backgroundInteriorOpaque": true,
+      "frameStyle": "single fine rounded outline, no secondary complete inset frame"
+    },
+    "checks": [
+      "All 32 IDs unchanged",
+      "All dimensions and nine-slice margins unchanged",
+      "All 64 PNGs decoded",
+      "Outer corner alpha = 0 for all assets except edge-to-edge divider",
+      "All background center alpha = 255",
+      "All row-frame centers transparent"
+    ]
+  }
+}

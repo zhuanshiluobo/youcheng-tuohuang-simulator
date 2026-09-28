@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -32,7 +33,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void MilitaryMarkerGroup_DragsAllMarkersAndSubmitsOnce()
+        public void MilitaryMarkerGroup_DragsVisibleQuantityBlocksAndSubmitsOnce()
         {
             var submissions = 0;
             ShowDialog(string.Empty, (action, marker, a, b) => { submissions++; return true; },
@@ -44,17 +45,14 @@ namespace YC.Tests.EditMode
                 Type.GetType("YC.Presentation.CardPointerInteraction, Assembly-CSharp", true));
             InvokePointer(pointer, "OnBeginDrag", CreatePointerEvent(canvas));
             var ghost = GameObject.Find("特殊行动影响力拖动虚影");
-            Assert.That(ghost.GetComponentsInChildren<Image>().Length, Is.EqualTo(3));
             var images = ghost.GetComponentsInChildren<Image>();
-            Assert.That(images[0].sprite, Is.Null);
-            Assert.That(ghost.GetComponentsInChildren(Type.GetType("YC.Presentation.MapPieceVisual, Assembly-CSharp", true)).Length, Is.EqualTo(3));
-            Assert.That(images[0].rectTransform.anchoredPosition,
-                Is.Not.EqualTo(images[1].rectTransform.anchoredPosition));
+            Assert.That(images.Length, Is.EqualTo(1), "同玩家的重复宣告合并成一个可拖动数量块。");
+            Assert.That(ghost.GetComponentsInChildren<Text>().Select(t => t.text), Is.EquivalentTo(new[] {"3"}));
             var invalid = CreatePointerEvent(canvas);
             invalid.position = new Vector2(-1000f, -1000f);
             InvokePointer(pointer, "OnEndDrag", invalid);
             Assert.That(submissions, Is.Zero);
-            Assert.That(markerTransform.GetComponentInChildren(Type.GetType("YC.Presentation.MapPieceVisual, Assembly-CSharp", true)), Is.Not.Null);
+            Assert.That(markerTransform.GetComponent<Image>().enabled, Is.True);
             DropMarkerOnLegalTarget(canvas);
             Assert.That(submissions, Is.EqualTo(1));
         }
@@ -120,7 +118,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void MarkerDrag_MilitaryHighlightCoversThePrintedUsedArea()
+        public void MarkerDrag_MilitaryHighlightFollowsConfiguredUsedTrack()
         {
             ShowDialog(string.Empty, (actionId, markerId, originium, iron) => true);
             var canvas = GameObject.Find("City Style Declaration Preview Canvas");
@@ -133,12 +131,19 @@ namespace YC.Tests.EditMode
             var target = GameObject.Find("特殊行动合法落区 used");
             Assert.That(target, Is.Not.Null);
             var rect = target.GetComponent<RectTransform>();
-            Assert.That(rect.anchorMin.x, Is.EqualTo(0.54f).Within(0.0001f));
-            Assert.That(rect.anchorMin.y, Is.EqualTo(0.08f).Within(0.0001f));
-            Assert.That(rect.anchorMax.x, Is.EqualTo(0.945f).Within(0.0001f));
-            Assert.That(rect.anchorMax.y, Is.EqualTo(0.485f).Within(0.0001f));
-            Assert.That(rect.offsetMin, Is.EqualTo(Vector2.zero));
-            Assert.That(rect.offsetMax, Is.EqualTo(Vector2.zero));
+            var visuals = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Assets/YC/Presentation/Content/CityStyleVisualCatalog.asset");
+            var bounds = (Rect)visuals.GetType().GetMethod("Bounds").Invoke(visuals, new object[] {CityStyleDatabase.MilitaryIndustrialArea, "used"});
+            Assert.That(rect.anchorMin, Is.EqualTo(bounds.min));
+            Assert.That(rect.anchorMax, Is.EqualTo(bounds.max));
+            var page = canvas.GetComponentInChildren(Type.GetType(
+                "YC.Presentation.CityStyleDeclarationPreviewView, Assembly-CSharp", true), true);
+            var artwork = GetProperty<RawImage>(page, "CityStyleCardImage");
+            var overlay = artwork.GetComponentInChildren(Type.GetType(
+                "YC.Presentation.CityStyleTrackOverlay, Assembly-CSharp", true), true);
+            var offset = (Vector2)overlay.GetType().GetMethod("TrackOffset").Invoke(overlay,
+                new object[] { CityStyleDatabase.MilitaryIndustrialArea, "used", visuals });
+            Assert.That(rect.offsetMin, Is.EqualTo(offset));
+            Assert.That(rect.offsetMax, Is.EqualTo(offset), "落区必须跟随当前预制体中的轨道位置。");
         }
 
         [Test]
@@ -161,7 +166,7 @@ namespace YC.Tests.EditMode
             Assert.That(submissionCount, Is.Zero);
             var confirmation = GameObject.Find("Special Action Warning Confirmation");
             Assert.That(confirmation, Is.Not.Null);
-            dialog.GetType().GetMethod("ChangeCityStyle", BindingFlags.Instance | BindingFlags.NonPublic)
+            dialog.GetType().GetMethod("SelectCityStyle", BindingFlags.Instance | BindingFlags.NonPublic)
                 .Invoke(dialog, new object[] { 1 });
             Assert.That(
                 GetProperty<string>(dialog, "CurrentCityStyleId"),
@@ -230,7 +235,7 @@ namespace YC.Tests.EditMode
             Assert.That(count, Is.EqualTo(1));
             Assert.That(GetProperty<bool>(dialog, "IsShowing"), Is.True);
             Assert.That(GameObject.Find("Special Action Choice Overlay"), Is.Null);
-            dialog.GetType().GetMethod("ChangeCityStyle", BindingFlags.Instance | BindingFlags.NonPublic)
+            dialog.GetType().GetMethod("SelectCityStyle", BindingFlags.Instance | BindingFlags.NonPublic)
                 .Invoke(dialog, new object[] { 1 });
             Assert.That(GetProperty<string>(dialog, "CurrentCityStyleId"), Is.EqualTo(CityStyleDatabase.MaterialRelayStation));
         }
@@ -274,7 +279,7 @@ namespace YC.Tests.EditMode
             var markers = new List<CityStyleMarkerViewModel> { marker };
             for (var i = 1; i < markerCount; i++)
                 markers.Add(new CityStyleMarkerViewModel(cityStyleId, 1, PlayerColor.Red,
-                    CityStyleMarkerAreas.Declared, "marker-1", specialActionId,
+                    CityStyleMarkerAreas.Unused, "marker-1", specialActionId,
                     true, CityStyleMarkerAreas.Used, string.Empty, warning,
                     maximumOriginium, maximumIron));
             var model = new CityStyleOptionsViewModel(
@@ -326,6 +331,8 @@ namespace YC.Tests.EditMode
                 null);
             dialogType.GetMethod("Show", BindingFlags.Instance | BindingFlags.Public)
                 .Invoke(dialog, new object[] { model });
+            var page = host.GetComponentInChildren(Type.GetType("YC.Presentation.CityStyleDeclarationPreviewView, Assembly-CSharp", true), true);
+            page.GetType().GetMethod("ShowDetail").Invoke(page, new object[] {true});
             Canvas.ForceUpdateCanvases();
             return dialog;
         }

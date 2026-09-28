@@ -1,0 +1,888 @@
+{
+  "reviewDate": "2026-09-26",
+  "scope": "局内SampleScene实际页面；1920×1080与900×600各七状态。",
+  "captureLogs": [
+    "Logs/UI007/supplemental-delivery.log",
+    "Logs/UI007/supplemental-scroll-end.log"
+  ],
+  "interactionEvidence": "Logs/UI007/playmode-round-content.xml：两个真实场景2/2通过；截图仅证明已采状态显示，命中/完整长公式另由专项测试证明。",
+  "limitations": [
+    "调度回调为空；终局独立诊断状态未写session、未提交业务命令。",
+    "规则书仅第1页，未由图片覆盖全28页。",
+    "900公式当前短诊断正文已完整装入槽，没有溢出和可测滚动位移；长公式可滚动由专项测试另证。",
+    "记录当前可见边界与可达末项，不声称开工前后所有像素一致。"
+  ],
+  "observations": {
+    "Rulebook": "两尺寸封面、标题、页码、翻页和关闭完整。",
+    "ZoomExpanded": "两尺寸正式封面及收起操作完整。",
+    "ZoomCollapsed": "两尺寸仅摘要与展开按钮；大图和大暗罩释放，底层地图/HUD重新可见。",
+    "Dispatch": "两尺寸标题、换行正文及两个诊断操作位于外框内；900文字随Canvas缩放更小。",
+    "FinalSummary": "两尺寸四行排名、查看/详情及返回开始页面完整，不再被HUD右列遮住。",
+    "FinalDetails": "两尺寸返回、分数条、完整两行公式、返回开始页面完整；玩家列表在初始位置只显示部分末项，已有独立滚动。",
+    "FinalDetailsScrolled": "两尺寸最后玩家按钮完整进入viewport；1920公式底部对齐误差约0.000122像素；900正文完全装入槽。"
+  },
+  "items": [
+    {
+      "state": "Rulebook",
+      "requestedSize": "1920x1080",
+      "actualPngSize": [
+        1920,
+        1080
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-Rulebook-1920x1080-actual-1920x1080.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-Rulebook-1920x1080-actual-1920x1080.json",
+      "sha256": "cb00a2f21be8fb9ae46dd484e07f37d8bd8ffd49805f5f6b4c8e6af011bd4da7",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 525.239990234375,
+        "y": 138.239990234375,
+        "width": 869.52001953125,
+        "height": 833.52001953125
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 102.0,
+        "width": 1920.0,
+        "height": 906.0
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Ui007/Prefabs/InGameRulebookViewer.prefab",
+      "scrolls": [
+        {
+          "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/UI007 Body Viewport/Rulebook Viewport",
+          "normalizedPosition": 0.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 621.239990234375,
+            "y": 220.239990234375,
+            "width": 677.52001953125,
+            "height": 677.52001953125
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 621.239990234375,
+            "y": 220.239990234375,
+            "width": 677.52001953125,
+            "height": 677.52001953125
+          }
+        }
+      ]
+    },
+    {
+      "state": "ZoomExpanded",
+      "requestedSize": "1920x1080",
+      "actualPngSize": [
+        1920,
+        1080
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-ZoomExpanded-1920x1080-actual-1920x1080.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-ZoomExpanded-1920x1080-actual-1920x1080.json",
+      "sha256": "181554005d9a95f93ddc2ae84e45fcc39d28fafbf45a9ee1f42621427e5d05d8",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 525.239990234375,
+        "y": 138.239990234375,
+        "width": 869.52001953125,
+        "height": 833.52001953125
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 102.0,
+        "width": 1920.0,
+        "height": 906.0
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Ui007/Prefabs/InGameZoomableImageViewer.prefab",
+      "scrolls": [
+        {
+          "path": "UI007Diagnostic Viewer Canvas/UI007Diagnostic Viewer/UI007Diagnostic Panel/UI007Diagnostic Expanded Content/UI007 Body Viewport/UI007Diagnostic Viewport",
+          "normalizedPosition": 0.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 621.239990234375,
+            "y": 220.239990234375,
+            "width": 677.52001953125,
+            "height": 677.52001953125
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 621.239990234375,
+            "y": 220.239990234375,
+            "width": 677.52001953125,
+            "height": 677.52001953125
+          }
+        }
+      ]
+    },
+    {
+      "state": "ZoomCollapsed",
+      "requestedSize": "1920x1080",
+      "actualPngSize": [
+        1920,
+        1080
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-ZoomCollapsed-1920x1080-actual-1920x1080.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-ZoomCollapsed-1920x1080-actual-1920x1080.json",
+      "sha256": "acef13e9b3ac5d04154a413b11c44c60d3dc134ca106b777bfd13ec6e1ac5e36",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 525.239990234375,
+        "y": 913.760009765625,
+        "width": 869.52001953125,
+        "height": 58.0
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 102.0,
+        "width": 1920.0,
+        "height": 906.0
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Ui007/Prefabs/InGameZoomableImageViewer.prefab",
+      "scrolls": []
+    },
+    {
+      "state": "Dispatch",
+      "requestedSize": "1920x1080",
+      "actualPngSize": [
+        1920,
+        1080
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-Dispatch-1920x1080-actual-1920x1080.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-Dispatch-1920x1080-actual-1920x1080.json",
+      "sha256": "781a76efd4023916fc54f96fdc40f70e2750b62664d58df8f143a8bb07fa0137",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 700.0,
+        "y": 440.0,
+        "width": 520.0,
+        "height": 190.0
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 102.0,
+        "width": 1920.0,
+        "height": 906.0
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/DispatchDecisionDialog.prefab",
+      "scrolls": [
+        {
+          "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/UI007 Body Viewport",
+          "normalizedPosition": 1.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 700.0,
+            "y": 530.0,
+            "width": 520.0,
+            "height": 40.0
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 700.0,
+            "y": 526.0,
+            "width": 520.0,
+            "height": 44.0
+          }
+        }
+      ]
+    },
+    {
+      "state": "FinalSummary",
+      "requestedSize": "1920x1080",
+      "actualPngSize": [
+        1920,
+        1080
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalSummary-1920x1080-actual-1920x1080.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalSummary-1920x1080-actual-1920x1080.json",
+      "sha256": "054ba203869a975fce139b0d676e1f1948fbb19c5dffd8a53e57a5b83bc82b54",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 510.0,
+        "y": 230.0,
+        "width": 900.0,
+        "height": 650.0
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 102.0,
+        "width": 1920.0,
+        "height": 906.0
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Prefabs/RoundTracker/RoundTracker.prefab（SampleScene有效实例）",
+      "scrolls": [
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/UI007 Body Viewport",
+          "normalizedPosition": 0.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 510.0,
+            "y": 338.0,
+            "width": 900.0,
+            "height": 446.0
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 510.0,
+            "y": 338.0,
+            "width": 900.0,
+            "height": 446.0
+          }
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/UI007 Final Score Ranking Rows Viewport",
+          "normalizedPosition": 0.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 554.0,
+            "y": 402.25,
+            "width": 812.0,
+            "height": 260.0
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 554.0,
+            "y": 430.25,
+            "width": 812.0,
+            "height": 232.0
+          }
+        }
+      ]
+    },
+    {
+      "state": "FinalDetails",
+      "requestedSize": "1920x1080",
+      "actualPngSize": [
+        1920,
+        1080
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalDetails-1920x1080-actual-1920x1080.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalDetails-1920x1080-actual-1920x1080.json",
+      "sha256": "3ade3c50974422870ac0cc9bb0df48bc026574e9cf789505205ed0a9711abeca",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 510.0,
+        "y": 230.0,
+        "width": 900.0,
+        "height": 650.0
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 102.0,
+        "width": 1920.0,
+        "height": 906.0
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Prefabs/RoundTracker/RoundTracker.prefab（SampleScene有效实例）",
+      "scrolls": [
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/UI007 Body Viewport",
+          "normalizedPosition": 0.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 510.0,
+            "y": 338.0,
+            "width": 900.0,
+            "height": 446.0
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 510.0,
+            "y": 338.0,
+            "width": 900.0,
+            "height": 446.0
+          }
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Details Player List/UI007 Final Score Detail Player Rows Viewport",
+          "normalizedPosition": 1.000001311302185,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 572.615966796875,
+            "y": 364.3087463378906,
+            "width": 229.10400390625,
+            "height": 237.35995483398438
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 572.615966796875,
+            "y": 341.668701171875,
+            "width": 229.10400390625,
+            "height": 260.0
+          }
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Detail Chart Host/Final Score Detail Charts/Final Score Detail Chart P4/UI007 Score Formula Viewport",
+          "normalizedPosition": 0.9999886155128479,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 840.9742431640625,
+            "y": 371.19073486328125,
+            "width": 491.3955078125,
+            "height": 48.9940185546875
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 840.9742431640625,
+            "y": 370.18475341796875,
+            "width": 491.3955078125,
+            "height": 50.0
+          }
+        }
+      ]
+    },
+    {
+      "state": "FinalDetailsScrolled",
+      "requestedSize": "1920x1080",
+      "actualPngSize": [
+        1920,
+        1080
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalDetailsScrolled-1920x1080-actual-1920x1080.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalDetailsScrolled-1920x1080-actual-1920x1080.json",
+      "sha256": "66fd9effa3b4d532506dacf675bf3b1dfa39003e5fbca198ae701a956426b928",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 510.0,
+        "y": 230.0,
+        "width": 900.0,
+        "height": 650.0
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 102.0,
+        "width": 1920.0,
+        "height": 906.0
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Prefabs/RoundTracker/RoundTracker.prefab（SampleScene有效实例）",
+      "scrolls": [
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/UI007 Body Viewport",
+          "normalizedPosition": 0.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 510.0,
+            "y": 338.0,
+            "width": 900.0,
+            "height": 446.0
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 510.0,
+            "y": 338.0,
+            "width": 900.0,
+            "height": 446.0
+          }
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Details Player List/UI007 Final Score Detail Player Rows Viewport",
+          "normalizedPosition": -2.5611025193938985e-05,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 572.615966796875,
+            "y": 364.3087463378906,
+            "width": 229.10400390625,
+            "height": 237.35995483398438
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 572.615966796875,
+            "y": 364.309326171875,
+            "width": 229.10400390625,
+            "height": 260.0
+          }
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Detail Chart Host/Final Score Detail Charts/Final Score Detail Chart P4/UI007 Score Formula Viewport",
+          "normalizedPosition": 0.0001327175268670544,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 840.9742431640625,
+            "y": 371.19073486328125,
+            "width": 491.3955078125,
+            "height": 48.9940185546875
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 840.9742431640625,
+            "y": 371.19061279296875,
+            "width": 491.3955078125,
+            "height": 50.0
+          }
+        }
+      ],
+      "lastPlayerButtonFullyInsideViewport": true,
+      "formulaHasOverflow": true,
+      "formulaBottomDeltaPixels": -0.0001220703125
+    },
+    {
+      "state": "Rulebook",
+      "requestedSize": "900x600",
+      "actualPngSize": [
+        900,
+        600
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-Rulebook-900x600-actual-900x600.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-Rulebook-900x600-actual-900x600.json",
+      "sha256": "fc870c7956cda77c8abf1ebc2bcc391c112947f1246fdbb643c7c684213f6e97",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 205.65963745117188,
+        "y": 72.49989318847656,
+        "width": 488.6806945800781,
+        "height": 470.3095703125
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 3.409659257158637e-07,
+        "y": 52.051658630371094,
+        "width": 900.0,
+        "height": 511.2060241699219
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Ui007/Prefabs/InGameRulebookViewer.prefab",
+      "scrolls": [
+        {
+          "path": "Game Settings Menu/RulebookViewer/Rulebook Image Viewer/Rulebook Viewer Canvas/Rulebook Viewer/Rulebook Panel/Rulebook Expanded Content/UI007 Body Viewport/Rulebook Viewport",
+          "normalizedPosition": 1.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 254.64944458007812,
+            "y": 114.3453369140625,
+            "width": 390.7011413574219,
+            "height": 390.70111083984375
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 254.64944458007812,
+            "y": 114.3453369140625,
+            "width": 390.7011413574219,
+            "height": 390.70111083984375
+          }
+        }
+      ]
+    },
+    {
+      "state": "ZoomExpanded",
+      "requestedSize": "900x600",
+      "actualPngSize": [
+        900,
+        600
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-ZoomExpanded-900x600-actual-900x600.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-ZoomExpanded-900x600-actual-900x600.json",
+      "sha256": "4657eee2e19b2ade9d066ec91bd7adb116ebd9b31d3657db78b6cf8cd56ca55b",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 205.65963745117188,
+        "y": 72.49989318847656,
+        "width": 488.6806945800781,
+        "height": 470.3095703125
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 3.409659257158637e-07,
+        "y": 52.051658630371094,
+        "width": 900.0,
+        "height": 511.2060241699219
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Ui007/Prefabs/InGameZoomableImageViewer.prefab",
+      "scrolls": [
+        {
+          "path": "UI007Diagnostic Viewer Canvas/UI007Diagnostic Viewer/UI007Diagnostic Panel/UI007Diagnostic Expanded Content/UI007 Body Viewport/UI007Diagnostic Viewport",
+          "normalizedPosition": 1.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 254.64944458007812,
+            "y": 114.3453369140625,
+            "width": 390.7011413574219,
+            "height": 390.70111083984375
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 254.64944458007812,
+            "y": 114.3453369140625,
+            "width": 390.7011413574219,
+            "height": 390.70111083984375
+          }
+        }
+      ]
+    },
+    {
+      "state": "ZoomCollapsed",
+      "requestedSize": "900x600",
+      "actualPngSize": [
+        900,
+        600
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-ZoomCollapsed-900x600-actual-900x600.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-ZoomCollapsed-900x600-actual-900x600.json",
+      "sha256": "5f9cafd388527d523aa1cad815c9e14a629d3cbe6e496d30cc634a699673b45c",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 205.65963745117188,
+        "y": 513.21142578125,
+        "width": 488.6806945800781,
+        "height": 29.5980224609375
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 3.409659257158637e-07,
+        "y": 52.051658630371094,
+        "width": 900.0,
+        "height": 511.2060241699219
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Ui007/Prefabs/InGameZoomableImageViewer.prefab",
+      "scrolls": []
+    },
+    {
+      "state": "Dispatch",
+      "requestedSize": "900x600",
+      "actualPngSize": [
+        900,
+        600
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-Dispatch-900x600-actual-900x600.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-Dispatch-900x600-actual-900x600.json",
+      "sha256": "bddb7416e983fc2531a5598de05df4fd2a39e8ff5e1a4e8d246d4c829c9d9d98",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 317.3193054199219,
+        "y": 248.96896362304688,
+        "width": 265.3614196777344,
+        "height": 96.958984375
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 3.409659257158637e-07,
+        "y": 52.051658630371094,
+        "width": 900.0,
+        "height": 511.2060241699219
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/DispatchDecisionDialog.prefab",
+      "scrolls": [
+        {
+          "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/DispatchDecisionDialog(Clone)/Dispatch Decision Panel/UI007 Body Viewport",
+          "normalizedPosition": 0.9999978542327881,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 317.31927490234375,
+            "y": 294.89691162109375,
+            "width": 265.36138916015625,
+            "height": 20.41241455078125
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 317.3193054199219,
+            "y": 292.20623779296875,
+            "width": 265.3614196777344,
+            "height": 23.10308837890625
+          }
+        }
+      ]
+    },
+    {
+      "state": "FinalSummary",
+      "requestedSize": "900x600",
+      "actualPngSize": [
+        900,
+        600
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalSummary-900x600-actual-900x600.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalSummary-900x600-actual-900x600.json",
+      "sha256": "672ed530f8c2495acb42929f011ab4fa93211c8e1feef16e2c33af4e13e6c104",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 220.36032104492188,
+        "y": 141.80377197265625,
+        "width": 459.2793884277344,
+        "height": 331.7017822265625
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 3.409659257158637e-07,
+        "y": 52.051658630371094,
+        "width": 900.0,
+        "height": 511.2060241699219
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Prefabs/RoundTracker/RoundTracker.prefab（SampleScene有效实例）",
+      "scrolls": [
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/UI007 Body Viewport",
+          "normalizedPosition": 1.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 220.36032104492188,
+            "y": 196.91729736328125,
+            "width": 459.2793884277344,
+            "height": 227.59844970703125
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 220.36032104492188,
+            "y": 196.91729736328125,
+            "width": 459.2793884277344,
+            "height": 227.59844970703125
+          }
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Summary View/Final Score Board/UI007 Final Score Ranking Rows Viewport",
+          "normalizedPosition": 1.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 242.81398010253906,
+            "y": 229.70472717285156,
+            "width": 414.3720703125,
+            "height": 132.6807098388672
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 242.81398010253906,
+            "y": 243.99342346191406,
+            "width": 414.3720703125,
+            "height": 118.39201354980469
+          }
+        }
+      ]
+    },
+    {
+      "state": "FinalDetails",
+      "requestedSize": "900x600",
+      "actualPngSize": [
+        900,
+        600
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalDetails-900x600-actual-900x600.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalDetails-900x600-actual-900x600.json",
+      "sha256": "f393b9adf6ef404f0a0f5ffe3f4be1a468976bdbdea919f1af5a1ee2f6cb268b",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 220.36032104492188,
+        "y": 141.80377197265625,
+        "width": 459.2793884277344,
+        "height": 331.7017822265625
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 3.409659257158637e-07,
+        "y": 52.051658630371094,
+        "width": 900.0,
+        "height": 511.2060241699219
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Prefabs/RoundTracker/RoundTracker.prefab（SampleScene有效实例）",
+      "scrolls": [
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/UI007 Body Viewport",
+          "normalizedPosition": 1.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 220.36032104492188,
+            "y": 196.91729736328125,
+            "width": 459.2793884277344,
+            "height": 227.59844970703125
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 220.36032104492188,
+            "y": 196.91729736328125,
+            "width": 459.2793884277344,
+            "height": 227.59844970703125
+          }
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Details Player List/UI007 Final Score Detail Player Rows Viewport",
+          "normalizedPosition": 1.0000007152557373,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 252.3139190673828,
+            "y": 210.34292602539062,
+            "width": 116.91416931152344,
+            "height": 121.12725830078125
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 252.3139190673828,
+            "y": 198.7894744873047,
+            "width": 116.91416931152344,
+            "height": 132.6807098388672
+          }
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Detail Chart Host/Final Score Detail Charts/Final Score Detail Chart P4/UI007 Score Formula Viewport",
+          "normalizedPosition": 1.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 389.2599182128906,
+            "y": 213.85488891601562,
+            "width": 250.76425170898438,
+            "height": 25.00213623046875
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 389.2599182128906,
+            "y": 213.85487365722656,
+            "width": 250.76425170898438,
+            "height": 25.002151489257812
+          }
+        }
+      ]
+    },
+    {
+      "state": "FinalDetailsScrolled",
+      "requestedSize": "900x600",
+      "actualPngSize": [
+        900,
+        600
+      ],
+      "png": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalDetailsScrolled-900x600-actual-900x600.png",
+      "json": "prompt/UI换新/执行记录/证据/UI007-Secondary-Supplemental-Diagnostic-FinalDetailsScrolled-900x600-actual-900x600.json",
+      "sha256": "1ad230d017abac8234ef8a48a749e25ab423e5575ae64aa6af03f7799b2fd917",
+      "visuallyReviewed": true,
+      "rootScreenRect": {
+        "serializedVersion": "2",
+        "x": 220.36032104492188,
+        "y": 141.80377197265625,
+        "width": 459.2793884277344,
+        "height": 331.7017822265625
+      },
+      "contentScreenRect": {
+        "serializedVersion": "2",
+        "x": 3.409659257158637e-07,
+        "y": 52.051658630371094,
+        "width": 900.0,
+        "height": 511.2060241699219
+      },
+      "rootInsideContent": true,
+      "unmaskedPositiveRectsOutsideRoot": [],
+      "componentDiagnostic": true,
+      "commandSubmissionEnabled": false,
+      "sourceAsset": "Assets/YC/Presentation/Prefabs/RoundTracker/RoundTracker.prefab（SampleScene有效实例）",
+      "scrolls": [
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/UI007 Body Viewport",
+          "normalizedPosition": 1.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 220.36032104492188,
+            "y": 196.91729736328125,
+            "width": 459.2793884277344,
+            "height": 227.59844970703125
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 220.36032104492188,
+            "y": 196.91729736328125,
+            "width": 459.2793884277344,
+            "height": 227.59844970703125
+          }
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Details Player List/UI007 Final Score Detail Player Rows Viewport",
+          "normalizedPosition": -2.5948012989829294e-05,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 252.3139190673828,
+            "y": 210.34292602539062,
+            "width": 116.91416931152344,
+            "height": 121.12725830078125
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 252.3139190673828,
+            "y": 210.3432159423828,
+            "width": 116.91416931152344,
+            "height": 132.6807098388672
+          }
+        },
+        {
+          "path": "RoundTracker/Round UI Canvas/Game Over Overlay/Game Over Dialog/Final Score Details View/Final Score Detail Chart Host/Final Score Detail Charts/Final Score Detail Chart P4/UI007 Score Formula Viewport",
+          "normalizedPosition": 1.0,
+          "viewportScreenRect": {
+            "serializedVersion": "2",
+            "x": 389.2599182128906,
+            "y": 213.85488891601562,
+            "width": 250.76425170898438,
+            "height": 25.00213623046875
+          },
+          "contentScreenRect": {
+            "serializedVersion": "2",
+            "x": 389.2599182128906,
+            "y": 213.85487365722656,
+            "width": 250.76425170898438,
+            "height": 25.002151489257812
+          }
+        }
+      ],
+      "lastPlayerButtonFullyInsideViewport": true,
+      "formulaHasOverflow": false,
+      "formulaBottomDeltaPixels": -1.52587890625e-05
+    }
+  ]
+}

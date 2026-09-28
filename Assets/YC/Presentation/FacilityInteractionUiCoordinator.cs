@@ -6,6 +6,7 @@ using YC.Application.Interactions;
 using YC.Domain.Commands;
 using YC.Domain.Interactions;
 using YC.Domain.Effects;
+using YC.Domain.Economy;
 using YC.Domain.Facilities;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -28,8 +29,12 @@ namespace YC.Presentation
         private readonly Action<string> setPrompt;
         private string renderedInteractionId = string.Empty;
         private int renderedRevision = -1;
+        private bool needsRefresh;
         private string inFlightCommandId = string.Empty;
+        private readonly List<int> resourceDraft = new List<int>();
+        private string inventoryKey = string.Empty;
         private readonly List<string> selectedCandidates = new List<string>();
+        public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
 
         public FacilityInteractionUiCoordinator(
             Func<GameState> getState,
@@ -86,20 +91,27 @@ namespace YC.Presentation
 
         private bool RenderRequest(InteractionRequestProjection request)
         {
-            if (!string.IsNullOrEmpty(inFlightCommandId))
-            {
-                return true;
-            }
-
             var interactionId = request.InteractionId;
-            if (interactionId == renderedInteractionId && request.StateRevision == renderedRevision)
+            var sameRequest = interactionId == renderedInteractionId;
+            if (sameRequest && request.StateRevision < renderedRevision) return true;
+            if (!sameRequest)
             {
-                return true;
+                selectedCandidates.Clear();
+                resourceDraft.Clear();
+                inFlightCommandId = string.Empty;
             }
-
-            selectedCandidates.Clear();
+            if (!string.IsNullOrEmpty(inFlightCommandId)) return true;
+            var resources = getState()?.FindPlayer(getLocalPlayerId())?.Resources;
+            var nextInventoryKey = resources == null ? string.Empty :
+                string.Join(",", new[] { resources.Originium, resources.OriginiumShard, resources.Iron, resources.PureOriginium });
+            if (sameRequest && !needsRefresh && request.StateRevision == renderedRevision && inventoryKey == nextInventoryKey) return true;
+            selectedCandidates.RemoveAll(id => request.CandidateIds == null || !request.CandidateIds.Contains(id));
+            if (selectedCandidates.Count > request.MaxSelections)
+                selectedCandidates.RemoveRange(Math.Max(0, request.MaxSelections), selectedCandidates.Count - Math.Max(0, request.MaxSelections));
             renderedInteractionId = interactionId;
             renderedRevision = request.StateRevision;
+            inventoryKey = nextInventoryKey;
+            needsRefresh = false;
             clearHighlights();
             setHighlights(BuildHighlights(request));
 
@@ -109,7 +121,7 @@ namespace YC.Presentation
             }
             else
             {
-                ShowCandidateOptions(request);
+                ShowCandidateOptions(request, sameRequest);
             }
 
             setPrompt(FormatPrompt(request.PromptKey));
@@ -129,6 +141,12 @@ namespace YC.Presentation
         public bool TryHandleEscape()
         {
             if (!IsActive) return false;
+            if (GameplayHudFrame.EffectInputSuspended) return true;
+            if (TryGetRequest(out var request) && request.AllowDecline && IsCurrent(request))
+            {
+                SubmitAnswer(EffectInteractionCommands.Answer(request, getLocalPlayerId(), null, true));
+                return true;
+            }
             setPrompt("当前设施效果需要完成选择后才能继续。");
             return true;
         }
@@ -138,8 +156,7 @@ namespace YC.Presentation
             if (!string.IsNullOrEmpty(commandId) && commandId == inFlightCommandId)
             {
                 inFlightCommandId = string.Empty;
-                renderedInteractionId = string.Empty;
-                renderedRevision = -1;
+                needsRefresh = true;
             }
         }
 
@@ -161,39 +178,30 @@ namespace YC.Presentation
             return true;
         }
 
-        private void ShowCandidateOptions(InteractionRequestProjection request)
+        private void ShowCandidateOptions(InteractionRequestProjection request, bool preserveScroll = true)
         {
-            var options = new List<EffectDialogOption>();
-            if (request.CandidateIds != null)
+            dialog.ShowSelection(dialog.Copy.FacilitySelectionTitle, FormatPrompt(request.PromptKey), new EffectDialogSelectionSpec
             {
-                for (var i = 0; i < request.CandidateIds.Count; i++)
+                Request = request,
+                SelectedIds = selectedCandidates,
+                Label = FormatCandidateLabel,
+                OptionNamePrefix = "Option ",
+                IsCurrent = () => IsCurrent(request),
+                Select = candidateId => SelectCandidate(request, candidateId),
+                Confirm = () => SubmitCandidateAnswer(request, new List<string>(selectedCandidates)),
+                Cancel = request.AllowDecline ? (Action)(() =>
                 {
-                    var candidateId = request.CandidateIds[i];
-                    options.Add(new EffectDialogOption(
-                        (selectedCandidates.Contains(candidateId) ? "已选：" : string.Empty) + FormatCandidateLabel(candidateId),
-                        () =>
-                        {
-                            SelectCandidate(request, candidateId);
-                        }));
-                }
-            }
+                    if (IsCurrent(request)) SubmitAnswer(EffectInteractionCommands.Answer(request, getLocalPlayerId(), null, true));
+                }) : null
+            }, preserveScroll);
+        }
 
-            if (request.MaxSelections > 1)
-            {
-                options.Add(new EffectDialogOption("确认选择", () =>
-                {
-                    if (selectedCandidates.Count < request.MinSelections)
-                    {
-                        setPrompt("请先选足目标后再确认。");
-                        return;
-                    }
-                    SubmitCandidateAnswer(request, new List<string>(selectedCandidates));
-                }));
-            }
-            dialog.ShowOptions(
-                "设施效果",
-                FormatPrompt(request.PromptKey),
-                options);
+        private bool IsCurrent(InteractionRequestProjection request)
+        {
+            return request != null && string.IsNullOrEmpty(inFlightCommandId) && TryGetRequest(out var current) &&
+                current.InteractionId == request.InteractionId && current.StateRevision == request.StateRevision &&
+                current.CandidateSetId == request.CandidateSetId &&
+                current.CandidateSetVersion == request.CandidateSetVersion;
         }
 
         private void ShowResourceAllocation(InteractionRequestProjection request)
@@ -202,8 +210,8 @@ namespace YC.Presentation
             var resources = player == null ? new ResourceSet() : player.Resources;
             var isSale = request.CandidateIds != null && request.CandidateIds.Contains("choice.confirm");
             var labels = isSale
-                ? new List<string> { "源岩", "源岩碎片", "异铁", "纯源石" }
-                : new List<string> { "源岩", "源岩碎片", "异铁" };
+                ? new List<string> { "源岩", "源石碎片", "异铁", "至纯源石" }
+                : new List<string> { "源岩", "源石碎片", "异铁" };
             int total = 5;
             if (request.CandidateIds != null) foreach (var candidate in request.CandidateIds)
                 if (candidate.StartsWith("total:", StringComparison.Ordinal) && int.TryParse(candidate.Substring(6), out int requestedTotal)) total = requestedTotal;
@@ -212,18 +220,28 @@ namespace YC.Presentation
                 : new List<int> { total, total, total };
             var exactTotal = isSale ? -1 : total;
             dialog.ShowResourceAllocation(
-                "设施资源效果",
-                isSale ? "选择要出售的资源数量。" : "分配总计 " + total + " 点资源。",
+                dialog.Copy.ResourceAllocationTitle,
+                isSale ? dialog.Copy.SaleDescription : string.Format(dialog.Copy.ResourceAllocationDescriptionFormat, total),
                 labels,
                 maximums,
                 exactTotal,
                 values => SubmitResourceAnswer(request, values, labels),
-                isSale ? (Action)(() => SubmitCandidateAnswer(request, new List<string> { "choice.skip" })) : null);
+                isSale && request.CandidateIds.Contains("choice.skip")
+                    ? (Action)(() => SubmitCandidateAnswer(request, new List<string> { "choice.skip" })) : null,
+                resourceDraft.Count == 0 ? null : resourceDraft,
+                values => { resourceDraft.Clear(); resourceDraft.AddRange(values); },
+                () => IsCurrent(request),
+                isSale ? new[] { ResourceSaleService.OriginiumUnitPrice, ResourceSaleService.OriginiumShardUnitPrice,
+                    ResourceSaleService.IronUnitPrice, ResourceSaleService.PureOriginiumUnitPrice } : null);
         }
 
         private void SubmitCandidateAnswer(InteractionRequestProjection request, IList<string> selected)
         {
-            if (request == null || selected == null || selected.Count == 0) return;
+            if (GameplayHudFrame.EffectInputSuspended || !IsCurrent(request) || selected == null ||
+                selected.Count < request.MinSelections || selected.Count > request.MaxSelections) return;
+            var unique = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var id in selected)
+                if (!unique.Add(id) || request.CandidateIds == null || !request.CandidateIds.Contains(id)) return;
             var command = CreateAnswerCommand(request);
             for (var i = 0; i < selected.Count; i++) command.OptionIds.Add(selected[i]);
             SubmitAnswer(command);
@@ -234,6 +252,22 @@ namespace YC.Presentation
             IReadOnlyList<int> values,
             IReadOnlyList<string> labels)
         {
+            if (GameplayHudFrame.EffectInputSuspended || !IsCurrent(request) || values == null) return;
+            var resources = getState()?.FindPlayer(getLocalPlayerId())?.Resources;
+            var isSale = request.CandidateIds != null && request.CandidateIds.Contains("choice.confirm");
+            if (isSale)
+            {
+                var maximums = resources == null ? new int[4] : new[]
+                    { resources.Originium, resources.OriginiumShard, resources.Iron, resources.PureOriginium };
+                var total = 0;
+                for (var i = 0; i < values.Count; i++)
+                {
+                    if (i >= maximums.Length || values[i] < 0 || values[i] > maximums[i])
+                    { needsRefresh = true; RenderRequest(request); return; }
+                    total += values[i];
+                }
+                if (total == 0) return;
+            }
             var parts = new List<string>();
             var resourceKeys = new[] { "Originium", "OriginiumShard", "Iron", "PureOriginium" };
             for (var i = 0; i < values.Count && i < labels.Count && i < resourceKeys.Length; i++)
@@ -262,22 +296,17 @@ namespace YC.Presentation
             dialog.Hide();
             clearHighlights();
             try { submit(command); }
-            catch { inFlightCommandId = string.Empty; renderedRevision = -1; throw; }
+            catch { inFlightCommandId = string.Empty; needsRefresh = true; throw; }
         }
 
         private bool TryGetRequest(out InteractionRequestProjection request)
         {
             request = null;
-            var state = getState();
-            if (state == null || state.EffectRuntime == null || state.EffectRuntime.InteractionRequests == null)
-            {
-                return false;
-            }
-
             var localPlayerId = getLocalPlayerId();
-            for (var i = 0; i < state.EffectRuntime.InteractionRequests.Count; i++)
+            var requests = GetVisibleRequests == null ? VisibleInteractionRequestSource.Read(getState(), null, localPlayerId) : GetVisibleRequests();
+            for (var i = 0; requests != null && i < requests.Count; i++)
             {
-                var candidate = state.EffectRuntime.InteractionRequests[i];
+                var candidate = requests[i];
                 if (candidate != null && candidate.Status == "open" &&
                     candidate.InteractionTypeId == FacilityEntryEffectTypeIds.InteractionType &&
                     candidate.AnsweringPlayerId == localPlayerId)
@@ -332,19 +361,16 @@ namespace YC.Presentation
 
         private void SelectCandidate(InteractionRequestProjection request, string candidateId)
         {
-            if (!string.IsNullOrEmpty(inFlightCommandId)) return;
+            if (GameplayHudFrame.EffectInputSuspended || !IsCurrent(request) ||
+                request.CandidateIds == null || !request.CandidateIds.Contains(candidateId)) return;
             if (request.MaxSelections <= 1)
             {
-                SubmitCandidateAnswer(request, new List<string> { candidateId });
-                return;
+                if (!selectedCandidates.Remove(candidateId))
+                { selectedCandidates.Clear(); selectedCandidates.Add(candidateId); }
             }
-            if (!selectedCandidates.Remove(candidateId))
+            else if (!selectedCandidates.Remove(candidateId))
             {
-                if (selectedCandidates.Count >= request.MaxSelections)
-                {
-                    setPrompt("已选足目标，可先取消一个选择再更换。");
-                    return;
-                }
+                if (selectedCandidates.Count >= request.MaxSelections) return;
                 selectedCandidates.Add(candidateId);
             }
             ShowCandidateOptions(request);
@@ -403,8 +429,11 @@ namespace YC.Presentation
         private void ResetAndHide()
         {
             selectedCandidates.Clear();
+            resourceDraft.Clear();
+            inventoryKey = string.Empty;
             renderedInteractionId = string.Empty;
             renderedRevision = -1;
+            needsRefresh = false;
             inFlightCommandId = string.Empty;
             dialog.Hide();
             clearHighlights();

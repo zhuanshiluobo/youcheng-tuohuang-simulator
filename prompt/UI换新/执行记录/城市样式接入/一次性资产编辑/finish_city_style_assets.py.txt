@@ -1,0 +1,28 @@
+from pathlib import Path
+ns={'__name__':'library'};exec(Path('Logs/patch_city_style_assets.py').read_text(encoding='utf8').split('# Catalog binds')[0],ns)
+Asset,comp,ref,field,NATIVE,text,image=[ns[n] for n in ('Asset','comp','ref','field','NATIVE','text','image')]
+a=Asset('Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab')
+rects={field(a.text(a.go(i)),'m_Name'):i for i,(k,t) in a.docs.items() if k==224 and a.go(i) in a.docs}
+marker=rects['Influence Marker Template'];nr=a.node('Marker Count',marker);ni=text(a,nr,'0',80,'3eddf79db7bec9c4193e00ae800bfd4e');k,t=a.docs[ni];a.docs[ni]=(k,t.replace('m_BestFit: 0','m_BestFit: 1'))
+card=rects['City Style Card Template'];art=next(r for r in a.children(card) if any(NATIVE['RawImage'] in a.text(c) for c in a.components(r)));markers=next(r for r in a.children(card) if field(a.text(a.go(r)),'m_Name')=='MarkerRoot')
+a.set(art,'m_AnchorMin','{x: 0, y: 0.085}');a.set(art,'m_AnchorMax','{x: 1, y: 1}');a.set(art,'m_SizeDelta','{x: 0, y: 0}');a.set(art,'m_AnchoredPosition','{x: 0, y: 0}');a.move(markers,art);a.fill(markers)
+for c in a.components(rects['City Style Cards']):
+ if 'preferredCardSize:' in a.text(c):a.set(c,'preferredCardSize','{x: 246, y: 173.45}')
+a.save()
+b=Asset('Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab')
+for c in b.components(4666509910456757868):
+ if 'preferredCardSize:' in b.text(c):b.set(c,'preferredCardSize','{x: 246, y: 173.45}')
+b.save()
+a=Asset('Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab')
+vc=next(i for i,(k,t) in a.docs.items() if k==114 and 'optionsContent:' in t)
+labels={'detailLabel':'查看原卡','listLabel':'返回列表','viewStatus':'仅查看 · 宣告请从城市样式页的宣告入口开始','emptyStatus':'当前没有可查看的城市样式','selectedCountFormat':'已选 {0} / {1} 个设施','validStatusFormat':'组合符合条件 · 方向 {0}°','selectionUnavailable':'当前无法校验宣告条件','specialActionReady':'拖动本方标记到高亮状态槽，单独发动特殊行动','specialActionDrop':'在高亮区域松开以发动特殊行动','specialActionCancelled':'已取消特殊行动，未提交命令','warningSuffix':'\n仍要消耗主要行动与本次样式行动次数吗？'}
+import json
+k,t=a.docs[vc];a.docs[vc]=(k,t+''.join('  '+n+': '+json.dumps(v,ensure_ascii=False)+'\n' for n,v in labels.items()))
+for i,(k,t) in list(a.docs.items()):
+ if k==224 and field(a.text(a.go(i)),'m_Name') in ('Style List Viewport','Summary Viewport'):
+  im=image(a,i,'Assets/YC/Presentation/CommonUi/Sprites/Frontier31/module-bg.png');a.set(im,'m_Color','{r: 1, g: 1, b: 1, a: 0.01}');a.set(im,'m_RaycastTarget','1')
+for r,primary in [(3819286571567218074,False),(7872978146613621456,False),(7994224994684917141,True)]:
+ im=comp(a,r,NATIVE['Image']);a.set(im,'m_Sprite','{fileID: 21300000, guid: '+ns['guid']('Assets/YC/Presentation/CommonUi/Sprites/Frontier31/button-'+('primary' if primary else 'secondary')+'.png.meta')+', type: 3}');a.set(im,'m_Type','1');a.set(im,'m_Color','{r: 1, g: 1, b: 1, a: 1}')
+for r in (3948227551203327562,6394404177124821186,4286330865456497803):
+ c=comp(a,r,NATIVE['Text']);k,t=a.docs[c];a.docs[c]=(k,t.replace('43e9d69dcca63724db85852acd46004d','5c5a187d1eb86944c93f847ec521c324'))
+a.save()

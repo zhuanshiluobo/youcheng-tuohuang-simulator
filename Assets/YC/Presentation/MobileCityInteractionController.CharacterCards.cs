@@ -1,6 +1,10 @@
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
+using YC.Domain.Rules;
+using YC.Presentation.Workflows;
 
 namespace YC.Presentation
 {
@@ -10,6 +14,33 @@ namespace YC.Presentation
         private CharacterCardEffectInteractionUiCoordinator characterCardEffectInteraction; private CharacterAbilityInteractionUiCoordinator characterAbilityInteraction;
         private string automaticSecondEffectMode = string.Empty;
         private bool submittingSecondEffectDecision;
+        private CardViewer characterViewer;
+        private string characterUseCommandId = string.Empty;
+
+        private void NotifyCharacterUseSettled(string commandId)
+        {
+            if (string.IsNullOrEmpty(commandId) || commandId == characterUseCommandId)
+                characterUseCommandId = string.Empty;
+        }
+        private readonly List<string> coverCandidates = new List<string>();
+        private string selectedCoverCardId = string.Empty;
+        private string coverCandidateKey = string.Empty;
+        private bool coverSubmissionInFlight;
+        private string submittedCoverCardId = string.Empty;
+        private string submittedCoverCommandId = string.Empty;
+        private int coverContextVersion;
+
+        private void NotifyCoverCommandSettled(string commandId)
+        {
+            // 空 ID 是权威初始快照；普通回包只能解除它自己的提交锁。
+            if (!string.IsNullOrEmpty(commandId) && commandId != submittedCoverCommandId) return;
+            if (!coverSubmissionInFlight && !string.IsNullOrEmpty(commandId)) return;
+            coverSubmissionInFlight = false;
+            submittedCoverCardId = string.Empty;
+            submittedCoverCommandId = string.Empty;
+            coverCandidateKey = string.Empty;
+            coverContextVersion++;
+        }
 
         private void BuildCharacterCardEffectInteraction()
         {
@@ -27,12 +58,106 @@ namespace YC.Presentation
                 SubmitResolvePendingCharacterChoice,
                 SetPrompt);
             characterAbilityInteraction = new CharacterAbilityInteractionUiCoordinator(() => session == null ? null : session.State, () => localPlayerId, characterCardEffectChoiceDialog, highlights => workflowView.SetHighlights(highlights), () => workflowView.ClearHighlights(), SubmitPendingEffectCommand, SetPrompt);
+            characterAbilityInteraction.GetVisibleState = VisibleSaleState;
         }
 
         private void DisposeCharacterCardEffectInteraction()
         {
             characterCardEffectInteraction?.HideDialog(); characterAbilityInteraction?.Dispose();
             characterCardEffectInteraction = null; characterAbilityInteraction = null;
+        }
+
+        private void RefreshCharacterCoverSelection(CharacterCardPanelViewModel model)
+        {
+            var state = session == null ? null : session.State;
+            var eligible = state != null && state.Phase == GamePhase.CharacterCover &&
+                           state.CurrentPlayerId == localPlayerId && model != null && model.CanCover;
+            if (!eligible)
+            {
+                if (coverCandidateKey.Length > 0) characterCardEffectChoiceDialog?.Hide();
+                if (coverCandidateKey.Length > 0 || coverSubmissionInFlight) coverContextVersion++;
+                coverSubmissionInFlight = false;
+                submittedCoverCardId = string.Empty;
+                submittedCoverCommandId = string.Empty;
+                coverCandidateKey = string.Empty;
+                selectedCoverCardId = string.Empty;
+                coverCandidates.Clear();
+                return;
+            }
+
+            coverCandidates.Clear();
+            if (model.HandCards != null)
+                foreach (var card in model.HandCards)
+                    if (card != null && card.CanCover && !string.IsNullOrEmpty(card.CardId) &&
+                        !coverCandidates.Contains(card.CardId)) coverCandidates.Add(card.CardId);
+
+            var nextKey = state.GameId + ":" + state.Round + ":" + localPlayerId + ":" +
+                          string.Join("|", coverCandidates);
+            if (coverSubmissionInFlight)
+            {
+                if (nextKey == coverCandidateKey && coverCandidates.Contains(submittedCoverCardId)) return;
+                coverSubmissionInFlight = false;
+                submittedCoverCardId = string.Empty;
+                submittedCoverCommandId = string.Empty;
+                selectedCoverCardId = string.Empty;
+            }
+            if (!coverCandidates.Contains(selectedCoverCardId)) selectedCoverCardId = string.Empty;
+            if (nextKey == coverCandidateKey && characterCardEffectChoiceDialog != null &&
+                characterCardEffectChoiceDialog.IsShowing) return;
+            if (nextKey != coverCandidateKey) coverContextVersion++;
+            coverCandidateKey = nextKey;
+            ShowCurrentCoverSelection();
+            if (coverCandidates.Count == 0)
+                SetPrompt(string.IsNullOrEmpty(model.InteractionStatus)
+                    ? "当前没有可盖放的角色牌。"
+                    : model.InteractionStatus);
+        }
+
+        private void SelectCoverCard(string cardId)
+        {
+            if (string.IsNullOrEmpty(cardId) || !coverCandidates.Contains(cardId) ||
+                !IsCurrentCoverCandidate(cardId)) return;
+            selectedCoverCardId = cardId;
+            ShowCurrentCoverSelection();
+        }
+
+        private void ShowCurrentCoverSelection()
+        {
+            var version = coverContextVersion;
+            characterCardEffectChoiceDialog?.ShowCoverSelection(
+                coverCandidates, selectedCoverCardId,
+                id => version == coverContextVersion && IsCurrentCoverCandidate(id),
+                id => { if (version == coverContextVersion) SelectCoverCard(id); },
+                () => { if (version == coverContextVersion) ConfirmCoverSelection(); });
+        }
+
+        private bool IsCurrentCoverCandidate(string cardId)
+        {
+            if (coverSubmissionInFlight || session == null || session.State == null || characterCardPresenter == null ||
+                session.State.Phase != GamePhase.CharacterCover ||
+                session.State.CurrentPlayerId != localPlayerId) return false;
+            var current = characterCardPresenter.BuildView(session.State, localPlayerId);
+            if (current == null || !current.CanCover || current.HandCards == null) return false;
+            foreach (var card in current.HandCards)
+                if (card != null && card.CanCover && card.CardId == cardId) return true;
+            return false;
+        }
+
+        private void ConfirmCoverSelection()
+        {
+            if (coverSubmissionInFlight) return;
+            if (!IsCurrentCoverCandidate(selectedCoverCardId))
+            {
+                SetPrompt("当前盖牌选择已失效，请重新选择。");
+                RefreshCharacterCoverSelection(characterCardPresenter?.BuildView(session?.State, localPlayerId));
+                return;
+            }
+
+            var cardId = selectedCoverCardId;
+            coverSubmissionInFlight = true;
+            submittedCoverCardId = cardId;
+            characterCardEffectChoiceDialog?.Hide();
+            SubmitCoverCharacterCard(cardId);
         }
 
         private bool TryCancelCharacterFacilityEffectSelection()
@@ -47,6 +172,7 @@ namespace YC.Presentation
 
         private void OnUseCharacterActionClicked()
         {
+            if (!string.IsNullOrEmpty(characterUseCommandId)) return;
             var view = characterCardPresenter == null
                 ? null
                 : characterCardPresenter.BuildView(session.State, localPlayerId);
@@ -60,9 +186,7 @@ namespace YC.Presentation
             characterSettlementInProgress = true;
             characterCardEffectInteraction?.HideDialog();
             characterMapInteraction?.Cancel();
-            actionPanel.ResetCharacterCardReveal();
-            actionPanel.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
-            actionPanel.ShowCharacterCard(view);
+            ShowCharacterUsePage(view);
         }
 
         private void SubmitSecondEffectDecision(bool continueSecondEffect)
@@ -133,7 +257,75 @@ namespace YC.Presentation
                    !pending.OptionIds.Contains(CharacterEffectChoiceIds.ContinueSecondEffect);
         }
 
-        private bool FinishCharacterUseOnFlip()
+        private CharacterCardEffectChoiceDialog characterUsePage;
+        private string characterUsePageKey = string.Empty;
+
+        private string CharacterUseKey(CharacterCardPanelViewModel model)
+        {
+            return model == null ? string.Empty : localPlayerId + ":" + session?.State?.Round + ":" +
+                session?.State?.Phase + ":" + model.CoveredCardId + ":" + model.IsSecondEffectDecision +
+                ":" + model.IsSecondEffectExecution + ":" + model.CanUseStrategy + ":" + model.CanUseTactic;
+        }
+
+        private void ShowCharacterUsePage(CharacterCardPanelViewModel model)
+        {
+            if (model == null || gameplayInteractionHud == null) return;
+            if (!model.IsSecondEffectDecision && !model.IsSecondEffectExecution)
+            {
+                OpenCharacterViewer(model);
+                return;
+            }
+            var key = CharacterUseKey(model);
+            if (characterUsePage != null && characterUsePage.IsShowing && characterUsePageKey == key) return;
+            if (characterUsePage == null)
+                characterUsePage = new CharacterCardEffectChoiceDialog(gameplayInteractionHud.DialogRegistry,
+                    gameplayInteractionHud.Frame.ContentRect);
+            characterUsePageKey = key;
+            bool Current() => characterUsePageKey == key && session != null &&
+                CharacterUseKey(characterCardPresenter.BuildView(session.State, localPlayerId)) == key;
+            characterUsePage.ShowSecondEffectStep(model, () =>
+            {
+                if (Current()) BeginCharacterEffect(UseCharacterCardCommandHandler.Strategy);
+            }, () =>
+            {
+                if (Current()) BeginCharacterEffect(UseCharacterCardCommandHandler.Tactic);
+            }, () =>
+            {
+                if (Current()) FinishCharacterUseButtonClicked();
+            }, Current, () =>
+            {
+                characterUsePageKey = string.Empty;
+                characterSettlementInProgress = false;
+            });
+        }
+
+        private void OpenCharacterViewer(CharacterCardPanelViewModel model)
+        {
+            if (!model.CanUse || !string.IsNullOrEmpty(characterUseCommandId)) return;
+            var texture = gameplayInteractionHud.DialogRegistry.CardVisualCatalog.GetCharacterFront(model.CoveredCardId);
+            if (texture == null) return;
+            if (characterViewer == null) characterViewer = gameplayInteractionHud.DialogRegistry.InstantiateCardViewer();
+            var ownerSession = session;
+            var ownerPlayer = localPlayerId;
+            var revision = session.State.EffectRuntime?.StateRevision ?? 0;
+            var key = CharacterUseKey(model);
+            bool Current() => session == ownerSession && localPlayerId == ownerPlayer &&
+                string.IsNullOrEmpty(characterUseCommandId) && session.State != null &&
+                (session.State.EffectRuntime?.StateRevision ?? 0) == revision &&
+                CharacterUseKey(characterCardPresenter.BuildView(session.State, localPlayerId)) == key;
+            characterViewer.OpenCharacter(model.CoveredCardId, texture, model.CanUseTactic, model.CanUseStrategy,
+                characterCardPresenter.GetEffectUnavailableReason(session.State, localPlayerId, false),
+                characterCardPresenter.GetEffectUnavailableReason(session.State, localPlayerId, true), Current,
+                effect =>
+                {
+                    if (!Current()) return;
+                    // 源包 plot 明确映射到工程 Tactic，不能按按钮索引选择。
+                    BeginCharacterEffect(effect == CardViewerEffect.Plot
+                        ? UseCharacterCardCommandHandler.Tactic : UseCharacterCardCommandHandler.Strategy);
+                }, () => characterSettlementInProgress = false);
+        }
+
+        private bool FinishCharacterUseButtonClicked()
         {
             var view = characterCardPresenter == null || session == null
                 ? null
@@ -160,6 +352,7 @@ namespace YC.Presentation
 
         private void BeginCharacterEffect(string effectMode)
         {
+            if (!string.IsNullOrEmpty(characterUseCommandId)) return;
             var view = characterCardPresenter == null
                 ? null
                 : characterCardPresenter.BuildView(session.State, localPlayerId);
@@ -178,8 +371,8 @@ namespace YC.Presentation
             }
 
             characterSettlementInProgress = true;
-            actionPanel.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
-            actionPanel.ShowCharacterCard(view);
+            characterUsePage?.Hide();
+            characterUsePageKey = string.Empty;
             var effect = useStrategy ? view.StrategyEffect : view.TacticEffect;
             if (characterCardEffectInteraction != null &&
                 characterCardEffectInteraction.TryBeginEffect(effectMode, effect))

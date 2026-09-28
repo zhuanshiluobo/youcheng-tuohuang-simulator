@@ -238,7 +238,7 @@ namespace YC.Presentation
                 ? UiTheme.CyanAccent
                 : UiTheme.GetPlayerColor(player.Color, 1f);
         }
-        public void CollapseEventOptions() => eventChoiceDialog.CollapseForMapInteraction();
+        public void CollapseEventOptions() => eventChoiceDialog.SuspendForMapInteraction();
         public void HideEventOptions() => eventChoiceDialog.Hide();
         public void RefreshResourceAndInfluence() { refreshResource(); refreshInfluence(); }
 
@@ -267,6 +267,8 @@ namespace YC.Presentation
             }
         }
         public void HideBuildFacilityDraft() => eventChoiceDialog.Hide();
+        public void RefreshCityStylePreview() => cityStyleDeclarationDialog.RefreshProjection();
+
         public void ShowCityStyleOptions(CityStyleOptionsViewModel model)
         {
             if (model == null)
@@ -275,7 +277,7 @@ namespace YC.Presentation
                 return;
             }
 
-            eventChoiceDialog.Hide();
+            if (model.DeclareMode) eventChoiceDialog.Hide();
             cityStyleDeclarationDialog.Show(model);
         }
 

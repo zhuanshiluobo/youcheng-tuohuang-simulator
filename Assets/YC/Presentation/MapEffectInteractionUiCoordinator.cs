@@ -24,6 +24,7 @@ namespace YC.Presentation
         private string inFlight = string.Empty;
         private string rendered = string.Empty;
         private int revision = -1;
+        public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
 
         public MapEffectInteractionUiCoordinator(Func<GameState> state, Func<int> player,
             CharacterCardEffectChoiceDialog dialog, Action<IReadOnlyList<WorkflowHighlight>> highlights,
@@ -45,9 +46,9 @@ namespace YC.Presentation
 
         private InteractionRequestProjection Current()
         {
-            var runtime = state()?.EffectRuntime;
-            if (runtime == null) return null;
-            foreach (var request in runtime.InteractionRequests)
+            var requests = GetVisibleRequests == null ? VisibleInteractionRequestSource.Read(state(), null, player()) : GetVisibleRequests();
+            if (requests == null) return null;
+            foreach (var request in requests)
             {
                 var projected = InteractionRequestProjector.ProjectForPlayer(request, player());
                 if (CanRender(projected)) return projected;
@@ -96,16 +97,19 @@ namespace YC.Presentation
         public void Render(InteractionRequestProjection request)
         {
             if (!CanRender(request)) { Clear(); return; }
+            if (rendered == request.InteractionId && revision > request.StateRevision) return;
+            if (rendered != request.InteractionId) inFlight = string.Empty;
+            if (!string.IsNullOrEmpty(inFlight)) return;
             if (rendered == request.InteractionId && revision == request.StateRevision) return;
             rendered = request.InteractionId; revision = request.StateRevision;
             if (request.InteractionTypeId == "action.decline_effect")
             {
                 clearHighlights();
                 string description = OptionalPrompt(request);
-                dialog.ShowOptions("可选效果", description, new[]
+                dialog.ShowOptions(dialog.Copy.OptionalEffectTitle, description, new[]
                 {
-                    new EffectDialogOption("执行", () => Answer(request, "continue", false)),
-                    new EffectDialogOption("放弃", () => Answer(request, "decline", false))
+                    ImmediateOption(request, "continue", dialog.Copy.ExecuteLabel),
+                    ImmediateOption(request, "decline", dialog.Copy.DeclineLabel)
                 }, () => Answer(request, "decline", false));
                 prompt(description);
                 return;
@@ -160,7 +164,8 @@ namespace YC.Presentation
 
         private void Answer(InteractionRequestProjection request, string candidate, bool cancel)
         {
-            if (!string.IsNullOrEmpty(inFlight)) return;
+            if (GameplayHudFrame.EffectInputSuspended || !IsCurrent(request) ||
+                (cancel ? !request.AllowDecline : !request.CandidateIds.Contains(candidate))) return;
             var command = EffectInteractionCommands.Answer(request, player(),
                 cancel ? null : new[] { candidate }, cancel);
             inFlight = command.CommandId;
@@ -169,9 +174,27 @@ namespace YC.Presentation
             catch { NotifyCommandSettled(command.CommandId); throw; }
         }
 
+        private bool IsCurrent(InteractionRequestProjection request)
+        {
+            var current = Current();
+            return request != null && current != null && string.IsNullOrEmpty(inFlight) &&
+                current.InteractionId == request.InteractionId && current.StateRevision == request.StateRevision &&
+                current.CandidateSetId == request.CandidateSetId &&
+                current.CandidateSetVersion == request.CandidateSetVersion;
+        }
+
+        private EffectDialogOption ImmediateOption(InteractionRequestProjection request, string id, string label)
+        {
+            return new EffectDialogOption(label, () => Answer(request, id, false), request.CandidateIds.Contains(id))
+            {
+                StableId = id, RequestId = request.InteractionId, Revision = request.StateRevision,
+                ExecuteImmediately = true, IsCurrent = () => IsCurrent(request)
+            };
+        }
+
         public override void NotifyCommandSettled(string commandId)
         {
-            if (inFlight == commandId || string.IsNullOrEmpty(commandId))
+            if (!string.IsNullOrEmpty(commandId) && inFlight == commandId)
             { inFlight = string.Empty; rendered = string.Empty; revision = -1; }
         }
         public override void Cancel() { Clear(); }

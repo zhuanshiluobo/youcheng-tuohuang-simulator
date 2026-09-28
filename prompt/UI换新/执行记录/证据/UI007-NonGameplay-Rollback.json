@@ -1,0 +1,278 @@
+{
+  "scope": "用户收窄为仅局内 UI：精确撤销本轮启动/加载/收藏室变更；不删除历史失败证据。",
+  "headCommit": "056f71007d1b99d59ef6f7a4a40c266a48039e2d",
+  "startScene": {
+    "path": "G:\\NoMadCity\\Assets\\Scenes\\StartScene.unity",
+    "headModificationCount": 115,
+    "beforeRollbackModificationCount": 81,
+    "restoredMissingCount": 34,
+    "newModificationCount": 0,
+    "protectedOverridesPreserved": 78,
+    "existingCoverFrameZeroOverridesPreserved": 3,
+    "note": "先前把37项计划中的3项原有Cover Frame覆盖误报为新增；实际当前只缺34项，3项已由Unity写回且HEAD原有，全部保留。恢复后115项逐项等于HEAD。",
+    "restoredEntries": [
+      {
+        "target": "{fileID: 497716806353729150, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.x",
+        "value": "0",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 497716806353729150, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.y",
+        "value": "-173",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 725067640577176571, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.x",
+        "value": "65",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 725067640577176571, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.y",
+        "value": "65",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 725067640577176571, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.x",
+        "value": "310",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 725067640577176571, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.y",
+        "value": "184",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 980706039338210078, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.x",
+        "value": "0",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 980706039338210078, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.y",
+        "value": "-169",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 1921159072480541951, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.y",
+        "value": "250",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 1921159072480541951, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.y",
+        "value": "0",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 2284541573044910335, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.x",
+        "value": "300",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 2284541573044910335, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.y",
+        "value": "65",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 2284541573044910335, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.x",
+        "value": "0",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 2284541573044910335, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.y",
+        "value": "175",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 3927125737787103914, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.y",
+        "value": "50",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 3927125737787103914, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.x",
+        "value": "0",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 3927125737787103914, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.y",
+        "value": "174",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 4171473802092528224, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.x",
+        "value": "750",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 4171473802092528224, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.y",
+        "value": "500",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 4171473802092528224, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.x",
+        "value": "0",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 4171473802092528224, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.y",
+        "value": "1.5",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 4717821074635118894, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.x",
+        "value": "128",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 4717821074635118894, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.y",
+        "value": "48.5",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 4717821074635118894, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.x",
+        "value": "-214",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 4717821074635118894, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.y",
+        "value": "-51.25",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 5816662248069574915, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.x",
+        "value": "273",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 5816662248069574915, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.y",
+        "value": "171",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 6502972644937514008, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.x",
+        "value": "0",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 7443471641762290702, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.x",
+        "value": "128",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 7443471641762290702, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_SizeDelta.y",
+        "value": "51",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 7443471641762290702, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.x",
+        "value": "-214",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 7443471641762290702, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.y",
+        "value": "46.5",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 8599747067336680575, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.x",
+        "value": "44",
+        "objectReference": "{fileID: 0}"
+      },
+      {
+        "target": "{fileID: 8599747067336680575, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}",
+        "propertyPath": "m_AnchoredPosition.y",
+        "value": "52",
+        "objectReference": "{fileID: 0}"
+      }
+    ],
+    "byteEqualHead": true
+  },
+  "restoredFiles": [
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Prefabs\\StartMenu\\StartMenuRoot.prefab",
+      "byteEqualHead": true,
+      "sha256": "b83a1041c74e66f49da9feddbdddf786f13e455e3741e9d9393c52d17865ec48"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\Scenes\\LoadingScene.unity",
+      "byteEqualHead": true,
+      "sha256": "8b492e4e640839d4bf71773163143631a28e1c2b28f77ff4d4755f891c35aa25"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\Scenes\\CollectionRoom.unity",
+      "byteEqualHead": true,
+      "sha256": "70e7dfeb448bae52bfb83bec7fcbb50ee8dfb0ab8c949601ce7bd0bd4d472cdb"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\LoadingSceneController.cs",
+      "byteEqualHead": true,
+      "sha256": "4c60ac79e30e375cedd29d80380918014a1ed1db143ea82a2bf678b968b2fe62"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\Scenes\\StartScene.unity",
+      "byteEqualHead": true,
+      "sha256": "c41aecc68e9df15a54434b1b000beda9c3488cd80e075bc814b5cee82ce73da6"
+    }
+  ],
+  "deletedNewFiles": [
+    "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiStartMenuControlsLayout.cs",
+    "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiStartMenuControlsLayout.cs.meta",
+    "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiLoadingPageLayout.cs",
+    "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiLoadingPageLayout.cs.meta",
+    "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiCollectionColumnsLayout.cs",
+    "G:\\NoMadCity\\Assets\\YC\\Presentation\\Ui007\\UiCollectionColumnsLayout.cs.meta"
+  ],
+  "validation": "只执行字节/YAML静态核查；没有运行Unity，没有把历史截图宣称回退后验收。",
+  "remainingManualEntrypoints": {
+    "Ui007SecondaryPageMigration": [
+      "Migrate",
+      "MigrateGameplayPages",
+      "RepairMalformedPageSources",
+      "RepairSecondaryGeometry",
+      "PatchRemainingHudContainers"
+    ],
+    "Ui007SecondaryPageCapture": [
+      "RunGameplay",
+      "RunGameplayBaseline"
+    ]
+  },
+  "nonGameplayMigrationCaptureEntriesRemoved": true,
+  "sharedGameplaySources": "Assets/YC/Presentation/Ui007/Prefabs/InGame*.prefab；原共享源由独立隔离记录核查",
+  "syntaxCheck": "仅静态括号平衡、无被删类型引用；编译由root统一运行",
+  "overallRestoredOriginalFileCount": 8,
+  "restoredByThisWorkstreamCount": 5,
+  "sharedOriginalFileCountRestoredByIsolationWorkstream": 3,
+  "unmodifiedRulebookExcludedFromRollbackCount": true,
+  "sharedSourceEvidence": "UI007-InGameSharedAssets-Isolation.json"
+}

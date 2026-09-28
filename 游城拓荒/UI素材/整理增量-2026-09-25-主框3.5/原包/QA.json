@@ -1,0 +1,44 @@
+{
+  "patchId": "main-frame-v3.5-thin-hires",
+  "date": "2026-09-25",
+  "assetCounts": {
+    "nativeSvg": 28,
+    "png": 56
+  },
+  "checks": {
+    "allPngFullyDecoded": true,
+    "svgXmlParsed": true,
+    "jsonParsed": true,
+    "transparentFrameCenters": true,
+    "opaqueCleanBottomFill": true,
+    "previewVisuallyReviewed": [
+      "asset-sheet",
+      "edge-comparison",
+      "main-frame-preview"
+    ],
+    "geometry": {
+      "cases": 9,
+      "sourceDensityIndependentDestination": true,
+      "edgeAreaAndBounds": "pass"
+    },
+    "installation": {
+      "operations": 85,
+      "catalogOverrides": [
+        "outer-frame",
+        "bottom-frame",
+        "chain-slot-frame",
+        "bottom-bar"
+      ],
+      "otherAssetsPreserved": true,
+      "sourceFilesPreserved": true,
+      "backupVerified": true,
+      "idempotent": true,
+      "assetsOnly": "pass"
+    },
+    "twoXCatalogHashAndPixelMetadata": true
+  },
+  "userGameSourceAvailable": false,
+  "userGameRuntimeTested": false,
+  "browserTestsRun": false,
+  "previewBasis": "Provided main UI demo layout; not an edited user screenshot"
+}

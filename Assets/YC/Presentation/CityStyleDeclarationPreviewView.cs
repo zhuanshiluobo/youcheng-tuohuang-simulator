@@ -61,10 +61,6 @@ namespace YC.Presentation
         [SerializeField] private RawImage cityBoardImage;
         [SerializeField] private Outline boardOutline;
         [SerializeField] private CityStyleDeclarationBoardPointerHandler boardPointerHandler;
-        [SerializeField] private Button previousButton;
-        [SerializeField] private Text previousButtonLabel;
-        [SerializeField] private Button nextButton;
-        [SerializeField] private Text nextButtonLabel;
         [SerializeField] private Button confirmDeclarationButton;
         [SerializeField] private Text confirmDeclarationButtonLabel;
 
@@ -87,6 +83,127 @@ namespace YC.Presentation
         [Header("禁用动态模板")]
         [SerializeField] private RectTransform influenceMarkerTemplate;
         [SerializeField] private RectTransform specialActionDropTargetTemplate;
+
+        [Header("样式列表与详情")]
+        [SerializeField] private RectTransform optionsContent;
+        [SerializeField] private BuildInfoItemView optionTemplate;
+        [SerializeField] private GameObject listPage;
+        [SerializeField] private GameObject detailPage;
+        [SerializeField] private CityStyleCardGesture detailGesture;
+        [SerializeField] private string viewStatus = "仅查看 · 宣告请从城市样式页的宣告入口开始";
+        [SerializeField] private string emptyStatus = "当前没有可查看的城市样式";
+        [SerializeField] private string selectedCountFormat = "已选 {0} / {1} 个设施";
+        [SerializeField] private string validStatusFormat = "组合符合条件 · 方向 {0}°";
+        [SerializeField] private string selectionUnavailable = "当前无法校验宣告条件";
+        [SerializeField] private string specialActionReady = "拖动本方标记到高亮状态槽，单独发动特殊行动";
+        [SerializeField] private string specialActionDrop = "在高亮区域松开以发动特殊行动";
+        [SerializeField] private string specialActionCancelled = "已取消特殊行动，未提交命令";
+        [SerializeField] private string warningSuffix = "\n仍要消耗主要行动与本次样式行动次数吗？";
+        [Header("模式与摘要配置")]
+        [SerializeField] private Text windowTitle, footerStatus;
+        [SerializeField] private string viewTitle, declareTitle;
+        [SerializeField] private string closeDetailsLabel, confirmLabel, footerView, footerDeclareFormat;
+        [SerializeField] private string unavailableFormat, unmetCondition, specialUnavailableFormat;
+        [SerializeField] private Color summaryColor = new Color(.25f, .23f, .18f);
+        public Color SummaryColor => summaryColor;
+        public string UnavailableFormat => unavailableFormat;
+        public string UnmetCondition => unmetCondition;
+        public string SpecialUnavailableFormat => specialUnavailableFormat;
+        public void RenderMode(Workflows.CityStyleOptionsViewModel model, int selectedCount = 0)
+        {
+            windowTitle.text = model.DeclareMode ? declareTitle : viewTitle;
+            footerStatus.text = model.DeclareMode ? string.Format(footerDeclareFormat, selectedCount, model.AvailableMarkers) : footerView;
+            confirmDeclarationButtonLabel.text = model.DeclareMode ? confirmLabel : closeDetailsLabel;
+        }
+        public string ViewStatus => viewStatus;
+        public string EmptyStatus => emptyStatus;
+        public string SelectedCountFormat => selectedCountFormat;
+        public string ValidStatusFormat => validStatusFormat;
+        public string SelectionUnavailable => selectionUnavailable;
+        public string SpecialActionReady => specialActionReady;
+        public string SpecialActionDrop => specialActionDrop;
+        public string SpecialActionCancelled => specialActionCancelled;
+        public string WarningSuffix => warningSuffix;
+        public bool IsDetail => detailPage != null && detailPage.activeSelf;
+        private readonly List<BuildInfoItemView> options = new List<BuildInfoItemView>();
+        public void ShowDetail(bool detail)
+        {
+            detailPage.SetActive(detail);
+            listPage.SetActive(!detail);
+        }
+        public void RenderOptions(Workflows.CityStyleOptionsViewModel model, CardVisualCatalog catalog, Action<int> choose)
+        {
+            var reusable = new List<BuildInfoItemView>(options);
+            options.Clear();
+            for (var i = 0; i < model.Options.Count; i++)
+            {
+                var option = model.Options[i];
+                if (option == null) continue;
+                var item = reusable.Find(value => value != null && value.name == option.CityStyleId);
+                if (item != null) reusable.Remove(item);
+                else item = Instantiate(optionTemplate, optionsContent, false);
+                var overlay = item.GetComponentInChildren<CityStyleTrackOverlay>(true);
+                overlay.ClearOptionMarkers();
+                item.transform.SetSiblingIndex(i);
+                item.gameObject.SetActive(true);
+                item.name = option.CityStyleId;
+                item.RawImage.texture = catalog.GetCityStyle(option.CityStyleId);
+                item.RawImage.gameObject.SetActive(item.RawImage.texture != null);
+                item.FallbackText.text = option.Name;
+                item.FallbackText.gameObject.SetActive(item.RawImage.texture == null);
+                int index = i;
+                item.Button.onClick.RemoveAllListeners();
+                item.PointerInteraction.ConfigureClick(item.Button, () => choose(index), null);
+                item.GetComponent<CityStyleCardStateView>().Bind(option.CanDeclare);
+                item.GetComponent<CityStyleCardGesture>().Configure(() => { choose(index); ShowDetail(true); });
+                var scroll = optionsContent.GetComponentInParent<ScrollRect>();
+                item.PointerInteraction.ConfigureDrag(() => scroll != null, e => scroll.OnBeginDrag(e),
+                    e => scroll.OnDrag(e), e => scroll.OnEndDrag(e), () => scroll?.StopMovement());
+                var tracker = new CityStyleMarkerLayoutTracker(cardBoardVisualLayout);
+                foreach (var marker in model.CityStyleMarkers)
+                    if (marker.CityStyleId == option.CityStyleId) tracker.Register(marker.CityStyleId, marker.MarkerArea, marker.PlayerId);
+                foreach (var marker in model.CityStyleMarkers)
+                {
+                    if (marker.CityStyleId != option.CityStyleId) continue;
+                    var placement = tracker.Next(marker.CityStyleId, marker.MarkerArea, marker.PlayerId);
+                    if (placement.PlayerMarkerIndex != 0) continue;
+                    var block = Instantiate(influenceMarkerTemplate, item.MarkerRoot, false).GetComponent<Image>();
+                    overlay.RegisterOptionMarker(block.gameObject);
+                    CityStyleMarkerRenderer.Configure(cardBoardVisualLayout, block, "Player Marker Count",
+                        cardBoardVisualLayout.CityStyleVisuals.PlayerColor((int)marker.PlayerColor, Color.white), null,
+                        cardBoardVisualLayout.BuildInfoMarkerSize, marker.CityStyleId, placement);
+                    block.GetComponent<Button>().interactable = false;
+                    block.raycastTarget = false;
+                }
+                overlay.Render(option.CityStyleId, cardBoardVisualLayout.CityStyleVisuals, model.CityStyleMarkers);
+                options.Add(item);
+            }
+            // 原生网格按列排列；先放Ⅰ级，再放Ⅱ级，正式候选索引与点击回调保持对应。
+            var siblingIndex = 0;
+            foreach (var item in options)
+                if (cardBoardVisualLayout.CityStyleVisuals.Find(item.name)?.trackLayout != "limited")
+                    item.transform.SetSiblingIndex(siblingIndex++);
+            foreach (var item in options)
+                if (cardBoardVisualLayout.CityStyleVisuals.Find(item.name)?.trackLayout == "limited")
+                    item.transform.SetSiblingIndex(siblingIndex++);
+            foreach (var item in reusable)
+            {
+                if (item == null) continue;
+                item.Button.onClick.RemoveAllListeners();
+                item.PointerInteraction.ConfigureClick(null, null, null);
+                item.gameObject.SetActive(false);
+                if (UnityEngine.Application.isPlaying) Destroy(item.gameObject); else DestroyImmediate(item.gameObject);
+            }
+        }
+        public void SelectOption(string id)
+        {
+            foreach (var item in options)
+                if (item != null)
+                {
+                    item.Outline.enabled = false;
+                    item.GetComponent<CityStyleCardStateView>().SetSelected(item.name == id);
+                }
+        }
 
         private readonly List<GameObject> dynamicInstances = new List<GameObject>();
 
@@ -111,10 +228,6 @@ namespace YC.Presentation
         public RawImage CityBoardImage => cityBoardImage;
         public Outline BoardOutline => boardOutline;
         internal CityStyleDeclarationBoardPointerHandler BoardPointerHandler => boardPointerHandler;
-        public Button PreviousButton => previousButton;
-        public Text PreviousButtonLabel => previousButtonLabel;
-        public Button NextButton => nextButton;
-        public Text NextButtonLabel => nextButtonLabel;
         public Button ConfirmDeclarationButton => confirmDeclarationButton;
         public Text ConfirmDeclarationButtonLabel => confirmDeclarationButtonLabel;
         public GameObject SpecialActionWarningObject => specialActionWarningObject;
@@ -131,6 +244,17 @@ namespace YC.Presentation
 
         public bool TryValidateConfiguration(out string reason)
         {
+            var missingReferences = new List<string>();
+            if (optionsContent == null) missingReferences.Add(nameof(optionsContent));
+            if (optionTemplate == null) missingReferences.Add(nameof(optionTemplate));
+            else if (!optionTemplate.transform.IsChildOf(transform)) missingReferences.Add("optionTemplate（必须引用本窗口内的禁用模板）");
+            else if (optionTemplate.GetComponent<CityStyleCardGesture>() == null) missingReferences.Add("optionTemplate.CityStyleCardGesture");
+            if (listPage == null) missingReferences.Add(nameof(listPage));
+            if (detailPage == null) missingReferences.Add(nameof(detailPage));
+            if (detailGesture == null) missingReferences.Add(nameof(detailGesture));
+            if (missingReferences.Count > 0)
+            { reason = "城市样式列表与详情引用不完整：" + string.Join("、", missingReferences) + "。"; return false; }
+
             if (overlayCanvas == null || rootRect == null || overlayObject == null || overlayImage == null ||
                 panel == null || inputHandler == null || closeButton == null || closeButtonLabel == null ||
                 cardBoardVisualLayout == null || cardInteractionLayoutProfile == null ||
@@ -138,8 +262,7 @@ namespace YC.Presentation
                 cityStyleCardPlaceholder == null || cityStyleTitleText == null || matchStatusText == null ||
                 specialActionHintText == null || boardTitleText == null || cityBoardRect == null ||
                 cityBoardImage == null || boardOutline == null || boardPointerHandler == null ||
-                previousButton == null || previousButtonLabel == null || nextButton == null ||
-                nextButtonLabel == null || confirmDeclarationButton == null ||
+                confirmDeclarationButton == null ||
                 confirmDeclarationButtonLabel == null)
             {
                 reason = "城市样式预览固定壳引用不完整。";
@@ -246,6 +369,7 @@ namespace YC.Presentation
         public void PrepareForUse()
         {
             ClearForReuse();
+            detailGesture.Configure(null, () => ShowDetail(false));
             gameObject.name = "City Style Declaration Preview Canvas";
             overlayCanvas.overrideSorting = true;
             overlayCanvas.sortingOrder = GameplayUiLayers.Page;
@@ -255,6 +379,7 @@ namespace YC.Presentation
         public void ClearForReuse()
         {
             ClearCallbacks();
+            ShowDetail(false);
             DestroyDynamicInstances();
             cityStyleCardImage.texture = null;
             cityStyleCardImage.gameObject.SetActive(false);
@@ -276,13 +401,12 @@ namespace YC.Presentation
 
         public void ClearCallbacks()
         {
+            detailGesture.Configure(null);
             closeButton.onClick.RemoveAllListeners();
-            previousButton.onClick.RemoveAllListeners();
-            nextButton.onClick.RemoveAllListeners();
             confirmDeclarationButton.onClick.RemoveAllListeners();
             cancelSpecialActionWarningButton.onClick.RemoveAllListeners();
             confirmSpecialActionWarningButton.onClick.RemoveAllListeners();
-            inputHandler.Configure(null, null, null);
+            inputHandler.Configure(null, null);
             boardPointerHandler.Configure(null, null, null);
 
             for (var slotIndex = 0; slotIndex < CityBoardSlotCount; slotIndex++)

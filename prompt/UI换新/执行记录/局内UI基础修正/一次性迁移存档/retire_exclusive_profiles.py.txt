@@ -1,0 +1,39 @@
+from pathlib import Path
+import re,sys,json
+sys.path.insert(0,'tools')
+from correct_gameplay_native_layout import ROOT,OUT,Asset,guid,ref,field
+p=ROOT/'Assets/YC/Presentation/ActionPanelView.cs';s=p.read_text(encoding='utf-8-sig')
+s=re.sub(r'^.*ActionPanelLayoutProfile.*\n','',s,flags=re.M)
+s=re.sub(r'            if \(layoutProfile == null.*?\n            \}\n','',s,flags=re.S)
+p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Presentation/SecondaryLayoutProfiles.cs';s=p.read_text(encoding='utf-8-sig');a=s.index('    public abstract class ActionPanelLayoutProfileBase');b=s.index('    public abstract class CardInteractionLayoutProfileBase',a);s=s[:a]+s[b:];p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Editor/SecondaryLayoutEditorAssetBuilder.cs';s=p.read_text(encoding='utf-8-sig')
+s=re.sub(r'        public const string ActionPanelAssetPath =\n.*\n.*ActionPanelAssetGuid.*\n','',s)
+s=re.sub(r'^.*var action = RequireObject.*\n','',s,flags=re.M)
+s=re.sub(r'            var actionProfile = .*?            ValidateProfile\(actionProfile.*?\n','',s,flags=re.S)
+s=re.sub(r'^.*(?:SetDirty\(actionProfile|ImportAsset\(ActionPanelAssetPath|if \(asset is ActionPanelLayoutProfile).*\n','',s,flags=re.M)
+s=re.sub(r'        public static ActionPanelLayoutProfile LoadRequiredActionProfile\(\)\n        \{.*?\n        \}\n','',s,flags=re.S)
+s=s.replace('var valid = asset is ActionPanelLayoutProfile action\n                ? action.TryValidateConfiguration(out reason)\n                : asset is CardInteractionLayoutProfile card','var valid = asset is CardInteractionLayoutProfile card')
+s=re.sub(r',\n                ReadVector\(characterHand\["overlayCardSize"\].*?"characterHand.modalPanelPosition"\)\);',');',s,flags=re.S)
+p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Presentation/CharacterHandLayoutProfile.cs';s=p.read_text(encoding='utf-8-sig')
+fields=['overlayCardSize','overlaySpacing','discardAlpha','modalPanelSize','modalPanelPosition']
+for f in fields:
+ s=re.sub(r'^.*(?:private \w+ '+f+r';|=> '+f+r';|'+f+r' = configured).*\n','',s,flags=re.M)
+s=s.replace('!IsPositive(cardSize) || !IsPositive(overlayCardSize) ||','!IsPositive(cardSize) ||')
+s=re.sub(r'^.*(?:!IsNonNegative\(overlaySpacing|!IsPositive\(modalPanelSize|IsFinite\(modalPanelPosition).*\n','',s,flags=re.M)
+s=s.replace('float.IsInfinity(fanCenterOffsetX) ||\n                discardAlpha <= 0f || discardAlpha > 1f)','float.IsInfinity(fanCenterOffsetX))')
+s=re.sub(r'float configuredFanCenterOffsetX,.*?Vector2 configuredModalPanelPosition\)', 'float configuredFanCenterOffsetX)',s,flags=re.S)
+p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Presentation/Content/CharacterHandLayoutProfile.asset';s=p.read_text(encoding='utf-8-sig')
+for f in fields:s=re.sub(r'^  '+f+r':.*\n','',s,flags=re.M)
+p.write_text(s,encoding='utf-8')
+g=guid('Assets/YC/Presentation/ActionPanelView.cs.meta')
+a=Asset('Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab')
+for i,(k,t) in list(a.docs.items()):
+ if k==114 and g in t:a.docs[i]=(k,re.sub(r'^  layoutProfile:.*\n','',t,flags=re.M))
+a.save()
+paths=[]
+for base in ['Assets/YC/Presentation/ActionPanelLayoutProfile.cs','Assets/YC/Presentation/Content/ActionPanelLayoutProfile.asset','Assets/YC/Presentation/Ui007/UiEffectRowLayout.cs','Assets/YC/Presentation/Ui007/UiSupplyRegionsLayout.cs']:
+ paths.extend([str(ROOT/base),str(ROOT/(base+'.meta'))])
+(OUT/'附加废弃文件.json').write_text(json.dumps(paths,ensure_ascii=False,indent=2),encoding='utf-8')

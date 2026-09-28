@@ -1,0 +1,158 @@
+"""一次性文本资产搭建：只写尚不存在的新资产，不启动 Unity，不覆盖任何既有 Prefab。"""
+from pathlib import Path
+import re, uuid, json, shutil, hashlib
+R=Path('G:/NoMadCity'); P=R/'Assets/YC/Presentation'; OUT=R/'prompt/UI换新/执行记录/企业与科室'
+def guid(p):
+    return re.search(r'^guid: (\w+)',Path(str(p)+'.meta').read_text(encoding='utf-8-sig'),re.M)[1]
+def meta(p,kind='DefaultImporter'):
+    m=Path(str(p)+'.meta')
+    if m.exists(): return guid(p)
+    g=uuid.uuid4().hex
+    m.write_text(f'fileFormatVersion: 2\nguid: {g}\n'+('folderAsset: yes\n' if p.is_dir() else '')+f'{kind}:\n  externalObjects: {{}}\n  userData: \n  assetBundleName: \n  assetBundleVariant: \n',encoding='utf-8')
+    return g
+def folder(p):
+    if not p.exists(): folder(p.parent); p.mkdir(); meta(p)
+for p in (P/'Enterprise',P/'Enterprise/Artwork',P/'Prefabs/Gameplay/Dialogs/Enterprise'):
+    folder(p)
+for p in [P/n for n in ('EnterpriseBoardCatalog.cs','EnterpriseTargetView.cs','EnterpriseBoardItemView.cs','EnterpriseSelectionDialogView.cs','Workflows/EnterpriseSelectionDraft.cs')]: meta(p,'MonoImporter')
+def new(p,text,kind='DefaultImporter'):
+    assert not p.exists(),f'拒绝覆盖 {p}'
+    p.write_text(text,encoding='utf-8'); meta(p,kind); return p
+source=R/'游城拓荒/UI素材/整理版-2026-09-24/资产/原始内容'
+mapping=[]
+for s in [source/'MainGameUI-v2.2/enterprise-atlas.jpg', *sorted((source/'RhineDepartment-UI-v1.0').glob('department-*.png'))]:
+    d=P/'Enterprise/Artwork'/s.name
+    assert not d.exists(); shutil.copyfile(s,d)
+    tmpl=(P/'CommonUi/Sprites/SelectionStates/frame-available.png.meta').read_text(encoding='utf-8-sig')
+    tmpl=re.sub(r'^guid: .*', 'guid: '+uuid.uuid4().hex,tmpl,flags=re.M)
+    tmpl=tmpl.replace('maxTextureSize: 2048','maxTextureSize: 4096').replace('spriteMode: 1','spriteMode: 0').replace('textureType: 8','textureType: 0')
+    tmpl=re.sub(r'spriteBorder: .*','spriteBorder: {x: 0, y: 0, z: 0, w: 0}',tmpl)
+    Path(str(d)+'.meta').write_text(tmpl,encoding='utf-8')
+    mapping.append(dict(source=str(s),asset=str(d),guid=guid(d),sha256=hashlib.sha256(d.read_bytes()).hexdigest()))
+catalog=P/'Enterprise/EnterpriseBoardCatalog.asset'
+entries=[]
+for i in range(8): entries.append((f'enterprise-{i}',P/'Enterprise/Artwork/enterprise-atlas.jpg',(i%4*.25, .5 if i<4 else 0,.25,.5),650/1850))
+for p in sorted((P/'Enterprise/Artwork').glob('department-*.png')): entries.append((p.stem,p,(0,0,1,1),516/1000))
+header='%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n'
+base='  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n'
+txt=header+'--- !u!114 &11400000\nMonoBehaviour:\n'+base+'  m_GameObject: {fileID: 0}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {fileID: 11500000, guid: '+guid(P/'EnterpriseBoardCatalog.cs')+', type: 3}\n  m_Name: EnterpriseBoardCatalog\n  m_EditorClassIdentifier: \n  boards:\n'
+for key,p,uv,ratio in entries:
+    txt+=f'  - visualKey: {key}\n    texture: {{fileID: 2800000, guid: {guid(p)}, type: 3}}\n    uv: {{x: {uv[0]}, y: {uv[1]}, width: {uv[2]}, height: {uv[3]}}}\n    aspect: {ratio}\n'
+new(catalog,txt,'NativeFormatImporter')
+scripts={p.stem[:-3]:guid(Path(str(p)[:-5])) for p in (R/'Library/PackageCache/com.unity.ugui@1.0.0/Runtime').rglob('*.cs.meta')}
+for p in P.rglob('*.cs'): scripts[p.stem]=guid(p)
+def ext(p,id=21300000): return '{fileID: '+str(id)+', guid: '+guid(p)+', type: 3}'
+def ref(id): return '{fileID: '+str(id)+'}'
+def scalar(v): return json.dumps(v,ensure_ascii=False)
+fonts=P/'CommonUi/Fonts'
+F={k:ext(fonts/n,12800000) for k,n in [('normal','FangZhengHeiTiJianTi-1.ttf'),('emphasis','HanYiCuHeiJian-1.ttf'),('number','Novecento NarrowBold.otf'),('special','MicrosoftYaHei-Regular-face0.ttf')]}
+sprites=P/'CommonUi/Sprites'
+class Asset:
+    def __init__(self): self.i=1000; self.objs=[]; self.docs=[]
+    def id(self): self.i+=1; return self.i
+    def node(self,name,parent=None,active=True,amin=(0,0),amax=(1,1),size=(0,0),pivot=(.5,.5)):
+        n={'go':self.id(),'rt':self.id(),'name':name,'parent':parent,'active':active,'children':[],'components':[],'amin':amin,'amax':amax,'size':size,'pivot':pivot}
+        if parent: parent['children'].append(n)
+        self.objs.append(n); return n
+    def comp(self,n,name,body):
+        id=self.id(); n['components'].append(id)
+        self.docs.append(f'--- !u!114 &{id}\nMonoBehaviour:\n'+base+f'  m_GameObject: {ref(n["go"])}\n  m_Enabled: 1\n  m_EditorHideFlags: 0\n  m_Script: {{fileID: 11500000, guid: {scripts[name]}, type: 3}}\n  m_Name: \n  m_EditorClassIdentifier: \n'+body)
+        return id
+    def renderer(self,n):
+        id=self.id();n['components'].append(id);self.docs.append(f'--- !u!222 &{id}\nCanvasRenderer:\n'+base+f'  m_GameObject: {ref(n["go"])}\n  m_CullTransparentMesh: 1\n')
+    def image(self,n,sprite=None,color=(1,1,1,1),ray=0,sliced=1):
+        self.renderer(n)
+        return self.comp(n,'Image',f'  m_Material: {{fileID: 0}}\n  m_Color: {{r: {color[0]}, g: {color[1]}, b: {color[2]}, a: {color[3]}}}\n  m_RaycastTarget: {ray}\n  m_Maskable: 1\n  m_Sprite: {ext(sprite) if sprite else ref(0)}\n  m_Type: {sliced}\n  m_PreserveAspect: 0\n  m_FillCenter: 1\n  m_PixelsPerUnitMultiplier: 2.5\n')
+    def le(self,n,w=-1,h=-1,fw=0,fh=0,minw=0,minh=0,ignore=0):
+        return self.comp(n,'LayoutElement',f'  m_IgnoreLayout: {ignore}\n  m_MinWidth: {minw}\n  m_MinHeight: {minh}\n  m_PreferredWidth: {w}\n  m_PreferredHeight: {h}\n  m_FlexibleWidth: {fw}\n  m_FlexibleHeight: {fh}\n  m_LayoutPriority: 1\n')
+    def group(self,n,vertical=True,gap=8,pad=0,align=0,expandW=0,expandH=0):
+        return self.comp(n,'VerticalLayoutGroup' if vertical else 'HorizontalLayoutGroup',f'  m_Padding:\n    m_Left: {pad}\n    m_Right: {pad}\n    m_Top: {pad}\n    m_Bottom: {pad}\n  m_ChildAlignment: {align}\n  m_Spacing: {gap}\n  m_ChildForceExpandWidth: {expandW}\n  m_ChildForceExpandHeight: {expandH}\n  m_ChildControlWidth: 1\n  m_ChildControlHeight: 1\n  m_ChildScaleWidth: 0\n  m_ChildScaleHeight: 0\n  m_ReverseArrangement: 0\n')
+    def text(self,n,text='',role='normal',size=22,align=0):
+        self.renderer(n)
+        return self.comp(n,'Text',f'  m_Material: {{fileID: 0}}\n  m_Color: {{r: 0.95, g: 0.93, b: 0.86, a: 1}}\n  m_RaycastTarget: 0\n  m_Maskable: 1\n  m_FontData:\n    m_Font: {F[role]}\n    m_FontSize: {size}\n    m_FontStyle: 0\n    m_BestFit: 0\n    m_MinSize: 10\n    m_MaxSize: 40\n    m_Alignment: {align}\n    m_AlignByGeometry: 0\n    m_RichText: 0\n    m_HorizontalOverflow: 0\n    m_VerticalOverflow: 1\n    m_LineSpacing: 1\n  m_Text: {scalar(text)}\n')
+    def button(self,n,label=None):
+        graphic=self.image(n,sprites/'Frontier31/button-secondary.png',ray=1)
+        id=self.comp(n,'Button',f'  m_Navigation:\n    m_Mode: 3\n    m_WrapAround: 0\n    m_SelectOnUp: {{fileID: 0}}\n    m_SelectOnDown: {{fileID: 0}}\n    m_SelectOnLeft: {{fileID: 0}}\n    m_SelectOnRight: {{fileID: 0}}\n  m_Transition: 1\n  m_Colors:\n    m_NormalColor: {{r: 1, g: 1, b: 1, a: 1}}\n    m_HighlightedColor: {{r: 1, g: 0.95, b: 0.75, a: 1}}\n    m_PressedColor: {{r: 0.7, g: 0.7, b: 0.7, a: 1}}\n    m_SelectedColor: {{r: 1, g: 0.95, b: 0.75, a: 1}}\n    m_DisabledColor: {{r: 0.4, g: 0.4, b: 0.4, a: 0.6}}\n    m_ColorMultiplier: 1\n    m_FadeDuration: 0.1\n  m_Interactable: 1\n  m_TargetGraphic: {ref(graphic)}\n  m_OnClick:\n    m_PersistentCalls:\n      m_Calls: []\n')
+        text=self.text(self.node('Label',n),label,'emphasis',24,4) if label is not None else None
+        return id,text
+    def raw(self,n):
+        self.renderer(n)
+        im=self.comp(n,'RawImage','  m_Material: {fileID: 0}\n  m_Color: {r: 1, g: 1, b: 1, a: 1}\n  m_RaycastTarget: 0\n  m_Maskable: 1\n  m_Texture: {fileID: 0}\n  m_UVRect: {x: 0, y: 0, width: 1, height: 1}\n')
+        asp=self.comp(n,'AspectRatioFitter','  m_AspectMode: 3\n  m_AspectRatio: 0.35135135\n');return im,asp
+    def scroll(self,parent,name,horizontal=False):
+        n=self.node(name,parent);self.le(n,fw=1,fh=1); self.image(n,color=(.03,.055,.06,.95),ray=1)
+        vp=self.node('Viewport',n);self.comp(vp,'RectMask2D','  m_Padding: {x: 0, y: 0, z: 0, w: 0}\n  m_Softness: {x: 0, y: 0}\n')
+        c=self.node('Content',vp,amin=(0,0) if horizontal else (0,1),amax=(0,1) if horizontal else (1,1),pivot=(0,.5) if horizontal else (.5,1))
+        self.group(c,not horizontal,gap=34 if horizontal else 12,pad=12,align=4 if horizontal else 0,expandH=1 if horizontal else 0,expandW=0 if horizontal else 1)
+        if horizontal:self.comp(c,'UiScrollContentWidth',f'  viewport: {ref(vp["rt"])}\n')
+        else:self.comp(c,'ContentSizeFitter','  m_HorizontalFit: 0\n  m_VerticalFit: 2\n')
+        sc=self.comp(n,'ScrollRect',f'  m_Content: {ref(c["rt"])}\n  m_Horizontal: {int(horizontal)}\n  m_Vertical: {int(not horizontal)}\n  m_MovementType: 2\n  m_Elasticity: 0.1\n  m_Inertia: 1\n  m_DecelerationRate: 0.135\n  m_ScrollSensitivity: 35\n  m_Viewport: {ref(vp["rt"])}\n  m_HorizontalScrollbar: {{fileID: 0}}\n  m_VerticalScrollbar: {{fileID: 0}}\n  m_HorizontalScrollbarVisibility: 0\n  m_VerticalScrollbarVisibility: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n')
+        return n,c,sc
+    def save(self,p):
+        out=header
+        for n in self.objs:
+            out+=f'--- !u!1 &{n["go"]}\nGameObject:\n'+base+'  serializedVersion: 6\n  m_Component:\n'+''.join(f'  - component: {ref(i)}\n' for i in [n['rt']]+n['components'])+f'  m_Layer: 5\n  m_Name: {scalar(n["name"])}\n  m_TagString: Untagged\n  m_IsActive: {int(n["active"])}\n'
+            out+=f'--- !u!224 &{n["rt"]}\nRectTransform:\n'+base+f'  m_GameObject: {ref(n["go"])}\n  m_LocalRotation: {{x: 0, y: 0, z: 0, w: 1}}\n  m_LocalPosition: {{x: 0, y: 0, z: 0}}\n  m_LocalScale: {{x: 1, y: 1, z: 1}}\n  m_Children:'+ ('\n'+''.join(f'  - {ref(c["rt"])}\n' for c in n['children']) if n['children'] else ' []\n')+f'  m_Father: {ref(n["parent"]["rt"] if n["parent"] else 0)}\n  m_AnchorMin: {{x: {n["amin"][0]}, y: {n["amin"][1]}}}\n  m_AnchorMax: {{x: {n["amax"][0]}, y: {n["amax"][1]}}}\n  m_AnchoredPosition: {{x: 0, y: 0}}\n  m_SizeDelta: {{x: {n["size"][0]}, y: {n["size"][1]}}}\n  m_Pivot: {{x: {n["pivot"][0]}, y: {n["pivot"][1]}}}\n'
+        new(p,out+''.join(self.docs),'PrefabImporter')
+
+dest=P/'Prefabs/Gameplay/Dialogs/Enterprise'
+a=Asset();n=a.node('Enterprise Target');btn,_=a.button(n)
+# 命中为透明矩形，状态外观由既有 UiSelectionState 提供。
+a.docs[-1]=a.docs[-1] # button is independent from the decorative frame
+frame=a.image(a.node('State Frame',n),sprites/'SelectionStates/frame-available.png')
+iconNode=a.node('State Icon',n,amin=(1,1),amax=(1,1),size=(20,20),pivot=(0,1));icon=a.image(iconNode,sliced=0)
+state=a.comp(n,'UiSelectionState',f'  stateFrame: {ref(frame)}\n  stateIcon: {ref(icon)}\n'+''.join(f'  {field}: {ext(sprites/"SelectionStates"/file)}\n' for field,file in [('availableFrame','frame-available.png'),('selectedFrame','frame-selected.png'),('unavailableFrame','frame-unavailable.png'),('selectedIcon','icon-check.png'),('unavailableIcon','icon-lock.png')]))
+targetId=a.comp(n,'EnterpriseTargetView',f'  button: {ref(btn)}\n  state: {ref(state)}\n')
+# 背景按钮不遮原板，仅保留透明命中。
+a.docs[1]=re.sub(r'  m_Sprite: .*','  m_Sprite: {fileID: 0}',a.docs[1]);a.docs[1]=a.docs[1].replace('m_Color: {r: 1, g: 1, b: 1, a: 1}','m_Color: {r: 1, g: 1, b: 1, a: 0}')
+targetPath=dest/'EnterpriseTarget.prefab';a.save(targetPath)
+
+def board(a,parent,name='Board',width=248,minwidth=248):
+    n=a.node(name,parent);a.le(n,w=width,fw=0,fh=1,minw=minwidth);a.group(n,True,8,0,expandW=1)
+    levels=a.node('Player Levels',n);a.le(levels,h=30,minh=30);a.group(levels,False,20,0,4)
+    ids=[]
+    for i,col in enumerate(((.925,0,0,1),(0,.424,1,1),(1,.75,0,1),(.373,.824,0,1))):
+        box=a.node('Player '+str(i),levels);a.le(box,w=30,h=30,minw=30);a.image(box,color=col)
+        ids.append(a.text(a.node('Level',box),'','number',20,4))
+    area=a.node('Board Area',n);a.le(area,fh=1)
+    img=a.node('Original Board',area);im,asp=a.raw(img)
+    root=a.node('Targets',img)
+    foot=a.node('Board Footer',n);a.le(foot,h=38,minh=38);a.group(foot,False,8)
+    label=a.node('Board Name',foot);a.le(label,fw=1);txt=a.text(label,'','emphasis',19,3)
+    det=a.node('Details',foot);a.le(det,w=86,minw=70);btn,_=a.button(det,'详情')
+    comp=a.comp(n,'EnterpriseBoardItemView',f'  boardImage: {ref(im)}\n  boardAspect: {ref(asp)}\n  targetRoot: {ref(root["rt"])}\n  targetTemplate: {ext(targetPath,targetId)}\n  nameText: {ref(txt)}\n  playerLevels:\n'+''.join(f'  - {ref(i)}\n' for i in ids)+f'  detailsButton: {ref(btn)}\n')
+    return n,comp
+a=Asset();n,boardId=board(a,None);boardPath=dest/'EnterpriseBoardItem.prefab';a.save(boardPath)
+
+pageRefs=[]
+for department in (False,True):
+    a=Asset();root=a.node('Department Selection' if department else 'Enterprise Selection');a.image(root,color=(0,0,0,.62),ray=1);a.group(root,True,0,16,4,1,1)
+    panel=a.node('Panel',root);a.le(panel,w=1744,h=860,fw=0,fh=1);a.image(panel,sprites/'Frontier31/module-bg.png',ray=1);a.group(panel,True,12,24,0,1,0)
+    border=a.node('Frame',panel);a.le(border,ignore=1);a.image(border,sprites/'Frontier31/outer-frame.png')
+    head=a.node('Header',panel);a.le(head,h=76,minh=76);a.group(head,True,4,0,0,1)
+    title=a.node('Title',head);a.le(title,h=42);titleId=a.text(title,'选择企业','emphasis',32)
+    ctx=a.node('Context',head);a.le(ctx,h=28);ctxId=a.text(ctx,'','normal',20)
+    body=a.node('Body',panel);a.le(body,fh=1);a.group(body,False,16,0,0,0,1)
+    fixed=0
+    if department:
+        _,fixed=board(a,body,'Shared Rhine Company',width=330,minwidth=210)
+    cand,ccontent,cscroll=a.scroll(body,'Candidates',True)
+    empty=a.node('Empty State',cand);a.text(empty,'暂无正式候选\n等待企业／公共科室规则接入','normal',24,4)
+    details=a.node('Details Panel',body);a.le(details,w=400,minw=210,fw=0);a.image(details,sprites/'Frontier31/module-bg.png');a.group(details,True,10,12,0,1)
+    # 科室仍保持固定企业／候选结构；详情说明置于候选旁，不生成业务步骤。
+    dt=a.node('Detail Title',details);a.le(dt,h=44,minh=44);dtid=a.text(dt,'','emphasis',26)
+    art=a.node('Detail Artwork',details);a.le(art,h=210,minh=100)
+    raw=a.node('Original Excerpt',art);di,da=a.raw(raw)
+    ds,dc,dscroll=a.scroll(details,'Description',False)
+    dtext=a.node('Description Text',dc);a.le(dtext,fw=1);description=a.text(dtext,'','normal',22)
+    cost=a.node('Cost',details);a.le(cost,h=30,minh=30);costId=a.text(cost,'','number',24)
+    large=a.node('Original Detail Page',panel,False);a.le(large,fh=1);li,la=a.raw(a.node('Original Full Board',large))
+    foot=a.node('Footer',panel);a.le(foot,h=72,minh=72);a.group(foot,False,12,0,3,0,1)
+    sm=a.node('Selection Summary',foot);a.le(sm,fw=1);summary=a.text(sm,'正式企业／科室规则尚未接入','normal',20,3)
+    bn=a.node('Return',foot,False);a.le(bn,w=160,minw=110);back,_=a.button(bn,'返回')
+    cn=a.node('Cancel',foot);a.le(cn,w=180,minw=120);cancel,_=a.button(cn,'取消')
+    cf=a.node('Confirm',foot);a.le(cf,w=200,minw=140);confirm,cflabel=a.button(cf,'确认企业')
+    view=a.comp(root,'EnterpriseSelectionDialogView',f'  catalog: {ext(catalog,11400000)}\n  boardTemplate: {ext(boardPath,boardId)}\n  fixedCompany: {ref(fixed)}\n  panel: {ref(panel["rt"])}\n  body: {ref(body["rt"])}\n  candidateContent: {ref(ccontent["rt"])}\n  candidateScroll: {ref(cscroll)}\n  descriptionScroll: {ref(dscroll)}\n  title: {ref(titleId)}\n  context: {ref(ctxId)}\n  summary: {ref(summary)}\n  detailTitle: {ref(dtid)}\n  description: {ref(description)}\n  cost: {ref(costId)}\n  detailImage: {ref(di)}\n  detailAspect: {ref(da)}\n  enlargedImage: {ref(li)}\n  enlargedAspect: {ref(la)}\n  detailPage: {ref(large["go"])}\n  emptyState: {ref(empty["go"])}\n  confirm: {ref(confirm)}\n  cancel: {ref(cancel)}\n  back: {ref(back)}\n  confirmLabel: {ref(cflabel)}\n  modeText:\n  - title: 选择企业\n    confirm: 确认企业\n  - title: 选择企业特效\n    confirm: 确认特效\n  - title: 选择公共科室\n    confirm: 激活科室\n  - title: 切换公共科室\n    confirm: 确认切换\n  missingRulesText: 正式企业／公共科室规则尚未接入，当前不能提交。\n  currentDepartmentText: 当前公共科室不可重复确认。\n  selectedFormat: "已选择：{0}"\n  selectPrompt: 请选择一个有效目标。\n  pendingText: 正在等待确认结果。\n')
+    path=dest/('DepartmentSelectionDialog.prefab' if department else 'EnterpriseSelectionDialog.prefab');a.save(path);pageRefs.append(dict(path=str(path),guid=guid(path),fileID=view))
+(OUT/'新增资产映射.json').write_text(json.dumps({'artwork':mapping,'pages':pageRefs,'visualKeys':[e[0] for e in entries]},ensure_ascii=False,indent=2),encoding='utf-8')
+print(json.dumps(pageRefs))

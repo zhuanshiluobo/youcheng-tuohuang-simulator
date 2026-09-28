@@ -1,0 +1,2689 @@
+{
+    "asset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "evidenceKind": "离线资产参考矩形；不是实际运行屏幕验收。包含相同对象迁移前后坐标、活动状态和层级。",
+    "referenceResolution": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "capturePhase": "-repair",
+    "objects": [
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog",
+            "afterPath": "CityStyleDeclarationPreviewDialog",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 90.0,
+                "width": 1520.0,
+                "height": 900.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 90.0,
+                "width": 1520.0,
+                "height": 900.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Header",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Header",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 916.0,
+                "width": 1520.0,
+                "height": 74.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 916.0,
+                "width": 1520.0,
+                "height": 74.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Header/City Style Declaration Preview Title",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Header/City Style Declaration Preview Title",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 620.0,
+                "y": 924.0,
+                "width": 680.0,
+                "height": 52.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 620.0,
+                "y": 924.0,
+                "width": 680.0,
+                "height": 52.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Header/Close City Style Declaration Preview Button",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Header/Close City Style Declaration Preview Button",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1660.0,
+                "y": 936.0,
+                "width": 42.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1660.0,
+                "y": 936.0,
+                "width": 42.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Header/Close City Style Declaration Preview Button/Label",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Header/Close City Style Declaration Preview Button/Label",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1668.0,
+                "y": 936.0,
+                "width": 26.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1668.0,
+                "y": 936.0,
+                "width": 26.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 116.0,
+                "width": 1520.0,
+                "height": 800.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 116.0,
+                "width": 1520.0,
+                "height": 800.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 116.0,
+                "width": 1520.0,
+                "height": 800.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 116.0,
+                "width": 1520.0,
+                "height": 800.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 116.0,
+                "width": 1520.0,
+                "height": 800.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 116.0,
+                "width": 1520.0,
+                "height": 800.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 116.0,
+                "width": 20.0,
+                "height": 800.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 116.0,
+                "width": 20.0,
+                "height": 800.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 220.0,
+                "y": 116.0,
+                "width": 920.0,
+                "height": 800.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 220.0,
+                "y": 116.0,
+                "width": 920.0,
+                "height": 800.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 220.0,
+                "y": 116.0,
+                "width": 920.0,
+                "height": 800.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 220.0,
+                "y": 116.0,
+                "width": 920.0,
+                "height": 800.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Preview Name",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Preview Name",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 330.0,
+                "y": 856.0,
+                "width": 700.0,
+                "height": 40.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 330.0,
+                "y": 856.0,
+                "width": 700.0,
+                "height": 40.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Preview Card Frame",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Preview Card Frame",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 255.0,
+                "y": 282.0,
+                "width": 850.0,
+                "height": 548.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 255.0,
+                "y": 282.0,
+                "width": 850.0,
+                "height": 548.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Preview Card Frame/City Style Preview Card",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Preview Card Frame/City Style Preview Card",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 261.0,
+                "y": 288.0,
+                "width": 838.0,
+                "height": 536.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 261.0,
+                "y": 288.0,
+                "width": 838.0,
+                "height": 536.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Preview Card Frame/City Style Preview Card/City Style Preview Influence Markers",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Preview Card Frame/City Style Preview Card/City Style Preview Influence Markers",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 261.0,
+                "y": 288.0,
+                "width": 838.0,
+                "height": 536.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 261.0,
+                "y": 288.0,
+                "width": 838.0,
+                "height": 536.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Preview Card Frame/City Style Preview Missing Image",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Preview Card Frame/City Style Preview Missing Image",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 300.0,
+                "y": 506.0,
+                "width": 760.0,
+                "height": 100.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 300.0,
+                "y": 506.0,
+                "width": 760.0,
+                "height": 100.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Previous City Style",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Previous City Style",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 226.0,
+                "y": 497.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 226.0,
+                "y": 497.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Previous City Style/Previous City Style Label",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Previous City Style/Previous City Style Label",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 226.0,
+                "y": 497.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 226.0,
+                "y": 497.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Next City Style",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Next City Style",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1076.0,
+                "y": 497.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1076.0,
+                "y": 497.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Next City Style/Next City Style Label",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Next City Style/Next City Style Label",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1076.0,
+                "y": 497.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1076.0,
+                "y": 497.0,
+                "width": 58.0,
+                "height": 118.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Confirm City Style Declaration",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Confirm City Style Declaration",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 590.0,
+                "y": 182.0,
+                "width": 180.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 590.0,
+                "y": 182.0,
+                "width": 180.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Confirm City Style Declaration/Confirm City Style Declaration Label",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/Confirm City Style Declaration/Confirm City Style Declaration Label",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 590.0,
+                "y": 182.0,
+                "width": 180.0,
+                "height": 48.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 590.0,
+                "y": 182.0,
+                "width": 180.0,
+                "height": 48.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Special Action Hint",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Special Action Hint",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 270.0,
+                "y": 239.0,
+                "width": 820.0,
+                "height": 38.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 270.0,
+                "y": 239.0,
+                "width": 820.0,
+                "height": 38.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Match Status",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Section Slot/City Style Preview Section/City Style Match Status",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 260.0,
+                "y": 114.0,
+                "width": 840.0,
+                "height": 54.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 260.0,
+                "y": 114.0,
+                "width": 840.0,
+                "height": 54.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1140.0,
+                "y": 116.0,
+                "width": 60.0,
+                "height": 800.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1140.0,
+                "y": 116.0,
+                "width": 60.0,
+                "height": 800.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1200.0,
+                "y": 116.0,
+                "width": 500.0,
+                "height": 800.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1200.0,
+                "y": 116.0,
+                "width": 500.0,
+                "height": 800.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1200.0,
+                "y": 116.0,
+                "width": 500.0,
+                "height": 800.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1200.0,
+                "y": 116.0,
+                "width": 500.0,
+                "height": 800.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board Title",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board Title",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1235.0,
+                "y": 865.0,
+                "width": 430.0,
+                "height": 42.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1235.0,
+                "y": 865.0,
+                "width": 430.0,
+                "height": 42.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1251.5,
+                "y": 129.5,
+                "width": 397.0,
+                "height": 733.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1251.5,
+                "y": 129.5,
+                "width": 397.0,
+                "height": 733.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 1",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 1",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 1/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 1/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 1/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 1/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 1/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 1/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 2",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 2",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 2/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 2/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 2/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 2/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 2/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 2/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 3",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 3",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 3/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 3/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 668.9879760742188,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 3/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 3/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 3/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 3/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 765.083984375,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 4",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 4",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 4/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 4/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 4/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 4/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 4/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 4/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 5",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 5",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 5/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 5/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 5/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 5/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 5/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 5/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 6",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 6",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 6/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 6/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 499.66497802734377,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 6/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 6/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 6/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 6/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 595.760986328125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 7",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 7",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 7/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 7/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 7/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 7/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 7/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 7/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 8",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 8",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 8/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 8/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 8/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 8/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 8/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 8/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 9",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 9",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 9/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 9/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 329.6090087890625,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 9/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 9/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 9/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 9/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 425.70501708984377,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 10",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 10",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 10/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 10/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1263.4100341796875,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 10/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 10/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 10/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 10/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1367.3720703125,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 11",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 11",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 11/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 11/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1392.8319091796875,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 11/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 11/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 11/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 11/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1496.7939453125,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 12",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 12",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 12/设施卡图",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 12/设施卡图",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1521.85693359375,
+                "y": 160.28594970703126,
+                "width": 115.924072265625,
+                "height": 164.1920166015625
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 12/历史已使用",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 12/历史已使用",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 12/历史已使用/历史已使用 Text",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 City Style Preview Board Section Slot/City Style Preview Board Section/City Style Preview Board/宣告槽位 12/历史已使用/历史已使用 Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1625.8189697265625,
+                "y": 256.3819580078125,
+                "width": -92.0,
+                "height": -28.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1700.0,
+                "y": 116.0,
+                "width": 20.0,
+                "height": 800.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 1700.0,
+                "y": 116.0,
+                "width": 20.0,
+                "height": 800.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Footer",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/UI007 City Style Declaration Preview Panel Bounds/City Style Declaration Preview Panel/UI007 Footer",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 90.0,
+                "width": 1520.0,
+                "height": 26.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 200.0,
+                "y": 90.0,
+                "width": 1520.0,
+                "height": 26.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 400.0,
+                "width": 620.0,
+                "height": 280.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 400.0,
+                "width": 620.0,
+                "height": 280.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Header",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Header",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 400.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 617.0,
+                "width": 620.0,
+                "height": 63.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 217.0,
+                "z": 620.0,
+                "w": 63.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Header/Special Action Warning Confirmation Title",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Header/Special Action Warning Confirmation Title",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 380.0,
+                "y": 359.0,
+                "width": 540.0,
+                "height": 44.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 604.0,
+                "width": 540.0,
+                "height": 44.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 245.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 400.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 480.0,
+                "width": 620.0,
+                "height": 137.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 80.0,
+                "z": 620.0,
+                "w": 137.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 270.0,
+                "width": 0.0,
+                "height": 130.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 487.0,
+                "width": 620.0,
+                "height": 130.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 217.0,
+                "z": 620.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Vertical Gap",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Vertical Gap",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 285.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 910.0,
+                "y": 502.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 217.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 340.0,
+                "y": 287.0,
+                "width": 620.0,
+                "height": 96.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 504.0,
+                "width": 620.0,
+                "height": 96.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 217.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 285.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 910.0,
+                "y": 502.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 217.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Special Action Warning Confirmation Message Slot",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Special Action Warning Confirmation Message Slot",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 380.0,
+                "y": 287.0,
+                "width": 540.0,
+                "height": 96.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 504.0,
+                "width": 540.0,
+                "height": 96.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 217.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Special Action Warning Confirmation Message Slot/Special Action Warning Confirmation Message",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Special Action Warning Confirmation Message Slot/Special Action Warning Confirmation Message",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 380.0,
+                "y": 287.0,
+                "width": 540.0,
+                "height": 96.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 690.0,
+                "y": 504.0,
+                "width": 540.0,
+                "height": 96.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 217.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Content Row/UI007 Horizontal Gap",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 285.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 910.0,
+                "y": 502.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 217.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Vertical Gap",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Body Viewport/UI007 Body Content/UI007 Vertical Gap",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 600.0,
+                "y": 285.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 910.0,
+                "y": 502.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 217.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Footer",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Footer",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 400.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 650.0,
+                "y": 400.0,
+                "width": 620.0,
+                "height": 80.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 620.0,
+                "w": 80.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Footer/Cancel Special Action Warning",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Footer/Cancel Special Action Warning",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 472.0,
+                "y": 387.0,
+                "width": 160.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 782.0,
+                "y": 427.0,
+                "width": 160.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 40.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Footer/Cancel Special Action Warning/Cancel Special Action Warning Label",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Footer/Cancel Special Action Warning/Cancel Special Action Warning Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 472.0,
+                "y": 387.0,
+                "width": 160.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 782.0,
+                "y": 427.0,
+                "width": 160.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 40.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Footer/Confirm Special Action Warning",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Footer/Confirm Special Action Warning",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 387.0,
+                "width": 160.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 978.0,
+                "y": 427.0,
+                "width": 160.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 40.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Footer/Confirm Special Action Warning/Confirm Special Action Warning Label",
+            "afterPath": "CityStyleDeclarationPreviewDialog/City Style Declaration Preview Overlay/Special Action Warning Confirmation/Special Action Warning Confirmation Panel/UI007 Footer/Confirm Special Action Warning/Confirm Special Action Warning Label",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 668.0,
+                "y": 387.0,
+                "width": 160.0,
+                "height": 46.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 978.0,
+                "y": 427.0,
+                "width": 160.0,
+                "height": 46.0
+            },
+            "delta": {
+                "x": 310.0,
+                "y": 40.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/Dynamic Templates",
+            "afterPath": "CityStyleDeclarationPreviewDialog/Dynamic Templates",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1920.0,
+                "height": 1080.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/Dynamic Templates/InfluenceMarker Template",
+            "afterPath": "CityStyleDeclarationPreviewDialog/Dynamic Templates/InfluenceMarker Template",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 950.0,
+                "y": 530.0,
+                "width": 20.0,
+                "height": 20.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 950.0,
+                "y": 530.0,
+                "width": 20.0,
+                "height": 20.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "CityStyleDeclarationPreviewDialog/Dynamic Templates/SpecialActionDropTarget Template",
+            "afterPath": "CityStyleDeclarationPreviewDialog/Dynamic Templates/SpecialActionDropTarget Template",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 910.0,
+                "y": 490.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 910.0,
+                "y": 490.0,
+                "width": 100.0,
+                "height": 100.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        }
+    ]
+}

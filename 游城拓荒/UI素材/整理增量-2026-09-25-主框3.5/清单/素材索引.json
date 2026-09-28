@@ -1,0 +1,1266 @@
+{
+  "version": "3.5",
+  "assets": [
+    {
+      "id": "outer-frame",
+      "partOf": null,
+      "source": {
+        "svg": "assets/outer-frame.svg",
+        "path": "assets/outer-frame.png",
+        "png2x": "assets/outer-frame@2x.png",
+        "sourceRect": [
+          0,
+          0,
+          1920,
+          1080
+        ],
+        "logicalSize": [
+          1920,
+          1080
+        ],
+        "pixelDimensions": {
+          "1x": [
+            1920,
+            1080
+          ],
+          "2x": [
+            3840,
+            2160
+          ]
+        },
+        "viewBox": [
+          1920,
+          1080
+        ],
+        "svgViewBox": [
+          0,
+          0,
+          1920,
+          1080
+        ],
+        "slices": [
+          24,
+          24,
+          24,
+          24
+        ],
+        "targetSlices": [
+          24,
+          24,
+          24,
+          24
+        ],
+        "targetInsets": [
+          24,
+          24,
+          24,
+          24
+        ],
+        "borders1x": [
+          24,
+          24,
+          24,
+          24
+        ],
+        "borders2x": [
+          48,
+          48,
+          48,
+          48
+        ],
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "transparentCenter": true,
+        "drawCenter": false,
+        "externalResources": false,
+        "lineWidthLogical": 1.25,
+        "innerLineWidthLogical": 0.65,
+        "visibleEdgeWidthLogical": 4.825,
+        "role": "screen perimeter; transparent center",
+        "bytes": 11483,
+        "sha256": "b0be0f3c369bcc92dd60e584bd127185c174b90d4b5095a02dcdf0f759a9cc54"
+      },
+      "paths": {
+        "path": "原包/assets/outer-frame.png",
+        "png2x": "原包/assets/outer-frame@2x.png",
+        "svg": "原包/assets/outer-frame.svg"
+      },
+      "unityBorderOrder": [
+        "left",
+        "bottom",
+        "right",
+        "top"
+      ],
+      "unityBorder1x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "unityBorder2x": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    {
+      "id": "outer-frame/top-left",
+      "partOf": "outer-frame",
+      "source": {
+        "svg": "assets/parts/outer-frame/top-left.svg",
+        "path": "assets/parts/outer-frame/top-left.png",
+        "png2x": "assets/parts/outer-frame/top-left@2x.png",
+        "sourceRect": [
+          0,
+          0,
+          24,
+          24
+        ],
+        "logicalSize": [
+          24,
+          24
+        ],
+        "pixelDimensions": {
+          "1x": [
+            24,
+            24
+          ],
+          "2x": [
+            48,
+            48
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/outer-frame/top-left.png",
+        "png2x": "原包/assets/parts/outer-frame/top-left@2x.png",
+        "svg": "原包/assets/parts/outer-frame/top-left.svg"
+      }
+    },
+    {
+      "id": "outer-frame/top",
+      "partOf": "outer-frame",
+      "source": {
+        "svg": "assets/parts/outer-frame/top.svg",
+        "path": "assets/parts/outer-frame/top.png",
+        "png2x": "assets/parts/outer-frame/top@2x.png",
+        "sourceRect": [
+          24,
+          0,
+          1872,
+          24
+        ],
+        "logicalSize": [
+          1872,
+          24
+        ],
+        "pixelDimensions": {
+          "1x": [
+            1872,
+            24
+          ],
+          "2x": [
+            3744,
+            48
+          ]
+        },
+        "stretch": "x"
+      },
+      "paths": {
+        "path": "原包/assets/parts/outer-frame/top.png",
+        "png2x": "原包/assets/parts/outer-frame/top@2x.png",
+        "svg": "原包/assets/parts/outer-frame/top.svg"
+      }
+    },
+    {
+      "id": "outer-frame/top-right",
+      "partOf": "outer-frame",
+      "source": {
+        "svg": "assets/parts/outer-frame/top-right.svg",
+        "path": "assets/parts/outer-frame/top-right.png",
+        "png2x": "assets/parts/outer-frame/top-right@2x.png",
+        "sourceRect": [
+          1896,
+          0,
+          24,
+          24
+        ],
+        "logicalSize": [
+          24,
+          24
+        ],
+        "pixelDimensions": {
+          "1x": [
+            24,
+            24
+          ],
+          "2x": [
+            48,
+            48
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/outer-frame/top-right.png",
+        "png2x": "原包/assets/parts/outer-frame/top-right@2x.png",
+        "svg": "原包/assets/parts/outer-frame/top-right.svg"
+      }
+    },
+    {
+      "id": "outer-frame/left",
+      "partOf": "outer-frame",
+      "source": {
+        "svg": "assets/parts/outer-frame/left.svg",
+        "path": "assets/parts/outer-frame/left.png",
+        "png2x": "assets/parts/outer-frame/left@2x.png",
+        "sourceRect": [
+          0,
+          24,
+          24,
+          1032
+        ],
+        "logicalSize": [
+          24,
+          1032
+        ],
+        "pixelDimensions": {
+          "1x": [
+            24,
+            1032
+          ],
+          "2x": [
+            48,
+            2064
+          ]
+        },
+        "stretch": "y"
+      },
+      "paths": {
+        "path": "原包/assets/parts/outer-frame/left.png",
+        "png2x": "原包/assets/parts/outer-frame/left@2x.png",
+        "svg": "原包/assets/parts/outer-frame/left.svg"
+      }
+    },
+    {
+      "id": "outer-frame/right",
+      "partOf": "outer-frame",
+      "source": {
+        "svg": "assets/parts/outer-frame/right.svg",
+        "path": "assets/parts/outer-frame/right.png",
+        "png2x": "assets/parts/outer-frame/right@2x.png",
+        "sourceRect": [
+          1896,
+          24,
+          24,
+          1032
+        ],
+        "logicalSize": [
+          24,
+          1032
+        ],
+        "pixelDimensions": {
+          "1x": [
+            24,
+            1032
+          ],
+          "2x": [
+            48,
+            2064
+          ]
+        },
+        "stretch": "y"
+      },
+      "paths": {
+        "path": "原包/assets/parts/outer-frame/right.png",
+        "png2x": "原包/assets/parts/outer-frame/right@2x.png",
+        "svg": "原包/assets/parts/outer-frame/right.svg"
+      }
+    },
+    {
+      "id": "outer-frame/bottom-left",
+      "partOf": "outer-frame",
+      "source": {
+        "svg": "assets/parts/outer-frame/bottom-left.svg",
+        "path": "assets/parts/outer-frame/bottom-left.png",
+        "png2x": "assets/parts/outer-frame/bottom-left@2x.png",
+        "sourceRect": [
+          0,
+          1056,
+          24,
+          24
+        ],
+        "logicalSize": [
+          24,
+          24
+        ],
+        "pixelDimensions": {
+          "1x": [
+            24,
+            24
+          ],
+          "2x": [
+            48,
+            48
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/outer-frame/bottom-left.png",
+        "png2x": "原包/assets/parts/outer-frame/bottom-left@2x.png",
+        "svg": "原包/assets/parts/outer-frame/bottom-left.svg"
+      }
+    },
+    {
+      "id": "outer-frame/bottom",
+      "partOf": "outer-frame",
+      "source": {
+        "svg": "assets/parts/outer-frame/bottom.svg",
+        "path": "assets/parts/outer-frame/bottom.png",
+        "png2x": "assets/parts/outer-frame/bottom@2x.png",
+        "sourceRect": [
+          24,
+          1056,
+          1872,
+          24
+        ],
+        "logicalSize": [
+          1872,
+          24
+        ],
+        "pixelDimensions": {
+          "1x": [
+            1872,
+            24
+          ],
+          "2x": [
+            3744,
+            48
+          ]
+        },
+        "stretch": "x"
+      },
+      "paths": {
+        "path": "原包/assets/parts/outer-frame/bottom.png",
+        "png2x": "原包/assets/parts/outer-frame/bottom@2x.png",
+        "svg": "原包/assets/parts/outer-frame/bottom.svg"
+      }
+    },
+    {
+      "id": "outer-frame/bottom-right",
+      "partOf": "outer-frame",
+      "source": {
+        "svg": "assets/parts/outer-frame/bottom-right.svg",
+        "path": "assets/parts/outer-frame/bottom-right.png",
+        "png2x": "assets/parts/outer-frame/bottom-right@2x.png",
+        "sourceRect": [
+          1896,
+          1056,
+          24,
+          24
+        ],
+        "logicalSize": [
+          24,
+          24
+        ],
+        "pixelDimensions": {
+          "1x": [
+            24,
+            24
+          ],
+          "2x": [
+            48,
+            48
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/outer-frame/bottom-right.png",
+        "png2x": "原包/assets/parts/outer-frame/bottom-right@2x.png",
+        "svg": "原包/assets/parts/outer-frame/bottom-right.svg"
+      }
+    },
+    {
+      "id": "bottom-frame",
+      "partOf": null,
+      "source": {
+        "svg": "assets/bottom-frame.svg",
+        "path": "assets/bottom-frame.png",
+        "png2x": "assets/bottom-frame@2x.png",
+        "sourceRect": [
+          0,
+          0,
+          1920,
+          96
+        ],
+        "logicalSize": [
+          1920,
+          96
+        ],
+        "pixelDimensions": {
+          "1x": [
+            1920,
+            96
+          ],
+          "2x": [
+            3840,
+            192
+          ]
+        },
+        "viewBox": [
+          1920,
+          96
+        ],
+        "svgViewBox": [
+          0,
+          0,
+          1920,
+          96
+        ],
+        "slices": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "targetSlices": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "targetInsets": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "borders1x": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "borders2x": [
+          24,
+          24,
+          24,
+          24
+        ],
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "transparentCenter": true,
+        "drawCenter": false,
+        "externalResources": false,
+        "lineWidthLogical": 1.25,
+        "innerLineWidthLogical": 0.65,
+        "visibleEdgeWidthLogical": 4.825,
+        "role": "bottom bar perimeter; transparent center",
+        "bytes": 1678,
+        "sha256": "f74fe03e1637ee4e3fb30a51a713b154595d3c91bbb48b1d64253c5042d079a6"
+      },
+      "paths": {
+        "path": "原包/assets/bottom-frame.png",
+        "png2x": "原包/assets/bottom-frame@2x.png",
+        "svg": "原包/assets/bottom-frame.svg"
+      },
+      "unityBorderOrder": [
+        "left",
+        "bottom",
+        "right",
+        "top"
+      ],
+      "unityBorder1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "unityBorder2x": [
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "id": "bottom-frame/top-left",
+      "partOf": "bottom-frame",
+      "source": {
+        "svg": "assets/parts/bottom-frame/top-left.svg",
+        "path": "assets/parts/bottom-frame/top-left.png",
+        "png2x": "assets/parts/bottom-frame/top-left@2x.png",
+        "sourceRect": [
+          0,
+          0,
+          12,
+          12
+        ],
+        "logicalSize": [
+          12,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            12
+          ],
+          "2x": [
+            24,
+            24
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/bottom-frame/top-left.png",
+        "png2x": "原包/assets/parts/bottom-frame/top-left@2x.png",
+        "svg": "原包/assets/parts/bottom-frame/top-left.svg"
+      }
+    },
+    {
+      "id": "bottom-frame/top",
+      "partOf": "bottom-frame",
+      "source": {
+        "svg": "assets/parts/bottom-frame/top.svg",
+        "path": "assets/parts/bottom-frame/top.png",
+        "png2x": "assets/parts/bottom-frame/top@2x.png",
+        "sourceRect": [
+          12,
+          0,
+          1896,
+          12
+        ],
+        "logicalSize": [
+          1896,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            1896,
+            12
+          ],
+          "2x": [
+            3792,
+            24
+          ]
+        },
+        "stretch": "x"
+      },
+      "paths": {
+        "path": "原包/assets/parts/bottom-frame/top.png",
+        "png2x": "原包/assets/parts/bottom-frame/top@2x.png",
+        "svg": "原包/assets/parts/bottom-frame/top.svg"
+      }
+    },
+    {
+      "id": "bottom-frame/top-right",
+      "partOf": "bottom-frame",
+      "source": {
+        "svg": "assets/parts/bottom-frame/top-right.svg",
+        "path": "assets/parts/bottom-frame/top-right.png",
+        "png2x": "assets/parts/bottom-frame/top-right@2x.png",
+        "sourceRect": [
+          1908,
+          0,
+          12,
+          12
+        ],
+        "logicalSize": [
+          12,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            12
+          ],
+          "2x": [
+            24,
+            24
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/bottom-frame/top-right.png",
+        "png2x": "原包/assets/parts/bottom-frame/top-right@2x.png",
+        "svg": "原包/assets/parts/bottom-frame/top-right.svg"
+      }
+    },
+    {
+      "id": "bottom-frame/left",
+      "partOf": "bottom-frame",
+      "source": {
+        "svg": "assets/parts/bottom-frame/left.svg",
+        "path": "assets/parts/bottom-frame/left.png",
+        "png2x": "assets/parts/bottom-frame/left@2x.png",
+        "sourceRect": [
+          0,
+          12,
+          12,
+          72
+        ],
+        "logicalSize": [
+          12,
+          72
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            72
+          ],
+          "2x": [
+            24,
+            144
+          ]
+        },
+        "stretch": "y"
+      },
+      "paths": {
+        "path": "原包/assets/parts/bottom-frame/left.png",
+        "png2x": "原包/assets/parts/bottom-frame/left@2x.png",
+        "svg": "原包/assets/parts/bottom-frame/left.svg"
+      }
+    },
+    {
+      "id": "bottom-frame/right",
+      "partOf": "bottom-frame",
+      "source": {
+        "svg": "assets/parts/bottom-frame/right.svg",
+        "path": "assets/parts/bottom-frame/right.png",
+        "png2x": "assets/parts/bottom-frame/right@2x.png",
+        "sourceRect": [
+          1908,
+          12,
+          12,
+          72
+        ],
+        "logicalSize": [
+          12,
+          72
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            72
+          ],
+          "2x": [
+            24,
+            144
+          ]
+        },
+        "stretch": "y"
+      },
+      "paths": {
+        "path": "原包/assets/parts/bottom-frame/right.png",
+        "png2x": "原包/assets/parts/bottom-frame/right@2x.png",
+        "svg": "原包/assets/parts/bottom-frame/right.svg"
+      }
+    },
+    {
+      "id": "bottom-frame/bottom-left",
+      "partOf": "bottom-frame",
+      "source": {
+        "svg": "assets/parts/bottom-frame/bottom-left.svg",
+        "path": "assets/parts/bottom-frame/bottom-left.png",
+        "png2x": "assets/parts/bottom-frame/bottom-left@2x.png",
+        "sourceRect": [
+          0,
+          84,
+          12,
+          12
+        ],
+        "logicalSize": [
+          12,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            12
+          ],
+          "2x": [
+            24,
+            24
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/bottom-frame/bottom-left.png",
+        "png2x": "原包/assets/parts/bottom-frame/bottom-left@2x.png",
+        "svg": "原包/assets/parts/bottom-frame/bottom-left.svg"
+      }
+    },
+    {
+      "id": "bottom-frame/bottom",
+      "partOf": "bottom-frame",
+      "source": {
+        "svg": "assets/parts/bottom-frame/bottom.svg",
+        "path": "assets/parts/bottom-frame/bottom.png",
+        "png2x": "assets/parts/bottom-frame/bottom@2x.png",
+        "sourceRect": [
+          12,
+          84,
+          1896,
+          12
+        ],
+        "logicalSize": [
+          1896,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            1896,
+            12
+          ],
+          "2x": [
+            3792,
+            24
+          ]
+        },
+        "stretch": "x"
+      },
+      "paths": {
+        "path": "原包/assets/parts/bottom-frame/bottom.png",
+        "png2x": "原包/assets/parts/bottom-frame/bottom@2x.png",
+        "svg": "原包/assets/parts/bottom-frame/bottom.svg"
+      }
+    },
+    {
+      "id": "bottom-frame/bottom-right",
+      "partOf": "bottom-frame",
+      "source": {
+        "svg": "assets/parts/bottom-frame/bottom-right.svg",
+        "path": "assets/parts/bottom-frame/bottom-right.png",
+        "png2x": "assets/parts/bottom-frame/bottom-right@2x.png",
+        "sourceRect": [
+          1908,
+          84,
+          12,
+          12
+        ],
+        "logicalSize": [
+          12,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            12
+          ],
+          "2x": [
+            24,
+            24
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/bottom-frame/bottom-right.png",
+        "png2x": "原包/assets/parts/bottom-frame/bottom-right@2x.png",
+        "svg": "原包/assets/parts/bottom-frame/bottom-right.svg"
+      }
+    },
+    {
+      "id": "chain-slot-frame",
+      "partOf": null,
+      "source": {
+        "svg": "assets/chain-slot-frame.svg",
+        "path": "assets/chain-slot-frame.png",
+        "png2x": "assets/chain-slot-frame@2x.png",
+        "sourceRect": [
+          0,
+          0,
+          1024,
+          64
+        ],
+        "logicalSize": [
+          1024,
+          64
+        ],
+        "pixelDimensions": {
+          "1x": [
+            1024,
+            64
+          ],
+          "2x": [
+            2048,
+            128
+          ]
+        },
+        "viewBox": [
+          1024,
+          64
+        ],
+        "svgViewBox": [
+          0,
+          0,
+          1024,
+          64
+        ],
+        "slices": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "targetSlices": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "targetInsets": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "borders1x": [
+          12,
+          12,
+          12,
+          12
+        ],
+        "borders2x": [
+          24,
+          24,
+          24,
+          24
+        ],
+        "contentInset": [
+          6,
+          6,
+          6,
+          6
+        ],
+        "transparentCenter": true,
+        "drawCenter": false,
+        "externalResources": false,
+        "lineWidthLogical": 1.25,
+        "innerLineWidthLogical": 0.65,
+        "visibleEdgeWidthLogical": 4.825,
+        "role": "resolution slot perimeter; transparent center",
+        "bytes": 1066,
+        "sha256": "bac3cbb50809498170df5c9d06ad4cba4f49e78fb8a1371e5054c2a9a0575710"
+      },
+      "paths": {
+        "path": "原包/assets/chain-slot-frame.png",
+        "png2x": "原包/assets/chain-slot-frame@2x.png",
+        "svg": "原包/assets/chain-slot-frame.svg"
+      },
+      "unityBorderOrder": [
+        "left",
+        "bottom",
+        "right",
+        "top"
+      ],
+      "unityBorder1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "unityBorder2x": [
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "id": "chain-slot-frame/top-left",
+      "partOf": "chain-slot-frame",
+      "source": {
+        "svg": "assets/parts/chain-slot-frame/top-left.svg",
+        "path": "assets/parts/chain-slot-frame/top-left.png",
+        "png2x": "assets/parts/chain-slot-frame/top-left@2x.png",
+        "sourceRect": [
+          0,
+          0,
+          12,
+          12
+        ],
+        "logicalSize": [
+          12,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            12
+          ],
+          "2x": [
+            24,
+            24
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/chain-slot-frame/top-left.png",
+        "png2x": "原包/assets/parts/chain-slot-frame/top-left@2x.png",
+        "svg": "原包/assets/parts/chain-slot-frame/top-left.svg"
+      }
+    },
+    {
+      "id": "chain-slot-frame/top",
+      "partOf": "chain-slot-frame",
+      "source": {
+        "svg": "assets/parts/chain-slot-frame/top.svg",
+        "path": "assets/parts/chain-slot-frame/top.png",
+        "png2x": "assets/parts/chain-slot-frame/top@2x.png",
+        "sourceRect": [
+          12,
+          0,
+          1000,
+          12
+        ],
+        "logicalSize": [
+          1000,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            1000,
+            12
+          ],
+          "2x": [
+            2000,
+            24
+          ]
+        },
+        "stretch": "x"
+      },
+      "paths": {
+        "path": "原包/assets/parts/chain-slot-frame/top.png",
+        "png2x": "原包/assets/parts/chain-slot-frame/top@2x.png",
+        "svg": "原包/assets/parts/chain-slot-frame/top.svg"
+      }
+    },
+    {
+      "id": "chain-slot-frame/top-right",
+      "partOf": "chain-slot-frame",
+      "source": {
+        "svg": "assets/parts/chain-slot-frame/top-right.svg",
+        "path": "assets/parts/chain-slot-frame/top-right.png",
+        "png2x": "assets/parts/chain-slot-frame/top-right@2x.png",
+        "sourceRect": [
+          1012,
+          0,
+          12,
+          12
+        ],
+        "logicalSize": [
+          12,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            12
+          ],
+          "2x": [
+            24,
+            24
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/chain-slot-frame/top-right.png",
+        "png2x": "原包/assets/parts/chain-slot-frame/top-right@2x.png",
+        "svg": "原包/assets/parts/chain-slot-frame/top-right.svg"
+      }
+    },
+    {
+      "id": "chain-slot-frame/left",
+      "partOf": "chain-slot-frame",
+      "source": {
+        "svg": "assets/parts/chain-slot-frame/left.svg",
+        "path": "assets/parts/chain-slot-frame/left.png",
+        "png2x": "assets/parts/chain-slot-frame/left@2x.png",
+        "sourceRect": [
+          0,
+          12,
+          12,
+          40
+        ],
+        "logicalSize": [
+          12,
+          40
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            40
+          ],
+          "2x": [
+            24,
+            80
+          ]
+        },
+        "stretch": "y"
+      },
+      "paths": {
+        "path": "原包/assets/parts/chain-slot-frame/left.png",
+        "png2x": "原包/assets/parts/chain-slot-frame/left@2x.png",
+        "svg": "原包/assets/parts/chain-slot-frame/left.svg"
+      }
+    },
+    {
+      "id": "chain-slot-frame/right",
+      "partOf": "chain-slot-frame",
+      "source": {
+        "svg": "assets/parts/chain-slot-frame/right.svg",
+        "path": "assets/parts/chain-slot-frame/right.png",
+        "png2x": "assets/parts/chain-slot-frame/right@2x.png",
+        "sourceRect": [
+          1012,
+          12,
+          12,
+          40
+        ],
+        "logicalSize": [
+          12,
+          40
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            40
+          ],
+          "2x": [
+            24,
+            80
+          ]
+        },
+        "stretch": "y"
+      },
+      "paths": {
+        "path": "原包/assets/parts/chain-slot-frame/right.png",
+        "png2x": "原包/assets/parts/chain-slot-frame/right@2x.png",
+        "svg": "原包/assets/parts/chain-slot-frame/right.svg"
+      }
+    },
+    {
+      "id": "chain-slot-frame/bottom-left",
+      "partOf": "chain-slot-frame",
+      "source": {
+        "svg": "assets/parts/chain-slot-frame/bottom-left.svg",
+        "path": "assets/parts/chain-slot-frame/bottom-left.png",
+        "png2x": "assets/parts/chain-slot-frame/bottom-left@2x.png",
+        "sourceRect": [
+          0,
+          52,
+          12,
+          12
+        ],
+        "logicalSize": [
+          12,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            12
+          ],
+          "2x": [
+            24,
+            24
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/chain-slot-frame/bottom-left.png",
+        "png2x": "原包/assets/parts/chain-slot-frame/bottom-left@2x.png",
+        "svg": "原包/assets/parts/chain-slot-frame/bottom-left.svg"
+      }
+    },
+    {
+      "id": "chain-slot-frame/bottom",
+      "partOf": "chain-slot-frame",
+      "source": {
+        "svg": "assets/parts/chain-slot-frame/bottom.svg",
+        "path": "assets/parts/chain-slot-frame/bottom.png",
+        "png2x": "assets/parts/chain-slot-frame/bottom@2x.png",
+        "sourceRect": [
+          12,
+          52,
+          1000,
+          12
+        ],
+        "logicalSize": [
+          1000,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            1000,
+            12
+          ],
+          "2x": [
+            2000,
+            24
+          ]
+        },
+        "stretch": "x"
+      },
+      "paths": {
+        "path": "原包/assets/parts/chain-slot-frame/bottom.png",
+        "png2x": "原包/assets/parts/chain-slot-frame/bottom@2x.png",
+        "svg": "原包/assets/parts/chain-slot-frame/bottom.svg"
+      }
+    },
+    {
+      "id": "chain-slot-frame/bottom-right",
+      "partOf": "chain-slot-frame",
+      "source": {
+        "svg": "assets/parts/chain-slot-frame/bottom-right.svg",
+        "path": "assets/parts/chain-slot-frame/bottom-right.png",
+        "png2x": "assets/parts/chain-slot-frame/bottom-right@2x.png",
+        "sourceRect": [
+          1012,
+          52,
+          12,
+          12
+        ],
+        "logicalSize": [
+          12,
+          12
+        ],
+        "pixelDimensions": {
+          "1x": [
+            12,
+            12
+          ],
+          "2x": [
+            24,
+            24
+          ]
+        },
+        "stretch": "none"
+      },
+      "paths": {
+        "path": "原包/assets/parts/chain-slot-frame/bottom-right.png",
+        "png2x": "原包/assets/parts/chain-slot-frame/bottom-right@2x.png",
+        "svg": "原包/assets/parts/chain-slot-frame/bottom-right.svg"
+      }
+    },
+    {
+      "id": "bottom-bar",
+      "partOf": null,
+      "source": {
+        "path": "assets/bottom-bar-clean.png",
+        "svg": "assets/bottom-bar-clean.svg",
+        "png2x": "assets/bottom-bar-clean@2x.png",
+        "viewBox": [
+          1920,
+          96
+        ],
+        "svgViewBox": [
+          0,
+          0,
+          1920,
+          96
+        ],
+        "logicalSize": [
+          1920,
+          96
+        ],
+        "pixelDimensions": {
+          "1x": [
+            1920,
+            96
+          ],
+          "2x": [
+            3840,
+            192
+          ]
+        },
+        "slices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "targetSlices": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "targetInsets": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "borders1x": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "borders2x": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "contentInset": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "opaque": true,
+        "transparentCenter": false,
+        "drawCenter": true,
+        "externalResources": false,
+        "role": "bottom bar background only; opaque rectangle with no border or corner decoration",
+        "stretch": "xy",
+        "bytes": 6335,
+        "sha256": "f4eaa3f9c69f626d397f84764845cc77cf959747e1632116bbda8fa6a9f414a3"
+      },
+      "paths": {
+        "path": "原包/assets/bottom-bar-clean.png",
+        "png2x": "原包/assets/bottom-bar-clean@2x.png",
+        "svg": "原包/assets/bottom-bar-clean.svg"
+      },
+      "unityBorderOrder": [
+        "left",
+        "bottom",
+        "right",
+        "top"
+      ],
+      "unityBorder1x": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "unityBorder2x": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

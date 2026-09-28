@@ -1,0 +1,41 @@
+from pathlib import Path
+p=Path('Assets/YC/Presentation/Ui007/UiEventDialogLayoutGroup.cs');s=p.read_text(encoding='utf-8-sig');start=s.index('        private EventChoiceDialogMode mode;');s=s[:start]+'''        public void Configure(EventChoiceDialogMode value, bool hasArtwork = false)
+        {
+            var layout = GetComponent<VerticalLayoutGroup>();
+            if (layout == null || modes == null || (int)value >= modes.Length) return;
+            var metrics = modes[(int)value];
+            layout.padding.top = hasArtwork ? 0 : Mathf.RoundToInt(metrics.Top);
+            layout.spacing = hasArtwork ? 0 : metadataDescriptionGap;
+            if (title != null)
+            {
+                var input = title.GetComponent<LayoutElement>();
+                if (input != null) input.preferredHeight = input.minHeight = metrics.TitleHeight;
+            }
+            LayoutRebuilder.MarkLayoutForRebuild((RectTransform)transform);
+        }
+    }
+}
+''';s=s.replace(': LayoutGroup',': MonoBehaviour');p.write_text(s,encoding='utf-8')
+p=Path('Assets/YC/Presentation/Ui007/UiPromptLayout.cs');s=p.read_text(encoding='utf-8-sig');a=s.index('        private bool measureContent;');s=s[:a]+'''        private bool measureContent;
+        public void RefreshContent() { measureContent = true; RefreshInput(); }
+        private void LateUpdate() { if (measureContent) RefreshInput(); }
+        private void RefreshInput()
+        {
+            if (frame == null || promptText == null) return;
+            var input = frame.GetComponent<LayoutElement>();
+            if (input == null) return;
+            input.preferredWidth = preferredWidth;
+            var settings = promptText.GetGenerationSettings(new Vector2(
+                Mathf.Max(1, frame.rect.width - horizontalTextInset), 0));
+            input.preferredHeight = Mathf.Max(minimumHeight, Mathf.Ceil(
+                promptText.cachedTextGeneratorForLayout.GetPreferredHeight(promptText.text, settings) /
+                promptText.pixelsPerUnit + verticalTextPadding));
+        }
+    }
+}
+''';s=s.replace(': LayoutGroup',': MonoBehaviour');p.write_text(s,encoding='utf-8')
+p=Path('Assets/YC/Presentation/Ui006/UiEffectRowView.cs');s=p.read_text(encoding='utf-8-sig').replace('private UiEffectRowLayout rowLayout','private HorizontalLayoutGroup rowLayout').replace('rowLayout.Invalidate()','LayoutRebuilder.MarkLayoutForRebuild((RectTransform)rowLayout.transform)');p.write_text(s,encoding='utf-8')
+p=Path('Assets/YC/Presentation/BuildInfoPanelView.cs');s=p.read_text(encoding='utf-8-sig');a=s.index('            // 地图相机');b=s.index('            var group',a);s=s[:a]+s[b:];p.write_text(s,encoding='utf-8')
+for p in Path('Assets/YC').rglob('*.cs'):
+ s=p.read_text(encoding='utf-8-sig')
+ if 'RefreshResourceCounter' in s:p.write_text(s.replace('RefreshResourceCounter','RefreshLocalPlayerUi'),encoding='utf-8')

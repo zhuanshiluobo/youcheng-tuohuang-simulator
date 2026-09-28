@@ -1,0 +1,114 @@
+from pathlib import Path
+import re
+root=Path('G:/NoMadCity')
+p=root/'Assets/YC/Tests/EditMode/RuntimeUiLayoutTests.cs'
+s=p.read_text(encoding='utf-8-sig')
+a=s.index('        [Test]\n        public void ActionPanel_Flips')
+b=s.index('        [Test]\n        public void PromptPresenter_',a)
+s=s[:a]+'''        [Test]
+        public void ActionPanel_MainActionsDoNotRequireRetiredContextFace()
+        {
+            var controller = BuildActionPanel(CreateCanvas("Action Panel Test Canvas"));
+            Assert.That(FindTransform("Main Action Face"), Is.Not.Null);
+            Assert.That(FindTransform("Action Panel Context Button"), Is.Null);
+            Assert.That(FindTransform("Action Card Face"), Is.Null);
+            InvokePublic(controller, "SetRemainingInfluence", 17);
+            Assert.That(FindTransform("Remaining Influence Text").GetComponent<Text>().text,
+                Does.Contain("17"));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CharacterUse_SecondEffectOffersLegalChoiceOnce(bool finish)
+        {
+            var state = SecondEffectState();
+            var dialog = CreateCharacterUseDialog();
+            var calls = 0;
+            InvokePublic(dialog, "ShowCharacterUse", new CharacterCardPanelPresenter().BuildView(state, 1),
+                new Action(() => Assert.Fail("策略已完成，不得再次发动")),
+                new Action(() => { if (!finish) calls++; }),
+                new Action(() => { if (finish) calls++; }), new Func<bool>(() => true), null);
+            var strategy = FindTransform("Character Effect Option 0").GetComponent<Button>();
+            Assert.That(strategy.interactable, Is.False);
+            var button = FindTransform("Character Effect Option " + (finish ? 2 : 1)).GetComponent<Button>();
+            Assert.That(button.interactable, Is.True);
+            var click = button.onClick;
+            click.Invoke();
+            click.Invoke();
+            Assert.That(calls, Is.EqualTo(1), "连续点击不能重复提交角色效果决定。");
+        }
+
+        [Test]
+        public void CharacterUse_StaleChoiceAndClosingDoNotSubmitDecision()
+        {
+            var dialog = CreateCharacterUseDialog();
+            var calls = 0;
+            Action callback = () => calls++;
+            InvokePublic(dialog, "ShowCharacterUse", new CharacterCardPanelPresenter().BuildView(SecondEffectState(), 1),
+                callback, callback, callback, new Func<bool>(() => false), callback);
+            FindTransform("Character Effect Option 2").GetComponent<Button>().onClick.Invoke();
+            InvokePublic(dialog, "Hide");
+            Assert.That(calls, Is.Zero);
+        }
+
+        private object CreateCharacterUseDialog()
+        {
+            owner = InstantiateGameplayHudPrefab();
+            var registryType = Type.GetType("YC.Presentation.GameplayDialogRegistry, Assembly-CSharp", true);
+            var registry = owner.GetComponentInChildren(registryType, true);
+            var type = Type.GetType("YC.Presentation.CharacterCardEffectChoiceDialog, Assembly-CSharp", true);
+            return Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null, new object[] { registry, owner.GetComponent<RectTransform>() }, null);
+        }
+
+        private static GameState SecondEffectState() => new GameState
+        {
+            Phase = GamePhase.ActionRound1, CurrentPlayerId = 1, StartPlayerId = 1,
+            Players = { new PlayerState { PlayerId = 1, Color = PlayerColor.Red,
+                CoveredCharacterCardId = "character.red.p1.cannot" } },
+            PendingCharacterEffect = new PendingCharacterEffectState
+            {
+                ChoiceType = YC.Domain.Cards.CharacterPendingChoiceTypes.SecondEffectDecision,
+                PlayerId = 1, CardId = "character.red.p1.cannot",
+                RemainingEffectMode = YC.Domain.Cards.CharacterEffectModes.Tactic,
+                OptionIds = { YC.Domain.Cards.CharacterEffectChoiceIds.ContinueSecondEffect,
+                    YC.Domain.Cards.CharacterEffectChoiceIds.FinishCharacterUse }
+            }
+        };
+
+'''+s[b:]
+p.write_text(s,encoding='utf-8')
+p=root/'Assets/YC/Tests/EditMode/CharacterHandPanelUiTests.cs';s=p.read_text(encoding='utf-8-sig')
+s=s.replace('Prefab_HasLockedProfileTemplatesGrayscaleMaterialAndModalBlocker','Prefab_HasValidHandTemplatesAndAnimationWithoutDiscardShell')
+s=re.sub(r'^.*Assert.That\(prefabPanel.View.(Discard|Overlay).*$\n','',s,flags=re.M)
+a=s.index('        [Test]\n        public void DiscardModal_');b=s.index('        [Test]\n        public void EmptyHandCover_',a)
+s=s[:a]+'''        [Test]
+        public void DiscardList_ContainsOnlyVisibleDiscardsAndCannotSubmitSelection()
+        {
+            var hud = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            owner = (GameObject)PrefabUtility.InstantiatePrefab(hud);
+            panel = new PanelFacade(owner.GetComponentInChildren(GetRuntimeType("YC.Presentation.CharacterHandPanel"), true));
+            Assert.That(panel.Configure(AssetDatabase.LoadAssetAtPath(CatalogPath,
+                GetRuntimeType("YC.Presentation.CardVisualCatalog"))), Is.True);
+            panel.Render(1, BuildModel(new[] { CardIds[0], CardIds[1] }, new[] { CardIds[2] }, false));
+            panel.OpenDiscardPreview();
+            Assert.That(panel.IsDiscardPreviewOpen, Is.True);
+            var list = owner.GetComponentInChildren(GetRuntimeType("YC.Presentation.EffectDialogShellView"), false);
+            Assert.That(list, Is.Not.Null);
+            var cards = list.GetComponentsInChildren(GetRuntimeType("YC.Presentation.FacilityEffectCardView"), false);
+            Assert.That(cards.Length, Is.EqualTo(1), "只读弃牌页不得混入手牌或其他玩家的牌。");
+            Assert.That(GetProperty<Button>(cards[0], "Button").interactable, Is.False);
+            Assert.That(Array.Exists(list.GetComponentsInChildren<Button>(), button => button.name == "Confirm Selection"), Is.False);
+            Assert.That(GetProperty<Button>(cards[0], "DetailsButton").interactable, Is.True);
+            panel.CloseDiscardPreview();
+            Assert.That(panel.IsDiscardPreviewOpen, Is.False);
+            Assert.That(panel.OrderedHandCount, Is.EqualTo(2));
+        }
+
+'''+s[b:]
+# 删除废弃壳的测试代理，保留手牌真正使用的接口。
+s=re.sub(r'^            public .* (?:DiscardOverlayObject|OverlayHandTitle|OverlayDiscardTitle|OverlayHandContent|OverlayDiscardContent|OverlayCardTemplate|DiscardGrayscaleMaterial|DiscardAlpha) =>.*\n','',s,flags=re.M)
+s=re.sub(r'            public GameObject OverlayDiscardEmptyObject =>\n.*\n','',s)
+s=re.sub(r'\n            public void RequestClose\(\)\n            \{.*?\n            \}', '',s,flags=re.S)
+p.write_text(s,encoding='utf-8')

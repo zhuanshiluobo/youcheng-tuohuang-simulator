@@ -36,7 +36,6 @@ namespace YC.Tests.EditMode
             Assert.That(Read<Vector2>(catalog, "CanvasReferenceResolution"), Is.EqualTo(new Vector2(1920f, 1080f)));
             Assert.That(Read<float>(catalog, "CanvasMatchWidthOrHeight"), Is.EqualTo(.5f));
             Assert.That(Read<Vector2>(catalog, "DialogActionButtonSize"), Is.EqualTo(new Vector2(220f, 48f)));
-            Assert.That(Read<Vector2>(catalog, "CollapsibleMapPromptSize"), Is.EqualTo(new Vector2(650f, 260f)));
             Assert.That(Read<Vector2>(catalog, "ViewerCloseButtonSize"), Is.EqualTo(new Vector2(42f, 42f)));
             Assert.That(Read<Vector2>(catalog, "ViewerCloseButtonOffset"), Is.EqualTo(new Vector2(-18f, -12f)));
             AssertPlayerColor(catalog, "Red", .7019608f, 0f, .1137255f, 1f);

@@ -1,0 +1,30 @@
+{
+  "BuildInfoPanel": {
+    "duplicateFileIds": 0,
+    "newDanglingReferences": 0,
+    "playerGridCount": 9,
+    "existingDanglingReferences": [],
+    "stateLabelCountWithinTrackOverlay": 0,
+    "stateLabelCountOutsideTrackOverlay": 8
+  },
+  "Dialogs/CityStyleDeclarationPreviewDialog": {
+    "duplicateFileIds": 0,
+    "newDanglingReferences": 0,
+    "playerGridCount": 9,
+    "existingDanglingReferences": [],
+    "stateLabelCountWithinTrackOverlay": 0,
+    "stateLabelCountOutsideTrackOverlay": 0
+  },
+  "GameplayInteractionHud": {
+    "duplicateFileIds": 0,
+    "newDanglingReferences": 0,
+    "playerGridCount": 0,
+    "existingDanglingReferences": [
+      "6610471206676212675"
+    ],
+    "stateLabelCountWithinTrackOverlay": 0,
+    "stateLabelCountOutsideTrackOverlay": 8
+  },
+  "SampleScene": "字节未变",
+  "ThreePlayerScene": "字节未变"
+}

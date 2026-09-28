@@ -264,10 +264,6 @@ namespace YC.Tests.EditMode
                 "CityStyleInteraction.BeginDeclare(initialCityStyleId);");
             AssertThinDelegate(
                 presenterSource,
-                "public void OpenCityStylePreview(string initialCityStyleId)",
-                "CityStyleInteraction.OpenPreview(initialCityStyleId);");
-            AssertThinDelegate(
-                presenterSource,
                 "public void SubmitDeclareCityStyle(string cityStyleId, IReadOnlyList<int> selectedSlotIndexes)",
                 "CityStyleInteraction.SubmitDeclare(cityStyleId, selectedSlotIndexes);");
         }

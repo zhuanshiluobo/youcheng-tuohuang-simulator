@@ -1,0 +1,18 @@
+from pathlib import Path
+import re
+root=Path('G:/NoMadCity')
+targets={
+'UiEventHeaderInput':['metadata','description','content','metadataHeight','titleMetadataGap','descriptionMinimumHeight','descriptionWidthRatio','characterTitleWidth','characterDescriptionWidth','characterDescriptionTop','characterDescriptionHeight','ContentTop'],
+'UiPromptSizeInput':['initialSize','topInset','centreOffset']}
+for name,fields in targets.items():
+    meta=root/f'Assets/YC/Presentation/Layout/{name}.cs.meta'
+    guid=re.search(r'^guid: (\w+)',meta.read_text(encoding='utf-8'),re.M).group(1)
+    for p in (root/'Assets/YC/Presentation/Prefabs/Gameplay').rglob('*.prefab'):
+        old=p.read_text(encoding='utf-8')
+        def clean(m):
+            t=m.group(0)
+            if 'guid: '+guid in t:
+                for field in fields: t=re.sub(r'^  +'+field+r': .*\n','',t,flags=re.M)
+            return t
+        new=re.sub(r'^--- !u!114.*?(?=^--- !u!|\Z)',clean,old,flags=re.M|re.S)
+        if new!=old: p.write_text(new,encoding='utf-8'); print(p)

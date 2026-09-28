@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Interactions;
 using YC.Presentation.Workflows;
 
 namespace YC.Presentation
@@ -12,7 +13,6 @@ namespace YC.Presentation
     /// <summary>共享 HUD 中的安全区域、常驻栏和内容页面边界。</summary>
     public sealed class GameplayHudFrame : MonoBehaviour
     {
-        private enum LayoutMode { Wide, Standard, Compact }
 
         [SerializeField] private Canvas barCanvas;
         [SerializeField] private RectTransform safeArea;
@@ -24,13 +24,11 @@ namespace YC.Presentation
         [SerializeField] private RectTransform mapRegion;
         [SerializeField] private RectTransform mainSurface;
         [SerializeField] private RectTransform mainRegions;
+        [SerializeField] private HorizontalLayoutGroup columnsLayout;
+        [SerializeField] private HorizontalLayoutGroup topContentLayout;
+        [SerializeField] private UiMapSurroundLayout mapSurroundLayout;
+        [SerializeField] private UiCitySlotsLayout citySlotsLayout;
         [SerializeField] private RectTransform[] mapBackdrops;
-        [SerializeField] private RectTransform compactNavigation;
-        [SerializeField] private Button[] compactNavigationButtons;
-        [SerializeField] private Sprite compactSelectedSprite;
-        [SerializeField] private Sprite compactIdleSprite;
-        [SerializeField] private Color compactSelectedTextColor;
-        [SerializeField] private Color compactIdleTextColor;
         [SerializeField] private Text roundNumberText;
         [SerializeField] private Text roundTotalText;
         [SerializeField] private Text phaseText;
@@ -40,7 +38,7 @@ namespace YC.Presentation
         [SerializeField] private Image[] roundTicks;
         [SerializeField] private Text summaryText;
         [SerializeField] private Text shortSummaryText;
-        [SerializeField] private Text selfNameText;
+        [SerializeField] private Text scoreValueText;
         [SerializeField] private Text[] resourceValueTexts;
         [SerializeField] private Button settingsButton;
         [SerializeField] private Button foldButton;
@@ -53,10 +51,15 @@ namespace YC.Presentation
         [SerializeField] private string redZoneOpenText = "红区已开放";
         [SerializeField] private string localTurnText = "轮到你行动";
         [SerializeField] private string waitingTurnText = "等待其他玩家";
-        [SerializeField] private string scoreSuffix = " 分";
+        [SerializeField] private string otherPlayerTurnFormat = "{0}正在行动";
+        [SerializeField] private string unnamedPlayerFormat = "玩家{0}";
         [SerializeField] private string foldVisibleText = "收起";
         [SerializeField] private string foldSuspendedText = "展开";
-        [SerializeField] private string foldUnavailableText = "无待处理结算";
+        [SerializeField] private string foldUnavailableText = "收起";
+        [SerializeField] private string selectionSummaryFormat = "待处理选择：{0}～{1} 项";
+        [SerializeField] private string skippableSelectionSummaryFormat = "待处理选择：{0}～{1} 项（可跳过）";
+        [SerializeField] private string targetSummary = "待处理目标：请选择目标";
+        [SerializeField] private string skippableTargetSummary = "待处理目标：请选择目标（可跳过）";
         [Header("阶段显示文案")]
         [SerializeField] private string setupPhaseText = "准备";
         [SerializeField] private string entrancePhaseText = "入场";
@@ -68,36 +71,9 @@ namespace YC.Presentation
         [SerializeField] private string cleanupPhaseText = "收尾";
         [SerializeField] private string finalScoringPhaseText = "最终计分";
         [SerializeField] private string gameOverPhaseText = "终局";
-        [Header("逻辑尺寸与布局阈值")]
-        [SerializeField] private float wideMinWidth = 1540f;
-        [SerializeField] private float compactMaxWidth = 1060f;
-        [SerializeField] private float compactMaxHeight = 670f;
-        [SerializeField] private float minimumControlSpacing = 12f;
-        [SerializeField] private float modeHysteresis = 24f;
-        [SerializeField] private float wideTopHeight = 72f;
-        [SerializeField] private float standardTopHeight = 80f;
-        [SerializeField] private float compactTopHeight = 104f;
-        [SerializeField] private float wideBottomHeight = 96f;
-        [SerializeField] private float standardBottomHeight = 104f;
-        [SerializeField] private float compactBottomHeight = 120f;
-        [SerializeField] private float contentGap = 8f;
-        [SerializeField] private float bottomScreenMargin = 0f;
-        [SerializeField] private float designWidth = 1920f;
-        [SerializeField] private float designHeight = 1080f;
-        [SerializeField] private float designContentLeft = 16f;
-        [SerializeField] private float designContentRight = 1904f;
-        [SerializeField] private float designContentTop = 72f;
-        [SerializeField] private float designContentBottom = 978f;
-        [SerializeField] private float layoutSideInset = 16f;
-        [SerializeField] private float compactNavigationHeight = 36f;
-        [SerializeField] private float compactPanMinimumGain = 1.08f;
-        [SerializeField] private float compactTopRowOffset = 24f;
-        [SerializeField] private float compactStatusRowOffset = -29f;
-        [SerializeField] private float normalStatusHeight = 55f;
-        [SerializeField] private float compactStatusHeight = 42f;
 
         private static GameplayHudFrame active;
-        private LayoutMode mode = LayoutMode.Standard;
+        private Color? turnTagDefaultColor;
         private int lastScreenWidth = -1;
         private int lastScreenHeight = -1;
         private Rect lastSafeArea;
@@ -106,20 +82,29 @@ namespace YC.Presentation
         private Vector2 lastSurfaceSize;
         private Canvas contentCanvas;
         private GameObject visiblePage;
+        private GameObject stagePage;
+        private bool stagePageFoldable;
+        private bool stagePageSuspended;
+        private GameObject suspendedStageFocus;
         private GameObject suspendedEffectPage;
         private GameObject suspendedEffectFocus;
         private string currentRequestId;
+        private string currentFlowId;
+        private InteractionRequestProjection currentProjection;
+        private string lastActionSummary;
+        private string interactionMessage;
+        private float interactionMessageExpiresAt;
+        private bool mapViewportDirty;
         private int currentRevision;
         private string suspendedRequestId;
         private int suspendedRevision;
         private bool effectSuspended;
+        private bool mapInteractionActive;
         private readonly List<RectTransform> externalPages = new List<RectTransform>();
-        private float currentTopHeight;
-        private float currentBottomHeight;
-        private int compactSection = 1;
 
         public static GameplayHudFrame Active => active;
-        public static bool EffectInputSuspended => active != null && active.effectSuspended;
+        public static bool EffectInputSuspended => active != null && active.effectSuspended &&
+            (!active.mapInteractionActive || active.visiblePage != null);
         public RectTransform ContentRect => contentRect;
         public Canvas BarCanvas => barCanvas;
         public RectTransform TopBar => topBar;
@@ -127,20 +112,19 @@ namespace YC.Presentation
         public Button SettingsButton => settingsButton;
         public Button FoldButton => foldButton;
         public Button EndActionButton => endActionButton;
+        public string InteractionMessage => interactionMessage ?? string.Empty;
 
         public bool TryValidateConfiguration(out string reason)
         {
             if (barCanvas == null || safeArea == null || topBar == null || bottomBar == null ||
                 contentRect == null || mapRegion == null || mainSurface == null || mainRegions == null ||
+                columnsLayout == null || topContentLayout == null || mapSurroundLayout == null || citySlotsLayout == null ||
                 topBarContent == null || bottomBarContent == null ||
                 mapBackdrops == null || mapBackdrops.Length != 4 ||
-                compactNavigation == null || compactNavigationButtons == null ||
-                compactNavigationButtons.Length != 3 || compactSelectedSprite == null ||
-                compactIdleSprite == null ||
                 roundNumberText == null || roundTotalText == null ||
                 phaseText == null || redZoneText == null || redZoneOpenRoundText == null ||
                 turnTagText == null || roundTicks == null || roundTicks.Length == 0 ||
-                summaryText == null || shortSummaryText == null || selfNameText == null ||
+                summaryText == null || shortSummaryText == null || scoreValueText == null ||
                 resourceValueTexts == null || resourceValueTexts.Length != 5 ||
                 settingsButton == null || foldButton == null || foldButtonText == null ||
                 undoButton == null || endActionButton == null)
@@ -150,7 +134,7 @@ namespace YC.Presentation
             }
             if (barCanvas.sortingOrder != GameplayUiLayers.PersistentBars ||
                 !endActionButton.transform.IsChildOf(bottomBar) ||
-                topBar.parent != safeArea || bottomBar.parent != safeArea)
+                topBar.parent != safeArea || bottomBar.parent.parent != safeArea)
             {
                 reason = "常驻栏层级或结束行动入口不在预期位置。";
                 return false;
@@ -162,6 +146,7 @@ namespace YC.Presentation
         private void Awake()
         {
             active = this;
+            Canvas.willRenderCanvases += ReadCompletedLayout;
             if (contentRect != null) contentCanvas = contentRect.GetComponentInParent<Canvas>();
             InteractionRequestRouter.RequestRouted += HandleRequestRouted;
             if (barCanvas != null) barCanvas.sortingOrder = GameplayUiLayers.PersistentBars;
@@ -176,40 +161,67 @@ namespace YC.Presentation
                 foldButton.onClick.AddListener(ToggleEffectPage);
             }
             if (undoButton != null) undoButton.interactable = false;
-            if (compactNavigationButtons != null)
-            {
-                for (var i = 0; i < compactNavigationButtons.Length; i++)
-                {
-                    var button = compactNavigationButtons[i];
-                    if (button == null) continue;
-                    var section = i;
-                    button.onClick.RemoveAllListeners();
-                    button.onClick.AddListener(() => SelectCompactSection(section));
-                }
-            }
             ApplyLayout(true);
             UpdateFoldButton();
         }
 
         private void OnDestroy()
         {
+            Canvas.willRenderCanvases -= ReadCompletedLayout;
             InteractionRequestRouter.RequestRouted -= HandleRequestRouted;
             if (active == this) active = null;
         }
 
-        private void HandleRequestRouted(YC.Domain.Interactions.InteractionRequestProjection projection)
+        private readonly Vector3[] completedMapCorners = new Vector3[4];
+        private Rect completedMapRect;
+
+        private void ReadCompletedLayout()
         {
+            if (mapRegion == null) return;
+            mapRegion.GetWorldCorners(completedMapCorners);
+            var rect = Rect.MinMaxRect(completedMapCorners[0].x, completedMapCorners[0].y,
+                completedMapCorners[2].x, completedMapCorners[2].y);
+            if (rect != completedMapRect)
+            {
+                completedMapRect = rect;
+                mapViewportDirty = true;
+            }
+            for (var i = externalPages.Count - 1; i >= 0; i--)
+            {
+                if (externalPages[i] == null) externalPages.RemoveAt(i);
+                else ApplyExternalPageBounds(externalPages[i]);
+            }
+        }
+
+        private void HandleRequestRouted(InteractionRequestProjection projection)
+        {
+            if (projection != null && !string.IsNullOrEmpty(currentRequestId) &&
+                projection.StateRevision < currentRevision) return;
+            currentProjection = projection;
             if (projection == null) ClearRequest();
-            else SetRequest(projection.InteractionId, projection.StateRevision);
+            else SetRequestWithFlow(projection.InteractionId, projection.StateRevision,
+                string.IsNullOrEmpty(projection.OwnerEffectId)
+                    ? projection.SourceNodeId : projection.OwnerEffectId);
+            UpdateSummary();
         }
 
         private void Update()
         {
+            if (stagePage != null && !stagePageSuspended && (visiblePage == null || !visiblePage.activeSelf))
+                ShowPage(stagePage, false);
             if (barCanvas != null && (lastScreenWidth != Screen.width || lastScreenHeight != Screen.height ||
                 lastSafeArea != Screen.safeArea || lastScaleFactor != barCanvas.scaleFactor ||
                 (mainSurface != null && lastSurfaceSize != mainSurface.rect.size) ||
                 (contentCanvas != null && lastContentScaleFactor != contentCanvas.scaleFactor)))
                 ApplyLayout(false);
+            if (mapViewportDirty)
+            {
+                mapViewportDirty = false;
+                // 首次布局可能晚于 Awake；地图开口和相机必须消费同一最终矩形。
+                if (mapSurroundLayout != null) mapSurroundLayout.Refresh();
+                ApplyBackdrops();
+                ApplyMapViewport();
+            }
         }
 
         public void Refresh(GameState state, ActionPanelViewModel action, string endUnavailableReason)
@@ -218,8 +230,26 @@ namespace YC.Presentation
             if (roundNumberText != null) roundNumberText.text = state.Round.ToString();
             if (roundTotalText != null) roundTotalText.text = "/ " + state.MaxRounds + " 回合";
             if (phaseText != null) phaseText.text = GetPhaseText(state.Phase);
-            if (turnTagText != null) turnTagText.text =
-                action.IsWaitingForOtherPlayers ? waitingTurnText : localTurnText;
+            if (turnTagText != null)
+            {
+                if (!turnTagDefaultColor.HasValue) turnTagDefaultColor = turnTagText.color;
+                var currentPlayer = state.FindPlayer(state.CurrentPlayerId);
+                var isLocalTurn = currentPlayer != null && action.HasLocalPlayer &&
+                                  currentPlayer.Color == action.LocalPlayerColor;
+                if (currentPlayer != null && !isLocalTurn)
+                {
+                    var playerName = string.IsNullOrWhiteSpace(currentPlayer.Name)
+                        ? string.Format(unnamedPlayerFormat, currentPlayer.PlayerId)
+                        : currentPlayer.Name;
+                    turnTagText.text = string.Format(otherPlayerTurnFormat, playerName);
+                    turnTagText.color = UiTheme.GetPlayerColor(currentPlayer.Color, 1f);
+                }
+                else
+                {
+                    turnTagText.text = isLocalTurn ? localTurnText : waitingTurnText;
+                    turnTagText.color = turnTagDefaultColor.Value;
+                }
+            }
             if (roundTicks != null)
             {
                 for (var i = 0; i < roundTicks.Length; i++)
@@ -234,9 +264,8 @@ namespace YC.Presentation
                         i == state.Round - 1 ? 4f : 2f);
                 }
             }
-            var summary = action.CanEndAction ? action.StatusText : endUnavailableReason;
-            if (summaryText != null) summaryText.text = summary ?? string.Empty;
-            if (shortSummaryText != null) shortSummaryText.text = summary ?? string.Empty;
+            lastActionSummary = action.CanEndAction ? action.StatusText : endUnavailableReason;
+            UpdateSummary();
             if (redZoneText != null)
             {
                 var map = state.MapId == StaticMapDefinitions.FourPlayerMapId ||
@@ -249,9 +278,8 @@ namespace YC.Presentation
             }
             if (endActionButton != null) endActionButton.interactable = action.CanEndAction;
             var localPlayer = state.Players.Find(player => player.Color == action.LocalPlayerColor);
-            if (selfNameText != null)
-                selfNameText.text = localPlayer == null ? string.Empty :
-                    localPlayer.Name + "  " + localPlayer.Score + scoreSuffix;
+            if (scoreValueText != null)
+                scoreValueText.text = localPlayer == null ? string.Empty : localPlayer.Score.ToString();
             if (localPlayer != null && resourceValueTexts != null && resourceValueTexts.Length == 5)
             {
                 var resources = localPlayer.Resources;
@@ -264,10 +292,17 @@ namespace YC.Presentation
 
         public void SetRequest(string interactionId, int revision)
         {
+            SetRequestWithFlow(interactionId, revision, null);
+        }
+
+        private void SetRequestWithFlow(string interactionId, int revision, string flowId)
+        {
             var replaced = currentRequestId != interactionId || revision < currentRevision;
+            var sameFlow = !string.IsNullOrEmpty(flowId) && flowId == currentFlowId;
             if (replaced)
             {
-                effectSuspended = false;
+                mapInteractionActive = false;
+                if (!sameFlow) effectSuspended = false;
                 if (visiblePage != null && visiblePage == suspendedEffectPage)
                 {
                     visiblePage.SetActive(false);
@@ -278,6 +313,7 @@ namespace YC.Presentation
                 suspendedRequestId = null;
             }
             currentRequestId = interactionId;
+            currentFlowId = flowId;
             currentRevision = revision;
             if (suspendedEffectPage != null &&
                 (interactionId != suspendedRequestId || revision < suspendedRevision))
@@ -295,7 +331,10 @@ namespace YC.Presentation
 
         public void ClearRequest()
         {
+            mapInteractionActive = false;
             currentRequestId = null;
+            currentFlowId = null;
+            currentProjection = null;
             effectSuspended = false;
             suspendedRequestId = null;
             suspendedEffectPage = null;
@@ -303,10 +342,79 @@ namespace YC.Presentation
             UpdateFoldButton();
         }
 
+        public void SetInteractionMessage(string message, string pendingPrompt = null)
+        {
+            if (!string.IsNullOrEmpty(pendingPrompt) &&
+                (string.IsNullOrEmpty(message) || !message.Contains(pendingPrompt)))
+                message = string.IsNullOrEmpty(message) ? pendingPrompt : message + "\n" + pendingPrompt;
+            interactionMessage = string.IsNullOrWhiteSpace(message) ? null : message;
+            interactionMessageExpiresAt = Time.unscaledTime + 3f;
+            UpdateSummary();
+        }
+
+        public void UpdateInteractionMessage(bool keepVisible)
+        {
+            if (interactionMessage == null) return;
+            if (keepVisible) interactionMessageExpiresAt = Time.unscaledTime + 3f;
+            else if (Time.unscaledTime >= interactionMessageExpiresAt)
+            {
+                interactionMessage = null;
+                UpdateSummary();
+            }
+        }
+
+        private void UpdateSummary()
+        {
+            var summary = lastActionSummary;
+            if (currentProjection != null && currentProjection.Status == "open")
+            {
+                var skippable = currentProjection.AllowDecline;
+                summary = currentProjection.MaxSelections > 0
+                    ? string.Format(skippable ? skippableSelectionSummaryFormat :
+                        selectionSummaryFormat, currentProjection.MinSelections,
+                        currentProjection.MaxSelections)
+                    : skippable ? skippableTargetSummary : targetSummary;
+            }
+            if (!string.IsNullOrEmpty(interactionMessage)) summary = interactionMessage;
+            if (summaryText != null) summaryText.text = summary ?? string.Empty;
+            if (shortSummaryText != null) shortSummaryText.text = summary ?? string.Empty;
+        }
+
+        public void ShowStagePage(GameObject page)
+        {
+            if (stagePage != page)
+            {
+                stagePageFoldable = false;
+                suspendedStageFocus = null;
+            }
+            stagePage = page;
+            stagePageSuspended = false;
+            ShowPage(page, false);
+        }
+
+        public void ConfigureStagePageFolding(GameObject page, bool allowFolding)
+        {
+            if (stagePage != page || page == null) return;
+            stagePageFoldable = allowFolding;
+            UpdateFoldButton();
+        }
+
+        public void ReleaseStagePage(GameObject page)
+        {
+            if (stagePage != page) return;
+            stagePage = null;
+            stagePageFoldable = false;
+            stagePageSuspended = false;
+            suspendedStageFocus = null;
+            UpdateFoldButton();
+        }
+
         public void ShowPage(GameObject page, bool effectPage)
         {
             if (page == null) return;
-            if (!effectPage && !string.IsNullOrEmpty(currentRequestId) && !effectSuspended)
+            if (stagePageFoldable && visiblePage == stagePage && page != stagePage)
+                SuspendStagePage();
+            if (!effectPage && !string.IsNullOrEmpty(currentRequestId))
                 SuspendEffectForInformation();
             var keepEffectHidden = effectPage && effectSuspended &&
                                    !string.IsNullOrEmpty(currentRequestId);
@@ -338,6 +446,21 @@ namespace YC.Presentation
             UpdateFoldButton();
         }
 
+        /// <summary>永久结束一个页面的生命周期；不改变其余页面或当前规则请求。</summary>
+        public void ReleasePage(GameObject page)
+        {
+            if (page == null) return;
+            ReleaseStagePage(page);
+            if (suspendedEffectPage == page)
+            {
+                suspendedEffectPage = null;
+                suspendedEffectFocus = null;
+                suspendedRequestId = null;
+                effectSuspended = false;
+            }
+            HidePage(page);
+        }
+
         public void ConstrainExternalPage(RectTransform page)
         {
             if (page == null) return;
@@ -347,6 +470,7 @@ namespace YC.Presentation
 
         public void SuspendEffectForInformation()
         {
+            mapInteractionActive = false;
             if (string.IsNullOrEmpty(currentRequestId) || suspendedEffectPage == null || effectSuspended) return;
             effectSuspended = true;
             if (suspendedEffectPage != null && visiblePage == suspendedEffectPage)
@@ -363,8 +487,30 @@ namespace YC.Presentation
             UpdateFoldButton();
         }
 
+        public void ResumeEffectPage()
+        {
+            if (effectSuspended) ToggleEffectPage();
+        }
+
+        public void SuspendEffectForMapInteraction()
+        {
+            SuspendEffectForInformation();
+            mapInteractionActive = effectSuspended && suspendedEffectPage != null;
+        }
+
         private void ToggleEffectPage()
         {
+            if (!CanFoldEffectPage && stagePageFoldable && stagePage != null)
+            {
+                if (!stagePageSuspended) SuspendStagePage();
+                else
+                {
+                    CloseVisiblePage();
+                    ShowStagePage(stagePage);
+                    RestorePageFocus(stagePage, suspendedStageFocus);
+                }
+                return;
+            }
             if (string.IsNullOrEmpty(currentRequestId) || suspendedEffectPage == null ||
                 currentRequestId != suspendedRequestId) return;
             if (!effectSuspended)
@@ -376,14 +522,31 @@ namespace YC.Presentation
             CloseVisiblePage();
             visiblePage = suspendedEffectPage;
             effectSuspended = false;
+            mapInteractionActive = false;
             if (suspendedEffectPage != null) suspendedEffectPage.SetActive(true);
-            if (EventSystem.current != null && suspendedEffectPage != null)
+            RestorePageFocus(suspendedEffectPage, suspendedEffectFocus);
+            UpdateFoldButton();
+        }
+
+        private void SuspendStagePage()
+        {
+            if (!stagePageFoldable || stagePage == null || stagePageSuspended) return;
+            var selected = EventSystem.current == null ? null : EventSystem.current.currentSelectedGameObject;
+            suspendedStageFocus = selected != null && selected.transform.IsChildOf(stagePage.transform)
+                ? selected : null;
+            stagePageSuspended = true;
+            HidePage(stagePage);
+            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
+        }
+
+        private static void RestorePageFocus(GameObject page, GameObject savedFocus)
+        {
+            if (EventSystem.current != null && page != null)
             {
-                var focus = suspendedEffectFocus != null && suspendedEffectFocus.activeInHierarchy
-                    ? suspendedEffectFocus : null;
+                var focus = savedFocus != null && savedFocus.activeInHierarchy ? savedFocus : null;
                 if (focus == null)
                 {
-                    foreach (var selectable in suspendedEffectPage.GetComponentsInChildren<Selectable>(true))
+                    foreach (var selectable in page.GetComponentsInChildren<Selectable>(true))
                     {
                         if (!selectable.gameObject.activeInHierarchy || !selectable.IsInteractable()) continue;
                         focus = selectable.gameObject;
@@ -392,7 +555,6 @@ namespace YC.Presentation
                 }
                 EventSystem.current.SetSelectedGameObject(focus);
             }
-            UpdateFoldButton();
         }
 
         private void CloseVisiblePage()
@@ -404,6 +566,8 @@ namespace YC.Presentation
                 return;
             }
             var settings = FindObjectOfType<GameSettingsMenuController>();
+            var cardViewer = page.GetComponent<CardViewer>();
+            if (cardViewer != null) cardViewer.Dismiss();
             if (settings != null && settings.OwnsPage(page)) settings.Close();
             var log = FindObjectOfType<ActionLogViewerController>();
             if (log != null && log.OwnsPage(page)) log.Close();
@@ -415,14 +579,18 @@ namespace YC.Presentation
             if (visiblePage == page) visiblePage = null;
         }
 
+        private bool CanFoldEffectPage => !string.IsNullOrEmpty(currentRequestId) && suspendedEffectPage != null &&
+                                          currentRequestId == suspendedRequestId;
+
         private void UpdateFoldButton()
         {
-            var canRestore = !string.IsNullOrEmpty(currentRequestId) && suspendedEffectPage != null &&
-                             currentRequestId == suspendedRequestId;
+            var effectPageAvailable = CanFoldEffectPage;
+            var canRestore = effectPageAvailable || (stagePageFoldable && stagePage != null);
+            var suspended = effectPageAvailable ? effectSuspended : stagePageSuspended;
             if (foldButton != null) foldButton.interactable = canRestore;
             if (foldButtonText != null)
                 foldButtonText.text = canRestore
-                    ? (effectSuspended ? foldSuspendedText : foldVisibleText)
+                    ? (suspended ? foldSuspendedText : foldVisibleText)
                     : foldUnavailableText;
         }
 
@@ -451,48 +619,9 @@ namespace YC.Presentation
             var safe = Screen.safeArea;
             safeArea.offsetMin = new Vector2(safe.xMin / scale, safe.yMin / scale);
             safeArea.offsetMax = new Vector2((safe.xMax - Screen.width) / scale, (safe.yMax - Screen.height) / scale);
-            // 保留 Canvas 的基础缩放，同时用实际可用窗口判断是否需要重排。
-            var width = Mathf.Min(safe.width / scale, safe.width);
-            var height = Mathf.Min(safe.height / scale, safe.height);
-            var h = modeHysteresis;
-            var topControlMinimum = roundNumberText.rectTransform.sizeDelta.x +
-                phaseText.rectTransform.sizeDelta.x + redZoneText.rectTransform.sizeDelta.x +
-                settingsButton.GetComponent<RectTransform>().sizeDelta.x +
-                foldButton.GetComponent<RectTransform>().sizeDelta.x + minimumControlSpacing * 6f;
-            var compactThreshold = Mathf.Max(compactMaxWidth, topControlMinimum);
-            if (width < compactThreshold - h || height < compactMaxHeight - h ||
-                (mode == LayoutMode.Compact &&
-                 (width <= compactThreshold + h || height <= compactMaxHeight + h)))
-                mode = LayoutMode.Compact;
-            else if (width > wideMinWidth + h ||
-                     (mode == LayoutMode.Wide && width >= wideMinWidth - h))
-                mode = LayoutMode.Wide;
-            else
-                mode = LayoutMode.Standard;
-            var topHeight = mode == LayoutMode.Wide ? wideTopHeight : mode == LayoutMode.Standard ? standardTopHeight : compactTopHeight;
-            var bottomHeight = mode == LayoutMode.Wide ? wideBottomHeight : mode == LayoutMode.Standard ? standardBottomHeight : compactBottomHeight;
-            currentTopHeight = topHeight;
-            currentBottomHeight = bottomHeight;
-            topBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, topHeight);
-            bottomBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, bottomHeight);
-            ApplyBarContentLayout(topBar, topBarContent, designWidth, wideTopHeight, topHeight);
-            ApplyBarContentLayout(bottomBar, bottomBarContent, designContentRight - designContentLeft,
-                wideBottomHeight, bottomHeight);
-            ApplyMainRegionLayout(topHeight, bottomHeight);
-            ApplyBackdrops();
-            var contentScale = contentCanvas == null ? scale : Mathf.Max(0.01f, contentCanvas.scaleFactor);
-            contentRect.offsetMin = new Vector2(safe.xMin / contentScale,
-                (safe.yMin + (bottomHeight + bottomScreenMargin + contentGap) * scale) / contentScale);
-            contentRect.offsetMax = new Vector2((safe.xMax - Screen.width) / contentScale,
-                (safe.yMax - Screen.height - (topHeight + contentGap) * scale) / contentScale);
-            if (longSummary != null) longSummary.SetActive(mode == LayoutMode.Wide);
-            if (shortSummary != null) shortSummary.SetActive(mode != LayoutMode.Wide);
-            ApplyMapViewport();
-            for (var i = externalPages.Count - 1; i >= 0; i--)
-            {
-                if (externalPages[i] == null) externalPages.RemoveAt(i);
-                else ApplyExternalPageBounds(externalPages[i]);
-            }
+            // 根适配器只设置安全边界，栏高与余量由资产中的原生 VLG / LE 决定。
+            LayoutRebuilder.MarkLayoutForRebuild(safeArea);
+            mapViewportDirty = true;
         }
 
         private void ApplyBackdrops()
@@ -523,96 +652,17 @@ namespace YC.Presentation
             rect.sizeDelta = new Vector2(Mathf.Max(0f, width), Mathf.Max(0f, height));
         }
 
-        private static void ApplyBarContentLayout(RectTransform bar, RectTransform contents,
-            float designWidth, float designHeight, float actualHeight)
-        {
-            if (bar == null || contents == null || designWidth <= 0f || designHeight <= 0f) return;
-            var scale = Mathf.Min(1f, bar.rect.width / designWidth);
-            scale = Mathf.Max(.01f, scale);
-            contents.anchorMin = contents.anchorMax = Vector2.up;
-            contents.pivot = Vector2.up;
-            contents.sizeDelta = new Vector2(designWidth, designHeight);
-            contents.localScale = new Vector3(scale, scale, 1f);
-            contents.anchoredPosition = new Vector2(
-                (bar.rect.width - designWidth * scale) * .5f,
-                -(actualHeight - designHeight * scale) * .5f);
-        }
-
-        private void ApplyMainRegionLayout(float topHeight, float bottomHeight)
-        {
-            if (mainSurface == null || mainRegions == null) return;
-            var available = mainSurface.rect.size;
-            if (available.x < 1f || available.y < 1f) return;
-            var designSpanWidth = designContentRight - designContentLeft;
-            var designSpanHeight = designContentBottom - designContentTop;
-            if (designSpanWidth <= 0f || designSpanHeight <= 0f) return;
-            var freeHeight = available.y - topHeight - bottomHeight - bottomScreenMargin -
-                             contentGap * 2f;
-            var widthFit = (available.x - layoutSideInset * 2f) / designSpanWidth;
-            var normalFit = Mathf.Min(widthFit, freeHeight / designSpanHeight);
-            var panFit = (freeHeight - compactNavigationHeight - contentGap) / designSpanHeight;
-            var usePanning = mode == LayoutMode.Compact && panFit > normalFit * compactPanMinimumGain &&
-                             designSpanWidth * panFit > available.x - layoutSideInset * 2f;
-            var fit = usePanning ? panFit : normalFit;
-            fit = Mathf.Max(.01f, fit);
-            if (compactNavigation != null)
-            {
-                compactNavigation.gameObject.SetActive(usePanning);
-                if (usePanning)
-                {
-                    compactNavigation.anchorMin = compactNavigation.anchorMax = Vector2.up;
-                    compactNavigation.pivot = Vector2.up;
-                    compactNavigation.sizeDelta = new Vector2(360f, compactNavigationHeight);
-                    compactNavigation.anchoredPosition = new Vector2(
-                        (available.x - 360f) * .5f,
-                        -(available.y - bottomHeight - bottomScreenMargin -
-                          compactNavigationHeight - contentGap));
-                }
-            }
-            mainRegions.anchorMin = mainRegions.anchorMax = Vector2.up;
-            mainRegions.pivot = Vector2.up;
-            mainRegions.sizeDelta = new Vector2(designWidth, designHeight);
-            mainRegions.localScale = new Vector3(fit, fit, 1f);
-            var horizontal = (available.x - designWidth * fit) * .5f;
-            if (usePanning)
-            {
-                if (compactSection == 0)
-                    horizontal = layoutSideInset - designContentLeft * fit;
-                else if (compactSection == 2)
-                    horizontal = available.x - layoutSideInset - designContentRight * fit;
-            }
-            mainRegions.anchoredPosition = new Vector2(horizontal,
-                -(topHeight + contentGap - designContentTop * fit));
-            RefreshCompactNavigation();
-        }
-
-        private void SelectCompactSection(int section)
-        {
-            compactSection = Mathf.Clamp(section, 0, 2);
-            ApplyLayout(true);
-        }
-
-        private void RefreshCompactNavigation()
-        {
-            if (compactNavigationButtons == null) return;
-            for (var i = 0; i < compactNavigationButtons.Length; i++)
-            {
-                var button = compactNavigationButtons[i];
-                if (button == null) continue;
-                var image = button.GetComponent<Image>();
-                if (image != null) image.sprite = i == compactSection
-                    ? compactSelectedSprite : compactIdleSprite;
-                var label = button.GetComponentInChildren<Text>();
-                if (label != null) label.color = i == compactSection
-                    ? compactSelectedTextColor : compactIdleTextColor;
-            }
-        }
-
         private void ApplyMapViewport()
         {
             if (mapRegion == null || Screen.width <= 0 || Screen.height <= 0) return;
             var display = FindObjectOfType<MapDisplayController>();
             if (display == null) return;
+            if (!mapRegion.gameObject.activeInHierarchy)
+            {
+                // 复用地图既有空视口契约：结束平移、释放缩放锚点并关闭相机输入。
+                display.SetScreenViewport(new Rect(0f, 0f, 0f, 0f));
+                return;
+            }
             var corners = new Vector3[4];
             mapRegion.GetWorldCorners(corners);
             var lowerLeft = RectTransformUtility.WorldToScreenPoint(null, corners[0]);
@@ -625,16 +675,18 @@ namespace YC.Presentation
 
         private void ApplyExternalPageBounds(RectTransform page)
         {
-            var pageCanvas = page.GetComponentInParent<Canvas>();
-            var pageScale = pageCanvas == null ? 1f : Mathf.Max(0.01f, pageCanvas.scaleFactor);
-            var barScale = barCanvas == null ? 1f : Mathf.Max(0.01f, barCanvas.scaleFactor);
-            var safe = Screen.safeArea;
+            if (contentRect == null || !(page.parent is RectTransform parent)) return;
+            // 外部独立 Canvas 读取唯一 PageHost 的最终边界，不再次扣除栏高。
+            var corners = new Vector3[4];
+            contentRect.GetWorldCorners(corners);
+            var lower = parent.InverseTransformPoint(corners[0]);
+            var upper = parent.InverseTransformPoint(corners[2]);
             page.anchorMin = Vector2.zero;
             page.anchorMax = Vector2.one;
-            page.offsetMin = new Vector2(safe.xMin / pageScale,
-                (safe.yMin + (currentBottomHeight + bottomScreenMargin + contentGap) * barScale) / pageScale);
-            page.offsetMax = new Vector2((safe.xMax - Screen.width) / pageScale,
-                (safe.yMax - Screen.height - (currentTopHeight + contentGap) * barScale) / pageScale);
+            var min = new Vector2(lower.x - parent.rect.xMin, lower.y - parent.rect.yMin);
+            var max = new Vector2(upper.x - parent.rect.xMax, upper.y - parent.rect.yMax);
+            if ((page.offsetMin - min).sqrMagnitude > .0001f) page.offsetMin = min;
+            if ((page.offsetMax - max).sqrMagnitude > .0001f) page.offsetMax = max;
         }
 
         private string GetPhaseText(GamePhase phase)

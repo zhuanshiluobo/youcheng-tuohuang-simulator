@@ -15,6 +15,16 @@ namespace YC.Presentation.Workflows
 {
     public sealed class CityStyleInteraction
     {
+        private sealed class Receipt { public string CommandId; public CityStyleSubmissionStatus Status; }
+        private Receipt currentReceipt;
+        public void ResolveSubmission(string commandId, bool applied)
+        {
+            if (currentReceipt == null || currentReceipt.Status != CityStyleSubmissionStatus.Pending) return;
+            // A reconnect invalidates an unresolved draft; an old command cannot complete a new one.
+            if (string.IsNullOrEmpty(commandId)) { currentReceipt.Status = CityStyleSubmissionStatus.Rejected; return; }
+            if (currentReceipt.CommandId == commandId)
+                currentReceipt.Status = applied ? CityStyleSubmissionStatus.Applied : CityStyleSubmissionStatus.Rejected;
+        }
         private readonly IWritableGameplayContext context;
         private readonly CommandGateway commandGateway;
         private readonly ITurnActionView view;
@@ -106,12 +116,12 @@ namespace YC.Presentation.Workflows
             flowCoordinator.ResetToChooseAction();
             view.ClearHighlights();
             view.RefreshActionPanel();
-            ShowPreview(initialCityStyleId, string.Empty);
+            ShowPreview(initialCityStyleId, true);
         }
 
         public void OpenPreview(string initialCityStyleId)
         {
-            ShowPreview(initialCityStyleId, getUnavailableReason());
+            ShowPreview(initialCityStyleId, false);
         }
 
         public void SubmitDeclare(
@@ -121,44 +131,49 @@ namespace YC.Presentation.Workflows
             TrySubmitDeclare(cityStyleId, selectedSlotIndexes);
         }
 
-        private void ShowPreview(string initialCityStyleId, string unavailableReason)
+        private void ShowPreview(string initialCityStyleId, bool declare)
         {
-            var options = selection.BuildOptions(
-                context.CurrentState,
-                context.LocalPlayerId);
-            if (!string.IsNullOrEmpty(unavailableReason))
+            var receipt = new Receipt();
+            var playerId = context.LocalPlayerId;
+            var gameId = context.CurrentState.GameId;
+            var round = context.CurrentState.Round;
+            var actionRound = context.CurrentState.ActionRound;
+            var key = gameId + ":" + playerId + ":" + round + ":" + actionRound;
+            Func<CityStyleOptionsViewModel> refresh = null;
+            refresh = () =>
             {
-                for (var i = 0; i < options.Count; i++)
-                {
-                    options[i].CanDeclare = false;
-                    options[i].Reason = unavailableReason;
-                }
-            }
-
-            view.ShowCityStyleOptions(new CityStyleOptionsViewModel(
-                options.AsReadOnly(),
-                BuildCityBoardSlots(context.CurrentState, context.LocalPlayerId),
-                BuildCityStyleMarkers(
-                    context.CurrentState,
-                    context.LocalPlayerId,
-                    unavailableReason),
-                initialCityStyleId,
-                (cityStyleId, selectedSlotIndexes) => selection.ValidateSelection(
-                    context.CurrentState,
-                    context.LocalPlayerId,
-                    cityStyleId,
-                    selectedSlotIndexes),
-                TrySubmitDeclare,
-                null,
-                restoreBuildInteraction,
-                TrySubmitSpecialAction));
+                var state = context.CurrentState;
+                if (state == null || state.GameId != gameId || context.LocalPlayerId != playerId ||
+                    (declare && (state.Round != round || state.ActionRound != actionRound))) return null;
+                var unavailable = getUnavailableReason();
+                var options = selection.BuildOptions(state, playerId);
+                if (!string.IsNullOrEmpty(unavailable))
+                    foreach (var option in options) { option.CanDeclare = false; option.Reason = unavailable; }
+                return new CityStyleOptionsViewModel(options.AsReadOnly(), BuildCityBoardSlots(state, playerId),
+                    BuildCityStyleMarkers(state, playerId, unavailable), initialCityStyleId,
+                    (id, slots) => selection.ValidateSelection(context.CurrentState, playerId, id, slots),
+                    declare ? (Func<string, IReadOnlyList<int>, bool>)((id, slots) =>
+                        context.LocalPlayerId == playerId && context.CurrentState.GameId == gameId && TrySubmitDeclare(id, slots, receipt)) : null,
+                    null, restoreBuildInteraction,
+                    (id, marker, originium, iron) => context.LocalPlayerId == playerId &&
+                        context.CurrentState.GameId == gameId && TrySubmitSpecialAction(id, marker, originium, iron, receipt),
+                    declare, refresh, key, state.EffectRuntime == null ? 0 : state.EffectRuntime.StateRevision, () => receipt.Status,
+                    state.Players.Find(p => p.PlayerId == playerId)?.Name ?? string.Empty,
+                    state.Players.Find(p => p.PlayerId == playerId)?.InfluenceSupply ?? 0);
+            };
+            view.ShowCityStyleOptions(refresh());
             view.ShowPrompt(string.Empty);
         }
 
         private bool TrySubmitDeclare(
             string cityStyleId,
-            IReadOnlyList<int> selectedSlotIndexes)
+            IReadOnlyList<int> selectedSlotIndexes, Receipt receipt = null)
         {
+            if (currentReceipt != null && currentReceipt.Status == CityStyleSubmissionStatus.Pending)
+            {
+                view.ShowPrompt(CommandGateway.BuildWaitingForHostPrompt("城市样式命令"));
+                return false;
+            }
             if (selectedSlotIndexes != null && !canStartQuickAction())
             {
                 return false;
@@ -170,6 +185,7 @@ namespace YC.Presentation.Workflows
                     context.LocalPlayerId,
                     cityStyleId,
                     selectedSlotIndexes);
+            if (receipt != null) { currentReceipt = receipt; receipt.CommandId = command.CommandId; receipt.Status = CityStyleSubmissionStatus.Pending; }
             var outcome = commandGateway.Submit(
                 command,
                 new SubmitCallbacks(
@@ -183,6 +199,9 @@ namespace YC.Presentation.Workflows
                         view.ShowPrompt("城市样式宣告完成。");
                     }
                 });
+            if (receipt != null) receipt.Status = outcome.Kind == SubmitOutcomeKind.WaitingForHost
+                ? CityStyleSubmissionStatus.Pending : outcome.Kind == SubmitOutcomeKind.AppliedLocally
+                    ? CityStyleSubmissionStatus.Applied : CityStyleSubmissionStatus.Rejected;
             return outcome.Kind == SubmitOutcomeKind.WaitingForHost ||
                    outcome.Kind == SubmitOutcomeKind.AppliedLocally;
         }
@@ -191,8 +210,13 @@ namespace YC.Presentation.Workflows
             string specialActionId,
             string declarationMarkerId,
             int originiumAmount,
-            int ironAmount)
+            int ironAmount, Receipt receipt = null)
         {
+            if (currentReceipt != null && currentReceipt.Status == CityStyleSubmissionStatus.Pending)
+            {
+                view.ShowPrompt(CommandGateway.BuildWaitingForHostPrompt("城市样式命令"));
+                return false;
+            }
             if (!canStartMainAction())
             {
                 return false;
@@ -206,9 +230,8 @@ namespace YC.Presentation.Workflows
             }
 
             if (specialActionId == SpecialActionDatabase.CompositePowerSystem &&
-                (originiumAmount < 0 ||
-                 ironAmount < 0 ||
-                 originiumAmount + ironAmount != 3))
+                (originiumAmount != -1 || ironAmount != -1) &&
+                (originiumAmount < 0 || ironAmount < 0 || originiumAmount + ironAmount != 3))
             {
                 view.ShowPrompt("复合动力系统必须选择合计 3 份源岩或异铁作为支付。");
                 return false;
@@ -225,7 +248,7 @@ namespace YC.Presentation.Workflows
                 specialActionId;
             command.Parameters[UseSpecialActionCommandHandler.DeclarationMarkerIdParameter] =
                 declarationMarkerId;
-            if (specialActionId == SpecialActionDatabase.CompositePowerSystem)
+            if (specialActionId == SpecialActionDatabase.CompositePowerSystem && originiumAmount >= 0 && ironAmount >= 0)
             {
                 command.Parameters[UseSpecialActionCommandHandler.OriginiumAmountParameter] =
                     originiumAmount.ToString(CultureInfo.InvariantCulture);
@@ -233,6 +256,7 @@ namespace YC.Presentation.Workflows
                     ironAmount.ToString(CultureInfo.InvariantCulture);
             }
 
+            if (receipt != null) { currentReceipt = receipt; receipt.CommandId = command.CommandId; receipt.Status = CityStyleSubmissionStatus.Pending; }
             var outcome = commandGateway.Submit(
                 command,
                 new SubmitCallbacks(
@@ -248,6 +272,9 @@ namespace YC.Presentation.Workflows
                         view.RefreshActionPanel();
                     }
                 });
+            if (receipt != null) receipt.Status = outcome.Kind == SubmitOutcomeKind.WaitingForHost
+                ? CityStyleSubmissionStatus.Pending : outcome.Kind == SubmitOutcomeKind.AppliedLocally
+                    ? CityStyleSubmissionStatus.Applied : CityStyleSubmissionStatus.Rejected;
             return outcome.Kind == SubmitOutcomeKind.WaitingForHost ||
                    outcome.Kind == SubmitOutcomeKind.AppliedLocally;
         }
@@ -285,18 +312,8 @@ namespace YC.Presentation.Workflows
                             continue;
                         }
 
-                        var actionDeclaration = declaration;
-                        if (declaration.CityStyleId == CityStyleDatabase.MilitaryIndustrialArea)
-                        {
-                            // 军工数量标记共用首次宣告的行动入口，拖动任一枚仍只发动一次。
-                            foreach (var candidate in player.DeclaredCityStyles)
-                                if (candidate != null && candidate.CityStyleId == declaration.CityStyleId &&
-                                    candidate.UnlockedSpecialActionId == SpecialActionDatabase.MilitaryIndustrialArea)
-                                {
-                                    actionDeclaration = candidate;
-                                    break;
-                                }
-                        }
+                        // 同玩家同样式的宣告合为一个数量块，共用原有行动入口。
+                        var actionDeclaration = FindGroupDeclaration(player, declaration);
                         var specialActionOption = player.PlayerId == localPlayerId
                             ? specialActionOptions.Find(
                                 actionDeclaration.UnlockedSpecialActionId,
@@ -308,9 +325,7 @@ namespace YC.Presentation.Workflows
                             declaration.CityStyleId,
                             player.PlayerId,
                             player.Color,
-                            string.IsNullOrEmpty(declaration.MarkerArea)
-                                ? CityStyleMarkerAreas.Declared
-                                : declaration.MarkerArea,
+                            DisplayMarkerArea(player, declaration),
                             actionDeclaration.InfluenceMarkerId,
                             actionDeclaration.UnlockedSpecialActionId,
                             specialActionOption != null &&
@@ -336,6 +351,37 @@ namespace YC.Presentation.Workflows
             }
 
             return result.AsReadOnly();
+        }
+
+        public static string DisplayMarkerArea(PlayerState player, CityStyleDeclarationState declaration)
+        {
+            var owner = FindGroupDeclaration(player, declaration);
+            return string.IsNullOrEmpty(owner.MarkerArea) ? CityStyleMarkerAreas.Declared : owner.MarkerArea;
+        }
+
+        public SpecialActionOptionQueryResult QuerySpecialActions() =>
+            specialActionOptionQuery.Query(context.CurrentState, context.LocalPlayerId);
+
+        public bool CanUseSpecialAction => canStartMainAction() && QuerySpecialActions().HasUsableOption;
+
+        public bool SubmitSpecialAction(string actionId, string markerId)
+        {
+            var option = QuerySpecialActions().Find(actionId, markerId);
+            return option != null && option.CanUse &&
+                TrySubmitSpecialAction(actionId, markerId, -1, -1, new Receipt());
+        }
+
+        private static CityStyleDeclarationState FindGroupDeclaration(PlayerState player, CityStyleDeclarationState declaration)
+        {
+            var first = declaration;
+            var found = false;
+            foreach (var item in player.DeclaredCityStyles)
+            {
+                if (item == null || item.CityStyleId != declaration.CityStyleId) continue;
+                if (!found) { first = item; found = true; }
+                if (!string.IsNullOrEmpty(item.UnlockedSpecialActionId)) return item;
+            }
+            return first;
         }
 
         private static IReadOnlyList<CityBoardSlotViewModel> BuildCityBoardSlots(

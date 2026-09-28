@@ -1,0 +1,358 @@
+{
+    "scene": "StartScene",
+    "state": "LocalMap",
+    "stateSource": "实际场景与源资产；调用既有页面按钮/控制器，仅查看、不提交命令。",
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 1024.0,
+        "y": 768.0
+    },
+    "actualSize": {
+        "x": 1024.0,
+        "y": 768.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1024.0,
+        "height": 768.0
+    },
+    "objects": [
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 301.3825988769531,
+                "y": 263.9111328125,
+                "width": 421.2347717285156,
+                "height": 240.177734375
+            },
+            "layoutDrivers": [
+                "Image",
+                "UiPageSectionsLayout"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Header",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 301.38262939453127,
+                "y": 452.3582763671875,
+                "width": 421.23480224609377,
+                "height": 51.7305908203125
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 301.38262939453127,
+                "y": 323.03179931640627,
+                "width": 421.23480224609377,
+                "height": 129.32647705078126
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Body Viewport/UI007 Body Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 301.3825988769531,
+                "y": 452.3582763671875,
+                "width": 421.2347717285156,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "UiScrollContentWidth",
+                "ContentSizeFitter"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 301.38262939453127,
+                "y": 263.9111328125,
+                "width": 421.23480224609377,
+                "height": 59.12066650390625
+            },
+            "layoutDrivers": [],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/本地游戏标题",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 419.62396240234377,
+                "y": 381.2287292480469,
+                "width": 184.7520751953125,
+                "height": 40.02960205078125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/人数选择文本",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 340.79638671875,
+                "y": 306.40411376953127,
+                "width": 78.82757568359375,
+                "height": 31.4078369140625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/地图选择文本",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 340.79638671875,
+                "y": 246.9755401611328,
+                "width": 78.82757568359375,
+                "height": 29.868240356445314
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/人数选择器",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 539.0969848632813,
+                "y": 325.49517822265627,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/人数选择器/Previous Count",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 440.5625305175781,
+                "y": 306.40411376953127,
+                "width": 32.023681640625,
+                "height": 38.18212890625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/人数选择器/Previous Count/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 440.5625305175781,
+                "y": 306.40411376953127,
+                "width": 32.023681640625,
+                "height": 38.18212890625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/人数选择器/Next Count",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 605.6077270507813,
+                "y": 306.40411376953127,
+                "width": 32.023681640625,
+                "height": 38.18212890625
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/人数选择器/Next Count/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 605.6077270507813,
+                "y": 306.40411376953127,
+                "width": 32.023681640625,
+                "height": 38.18212890625
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/人数选择器/Count",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 474.4337463378906,
+                "y": 307.01995849609377,
+                "width": 129.32644653320313,
+                "height": 36.950439453125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/地图选择器",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -79.20672607421875,
+                "y": 51.44622802734375,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/地图选择器/Previous Map",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -178.35699462890626,
+                "y": 32.04725646972656,
+                "width": 32.023681640625,
+                "height": 38.797943115234378
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/地图选择器/Previous Map/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -178.35699462890626,
+                "y": 32.04725646972656,
+                "width": 32.023681640625,
+                "height": 38.797943115234378
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/地图选择器/Next Map",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -12.080116271972657,
+                "y": 32.04725646972656,
+                "width": 32.02369689941406,
+                "height": 38.797943115234378
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/地图选择器/Next Map/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -12.080116271972657,
+                "y": 32.04725646972656,
+                "width": 32.02369689941406,
+                "height": 38.797943115234378
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/地图选择器/Map",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": -143.86996459960938,
+                "y": 32.97101974487305,
+                "width": 129.32647705078126,
+                "height": 36.95042037963867
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/通用关闭按钮",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 682.8956909179688,
+                "y": 386.77130126953127,
+                "width": 40.0296630859375,
+                "height": 40.02960205078125
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/通用关闭按钮/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 682.8956909179688,
+                "y": 386.77130126953127,
+                "width": 40.0296630859375,
+                "height": 40.02960205078125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/Start Game",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 512.0,
+                "y": 189.3944549560547,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ],
+            "hasClippingAncestor": false
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/Room Panel Layer/UI007 Map Selection Panel Bounds/Map Selection Panel/UI007 Footer/Start Game/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 512.0,
+                "y": 189.3944549560547,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": false
+        }
+    ]
+}

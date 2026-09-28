@@ -361,7 +361,9 @@ namespace YC.Domain.Effects
 
     public sealed class FacilityBuildEffectExecutor
     {
-        public const string DefinitionVersion = "1.1.0";
+        public const string DefinitionVersion = "1.2.0";
+
+        public const string PlacementInteractionType = "facility.build.placement";
 
         public static void Register(EffectRegistry registry)
         {
@@ -387,10 +389,37 @@ namespace YC.Domain.Effects
             int slot = ReadInt(context.Node.NormalizedArguments, "cityBoardSlotIndex", -1);
             string payment = ReadString(context.Node.NormalizedArguments, "paymentMode", BuildFacilityService.PaymentModeAuto);
             bool reserve = ReadBool(context.Node.NormalizedArguments, "reserveForFree", false);
-            if (string.IsNullOrEmpty(context.Node.FlowStage))
+            if (string.IsNullOrEmpty(context.Node.FlowStage) || context.Node.FlowStage == "awaiting_placement")
             {
                 var service = BuildFacilityService.CreateForEffectTree();
-                BuildFacilityResult result = reserve
+                BuildFacilityResult result;
+                if (context.Node.FlowStage == "awaiting_placement")
+                {
+                    var answer = context.GetLatestInteractionAnswer();
+                    if (answer != null && answer.Kind == NormalizedValueKind.Array && answer.Items.Count == 1) answer = answer.Items[0];
+                    var encoded = answer == null ? null : answer.Kind == NormalizedValueKind.StableReference ? answer.ReferenceId : answer.StringValue;
+                    if (!int.TryParse(encoded, NumberStyles.Integer, CultureInfo.InvariantCulture, out slot))
+                        return EffectStepResult.Failed("invalid_build_placement");
+                    result = service.PlacePaidFacility(context.State, context.Node.PlayerId, facilityId, slot, payment);
+                }
+                else if (!reserve && slot < 0)
+                {
+                    result = service.PayAndRefillForPlacement(context.State, context.Node.PlayerId, facilityId, payment);
+                    if (!result.Succeeded) return EffectStepResult.Failed(result.Validation.ErrorCode.ToString(), NormalizedValue.CreateString(result.Validation.Reason));
+                    var request = new EffectInteractionSpec
+                    {
+                        InteractionTypeId = PlacementInteractionType, AnsweringPlayerId = context.Node.PlayerId,
+                        Visibility = "owner", PromptKey = "facility.build.place_paid", AnswerSchema = "candidate_id",
+                        MinSelections = 1, MaxSelections = 1, AllowDecline = false,
+                        PromptParameters = context.Node.NormalizedArguments.Clone()
+                    };
+                    for (var index = 0; index < BuildFacilityService.CityBoardSlotCount; index++)
+                        if (service.ValidatePaidPlacement(context.State, context.Node.PlayerId, facilityId, index).IsValid)
+                            request.CandidateIds.Add(index.ToString(CultureInfo.InvariantCulture));
+                    // FlowStage 随请求一起持久化，恢复时只放置，不重复扣费或补牌。
+                    return EffectStepResult.Continue("awaiting_placement").AddInteraction(request);
+                }
+                else result = reserve
                     ? service.BuildReserveForFree(context.State, context.Node.PlayerId, facilityId, slot)
                     : service.BuildForEffectTree(context.State, context.Node.PlayerId, facilityId, slot, payment);
                 if (!result.Succeeded) return EffectStepResult.Failed(result.Validation.ErrorCode.ToString(), NormalizedValue.CreateString(result.Validation.Reason));

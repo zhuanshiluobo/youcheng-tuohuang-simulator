@@ -1,0 +1,284 @@
+{
+    "scene": "StartScene",
+    "state": "Home",
+    "stateSource": "实际场景与源资产；调用既有页面按钮/控制器，仅查看、不提交命令。",
+    "limitation": "真实运行画面及几何记录；脚本打开页面不证明鼠标命中、联机或命令提交通过。",
+    "requestedSize": {
+        "x": 1024.0,
+        "y": 768.0
+    },
+    "actualSize": {
+        "x": 1024.0,
+        "y": 768.0
+    },
+    "safeArea": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1024.0,
+        "height": 768.0
+    },
+    "objects": [
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 0.000006485941412393004,
+                "y": -0.000004532521415967494,
+                "width": 1024.0,
+                "height": 768.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "ScrollRect"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": -0.000009065042831934988,
+                "width": 1024.0,
+                "height": 768.0
+            },
+            "layoutDrivers": [
+                "UiStartMenuControlsLayout",
+                "UiFlexibleCanvasContent"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 730.8599853515625,
+                "y": 34.487060546875,
+                "width": 258.6529541015625,
+                "height": 236.482666015625
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/本地游戏 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 730.8599853515625,
+                "y": 219.23915100097657,
+                "width": 258.6529541015625,
+                "height": 51.73057556152344
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/本地游戏 Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 730.8599853515625,
+                "y": 219.23915100097657,
+                "width": 238.946044921875,
+                "height": 51.73057556152344
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/多人联机 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 730.8599853515625,
+                "y": 157.65512084960938,
+                "width": 258.6529541015625,
+                "height": 51.7305908203125
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/多人联机 Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 730.8599853515625,
+                "y": 157.65512084960938,
+                "width": 238.946044921875,
+                "height": 51.7305908203125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/成就 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 730.8599853515625,
+                "y": 96.07107543945313,
+                "width": 258.6529541015625,
+                "height": 51.7305908203125
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/成就 Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 730.8599853515625,
+                "y": 96.07107543945313,
+                "width": 238.946044921875,
+                "height": 51.7305908203125
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/断开连接 Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 730.8599853515625,
+                "y": 34.487064361572269,
+                "width": 258.6529541015625,
+                "height": 51.730587005615237
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Actions/断开连接 Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 730.8599853515625,
+                "y": 34.487064361572269,
+                "width": 238.946044921875,
+                "height": 51.730587005615237
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Links",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 15.396026611328125,
+                "y": 14.7801513671875,
+                "width": 129.3264617919922,
+                "height": 118.2413330078125
+            },
+            "layoutDrivers": [
+                "VerticalLayoutGroup"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Links/Creator Link Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 15.396001815795899,
+                "y": 98.53445434570313,
+                "width": 129.32647705078126,
+                "height": 34.487060546875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Links/Creator Link Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 15.396001815795899,
+                "y": 98.53445434570313,
+                "width": 129.32647705078126,
+                "height": 34.487060546875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Links/Official Link Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 15.396001815795899,
+                "y": 56.657318115234378,
+                "width": 129.32647705078126,
+                "height": 34.487060546875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Links/Official Link Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 15.396001815795899,
+                "y": 56.657318115234378,
+                "width": 129.32647705078126,
+                "height": 34.487060546875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Links/Wiki Link Button",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 15.396001815795899,
+                "y": 14.780153274536133,
+                "width": 129.32647705078126,
+                "height": 34.487060546875
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ],
+            "hasClippingAncestor": true
+        },
+        {
+            "path": "Start Menu/Start Menu Canvas/UI007 Menu Viewport/UI007 Menu Content/UI007 Menu Links/Wiki Link Button/Text",
+            "screenRect": {
+                "serializedVersion": "2",
+                "x": 15.396001815795899,
+                "y": 14.780153274536133,
+                "width": 129.32647705078126,
+                "height": 34.487060546875
+            },
+            "layoutDrivers": [
+                "Text"
+            ],
+            "hasClippingAncestor": true
+        }
+    ]
+}

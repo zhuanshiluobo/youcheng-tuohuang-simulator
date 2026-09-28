@@ -1,0 +1,268 @@
+[
+  {
+    "scene": "SampleScene",
+    "object": "Main Regions",
+    "before": {
+      "serializedVersion": "2",
+      "x": 0.0,
+      "y": 102.0,
+      "width": 1920.0,
+      "height": 906.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 0.0,
+      "y": 102.0,
+      "width": 1920.0,
+      "height": 906.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "SampleScene",
+    "object": "Player City Column",
+    "before": {
+      "serializedVersion": "2",
+      "x": 16.0,
+      "y": 102.0,
+      "width": 416.0,
+      "height": 906.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 16.0,
+      "y": 102.0,
+      "width": 416.0,
+      "height": 906.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "SampleScene",
+    "object": "Map Hand Column",
+    "before": {
+      "serializedVersion": "2",
+      "x": 444.0,
+      "y": 102.0,
+      "width": 896.0,
+      "height": 906.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 444.0,
+      "y": 102.0,
+      "width": 896.0,
+      "height": 906.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "SampleScene",
+    "object": "Actions Scroll Content",
+    "before": {
+      "serializedVersion": "2",
+      "x": 1352.0,
+      "y": 102.0,
+      "width": 552.0,
+      "height": 906.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 1352.0,
+      "y": 102.0,
+      "width": 552.0,
+      "height": 906.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "SampleScene",
+    "object": "City Region",
+    "before": {
+      "serializedVersion": "2",
+      "x": 16.0,
+      "y": 102.0,
+      "width": 416.0,
+      "height": 554.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 16.0,
+      "y": 102.0,
+      "width": 416.0,
+      "height": 554.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "SampleScene",
+    "object": "Map Region",
+    "before": {
+      "serializedVersion": "2",
+      "x": 444.0,
+      "y": 338.0,
+      "width": 896.0,
+      "height": 670.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 444.0,
+      "y": 338.0,
+      "width": 896.0,
+      "height": 670.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "SampleScene",
+    "object": "Prompt Frame",
+    "before": {
+      "serializedVersion": "2",
+      "x": 632.0,
+      "y": 835.0,
+      "width": 520.0,
+      "height": 115.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 632.0,
+      "y": 835.0,
+      "width": 520.0,
+      "height": 115.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "ThreePlayerScene",
+    "object": "Main Regions",
+    "before": {
+      "serializedVersion": "2",
+      "x": 0.0,
+      "y": 102.0,
+      "width": 1920.0,
+      "height": 906.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 0.0,
+      "y": 102.0,
+      "width": 1920.0,
+      "height": 906.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "ThreePlayerScene",
+    "object": "Player City Column",
+    "before": {
+      "serializedVersion": "2",
+      "x": 16.0,
+      "y": 102.0,
+      "width": 416.0,
+      "height": 906.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 16.0,
+      "y": 102.0,
+      "width": 416.0,
+      "height": 906.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "ThreePlayerScene",
+    "object": "Map Hand Column",
+    "before": {
+      "serializedVersion": "2",
+      "x": 444.0,
+      "y": 102.0,
+      "width": 896.0,
+      "height": 906.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 444.0,
+      "y": 102.0,
+      "width": 896.0,
+      "height": 906.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "ThreePlayerScene",
+    "object": "Actions Scroll Content",
+    "before": {
+      "serializedVersion": "2",
+      "x": 1352.0,
+      "y": 102.0,
+      "width": 552.0,
+      "height": 906.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 1352.0,
+      "y": 102.0,
+      "width": 552.0,
+      "height": 906.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "ThreePlayerScene",
+    "object": "City Region",
+    "before": {
+      "serializedVersion": "2",
+      "x": 16.0,
+      "y": 102.0,
+      "width": 416.0,
+      "height": 554.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 16.0,
+      "y": 102.0,
+      "width": 416.0,
+      "height": 554.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "ThreePlayerScene",
+    "object": "Map Region",
+    "before": {
+      "serializedVersion": "2",
+      "x": 444.0,
+      "y": 338.0,
+      "width": 896.0,
+      "height": 670.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 444.0,
+      "y": 338.0,
+      "width": 896.0,
+      "height": 670.0
+    },
+    "maximumDifferencePixels": 0.0
+  },
+  {
+    "scene": "ThreePlayerScene",
+    "object": "Prompt Frame",
+    "before": {
+      "serializedVersion": "2",
+      "x": 632.0,
+      "y": 835.0,
+      "width": 520.0,
+      "height": 115.0
+    },
+    "after": {
+      "serializedVersion": "2",
+      "x": 632.0,
+      "y": 835.0,
+      "width": 520.0,
+      "height": 115.0
+    },
+    "maximumDifferencePixels": 0.0
+  }
+]

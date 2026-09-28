@@ -1,0 +1,344 @@
+{
+    "mode": "EventArtwork",
+    "source": "组件诊断：SampleScene 当前 Registry 与实际 EventChoiceDialog Prefab；调用既有 Show 方法。路线、收款人和文字样本为诊断数据，卡图来自正式目录。回调仅计数，不提交命令；不代表规则结算或联机验收。",
+    "requestedSize": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "actualSize": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "panel": {
+        "serializedVersion": "2",
+        "x": 535.0,
+        "y": 215.0,
+        "width": 850.0,
+        "height": 600.0
+    },
+    "availableContent": {
+        "serializedVersion": "2",
+        "x": 0.0,
+        "y": 102.0,
+        "width": 1920.0,
+        "height": 906.0
+    },
+    "diagnosticCallbacks": 0,
+    "issues": [],
+    "objects": [
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 215.0,
+                "width": 850.0,
+                "height": 600.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 215.0,
+                "width": 850.0,
+                "height": 600.0
+            },
+            "layoutDrivers": [
+                "UiEventDialogLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 215.0,
+                "width": 850.0,
+                "height": 600.0
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 215.0,
+                "width": 850.0,
+                "height": 600.0
+            },
+            "layoutDrivers": [
+                "UiPageSectionsLayout"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 215.0,
+                "width": 850.0,
+                "height": 600.0
+            },
+            "layoutDrivers": [
+                "UiEventArtworkLayoutGroup"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 215.0,
+                "width": 850.0,
+                "height": 600.0
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Event Card Artwork",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 215.0,
+                "width": 850.0,
+                "height": 600.0
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 215.0,
+                "width": 850.0,
+                "height": 600.0
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 625.0,
+                "y": 340.0,
+                "width": 720.0,
+                "height": 75.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1/Hover Border",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 625.0,
+                "y": 340.0,
+                "width": 720.0,
+                "height": 75.0
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1/Hover Border/Top",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 625.0,
+                "y": 412.0,
+                "width": 720.0,
+                "height": 3.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1/Hover Border/Bottom",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 625.0,
+                "y": 340.0,
+                "width": 720.0,
+                "height": 3.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1/Hover Border/Left",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 625.0,
+                "y": 340.0,
+                "width": 3.0,
+                "height": 75.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 1/Hover Border/Right",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1342.0,
+                "y": 340.0,
+                "width": 3.0,
+                "height": 75.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 625.0,
+                "y": 260.0,
+                "width": 720.0,
+                "height": 80.0
+            },
+            "layoutDrivers": [
+                "Image",
+                "LayoutElement"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2/Hover Border",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 625.0,
+                "y": 260.0,
+                "width": 720.0,
+                "height": 80.0
+            },
+            "layoutDrivers": []
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2/Hover Border/Top",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 625.0,
+                "y": 337.0,
+                "width": 720.0,
+                "height": 3.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2/Hover Border/Bottom",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 625.0,
+                "y": 260.0,
+                "width": 720.0,
+                "height": 3.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2/Hover Border/Left",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 625.0,
+                "y": 260.0,
+                "width": 3.0,
+                "height": 80.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Artwork Choice Host/Choice 2/Hover Border/Right",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1342.0,
+                "y": 260.0,
+                "width": 3.0,
+                "height": 80.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Resource Point Ribbon",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 591.0,
+                "y": 773.0,
+                "width": 380.0,
+                "height": 42.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Expanded Content/Action Area/EventCard Mode/Artwork Layout/Artwork Surface/Resource Point Ribbon/Resource Point Label",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 607.0,
+                "y": 773.0,
+                "width": 360.0,
+                "height": 42.0
+            },
+            "layoutDrivers": [
+                "Text"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Collapse",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1349.0,
+                "y": 405.0,
+                "width": 36.0,
+                "height": 220.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Collapse/Collapse Triangle",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 1381.0,
+                "y": 505.0,
+                "width": -28.0,
+                "height": 20.0
+            },
+            "layoutDrivers": [
+                "Image"
+            ]
+        },
+        {
+            "path": "Gameplay Interaction HUD/Mobile City UI Canvas/Gameplay ContentRect/Event Choice Overlay/Choice Panel/Dynamic Templates",
+            "rect": {
+                "serializedVersion": "2",
+                "x": 535.0,
+                "y": 215.0,
+                "width": 850.0,
+                "height": 600.0
+            },
+            "layoutDrivers": []
+        }
+    ],
+    "scrolls": []
+}

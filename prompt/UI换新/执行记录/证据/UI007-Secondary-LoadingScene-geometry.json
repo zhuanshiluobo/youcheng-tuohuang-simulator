@@ -1,0 +1,218 @@
+{
+    "asset": "Assets/Scenes/LoadingScene.unity",
+    "evidenceKind": "离线资产参考矩形；不是实际运行屏幕验收。包含相同对象迁移前后坐标、活动状态和层级。",
+    "referenceResolution": {
+        "x": 1920.0,
+        "y": 1080.0
+    },
+    "objects": [
+        {
+            "beforePath": "Scene Transition/Loading Canvas",
+            "afterPath": "Scene Transition/Loading Canvas",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1919.9998779296875,
+                "height": 1080.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1919.9998779296875,
+                "height": 1080.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Scene Transition/Loading Canvas/Black Screen",
+            "afterPath": "Scene Transition/Loading Canvas/Black Screen",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1919.9998779296875,
+                "height": 1080.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1919.9998779296875,
+                "height": 1080.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Scene Transition/Loading Canvas/Originite Display",
+            "afterPath": "Scene Transition/Loading Canvas/Originite Display",
+            "activeSelf": true,
+            "activeInHierarchy": true,
+            "before": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 276.0,
+                "width": 640.0,
+                "height": 640.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 640.0,
+                "y": 276.0,
+                "width": 640.0,
+                "height": 640.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Scene Transition/Loading Canvas/Loading Progress",
+            "afterPath": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress",
+            "activeSelf": false,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 580.0,
+                "y": 36.000030517578128,
+                "width": 760.0,
+                "height": 110.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 580.0,
+                "y": 36.000030517578128,
+                "width": 760.0,
+                "height": 110.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Scene Transition/Loading Canvas/Loading Progress/Tips Text",
+            "afterPath": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Tips Text Slot/Tips Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 610.0,
+                "y": 92.00003051757813,
+                "width": 570.0,
+                "height": 37.999969482421878
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 675.0,
+                "y": 72.00006103515625,
+                "width": 570.0,
+                "height": 37.99993896484375
+            },
+            "delta": {
+                "x": 65.0,
+                "y": -19.999969482421876,
+                "z": 0.0,
+                "w": -0.000030517578125
+            }
+        },
+        {
+            "beforePath": "Scene Transition/Loading Canvas/Loading Progress/Progress Text",
+            "afterPath": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Progress Text Slot/Progress Text",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 1215.0,
+                "y": 92.00003051757813,
+                "width": 110.0,
+                "height": 37.999969482421878
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 904.9999389648438,
+                "y": 72.00006103515625,
+                "width": 110.0001220703125,
+                "height": 37.99993896484375
+            },
+            "delta": {
+                "x": -310.00006103515627,
+                "y": -19.999969482421876,
+                "z": 0.0001220703125,
+                "w": -0.000030517578125
+            }
+        },
+        {
+            "beforePath": "Scene Transition/Loading Canvas/Loading Progress/Progress Track",
+            "afterPath": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Progress Track Slot/Progress Track",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 610.0,
+                "y": 68.00003051757813,
+                "width": 700.0,
+                "height": 10.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 610.0,
+                "y": 86.00003051757813,
+                "width": 700.0,
+                "height": 10.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 18.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        },
+        {
+            "beforePath": "Scene Transition/Loading Canvas/Loading Progress/Progress Track/Progress Fill",
+            "afterPath": "Scene Transition/Loading Canvas/UI007 Progress Host/Loading Progress/UI007 Content Row/UI007 Progress Track Slot/Progress Track/Progress Fill",
+            "activeSelf": true,
+            "activeInHierarchy": false,
+            "before": {
+                "serializedVersion": "2",
+                "x": 610.0,
+                "y": 68.00003051757813,
+                "width": 0.0,
+                "height": 10.0
+            },
+            "after": {
+                "serializedVersion": "2",
+                "x": 610.0,
+                "y": 86.00003051757813,
+                "width": 0.0,
+                "height": 10.0
+            },
+            "delta": {
+                "x": 0.0,
+                "y": 18.0,
+                "z": 0.0,
+                "w": 0.0
+            }
+        }
+    ]
+}

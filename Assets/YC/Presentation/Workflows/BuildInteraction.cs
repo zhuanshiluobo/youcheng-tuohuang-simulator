@@ -21,6 +21,7 @@ namespace YC.Presentation.Workflows
         private readonly Action<string> completeAction;
         private readonly BuildFacilitySelectionController selection =
             new BuildFacilitySelectionController();
+        public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
         private string inFlightCommandId = string.Empty;
 
         public BuildInteraction(
@@ -143,7 +144,14 @@ namespace YC.Presentation.Workflows
             }
 
             PresentDraft();
-            view.ShowPrompt("建设：拖动公共建设牌到自己面板的合法槽位。");
+        }
+
+        public void SelectFacility(string facilityId)
+        {
+            if (RejectMutationWhileSubmitting()) return;
+            if (!selection.IsActive && !TryOpenDraft()) return;
+            if (!selection.TrySelectFacility(context.CurrentState, facilityId, out var reason)) view.ShowPrompt(reason);
+            PresentDraft();
         }
 
         public void BeginDrag(string facilityId)
@@ -232,6 +240,11 @@ namespace YC.Presentation.Workflows
                 return true;
             }
 
+            if (selection.CityBoardSlotIndex < 0)
+            {
+                CancelCore(true);
+                return true;
+            }
             if (selection.Phase == BuildFacilityDraftPhase.Confirming)
             {
                 selection.BackToPayment();
@@ -250,21 +263,22 @@ namespace YC.Presentation.Workflows
 
         public void SelectPayment(string paymentMode)
         {
-            if (RejectMutationWhileSubmitting())
-            {
-                return;
-            }
+            if (TryPreparePayment(paymentMode)) PresentDraft();
+        }
 
-            string reason;
-            if (!selection.TrySelectPayment(context.CurrentState, paymentMode, out reason))
+        // 支付按钮使用此入口准备正式命令，成功后不刷新中间“已选支付方式”页面。
+        public bool TryPreparePayment(string paymentMode)
+        {
+            if (RejectMutationWhileSubmitting()) return false;
+            if (selection.Phase == BuildFacilityDraftPhase.Confirming) selection.BackToPayment();
+            if (!selection.TrySelectPayment(context.CurrentState, paymentMode, out var reason))
             {
                 view.ShowPrompt(reason);
                 PresentDraft();
-                return;
+                return false;
             }
-
             flowCoordinator.SetMode(InteractionMode.Busy);
-            PresentDraft();
+            return true;
         }
 
         public void BackToPayment()
@@ -320,7 +334,12 @@ namespace YC.Presentation.Workflows
                         selection.MarkSubmissionSucceeded();
                         view.HideBuildFacilityDraft();
                         view.RefreshInformation();
-                        completeAction("建设");
+                        if (context.CurrentState.HasPendingChoice())
+                        {
+                            flowCoordinator.SetMode(InteractionMode.Busy);
+                            view.RefreshActionPanel();
+                        }
+                        else completeAction("建设");
                     }
                 });
             if (outcome.Kind == SubmitOutcomeKind.WaitingForHost)
@@ -376,7 +395,7 @@ namespace YC.Presentation.Workflows
                 selection.PaymentMode,
                 selection.ErrorMessage,
                 selection.QueryLegalSlotIndexes(state),
-                Dispatch);
+                Dispatch, selection.IsSupplySource);
         }
 
         public BuildFacilityAvailabilityViewModel BuildAvailabilityViewModel()
@@ -610,6 +629,8 @@ namespace YC.Presentation.Workflows
                 return CommandGateway.BuildWaitingForHostPrompt("建设命令");
             }
 
+            // 普通建设页面的提示来自其序列化配置；旧拖放提示只服务已有槽位的兼容路径。
+            if (selection.CityBoardSlotIndex < 0) return string.Empty;
             switch (selection.Phase)
             {
                 case BuildFacilityDraftPhase.Focused:
@@ -642,12 +663,17 @@ namespace YC.Presentation.Workflows
                 return false;
             }
 
+            foreach (var request in GetVisibleRequests == null ? VisibleInteractionRequestSource.Read(state, null, context.LocalPlayerId) : GetVisibleRequests())
+                if (request.InteractionTypeId == YC.Domain.Effects.FacilityBuildEffectExecutor.PlacementInteractionType &&
+                    request.AnsweringPlayerId == selection.PlayerId && request.PromptParameters?.Properties != null)
+                    foreach (var parameter in request.PromptParameters.Properties)
+                        if (parameter.Name == "facilityId" && parameter.Value?.StringValue == selection.FacilityId) return true;
             for (var i = 0; i < state.Map.Facilities.Count; i++)
             {
                 var facility = state.Map.Facilities[i];
                 if (facility != null &&
                     facility.PlayerId == selection.PlayerId &&
-                    facility.CityBoardSlotIndex == selection.CityBoardSlotIndex &&
+                    (selection.CityBoardSlotIndex < 0 || facility.CityBoardSlotIndex == selection.CityBoardSlotIndex) &&
                     string.Equals(
                         facility.FacilityCardId,
                         selection.FacilityId,

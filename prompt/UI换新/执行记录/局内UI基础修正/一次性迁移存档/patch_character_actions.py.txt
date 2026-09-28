@@ -1,0 +1,123 @@
+from pathlib import Path
+import re,sys
+sys.path.insert(0,'tools')
+from correct_gameplay_native_layout import *
+
+p=ROOT/'Assets/YC/Presentation/ActionPanelController.cs';s=p.read_text(encoding='utf-8-sig')
+a=s.index('    internal enum ActionPanelFace');b=s.index('    internal sealed class ActionPanelController',a);s=s[:a]+s[b:]
+a=s.index('        private readonly CardVisualCatalog');b=s.index('        private ActionPanelController(',a);s=s[:a]+s[b:]
+s=re.sub(r'^.*(?:view.CardPrimaryButton|view.CardSecondaryButton|view.FlipButton|view.CardImageButton|cardVisualCatalog = configured|public ActionPanelFace).*(?:\n|$)','',s,flags=re.M)
+a=s.index('        public void ShowMainFace()');b=s.index('        private static void BindButton',a)
+s=s[:a]+'''        public void ShowMainFace() => view.MainFaceObject.SetActive(true);
+
+'''+s[b:];p.write_text(s,encoding='utf-8')
+
+p=ROOT/'Assets/YC/Presentation/ActionPanelView.cs';s=p.read_text(encoding='utf-8-sig')
+s=re.sub(r'^.*\[SerializeField\] private .* (?:card\w+|hintCardTexture|flipButton);\n','',s,flags=re.M)
+s=re.sub(r'^        public .* (?:Card\w+|HintCardTexture|FlipButton) => .*;\n','',s,flags=re.M)
+s=s.replace(' || cardFaceObject == null','').replace('flipButton == null || ','')
+a=s.index('            if (cardImageContainer == null');b=s.index('            if (currentPlayerText == null',a);s=s[:a]+s[b:]
+s=s.replace('        [Header("Card face")]\n','').replace('[Header("Faces")]','[Header("行动面板")]');p.write_text(s,encoding='utf-8')
+
+p=ROOT/'Assets/YC/Presentation/MobileCityInteractionController.cs';s=p.read_text(encoding='utf-8-sig')
+s=re.sub(r'            actionPanel.ConfigureCharacterCardViewerAction\(\n.*\n','',s)
+s=re.sub(r'^.*actionPanel.ConfigureCharacter(?:Actions|FinishAction).*\n','',s,flags=re.M)
+s=re.sub(r'^.*actionPanel.CurrentFace.*\n','',s,flags=re.M)
+s=s.replace('actionPanel.ShowCharacterCard(characterView);','ShowCharacterUsePage(characterView);')
+s=s.replace('        private void OnDestroy()\n        {','        private void OnDestroy()\n        {\n            characterUsePage?.Hide();')
+p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Presentation/MobileCityInteractionController.CharacterCards.cs';s=p.read_text(encoding='utf-8-sig')
+s=s.replace('using System.Collections.Generic;','using System;\nusing System.Collections.Generic;\nusing UnityEngine;')
+s=re.sub(r'^.*actionPanel.(?:ResetCharacterCardReveal|ConfigureCharacterActions).*\n','',s,flags=re.M)
+s=s.replace('            actionPanel.ShowCharacterCard(view);','            ShowCharacterUsePage(view);',1)
+s=s.replace('            actionPanel.ShowCharacterCard(view);','            characterUsePage?.Hide();\n            characterUsePageKey = string.Empty;')
+anchor='        private bool FinishCharacterUseButtonClicked()'
+s=s.replace(anchor,'''        private CharacterCardEffectChoiceDialog characterUsePage;
+        private string characterUsePageKey = string.Empty;
+
+        private string CharacterUseKey(CharacterCardPanelViewModel model)
+        {
+            return model == null ? string.Empty : localPlayerId + ":" + session?.State?.Round + ":" +
+                session?.State?.Phase + ":" + model.CoveredCardId + ":" + model.IsSecondEffectDecision +
+                ":" + model.IsSecondEffectExecution + ":" + model.CanUseStrategy + ":" + model.CanUseTactic;
+        }
+
+        private void ShowCharacterUsePage(CharacterCardPanelViewModel model)
+        {
+            if (model == null || gameplayInteractionHud == null) return;
+            var key = CharacterUseKey(model);
+            if (characterUsePage != null && characterUsePage.IsShowing && characterUsePageKey == key) return;
+            if (characterUsePage == null)
+                characterUsePage = new CharacterCardEffectChoiceDialog(gameplayInteractionHud.DialogRegistry,
+                    gameplayInteractionHud.Frame.ContentRect);
+            characterUsePageKey = key;
+            bool Current() => characterUsePageKey == key && session != null &&
+                CharacterUseKey(characterCardPresenter.BuildView(session.State, localPlayerId)) == key;
+            characterUsePage.ShowCharacterUse(model, () =>
+            {
+                if (Current()) BeginCharacterEffect(UseCharacterCardCommandHandler.Strategy);
+            }, () =>
+            {
+                if (Current()) BeginCharacterEffect(UseCharacterCardCommandHandler.Tactic);
+            }, () =>
+            {
+                if (Current()) FinishCharacterUseButtonClicked();
+            }, Current, () =>
+            {
+                characterUsePageKey = string.Empty;
+                characterSettlementInProgress = false;
+            });
+        }
+
+'''+anchor)
+p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Presentation/CharacterCardEffectChoiceDialog.cs';s=p.read_text(encoding='utf-8-sig')
+anchor='        public void ShowOptions('
+s=s.replace(anchor,'''        public void ShowCharacterUse(CharacterCardPanelViewModel model, Action strategy, Action tactic,
+            Action finish, Func<bool> isCurrent, Action cancel)
+        {
+            var options = new List<EffectDialogOption>
+            {
+                new EffectDialogOption(layoutProfile.CharacterStrategyLabel, strategy, model.CanUseStrategy)
+                    { StableId = "strategy", IsCurrent = isCurrent },
+                new EffectDialogOption(layoutProfile.CharacterTacticLabel, tactic, model.CanUseTactic)
+                    { StableId = "tactic", IsCurrent = isCurrent }
+            };
+            if (model.IsSecondEffectDecision)
+                options.Add(new EffectDialogOption(layoutProfile.CharacterFinishLabel, finish)
+                    { StableId = "finish", IsCurrent = isCurrent });
+            ShowOptions(layoutProfile.CharacterUseTitle,
+                model.IsSecondEffectDecision ? layoutProfile.CharacterSecondEffectDescription :
+                    layoutProfile.CharacterUseDescription, options,
+                model.IsSecondEffectDecision || model.IsSecondEffectExecution ? null : cancel);
+        }
+
+'''+anchor);p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Presentation/EffectDialogLayoutProfile.cs';s=p.read_text(encoding='utf-8-sig')
+anchor='    public sealed class EffectDialogLayoutProfile : ScriptableObject\n    {'
+fields={'CharacterUseTitle':'角色牌使用','CharacterUseDescription':'请选择本次使用的角色牌效果。','CharacterSecondEffectDescription':'第一个效果已结算，可继续使用第二个效果，或结束本次使用。','CharacterStrategyLabel':'策略','CharacterTacticLabel':'计谋','CharacterFinishLabel':'结束使用','DiscardListTitleFormat':'弃牌（{0}）','DiscardListDescription':'此页面仅供查看，不能使用或移动弃牌。','ReadOnlyCloseLabel':'关闭'}
+body=''
+for prop,value in fields.items():
+    name=prop[0].lower()+prop[1:];body+=f'\n        [SerializeField] private string {name} = "{value}";\n        public string {prop} => {name};\n'
+s=s.replace(anchor,anchor+body);p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Presentation/Content/EffectDialogLayoutProfile.asset';s=p.read_text(encoding='utf-8-sig');s+=''.join('  '+k[0].lower()+k[1:]+': '+json.dumps(v,ensure_ascii=False)+'\n' for k,v in fields.items());p.write_text(s,encoding='utf-8')
+
+# 在实际 HUD 删除旧卡面、上下文按钮，保留主行动正文及其原对象。
+a=Asset('Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab')
+g=guid('Assets/YC/Presentation/ActionPanelView.cs.meta');i=next(i for i,(k,t)in a.docs.items() if k==114 and g in t);data=a.text(i)
+for key in ('flipButton','cardFaceObject'):
+    component=ref(data,key);go=component if a.docs[component][0]==1 else ref(a.text(component),'m_GameObject')
+    r=next(r for r,(k,t)in a.docs.items() if k==224 and ref(t,'m_GameObject')==go)
+    a.remove_tree(r)
+k,t=a.docs[i];t=re.sub(r'^  (?:card\w+|hintCardTexture|flipButton):.*\n','',t,flags=re.M);a.docs[i]=(k,t);a.save()
+(OUT/'旧行动卡面删除.json').write_text(json.dumps(a.removed,ensure_ascii=False,indent=2),encoding='utf-8')
+for p in [ROOT/'Assets/YC/Presentation/SecondaryLayoutProfiles.cs',ROOT/'Assets/YC/Presentation/Content/ActionPanelLayoutProfile.asset']:
+    s=p.read_text(encoding='utf-8-sig');s=re.sub(r'^.*(?:viewHintButtonText|returnActionButtonText|finishCharacterUseButtonText|ViewHintButtonText|ReturnActionButtonText|FinishCharacterUseButtonText).*\n','',s,flags=re.M);p.write_text(s,encoding='utf-8')
+# 捕获不再进入已删除的提示面。
+p=ROOT/'Assets/YC/Editor/Ui003VisualCapture.cs';s=p.read_text(encoding='utf-8-sig');s=re.sub(r'^.*\.FlipButton.*\n','',s,flags=re.M);s=s.replace(', "Hint"','');s=s.replace('new[] { "Hint" }','new[] { "Main" }');p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Presentation/PlayerJourney/PlayerJourneyRuntime.cs';s=p.read_text(encoding='utf-8-sig');s=re.sub(r'                if \(target == null && !text.Contains\("请选择事件牌"\).*\n.*action.context.*\n','',s);p.write_text(s,encoding='utf-8')
+p=ROOT/'Assets/YC/Tests/PlayMode/GameplayInteractionHudPlayModeProbe.cs';s=p.read_text(encoding='utf-8-sig');start=s.index('            hud.ActionPanelView.FlipButton');end=s.index('            RequirePersistentHudCoexistence(hud);',start);s=s[:start]+'''            if (!hud.ActionPanelView.MainFaceObject.activeSelf)
+                throw new InvalidOperationException("正式行动面板必须保持可见。");
+
+'''+s[end:];p.write_text(s,encoding='utf-8')
+print('旧翻面/提示面生产代码与 HUD 节点已移除；角色效果改由正式选择壳呈现。')

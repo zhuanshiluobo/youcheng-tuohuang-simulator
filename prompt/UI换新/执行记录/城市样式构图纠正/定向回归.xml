@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="44" result="Failed(Child)" total="44" passed="42" failed="2" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-27 05:51:34Z" end-time="2026-09-27 05:51:42Z" duration="7.3913433">
+  <test-suite type="TestSuite" id="2405" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="1219" result="Failed" site="Child" start-time="2026-09-27 05:51:34Z" end-time="2026-09-27 05:51:42Z" duration="7.391343" total="44" passed="42" failed="2" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="3806" name="YC.Tests.EditMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.EditMode.dll" runstate="Runnable" testcasecount="1219" result="Failed" site="Child" start-time="2026-09-27 05:51:34Z" end-time="2026-09-27 05:51:42Z" duration="7.374611" total="44" passed="42" failed="2" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="26364" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="3807" name="YC" fullname="YC" runstate="Runnable" testcasecount="1219" result="Failed" site="Child" start-time="2026-09-27 05:51:34Z" end-time="2026-09-27 05:51:42Z" duration="7.367206" total="44" passed="42" failed="2" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="3808" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="1219" result="Failed" site="Child" start-time="2026-09-27 05:51:34Z" end-time="2026-09-27 05:51:42Z" duration="7.359602" total="44" passed="42" failed="2" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="SetUpFixture" id="2836" name="EditMode" fullname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" classname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" runstate="Runnable" testcasecount="1219" result="Failed" site="Child" start-time="2026-09-27 05:51:34Z" end-time="2026-09-27 05:51:42Z" duration="7.348492" total="44" passed="42" failed="2" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="2595" name="CityStylePageTests" fullname="YC.Tests.EditMode.CityStylePageTests" classname="YC.Tests.EditMode.CityStylePageTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-27 05:51:34Z" end-time="2026-09-27 05:51:41Z" duration="6.415044" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="2600" name="ActualAssetKeepsFullCardsAndAllCitySlotsInsideTheirAllocatedAreas" fullname="YC.Tests.EditMode.CityStylePageTests.ActualAssetKeepsFullCardsAndAllCitySlotsInsideTheirAllocatedAreas" classname="YC.Tests.EditMode.CityStylePageTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-27 05:51:34Z" end-time="2026-09-27 05:51:35Z" duration="1.241476" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2597" name="ActualAssetKeepsFullCardsAndAllCitySlotsInsideTheirAllocatedAreas(0)" fullname="YC.Tests.EditMode.CityStylePageTests.ActualAssetKeepsFullCardsAndAllCitySlotsInsideTheirAllocatedAreas(0)" methodname="ActualAssetKeepsFullCardsAndAllCitySlotsInsideTheirAllocatedAreas" classname="YC.Tests.EditMode.CityStylePageTests" runstate="Runnable" seed="830624650" result="Passed" start-time="2026-09-27 05:51:34Z" end-time="2026-09-27 05:51:35Z" duration="0.993261" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2598" name="ActualAssetKeepsFullCardsAndAllCitySlotsInsideTheirAllocatedAreas(2)" fullname="YC.Tests.EditMode.CityStylePageTests.ActualAssetKeepsFullCardsAndAllCitySlotsInsideTheirAllocatedAreas(2)" methodname="ActualAssetKeepsFullCardsAndAllCitySlotsInsideTheirAllocatedAreas" classname="YC.Tests.EditMode.CityStylePageTests" runstate="Runnable" seed="443644861" result="Passed" start-time="2026-09-27 05:51:35Z" end-time="2026-09-27 05:51:35Z" duration="0.069223" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2599" name="ActualAssetKeepsFullCardsAndAllCitySlotsInsideTheirAllocatedAreas(12)" fullname="YC.Tests.EditMode.CityStylePageTests.ActualAssetKeepsFullCardsAndAllCitySlotsInsideTheirAllocatedAreas(12)" methodname="ActualAssetKeepsFullCardsAndAllCitySlotsInsideTheirAllocatedAreas" classname="YC.Tests.EditMode.CityStylePageTests" runstate="Runnable" seed="1188392891" result="Passed" start-time="2026-09-27 05:51:35Z" end-time="2026-09-27 05:51:35Z" duration="0.174043" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="2602" name="CompositeDeclarationAndActionRestoreTheAuthoritativePaymentAfterBrowsing" fullname="YC.Tests.EditMode.CityStylePageTests.CompositeDeclarationAndActionRestoreTheAuthoritativePaymentAfterBrowsing" methodname="CompositeDeclarationAndActionRestoreTheAuthoritativePaymentAfterBrowsing" classname="YC.Tests.EditMode.CityStylePageTests" runstate="Runnable" seed="240808971" result="Passed" start-time="2026-09-27 05:51:35Z" end-time="2026-09-27 05:51:38Z" duration="2.321544" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="2601" name="RealSceneDeclarationUsesTheFormalCommandAndKeepsRepeatMarkersSeparate" fullname="YC.Tests.EditMode.CityStylePageTests.RealSceneDeclarationUsesTheFormalCommandAndKeepsRepeatMarkersSeparate" methodname="RealSceneDeclarationUsesTheFormalCommandAndKeepsRepeatMarkersSeparate" classname="YC.Tests.EditMode.CityStylePageTests" runstate="Runnable" seed="341271133" result="Passed" start-time="2026-09-27 05:51:38Z" end-time="2026-09-27 05:51:40Z" duration="2.552848" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+军工正式行动后请求：round.mainline.complete:0,effect.influence.place.target
+Right card smoke setup ready. Dialog=None, PlayerId=1.
+军工正式行动后请求：round.mainline.complete:0,effect.influence.place.target
+]]></output>
+              </test-case>
+              <test-case id="2596" name="ViewHiddenInputAndVersionChangeCannotSubmit" fullname="YC.Tests.EditMode.CityStylePageTests.ViewHiddenInputAndVersionChangeCannotSubmit" methodname="ViewHiddenInputAndVersionChangeCannotSubmit" classname="YC.Tests.EditMode.CityStylePageTests" runstate="Runnable" seed="1269828565" result="Passed" start-time="2026-09-27 05:51:40Z" end-time="2026-09-27 05:51:41Z" duration="0.291722" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="3461" name="PresentationReuseArchitectureTests" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.018681" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="3464" name="CityBoardSlotLayout_ProvidesSharedTwelveSlotGeometry" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests.CityBoardSlotLayout_ProvidesSharedTwelveSlotGeometry" methodname="CityBoardSlotLayout_ProvidesSharedTwelveSlotGeometry" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" seed="754767024" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.003804" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3465" name="CityBoardSlotLayout_UsesArtworkPixelsAfterParentTransformAndRejectsBorder" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests.CityBoardSlotLayout_UsesArtworkPixelsAfterParentTransformAndRejectsBorder" methodname="CityBoardSlotLayout_UsesArtworkPixelsAfterParentTransformAndRejectsBorder" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" seed="1491255833" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.001092" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3468" name="CityStyleMarkerRenderer_ResetsCanvasDepthRotationAndScale" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests.CityStyleMarkerRenderer_ResetsCanvasDepthRotationAndScale" methodname="CityStyleMarkerRenderer_ResetsCanvasDepthRotationAndScale" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" seed="531671447" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.001852" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3467" name="CityStyleMarkerRenderer_UsesConfiguredTracksAndAggregatesQuantities" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests.CityStyleMarkerRenderer_UsesConfiguredTracksAndAggregatesQuantities" methodname="CityStyleMarkerRenderer_UsesConfiguredTracksAndAggregatesQuantities" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" seed="1414230541" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.000975" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3472" name="CityStyleOptionsViewModel_ContainsOnlyDisplaySnapshotsAndCallbacks" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests.CityStyleOptionsViewModel_ContainsOnlyDisplaySnapshotsAndCallbacks" methodname="CityStyleOptionsViewModel_ContainsOnlyDisplaySnapshotsAndCallbacks" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" seed="1036708551" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.000675" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3471" name="CityStylePreviewGroupsMarkersPerPlayerAndArea" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests.CityStylePreviewGroupsMarkersPerPlayerAndArea" methodname="CityStylePreviewGroupsMarkersPerPlayerAndArea" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" seed="1972091654" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.001183" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3469" name="CityStyleSpecialActionDropAreas_MatchPrintedCardZones" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests.CityStyleSpecialActionDropAreas_MatchPrintedCardZones" methodname="CityStyleSpecialActionDropAreas_MatchPrintedCardZones" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" seed="230340674" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.001937" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3462" name="EffectDialogs_ShareShellAndResourceAllocationModel" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests.EffectDialogs_ShareShellAndResourceAllocationModel" methodname="EffectDialogs_ShareShellAndResourceAllocationModel" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" seed="1096547086" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.000331" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3463" name="FacilityOrBranches_KeepSharedCoordinatorHelperAndCollapsibleDialogShell" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests.FacilityOrBranches_KeepSharedCoordinatorHelperAndCollapsibleDialogShell" methodname="FacilityOrBranches_KeepSharedCoordinatorHelperAndCollapsibleDialogShell" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" seed="1624147834" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.001084" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3470" name="MilitaryIndustrialMarkers_KeepFourPlayersInsideTheConfiguredSafeArea" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests.MilitaryIndustrialMarkers_KeepFourPlayersInsideTheConfiguredSafeArea" methodname="MilitaryIndustrialMarkers_KeepFourPlayersInsideTheConfiguredSafeArea" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" seed="1395304039" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.001293" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3466" name="RealConsumers_CallInjectedSpatialLayoutResolvers" fullname="YC.Tests.EditMode.PresentationReuseArchitectureTests.RealConsumers_CallInjectedSpatialLayoutResolvers" methodname="RealConsumers_CallInjectedSpatialLayoutResolvers" classname="YC.Tests.EditMode.PresentationReuseArchitectureTests" runstate="Runnable" seed="1706009464" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.000709" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="3473" name="PresentationSelectionControllerTests" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" testcasecount="22" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.313573" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="3491" name="CityStylePreview_SelectionDetailsSwitchingAndConfirmationKeepTheCorrectDraft" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.CityStylePreview_SelectionDetailsSwitchingAndConfirmationKeepTheCorrectDraft" methodname="CityStylePreview_SelectionDetailsSwitchingAndConfirmationKeepTheCorrectDraft" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="243167168" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.284402" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="3627" name="SpecialActionInteractionUiCoordinatorTests" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.312937" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="3639" name="CompletedSourceIndustrialAction_HasNoPendingPopup" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.CompletedSourceIndustrialAction_HasNoPendingPopup" methodname="CompletedSourceIndustrialAction_HasNoPendingPopup" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" seed="1943285837" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.011240" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3635" name="DomainInvalidPending_DoesNotRenderOrBlockMapInteraction" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.DomainInvalidPending_DoesNotRenderOrBlockMapInteraction" methodname="DomainInvalidPending_DoesNotRenderOrBlockMapInteraction" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" seed="1486430111" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.001247" asserts="0">
+                <properties />
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="3630" name="EffectPayment_ReusesMaterialDialogAndSubmitsOneAnswerWithoutChangingResources" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.EffectPayment_ReusesMaterialDialogAndSubmitsOneAnswerWithoutChangingResources" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.268408" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="3628" name="EffectPayment_ReusesMaterialDialogAndSubmitsOneAnswerWithoutChangingResources(False)" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.EffectPayment_ReusesMaterialDialogAndSubmitsOneAnswerWithoutChangingResources(False)" methodname="EffectPayment_ReusesMaterialDialogAndSubmitsOneAnswerWithoutChangingResources" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" seed="2137656323" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.235595" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="3629" name="EffectPayment_ReusesMaterialDialogAndSubmitsOneAnswerWithoutChangingResources(True)" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.EffectPayment_ReusesMaterialDialogAndSubmitsOneAnswerWithoutChangingResources(True)" methodname="EffectPayment_ReusesMaterialDialogAndSubmitsOneAnswerWithoutChangingResources" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" seed="850285905" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.003963" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="3632" name="Escape_ExplainsMandatoryResolutionWithoutCancellingOrSubmitting" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.Escape_ExplainsMandatoryResolutionWithoutCancellingOrSubmitting" methodname="Escape_ExplainsMandatoryResolutionWithoutCancellingOrSubmitting" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" seed="221511818" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.003195" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3631" name="FreeMove_UsesSharedEffectShellAndRerendersSecondSegment" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.FreeMove_UsesSharedEffectShellAndRerendersSecondSegment" methodname="FreeMove_UsesSharedEffectShellAndRerendersSecondSegment" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" seed="1658885972" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.005961" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3637" name="MilitaryControl_HighlightsLegalSlotsAndSubmitsRequiredCount" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.MilitaryControl_HighlightsLegalSlotsAndSubmitsRequiredCount" methodname="MilitaryControl_HighlightsLegalSlotsAndSubmitsRequiredCount" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" seed="1208248294" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.004312" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3638" name="MobilizationAndRoutePlacement_SubmitOnlyHighlightedInfluenceTargets" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.MobilizationAndRoutePlacement_SubmitOnlyHighlightedInfluenceTargets" methodname="MobilizationAndRoutePlacement_SubmitOnlyHighlightedInfluenceTargets" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" seed="658343439" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.005929" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3634" name="MoveEvent_YieldsToExistingEventFlowAndHidesSpecialPrompt" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.MoveEvent_YieldsToExistingEventFlowAndHidesSpecialPrompt" methodname="MoveEvent_YieldsToExistingEventFlowAndHidesSpecialPrompt" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" seed="896588918" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.004468" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3633" name="PendingMapSubmission_BlocksDuplicateClicksUntilMatchingCommandSettles" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.PendingMapSubmission_BlocksDuplicateClicksUntilMatchingCommandSettles" methodname="PendingMapSubmission_BlocksDuplicateClicksUntilMatchingCommandSettles" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" seed="648047192" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.003156" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3636" name="StaleSpecialAction_WithMercenaryFacilityPending_YieldsToFacilitySession" fullname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests.StaleSpecialAction_WithMercenaryFacilityPending_YieldsToFacilitySession" methodname="StaleSpecialAction_WithMercenaryFacilityPending_YieldsToFacilitySession" classname="YC.Tests.EditMode.SpecialActionInteractionUiCoordinatorTests" runstate="Runnable" seed="978687900" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.001023" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="3640" name="SpecialActionPreviewUiTests" fullname="YC.Tests.EditMode.SpecialActionPreviewUiTests" classname="YC.Tests.EditMode.SpecialActionPreviewUiTests" runstate="Runnable" testcasecount="7" result="Failed" site="Child" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.172670" total="7" passed="5" failed="2" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="3647" name="CompositeActivation_RejectionKeepsPreviewUsableWithoutPaymentModal" fullname="YC.Tests.EditMode.SpecialActionPreviewUiTests.CompositeActivation_RejectionKeepsPreviewUsableWithoutPaymentModal" methodname="CompositeActivation_RejectionKeepsPreviewUsableWithoutPaymentModal" classname="YC.Tests.EditMode.SpecialActionPreviewUiTests" runstate="Runnable" seed="1891999440" result="Failed" label="Error" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.032399" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[System.NullReferenceException : Object reference not set to an instance of an object]]></message>
+                  <stack-trace><![CDATA[  at YC.Tests.EditMode.SpecialActionPreviewUiTests.CompositeActivation_RejectionKeepsPreviewUsableWithoutPaymentModal () [0x00080] in G:\NoMadCity\Assets\YC\Tests\EditMode\SpecialActionPreviewUiTests.cs:231 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <1071a2cb0cb3433aae80a793c277a048>:0 ]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="3645" name="CompositeDrop_WarningThenSubmitsActivationWithoutLocalPayment" fullname="YC.Tests.EditMode.SpecialActionPreviewUiTests.CompositeDrop_WarningThenSubmitsActivationWithoutLocalPayment" methodname="CompositeDrop_WarningThenSubmitsActivationWithoutLocalPayment" classname="YC.Tests.EditMode.SpecialActionPreviewUiTests" runstate="Runnable" seed="1952660421" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.024105" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3646" name="CompositePreview_CloseBeforeActivationDoesNotSubmit" fullname="YC.Tests.EditMode.SpecialActionPreviewUiTests.CompositePreview_CloseBeforeActivationDoesNotSubmit" methodname="CompositePreview_CloseBeforeActivationDoesNotSubmit" classname="YC.Tests.EditMode.SpecialActionPreviewUiTests" runstate="Runnable" seed="1448955106" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.019527" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3643" name="MarkerDrag_MilitaryHighlightCoversThePrintedUsedArea" fullname="YC.Tests.EditMode.SpecialActionPreviewUiTests.MarkerDrag_MilitaryHighlightCoversThePrintedUsedArea" methodname="MarkerDrag_MilitaryHighlightCoversThePrintedUsedArea" classname="YC.Tests.EditMode.SpecialActionPreviewUiTests" runstate="Runnable" seed="2085381161" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.025841" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3642" name="MarkerDrag_RejectsInvalidDropAndSubmitsOnlyOnItsLegalHighlightedArea" fullname="YC.Tests.EditMode.SpecialActionPreviewUiTests.MarkerDrag_RejectsInvalidDropAndSubmitsOnlyOnItsLegalHighlightedArea" methodname="MarkerDrag_RejectsInvalidDropAndSubmitsOnlyOnItsLegalHighlightedArea" classname="YC.Tests.EditMode.SpecialActionPreviewUiTests" runstate="Runnable" seed="191804945" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.022182" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3641" name="MilitaryMarkerGroup_DragsVisibleQuantityBlocksAndSubmitsOnce" fullname="YC.Tests.EditMode.SpecialActionPreviewUiTests.MilitaryMarkerGroup_DragsVisibleQuantityBlocksAndSubmitsOnce" methodname="MilitaryMarkerGroup_DragsVisibleQuantityBlocksAndSubmitsOnce" classname="YC.Tests.EditMode.SpecialActionPreviewUiTests" runstate="Runnable" seed="1880850364" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.022849" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3644" name="WarningDrop_RequiresExplicitConfirmationAndCancelDoesNotSubmit" fullname="YC.Tests.EditMode.SpecialActionPreviewUiTests.WarningDrop_RequiresExplicitConfirmationAndCancelDoesNotSubmit" methodname="WarningDrop_RequiresExplicitConfirmationAndCancelDoesNotSubmit" classname="YC.Tests.EditMode.SpecialActionPreviewUiTests" runstate="Runnable" seed="1858185648" result="Failed" label="Error" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:41Z" duration="0.022158" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[System.NullReferenceException : Object reference not set to an instance of an object]]></message>
+                  <stack-trace><![CDATA[  at YC.Tests.EditMode.SpecialActionPreviewUiTests.WarningDrop_RequiresExplicitConfirmationAndCancelDoesNotSubmit () [0x00072] in G:\NoMadCity\Assets\YC\Tests\EditMode\SpecialActionPreviewUiTests.cs:162 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <1071a2cb0cb3433aae80a793c277a048>:0 ]]></stack-trace>
+                </failure>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="3735" name="TurnActionPresenterTests" fullname="YC.Tests.EditMode.TurnActionPresenterTests" classname="YC.Tests.EditMode.TurnActionPresenterTests" runstate="Runnable" testcasecount="49" result="Passed" start-time="2026-09-27 05:51:41Z" end-time="2026-09-27 05:51:42Z" duration="0.042818" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="3737" name="CityStyle_PendingRejectRetryAndLateReplyAreBoundToTheExactCommand" fullname="YC.Tests.EditMode.TurnActionPresenterTests.CityStyle_PendingRejectRetryAndLateReplyAreBoundToTheExactCommand" methodname="CityStyle_PendingRejectRetryAndLateReplyAreBoundToTheExactCommand" classname="YC.Tests.EditMode.TurnActionPresenterTests" runstate="Runnable" seed="1766928299" result="Passed" start-time="2026-09-27 05:51:42Z" end-time="2026-09-27 05:51:42Z" duration="0.001853" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3738" name="CityStyle_RepeatedDeclarationIsSeparateFromTheExistingUsedTrack" fullname="YC.Tests.EditMode.TurnActionPresenterTests.CityStyle_RepeatedDeclarationIsSeparateFromTheExistingUsedTrack" methodname="CityStyle_RepeatedDeclarationIsSeparateFromTheExistingUsedTrack" classname="YC.Tests.EditMode.TurnActionPresenterTests" runstate="Runnable" seed="1228923499" result="Passed" start-time="2026-09-27 05:51:42Z" end-time="2026-09-27 05:51:42Z" duration="0.000521" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3736" name="CityStyle_ViewHasNoDeclarationAndPlayerChangeInvalidatesTheDraft" fullname="YC.Tests.EditMode.TurnActionPresenterTests.CityStyle_ViewHasNoDeclarationAndPlayerChangeInvalidatesTheDraft" methodname="CityStyle_ViewHasNoDeclarationAndPlayerChangeInvalidatesTheDraft" classname="YC.Tests.EditMode.TurnActionPresenterTests" runstate="Runnable" seed="1697921480" result="Passed" start-time="2026-09-27 05:51:42Z" end-time="2026-09-27 05:51:42Z" duration="0.000564" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3766" name="CityStyleInteraction_DirectApiBuildsPreviewAndSubmitsDeclaration" fullname="YC.Tests.EditMode.TurnActionPresenterTests.CityStyleInteraction_DirectApiBuildsPreviewAndSubmitsDeclaration" methodname="CityStyleInteraction_DirectApiBuildsPreviewAndSubmitsDeclaration" classname="YC.Tests.EditMode.TurnActionPresenterTests" runstate="Runnable" seed="316829292" result="Passed" start-time="2026-09-27 05:51:42Z" end-time="2026-09-27 05:51:42Z" duration="0.000681" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3774" name="CityStylePreview_CloseDuringBuildDraft_RestoresBuildDraft" fullname="YC.Tests.EditMode.TurnActionPresenterTests.CityStylePreview_CloseDuringBuildDraft_RestoresBuildDraft" methodname="CityStylePreview_CloseDuringBuildDraft_RestoresBuildDraft" classname="YC.Tests.EditMode.TurnActionPresenterTests" runstate="Runnable" seed="1800191495" result="Passed" start-time="2026-09-27 05:51:42Z" end-time="2026-09-27 05:51:42Z" duration="0.002970" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3768" name="CityStylePreview_ConfirmKeepsDialogOpenWhenSubmissionIsRejected" fullname="YC.Tests.EditMode.TurnActionPresenterTests.CityStylePreview_ConfirmKeepsDialogOpenWhenSubmissionIsRejected" methodname="CityStylePreview_ConfirmKeepsDialogOpenWhenSubmissionIsRejected" classname="YC.Tests.EditMode.TurnActionPresenterTests" runstate="Runnable" seed="1915492733" result="Passed" start-time="2026-09-27 05:51:42Z" end-time="2026-09-27 05:51:42Z" duration="0.000742" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3772" name="CityStylePreview_DuringBuildDraft_DisablesMarkerAndRejectsDirectSubmission" fullname="YC.Tests.EditMode.TurnActionPresenterTests.CityStylePreview_DuringBuildDraft_DisablesMarkerAndRejectsDirectSubmission" methodname="CityStylePreview_DuringBuildDraft_DisablesMarkerAndRejectsDirectSubmission" classname="YC.Tests.EditMode.TurnActionPresenterTests" runstate="Runnable" seed="2063023125" result="Passed" start-time="2026-09-27 05:51:42Z" end-time="2026-09-27 05:51:42Z" duration="0.000716" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3769" name="CityStylePreview_ExposesOnlyEligibleOwnedMarkersAndSubmitsSpecialAction" fullname="YC.Tests.EditMode.TurnActionPresenterTests.CityStylePreview_ExposesOnlyEligibleOwnedMarkersAndSubmitsSpecialAction" methodname="CityStylePreview_ExposesOnlyEligibleOwnedMarkersAndSubmitsSpecialAction" classname="YC.Tests.EditMode.TurnActionPresenterTests" runstate="Runnable" seed="1532350147" result="Passed" start-time="2026-09-27 05:51:42Z" end-time="2026-09-27 05:51:42Z" duration="0.000789" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

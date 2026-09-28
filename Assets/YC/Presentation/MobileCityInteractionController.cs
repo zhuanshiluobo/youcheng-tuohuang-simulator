@@ -6,6 +6,7 @@ using YC.Domain.CardFlows;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Exploration;
+using YC.Domain.Facilities;
 using YC.Domain.Harvest;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
@@ -26,7 +27,6 @@ namespace YC.Presentation
         [SerializeField] private bool debugClicks;
         [SerializeField] private GameSettingsMenuController settingsMenu;
         [SerializeField] private GameplayInteractionHudView gameplayInteractionHud;
-        [SerializeField] private ResourceCounterBoard resourceCounterBoard;
         [SerializeField] private BuildInfoPanel buildInfoPanel;
 
         private GameSession session;
@@ -54,17 +54,19 @@ namespace YC.Presentation
         private CharacterHandPanel characterHandPanel;
         private CharacterMapInteractionCoordinator characterMapInteraction;
         private CharacterCardInteraction characterCardInteraction;
-        private PromptPresenter promptPresenter;
         private int localPlayerId = 1;
         private int lastDebugCoordinateLogFrame = -1;
         private static int interactionEscapeConsumedFrame = -1;
         private bool showCharacterUseOptions;
         private bool characterSettlementInProgress;
-        private CharacterCardCoverDragCoordinator characterCardCoverDrag;
         private int lastPresentedGameLogSequence;
         private BuildFacilityInteractionUiCoordinator buildFacilityInteraction;
         private FacilityInteractionUiCoordinator facilityInteraction;
         private SpecialActionInteractionUiCoordinator specialActionInteraction;
+        private enum BuildDialogStep { None, Facilities, Slots, Payments, Quote }
+        private BuildDialogStep buildDialogStep;
+        private bool buildDialogActive;
+        private string selectedBuildFacilityId = string.Empty;
 
         public GameState CurrentState => session == null ? null : session.State;
         private PendingCardChoiceView CurrentPendingChoice =>
@@ -78,7 +80,6 @@ namespace YC.Presentation
             if (!GameplayInteractionHudView.TryValidateSceneBinding(
                     gameplayInteractionHud,
                     this,
-                    resourceCounterBoard,
                     buildInfoPanel,
                     out var hudReason))
             {
@@ -99,7 +100,6 @@ namespace YC.Presentation
                 gameplayInteractionHud.DialogRegistry,
                 GetUiCanvasTransform);
 
-            buildInfoPanel.CityStyleClicked += OnBuildInfoCityStyleClicked;
 
             if (mapViewBinding == null)
             {
@@ -153,7 +153,7 @@ namespace YC.Presentation
                 eventChoiceDialog,
                 SetPrompt,
                 SynchronizeInteractionFromState,
-                RefreshResourceCounter,
+                RefreshLocalPlayerUi,
                 RefreshActionPanel,
                 RefreshResourceDisplay,
                 RefreshInfluenceDisplay,
@@ -187,6 +187,8 @@ namespace YC.Presentation
                 resourceCollectionPresenter,
                 influenceActionPresenter,
                 explorationEventPresenter);
+            turnActionPresenter.ActionPanelPresenter.CharacterCoverPrompt =
+                gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile.CharacterCoverSelectionDescription;
             characterCardPresenter = new CharacterCardPanelPresenter(
                 new CharacterCardOptionQueryService(
                     mapQuery,
@@ -228,7 +230,7 @@ namespace YC.Presentation
                 enabled = false;
                 return;
             }
-            RefreshResourceCounter(false);
+            RefreshLocalPlayerUi(false);
             EnsureSettingsMenu();
             ShowInitialPlacementChoices();
             facilityInteraction = new FacilityInteractionUiCoordinator(
@@ -269,13 +271,15 @@ namespace YC.Presentation
             BuildInteractionRouting();
             BuildCommandSubmission(GameLaunchContext.Instance);
             RefreshPendingChoiceOrHighlights();
-            RefreshRoundTrackerFromState();
+            RefreshFinalScoreFromState();
             PrepareRightCardSmokePresentation();
         }
 
         private void Update()
         {
-            UpdatePromptAnimation();
+            workflowView?.RefreshCityStylePreview();
+            gameplayInteractionHud?.Frame?.UpdateInteractionMessage(
+                mapInteractionRouter != null && mapInteractionRouter.HasPendingConfirmation);
             buildFacilityInteraction?.Synchronize();
             if (Input.GetKeyDown(KeyCode.Escape) && TryHandleInteractionEscape())
             {
@@ -297,6 +301,11 @@ namespace YC.Presentation
 
         private void OnDestroy()
         {
+            characterUsePage?.Hide();
+            specialActionUsePage?.Hide();
+            if (facilityBuildPage != null) facilityBuildPage.Hide();
+            if (characterViewer != null) characterViewer.Dismiss();
+            characterViewer = null;
             if (interactionRouter != null)
             {
                 try
@@ -324,11 +333,6 @@ namespace YC.Presentation
             characterMapInteraction = null;
             specialActionInteraction = null;
             facilityInteraction = null;
-
-            if (buildInfoPanel != null)
-            {
-                buildInfoPanel.CityStyleClicked -= OnBuildInfoCityStyleClicked;
-            }
 
             buildFacilityInteraction?.Dispose();
             buildFacilityInteraction = null;
@@ -366,7 +370,7 @@ namespace YC.Presentation
             RefreshResourceDisplay();
             RefreshInfluenceDisplay();
             RefreshActionPanel();
-            RefreshRoundTrackerFromState();
+            RefreshFinalScoreFromState();
 
             if (facilityInteraction != null && facilityInteraction.Synchronize())
             {
@@ -393,17 +397,17 @@ namespace YC.Presentation
             Debug.LogError("MobileCityInteractionController 缺少 GameSettingsMenuController 场景引用。", this);
         }
 
-        private void RefreshResourceCounter()
+        private void RefreshLocalPlayerUi()
         {
-            RefreshResourceCounter(true);
+            RefreshLocalPlayerUi(true);
         }
 
-        private void RefreshResourceCounter(bool animate)
+        private void RefreshLocalPlayerUi(bool animate)
         {
-            if (resourceCounterBoard == null) return;
             var player = session.State.FindPlayer(localPlayerId);
             if (player == null) return;
-            resourceCounterBoard.Render(player.Resources, animate);
+            gameplayInteractionHud?.MainModules?.RenderResources(player.Resources);
+            gameplayInteractionHud?.MainModules?.RenderScore(player.Score);
             var characterView = characterCardPresenter == null
                 ? CharacterCardPanelViewModel.Empty("角色牌信息尚未初始化。")
                 : characterCardPresenter.BuildView(session.State, localPlayerId);
@@ -411,8 +415,12 @@ namespace YC.Presentation
             {
                 showCharacterUseOptions = false;
             }
+            gameplayInteractionHud?.MainModules?.RenderDiscardCount(
+                characterView.DiscardCards == null ? 0 : characterView.DiscardCards.Count);
             characterHandPanel?.Render(localPlayerId, characterView);
+            RefreshCharacterCoverSelection(characterView);
             RefreshBuildInfoPanel();
+            RefreshBuildFacilityDialog();
         }
 
         private void RefreshBuildInfoPanel()
@@ -434,6 +442,7 @@ namespace YC.Presentation
 
         public bool TryHandleInteractionEscape()
         {
+            if (CardViewer.HasOpenViewer() || CardViewer.WasEscapeConsumedThisFrame()) return false;
             if (interactionEscapeConsumedFrame == Time.frameCount)
             {
                 return true;
@@ -462,11 +471,6 @@ namespace YC.Presentation
         public static bool WasInteractionEscapeConsumedThisFrame()
         {
             return interactionEscapeConsumedFrame == Time.frameCount;
-        }
-
-        private void OnBuildInfoCityStyleClicked(string cityStyleId)
-        {
-            if (!string.IsNullOrEmpty(cityStyleId)) turnActionPresenter.OpenCityStylePreview(cityStyleId);
         }
 
         private RectTransform GetUiCanvasTransform() =>
@@ -507,7 +511,12 @@ namespace YC.Presentation
                 localPlayerId,
                 this,
                 SynchronizeInteractionFromState,
-                SetPrompt, commandId => interactionRouter?.NotifyCommandSettled(commandId));
+                SetPrompt, commandId =>
+                {
+                    NotifyCoverCommandSettled(commandId);
+                    NotifyCharacterUseSettled(commandId);
+                    interactionRouter?.NotifyCommandSettled(commandId);
+                }, (commandId, applied) => turnActionPresenter?.CityStyleInteraction.ResolveSubmission(commandId, applied));
             commandSubmission.Initialize();
         }
 
@@ -548,7 +557,7 @@ namespace YC.Presentation
             RefreshInfluenceDisplay();
             mapView?.RefreshScoreTrackDisplay(session == null ? null : session.State);
             RefreshActionPanel();
-            RefreshRoundTrackerFromState();
+            RefreshFinalScoreFromState();
         }
 
         private void SynchronizeInteractionFromState()
@@ -556,13 +565,16 @@ namespace YC.Presentation
             turnActionPresenter.SynchronizeFromState();
             flowCoordinator.ResetToChooseAction();
             ClearPendingDispatch();
-            HideEventCardOptions();
+            // 同一城市样式支付请求由路由器按 ID/版本刷新，保留收起状态与尚未支付的选择。
+            if (specialActionInteraction == null || !specialActionInteraction.HasAuthoritativeRequest)
+                HideEventCardOptions();
             RefreshAllFromState();
             RefreshPendingChoiceOrHighlights();
             SynchronizeCharacterSettlementPresentation();
             PresentLatestCharacterSettlementBroadcast();
             TryBeginAutomaticSecondEffect();
             ObserveSharedCityStyleMirrorState();
+            PresentLatestResourceSaleReceipt();
         }
 
         private void SynchronizeCharacterSettlementPresentation()
@@ -687,41 +699,34 @@ namespace YC.Presentation
         private bool BindGameplayInteractionHud()
         {
             uiCanvas = gameplayInteractionHud.Canvas;
-            promptPresenter = PromptPresenter.Bind(gameplayInteractionHud.PromptView);
             actionPanel = ActionPanelController.Bind(
                 gameplayInteractionHud.ActionPanelView,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
                 OnUseCharacterActionClicked,
                 OnDeclareCityStyleClicked,
                 BeginDeployAction, BeginDispatchAction, BeginExploreAction, BeginMoveAction,
-                EndCurrentAction, OnBuildActionClicked);
-            if (promptPresenter == null || actionPanel == null) { Debug.LogError("[MobileCityInteractionController] 交互 HUD 行为绑定失败。", this); return false; }
+                EndCurrentAction, OnBuildActionClicked, OnSpecialActionClicked);
+            if (actionPanel == null) { Debug.LogError("[MobileCityInteractionController] 交互 HUD 行为绑定失败。", this); return false; }
             characterHandPanel = gameplayInteractionHud.CharacterHandPanel;
-            characterCardCoverDrag = new CharacterCardCoverDragCoordinator(
-                () => actionPanel,
-                SubmitCoverCharacterCard,
-                SetPrompt,
-                confirmed => characterHandPanel?.ResolvePendingCover(confirmed));
             if (characterHandPanel == null ||
                 !characterHandPanel.Configure(
-                    gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
-                    characterCardCoverDrag.Begin,
-                    characterCardCoverDrag.Update,
-                    characterCardCoverDrag.End))
+                    gameplayInteractionHud.DialogRegistry.CardVisualCatalog))
             {
                 Debug.LogError("[MobileCityInteractionController] 手牌面板行为绑定失败。", this);
                 return false;
             }
-            actionPanel.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
-            actionPanel.ConfigureCharacterCardViewerAction(
+            gameplayInteractionHud.MainModules.ConfigureDiscardPreview(
+                () => characterHandPanel?.OpenDiscardPreview());
+            gameplayInteractionHud.MainModules.ConfigureCoveredPreview(
                 () => characterHandPanel?.OpenCoveredCharacterCardViewer());
-            actionPanel.ConfigureCharacterFlipAction(FinishCharacterUseOnFlip);
             RefreshActionPanel();
             return true;
         }
 
         private void RefreshActionPanel()
         {
+            if (specialActionUsePage != null && specialActionUsePage.IsShowing && specialActionPageIsCurrent != null && !specialActionPageIsCurrent())
+                specialActionUsePage.Hide();
             if (actionPanel == null || !actionPanel.IsReady || turnActionPresenter == null)
             {
                 return;
@@ -730,22 +735,30 @@ namespace YC.Presentation
             var characterView = characterCardPresenter == null
                 ? null
                 : characterCardPresenter.BuildView(session.State, localPlayerId);
+            if (characterUsePage != null && characterUsePage.IsShowing &&
+                characterUsePageKey != CharacterUseKey(characterView))
+            {
+                characterUsePage.Hide();
+                characterUsePageKey = string.Empty;
+            }
             var actionViewModel = turnActionPresenter.BuildActionPanelViewModel();
             actionPanel.Render(actionViewModel);
+            actionPanel.RenderCharacterQuickAction(characterView);
             gameplayInteractionHud.Frame.Refresh(session.State, actionViewModel,
                 turnActionPresenter.ActionPanelPresenter.GetUnavailableEndActionPrompt());
             gameplayInteractionHud.MainModules.Render(session.State, session.View, localPlayerId,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog);
-            if (actionPanel.CurrentFace == ActionPanelFace.Character && characterView != null) actionPanel.ShowCharacterCard(characterView);
+            gameplayInteractionHud.MainModules.RenderDiscardCount(
+                characterView == null || characterView.DiscardCards == null
+                    ? 0 : characterView.DiscardCards.Count);
             if (characterView != null && characterView.IsSecondEffectDecision)
             {
                 workflowView.ClearHighlights();
                 eventChoiceDialog.Hide();
-                actionPanel.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
-                actionPanel.ShowCharacterCard(characterView);
+                ShowCharacterUsePage(characterView);
                 SetPrompt(IsSecondEffectUnavailable()
-                    ? "当前角色牌效果没有合法的地图目标，请点击翻转完成结算。"
-                    : "第一个角色牌效果已结算，可继续使用第二个效果；点击翻转则结束角色卡使用。");
+                    ? "当前角色牌效果没有合法的地图目标，请使用结束操作完成结算。"
+                    : "第一个角色牌效果已结算，可继续使用第二个效果，也可结束角色牌使用。");
                 return;
             }
 
@@ -758,8 +771,7 @@ namespace YC.Presentation
                 characterView != null &&
                 characterView.IsSecondEffectExecution)
             {
-                actionPanel.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
-                actionPanel.ShowCharacterCard(characterView);
+                ShowCharacterUsePage(characterView);
             }
             var state = session == null ? null : session.State;
             if (state != null && state.HasPendingChoice())
@@ -782,7 +794,9 @@ namespace YC.Presentation
         private void BeginDispatchAction() => turnActionPresenter.BeginDispatchAction();
         private void SubmitCoverCharacterCard(string cardId)
         {
-            SubmitCharacterCardCommand(characterCardPresenter.CreateCoverCommand(localPlayerId, cardId), "角色牌已盖放。", "盖放角色牌命令已发送给主机，等待确认。");
+            var command = characterCardPresenter.CreateCoverCommand(localPlayerId, cardId);
+            submittedCoverCommandId = command.CommandId;
+            SubmitCharacterCardCommand(command, "角色牌已盖放。", "盖放角色牌命令已发送给主机，等待确认。");
         }
 
         private void SubmitUseCharacterCard(
@@ -844,17 +858,27 @@ namespace YC.Presentation
 
         private void SubmitCharacterCardCommand(GameCommand command, string localSuccessPrompt, string remotePrompt)
         {
+            if (command != null && command.Kind == GameCommandKind.UseCharacterCard)
+            {
+                if (!string.IsNullOrEmpty(characterUseCommandId)) return;
+                characterUseCommandId = command.CommandId;
+            }
             commandGateway.Submit(
                 command,
                 new SubmitCallbacks(
                     message =>
                     {
                         SetPrompt(message);
-                        RefreshResourceCounter();
+                        RefreshLocalPlayerUi();
                     },
                     remotePrompt)
                 {
-                    BeforeRejectedPrompt = _ => characterSettlementInProgress = false,
+                    BeforeRejectedPrompt = _ =>
+                    {
+                        characterSettlementInProgress = false;
+                        NotifyCoverCommandSettled(command == null ? string.Empty : command.CommandId);
+                        NotifyCharacterUseSettled(command == null ? string.Empty : command.CommandId);
+                    },
                     OnAppliedLocally = _ => CompleteLocalCharacterCardCommand(
                         command,
                         localSuccessPrompt)
@@ -863,6 +887,8 @@ namespace YC.Presentation
 
         private void CompleteLocalCharacterCardCommand(GameCommand command, string localSuccessPrompt)
         {
+            NotifyCoverCommandSettled(command == null ? string.Empty : command.CommandId);
+            NotifyCharacterUseSettled(command == null ? string.Empty : command.CommandId);
             SynchronizeInteractionFromState();
             if (command == null ||
                 (command.Kind != GameCommandKind.UseCharacterCard && command.Kind != GameCommandKind.ResolvePendingChoice))
@@ -880,8 +906,8 @@ namespace YC.Presentation
             if (pending.ChoiceType == CharacterPendingChoiceTypes.SecondEffectDecision)
             {
                 SetPrompt(IsSecondEffectUnavailable()
-                    ? "当前角色牌效果没有合法的地图目标，请点击翻转完成结算。"
-                    : "第一个角色牌效果已完成，可继续使用第二个效果；点击翻转则结束角色卡使用。");
+                    ? "当前角色牌效果没有合法的地图目标，请使用结束操作完成结算。"
+                    : "第一个角色牌效果已完成，可继续使用第二个效果，也可结束角色牌使用。");
             }
             else if (pending.ChoiceType == CharacterPendingChoiceTypes.SecondEffectExecution)
             {
@@ -895,10 +921,352 @@ namespace YC.Presentation
 
         private void OnDeclareCityStyleClicked() => turnActionPresenter.BeginDeclareCityStyle();
 
+        private CharacterCardEffectChoiceDialog specialActionUsePage;
+        private Func<bool> specialActionPageIsCurrent;
+
+        private void OnSpecialActionClicked()
+        {
+            var interaction = turnActionPresenter.CityStyleInteraction;
+            if (!interaction.CanUseSpecialAction) return;
+            var owner = session;
+            var player = localPlayerId;
+            var revision = session.State.EffectRuntime?.StateRevision ?? 0;
+            bool Current() => session == owner && localPlayerId == player &&
+                (session.State.EffectRuntime?.StateRevision ?? 0) == revision &&
+                interaction.CanUseSpecialAction;
+            var options = new System.Collections.Generic.List<EffectDialogOption>();
+            foreach (var option in interaction.QuerySpecialActions().Options)
+            {
+                var captured = option;
+                options.Add(new EffectDialogOption(option.Name + "\n" + option.Description +
+                    (option.CanUse ? option.Warning : "\n" + option.DisabledReason),
+                    () => interaction.SubmitSpecialAction(captured.SpecialActionId, captured.DeclarationMarkerId),
+                    option.CanUse) { StableId = option.DeclarationMarkerId + ":" + option.SpecialActionId,
+                        SourceLabel = option.Name,
+                        DescriptionLabel = option.Description + (option.CanUse ? option.Warning : "\n" + option.DisabledReason) });
+            }
+            if (specialActionUsePage == null) specialActionUsePage = new CharacterCardEffectChoiceDialog(
+                gameplayInteractionHud.DialogRegistry, uiCanvas.transform as RectTransform);
+            specialActionPageIsCurrent = Current;
+            var copy = specialActionUsePage.Copy;
+            specialActionUsePage.ShowExecutionChoices(copy.SpecialActionTitle, copy.SpecialActionDescription,
+                options, Current);
+        }
+
         private void OnBuildActionClicked()
         {
+            if (turnActionPresenter.BuildActionPanelViewModel().CanViewFacilitySupply)
+            {
+                supplyInspectionActive = true;
+                selectedBuildFacilityId = string.Empty;
+                PresentFacilitySupplyInspection();
+                return;
+            }
+            if (buildDialogActive && turnActionPresenter?.BuildBuildFacilityDraftViewModel() != null)
+                return;
+            buildDialogActive = true;
+            buildDialogStep = BuildDialogStep.Facilities;
+            selectedBuildFacilityId = string.Empty;
             turnActionPresenter.BeginBuildAction();
             buildFacilityInteraction?.Synchronize();
+            buildInfoPanel?.SetExternalFacilitySupplyVisible(false);
+            PresentBuildFacilityDialog();
+        }
+
+        private void RefreshBuildFacilityDialog()
+        {
+            if (supplyInspectionActive)
+            {
+                if (turnActionPresenter != null && turnActionPresenter.BuildActionPanelViewModel().CanViewFacilitySupply)
+                    PresentFacilitySupplyInspection();
+                else CloseFacilitySupplyInspection();
+                return;
+            }
+            if (!buildDialogActive || turnActionPresenter == null) return;
+            buildInfoPanel?.SetExternalFacilitySupplyVisible(false);
+            if (turnActionPresenter.BuildInteraction.IsSubmissionInFlight) return;
+            var state = session == null ? null : session.State;
+            if (state == null || state.CurrentPlayerId != localPlayerId ||
+                (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2))
+            {
+                turnActionPresenter.CancelBuildFacility();
+                buildFacilityInteraction?.Synchronize();
+                buildInfoPanel?.SetExternalFacilitySupplyVisible(
+                    buildInfoPanel != null && buildInfoPanel.IsFacilityEffectSelectionActive);
+                buildDialogActive = false;
+                buildDialogStep = BuildDialogStep.None;
+                selectedBuildFacilityId = string.Empty;
+                characterCardEffectChoiceDialog?.Hide();
+                if (!buildDialogActive && facilityBuildPage != null) facilityBuildPage.Hide();
+                return;
+            }
+            var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            if (model == null)
+            {
+                buildInfoPanel?.SetExternalFacilitySupplyVisible(
+                    buildInfoPanel != null && buildInfoPanel.IsFacilityEffectSelectionActive);
+                buildDialogActive = false;
+                buildDialogStep = BuildDialogStep.None;
+                selectedBuildFacilityId = string.Empty;
+                characterCardEffectChoiceDialog?.Hide();
+                if (!buildDialogActive && facilityBuildPage != null) facilityBuildPage.Hide();
+                return;
+            }
+            if (model.Phase == BuildFacilityDraftPhase.Selecting)
+                buildDialogStep = BuildDialogStep.Facilities;
+            else if (model.Phase == BuildFacilityDraftPhase.Dragging)
+                buildDialogStep = BuildDialogStep.Slots;
+            else if (model.Phase == BuildFacilityDraftPhase.Focused)
+                buildDialogStep = BuildDialogStep.Payments;
+            else if (model.Phase == BuildFacilityDraftPhase.Confirming)
+                buildDialogStep = BuildDialogStep.Quote;
+            PresentBuildFacilityDialog();
+        }
+
+        private FacilityBuildDialogView facilityBuildPage;
+        private bool supplyInspectionActive;
+
+        private void PresentFacilitySupplyInspection()
+        {
+            if (!supplyInspectionActive || session?.State == null) return;
+            var owner = session;
+            var player = localPlayerId;
+            bool Current() => supplyInspectionActive && session == owner && localPlayerId == player &&
+                turnActionPresenter.BuildActionPanelViewModel().CanViewFacilitySupply;
+            var model = new BuildFacilityDraftViewModel(BuildFacilityDraftPhase.Selecting,
+                new BuildFacilityOptionQueryService().Query(session.State, player), null, null, -1,
+                string.Empty, string.Empty, null, _ => { });
+            if (facilityBuildPage == null)
+                facilityBuildPage = gameplayInteractionHud.DialogRegistry.InstantiateFacilityBuild(uiCanvas.transform as RectTransform);
+            facilityBuildPage.RefreshSupplyStatus(session.State, localPlayerId);
+            facilityBuildPage.Show(model, session.State.Map.Facilities, player,
+                gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
+                gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile,
+                selectedBuildFacilityId, string.Empty, Current,
+                id => { if (Current()) { selectedBuildFacilityId = id; PresentFacilitySupplyInspection(); } },
+                _ => { }, _ => { }, () => { }, CloseFacilitySupplyInspection, true);
+            SetPrompt(string.Empty);
+        }
+
+        private void CloseFacilitySupplyInspection()
+        {
+            supplyInspectionActive = false;
+            selectedBuildFacilityId = string.Empty;
+            if (facilityBuildPage != null) facilityBuildPage.Hide();
+        }
+
+        private void PresentBuildFacilityDialog()
+        {
+            if (!buildDialogActive || turnActionPresenter == null) return;
+            var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            if (model == null) return;
+            characterCardEffectChoiceDialog?.Hide();
+            eventChoiceDialog.Hide();
+            if (facilityBuildPage == null)
+                facilityBuildPage = gameplayInteractionHud.DialogRegistry.InstantiateFacilityBuild(uiCanvas.transform as RectTransform);
+            facilityBuildPage.RefreshSupplyStatus(session.State, localPlayerId);
+            facilityBuildPage.Show(model, session.State.Map.Facilities, localPlayerId,
+                gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
+                gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile,
+                selectedBuildFacilityId, BuildQuoteSummary(model), IsCurrentBuildDialog,
+                SelectBuildCardInPanel, SelectBuildSlotInPanel, PayBuildFacilityInPanel,
+                ConfirmBuildFacilityQuote, CancelBuildFacilityDialog);
+            // 建设提示由建设页的底部信息区显示。
+            SetPrompt(string.Empty);
+        }
+
+        private void PayBuildFacilityInPanel(string mode)
+        {
+            if (!IsCurrentBuildDialog()) return;
+            var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            if (model?.SelectedOption == null || model.SelectedOption.FacilityId != selectedBuildFacilityId) return;
+            if (!turnActionPresenter.BuildInteraction.TryPreparePayment(mode))
+            {
+                PresentBuildFacilityDialog();
+                return;
+            }
+            ConfirmBuildFacilityQuote();
+        }
+
+        private void SelectBuildCardInPanel(string id)
+        {
+            if (!IsCurrentBuildDialog()) return;
+            selectedBuildFacilityId = id;
+            turnActionPresenter.BuildInteraction.SelectFacility(id);
+            PresentBuildFacilityDialog();
+        }
+
+        private void SelectBuildSlotInPanel(int index)
+        {
+            if (!IsCurrentBuildDialog()) return;
+            var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            if (model.Phase != BuildFacilityDraftPhase.Dragging)
+                turnActionPresenter.BeginBuildFacilityDrag(selectedBuildFacilityId);
+            SelectBuildFacilitySlot(index);
+        }
+
+        private bool IsCurrentBuildDialog()
+        {
+            var state = session == null ? null : session.State;
+            return buildDialogActive && state != null &&
+                   state.CurrentPlayerId == localPlayerId &&
+                   (state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2) &&
+                   turnActionPresenter != null &&
+                   !turnActionPresenter.BuildInteraction.IsSubmissionInFlight &&
+                   turnActionPresenter.BuildBuildFacilityDraftViewModel() != null;
+        }
+
+        private void SelectBuildFacility(string facilityId)
+        {
+            if (!IsCurrentBuildDialog()) return;
+            var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            if (model?.Options == null) return;
+            foreach (var option in model.Options)
+                if (option != null && option.FacilityId == facilityId && option.CanBuild)
+                {
+                    selectedBuildFacilityId = facilityId;
+                    PresentBuildFacilityDialog();
+                    return;
+                }
+        }
+
+        private void ConfirmBuildFacilityCandidate()
+        {
+            if (!IsCurrentBuildDialog() || string.IsNullOrEmpty(selectedBuildFacilityId)) return;
+            var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            if (model?.Options == null) return;
+            foreach (var option in model.Options)
+                if (option != null && option.FacilityId == selectedBuildFacilityId && option.CanBuild)
+                {
+                    turnActionPresenter.BeginBuildFacilityDrag(selectedBuildFacilityId);
+                    buildFacilityInteraction?.Synchronize();
+                    var updated = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+                    if (updated == null) return;
+                    buildDialogStep = updated.Phase == BuildFacilityDraftPhase.Dragging
+                        ? BuildDialogStep.Slots : BuildDialogStep.Facilities;
+                    PresentBuildFacilityDialog();
+                    return;
+                }
+        }
+
+        private void SelectBuildFacilitySlot(int slotIndex)
+        {
+            if (!IsCurrentBuildDialog()) return;
+            var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            if (model?.SelectedOption == null) return;
+            var legal = false;
+            foreach (var slot in model.SelectedOption.SlotOptions)
+                if (slot != null && slot.CityBoardSlotIndex == slotIndex && slot.IsLegal)
+                { legal = true; break; }
+            if (!legal) return;
+            turnActionPresenter.DropBuildFacility(slotIndex);
+            buildFacilityInteraction?.Synchronize();
+            var updated = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            buildDialogStep = updated != null && updated.Phase == BuildFacilityDraftPhase.Focused
+                ? BuildDialogStep.Payments : BuildDialogStep.Slots;
+            PresentBuildFacilityDialog();
+        }
+
+        private void SelectBuildPayment(string paymentMode)
+        {
+            if (!IsCurrentBuildDialog()) return;
+            var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            if (model?.SelectedOption == null) return;
+            var available = paymentMode == BuildFacilityService.PaymentModeResources
+                ? model.SelectedOption.ResourcesPayment.IsAvailable
+                : paymentMode == BuildFacilityService.PaymentModeGold &&
+                  model.SelectedOption.GoldPayment.IsAvailable;
+            if (!available) return;
+            turnActionPresenter.SelectBuildFacilityPayment(paymentMode);
+            buildFacilityInteraction?.Synchronize();
+            var updated = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            buildDialogStep = updated != null && updated.Phase == BuildFacilityDraftPhase.Confirming
+                ? BuildDialogStep.Quote
+                : BuildDialogStep.Payments;
+            PresentBuildFacilityDialog();
+        }
+
+        private void ConfirmBuildFacilityQuote()
+        {
+            if (!IsCurrentBuildDialog()) return;
+            var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            if (model == null || model.Phase != BuildFacilityDraftPhase.Confirming ||
+                model.SelectedOption == null || !model.SelectedOption.CanBuild ||
+                (model.PaymentMode == BuildFacilityService.PaymentModeResources &&
+                 !model.SelectedOption.ResourcesPayment.IsAvailable) ||
+                (model.PaymentMode == BuildFacilityService.PaymentModeGold &&
+                 !model.SelectedOption.GoldPayment.IsAvailable))
+            {
+                RefreshBuildFacilityDialog();
+                return;
+            }
+
+            turnActionPresenter.ConfirmBuildFacility();
+            buildFacilityInteraction?.Synchronize();
+            if (turnActionPresenter.BuildInteraction.IsSubmissionInFlight) return;
+            var current = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            if (current == null)
+            {
+                buildInfoPanel?.SetExternalFacilitySupplyVisible(
+                    buildInfoPanel != null && buildInfoPanel.IsFacilityEffectSelectionActive);
+                buildDialogActive = false;
+                buildDialogStep = BuildDialogStep.None;
+                characterCardEffectChoiceDialog?.Hide();
+                if (facilityBuildPage != null) facilityBuildPage.Hide();
+                SynchronizeEventCardInteraction();
+                return;
+            }
+            buildDialogStep = BuildDialogStep.Quote;
+            PresentBuildFacilityDialog();
+        }
+
+        private void ReturnToBuildPayments()
+        {
+            if (!IsCurrentBuildDialog()) return;
+            turnActionPresenter.BackToBuildFacilityPayment();
+            buildFacilityInteraction?.Synchronize();
+            var updated = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            buildDialogStep = updated != null && updated.Phase == BuildFacilityDraftPhase.Focused
+                ? BuildDialogStep.Payments : BuildDialogStep.Quote;
+            PresentBuildFacilityDialog();
+        }
+
+        private void CancelBuildFacilityDialog()
+        {
+            if (!buildDialogActive || turnActionPresenter == null) return;
+            turnActionPresenter.CancelBuildFacility();
+            buildFacilityInteraction?.Synchronize();
+            buildInfoPanel?.SetExternalFacilitySupplyVisible(
+                buildInfoPanel != null && buildInfoPanel.IsFacilityEffectSelectionActive);
+            buildDialogActive = false;
+            buildDialogStep = BuildDialogStep.None;
+            selectedBuildFacilityId = string.Empty;
+            characterCardEffectChoiceDialog?.Hide();
+                if (!buildDialogActive && facilityBuildPage != null) facilityBuildPage.Hide();
+            RefreshActionPanel();
+        }
+
+        private string BuildQuoteSummary(BuildFacilityDraftViewModel model)
+        {
+            var facilityName = model?.Facility == null ? string.Empty : model.Facility.Name;
+            var profile = gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile;
+            var paymentName = model?.PaymentMode == BuildFacilityService.PaymentModeGold
+                ? profile.BuildPaymentGoldLabel : profile.BuildPaymentResourcesLabel;
+            var slot = model == null ? 0 : model.CityBoardSlotIndex + 1;
+            var option = model?.SelectedOption;
+            if (option == null) return profile.BuildQuotePendingLabel;
+            var original = model.Facility == null ? new ResourceSet() : model.Facility.ResourceCost;
+            var resources = option.EffectiveResourceCost;
+            var gold = model.Facility == null ? 0 : model.Facility.GoldVoucherCost;
+            var originalText = string.Format(profile.BuildResourceCostFormat,
+                original.Originium, original.OriginiumShard, original.Iron, original.PureOriginium);
+            var currentText = string.Format(profile.BuildResourceCostFormat,
+                resources.Originium, resources.OriginiumShard, resources.Iron, resources.PureOriginium);
+            var quote = string.Format(profile.BuildPaymentQuoteFormat, originalText, currentText, gold);
+            var status = string.IsNullOrEmpty(model.ErrorMessage)
+                ? profile.BuildQuoteValidLabel : model.ErrorMessage;
+            return facilityName + " · " + string.Format(profile.BuildSlotLabelFormat, slot) +
+                   " · " + paymentName + "\n" + quote + "\n" + status;
         }
 
         private string GetPlayerDisplayName(int playerId)
@@ -914,7 +1282,7 @@ namespace YC.Presentation
 
         private void RefreshResourceDisplay()
         {
-            RefreshResourceCounter();
+            RefreshLocalPlayerUi();
             RefreshResourceTokenDisplay();
         }
 
@@ -977,12 +1345,12 @@ namespace YC.Presentation
             mapView.RefreshCityViewsFromState(session == null ? null : session.State, localPlayerId);
         }
 
-        private void RefreshRoundTrackerFromState()
+        private void RefreshFinalScoreFromState()
         {
-            var roundTracker = FindObjectOfType<RoundTrackerController>();
-            if (roundTracker != null)
+            var finalScore = FindObjectOfType<FinalScoreController>();
+            if (finalScore != null)
             {
-                roundTracker.RefreshFromState(session.State);
+                finalScore.RefreshFromState(session.State);
             }
         }
 
@@ -1016,15 +1384,8 @@ namespace YC.Presentation
         private void ApplyDebugHotspotHighlights() =>
             mapView.ApplyDebugHotspotHighlights(debugClicks);
 
-        private void SetPrompt(string message) => promptPresenter?.SetPrompt(message, interactionRouter?.GetPendingPrompt());
-
-        private void UpdatePromptAnimation()
-        {
-            if (promptPresenter != null)
-            {
-                promptPresenter.Update(mapInteractionRouter != null && mapInteractionRouter.HasPendingConfirmation);
-            }
-        }
+        private void SetPrompt(string message) => gameplayInteractionHud?.Frame?.SetInteractionMessage(
+            message, interactionRouter?.GetPendingPrompt());
 
     }
 

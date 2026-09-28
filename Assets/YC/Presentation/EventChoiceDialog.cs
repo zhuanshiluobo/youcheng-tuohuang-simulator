@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using YC.Domain.Cards;
 using YC.Domain.Facilities;
@@ -13,7 +13,6 @@ namespace YC.Presentation
     internal sealed class EventChoiceDialog
     {
         private readonly GameplayDialogRegistry dialogRegistry;
-        private readonly EffectDialogLayoutProfile effectDialogLayoutProfile;
         private readonly Func<RectTransform> getParent;
         private EventChoiceDialogView view;
         private bool callbackDispatched;
@@ -22,15 +21,6 @@ namespace YC.Presentation
         public EventChoiceDialog(GameplayDialogRegistry configuredRegistry, Func<RectTransform> configuredParent)
         {
             dialogRegistry = configuredRegistry ?? throw new ArgumentNullException(nameof(configuredRegistry));
-            effectDialogLayoutProfile = dialogRegistry.EffectDialogLayoutProfile;
-            var effectLayoutReason = string.Empty;
-            if (effectDialogLayoutProfile == null ||
-                !effectDialogLayoutProfile.TryValidateConfiguration(out effectLayoutReason))
-            {
-                throw new InvalidOperationException(
-                    "EventChoiceDialog 缺少有效的显式 Effect 布局 Profile：" +
-                    effectLayoutReason);
-            }
             getParent = configuredParent ?? throw new ArgumentNullException(nameof(configuredParent));
         }
 
@@ -132,10 +122,7 @@ namespace YC.Presentation
             view.MetadataText.text = metadataLabel ?? string.Empty;
             view.DescriptionText.gameObject.SetActive(true);
             view.DescriptionText.text = string.IsNullOrEmpty(card.Description) ? "暂无描述" : card.Description;
-            view.DescriptionText.rectTransform.sizeDelta =
-                new Vector2(layout.EventDescriptionLayout.SizeDelta.x, descriptionHeight);
-            view.DescriptionText.rectTransform.anchoredPosition =
-                new Vector2(layout.EventDescriptionLayout.AnchoredPosition.x, descriptionCenterY);
+            view.EventPaymentRouteHost.gameObject.SetActive(paymentChoiceCount > 0);
 
             CreateExplorePaymentRecipientControls(
                 layout,
@@ -154,32 +141,10 @@ namespace YC.Presentation
                   row.Root.gameObject.name = "Choice " + (i + 1);
                   YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject, "event.option." + i);
                 row.Label.text = card.ChoiceDescriptions[i];
-                row.Root.anchoredPosition = new Vector2(
-                    layout.ChoiceRowTemplateLayout.AnchoredPosition.x,
-                    -firstChoiceCenterOffset - i * layout.EventCardChoiceStep);
                 row.Button.onClick.AddListener(() => InvokeStep(
                     () => onChoiceSelected?.Invoke(capturedIndex)));
             }
 
-            view.CollapsedSummaryText.text = BuildCardSummary(card, metadataLabel);
-            view.CollapseButton.gameObject.SetActive(true);
-            if (view.DragHandle != null) view.DragHandle.enabled = false;
-            view.CollapsiblePanel.Configure(new EffectDialogCollapseSpec(
-                effectDialogLayoutProfile)
-            {
-                Panel = view.Panel,
-                Canvas = view.OverlayCanvas,
-                OverlayImage = view.OverlayImage,
-                ExpandedContent = view.ExpandedContent.gameObject,
-                CollapsedSummaryText = view.CollapsedSummaryText,
-                ToggleRect = view.CollapseButton.GetComponent<RectTransform>(),
-                ToggleText = view.CollapseButtonLabel,
-                ToggleIcon = view.CollapseButtonIcon,
-                ExpandedSize = eventCardExpandedSize,
-                CollapsedHeight = layout.EventCardCollapsedHeight,
-                StartCollapsed = false
-            });
-            view.CollapseButton.onClick.AddListener(view.CollapsiblePanel.Toggle);
         }
 
         private void ShowAssetizedEventCardOptions(
@@ -201,6 +166,7 @@ namespace YC.Presentation
                 return;
             }
 
+            view.ConfigureArtworkMode();
             view.EventCardArtworkImage.texture = artwork;
             view.EventCardArtworkImage.gameObject.SetActive(true);
             view.EventCardArtworkImage.transform.SetAsFirstSibling();
@@ -211,12 +177,6 @@ namespace YC.Presentation
             view.TitleText.text = string.Empty;
             view.TitleText.color = Color.clear;
             view.TitleText.raycastTarget = true;
-            var dragRect = view.TitleText.rectTransform;
-            dragRect.anchorMin = new Vector2(0f, 1f);
-            dragRect.anchorMax = new Vector2(1f, 1f);
-            dragRect.pivot = new Vector2(0.5f, 1f);
-            dragRect.sizeDelta = new Vector2(0f, 120f);
-            dragRect.anchoredPosition = Vector2.zero;
             view.MetadataText.gameObject.SetActive(false);
             view.DescriptionText.gameObject.SetActive(false);
             view.EventPaymentRouteHost.gameObject.SetActive(false);
@@ -228,7 +188,7 @@ namespace YC.Presentation
             {
                 // 图片顺序不等于规则编号；仅转换图片按钮，保留原待选会话编号。
                 var capturedIndex = GetArtworkChoiceIndex(card.CardId, i);
-                var row = view.CreateChoiceRow(view.EventChoiceHost);
+                var row = view.CreateChoiceRow(view.ArtworkChoiceHost);
                 YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject, "event.option." + i);
                 row.Root.gameObject.name = "Choice " + (i + 1);
                 ConfigureAssetizedChoiceRow(
@@ -241,36 +201,6 @@ namespace YC.Presentation
                     () => onChoiceSelected?.Invoke(capturedIndex)));
             }
 
-            view.CollapsedSummaryText.text = BuildCardSummary(card, metadataLabel);
-            ConfigureAssetizedCollapseButton();
-            if (view.DragHandle != null) view.DragHandle.enabled = false;
-
-            var collapseSpec = new EffectDialogCollapseSpec(effectDialogLayoutProfile)
-            {
-                Panel = view.Panel,
-                Canvas = view.OverlayCanvas,
-                OverlayImage = view.OverlayImage,
-                ExpandedContent = view.ExpandedContent.gameObject,
-                CollapsedSummaryText = view.CollapsedSummaryText,
-                ToggleRect = view.CollapseButton.GetComponent<RectTransform>(),
-                ToggleText = view.CollapseButtonLabel,
-                ToggleIcon = view.CollapseButtonIcon,
-                ExpandedSize = eventCardExpandedSize,
-                CollapsedHeight = layout.EventCardCollapsedHeight,
-                CollapseLabel = string.Empty,
-                ExpandLabel = string.Empty,
-                ExpandedToggleLayout = new EffectDialogRectLayout
-                {
-                    AnchorMin = new Vector2(1f, 0.5f),
-                    AnchorMax = new Vector2(1f, 0.5f),
-                    Pivot = new Vector2(0.5f, 0.5f),
-                    SizeDelta = new Vector2(36f, 220f),
-                    AnchoredPosition = new Vector2(-18f, 0f)
-                },
-                StartCollapsed = false
-            };
-            view.CollapsiblePanel.Configure(collapseSpec);
-            view.CollapseButton.onClick.AddListener(view.CollapsiblePanel.Toggle);
         }
 
         private static int GetArtworkChoiceIndex(string cardId, int visualIndex)
@@ -324,14 +254,13 @@ namespace YC.Presentation
             Color hoverColor)
         {
             var rect = row.Root;
-            rect.anchorMin = new Vector2(0f, 1f);
-            rect.anchorMax = new Vector2(0f, 1f);
-            rect.pivot = new Vector2(0f, 1f);
             var bounds = GetArtworkChoiceBounds(cardId, choiceCount);
             var choiceTop = bounds[choiceIndex];
-            var choiceHeight = bounds[choiceIndex + 1] - choiceTop;
-            rect.sizeDelta = new Vector2(720f, choiceHeight);
-            rect.anchoredPosition = new Vector2(90f, -choiceTop);
+            var choiceBottom = bounds[choiceIndex + 1];
+            // 图片局部的归一化热点跟随最终等比显示区域，不再使用屏幕像素。
+            rect.anchorMin = new Vector2(90f / 850f, 1f - choiceBottom / 600f);
+            rect.anchorMax = new Vector2(810f / 850f, 1f - choiceTop / 600f);
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
 
             var image = row.Root.GetComponent<Image>();
             image.color = Color.clear;
@@ -378,25 +307,7 @@ namespace YC.Presentation
             }
         }
 
-        private void ConfigureAssetizedCollapseButton()
-        {
-            view.CollapseButton.gameObject.SetActive(true);
-            var image = view.CollapseButton.GetComponent<Image>();
-            image.color = new Color(1f, 0.74f, 0f, 1f);
-            var outline = view.CollapseButton.GetComponent<Outline>();
-            outline.effectColor = new Color(0.2f, 0.16f, 0.04f, 1f);
-            outline.effectDistance = new Vector2(2f, -2f);
-            outline.useGraphicAlpha = false;
-            view.CollapseButtonLabel.text = string.Empty;
-            view.CollapseButtonLabel.gameObject.SetActive(false);
-            view.CollapseButtonIcon.color = Color.white;
-            view.CollapseButtonIcon.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-            view.CollapseButtonIcon.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-            view.CollapseButtonIcon.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            view.CollapseButtonIcon.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-            view.CollapseButtonIcon.rectTransform.sizeDelta = new Vector2(20f, 28f);
-            view.CollapseButtonIcon.rectTransform.anchoredPosition = Vector2.zero;
-        }
+
 
         public void ShowExplorePathOptions(
             IReadOnlyList<ExplorePathChoice> pathChoices,
@@ -418,7 +329,6 @@ namespace YC.Presentation
                 return;
             }
 
-            view.TitleText.text = "选择探索路线";
 
             for (var i = 0; i < pathChoiceCount; i++)
             {
@@ -426,10 +336,6 @@ namespace YC.Presentation
                 var row = view.CreatePathRow(view.ExplorePathHost);
                 row.Root.gameObject.name = "Path Choice " + (i + 1);
                 row.Label.text = pathChoices[i].Label;
-                row.Root.anchoredPosition = new Vector2(
-                    layout.PathRowTemplateLayout.AnchoredPosition.x,
-                    -layout.ExplorePathFirstRowOffset -
-                    i * layout.ExplorePathPanelRowStep);
                 row.Button.onClick.AddListener(() => InvokeStep(
                     () => onPathSelected?.Invoke(capturedIndex)));
             }
@@ -458,7 +364,6 @@ namespace YC.Presentation
                 return;
             }
 
-            view.TitleText.text = "选择过路费接收者";
 
             CreateExplorePaymentRecipientControls(
                 layout,
@@ -470,12 +375,6 @@ namespace YC.Presentation
                 layout.ExplorePaymentFirstRouteOffset,
                 layout.ExplorePaymentPanelRowStep);
 
-            var confirmRect = view.ExploreConfirmButton.GetComponent<RectTransform>();
-            confirmRect.anchoredPosition = new Vector2(
-                layout.ExploreConfirmTemplateLayout.AnchoredPosition.x,
-                -layout.ExplorePaymentConfirmBaseOffset -
-                paymentChoiceCount * layout.ExplorePaymentPanelRowStep);
-            view.ExploreConfirmLabel.text = "支付过路费并探索";
             view.ExploreConfirmButton.onClick.AddListener(() => InvokeStep(onConfirm));
         }
 
@@ -505,7 +404,7 @@ namespace YC.Presentation
                 return;
             }
 
-            view.TitleText.text = "是否支付路费";
+            view.ResourcePaymentRecipientHost.gameObject.SetActive(recipientCount > 0);
 
             var receiverLabel = recipientCount <= 0
                 ? "航道 " + routeId + "：支付给银行"
@@ -531,10 +430,6 @@ namespace YC.Presentation
                     view.ResourcePaymentRecipientHost);
                 row.Root.gameObject.name = "Pay Player " + recipientPlayerId;
                 row.Label.text = "向 " + playerName + " 支付 " + amount + " 金券";
-                row.Root.anchoredPosition = new Vector2(
-                    layout.ResourceRecipientTemplateLayout.AnchoredPosition.x,
-                    -layout.ResourcePaymentFirstRowOffset -
-                    i * layout.ResourcePaymentPanelRowStep);
                 row.Button.onClick.AddListener(() => InvokeTerminal(
                     () => onRecipientSelected?.Invoke(recipientPlayerId)));
             }
@@ -623,7 +518,6 @@ namespace YC.Presentation
             var paymentLabel = resourcePayment ? "资源" : "金券";
             var paymentContent = resourcePayment ? FormatResourceCost(effectiveResourceCost) : facility.GoldVoucherCost + " 金券";
 
-            view.TitleText.text = "最终确认建设";
             view.BuildConfirmationSummaryText.text =
                 "设施：" + facility.Name + "\n" +
                 "建设位置：第 " + (model.CityBoardSlotIndex + 1) + " 格\n" +
@@ -633,10 +527,8 @@ namespace YC.Presentation
                 "建成效果：" + FormatFacilityEffect(facility);
             view.BuildConfirmationErrorText.text = model.ErrorMessage ?? string.Empty;
             view.BuildConfirmationErrorText.gameObject.SetActive(!string.IsNullOrEmpty(model.ErrorMessage));
-            view.BuildBackLabel.text = "返回修改";
             view.BuildBackButton.onClick.AddListener(() => InvokeStep(
                 () => model.Dispatch(new BuildFacilityIntent.Back())));
-            view.BuildConfirmLabel.text = "确认建设";
             view.BuildConfirmButton.onClick.AddListener(() => InvokeStep(
                 () => model.Dispatch(new BuildFacilityIntent.Confirm())));
             ConfigureClose(
@@ -662,14 +554,12 @@ namespace YC.Presentation
                 return;
             }
 
-            view.TitleText.text = "是否发动第二个效果？";
             view.DescriptionText.gameObject.SetActive(true);
             view.DescriptionText.text =
                 (cardName ?? "角色牌") + "的第一个效果已结算。剩余：" +
                 (remainingEffectName ?? string.Empty);
             view.CharacterContinueLabel.text = "发动" + (remainingEffectName ?? "第二效果");
             view.CharacterContinueButton.onClick.AddListener(() => InvokeTerminal(onContinue));
-            view.CharacterFinishLabel.text = "不发动，结束使用";
             view.CharacterFinishButton.onClick.AddListener(() => InvokeTerminal(onFinish));
         }
 
@@ -694,14 +584,14 @@ namespace YC.Presentation
             }
         }
 
-        public void CollapseForMapInteraction()
+        public void SuspendForMapInteraction()
         {
             if (view == null)
             {
                 return;
             }
 
-            view.CollapsiblePanel.SetCollapsed(true);
+            GameplayHudFrame.Active?.SuspendEffectForMapInteraction();
         }
 
         private bool PrepareView(
@@ -845,9 +735,6 @@ namespace YC.Presentation
                 var route = view.CreatePaymentRouteRow(parent);
                 route.Root.gameObject.name = "Payment " + choice.RouteId;
                 route.Label.text = "过路费 " + choice.RouteId;
-                route.Root.anchoredPosition = new Vector2(
-                    layout.PaymentRouteTemplateLayout.AnchoredPosition.x,
-                    rowY);
 
                 for (var ownerIndex = 0; ownerIndex < choice.RecipientPlayerIds.Count; ownerIndex++)
                 {
@@ -862,10 +749,6 @@ namespace YC.Presentation
                     var recipient = view.CreatePaymentRecipientButton(route.RecipientHost);
                     recipient.Root.gameObject.name =
                         "Payment Recipient " + routeId + " " + recipientPlayerId;
-                    recipient.Root.anchoredPosition = new Vector2(
-                        layout.PaymentRecipientFirstOffsetX +
-                        ownerIndex * layout.PaymentRecipientStepX,
-                        layout.PaymentRecipientTemplateLayout.AnchoredPosition.y);
                     var outline = recipient.Root.GetComponent<Outline>();
                     outline.effectColor = selectedRecipientId == recipientPlayerId
                         ? UiTheme.GoldOutline
@@ -953,13 +836,7 @@ namespace YC.Presentation
             return length;
         }
 
-        private static string BuildCardSummary(EventCardDefinition card, string metadataLabel)
-        {
-            var resourcePointLabel = GetResourcePointSummary(metadataLabel);
-            return string.IsNullOrEmpty(resourcePointLabel)
-                ? GetEventCardDisplayName(card)
-                : GetEventCardDisplayName(card) + "    " + resourcePointLabel;
-        }
+
 
         private static string GetResourcePointSummary(string metadataLabel)
         {

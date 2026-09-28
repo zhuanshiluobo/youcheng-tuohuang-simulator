@@ -112,7 +112,14 @@ namespace YC.Editor
 
         public static void ValidateGameSettingsPrefab(FacilityCardCatalog expectedCatalog)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(GameSettingsPrefabPath);
+            foreach (var prefabPath in GameSettingsAssetSources.PrefabPaths)
+                ValidateSettingsPrefabAsset(expectedCatalog, prefabPath);
+        }
+
+        private static void ValidateSettingsPrefabAsset(
+            FacilityCardCatalog expectedCatalog, string prefabPath)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null)
             {
                 throw new InvalidOperationException("缺少 GameSettings Prefab。");

@@ -5,12 +5,14 @@ namespace YC.Presentation
 {
     public sealed class BuildInfoPanelView : MonoBehaviour
     {
+        public void SetExternalFacilitySupplyVisible(bool visible)
+        {
+            if (externalFacilityArea != null) externalFacilityArea.gameObject.SetActive(visible);
+        }
+
         public void SetLegacyVisible(bool visible)
         {
             if (root == null) return;
-            // 地图相机只覆盖中央视口；旧供应槽的独立 Canvas 需使用全屏 UI 射线。
-            var canvas = root.GetComponent<Canvas>();
-            if (visible && canvas != null) canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             var group = root.GetComponent<CanvasGroup>();
             if (group == null) return;
             group.alpha = visible ? 1f : 0f;
@@ -32,10 +34,13 @@ namespace YC.Presentation
         [SerializeField] private BuildInfoSlotView[] externalFacilitySlots;
         [SerializeField] private BuildInfoSlotView[] cityBoardSlots;
         [SerializeField] private BuildInfoItemView cardContentTemplate;
-        [SerializeField] private BuildInfoItemView cityStyleCardTemplate;
         [SerializeField] private BuildInfoItemView influenceMarkerTemplate;
         [SerializeField] private BuildInfoItemView dragGhostTemplate;
         [SerializeField] private BuildInfoItemView pendingBuildGhostTemplate;
+
+        [SerializeField] private CityStyleStatusRowView[] cityStyleRowTemplates;
+        public CityStyleStatusRowView GetCityStyleRowTemplate(string layout) =>
+            System.Array.Find(cityStyleRowTemplates, row => row != null && row.TrackLayout == layout);
 
         public BuildInfoPanel Controller => controller;
         public CardInteractionLayoutProfile CardInteractionLayoutProfile => cardInteractionLayoutProfile;
@@ -51,7 +56,6 @@ namespace YC.Presentation
         public BuildInfoSlotView[] ExternalFacilitySlots => externalFacilitySlots;
         public BuildInfoSlotView[] CityBoardSlots => cityBoardSlots;
         public BuildInfoItemView CardContentTemplate => cardContentTemplate;
-        public BuildInfoItemView CityStyleCardTemplate => cityStyleCardTemplate;
         public BuildInfoItemView InfluenceMarkerTemplate => influenceMarkerTemplate;
         public BuildInfoItemView DragGhostTemplate => dragGhostTemplate;
         public BuildInfoItemView PendingBuildGhostTemplate => pendingBuildGhostTemplate;
@@ -105,10 +109,9 @@ namespace YC.Presentation
                 }
             }
 
-            if (cardContentTemplate == null || cityStyleCardTemplate == null || influenceMarkerTemplate == null ||
+            if (cardContentTemplate == null || influenceMarkerTemplate == null ||
                 dragGhostTemplate == null || pendingBuildGhostTemplate == null ||
                 !cardContentTemplate.TryValidateAs(BuildInfoItemKind.CardContent, out reason) ||
-                !cityStyleCardTemplate.TryValidateAs(BuildInfoItemKind.CityStyleCard, out reason) ||
                 !influenceMarkerTemplate.TryValidateAs(BuildInfoItemKind.InfluenceMarker, out reason) ||
                 !dragGhostTemplate.TryValidateAs(BuildInfoItemKind.DragGhost, out reason) ||
                 !pendingBuildGhostTemplate.TryValidateAs(BuildInfoItemKind.PendingBuildGhost, out reason))
@@ -116,7 +119,7 @@ namespace YC.Presentation
                 return false;
             }
 
-            if (cardContentTemplate.gameObject.activeSelf || cityStyleCardTemplate.gameObject.activeSelf ||
+            if (cardContentTemplate.gameObject.activeSelf ||
                 influenceMarkerTemplate.gameObject.activeSelf || dragGhostTemplate.gameObject.activeSelf ||
                 pendingBuildGhostTemplate.gameObject.activeSelf)
             {
@@ -124,6 +127,9 @@ namespace YC.Presentation
                 return false;
             }
 
+            if (cityStyleRowTemplates == null || cityStyleRowTemplates.Length != 3 ||
+                System.Array.Exists(cityStyleRowTemplates, row => row == null || !row.HasNameText || row.gameObject.activeSelf))
+            { reason = "城市样式状态行模板引用不完整或未禁用。"; return false; }
             reason = string.Empty;
             return true;
         }

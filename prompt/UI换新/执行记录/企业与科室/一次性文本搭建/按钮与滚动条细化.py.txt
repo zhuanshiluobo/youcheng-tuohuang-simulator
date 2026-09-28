@@ -1,0 +1,68 @@
+from pathlib import Path
+import re,zipfile,uuid,json,ast
+R=Path('G:/NoMadCity');P=R/'Assets/YC/Presentation';OUT=R/'prompt/UI换新/执行记录/企业与科室'
+src=(R/'Logs/author_enterprise_assets.py').read_text(encoding='utf8')
+# 只复用文本序列化函数，不运行创建入口。
+tree=ast.parse(src)
+ns={'__name__':'asset_text_helpers'}
+for n in tree.body:
+    if isinstance(n,(ast.Import,ast.ImportFrom,ast.FunctionDef,ast.ClassDef)):
+        exec(compile(ast.Module(body=[n],type_ignores=[]),'helpers','exec'),ns)
+ns.update(R=R,P=P,OUT=OUT,base='  m_ObjectHideFlags: 0\n  m_CorrespondingSourceObject: {fileID: 0}\n  m_PrefabInstance: {fileID: 0}\n  m_PrefabAsset: {fileID: 0}\n',header='%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n')
+guid=ns['guid'];ext=ns['ext'];ref=ns['ref']
+scripts={p.name[:-8]:guid(Path(str(p)[:-5])) for p in (R/'Library/PackageCache/com.unity.ugui@1.0.0/Runtime').rglob('*.cs.meta')}
+for p in P.rglob('*.cs'):scripts[p.stem]=guid(p)
+ns['scripts']=scripts;ns['sprites']=P/'CommonUi/Sprites'
+ns['F']={'normal':ext(P/'CommonUi/Fonts/FangZhengHeiTiJianTi-1.ttf',12800000)}
+z=zipfile.ZipFile(R/'游城拓荒/UI素材/Card-Picker-UI-v1.zip')
+for kind in ['primary','secondary']:
+ p=P/f'Enterprise/Artwork/selection-button-{kind}.png'
+ if not p.exists():
+  p.write_bytes(z.read(f'card-picker-ui-v1/assets/button-{kind}.png'))
+  t=(P/'Enterprise/Artwork/department-defense.png.meta').read_text(encoding='utf8');t=re.sub(r'^guid: .*','guid: '+uuid.uuid4().hex,t,flags=re.M)
+  Path(str(p)+'.meta').write_text(t,encoding='utf8')
+
+def docs(t):return {int(m[1]):m[0] for m in re.finditer(r'^--- !u!\d+ &(\d+)\n.*?(?=^--- !u!|\Z)',t,re.M|re.S)}
+def field(t,k):return re.search(r'^  '+k+': (.*)$',t,re.M)[1]
+def component(d,go,script):return next(i for i,t in d.items() if f'  m_GameObject: {{fileID: {go}}}' in t and f'guid: {scripts[script]}' in t)
+def rect(d,go):return next(i for i,t in d.items() if t.startswith('--- !u!224 ') and f'm_GameObject: {{fileID: {go}}}' in t)
+for p in (P/'Prefabs/Gameplay/Dialogs/Enterprise').glob('*SelectionDialog.prefab'):
+ t=p.read_text(encoding='utf8');d=docs(t);names={field(x,'m_Name').strip('"'):i for i,x in d.items() if x.startswith('--- !u!1 ')}
+ # 外部页面宽度采用源首选值，由根原生组约束；不拉伸整套主界面。
+ rt=component(d,1001,'VerticalLayoutGroup');d[rt]=d[rt].replace('m_ChildForceExpandWidth: 1','m_ChildForceExpandWidth: 0')
+ for name,kind in [('Confirm','primary'),('Cancel','secondary')]:
+  go=names[name];im=component(d,go,'Image');x=d[im]
+  x=x.replace(scripts['Image'],scripts['RawImage'])
+  x=x[:x.index('  m_Sprite:')]+f'  m_Texture: {ext(P/f"Enterprise/Artwork/selection-button-{kind}.png",2800000)}\n  m_UVRect: {{x: {35/1983}, y: {109/793}, width: {1916/1983}, height: {582/793}}}\n'
+  d[im]=x
+  if name=='Confirm':
+   tr=rect(d,go);labelgo=next(i for i,v in d.items() if v.startswith('--- !u!224 ') and f'm_Father: {{fileID: {tr}}}' in v)
+   labgo=int(re.search('m_GameObject: {fileID: (\d+)',d[labelgo])[1]);lab=component(d,labgo,'Text')
+   d[lab]=d[lab].replace('m_Color: {r: 0.95, g: 0.93, b: 0.86, a: 1}','m_Color: {r: 0.14, g: 0.11, b: 0.075, a: 1}')
+ # 科室保持来源的固定企业＋候选两区；说明为固定企业下方的内部滚动区域。
+ if 'Department' in p.name:
+  detailgo=names['Details Panel'];detailrt=rect(d,detailgo);bodyrt=rect(d,names['Body']);fixedrt=rect(d,names['Shared Rhine Company'])
+  d[bodyrt]=d[bodyrt].replace(f'  - {{fileID: {detailrt}}}\n','')
+  d[fixedrt]=d[fixedrt].replace('  m_Father:',f'  - {{fileID: {detailrt}}}\n  m_Father:')
+  d[detailrt]=d[detailrt].replace(f'm_Father: {{fileID: {bodyrt}}}',f'm_Father: {{fileID: {fixedrt}}}')
+  le=component(d,detailgo,'LayoutElement');d[le]=d[le].replace('m_PreferredWidth: 400','m_PreferredWidth: -1').replace('m_PreferredHeight: -1','m_PreferredHeight: 130').replace('m_MinWidth: 210','m_MinWidth: 0')
+  # 科室完整原板已在候选和放大中展示，左下只保留原因说明。
+  for name in ['Detail Artwork','Detail Title','Cost']:
+   d[names[name]]=d[names[name]].replace('m_IsActive: 1','m_IsActive: 0')
+ # 候选滚动条为独立热区，Viewport 在它上方，内容仍由原生 HLG 排列。
+ a=ns['Asset']();a.i=9000;parent={'rt':rect(d,names['Candidates']),'children':[]}
+ bar=a.node('Candidate Scrollbar',parent,amin=(0,0),amax=(1,0),size=(-16,22),pivot=(.5,0));a.image(bar,ns['sprites']/'LegacyControls/scrollbar-track-h.png',ray=1)
+ handle=a.node('Handle',bar);him=a.image(handle,ns['sprites']/'LegacyControls/scrollbar-thumb-h.png',ray=1)
+ sc=a.comp(bar,'Scrollbar',f'  m_Navigation:\n    m_Mode: 3\n  m_Transition: 0\n  m_Interactable: 1\n  m_TargetGraphic: {ref(him)}\n  m_HandleRect: {ref(handle["rt"])}\n  m_Direction: 0\n  m_Value: 0\n  m_Size: 1\n  m_NumberOfSteps: 0\n  m_OnValueChanged:\n    m_PersistentCalls:\n      m_Calls: []\n')
+ pr=parent['rt'];d[pr]=d[pr].replace('  m_Father:',f'  - {ref(bar["rt"])}\n  m_Father:')
+ scroll=component(d,names['Candidates'],'ScrollRect');d[scroll]=d[scroll].replace('m_HorizontalScrollbar: {fileID: 0}',f'm_HorizontalScrollbar: {ref(sc)}').replace('m_HorizontalScrollbarVisibility: 0','m_HorizontalScrollbarVisibility: 1')
+ vp=int(re.search(r'm_Viewport: {fileID: (\d+)',d[scroll])[1]);d[vp]=d[vp].replace('m_SizeDelta: {x: 0, y: 0}','m_SizeDelta: {x: 0, y: -28}').replace('m_AnchoredPosition: {x: 0, y: 0}','m_AnchoredPosition: {x: 0, y: 14}')
+ # 将新增节点直接序列化到内存，原有 fileID 不变。
+ ns['new']=lambda path,text,kind: text
+ extra=a.save(None) if False else None
+ captured=[];ns['new']=lambda path,text,kind: captured.append(text)
+ a.save(None)
+ result=ns['header']+''.join(d.values())+captured[0][len(ns['header']):]
+ result=result.replace(f'catalog: {{fileID: 11400000, guid: {guid(P/"Enterprise/EnterpriseBoardCatalog.asset")}, type: 3}}',f'catalog: {{fileID: 11400000, guid: {guid(P/"Enterprise/EnterpriseBoardCatalog.asset")}, type: 2}}')
+ p.write_text(result,encoding='utf8')
+print('新窗口素材、滚动条及原生布局已细化')

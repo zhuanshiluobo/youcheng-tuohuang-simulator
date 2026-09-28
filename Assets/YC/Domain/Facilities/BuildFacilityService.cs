@@ -87,20 +87,59 @@ namespace YC.Domain.Facilities
                 ? new ResourceSet { GoldVoucher = facility.GoldVoucherCost }
                 : effectiveResourceCost;
 
-            // 规则书顺序：支付 -> 放置 -> 得分 -> 入场效果 -> 补充供应区。
+            // 建设顺序：支付 -> 取走并补充供应区 -> 放置 -> 得分 -> 入场效果。
             player.Resources.TryPay(cost);
+            ReplaceBuiltFacilityInSupply(state, facility.FacilityId);
             PlaceAndScore(state, player, facility, cityBoardSlotIndex);
             entryEffectResolver.Resolve(state, player, facility, cityBoardSlotIndex);
-            ReplaceBuiltFacilityInSupply(state, facility.FacilityId);
 
             return BuildFacilityResult.Success(facility, cityBoardSlotIndex, resolvedPaymentMode);
         }
 
         /// <summary>
-        /// Effect 主链使用的建设入口。支付、放置、得分和补充供应区仍由建设规则
-        /// 原子提交；入场奖励和选择统一由 FacilityEntryEffect 负责，避免同一奖励
-        /// 在建设服务与 Event handler 中重复结算。
+        /// 两阶段建设的第一步：扣费并补供应牌。待放置牌由建设 Effect 持久化，
+        /// 后续只能放置，不允许再次支付或取消。
         /// </summary>
+        public BuildFacilityResult PayAndRefillForPlacement(GameState state, int playerId, string facilityId, string paymentMode)
+        {
+            var validation = ValidatePaymentMode(state, playerId, facilityId, paymentMode);
+            if (!validation.IsValid) return BuildFacilityResult.Failure(validation);
+            if (FindFirstEmptyCityBoardSlot(state, playerId) < 0)
+                return BuildFacilityResult.Failure(ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板没有可放置槽位。"));
+            var player = state.FindPlayer(playerId);
+            var facility = FacilityCardDatabase.Get(facilityId);
+            var resourceCost = buildCostService.GetEffectiveResourceCost(state, player, facility);
+            var mode = ResolvePaymentMode(player, facility, resourceCost, paymentMode);
+            var cost = mode == PaymentModeGold ? new ResourceSet { GoldVoucher = facility.GoldVoucherCost } : resourceCost;
+            if (!player.Resources.TryPay(cost))
+                return BuildFacilityResult.Failure(ValidationResult.Failure(CommandErrorCode.InsufficientResource, "支付资源已变化。"));
+            ReplaceBuiltFacilityInSupply(state, facilityId);
+            return BuildFacilityResult.Success(facility, -1, mode);
+        }
+
+        // 仅供已完成支付的持久化建设 Effect 调用；不再要求卡牌仍位于供应区。
+        public ValidationResult ValidatePaidPlacement(GameState state, int playerId, string facilityId, int slot)
+        {
+            var player = state.FindPlayer(playerId);
+            if (player == null || !FacilityCardDatabase.TryGet(facilityId, out var facility))
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "待放置设施不存在。" );
+            if (FacilityCardDatabase.PlayerHasBuiltUniqueFacility(player, facility))
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该唯一设施已经建设过。" );
+            if (slot < 0 || slot >= CityBoardSlotCount || IsCityBoardSlotOccupied(state, playerId, slot))
+                return ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板槽位不可用。" );
+            return ValidationResult.Success;
+        }
+
+        public BuildFacilityResult PlacePaidFacility(GameState state, int playerId, string facilityId, int slot, string paymentMode)
+        {
+            var validation = ValidatePaidPlacement(state, playerId, facilityId, slot);
+            if (!validation.IsValid) return BuildFacilityResult.Failure(validation);
+            var facility = FacilityCardDatabase.Get(facilityId);
+            PlaceAndScore(state, state.FindPlayer(playerId), facility, slot);
+            return BuildFacilityResult.Success(facility, slot, paymentMode);
+        }
+
+        /// <summary>已指定槽位的建设：支付、补牌、放置、得分；入场效果由 Effect 主链负责。</summary>
         public BuildFacilityResult BuildForEffectTree(
             GameState state,
             int playerId,
@@ -123,8 +162,8 @@ namespace YC.Domain.Facilities
                 : effectiveResourceCost;
 
             player.Resources.TryPay(cost);
-            PlaceAndScore(state, player, facility, cityBoardSlotIndex);
             ReplaceBuiltFacilityInSupply(state, facility.FacilityId);
+            PlaceAndScore(state, player, facility, cityBoardSlotIndex);
             return BuildFacilityResult.Success(facility, cityBoardSlotIndex, resolvedPaymentMode);
         }
 

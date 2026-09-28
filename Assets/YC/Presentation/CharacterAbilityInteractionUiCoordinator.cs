@@ -29,8 +29,13 @@ namespace YC.Presentation
         private readonly Action<string> setPrompt;
         private string renderedInteractionId = string.Empty;
         private int renderedRevision = -1;
+        private bool needsRefresh;
         private string inFlightCommandId = string.Empty;
+        private readonly List<int> saleDraft = new List<int>();
+        private string inventoryKey = string.Empty;
         private readonly HashSet<string> selectedCandidates = new HashSet<string>(StringComparer.Ordinal);
+        public Func<GameStateView> GetVisibleState { private get; set; }
+        public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
 
         public CharacterAbilityInteractionUiCoordinator(
             Func<GameState> getState,
@@ -80,16 +85,32 @@ namespace YC.Presentation
                 return;
             }
 
-            if (projection.InteractionId == renderedInteractionId &&
-                projection.StateRevision == renderedRevision &&
-                string.IsNullOrEmpty(inFlightCommandId))
+            var sameRequest = projection.InteractionId == renderedInteractionId;
+            if (sameRequest && projection.StateRevision < renderedRevision) return;
+            if (!sameRequest)
             {
-                return;
+                inFlightCommandId = string.Empty;
+                selectedCandidates.Clear();
+                saleDraft.Clear();
             }
-
+            if (!string.IsNullOrEmpty(inFlightCommandId)) return;
+            var maximums = CurrentSaleInventory();
+            var nextInventoryKey = string.Join(",", maximums);
+            // 收起保留视图；只有视图已丢失时重建仍有效的选择请求。
+            var mapChoice = IsLocationTargetInteraction(projection.PromptKey) || IsInfluenceTargetInteraction(projection.PromptKey);
+            if (sameRequest && !needsRefresh && projection.StateRevision == renderedRevision && inventoryKey == nextInventoryKey &&
+                (mapChoice || dialog.IsShowing))
+                return;
+            selectedCandidates.RemoveWhere(id => projection.CandidateIds == null || !projection.CandidateIds.Contains(id));
+            if (selectedCandidates.Count > projection.MaxSelections)
+            {
+                var ordered = projection.CandidateIds.FindAll(id => selectedCandidates.Contains(id));
+                for (var i = Math.Max(0, projection.MaxSelections); i < ordered.Count; i++) selectedCandidates.Remove(ordered[i]);
+            }
             renderedInteractionId = projection.InteractionId;
             renderedRevision = projection.StateRevision;
-            selectedCandidates.Clear();
+            inventoryKey = nextInventoryKey;
+            needsRefresh = false;
             clearHighlights();
 
             if (IsLocationTargetInteraction(projection.PromptKey))
@@ -110,14 +131,18 @@ namespace YC.Presentation
             }
             else if (projection.PromptKey == "character.cannot.strategy.choose_sale" || projection.PromptKey == "effect.resource.sell")
             {
+                var visible = GetVisibleState == null ? GameStateViewProjector.ProjectForPlayer(getState(), getLocalPlayerId()) : GetVisibleState();
+                var receipt = ResourceSaleReceiptProjection.Latest(visible, getLocalPlayerId());
                 dialog.ShowResourceSaleCandidates(
                     projection.CandidateIds,
                     selected => SubmitCandidates(projection, selected),
-                    null);
+                    null, saleDraft, values => { saleDraft.Clear(); saleDraft.AddRange(values); },
+                    () => IsCurrent(projection), maximums,
+                    receipt == null ? null : string.Format(dialog.Copy.SaleReceiptSummaryFormat, receipt.Revenue));
             }
             else
             {
-                ShowCandidateOptions(projection);
+                ShowCandidateOptions(projection, sameRequest);
             }
 
             setPrompt(BuildPrompt(projection.PromptKey));
@@ -169,6 +194,12 @@ namespace YC.Presentation
         public override InteractionResult OnEscape()
         {
             if (!IsActive) return InteractionResult.Passthrough;
+            if (GameplayHudFrame.EffectInputSuspended) return InteractionResult.Consumed;
+            if (TryGetRequest(out var request) && request.AllowDecline)
+            {
+                SubmitDecline(InteractionRequestProjector.ProjectForPlayer(request, getLocalPlayerId()));
+                return InteractionResult.Consumed;
+            }
             setPrompt("当前角色能力选择不能取消，请完成结算。");
             return InteractionResult.Consumed;
         }
@@ -216,15 +247,13 @@ namespace YC.Presentation
 
         public override void NotifyCommandSettled(string commandId)
         {
-            if (string.IsNullOrEmpty(inFlightCommandId) ||
-                (!string.IsNullOrEmpty(commandId) && commandId != inFlightCommandId))
+            if (string.IsNullOrEmpty(inFlightCommandId) || string.IsNullOrEmpty(commandId) || commandId != inFlightCommandId)
             {
                 return;
             }
 
             inFlightCommandId = string.Empty;
-            renderedInteractionId = string.Empty;
-            renderedRevision = -1;
+            needsRefresh = true;
         }
 
         public void Dispose()
@@ -235,58 +264,96 @@ namespace YC.Presentation
         public void Clear()
         {
             selectedCandidates.Clear();
+            saleDraft.Clear();
+            inventoryKey = string.Empty;
             renderedInteractionId = string.Empty;
             renderedRevision = -1;
+            needsRefresh = false;
             inFlightCommandId = string.Empty;
             dialog.Hide();
             clearHighlights();
         }
 
-        private void ShowCandidateOptions(InteractionRequestProjection projection)
+        private void ShowCandidateOptions(InteractionRequestProjection projection, bool preserveScroll = true)
         {
-            var options = new List<EffectDialogOption>();
-            if (projection.CandidateIds != null)
+            dialog.ShowSelection(dialog.Copy.CharacterSelectionTitle, BuildPrompt(projection.PromptKey), new EffectDialogSelectionSpec
             {
-                for (var i = 0; i < projection.CandidateIds.Count; i++)
+                Request = projection,
+                SelectedIds = selectedCandidates,
+                Label = FormatCandidateLabel,
+                OptionNamePrefix = "Character Effect Option ",
+                IsCurrent = () => IsCurrent(projection),
+                Select = candidateId =>
                 {
-                    var candidateId = projection.CandidateIds[i];
-                    options.Add(new EffectDialogOption(
-                        (selectedCandidates.Contains(candidateId) ? "已选：" : "") + FormatCandidateLabel(candidateId),
-                        () =>
-                        {
-                            if (projection.MaxSelections <= 1)
-                            {
-                                SubmitCandidates(projection, new[] { candidateId });
-                                return;
-                            }
-                            if (!selectedCandidates.Remove(candidateId) && selectedCandidates.Count < projection.MaxSelections)
-                                selectedCandidates.Add(candidateId);
-                            ShowCandidateOptions(projection);
-                        }));
-                }
-            }
-            if (projection.MaxSelections > 1 && selectedCandidates.Count >= projection.MinSelections)
-                options.Add(new EffectDialogOption("确认选择", () => SubmitCandidates(projection,
-                    projection.CandidateIds.FindAll(id => selectedCandidates.Contains(id)))));
+                    if (!IsCurrent(projection)) return;
+                    if (projection.MaxSelections <= 1)
+                    {
+                        if (!selectedCandidates.Remove(candidateId))
+                        { selectedCandidates.Clear(); selectedCandidates.Add(candidateId); }
+                    }
+                    else if (!selectedCandidates.Remove(candidateId) && selectedCandidates.Count < projection.MaxSelections)
+                        selectedCandidates.Add(candidateId);
+                    ShowCandidateOptions(projection);
+                },
+                Confirm = () => SubmitCandidates(projection,
+                    projection.CandidateIds.FindAll(id => selectedCandidates.Contains(id))),
+                Cancel = projection.AllowDecline ? (Action)(() => SubmitDecline(projection)) : null
+            }, preserveScroll);
+        }
 
-            dialog.ShowOptions(
-                "角色能力",
-                BuildPrompt(projection.PromptKey),
-                options);
+        private int[] CurrentSaleInventory()
+        {
+            var resources = getState()?.FindPlayer(getLocalPlayerId())?.Resources;
+            return resources == null ? new int[4] : new[]
+                { resources.Originium, resources.OriginiumShard, resources.Iron, resources.PureOriginium };
+        }
+
+        private bool IsCurrent(InteractionRequestProjection projection)
+        {
+            if (projection == null || !string.IsNullOrEmpty(inFlightCommandId))
+                return false;
+            if (!TryGetRequest(out var request)) return false;
+            return CanRender(InteractionRequestProjector.ProjectForPlayer(request, getLocalPlayerId())) &&
+                request.GetStableInteractionId() == projection.InteractionId &&
+                request.StateRevision == projection.StateRevision &&
+                request.CandidateSetId == projection.CandidateSetId &&
+                request.CandidateSetVersion == projection.CandidateSetVersion;
+        }
+
+        private void SubmitDecline(InteractionRequestProjection projection)
+        {
+            if (!IsCurrent(projection) || !projection.AllowDecline) return;
+            SubmitCommand(EffectInteractionCommands.Answer(projection, getLocalPlayerId(), null, true));
         }
 
         private void SubmitCandidates(
             InteractionRequestProjection projection,
             IReadOnlyList<string> selected)
         {
-            if (projection == null || selected == null || selected.Count == 0 ||
-                !string.IsNullOrEmpty(inFlightCommandId))
+            if (GameplayHudFrame.EffectInputSuspended || !IsCurrent(projection) || selected == null || selected.Count < projection.MinSelections ||
+                selected.Count > projection.MaxSelections) return;
+            var distinct = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var id in selected)
+                if (!distinct.Add(id) || projection.CandidateIds == null || !projection.CandidateIds.Contains(id)) return;
+            var resourceIds = new[] { "originium", "originium-shard", "iron", "pure-originium" };
+            var inventory = CurrentSaleInventory();
+            foreach (var id in selected)
             {
-                return;
+                var parts = id.Split('|');
+                if (parts.Length != 3 || parts[0] != "sale") continue;
+                var index = Array.IndexOf(resourceIds, parts[1]);
+                if (index < 0 || !int.TryParse(parts[2], out var amount) || amount < 0 || amount > inventory[index])
+                {
+                    needsRefresh = true;
+                    Render(projection);
+                    return;
+                }
             }
+            SubmitCommand(EffectInteractionCommands.Answer(projection, getLocalPlayerId(), selected));
+        }
 
-            var command = EffectInteractionCommands.Answer(projection, getLocalPlayerId(), selected);
-
+        private void SubmitCommand(GameCommand command)
+        {
             inFlightCommandId = command.CommandId;
             dialog.Hide();
             clearHighlights();
@@ -297,6 +364,7 @@ namespace YC.Presentation
             catch
             {
                 inFlightCommandId = string.Empty;
+                needsRefresh = true;
                 throw;
             }
         }
@@ -314,16 +382,11 @@ namespace YC.Presentation
         private bool TryGetRequest(out InteractionRequest request)
         {
             request = null;
-            var state = getState();
-            if (state == null || state.EffectRuntime == null || state.EffectRuntime.InteractionRequests == null)
-            {
-                return false;
-            }
-
             var localPlayerId = getLocalPlayerId();
-            for (var i = 0; i < state.EffectRuntime.InteractionRequests.Count; i++)
+            var requests = GetVisibleRequests == null ? VisibleInteractionRequestSource.Read(getState(), null, localPlayerId) : GetVisibleRequests();
+            for (var i = 0; requests != null && i < requests.Count; i++)
             {
-                var candidate = state.EffectRuntime.InteractionRequests[i];
+                var candidate = requests[i];
                 if (candidate != null && candidate.Status == "open" &&
                     candidate.AnsweringPlayerId == localPlayerId &&
                     IsCharacterAbilityInteraction(candidate.InteractionTypeId))
@@ -385,7 +448,7 @@ namespace YC.Presentation
         {
             switch (promptKey ?? string.Empty)
             {
-                case "effect.resource.sell": return "选择要出售的资源数量（可以全部为零）。";
+                case "effect.resource.sell": return "选择要出售的资源数量，或结束出售。";
                 case "effect.influence.replace.choose_target": return "请选择要替换的对手影响力。";
                 case "facility.entry.choose_influence_branch": return "选择替换或放置 1 个影响力。";
                 case "effect.influence.place.choose_target":
