@@ -301,8 +301,37 @@ namespace YC.Tests.EditMode
                 "拖动结束产生的点击必须被 CardPointerInteraction 抑制。");
         }
 
-        [Test]
-        public void CoverDrop_GhostLandsOnActionPanelPreviewInsteadOfReturningToHand()
+        [TestCase(true, true)]
+        [TestCase(true, false)]
+        [TestCase(false, true)]
+        public void CoverDrop_WaitsForConfirmationAcrossRefreshAndCancelRestoresHand(
+            bool canCover, bool validTarget)
+        {
+            CreatePanel(null, null, (_, __) => validTarget ? panel.View.Root : null);
+            var model = BuildModel(CardIds, Array.Empty<string>(), canCover);
+            panel.Render(1, model);
+            var card = FindHandCard(CardIds[0]);
+            var pointer = CreatePointer(ScreenPoint(card.Root));
+            ((IPointerDownHandler)card.PointerInteraction).OnPointerDown(pointer);
+            ((IBeginDragHandler)card.PointerInteraction).OnBeginDrag(pointer);
+            pointer.position = ScreenPoint(panel.View.HandDropArea) + Vector2.up * 500f;
+            ((IDragHandler)card.PointerInteraction).OnDrag(pointer);
+            ((IEndDragHandler)card.PointerInteraction).OnEndDrag(pointer);
+            panel.Render(1, model);
+            var group = FindHandCard(CardIds[0]).Root.GetComponent<CanvasGroup>();
+            Assert.That(group.alpha == 0f, Is.EqualTo(canCover && validTarget));
+            Assert.That(group.blocksRaycasts, Is.EqualTo(!(canCover && validTarget)));
+            CollectionAssert.AreEqual(CardIds, OrderedIds(), "确认前不能更改手牌数据。");
+            panel.ResolvePendingCover(false);
+            panel.Render(1, model);
+            Assert.That(FindHandCard(CardIds[0]).Root.GetComponent<CanvasGroup>().alpha, Is.GreaterThan(0f));
+            Assert.That(FindHandCard(CardIds[0]).Root.GetComponent<CanvasGroup>().blocksRaycasts, Is.True);
+        }
+
+        [TestCase(0.5f, 0.5f)]
+        [TestCase(0f, 1f)]
+        public void CoverDrop_GhostLandsOnActionPanelPreviewInsteadOfReturningToHand(
+            float pivotX, float pivotY)
         {
             RectTransform panelTarget = null;
             CreatePanel(
@@ -314,7 +343,7 @@ namespace YC.Tests.EditMode
             panelTarget.SetParent(panel.View.Root, false);
             panelTarget.anchorMin = Vector2.one * 0.5f;
             panelTarget.anchorMax = Vector2.one * 0.5f;
-            panelTarget.pivot = Vector2.one * 0.5f;
+            panelTarget.pivot = new Vector2(pivotX, pivotY);
             panelTarget.anchoredPosition = new Vector2(650f, 230f);
             panelTarget.sizeDelta = new Vector2(118f, 188f);
 
@@ -340,7 +369,7 @@ namespace YC.Tests.EditMode
             var ghostRect = ghostAnimation.GetComponent<RectTransform>();
             var ghostStart = ghostRect.anchoredPosition;
             var expectedLandingPoint = (Vector2)panel.View.Root
-                .InverseTransformPoint(panelTarget.position);
+                .InverseTransformPoint(panelTarget.TransformPoint(panelTarget.rect.center));
             ghostState.time = ghostAnimation.clip.length * 0.5f;
             ghostAnimation.Sample();
             Assert.That(
@@ -362,9 +391,16 @@ namespace YC.Tests.EditMode
             Assert.That(cancelReturn.clip.name, Is.EqualTo("CharacterHandDragGhostReturn"));
             Assert.That(FindHandCard(CardIds[0]).CanvasGroup.alpha, Is.EqualTo(0f),
                 "取消返回动画结束前，手牌落点应继续隐藏。");
+            var cancelRect = cancelReturn.GetComponent<RectTransform>();
+            Assert.That(Vector2.Distance(cancelRect.anchoredPosition, expectedLandingPoint),
+                Is.LessThan(0.5f));
+            Assert.That(cancelRect.sizeDelta.x, Is.EqualTo(panelTarget.rect.width).Within(0.5f));
+            Assert.That(cancelRect.sizeDelta.y, Is.EqualTo(panelTarget.rect.height).Within(0.5f));
             var cancelState = cancelReturn[cancelReturn.clip.name];
             cancelState.time = cancelReturn.clip.length;
             cancelReturn.Sample();
+            Assert.That(cancelRect.sizeDelta.x, Is.EqualTo(panel.LayoutProfile.CardSize.x).Within(0.5f));
+            Assert.That(cancelRect.sizeDelta.y, Is.EqualTo(panel.LayoutProfile.CardSize.y).Within(0.5f));
             var cancelLandingPoint = (Vector2)panel.View.Root
                 .InverseTransformPoint(FindHandCard(CardIds[0]).Root.position);
             Assert.That(Vector2.Distance(
@@ -573,6 +609,50 @@ namespace YC.Tests.EditMode
             Assert.That(panel.OrderedHandCount, Is.EqualTo(2));
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Render_MoreThanFiveCards_AllRemainVisibleAndInheritPanelSorting(bool canCover)
+        {
+            CreatePanel();
+            var canvas = owner.GetComponent<Canvas>();
+            canvas.sortingOrder = 110;
+            var ids = new[]
+            {
+                CardIds[0], CardIds[1], CardIds[2],
+                "character.red.p1.elysium", "character.red.p1.tin-man",
+                "character.blue.p2.liskarm"
+            };
+            panel.Render(1, BuildModel(ids, Array.Empty<string>(), canCover));
+
+            CollectionAssert.AreEqual(ids, OrderedIds());
+            foreach (var id in ids)
+            {
+                var card = FindHandCard(id);
+                Assert.That(card.Root.gameObject.activeInHierarchy, Is.True, id);
+                Assert.That(card.Image.texture, Is.Not.Null, id);
+                Assert.That(card.CanvasGroup.alpha, Is.GreaterThan(0f), id);
+                Assert.That(card.CanvasGroup.blocksRaycasts, Is.True, id);
+                Assert.That(card.Root.GetComponent<Button>().interactable, Is.True, id);
+                var previewCanvas = card.Image.GetComponent<Canvas>();
+                Assert.That(previewCanvas, Is.Not.Null, id);
+                var animator = card.Root.GetComponent<Animator>();
+                foreach (var state in new[] { "Normal", "Highlighted", "Pressed" })
+                {
+                    animator.Play(state, 0, 0f);
+                    animator.Update(0f);
+                    Assert.That(previewCanvas.overrideSorting, Is.False,
+                        "预览动画不能脱离手牌面板的显示层级：" + id + " / " + state);
+                }
+            }
+            Assert.That(canvas.sortingOrder, Is.EqualTo(110), "运行时不得覆盖父面板层级。" );
+
+            var first = FindHandCard(ids[0]);
+            var pointer = CreatePointer(ScreenPoint(first.Root));
+            ((IPointerEnterHandler)first.PointerInteraction).OnPointerEnter(pointer);
+            Assert.That(first.Root.GetSiblingIndex(), Is.EqualTo(ids.Length - 1));
+            ((IPointerExitHandler)first.PointerInteraction).OnPointerExit(pointer);
+            Assert.That(first.Root.GetSiblingIndex(), Is.EqualTo(0));
+        }
         private void CreatePanel(
             Action<string, Vector2> begin = null,
             Action<Vector2> update = null,

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -29,12 +29,13 @@ namespace YC.Domain.Effects
         private static EffectStepResult Wait(EffectExecutionContext c, string stage, string prompt, List<string> ids)
         {
             var request = new EffectInteractionSpec { InteractionTypeId = "facility.entry.choice", PromptKey = prompt,
-                AnsweringPlayerId = c.Node.PlayerId, Visibility = "owner", AnswerSchema = "candidate_id", MinSelections = 1, MaxSelections = 1 };
+                AllowDecline = MainActionEffectExecutor.IsPlanning(c), AnsweringPlayerId = c.Node.PlayerId, Visibility = "owner", AnswerSchema = "candidate_id", MinSelections = 1, MaxSelections = 1 };
             request.CandidateIds.AddRange(ids);
             return EffectStepResult.Continue(stage).AddInteraction(request);
         }
         private static EffectStepResult Execute(EffectExecutionContext c)
         {
+            if (MainActionEffectExecutor.IsCancellation(c)) return EffectStepResult.Failed("player_cancelled");
             if (c.Node.FlowStage == "applied")
             {
                 foreach (var child in c.ChildNodes)
@@ -44,7 +45,7 @@ namespace YC.Domain.Effects
                 }
                 return EffectStepResult.Completed();
             }
-            var map = new MapQueryService(c.State.MapId == StaticMapDefinitions.ThreePlayerMapId ? StaticMapDefinitions.CreateThreePlayerPlaceholder() : StaticMapDefinitions.CreateFourPlayerMap());
+            var map = new MapQueryService(StaticMapDefinitions.Resolve(c.State.MapId));
             var player = c.State.FindPlayer(c.Node.PlayerId);
             if (player == null || string.IsNullOrEmpty(player.CityLocationId)) return EffectStepResult.Failed("invalid_exploration_player");
             var service = new ExplorationService(map);
@@ -59,9 +60,37 @@ namespace YC.Domain.Effects
                 foreach (var pair in stage[4].Split(','))
                 { var parts = pair.Split('='); recipients.Add(Uri.UnescapeDataString(parts[0]), int.Parse(parts[1], CultureInfo.InvariantCulture)); }
             int paymentIndex = stage.Length > 5 ? int.Parse(stage[5], CultureInfo.InvariantCulture) : 0;
+            if (MainActionEffectExecutor.IsPlanning(c) && (stage[0] == "" || stage[0] == "target" || stage[0] == "routes"))
+            {
+                if (stage[0] == "")
+                {
+                    var targets = map.Map.Locations.Where(location => location.LocationId != player.CityLocationId &&
+                        LegalPaths(service, c, location.LocationId).Count > 0)
+                        .Select(location => "explore.target:" + location.LocationId).ToList();
+                    if (targets.Count == 0) return EffectStepResult.Failed("no_legal_exploration_target");
+                    return Wait(c, "target", "action.explore.target", targets);
+                }
+                string target = stage[0] == "target" && answer.StartsWith("explore.target:", StringComparison.Ordinal)
+                    ? answer.Substring(15) : stage.Length == 2 ? Uri.UnescapeDataString(stage[1]) : "";
+                var choices = LegalPaths(service, c, target);
+                if (choices.Count == 0) return EffectStepResult.Failed("exploration_target_no_longer_legal");
+                if (stage[0] == "routes")
+                {
+                    path = choices.Find(choice => PathCandidate(choice) == answer);
+                    if (path == null) return EffectStepResult.Failed("invalid_exploration_path");
+                }
+                else
+                {
+                    if (service.RequiresPathChoice(c.State, c.Node.PlayerId, choices))
+                        return Wait(c, "routes|" + Uri.EscapeDataString(target), "action.explore.path", choices.Select(PathCandidate).ToList());
+                    path = choices[0];
+                }
+                // Original exploration chooses the first legal destination slot automatically.
+                slot = service.ResolveInfluenceSlotId(c.State, c.Node.PlayerId, target, "");
+            }
             if (stage[0] == "path")
             {
-                if (answer == "choice.skip") return EffectStepResult.Completed();
+                if (answer == "choice.skip") return MainActionEffectExecutor.IsPlanning(c) ? EffectStepResult.Failed("player_cancelled") : EffectStepResult.Completed();
                 if (answer == "explore.back" && path.RouteIds.Count > 0)
                 { path.RouteIds.RemoveAt(path.RouteIds.Count - 1); path.LocationIds.RemoveAt(path.LocationIds.Count - 1); }
                 else if (answer.StartsWith("explore.step:", StringComparison.Ordinal))
@@ -90,7 +119,7 @@ namespace YC.Domain.Effects
                     }
                     options.Add("explore.back");
                 }
-                options.Add("choice.skip");
+                if (!MainActionEffectExecutor.IsPlanning(c)) options.Add("choice.skip");
                 return Wait(c, "path|" + Encode(path.LocationIds) + "|" + Encode(path.RouteIds), "effect.explore.choose_path", options);
             }
             string destination = path.LocationIds[path.LocationIds.Count - 1];
@@ -117,9 +146,40 @@ namespace YC.Domain.Effects
                 return Wait(c, "toll|" + Encode(path.LocationIds) + "|" + Encode(path.RouteIds) + "|" + Uri.EscapeDataString(slot) + "|" + saved + "|" + paymentIndex,
                     "effect.explore.choose_recipient", owners.Select(id => "explore.pay:" + id.ToString(CultureInfo.InvariantCulture)).ToList());
             }
+            if (MainActionEffectExecutor.IsPlanning(c) && stage[0] != "confirm")
+            {
+                string saved = string.Join(",", recipients.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => Uri.EscapeDataString(p.Key) + "=" + p.Value.ToString(CultureInfo.InvariantCulture)));
+                return Wait(c, "confirm|" + Encode(path.LocationIds) + "|" + Encode(path.RouteIds) + "|" + Uri.EscapeDataString(slot) + "|" + saved + "|" + payments.Count,
+                    "action.main.confirm", new List<string> { "action.confirm" });
+            }
+            if (stage[0] == "confirm" && answer != "action.confirm") return EffectStepResult.Failed("invalid_confirmation");
             return EffectStepResult.Continue("applied").AddChild(ExplorationEffectSpecFactory.Explore(c.Node.PlayerId, destination,
                 path, slot, recipients, true, false, c.Node.SourceId));
         }
+        private static List<MapPath> LegalPaths(ExplorationService service, EffectExecutionContext c, string target)
+        {
+            if (string.IsNullOrEmpty(target)) return new List<MapPath>();
+            try
+            {
+                return service.FindDefaultPathChoices(c.State, c.Node.PlayerId, target)
+                    .Where(path => service.CanExplore(c.State, c.Node.PlayerId, target, path, -1, "", null, null, false, true).IsValid).ToList();
+            }
+            catch (ArgumentException) { return new List<MapPath>(); }
+        }
+
+        public static string PathCandidate(MapPath path) => "explore.path:" + Encode(path.LocationIds) + ":" + Encode(path.RouteIds);
+
+        public static MapPath ReadPathCandidate(string candidate)
+        {
+            if (candidate == null || !candidate.StartsWith("explore.path:", StringComparison.Ordinal)) return null;
+            var parts = candidate.Substring(13).Split(':');
+            if (parts.Length != 2) return null;
+            var path = new MapPath();
+            path.LocationIds.AddRange(Decode(parts[0]));
+            path.RouteIds.AddRange(Decode(parts[1]));
+            return path;
+        }
+
         private static List<string> Steps(MapQueryService map, MapPath path)
         {
             var result = new List<string>();

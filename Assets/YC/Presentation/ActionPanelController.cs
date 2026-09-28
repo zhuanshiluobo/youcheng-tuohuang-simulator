@@ -17,6 +17,11 @@ namespace YC.Presentation
     {
         private readonly ActionPanelView view;
         private readonly CardVisualCatalog cardVisualCatalog;
+        private Action confirmCoverAction;
+        private Action cancelCoverAction;
+        private string previewCoverCardId = string.Empty;
+        private bool awaitingCoverConfirmation;
+        private CharacterCardPanelViewModel characterModel;
         private Action cardPrimaryAction;
         private Action cardSecondaryAction;
         private Action openCharacterCardAction;
@@ -39,7 +44,7 @@ namespace YC.Presentation
             Action onBuild)
         {
             this.view = view;
-            YC.PlayerJourney.PlayerAutomationId.Attach(view.PanelObject, "character.cover_slot");
+            YC.PlayerJourney.PlayerAutomationId.Attach(view.CharacterCoverRegion != null ? view.CharacterCoverRegion.gameObject : view.PanelObject, "character.cover_slot");
             YC.PlayerJourney.PlayerAutomationId.Attach(view.DeployButton.gameObject, "action.deploy");
             YC.PlayerJourney.PlayerAutomationId.Attach(view.DispatchButton.gameObject, "action.dispatch");
             YC.PlayerJourney.PlayerAutomationId.Attach(view.ExploreButton.gameObject, "action.explore");
@@ -62,6 +67,21 @@ namespace YC.Presentation
             if (view.BuildButton != null) BindButton(view.BuildButton, onBuild);
             BindButton(view.EndRoundButton, onEndRound);
             BindButton(view.CardPrimaryButton, InvokeCardPrimaryAction);
+            if (view.CharacterCoverConfirmButton != null)
+                BindButton(view.CharacterCoverConfirmButton, () => confirmCoverAction?.Invoke());
+            if (view.CharacterCoverRegion != null)
+            {
+                BindButton(view.CharacterCoverCancelButton, () => cancelCoverAction?.Invoke());
+                BindButton(view.CharacterStrategyButton, InvokeCardPrimaryAction);
+                BindButton(view.CharacterTacticButton, InvokeCardSecondaryAction);
+                BindButton(view.CharacterFinishButton, () => handleCharacterFlip?.Invoke());
+                BindButton(view.CharacterPreviewButton, () => openCharacterCardAction?.Invoke());
+                YC.PlayerJourney.PlayerAutomationId.Attach(view.CharacterStrategyButton.gameObject, "action.character.strategy");
+                YC.PlayerJourney.PlayerAutomationId.Attach(view.CharacterTacticButton.gameObject, "action.character.tactic");
+                YC.PlayerJourney.PlayerAutomationId.Attach(view.CharacterCoverConfirmButton.gameObject, "character.cover.confirm");
+                YC.PlayerJourney.PlayerAutomationId.Attach(view.CharacterCoverCancelButton.gameObject, "character.cover.cancel");
+                YC.PlayerJourney.PlayerAutomationId.Attach(view.CharacterFinishButton.gameObject, "character.use.finish");
+            }
             BindButton(view.CardSecondaryButton, InvokeCardSecondaryAction);
             BindButton(view.CardImageButton, InvokeCardImageAction);
             BindButton(view.FlipButton, Flip);
@@ -71,7 +91,8 @@ namespace YC.Presentation
         public bool IsReady => view != null;
         public ActionPanelFace CurrentFace => currentFace;
         public RectTransform CharacterCoverDropTarget =>
-            view == null || view.CardImage == null ? null : view.CardImage.rectTransform;
+            view == null ? null : view.CharacterCoverPreview != null
+                ? view.CharacterCoverPreview.rectTransform : view.CardImage.rectTransform;
 
         public static ActionPanelController Bind(
             ActionPanelView view,
@@ -106,6 +127,16 @@ namespace YC.Presentation
                 onMoveCity,
                 onEndRound,
                 onBuild);
+        }
+
+        public void ConfigureSpecialAction(Action action)
+        {
+            if (view.SpecialButton != null) BindButton(view.SpecialButton, action);
+        }
+
+        public void SetSpecialActionAvailable(bool available)
+        {
+            if (view.SpecialButton != null) SetButtonInteractable(view.SpecialButton, available);
         }
 
         public void SetHeader(string currentPlayer, string phase)
@@ -181,7 +212,6 @@ namespace YC.Presentation
 
         public void ShowHintFace()
         {
-            ConfigureHintContainerLayout();
             view.CardImage.texture = view.HintCardTexture;
             view.CardImage.color = Color.white;
             view.CardImageButton.interactable = true;
@@ -197,13 +227,21 @@ namespace YC.Presentation
 
         public void ShowCharacterCard(CharacterCardPanelViewModel viewModel)
         {
+            if (viewModel == null || string.IsNullOrEmpty(viewModel.CoveredCardId) ||
+                characterModel == null || characterModel.CoveredCardId != viewModel.CoveredCardId)
+                ClearCharacterRevealState();
+            characterModel = viewModel;
+            if (view.CharacterCoverRegion != null)
+            {
+                RenderCharacterRegion();
+                return;
+            }
             if (viewModel == null)
             {
                 ShowMainFace();
                 return;
             }
 
-            ConfigureCharacterContainerLayout();
             if (viewModel.UsedCharacterThisRound && string.IsNullOrEmpty(viewModel.CoveredCardId))
             {
                 ClearCharacterRevealState();
@@ -286,9 +324,16 @@ namespace YC.Presentation
             ConfigureCharacterCoverFace(cardId, true, confirm, cancel);
         }
 
+        public bool IsPointerOverCharacterCoverRegion(Vector2 screenPosition)
+        {
+            return IsPointerNearPanel(screenPosition);
+        }
+
         public bool IsPointerNearPanel(Vector2 screenPosition, float padding = 70f)
         {
-            var rect = view.PanelObject.GetComponent<RectTransform>();
+            // 保留旧版命中算法及容差，仅将目标替换为现在的盖放区域。
+            var rect = view.CharacterCoverRegion != null
+                ? view.CharacterCoverRegion : view.PanelObject.GetComponent<RectTransform>();
             var corners = new Vector3[4];
             rect.GetWorldCorners(corners);
             var min = RectTransformUtility.WorldToScreenPoint(null, corners[0]);
@@ -307,7 +352,15 @@ namespace YC.Presentation
             Action confirm,
             Action cancel)
         {
-            ConfigureCharacterContainerLayout();
+            if (view.CharacterCoverRegion != null)
+            {
+                previewCoverCardId = cardId;
+                awaitingCoverConfirmation = awaitingConfirmation;
+                confirmCoverAction = confirm;
+                cancelCoverAction = cancel;
+                RenderCharacterRegion();
+                return;
+            }
             view.CardImage.texture = cardVisualCatalog.GetCharacterFront(cardId);
             view.CardImage.color = Color.white;
             view.CardImageButton.interactable = false;
@@ -350,44 +403,54 @@ namespace YC.Presentation
         private void SetFace(ActionPanelFace face)
         {
             currentFace = face;
-            view.MainFaceObject.SetActive(face == ActionPanelFace.Main);
-            view.CardFaceObject.SetActive(face != ActionPanelFace.Main);
+            var separateCover = face == ActionPanelFace.CharacterCover && view.CharacterCoverRegion != null;
+            view.MainFaceObject.SetActive(face == ActionPanelFace.Main || separateCover);
+            view.CardFaceObject.SetActive(face != ActionPanelFace.Main && !separateCover);
             view.FlipButton.gameObject.SetActive(true);
             view.FlipButton.transform.SetAsLastSibling();
         }
 
-        private void ConfigureHintContainerLayout()
+        public void ClearCharacterCoverPreview()
         {
-            Stretch(view.CardImageContainer);
-            Stretch(view.CardImage.rectTransform);
-            view.CardImageContainerBackground.color = Color.clear;
+            previewCoverCardId = string.Empty;
+            awaitingCoverConfirmation = false;
+            confirmCoverAction = null;
+            cancelCoverAction = null;
+            if (view.CharacterCoverRegion != null) RenderCharacterRegion();
+            else ShowMainFace();
         }
 
-        private void ConfigureCharacterContainerLayout()
+        private void RenderCharacterRegion()
         {
-            var layoutProfile = view.LayoutProfile;
-            layoutProfile.CharacterContainerLayout.ApplyTo(view.CardImageContainer);
-            StretchWithOffsets(
-                view.CardImage.rectTransform,
-                layoutProfile.CardImageOffsetMin,
-                layoutProfile.CardImageOffsetMax);
-            view.CardImageContainerBackground.color = UiTheme.ScrollBackground;
-        }
-
-        private static void Stretch(RectTransform rect)
-        {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-        }
-
-        private static void StretchWithOffsets(RectTransform rect, Vector2 offsetMin, Vector2 offsetMax)
-        {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = offsetMin;
-            rect.offsetMax = offsetMax;
+            var previewing = !string.IsNullOrEmpty(previewCoverCardId);
+            var hasCard = characterModel != null && !string.IsNullOrEmpty(characterModel.CoveredCardId);
+            currentCharacterCardId = hasCard ? characterModel.CoveredCardId : string.Empty;
+            var revealed = hasCard && revealedCharacterCardId == currentCharacterCardId;
+            view.CharacterCoverPreview.texture = previewing
+                ? cardVisualCatalog.GetCharacterFront(previewCoverCardId)
+                : hasCard ? revealed
+                    ? cardVisualCatalog.GetCharacterFront(currentCharacterCardId)
+                    : cardVisualCatalog.GetCharacterBack(characterModel.CoveredCardBackColor) : null;
+            view.CharacterCoverPreview.gameObject.SetActive(previewing || hasCard);
+            view.CharacterCoveredBack.gameObject.SetActive(false);
+            view.CharacterEmptyState.SetActive(!previewing && !hasCard);
+            view.CharacterPreviewButton.interactable = hasCard && !previewing && openCharacterCardAction != null;
+            view.CharacterCoverConfirmButton.gameObject.SetActive(previewing && awaitingCoverConfirmation);
+            view.CharacterCoverCancelButton.gameObject.SetActive(previewing && awaitingCoverConfirmation);
+            view.CharacterCoverConfirmButton.interactable = confirmCoverAction != null;
+            view.CharacterCoverCancelButton.interactable = cancelCoverAction != null;
+            view.CharacterStrategyButton.gameObject.SetActive(!previewing && hasCard);
+            view.CharacterTacticButton.gameObject.SetActive(!previewing && hasCard);
+            view.CharacterStrategyButton.interactable = !previewing && hasCard && characterModel.CanUseStrategy;
+            view.CharacterTacticButton.interactable = !previewing && hasCard && characterModel.CanUseTactic;
+            var second = !previewing && hasCard && characterModel.IsSecondEffectDecision;
+            view.CharacterFinishButton.gameObject.SetActive(second);
+            view.CharacterFinishButton.interactable = second;
+            view.CharacterRegionHint.text = previewing
+                ? awaitingCoverConfirmation ? view.CoverPendingHint : view.CoverHoverHint
+                : second ? view.CharacterSecondHint
+                : hasCard && characterModel.CanUse ? view.CharacterReadyHint
+                : characterModel == null ? string.Empty : characterModel.InteractionStatus;
         }
 
         private void InvokeCardPrimaryAction()
@@ -404,7 +467,7 @@ namespace YC.Presentation
 
         private void RevealCharacterCard()
         {
-            if (currentFace != ActionPanelFace.Character ||
+            if ((view.CharacterCoverRegion == null && currentFace != ActionPanelFace.Character) ||
                 string.IsNullOrEmpty(currentCharacterCardId))
             {
                 return;
@@ -417,6 +480,11 @@ namespace YC.Presentation
             }
 
             revealedCharacterCardId = currentCharacterCardId;
+            if (view.CharacterCoverRegion != null)
+            {
+                RenderCharacterRegion();
+                return;
+            }
             view.CardImage.texture = frontTexture;
             view.CardHintText.text = "角色牌已翻开；正在结算所选效果";
         }

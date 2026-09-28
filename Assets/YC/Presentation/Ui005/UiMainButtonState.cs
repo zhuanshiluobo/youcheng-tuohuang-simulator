@@ -10,6 +10,8 @@ namespace YC.Presentation
         IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler,
         ISelectHandler, IDeselectHandler
     {
+        [Tooltip("主动启用后才使用脚本状态皮肤；默认保留 Image、Text 和 Button 的检查器设置。")]
+        [SerializeField] private bool useStateVisuals;
         [SerializeField] private Image face;
         [SerializeField] private Image icon;
         [SerializeField] private Text label;
@@ -33,21 +35,37 @@ namespace YC.Presentation
         private bool focused;
         private bool pointerDown;
         private bool pending;
+        private bool appearanceCaptured;
+        private Sprite authoredFace;
+        private Sprite authoredIcon;
+        private Color authoredInk;
+        private int appliedState = -1;
 
         public bool IsSelected => selected;
 
         private void Awake()
         {
             button = GetComponent<Button>();
-            button.transition = Selectable.Transition.None;
-            button.targetGraphic = face;
+            if (useStateVisuals)
+            {
+                button.transition = Selectable.Transition.None;
+                button.targetGraphic = face;
+            }
             if (icon != null) icon.raycastTarget = false;
             if (label != null) label.raycastTarget = false;
             Refresh();
         }
 
         private void OnEnable() { Refresh(); }
-        private void OnDisable() { hovered = focused = pointerDown = false; }
+        private void OnDisable()
+        {
+            hovered = focused = pointerDown = false;
+            if (appearanceCaptured)
+            {
+                RestoreAppearance();
+                appliedState = -1;
+            }
+        }
         private void LateUpdate() { Refresh(); }
 
         public void SetSelected(bool value) { selected = value; Refresh(); }
@@ -79,32 +97,51 @@ namespace YC.Presentation
         public void OnSelect(BaseEventData data) { focused = true; Refresh(); }
         public void OnDeselect(BaseEventData data) { focused = false; Refresh(); }
 
+        private void RestoreAppearance()
+        {
+            if (face != null) face.sprite = authoredFace;
+            if (icon != null) icon.sprite = authoredIcon;
+            if (label != null) label.color = authoredInk;
+        }
+
         public void Refresh()
         {
-            if (face == null) return;
+            if (!useStateVisuals || face == null) return;
             if (button == null) button = GetComponent<Button>();
+            if (!appearanceCaptured)
+            {
+                // 普通外观来自预制体，不使用脚本默认皮肤覆盖手工配置。
+                authoredFace = face.sprite;
+                authoredIcon = icon != null ? icon.sprite : null;
+                authoredInk = label != null ? label.color : Color.white;
+                appearanceCaptured = true;
+            }
             var unavailable = pending || button == null || !button.IsInteractable();
             var highlighted = hovered || focused;
             var useSelected = selected && selectedFace != null;
-            face.sprite = unavailable ? disabled : pointerDown ? pressed :
+            var state = unavailable ? 1 : pointerDown ? 2 :
+                useSelected && highlighted ? 3 : useSelected ? 4 : highlighted ? 5 : 0;
+            if (state == appliedState) return;
+            // 普通状态下的检查器调整也作为下一次交互结束后的基准。
+            if (appliedState == 0)
+            {
+                authoredFace = face.sprite;
+                authoredIcon = icon != null ? icon.sprite : null;
+                authoredInk = label != null ? label.color : Color.white;
+            }
+            appliedState = state;
+            RestoreAppearance();
+            var stateFace = unavailable ? disabled : pointerDown ? pressed :
                 useSelected && highlighted && selectedHover != null ? selectedHover :
-                useSelected ? selectedFace : highlighted ? hover : normal;
-            face.type = Image.Type.Sliced;
-            face.color = Color.white;
-            face.raycastTarget = true;
-            var ink = unavailable ? mutedInk : useSelected || darkNormalInk ? darkInk : lightInk;
+                useSelected ? selectedFace : highlighted ? hover : null;
+            if (stateFace != null) face.sprite = stateFace;
             if (icon != null)
             {
-                icon.sprite = unavailable ? mutedIcon : useSelected || darkNormalInk ? darkIcon : lightIcon;
-                icon.color = Color.white;
-                icon.preserveAspect = true;
-                icon.raycastTarget = false;
+                var stateIcon = unavailable ? mutedIcon : useSelected ? darkIcon : null;
+                if (stateIcon != null) icon.sprite = stateIcon;
             }
-            if (label != null)
-            {
-                label.color = ink;
-                label.raycastTarget = false;
-            }
+            if (label != null && (unavailable || useSelected))
+                label.color = unavailable ? mutedInk : darkInk;
         }
     }
 }

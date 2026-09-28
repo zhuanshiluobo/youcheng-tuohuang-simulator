@@ -226,7 +226,7 @@ namespace YC.Presentation.Editor
             }
             foreach (var name in new[] { "Brand Mark", "Round Plaque", "Current Action Flag",
                          "Current Action Icon", "Red Zone Plaque", "Red Zone Icon", "Fold Icon",
-                         "Settings Icon", "Resolution Summary Slot", "Resolution Slot Frame",
+                         "Settings Icon",
                          "Undo Icon" })
             {
                 var target = FindChild(frame.transform, name);
@@ -239,7 +239,7 @@ namespace YC.Presentation.Editor
             }
             foreach (var name in new[] { "Opponent Seat 1", "Opponent Seat 2", "Opponent Seat 3",
                          "City Region", "Map Region", "Self Summary Region", "Entrepreneurs Region",
-                         "Hand Region", "Cooperation Region", "Discard Region", "Face Down Region",
+                         "Cooperation Region", "Discard Region", "Face Down Region",
                          "Action Tabs", "Action Region" })
             {
                 var target = FindChild(surface, name);
@@ -248,6 +248,30 @@ namespace YC.Presentation.Editor
                     reason = "缺少主界面区域：" + name;
                     return false;
                 }
+            }
+            // 结算区允许由资产作者放在 HUD 内的任意区域，不约束父节点或位置。
+            foreach (var name in new[] { "Resolution Summary Slot", "Resolution Slot Frame" })
+            {
+                var target = FindChild(hud.transform, name);
+                var image = target == null ? null : target.GetComponent<Image>();
+                if (image == null || image.sprite == null || !target.gameObject.activeInHierarchy)
+                {
+                    reason = "结算区显示引用尚未就绪：" + name;
+                    return false;
+                }
+            }
+            var hand = hud.CharacterHandPanel;
+            if (hand == null || !hand.gameObject.activeInHierarchy ||
+                !hand.TryValidateConfiguration(out reason))
+            {
+                if (string.IsNullOrEmpty(reason)) reason = "手牌面板引用尚未就绪";
+                return false;
+            }
+            var cards = hand.View.HandCardsRoot.GetComponentsInChildren<CharacterHandCardView>();
+            if (cards.Length != hand.OrderedHand.Count)
+            {
+                reason = "实际手牌数量与当前手牌数据不一致";
+                return false;
             }
             var city = FindChild(surface, "City Board Artwork");
             var cityImage = city == null ? null : city.GetComponent<RawImage>();

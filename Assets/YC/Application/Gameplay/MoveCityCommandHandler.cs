@@ -138,6 +138,10 @@ namespace YC.Application.Gameplay
 
         private CommandResult HandleEffectMove(GameState state, GameCommand command)
         {
+            if (command != null && string.IsNullOrEmpty(command.TargetId))
+                return MainActionEffectSubmission.Begin(state, command, effectRegistry,
+                    MainActionSelectionEffectExecutor.Create(command.PlayerId, MainActionSelectionEffectExecutor.Move));
+
             if (state == null || command == null || string.IsNullOrEmpty(command.TargetId))
             {
                 return Invalid(CommandErrorCode.InvalidTarget, "城市移动必须提交稳定的目标地块 ID。");
@@ -149,33 +153,12 @@ namespace YC.Application.Gameplay
                 return Invalid(CommandErrorCode.InvalidTarget, "城市移动候选 ID 无效。");
             }
 
-            var executor = new EffectTreeExecutor(state, effectRegistry);
-            string nodeId;
-            var moveSpec = CityMoveEffectSpecFactory.Move(
-                command.PlayerId,
-                targetLocationId,
-                false,
-                true,
-                command.CommandId);
-            if (!executor.TryCreatePlayerActionEffect(
-                    command.PlayerId,
-                    moveSpec,
-                    string.Empty,
-                    command.CommandId,
-                    out nodeId))
-            {
-                return Invalid(CommandErrorCode.InvalidTarget, executor.LastDiagnostic);
-            }
+            var validation = cityMovementService.CanMoveCityEffect(state, command.PlayerId, targetLocationId, false);
+            if (!validation.IsValid) return CommandResult.Invalid(validation);
 
-            EffectRunReport report = executor.RunUntilQuiescent();
-            if (report.Faulted)
-            {
-                return Invalid(CommandErrorCode.InvalidTarget, "城市移动 Effect 无法继续：" + report.FaultCode);
-            }
-
-            return CommandResult.SuccessResult(
-                new List<GameEvent>(),
-                report.WaitingForInput ? "城市移动已提交，等待事件牌选择。" : "城市移动已完成。");
+            return MainActionEffectSubmission.Begin(state, command, effectRegistry,
+                MainActionSelectionEffectExecutor.ConfirmSelection(command.PlayerId,
+                    CityMoveEffectSpecFactory.Move(command.PlayerId, targetLocationId, false, false, command.CommandId)));
         }
 
         private static string ResolveSubmittedTargetLocationId(string submittedTargetId)

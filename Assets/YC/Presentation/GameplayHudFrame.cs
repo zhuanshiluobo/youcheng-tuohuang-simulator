@@ -14,6 +14,16 @@ namespace YC.Presentation
     {
         private enum LayoutMode { Wide, Standard, Compact }
 
+        [Header("可选的代码布局（默认关闭，保留场景和预制体编辑）")]
+        [Tooltip("仅主动启用时，才按旧设计尺寸重排常驻栏和内容区。普通运行不覆盖手动布局。")]
+        [SerializeField] private bool useResponsiveLayout;
+        [Tooltip("不启用自动布局时，选择短摘要；默认只显示长摘要，避免两套内容重叠。")]
+        [SerializeField] private bool showShortSummary;
+        [SerializeField] private string roundTotalFormat = "/ {0} 回合";
+        [SerializeField] private string redZoneOpenRoundFormat = "第 {0} 回合起";
+        [SerializeField] private Color completedRoundColor = new Color(.75f, .54f, .13f, 1f);
+        [SerializeField] private Color upcomingRoundColor = new Color(.67f, .64f, .56f, .7f);
+
         [SerializeField] private Canvas barCanvas;
         [SerializeField] private RectTransform safeArea;
         [SerializeField] private RectTransform topBar;
@@ -53,7 +63,6 @@ namespace YC.Presentation
         [SerializeField] private string redZoneOpenText = "红区已开放";
         [SerializeField] private string localTurnText = "轮到你行动";
         [SerializeField] private string waitingTurnText = "等待其他玩家";
-        [SerializeField] private string scoreSuffix = " 分";
         [SerializeField] private string foldVisibleText = "收起";
         [SerializeField] private string foldSuspendedText = "展开";
         [SerializeField] private string foldUnavailableText = "无待处理结算";
@@ -148,13 +157,6 @@ namespace YC.Presentation
                 reason = "常驻栏或内容区的预制体引用不完整。";
                 return false;
             }
-            if (barCanvas.sortingOrder != GameplayUiLayers.PersistentBars ||
-                !endActionButton.transform.IsChildOf(bottomBar) ||
-                topBar.parent != safeArea || bottomBar.parent != safeArea)
-            {
-                reason = "常驻栏层级或结束行动入口不在预期位置。";
-                return false;
-            }
             reason = string.Empty;
             return true;
         }
@@ -203,8 +205,27 @@ namespace YC.Presentation
             else SetRequest(projection.InteractionId, projection.StateRevision);
         }
 
+        private System.Func<bool> canCancelMainAction;
+        private System.Action cancelMainAction;
+
+        public void BindMainActionCancellation(System.Func<bool> canCancel, System.Action cancel)
+        {
+            canCancelMainAction = canCancel;
+            cancelMainAction = cancel;
+            if (undoButton == null) return;
+            undoButton.onClick.RemoveListener(CancelMainAction);
+            undoButton.onClick.AddListener(CancelMainAction);
+            undoButton.interactable = canCancelMainAction != null && canCancelMainAction();
+        }
+
+        private void CancelMainAction()
+        {
+            if (canCancelMainAction != null && canCancelMainAction()) cancelMainAction?.Invoke();
+        }
+
         private void Update()
         {
+            if (undoButton != null) undoButton.interactable = canCancelMainAction != null && canCancelMainAction();
             if (barCanvas != null && (lastScreenWidth != Screen.width || lastScreenHeight != Screen.height ||
                 lastSafeArea != Screen.safeArea || lastScaleFactor != barCanvas.scaleFactor ||
                 (mainSurface != null && lastSurfaceSize != mainSurface.rect.size) ||
@@ -216,7 +237,7 @@ namespace YC.Presentation
         {
             if (state == null || action == null) return;
             if (roundNumberText != null) roundNumberText.text = state.Round.ToString();
-            if (roundTotalText != null) roundTotalText.text = "/ " + state.MaxRounds + " 回合";
+            if (roundTotalText != null) roundTotalText.text = string.Format(roundTotalFormat, state.MaxRounds);
             if (phaseText != null) phaseText.text = GetPhaseText(state.Phase);
             if (turnTagText != null) turnTagText.text =
                 action.IsWaitingForOtherPlayers ? waitingTurnText : localTurnText;
@@ -227,11 +248,7 @@ namespace YC.Presentation
                     var tick = roundTicks[i];
                     if (tick == null) continue;
                     tick.gameObject.SetActive(i < state.MaxRounds);
-                    tick.color = i < state.Round
-                        ? new Color(.75f, .54f, .13f, 1f)
-                        : new Color(.67f, .64f, .56f, .7f);
-                    tick.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
-                        i == state.Round - 1 ? 4f : 2f);
+                    tick.color = i < state.Round ? completedRoundColor : upcomingRoundColor;
                 }
             }
             var summary = action.CanEndAction ? action.StatusText : endUnavailableReason;
@@ -245,13 +262,13 @@ namespace YC.Presentation
                 var openRound = RedZoneAccessRule.GetOpenRound(map, state.Players.Count);
                 redZoneText.text = state.Round >= openRound ? redZoneOpenText : redZoneClosedText;
                 if (redZoneOpenRoundText != null)
-                    redZoneOpenRoundText.text = "第 " + openRound + " 回合起";
+                    redZoneOpenRoundText.text = string.Format(redZoneOpenRoundFormat, openRound);
             }
             if (endActionButton != null) endActionButton.interactable = action.CanEndAction;
             var localPlayer = state.Players.Find(player => player.Color == action.LocalPlayerColor);
             if (selfNameText != null)
                 selfNameText.text = localPlayer == null ? string.Empty :
-                    localPlayer.Name + "  " + localPlayer.Score + scoreSuffix;
+                    localPlayer.Name ?? string.Empty;
             if (localPlayer != null && resourceValueTexts != null && resourceValueTexts.Length == 5)
             {
                 var resources = localPlayer.Resources;
@@ -434,6 +451,20 @@ namespace YC.Presentation
 
         private void ApplyLayout(bool force)
         {
+            if (!useResponsiveLayout)
+            {
+                if (longSummary != null) longSummary.SetActive(!showShortSummary);
+                if (shortSummary != null) shortSummary.SetActive(showShortSummary);
+                // 地图相机跟随实际编辑后的 UI 窗口，但不反向改写 UI。
+                lastScreenWidth = Screen.width;
+                lastScreenHeight = Screen.height;
+                lastSafeArea = Screen.safeArea;
+                lastScaleFactor = barCanvas == null ? -1f : barCanvas.scaleFactor;
+                lastContentScaleFactor = contentCanvas == null ? -1f : contentCanvas.scaleFactor;
+                lastSurfaceSize = mainSurface == null ? Vector2.zero : mainSurface.rect.size;
+                ApplyMapViewport();
+                return;
+            }
             if (barCanvas == null || safeArea == null || topBar == null || bottomBar == null || contentRect == null)
                 return;
             if (!force && lastScreenWidth == Screen.width && lastScreenHeight == Screen.height &&
@@ -625,6 +656,7 @@ namespace YC.Presentation
 
         private void ApplyExternalPageBounds(RectTransform page)
         {
+            if (!useResponsiveLayout) return;
             var pageCanvas = page.GetComponentInParent<Canvas>();
             var pageScale = pageCanvas == null ? 1f : Mathf.Max(0.01f, pageCanvas.scaleFactor);
             var barScale = barCanvas == null ? 1f : Mathf.Max(0.01f, barCanvas.scaleFactor);

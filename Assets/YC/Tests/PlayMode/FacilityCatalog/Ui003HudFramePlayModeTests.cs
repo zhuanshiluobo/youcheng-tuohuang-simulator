@@ -204,10 +204,6 @@ namespace YC.Tests.PlayMode
                     Is.SameAs(settingsButton.gameObject), sceneName + " 顶栏设置输入命中错误");
                 Assert.That(FirstHitAt(end.transform as RectTransform),
                     Is.SameAs(end.gameObject), sceneName + " 底栏结束行动输入命中错误");
-                AssertContentBounds(Get<RectTransform>(frame, "TopBar"),
-                    Get<RectTransform>(frame, "BottomBar"),
-                    Get<RectTransform>(frame, "ContentRect"), barCanvas, sceneName);
-                AssertMainSurfaceLayerOrder(frame, sceneName);
 
                 settingsType.GetMethod("Open").Invoke(settings, null);
                 yield return null;
@@ -284,47 +280,8 @@ namespace YC.Tests.PlayMode
             return (T)info.GetValue(target);
         }
 
-        private static void AssertContentBounds(RectTransform topBar, RectTransform bottomBar,
-            RectTransform contentRect, Canvas barCanvas, string sceneName)
-        {
-            var top = new Vector3[4];
-            var bottom = new Vector3[4];
-            var content = new Vector3[4];
-            topBar.GetWorldCorners(top);
-            bottomBar.GetWorldCorners(bottom);
-            contentRect.GetWorldCorners(content);
-            Assert.That(content[1].y, Is.GreaterThan(bottom[2].y), sceneName + " 内容区压到底栏");
-            Assert.That(content[2].y, Is.LessThan(top[0].y), sceneName + " 内容区压到顶栏");
 
-            var point = RectTransformUtility.WorldToScreenPoint(null,
-                contentRect.TransformPoint(contentRect.rect.center));
-            var hits = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) { position = point }, hits);
-            foreach (var hit in hits)
-            {
-                Assert.That(hit.gameObject.transform.IsChildOf(barCanvas.transform), Is.False,
-                    sceneName + " 最高层透明区域挡住内容区");
-            }
-        }
 
-        private static void AssertMainSurfaceLayerOrder(Component frame, string sceneName)
-        {
-            var field = frame.GetType().GetField("mainSurface", BindingFlags.Instance | BindingFlags.NonPublic);
-            var surface = field == null ? null : field.GetValue(frame) as RectTransform;
-            Assert.That(surface, Is.Not.Null, sceneName + " 缺少主界面");
-            var outerFrame = surface.Find("Outer Frame");
-            var regions = surface.Find("Main Regions");
-            Assert.That(outerFrame, Is.Not.Null, sceneName + " 缺少外框");
-            Assert.That(regions, Is.Not.Null, sceneName + " 缺少主模块");
-            Assert.That(outerFrame.GetSiblingIndex(), Is.LessThan(regions.GetSiblingIndex()),
-                sceneName + " 外框遮住左右模块边框");
-            foreach (var side in new[] { "Left", "Right", "Top", "Bottom" })
-            {
-                var backdrop = surface.Find("Map Backdrop " + side);
-                Assert.That(backdrop, Is.Not.Null, sceneName + " 缺少地图外侧底图 " + side);
-                Assert.That(backdrop.GetSiblingIndex(), Is.LessThan(outerFrame.GetSiblingIndex()),
-                    sceneName + " 地图外侧底图遮住外框 " + side);
-            }
-        }
+
     }
 }

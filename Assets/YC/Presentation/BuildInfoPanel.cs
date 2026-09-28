@@ -186,7 +186,6 @@ namespace YC.Presentation
             for (var i = 0; i < view.CityBoardSlots.Length; i++)
             {
                 var slot = view.CityBoardSlots[i];
-                CityBoardSlotLayout.Apply(slot.Root, cardBoardVisualLayout, i);
                 slot.DropTarget.Configure(i);
                 cityBoardSlotBindings.Add(new CityBoardSlotBinding
                 {

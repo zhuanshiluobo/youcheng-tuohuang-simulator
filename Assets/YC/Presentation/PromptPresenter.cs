@@ -15,6 +15,8 @@ namespace YC.Presentation
         private const float VisibleTopInset = 128f;
         private const float HiddenRightOffset = PanelWidth + 24f;
 
+        private readonly bool useRuntimeLayout;
+        private readonly float visibleX;
         private readonly Text promptText;
         private readonly RectTransform panelTransform;
         private readonly CanvasGroup promptCanvasGroup;
@@ -25,6 +27,8 @@ namespace YC.Presentation
 
         private PromptPresenter(GameplayPromptView view)
         {
+            useRuntimeLayout = view.UseRuntimeLayout;
+            visibleX = view.PanelTransform.anchoredPosition.x;
             Canvas = view.Canvas;
             promptText = view.PromptText;
             panelTransform = view.PanelTransform;
@@ -61,7 +65,7 @@ namespace YC.Presentation
             if (promptText != null)
             {
                 promptText.text = message;
-                ResizePanelToText();
+                if (useRuntimeLayout) ResizePanelToText();
             }
 
             if (promptCanvasGroup != null)
@@ -96,7 +100,7 @@ namespace YC.Presentation
                 return;
             }
 
-            if (Mathf.Approximately(targetX, GetVisibleX()) &&
+            if (targetAlpha > 0f &&
                 hideScheduled &&
                 !keepVisible &&
                 Time.unscaledTime >= hideAt)
@@ -111,12 +115,15 @@ namespace YC.Presentation
                 hideScheduled = false;
             }
 
-            var currentPosition = panelTransform.anchoredPosition;
-            currentPosition.x = Mathf.MoveTowards(
-                currentPosition.x,
-                targetX,
-                SlideSpeed * Time.unscaledDeltaTime);
-            panelTransform.anchoredPosition = currentPosition;
+            if (useRuntimeLayout)
+            {
+                var currentPosition = panelTransform.anchoredPosition;
+                currentPosition.x = Mathf.MoveTowards(
+                    currentPosition.x,
+                    targetX,
+                    SlideSpeed * Time.unscaledDeltaTime);
+                panelTransform.anchoredPosition = currentPosition;
+            }
 
             var fadeDuration = Mathf.Max(0.01f, FadeSeconds);
             promptCanvasGroup.alpha = Mathf.MoveTowards(
@@ -124,10 +131,10 @@ namespace YC.Presentation
                 targetAlpha,
                 Time.unscaledDeltaTime / fadeDuration);
 
-            if (Mathf.Approximately(targetX, GetVisibleX()) &&
+            if (targetAlpha > 0f &&
                 !hideScheduled &&
                 !keepVisible &&
-                Mathf.Abs(panelTransform.anchoredPosition.x - targetX) <= 0.1f)
+                (!useRuntimeLayout || Mathf.Abs(panelTransform.anchoredPosition.x - targetX) <= 0.1f))
             {
                 hideAt = Time.unscaledTime + VisibleSeconds;
                 hideScheduled = true;
@@ -141,9 +148,9 @@ namespace YC.Presentation
             hideScheduled = false;
         }
 
-        private static float GetVisibleX()
+        private float GetVisibleX()
         {
-            return 0f;
+            return visibleX;
         }
 
         private static float GetVisibleY()
@@ -151,9 +158,9 @@ namespace YC.Presentation
             return -VisibleTopInset;
         }
 
-        private static float GetHiddenX()
+        private float GetHiddenX()
         {
-            return HiddenRightOffset;
+            return visibleX + HiddenRightOffset;
         }
     }
 }

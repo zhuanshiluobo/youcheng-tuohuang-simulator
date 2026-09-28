@@ -10,6 +10,7 @@ namespace YC.Presentation
         [SerializeField] private UiFontRole role;
         [SerializeField] private FontStyle style = FontStyle.Normal;
         [SerializeField] private float baselineOffset;
+        [SerializeField, Tooltip("开启后按语义字体配置覆盖 Text；默认保留预制体手动设置。")] private bool applyRoleAtRuntime;
         private Text label;
 
         public UiFontRole Role => role;
@@ -17,19 +18,19 @@ namespace YC.Presentation
 
         private void Awake()
         {
-            ApplyRole();
+            if (applyRoleAtRuntime) ApplyRole();
         }
 
         private void OnEnable()
         {
-            ApplyRole();
+            if (applyRoleAtRuntime) ApplyRole();
         }
 
         public void SetValue(string value)
         {
             if (label == null) label = GetComponent<Text>();
             label.text = value ?? string.Empty;
-            ApplyRole();
+            if (applyRoleAtRuntime) ApplyRole();
         }
 
         public void ApplyRole()

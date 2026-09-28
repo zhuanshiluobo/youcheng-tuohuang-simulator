@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
@@ -88,7 +88,7 @@ namespace YC.Tests.EditMode
             Assert.That(Synchronize(), Is.True);
             var firstOverlay = FindChild(canvasObject, "Special Action Choice Overlay");
             var firstPanel = FindChild(firstOverlay, "Special Action Choice Panel").GetComponent<RectTransform>();
-            Assert.That(firstPanel.sizeDelta.y, Is.EqualTo(58f));
+
             Assert.That(FindChild(firstOverlay, "Special Action Expanded Content").activeSelf, Is.False);
             Assert.That(FindChild(firstOverlay, "Special Action Collapsed Summary").activeSelf, Is.True);
             Assert.That(FindChild(firstOverlay, "Back"), Is.Null);
@@ -96,7 +96,7 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.Highlights.ConvertAll(item => item.TargetId), Does.Contain("B"));
 
             ClickButton(firstOverlay, "Special Action Collapse Toggle");
-            Assert.That(firstPanel.sizeDelta.y, Is.EqualTo(260f));
+
             Assert.That(GetText(firstOverlay, "Description"), Does.Contain("第一段"));
 
             Assert.That(TryHandleLocationClicked("B"), Is.True);

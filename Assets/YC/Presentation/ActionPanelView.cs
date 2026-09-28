@@ -28,6 +28,40 @@ namespace YC.Presentation
         [SerializeField] private Text cardSecondaryLabel;
         [SerializeField] private Texture2D hintCardTexture;
 
+        [Header("盖放角色区")]
+        [SerializeField] private RectTransform characterCoverRegion;
+        [SerializeField] private RawImage characterCoverPreview;
+        [SerializeField] private Button characterCoverConfirmButton;
+
+        [SerializeField] private Button characterCoverCancelButton;
+        [SerializeField] private Button characterStrategyButton;
+        [SerializeField] private Button characterTacticButton;
+        [SerializeField] private Button characterFinishButton;
+        [SerializeField] private Button characterPreviewButton;
+        [SerializeField] private Text characterRegionHint;
+        [SerializeField] private RawImage characterCoveredBack;
+        [SerializeField] private GameObject characterEmptyState;
+        [SerializeField] private string coverHoverHint = "松手后确认盖放";
+        [SerializeField] private string coverPendingHint = "确认盖放此角色牌？";
+        [SerializeField] private string characterReadyHint = "选择策略或计谋";
+        [SerializeField] private string characterSecondHint = "继续效果或结束使用";
+        public Button CharacterCoverCancelButton => characterCoverCancelButton;
+        public Button CharacterStrategyButton => characterStrategyButton;
+        public Button CharacterTacticButton => characterTacticButton;
+        public Button CharacterFinishButton => characterFinishButton;
+        public Button CharacterPreviewButton => characterPreviewButton;
+        public Text CharacterRegionHint => characterRegionHint;
+        public RawImage CharacterCoveredBack => characterCoveredBack;
+        public GameObject CharacterEmptyState => characterEmptyState;
+        public string CoverHoverHint => coverHoverHint;
+        public string CoverPendingHint => coverPendingHint;
+        public string CharacterReadyHint => characterReadyHint;
+        public string CharacterSecondHint => characterSecondHint;
+
+        public RectTransform CharacterCoverRegion => characterCoverRegion;
+        public RawImage CharacterCoverPreview => characterCoverPreview;
+        public Button CharacterCoverConfirmButton => characterCoverConfirmButton;
+
         [Header("Main face")]
         [SerializeField] private Button flipButton;
         [SerializeField] private Text currentPlayerText;
@@ -85,6 +119,17 @@ namespace YC.Presentation
             if (layoutProfile == null || !layoutProfile.TryValidateConfiguration(out reason))
             {
                 reason = "行动面板缺少有效的显式布局 Profile：" + reason;
+                return false;
+            }
+
+            if (characterCoverRegion != null &&
+                (characterCoverPreview == null || characterCoverConfirmButton == null ||
+                 characterCoverCancelButton == null || characterStrategyButton == null ||
+                 characterTacticButton == null || characterFinishButton == null ||
+                 characterPreviewButton == null || characterRegionHint == null ||
+                 characterCoveredBack == null || characterEmptyState == null))
+            {
+                reason = "盖放角色区的预览或确认按钮引用不完整。";
                 return false;
             }
 

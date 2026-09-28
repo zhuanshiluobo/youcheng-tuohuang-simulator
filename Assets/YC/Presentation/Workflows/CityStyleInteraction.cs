@@ -24,6 +24,7 @@ namespace YC.Presentation.Workflows
         private readonly Func<string> getUnavailableReason;
         private readonly Action<string> completeAction;
         private readonly Action restoreBuildInteraction;
+        private readonly Func<GameCommand, bool> submitMainActionIntent;
         private readonly CityStyleSelectionController selection =
             new CityStyleSelectionController();
         private readonly SpecialActionOptionQueryService specialActionOptionQuery;
@@ -64,8 +65,10 @@ namespace YC.Presentation.Workflows
             Func<bool> canStartMainAction,
             Func<string> getUnavailableReason,
             Action<string> completeAction,
-            Action restoreBuildInteraction)
+            Action restoreBuildInteraction,
+            Func<GameCommand, bool> submitMainActionIntent = null)
         {
+            this.submitMainActionIntent = submitMainActionIntent;
             this.context = context ?? throw new ArgumentNullException(nameof(context));
             this.commandGateway = commandGateway ??
                                   throw new ArgumentNullException(nameof(commandGateway));
@@ -205,15 +208,6 @@ namespace YC.Presentation.Workflows
                 return false;
             }
 
-            if (specialActionId == SpecialActionDatabase.CompositePowerSystem &&
-                (originiumAmount < 0 ||
-                 ironAmount < 0 ||
-                 originiumAmount + ironAmount != 3))
-            {
-                view.ShowPrompt("复合动力系统必须选择合计 3 份源岩或异铁作为支付。");
-                return false;
-            }
-
             var command = new GameCommand
             {
                 Kind = GameCommandKind.UseSpecialAction,
@@ -225,12 +219,10 @@ namespace YC.Presentation.Workflows
                 specialActionId;
             command.Parameters[UseSpecialActionCommandHandler.DeclarationMarkerIdParameter] =
                 declarationMarkerId;
-            if (specialActionId == SpecialActionDatabase.CompositePowerSystem)
+            if (submitMainActionIntent != null)
             {
-                command.Parameters[UseSpecialActionCommandHandler.OriginiumAmountParameter] =
-                    originiumAmount.ToString(CultureInfo.InvariantCulture);
-                command.Parameters[UseSpecialActionCommandHandler.IronAmountParameter] =
-                    ironAmount.ToString(CultureInfo.InvariantCulture);
+                flowCoordinator.ResetToChooseAction();
+                return submitMainActionIntent(command);
             }
 
             var outcome = commandGateway.Submit(
@@ -241,7 +233,7 @@ namespace YC.Presentation.Workflows
                 {
                     OnAppliedLocally = result =>
                     {
-                        completeAction("特殊行动");
+                        flowCoordinator.ResetToChooseAction();
                         view.ClearHighlights();
                         view.RefreshFromState();
                         view.RefreshInformation();

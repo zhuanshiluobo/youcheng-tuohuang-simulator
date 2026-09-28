@@ -49,6 +49,10 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(guard);
             }
 
+            if (string.IsNullOrEmpty(command.SourceId) && string.IsNullOrEmpty(command.TargetId))
+                return MainActionEffectSubmission.Begin(state, command, effectRegistry,
+                    MainActionSelectionEffectExecutor.Create(command.PlayerId, MainActionSelectionEffectExecutor.Dispatch));
+
             if (command.Parameters == null)
             {
                 return CommandResult.Invalid(ValidationResult.Failure(
@@ -97,30 +101,8 @@ namespace YC.Application.Gameplay
             }
 
             var effect = InfluenceEffectSpecFactory.MoveInfluences(command.PlayerId, moveIds, InfluenceCauseKinds.MoveCity);
-            var executor = new EffectTreeExecutor(state, effectRegistry);
-            string effectId;
-            if (!executor.TryCreatePlayerActionEffect(
-                    command.PlayerId,
-                    effect,
-                    string.Empty,
-                    "command.dispatch_influence",
-                    out effectId))
-            {
-                return CommandResult.Invalid(ValidationResult.Failure(
-                    CommandErrorCode.WrongPhase, executor.LastDiagnostic));
-            }
-            executor.RunUntilQuiescent();
-            EffectNodeRuntimeState node = executor.GetNode(effectId);
-            if (node == null || node.Status != EffectNodeStatus.Completed)
-            {
-                return CommandResult.Invalid(InfluenceEffectFailureMapper.ToValidation(node));
-            }
-
-            roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
-
-            var movedCount = moves.Count;
-            var message = "玩家 " + command.PlayerId + " 已调度影响力 " + movedCount + " 次。";
-            return CommandResult.SuccessResult(new List<GameEvent>(), message);
+            return MainActionEffectSubmission.Begin(state, command, effectRegistry,
+                MainActionSelectionEffectExecutor.ConfirmSelection(command.PlayerId, effect));
         }
     }
 }

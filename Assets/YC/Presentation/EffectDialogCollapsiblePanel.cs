@@ -27,6 +27,7 @@ namespace YC.Presentation
         private bool collapsedOverlayRaycastTarget;
         private EffectDialogRectLayout collapsedToggleLayout;
         private EffectDialogRectLayout expandedToggleLayout;
+        private bool useRuntimeLayout;
         private bool configured;
         private bool collapsed;
         private bool clampToCanvasBounds;
@@ -74,6 +75,7 @@ namespace YC.Presentation
             expandedToggleLayout = spec.ExpandedToggleLayout;
             expandedOverlayColor = overlayImage == null ? Color.clear : overlayImage.color;
             expandedOverlayRaycastTarget = overlayImage != null && overlayImage.raycastTarget;
+            useRuntimeLayout = spec.UseRuntimeLayout;
             collapsed = spec.StartCollapsed;
             configured = panel != null;
             ApplyCollapseState();
@@ -152,11 +154,11 @@ namespace YC.Presentation
             {
                 toggleIcon.sprite = collapsed ? triangleDownSprite : triangleUpSprite;
             }
-            if (collapsed)
+            if (useRuntimeLayout && collapsed)
             {
                 collapsedToggleLayout.ApplyTo(toggleRect);
             }
-            else
+            else if (useRuntimeLayout)
             {
                 expandedToggleLayout.ApplyTo(toggleRect);
             }

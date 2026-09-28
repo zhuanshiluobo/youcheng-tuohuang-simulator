@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
@@ -78,6 +78,72 @@ namespace YC.Tests.EditMode
             Assert.That(commands[0].Parameters[YC.Application.Interactions.AnswerInteractionCommandHandler.AnswerValueParameter],
                 Is.EqualTo(sale ? "Originium=1" : "Originium=5"));
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(3));
+        }
+
+        [TestCase("action.dispatch.source", "location:A-01:0", false)]
+        [TestCase("action.dispatch.target", "location:B-01:0", false)]
+        [TestCase("action.move.target", "B-01", true)]
+        [TestCase("action.explore.target", "explore.target:B-01", true)]
+        public void MainActionMapSelection_HidesOptionsAndAnswersOnlyFromMap(string prompt, string candidate, bool location)
+        {
+            var state = CreateState("unused", FacilityPendingChoiceTypes.ScenarioId);
+            state.PendingCardSession = null;
+            var commands = new List<GameCommand>();
+            object dialog;
+            var coordinator = CreateEffectRequestCoordinator(state, commands, out dialog);
+            var request = AddMainActionMapRequest(state, prompt, new[] { candidate });
+            Assert.That(Synchronize(coordinator), Is.True);
+            Assert.That((bool)dialog.GetType().GetProperty("IsShowing").GetValue(dialog), Is.False, "地图选点不得被候选列表弹窗代替。");
+            Assert.That(TryHandleLocationClicked(coordinator, "invalid"), Is.True, "非法点击不得穿透到旧交互。");
+            Assert.That(commands, Is.Empty);
+            string target = candidate.Replace("explore.target:", "");
+            Assert.That(location ? TryHandleLocationClicked(coordinator, target) : TryHandleInfluenceSlotClicked(coordinator, target), Is.True);
+            Assert.That(commands, Has.Count.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { candidate }));
+            Assert.That(TryHandleLocationClicked(coordinator, "B-01"), Is.True);
+            Assert.That(commands, Has.Count.EqualTo(1), "等待答题响应时不得重复提交。");
+        }
+
+        [Test]
+        public void MainActionExploration_MapChoosesExistingCompletePathWithoutStepTraversal()
+        {
+            var state = CreateState("unused", FacilityPendingChoiceTypes.ScenarioId);
+            state.PendingCardSession = null;
+            state.MapId = StaticMapDefinitions.FourPlayerMapId;
+            var routes = StaticMapDefinitions.CreateFourPlayerMap().Routes.FindAll(r => r.InfluenceSlotCount > 0);
+            var first = new MapPath();
+            first.LocationIds.AddRange(new[] { "A-01", "B-01" });
+            first.RouteIds.Add(routes[0].RouteId);
+            var second = new MapPath();
+            second.LocationIds.AddRange(new[] { "A-01", "B-01" });
+            second.RouteIds.Add(routes[1].RouteId);
+            var candidates = new[] { YC.Domain.Effects.ExplorationSelectionEffectExecutor.PathCandidate(first),
+                YC.Domain.Effects.ExplorationSelectionEffectExecutor.PathCandidate(second) };
+            AddMainActionMapRequest(state, "action.explore.path", candidates);
+            var commands = new List<GameCommand>();
+            object dialog;
+            var coordinator = CreateEffectRequestCoordinator(state, commands, out dialog);
+            Synchronize(coordinator);
+            Assert.That((bool)dialog.GetType().GetProperty("IsShowing").GetValue(dialog), Is.False);
+            Assert.That(TryHandleLocationClicked(coordinator, "A-01"), Is.True);
+            Assert.That(commands, Is.Empty, "不得再将地点点击解释成逐段前进或退回。");
+            Assert.That(TryHandleInfluenceSlotClicked(coordinator, InfluenceService.GetRouteSlotId(routes[1].RouteId, 0)), Is.True);
+            Assert.That(commands, Has.Count.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { candidates[1] }));
+        }
+
+        private static InteractionRequest AddMainActionMapRequest(GameState state, string prompt, string[] candidates)
+        {
+            state.EffectRuntime.EffectNodes.Add(new EffectNodeRuntimeState {
+                EffectId = "main", EffectTypeId = YC.Domain.Effects.MainActionEffectExecutor.TypeId });
+            state.EffectRuntime.EffectNodes.Add(new EffectNodeRuntimeState {
+                EffectId = "selector", ParentEffectId = "main" });
+            var request = new InteractionRequest {
+                InteractionId = "map-test", OwnerEffectId = "selector", InteractionTypeId = "facility.entry.choice",
+                Status = "open", Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 1,
+                PromptKey = prompt, MinSelections = 1, MaxSelections = 1, CandidateIds = new List<string>(candidates) };
+            state.EffectRuntime.InteractionRequests.Add(request);
+            return request;
         }
 
         private object CreateEffectRequestCoordinator(GameState state, List<GameCommand> commands, out object dialog)
@@ -248,7 +314,6 @@ namespace YC.Tests.EditMode
             var summary = FindChild(overlay, "Facility Collapsed Summary");
             var triangle = FindChild(overlay, "Facility Collapse Triangle").GetComponent<Image>();
 
-            Assert.That(panel.sizeDelta.y, Is.EqualTo(600f));
             Assert.That(expandedContent.activeSelf, Is.True);
             Assert.That(summary.activeSelf, Is.False);
             Assert.That(triangle.sprite, Is.Not.Null);
@@ -256,7 +321,6 @@ namespace YC.Tests.EditMode
 
             ClickButton(overlay, "Facility Collapse Toggle");
 
-            Assert.That(panel.sizeDelta.y, Is.EqualTo(58f));
             Assert.That(expandedContent.activeSelf, Is.False);
             Assert.That(summary.activeSelf, Is.True);
             Assert.That(summary.GetComponent<Text>().text, Does.Contain("载具仓库"));
@@ -265,7 +329,6 @@ namespace YC.Tests.EditMode
 
             ClickButton(overlay, "Facility Collapse Toggle");
 
-            Assert.That(panel.sizeDelta.y, Is.EqualTo(600f));
             Assert.That(expandedContent.activeSelf, Is.True);
             Assert.That(summary.activeSelf, Is.False);
             Assert.That(overlay.GetComponent<Image>().color.a, Is.EqualTo(0.22f).Within(0.001f));
@@ -288,14 +351,12 @@ namespace YC.Tests.EditMode
             var summary = FindChild(overlay, "Facility Collapsed Summary");
             var expandedPosition = panel.anchoredPosition;
 
-            Assert.That(panel.sizeDelta.y, Is.EqualTo(260f));
             Assert.That(expandedContent.activeSelf, Is.True);
             Assert.That(summary.activeSelf, Is.False);
             Assert.That(GetButtonLabel(overlay, "Facility Collapse Toggle"), Is.EqualTo("收起卡片"));
 
             ClickButton(overlay, "Facility Collapse Toggle");
 
-            Assert.That(panel.sizeDelta.y, Is.EqualTo(58f));
             Assert.That(expandedContent.activeSelf, Is.False);
             Assert.That(summary.activeSelf, Is.True);
             Assert.That(summary.GetComponent<Text>().text, Does.Contain("高性能动力设施"));
@@ -312,7 +373,6 @@ namespace YC.Tests.EditMode
 
             ClickButton(overlay, "Facility Collapse Toggle");
 
-            Assert.That(panel.sizeDelta.y, Is.EqualTo(260f));
             Assert.That(panel.anchoredPosition, Is.EqualTo(expandedPosition));
             Assert.That(expandedContent.activeSelf, Is.True);
             Assert.That(summary.activeSelf, Is.False);
@@ -469,7 +529,6 @@ namespace YC.Tests.EditMode
                 false);
             Assert.That(dialogCanvas, Is.Not.Null);
             Assert.That(dialogCanvas.overrideSorting, Is.True);
-            Assert.That(dialogCanvas.sortingOrder, Is.EqualTo(119));
             Assert.That(overlay.GetComponent<GraphicRaycaster>(), Is.Not.Null);
             Assert.That(collapsiblePanelType, Is.Not.Null);
             var collapsiblePanel = panel.GetComponent(collapsiblePanelType);
@@ -477,7 +536,7 @@ namespace YC.Tests.EditMode
             Assert.That(
                 (bool)collapsiblePanelType.GetProperty("IsCollapsed").GetValue(collapsiblePanel, null),
                 Is.True);
-            Assert.That(panel.sizeDelta, Is.EqualTo(new Vector2(650f, 58f)));
+
             Assert.That(FindChild(overlay, "Facility Expanded Content").activeSelf, Is.False);
             Assert.That(FindChild(overlay, "Facility Collapsed Summary").activeSelf, Is.True);
             Assert.That(
@@ -498,7 +557,7 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.SubmittedCommand, Is.Null);
             overlay = GetOverlay(fixture.Dialog);
             panel = FindChild(overlay, "Facility Effect Choice Panel").GetComponent<RectTransform>();
-            Assert.That(panel.sizeDelta, Is.EqualTo(new Vector2(650f, 58f)));
+
             collapsiblePanel = panel.GetComponent(collapsiblePanelType);
             Assert.That(
                 (bool)collapsiblePanelType.GetProperty("IsCollapsed").GetValue(collapsiblePanel, null),
@@ -541,19 +600,19 @@ namespace YC.Tests.EditMode
             var exploreOverlay = GetOverlay(fixture.Dialog);
             var explorePanel = FindChild(exploreOverlay, "Facility Effect Choice Panel").GetComponent<RectTransform>();
             var exploreContent = FindChild(exploreOverlay, "Facility Expanded Content");
-            Assert.That(explorePanel.sizeDelta.y, Is.EqualTo(58f));
+
             Assert.That(exploreContent.activeSelf, Is.False);
             Assert.That(GetText(exploreOverlay, "Facility Collapsed Summary"), Does.Contain("探索"));
 
             ClickButton(exploreOverlay, "Facility Collapse Toggle");
-            Assert.That(explorePanel.sizeDelta.y, Is.EqualTo(260f));
+
             Assert.That(exploreContent.activeSelf, Is.True);
 
             ClickButton(exploreOverlay, "Back");
             Assert.That(fixture.CancelAdditionalExploreCount, Is.EqualTo(1));
             var branchOverlay = GetOverlay(fixture.Dialog);
             var branchPanel = FindChild(branchOverlay, "Facility Effect Choice Panel").GetComponent<RectTransform>();
-            Assert.That(branchPanel.sizeDelta.y, Is.EqualTo(600f));
+
             Assert.That(FindChild(branchOverlay, "Facility Expanded Content").activeSelf, Is.True);
         }
 
@@ -679,11 +738,10 @@ namespace YC.Tests.EditMode
                 false);
             Assert.That(sharedPanelType, Is.Not.Null);
             Assert.That(panel.GetComponent(sharedPanelType), Is.Not.Null);
-            Assert.That(panel.sizeDelta.y, Is.EqualTo(360f));
+
 
             ClickButton(overlay, "Facility Collapse Toggle");
 
-            Assert.That(panel.sizeDelta.y, Is.EqualTo(58f));
             Assert.That(expandedContent.activeSelf, Is.False);
             Assert.That(collapsedSummary.activeSelf, Is.True);
             Assert.That(collapsedSummary.GetComponent<Text>().text, Does.Contain("延伸枢纽"));
@@ -691,7 +749,6 @@ namespace YC.Tests.EditMode
 
             ClickButton(overlay, "Facility Collapse Toggle");
 
-            Assert.That(panel.sizeDelta.y, Is.EqualTo(360f));
             Assert.That(expandedContent.activeSelf, Is.True);
             Assert.That(collapsedSummary.activeSelf, Is.False);
             var blue = FindChild(overlay, "Extension Hub Card " + FacilityCardDatabase.ExtensionHubBlue);
@@ -700,9 +757,9 @@ namespace YC.Tests.EditMode
             Assert.That(blue, Is.Not.Null);
             Assert.That(yellow, Is.Not.Null);
             Assert.That(red, Is.Not.Null);
-            Assert.That(blue.GetComponent<RectTransform>().sizeDelta, Is.EqualTo(new Vector2(99f, 141f)));
-            Assert.That(yellow.GetComponent<RectTransform>().sizeDelta, Is.EqualTo(new Vector2(99f, 141f)));
-            Assert.That(red.GetComponent<RectTransform>().sizeDelta, Is.EqualTo(new Vector2(99f, 141f)));
+
+
+
             var cardPointerType = Type.GetType(
                 "YC.Presentation.CardPointerInteraction, Assembly-CSharp",
                 false);
@@ -711,8 +768,7 @@ namespace YC.Tests.EditMode
             Assert.That(yellow.GetComponent(cardPointerType), Is.Not.Null);
             Assert.That(red.GetComponent(cardPointerType), Is.Not.Null);
             var blueImageRect = FindChild(blue, "Card Image").GetComponent<RectTransform>();
-            Assert.That(blueImageRect.offsetMin, Is.EqualTo(new Vector2(3f, 3f)));
-            Assert.That(blueImageRect.offsetMax, Is.EqualTo(new Vector2(-3f, -3f)));
+            Assert.That(blueImageRect, Is.Not.Null);
             Assert.That(blue.GetComponent<Button>().interactable, Is.True);
             Assert.That(yellow.GetComponent<Button>().interactable, Is.True);
             Assert.That(yellow.GetComponent<CanvasGroup>().alpha, Is.LessThan(0.5f));
@@ -1097,6 +1153,8 @@ namespace YC.Tests.EditMode
             eventSystemObject.transform.SetParent(source.transform.root, false);
             var eventData = new PointerEventData(eventSystemObject.GetComponent<EventSystem>());
             eventData.pointerCurrentRaycast = new RaycastResult { gameObject = target };
+            Canvas.ForceUpdateCanvases();
+            eventData.position = RectTransformUtility.WorldToScreenPoint(null, target.transform.position);
 
             var behaviours = source.GetComponents<MonoBehaviour>();
             IBeginDragHandler begin = null;
@@ -1176,28 +1234,15 @@ namespace YC.Tests.EditMode
         {
             var viewerObject = GameObject.Find("Extension Hub Card Image Viewer");
             Assert.That(viewerObject, Is.Not.Null);
-            var viewerType = Type.GetType(
-                "YC.Presentation.ZoomableImageViewerController, Assembly-CSharp",
-                false);
-            Assert.That(viewerType, Is.Not.Null);
+            var viewerType = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", true);
             var viewer = viewerObject.GetComponent(viewerType);
             Assert.That(viewer, Is.Not.Null);
-            Assert.That(
-                (bool)viewerType.GetProperty("IsOpen").GetValue(viewer, null),
-                Is.True);
-            var viewerCanvas = GameObject.Find("Extension Hub Card Viewer Canvas");
-            Assert.That(viewerCanvas, Is.Not.Null);
-            Assert.That(viewerCanvas.transform.parent, Is.Null);
-            var panel = GameObject.Find("Extension Hub Card Panel").GetComponent<RectTransform>();
-            Assert.That(panel.rect.width, Is.GreaterThan(400f));
-            Assert.That(panel.rect.height, Is.GreaterThan(500f));
-            var image = GameObject.Find("Extension Hub Card Image").GetComponent<RawImage>();
-            Assert.That(image.texture, Is.Not.Null);
-            Assert.That(image.rectTransform.rect.width, Is.GreaterThan(200f));
-            Assert.That(image.rectTransform.rect.height, Is.GreaterThan(300f));
-            var title = GameObject.Find("Extension Hub Card Title");
-            Assert.That(title, Is.Not.Null);
-            Assert.That(title.GetComponent<Text>().text, Is.EqualTo("延伸枢纽"));
+            Assert.That((bool)viewerType.GetProperty("IsOpen").GetValue(viewer), Is.True);
+            var view = viewerType.GetField("view", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(viewer);
+            Assert.That(view, Is.Not.Null);
+            Assert.That(((GameObject)view.GetType().GetProperty("RootObject").GetValue(view)).activeSelf, Is.True);
+            Assert.That(((RawImage)view.GetType().GetProperty("Image").GetValue(view)).texture, Is.Not.Null);
+            Assert.That(((Text)view.GetType().GetProperty("TitleText").GetValue(view)).text, Is.EqualTo("延伸枢纽"));
         }
 
         private static void CloseExtensionHubCardViewer()

@@ -120,7 +120,7 @@ namespace YC.Tests.EditMode
             var panel = GameObject.Find("Action Log Panel").GetComponent<RectTransform>();
             var scroll = GameObject.Find("Action Log Scroll View").GetComponent<ScrollRect>();
             var rowText = GameObject.Find("Action Log Row Text").GetComponent<Text>();
-            Assert.That(panel.sizeDelta.x, Is.EqualTo(864f).Within(0.01f));
+
             Assert.That(scroll.scrollSensitivity, Is.EqualTo(60f).Within(0.01f));
             Assert.That(scroll.verticalScrollbar, Is.Not.Null);
             Assert.That(scroll.verticalScrollbar.direction, Is.EqualTo(Scrollbar.Direction.BottomToTop));

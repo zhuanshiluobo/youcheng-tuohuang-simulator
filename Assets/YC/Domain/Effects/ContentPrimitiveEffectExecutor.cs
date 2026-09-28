@@ -19,7 +19,7 @@ namespace YC.Domain.Effects
         public const string SelectInfluence = "effect.influence.select_action";
         public static void Register(EffectRegistry registry)
         {
-            FacilitySelectionEffectExecutor.Register(registry);
+            MainActionSelectionEffectExecutor.Register(registry);
             ExplorationSelectionEffectExecutor.Register(registry);
             if (!registry.TryGet(OverrideNextStartPlayer, out _)) registry.Register(new EffectRegistration(OverrideNextStartPlayer, SetNextStart, EffectExecutorKind.Atomic, "1.0.0"));
             Register(registry, SelectInfluence, InfluenceAction);

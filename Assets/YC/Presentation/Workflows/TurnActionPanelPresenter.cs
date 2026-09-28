@@ -22,6 +22,7 @@ namespace YC.Presentation.Workflows
         private readonly Func<string> getCompletedActionName;
         private readonly Func<bool> canEndCurrentAction;
         private readonly Func<bool> isSelectingMoveTarget;
+        private readonly Func<bool> isMainActionSubmissionPending;
 
         public TurnActionPanelPresenter(
             IWritableGameplayContext context,
@@ -33,8 +34,10 @@ namespace YC.Presentation.Workflows
             BuildInteraction buildInteraction,
             Func<string> getCompletedActionName,
             Func<bool> canEndCurrentAction,
-            Func<bool> isSelectingMoveTarget)
+            Func<bool> isSelectingMoveTarget,
+            Func<bool> isMainActionSubmissionPending = null)
         {
+            this.isMainActionSubmissionPending = isMainActionSubmissionPending ?? (() => false);
             this.context = context ?? throw new ArgumentNullException(nameof(context));
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.flowCoordinator = flowCoordinator ??
@@ -73,7 +76,7 @@ namespace YC.Presentation.Workflows
             var isActionPhase = state.Phase == GamePhase.ActionRound1 ||
                                 state.Phase == GamePhase.ActionRound2;
             var isLocalTurn = state.CurrentPlayerId == context.LocalPlayerId;
-            var hasPendingChoice = state.HasPendingChoice();
+            var hasPendingChoice = state.HasPendingChoice() || isMainActionSubmissionPending();
             var mainActionDone = player != null &&
                                  !MainActionBudgetService.HasAvailableMainAction(
                                      state,
@@ -96,6 +99,7 @@ namespace YC.Presentation.Workflows
             var canOpenUnfinishedCharacterUse = isActionPhase &&
                                                 isLocalTurn &&
                                                 !hasLocalBuildDraft &&
+                                                !isMainActionSubmissionPending() &&
                                                 hasUnfinishedCharacterUse;
             var displayedMode = ResolveDisplayedMode(
                 state,
@@ -168,7 +172,7 @@ namespace YC.Presentation.Workflows
                 return "尚未轮到本机玩家行动。";
             }
 
-            if (state.HasPendingChoice())
+            if (state.HasPendingChoice() || isMainActionSubmissionPending())
             {
                 return "请先处理待选择项。";
             }
@@ -196,7 +200,7 @@ namespace YC.Presentation.Workflows
                 return "当前没有可结束的回合。";
             }
 
-            if (state.HasPendingChoice())
+            if (state.HasPendingChoice() || isMainActionSubmissionPending())
             {
                 return "请先处理待选择项。";
             }
@@ -264,7 +268,7 @@ namespace YC.Presentation.Workflows
                 return false;
             }
 
-            if (state.HasPendingChoice())
+            if (state.HasPendingChoice() || isMainActionSubmissionPending())
             {
                 view.ShowPrompt("请先处理待选择项。");
                 return false;
@@ -359,7 +363,7 @@ namespace YC.Presentation.Workflows
                 return player != null &&
                        state.CurrentPlayerId == context.LocalPlayerId &&
                        string.IsNullOrEmpty(player.CoveredCharacterCardId)
-                    ? "拖动手牌到右侧面板盖放"
+                    ? "拖动手牌到盖放角色区"
                     : "入场阶段：等待当前玩家盖放角色卡";
             }
 

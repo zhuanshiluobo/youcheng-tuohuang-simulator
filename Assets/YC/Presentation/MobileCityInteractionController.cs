@@ -29,6 +29,8 @@ namespace YC.Presentation
         [SerializeField] private ResourceCounterBoard resourceCounterBoard;
         [SerializeField] private BuildInfoPanel buildInfoPanel;
 
+        [SerializeField] private MainActionInteractionText mainActionInteractionText = new MainActionInteractionText();
+
         private GameSession session;
         private MapQueryService mapQuery;
         private InfluenceService influenceService;
@@ -239,7 +241,7 @@ namespace YC.Presentation
                 highlights => workflowView.SetHighlights(highlights),
                 () => workflowView.ClearHighlights(),
                 SubmitPendingEffectCommand,
-                SetPrompt);
+                SetPrompt, mainActionInteractionText);
             specialActionInteraction = new SpecialActionInteractionUiCoordinator(
                 () => session == null ? null : session.State,
                 () => localPlayerId,
@@ -411,6 +413,7 @@ namespace YC.Presentation
             {
                 showCharacterUseOptions = false;
             }
+            characterCardCoverDrag?.Synchronize(characterView);
             characterHandPanel?.Render(localPlayerId, characterView);
             RefreshBuildInfoPanel();
         }
@@ -432,6 +435,42 @@ namespace YC.Presentation
             }
         }
 
+        private string pendingEffectCommandId = string.Empty;
+
+        private YC.Domain.Interactions.InteractionRequestProjection GetCancelableMainActionRequest()
+        {
+            if (!string.IsNullOrEmpty(pendingEffectCommandId) || session?.State?.EffectRuntime == null) return null;
+            var runtime = session.State.EffectRuntime;
+            foreach (var request in runtime.InteractionRequests)
+            {
+                if (request.Status != "open" || !request.AllowDecline || request.AnsweringPlayerId != localPlayerId) continue;
+                var owner = runtime.EffectNodes.Find(n => n.EffectId == request.OwnerEffectId);
+                if (owner == null || owner.ChildEffectIds.Count != 0) continue;
+                var root = runtime.EffectNodes.Find(n => n.EffectId == owner.ParentEffectId);
+                if (root == null || root.EffectTypeId != YC.Domain.Effects.MainActionEffectExecutor.TypeId) continue;
+                var projection = YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, localPlayerId);
+                if (projection.VisibleToViewer) return projection;
+            }
+            return null;
+        }
+
+        public bool CanCancelMainAction => GetCancelableMainActionRequest() != null;
+
+        public bool TryCancelMainAction()
+        {
+            var request = GetCancelableMainActionRequest();
+            if (request == null) return false;
+            SubmitPendingEffectCommand(YC.Application.Interactions.EffectInteractionCommands.Answer(request, localPlayerId, null, true));
+            return true;
+        }
+
+        private void NotifyEffectCommandSettled(string commandId)
+        {
+            if (pendingEffectCommandId == commandId) pendingEffectCommandId = string.Empty;
+            turnActionPresenter?.NotifyCommandSettled(commandId);
+            interactionRouter?.NotifyCommandSettled(commandId);
+        }
+
         public bool TryHandleInteractionEscape()
         {
             if (interactionEscapeConsumedFrame == Time.frameCount)
@@ -439,6 +478,11 @@ namespace YC.Presentation
                 return true;
             }
 
+            if (!string.IsNullOrEmpty(pendingEffectCommandId) || TryCancelMainAction())
+            {
+                interactionEscapeConsumedFrame = Time.frameCount;
+                return true;
+            }
             if (characterHandPanel != null && characterHandPanel.TryHandleEscape())
             {
                 interactionEscapeConsumedFrame = Time.frameCount;
@@ -507,7 +551,7 @@ namespace YC.Presentation
                 localPlayerId,
                 this,
                 SynchronizeInteractionFromState,
-                SetPrompt, commandId => interactionRouter?.NotifyCommandSettled(commandId));
+                SetPrompt, commandId => NotifyEffectCommandSettled(commandId));
             commandSubmission.Initialize();
         }
 
@@ -687,6 +731,7 @@ namespace YC.Presentation
         private bool BindGameplayInteractionHud()
         {
             uiCanvas = gameplayInteractionHud.Canvas;
+            gameplayInteractionHud.Frame.BindMainActionCancellation(() => CanCancelMainAction, () => TryCancelMainAction());
             promptPresenter = PromptPresenter.Bind(gameplayInteractionHud.PromptView);
             actionPanel = ActionPanelController.Bind(
                 gameplayInteractionHud.ActionPanelView,
@@ -696,6 +741,7 @@ namespace YC.Presentation
                 BeginDeployAction, BeginDispatchAction, BeginExploreAction, BeginMoveAction,
                 EndCurrentAction, OnBuildActionClicked);
             if (promptPresenter == null || actionPanel == null) { Debug.LogError("[MobileCityInteractionController] 交互 HUD 行为绑定失败。", this); return false; }
+            actionPanel.ConfigureSpecialAction(() => turnActionPresenter.BeginSpecialAction());
             characterHandPanel = gameplayInteractionHud.CharacterHandPanel;
             characterCardCoverDrag = new CharacterCardCoverDragCoordinator(
                 () => actionPanel,
@@ -732,11 +778,13 @@ namespace YC.Presentation
                 : characterCardPresenter.BuildView(session.State, localPlayerId);
             var actionViewModel = turnActionPresenter.BuildActionPanelViewModel();
             actionPanel.Render(actionViewModel);
+            var specialOptions = new SpecialActionOptionQueryService(mapQuery, influenceService, movementService, new SpecialActionLifecycleService()).Query(session.State, localPlayerId);
+            actionPanel.SetSpecialActionAvailable(specialOptions.Options.Exists(option => option.CanUse));
             gameplayInteractionHud.Frame.Refresh(session.State, actionViewModel,
                 turnActionPresenter.ActionPanelPresenter.GetUnavailableEndActionPrompt());
             gameplayInteractionHud.MainModules.Render(session.State, session.View, localPlayerId,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog);
-            if (actionPanel.CurrentFace == ActionPanelFace.Character && characterView != null) actionPanel.ShowCharacterCard(characterView);
+            if (characterView != null) actionPanel.ShowCharacterCard(characterView);
             if (characterView != null && characterView.IsSecondEffectDecision)
             {
                 workflowView.ClearHighlights();
@@ -744,8 +792,8 @@ namespace YC.Presentation
                 actionPanel.ConfigureCharacterActions(OnCharacterStrategyClicked, OnCharacterTacticClicked);
                 actionPanel.ShowCharacterCard(characterView);
                 SetPrompt(IsSecondEffectUnavailable()
-                    ? "当前角色牌效果没有合法的地图目标，请点击翻转完成结算。"
-                    : "第一个角色牌效果已结算，可继续使用第二个效果；点击翻转则结束角色卡使用。");
+                    ? "当前角色牌效果没有合法的地图目标，请点击盖放区的结束使用完成结算。"
+                    : "第一个角色牌效果已结算，可继续使用第二个效果；点击盖放区的结束使用则结束角色卡使用。");
                 return;
             }
 
@@ -815,30 +863,40 @@ namespace YC.Presentation
 
         private void SubmitPendingEffectCommand(GameCommand command)
         {
-            var commandId = command == null ? string.Empty : command.CommandId;
-            var outcome = commandGateway.Submit(
-                command,
-                new SubmitCallbacks(
-                    SetPrompt,
-                    "你的选择已提交，正在同步结算结果，无需主机代选。")
-                {
-                    BeforeRejectedPrompt = _ => interactionRouter?.NotifyCommandSettled(commandId),
-                    AfterRejectedPrompt = _ =>
-                    {
-                        specialActionInteraction?.Synchronize();
-                        facilityInteraction?.Synchronize();
-                        SynchronizeEventCardInteraction();
-                    },
-                    OnAppliedLocally = _ =>
-                    {
-                        interactionRouter?.NotifyCommandSettled(commandId);
-                        SynchronizeInteractionFromState();
-                    }
-                });
-            if (outcome.Kind == SubmitOutcomeKind.NoResult)
+            if (command == null || !string.IsNullOrEmpty(pendingEffectCommandId)) return;
+            var commandId = command.CommandId;
+            pendingEffectCommandId = commandId;
+            try
             {
-                interactionRouter?.NotifyCommandSettled(commandId);
-                SynchronizeEventCardInteraction();
+                var outcome = commandGateway.Submit(
+                    command,
+                    new SubmitCallbacks(
+                        SetPrompt,
+                        "你的选择已提交，正在同步结算结果，无需主机代选。")
+                    {
+                        BeforeRejectedPrompt = _ => NotifyEffectCommandSettled(commandId),
+                        AfterRejectedPrompt = _ =>
+                        {
+                            specialActionInteraction?.Synchronize();
+                            facilityInteraction?.Synchronize();
+                            SynchronizeEventCardInteraction();
+                        },
+                        OnAppliedLocally = _ =>
+                        {
+                            NotifyEffectCommandSettled(commandId);
+                            SynchronizeInteractionFromState();
+                        }
+                    });
+                if (outcome.Kind == SubmitOutcomeKind.NoResult)
+                {
+                    NotifyEffectCommandSettled(commandId);
+                    SynchronizeEventCardInteraction();
+                }
+            }
+            catch
+            {
+                NotifyEffectCommandSettled(commandId);
+                throw;
             }
         }
 
@@ -854,7 +912,11 @@ namespace YC.Presentation
                     },
                     remotePrompt)
                 {
-                    BeforeRejectedPrompt = _ => characterSettlementInProgress = false,
+                    BeforeRejectedPrompt = _ =>
+                    {
+                        characterSettlementInProgress = false;
+                        characterHandPanel?.ResolvePendingCover(false);
+                    },
                     OnAppliedLocally = _ => CompleteLocalCharacterCardCommand(
                         command,
                         localSuccessPrompt)
@@ -880,8 +942,8 @@ namespace YC.Presentation
             if (pending.ChoiceType == CharacterPendingChoiceTypes.SecondEffectDecision)
             {
                 SetPrompt(IsSecondEffectUnavailable()
-                    ? "当前角色牌效果没有合法的地图目标，请点击翻转完成结算。"
-                    : "第一个角色牌效果已完成，可继续使用第二个效果；点击翻转则结束角色卡使用。");
+                    ? "当前角色牌效果没有合法的地图目标，请点击盖放区的结束使用完成结算。"
+                    : "第一个角色牌效果已完成，可继续使用第二个效果；点击盖放区的结束使用则结束角色卡使用。");
             }
             else if (pending.ChoiceType == CharacterPendingChoiceTypes.SecondEffectExecution)
             {

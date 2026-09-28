@@ -105,7 +105,7 @@ namespace YC.PlayerJourney
                 if (text.Contains("胜者") && text.Contains("总分") && text.Contains("游戏结束"))
                 { result.finalScoringVisible = true; result.finalScores = text; }
 
-                GameObject target = buttons.FirstOrDefault(b => Label(b).Contains("确认盖放"))?.gameObject;
+                GameObject target = buttons.FirstOrDefault(b => (Label(b).Contains("确认盖放") || Label(b) == "盖放"))?.gameObject;
                 var characterTemplate = result.characterScenario == "cannot-tactic" ? "cannot" :
                     result.characterScenario == "elysium-strategy" ? "elysium" : "liskarm";
                 var hand = markers.Where(m => m.Id.StartsWith("character.hand.")).OrderByDescending(m => m.Id.Contains(characterTemplate)).FirstOrDefault();
@@ -150,6 +150,7 @@ namespace YC.PlayerJourney
                     if (target != null) { usedCharacter = true; result.characterActivations++; }
                     else target = markers.FirstOrDefault(m => m.Id == "action.character")?.gameObject;
                 }
+                if (target == null) target = markers.FirstOrDefault(m => m.Id == "character.use.finish")?.gameObject;
                 if (target == null) target = markers.FirstOrDefault(m => m.Id == "action.end")?.gameObject;
                 if (target == null) target = markers.FirstOrDefault(m => m.Id == "action.deploy")?.gameObject;
                 if (target == null) target = buttons.FirstOrDefault(b => Label(b).Contains("采集") && !Excluded(Label(b)))?.gameObject;

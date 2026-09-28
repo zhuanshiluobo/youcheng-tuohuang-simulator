@@ -19,6 +19,7 @@ namespace YC.Presentation.Workflows
         private readonly InfluenceActionPresenter influenceActionPresenter;
         private readonly ExplorationEventPresenter explorationEventPresenter;
         private readonly LocalPlayerResolver localPlayerResolver = new LocalPlayerResolver();
+        private string pendingMainActionCommandId = string.Empty;
         private string completedMainActionName = string.Empty;
         public TurnActionPresenter(
             IWritableGameplayContext context,
@@ -69,7 +70,8 @@ namespace YC.Presentation.Workflows
                 () => completedMainActionName,
                 CanEndCurrentAction,
                 () => this.flowCoordinator.IsActive(this) &&
-                      MoveInteraction.IsSelectingMoveTarget);
+                      MoveInteraction.IsSelectingMoveTarget,
+                () => !string.IsNullOrEmpty(pendingMainActionCommandId));
             CityStyleInteraction = new CityStyleInteraction(
                 this.context,
                 commandGateway,
@@ -80,7 +82,8 @@ namespace YC.Presentation.Workflows
                 CanStartMainAction,
                 GetQuickActionUnavailableReason,
                 CompleteAction,
-                BuildInteraction.RestoreAfterCityStylePreviewClosed);
+                BuildInteraction.RestoreAfterCityStylePreviewClosed,
+                SubmitMainActionIntent);
         }
         public InteractionMode Mode
         {
@@ -132,7 +135,8 @@ namespace YC.Presentation.Workflows
         public bool CanEndCurrentAction()
         {
             var state = context.CurrentState;
-            if (state == null || state.HasPendingChoice())
+            if (state == null || state.HasPendingChoice() ||
+                !string.IsNullOrEmpty(pendingMainActionCommandId))
             {
                 return false;
             }
@@ -201,26 +205,13 @@ namespace YC.Presentation.Workflows
 
         public IReadOnlyList<WorkflowHighlight> BuildInitialPlacementHighlights() { return MoveInteraction.BuildInitialPlacementHighlights(); }
 
-        public void BeginMoveAction() { MoveInteraction.Begin(); }
+        public void BeginMoveAction() { BeginMainAction(GameCommandKind.MoveCity); }
 
         public void MoveCity(string locationId) { MoveInteraction.Move(locationId); }
 
         public void RestoreMovePresentation() { MoveInteraction.RestorePresentation(); }
 
-        public void BeginExploreAction()
-        {
-            if (flowCoordinator.IsActive(explorationEventPresenter))
-            {
-                CancelActiveMainActionSelection();
-                return;
-            }
-
-            if (CanStartMainAction())
-            {
-                explorationEventPresenter.PrepareNormalExplore();
-                flowCoordinator.Activate(explorationEventPresenter);
-            }
-        }
+        public void BeginExploreAction() { BeginMainAction(GameCommandKind.ExploreLocation); }
 
         public void BeginAdditionalExploreAction(PendingCardSessionState pending, string optionId)
         {
@@ -236,51 +227,17 @@ namespace YC.Presentation.Workflows
             }
         }
 
-        public void BeginDeployAction()
+        public void BeginDeployAction() { BeginMainAction(GameCommandKind.DeployInfluence); }
+
+        public void BeginDispatchAction() { BeginMainAction(GameCommandKind.DispatchInfluence); }
+
+        public void BeginSpecialAction() { BeginMainAction(GameCommandKind.UseSpecialAction); }
+
+        private void BeginMainAction(GameCommandKind kind)
         {
-            if (flowCoordinator.IsActive(influenceActionPresenter) &&
-                influenceActionPresenter.IsSelectingDeployTarget)
-            {
-                CancelActiveMainActionSelection();
-                return;
-            }
-
-            if (CanStartMainAction())
-            {
-                flowCoordinator.ResetToChooseAction();
-                commandGateway.Submit(new GameCommand
-                {
-                    Kind = GameCommandKind.DeployInfluence,
-                    PlayerId = context.LocalPlayerId
-                }, new SubmitCallbacks(view.ShowPrompt, CommandGateway.BuildWaitingForHostPrompt("部署行动"))
-                {
-                    OnAppliedLocally = result => view.RefreshFromState()
-                });
-            }
-        }
-
-        public void BeginDispatchAction()
-        {
-            if (flowCoordinator.IsActive(influenceActionPresenter) &&
-                (influenceActionPresenter.IsSelectingDispatchSource ||
-                 influenceActionPresenter.IsSelectingDispatchTarget ||
-                 influenceActionPresenter.IsChoosingDispatchContinuation))
-            {
-                CancelActiveMainActionSelection();
-                return;
-            }
-
-            if (!influenceActionPresenter.HasPendingFirstMove && !CanStartMainAction())
-            {
-                return;
-            }
-
-            if (!flowCoordinator.IsActive(influenceActionPresenter))
-            {
-                flowCoordinator.Activate(influenceActionPresenter);
-            }
-
-            influenceActionPresenter.BeginDispatch();
+            if (!CanStartMainAction()) return;
+            flowCoordinator.ResetToChooseAction();
+            SubmitMainActionIntent(new GameCommand { Kind = kind, PlayerId = context.LocalPlayerId });
         }
 
         public void BeginResourceCollection()
@@ -296,18 +253,29 @@ namespace YC.Presentation.Workflows
             flowCoordinator.Activate(resourceCollectionPresenter);
         }
 
-        public void BeginBuildAction() { BuildInteraction.Begin(); }
+        public void BeginBuildAction() { BeginMainAction(GameCommandKind.BuildFacility); }
 
-        public void BeginBuildFacilityDrag(string facilityId) { BuildInteraction.BeginDrag(facilityId); }
+        private string draggedFacilityId = string.Empty;
+
+        public void BeginBuildFacilityDrag(string facilityId)
+        {
+            draggedFacilityId = CanStartMainAction() ? facilityId : string.Empty;
+        }
 
         public void DropBuildFacility(int cityBoardSlotIndex)
         {
-            BuildInteraction.Drop(cityBoardSlotIndex);
+            if (string.IsNullOrEmpty(draggedFacilityId) || !CanStartMainAction()) return;
+            var command = new GameCommand { Kind = GameCommandKind.BuildFacility, PlayerId = context.LocalPlayerId };
+            command.Parameters[BuildFacilityCommandHandler.FacilityIdParameter] = draggedFacilityId;
+            command.Parameters[BuildFacilityCommandHandler.CityBoardSlotIndexParameter] = cityBoardSlotIndex.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            draggedFacilityId = string.Empty;
+            flowCoordinator.ResetToChooseAction();
+            SubmitMainActionIntent(command);
         }
 
         public void RejectBuildFacilityDrop()
         {
-            BuildInteraction.RejectDrop();
+            draggedFacilityId = string.Empty;
         }
 
         public void BeginGhostBuildFacilityDrag()
@@ -374,7 +342,41 @@ namespace YC.Presentation.Workflows
 
         public ActionPanelViewModel BuildActionPanelViewModel() => ActionPanelPresenter.BuildViewModel();
 
-        private bool CanStartMainAction() => ActionPanelPresenter.CanStartMainAction();
+        public void NotifyCommandSettled(string commandId)
+        {
+            if (string.IsNullOrEmpty(commandId) || commandId != pendingMainActionCommandId) return;
+            pendingMainActionCommandId = string.Empty;
+            view.RefreshActionPanel();
+        }
+
+        private bool SubmitMainActionIntent(GameCommand command)
+        {
+            if (!string.IsNullOrEmpty(pendingMainActionCommandId)) return false;
+            pendingMainActionCommandId = command.CommandId;
+            view.RefreshActionPanel();
+            try
+            {
+                var outcome = commandGateway.Submit(command,
+                    new SubmitCallbacks(view.ShowPrompt, CommandGateway.BuildWaitingForHostPrompt("主要行动"))
+                    {
+                        BeforeRejectedPrompt = _ => NotifyCommandSettled(command.CommandId),
+                        OnAppliedLocally = _ =>
+                        {
+                            NotifyCommandSettled(command.CommandId);
+                            view.RefreshFromState();
+                        }
+                    });
+                return outcome.Kind == SubmitOutcomeKind.WaitingForHost ||
+                       outcome.Kind == SubmitOutcomeKind.AppliedLocally;
+            }
+            catch
+            {
+                NotifyCommandSettled(command.CommandId);
+                throw;
+            }
+        }
+
+        private bool CanStartMainAction() => string.IsNullOrEmpty(pendingMainActionCommandId) && ActionPanelPresenter.CanStartMainAction();
 
         private bool CanStartQuickAction() => ActionPanelPresenter.CanStartQuickAction();
 

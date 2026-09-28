@@ -113,9 +113,15 @@ namespace YC.Presentation
             var root = canvas == null ? null : canvas.rootCanvas;
             var camera = root == null || root.renderMode == RenderMode.ScreenSpaceOverlay
                 ? null : root.worldCamera;
-            return CityBoardSlotLayout.TryGetSlotIndex(
-                boardArtwork, eventData.position, camera, out var slotIndex)
-                ? slotIndex : -1;
+            var targets = boardArtwork.GetComponentsInChildren<CityBoardSlotDropTarget>();
+            for (var i = targets.Length - 1; i >= 0; i--)
+            {
+                var target = targets[i];
+                if (target.isActiveAndEnabled && RectTransformUtility.RectangleContainsScreenPoint(
+                        target.transform as RectTransform, eventData.position, camera))
+                    return target.SlotIndex;
+            }
+            return -1;
         }
 
         // Effect-card drags may originate in a page canvas above the legacy city board.
@@ -139,9 +145,9 @@ namespace YC.Presentation
                 var root = canvas == null ? null : canvas.rootCanvas;
                 var camera = root == null || root.renderMode == RenderMode.ScreenSpaceOverlay
                     ? null : root.worldCamera;
-                if (CityBoardSlotLayout.TryGetSlotIndex(
-                        artwork, eventData.position, camera, out var slotIndex) &&
-                    slotIndex == target.SlotIndex) return slotIndex;
+                if (RectTransformUtility.RectangleContainsScreenPoint(
+                        target.transform as RectTransform, eventData.position, camera))
+                    return target.SlotIndex;
             }
             return -1;
         }

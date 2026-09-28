@@ -36,6 +36,7 @@ namespace YC.Presentation
         public string CollapseLabel = "\u6536\u8d77\u5361\u7247";
         public string ExpandLabel = "\u5c55\u5f00\u5361\u7247";
         public bool StartCollapsed;
+        public bool UseRuntimeLayout;
         public bool ClampToCanvasBounds;
         public Color CollapsedOverlayColor = Color.clear;
         public bool CollapsedOverlayRaycastTarget;
@@ -197,10 +198,12 @@ namespace YC.Presentation
             }
 
             view.CollapsedSummaryText.text = summary ?? string.Empty;
-            view.CollapsedSummaryText.fontStyle = FontStyle.Bold;
-            view.CollapsedSummaryText.color = UiTheme.GoldText;
-            view.LayoutProfile.CollapsedSummaryLayout.ApplyTo(
-                view.CollapsedSummaryText.rectTransform);
+            if (view.UseRuntimeLayout)
+            {
+                view.CollapsedSummaryText.fontStyle = FontStyle.Bold;
+                view.CollapsedSummaryText.color = UiTheme.GoldText;
+                view.LayoutProfile.CollapsedSummaryLayout.ApplyTo(view.CollapsedSummaryText.rectTransform);
+            }
             view.CollapsedSummaryText.gameObject.SetActive(false);
             view.CollapseButton.gameObject.SetActive(true);
             if (view.DragHandle != null) view.DragHandle.enabled = false;
@@ -214,8 +217,9 @@ namespace YC.Presentation
                 ToggleRect = view.CollapseButton.GetComponent<RectTransform>(),
                 ToggleText = view.CollapseButtonText,
                 ToggleIcon = view.CollapseButtonIcon,
-                ExpandedSize = expandedSize,
+                ExpandedSize = view.UseRuntimeLayout ? expandedSize : view.Panel.sizeDelta,
                 StartCollapsed = startCollapsed,
+                UseRuntimeLayout = view.UseRuntimeLayout,
                 ClampToCanvasBounds = true
             });
             view.CollapseButton.onClick.RemoveAllListeners();

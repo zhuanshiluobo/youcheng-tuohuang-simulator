@@ -2,7 +2,7 @@
 
 《游城拓荒：铸基者》的 2D Unity 模拟器，面向基础版规则模拟与开发实践。项目将地图、卡牌、行动和计分规则转化为可运行的数字对局，已接入本地三人、四人热座及联机入口；正式三人图的开发验收进行中，Steam 三账号待验收。
 
-> **当前为 Beta 开发阶段，并非已完成发布验收的成品。** 标准四人地图与基础版流程保留，正式三人图已接入；三人模式开发验收进行中，Steam 三账号待验收，尚不能据此认定构建或全流程验收通过。本项目仅用于学习、研究和开发实践，不涉及商业用途。
+> **当前为 Alpha 开发阶段，并非已完成发布验收的成品。** 标准四人地图与基础版流程保留，正式三人图已接入；三人模式开发验收进行中，Steam 三账号待验收，尚不能据此认定构建或全流程验收通过。本项目仅用于学习、研究和开发实践，不涉及商业用途。
 
 2026-09-20：Lua Effect 树与主链已接入，部分角色/设施/城市样式仍在迁移，NMC-015 尚不可结案。本轮坎诺特、极境、雷蛇单机 Editor UI 八回合通过；这不代表新的 Player 构建或多人验收通过。详见[迁移审计](docs/设计/Lua新架构迁移结案.md)与[测试记录](docs/测试/2026-09-20_全代码分层审查与迁移跟踪.md)。
 
@@ -10,8 +10,8 @@
 
 | 项目 | 说明 |
 | --- | --- |
-| 项目版本 | `v0.4.2-beta` |
-| Unity 版本 | `2022.3.62f1c1` |
+| 项目版本 | `v0.5.0-alpha` |
+| Unity 版本 | `2022.3.62f2c1` |
 | 开发与验证平台 | Windows |
 | 本地模式 | 三人、四人热座入口，无需 Steam；三人开发验收进行中 |
 | Steam 联机 | Steam Lobby + Mirror + FizzySteamworks，Host 权威结算；历史多账号验收不覆盖本次三人模式，Steam 三账号待验收 |
@@ -22,7 +22,7 @@
 
 ### 1. 获取并打开工程
 
-准备 Git 和 Unity `2022.3.62f1c1`；如需生成 Windows 程序，还需安装对应的 Windows 构建支持模块。
+准备 Git 和 Unity `2022.3.62f2c1`；如需生成 Windows 程序，还需安装对应的 Windows 构建支持模块。
 
 ```powershell
 git clone https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator.git
@@ -118,7 +118,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\Run-EditModeTests.ps1
 
 ### Windows 构建约定
 
-- Release 目标目录：`Builds/v0.4.2-beta/`，主程序名 `tuohuang.exe`。
+- Release 目标目录：`Builds/v0.5.0-alpha/`，主程序名 `tuohuang.exe`。
 - Development 验证目录：`Builds/LocalhostDevelopment/`，不使用另一套版本号。
 - 场景列表以 `ProjectSettings/EditorBuildSettings.asset` 为准，开始场景为 `StartScene`。
 - 发布状态与待验收事项见[发布检查清单](docs/概览/发布检查清单.md)。
@@ -133,7 +133,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\Run-EditModeTests.ps1
 | --- | --- | --- |
 | 完整 Unity EditMode | 2026-09-20：1116/1116 通过，0 失败、0 跳过，802.23 秒 | `Logs/architecture-20260920-final3.xml`；Lua 内容迁移与发布验收尚未完成 |
 | 真实 Steam 多账号验收 | 已完成（用户确认） | 不代表其他人工验收项或 Beta Player 构建已完成 |
-| Windows Player 完整构建 | 保留日志中的成功记录为 2026-08-11 的 `Release030Alpha` | 历史构建，早于当前代码，不构成 `0.4.2-beta` 发布验收 |
+| Windows Player 完整构建 | 保留日志中的成功记录为 2026-08-11 的 `Release030Alpha` | 历史构建，早于当前代码，不构成 `0.5.0-alpha` 发布验收 |
 
 自动化测试通过不能替代 Player 构建、实际输入交互或真实 Steam 联机验收。
 

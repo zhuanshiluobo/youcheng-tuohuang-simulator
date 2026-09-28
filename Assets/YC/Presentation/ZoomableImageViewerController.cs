@@ -21,6 +21,10 @@ namespace YC.Presentation
         private static int escapeConsumedFrame = -1;
 
         [SerializeField] private ZoomableImageViewerView view;
+        [SerializeField, Tooltip("仅开启后按图片自动调整窗口大小和折叠按钮布局。")]
+        private bool useRuntimeLayout;
+        [SerializeField] private string expandCardText = "▼ 展开卡牌";
+        [SerializeField] private string collapseCardText = "▲ 收起卡牌";
 
         private Func<int, Texture2D> textureProvider;
         private string primaryActionText = string.Empty;
@@ -379,6 +383,7 @@ namespace YC.Presentation
 
         private void ApplyPanelSize(Texture texture)
         {
+            if (!useRuntimeLayout) return;
             Canvas.ForceUpdateCanvases();
             var root = view.PanelTransform.parent as RectTransform;
             var rootSize = root == null ? Vector2.zero : root.rect.size;
@@ -415,19 +420,19 @@ namespace YC.Presentation
             view.CollapseToggleButton.gameObject.SetActive(collapseEnabled);
 
             var toggleRect = view.CollapseToggleButton.GetComponent<RectTransform>();
-            if (collapseEnabled && collapsed)
+            if (useRuntimeLayout && collapseEnabled && collapsed)
             {
                 view.LayoutProfile.CollapsedToggleLayout.ApplyTo(toggleRect);
             }
-            else
+            else if (useRuntimeLayout)
             {
                 view.LayoutProfile.ExpandedToggleLayout.ApplyTo(toggleRect);
             }
 
-            view.CollapseToggleLabel.text = collapsed ? "▼ 展开卡牌" : "▲ 收起卡牌";
+            view.CollapseToggleLabel.text = collapsed ? expandCardText : collapseCardText;
             if (collapsed)
             {
-                var width = Mathf.Max(560f, expandedPanelSize.x);
+                var width = expandedPanelSize.x;
                 view.PanelTransform.sizeDelta = new Vector2(width, CollapsedPanelHeight);
                 view.PanelTransform.anchoredPosition = expandedPanelPosition +
                     new Vector2(0f, (expandedPanelSize.y - CollapsedPanelHeight) * 0.5f);

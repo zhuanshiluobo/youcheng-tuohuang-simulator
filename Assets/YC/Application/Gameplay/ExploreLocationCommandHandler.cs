@@ -182,6 +182,10 @@ namespace YC.Application.Gameplay
 
         private CommandResult HandleEffectExplore(GameState state, GameCommand command)
         {
+            if (command != null && string.IsNullOrEmpty(command.TargetId))
+                return MainActionEffectSubmission.Begin(state, command, effectRegistry,
+                    MainActionEffectExecutor.Create(command.PlayerId, new EffectSpec(ExplorationSelectionEffectExecutor.TypeId) { PlayerId = command.PlayerId }));
+
             if (state == null || command == null || string.IsNullOrEmpty(command.TargetId))
             {
                 return Invalid(CommandErrorCode.InvalidTarget, "探索必须提交稳定的目标地块 ID。");
@@ -197,36 +201,10 @@ namespace YC.Application.Gameplay
             ValidationResult paymentValidation = ResolvePaymentRecipients(command, out paymentRecipients);
             if (!paymentValidation.IsValid) return CommandResult.Invalid(paymentValidation);
 
-            var executor = new EffectTreeExecutor(state, effectRegistry);
-            string nodeId;
-            var exploreSpec = ExplorationEffectSpecFactory.Explore(
-                command.PlayerId,
-                command.TargetId,
-                path,
-                influenceSlotId,
-                paymentRecipients,
-                false,
-                true,
-                command.CommandId);
-            if (!executor.TryCreatePlayerActionEffect(
-                    command.PlayerId,
-                    exploreSpec,
-                    string.Empty,
-                    command.CommandId,
-                    out nodeId))
-            {
-                return Invalid(CommandErrorCode.InvalidTarget, executor.LastDiagnostic);
-            }
-
-            EffectRunReport report = executor.RunUntilQuiescent();
-            if (report.Faulted)
-            {
-                return Invalid(CommandErrorCode.InvalidTarget, "探索 Effect 无法继续：" + report.FaultCode);
-            }
-
-            return CommandResult.SuccessResult(
-                new List<GameEvent>(),
-                report.WaitingForInput ? "探索已提交，等待事件牌选择。" : "探索已完成。");
+            return MainActionEffectSubmission.Begin(state, command, effectRegistry,
+                MainActionSelectionEffectExecutor.ConfirmSelection(command.PlayerId,
+                    ExplorationEffectSpecFactory.Explore(command.PlayerId, command.TargetId, path,
+                        influenceSlotId, paymentRecipients, true, false, command.CommandId)));
         }
 
         /// <summary>

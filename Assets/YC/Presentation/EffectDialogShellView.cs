@@ -7,6 +7,9 @@ namespace YC.Presentation
     /// <summary>编辑器资产化的效果对话框固定壳引用；不承载游戏规则或回调决策。</summary>
     public sealed class EffectDialogShellView : MonoBehaviour
     {
+        [Tooltip("默认保留预制体外观。只有主动启用才套用调用方的旧尺寸和样式。")]
+        [SerializeField] private bool useRuntimeLayout;
+        public bool UseRuntimeLayout => useRuntimeLayout;
         [SerializeField] private EffectDialogLayoutProfile layoutProfile;
         [SerializeField] private Canvas overlayCanvas;
         [SerializeField] private Image overlayImage;
@@ -93,9 +96,12 @@ namespace YC.Presentation
         {
             gameObject.name = overlayName ?? string.Empty;
             panel.gameObject.name = panelName ?? string.Empty;
-            layoutProfile.PanelLayout.ApplyTo(panel);
-            panel.sizeDelta = panelSize;
-            panel.anchoredPosition = panelPosition;
+            if (useRuntimeLayout)
+            {
+                layoutProfile.PanelLayout.ApplyTo(panel);
+                panel.sizeDelta = panelSize;
+                panel.anchoredPosition = panelPosition;
+            }
             overlayCanvas.overrideSorting = true;
             overlayCanvas.sortingOrder = EffectDialogShell.SortingOrder;
             overlayImage.color = layoutProfile.OverlayColor;
@@ -131,6 +137,8 @@ namespace YC.Presentation
         {
             titleText.gameObject.name = titleName ?? string.Empty;
             titleText.text = title ?? string.Empty;
+            descriptionText.text = description ?? string.Empty;
+            if (!useRuntimeLayout) return;
             titleText.fontSize = titleSize;
             titleText.fontStyle = FontStyle.Bold;
             titleText.color = UiTheme.GoldText;
@@ -153,6 +161,7 @@ namespace YC.Presentation
         {
             optionScroll.gameObject.name = objectName ?? string.Empty;
             optionScroll.gameObject.SetActive(true);
+            if (!useRuntimeLayout) return optionContent;
             var rect = optionScroll.GetComponent<RectTransform>();
             var scrollLayout = layoutProfile.OptionScrollLayout;
             rect.anchorMin = scrollLayout.AnchorMin;

@@ -1,0 +1,11 @@
+{
+  "source_blob": "bdfc2a5deee56068caa0f5c9543c66657e599713",
+  "before_sha256": {
+    "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\GameplayInteractionHud.prefab": "6bf1151d96300e35e89fa176fc0d80e51b077361e10c6b7b9a4d15f08496c490",
+    "Assets\\YC\\Presentation\\Prefabs\\Gameplay\\GameplayInteractionHud.prefab.meta": "9a2165fefb2f1968092fbd6591be31d6d16de8848405e5a641d6ddbe0775773a",
+    "Assets\\YC\\Presentation\\Prefabs\\Infrastructure\\StandardWindow.prefab": "687aff9ff5386d90f28268533cb2b5eed17946ffed1ae10e5ea24ad6501e1cc1",
+    "Assets\\YC\\Presentation\\Prefabs\\Infrastructure\\StandardWindow.prefab.meta": "37971e6e70a2349a0da538d570ede9c0b29ad133d53f117d1c1b342bf3e352bf",
+    "Assets\\Scenes\\SampleScene.unity": "2986570e1144f66b6b80c485ea0c2e0a9de2711355094a662a6ab30ae5556730",
+    "Assets\\Scenes\\StartScene.unity": "bbdd84a98833a570794c39449a195eb9d5280bd5ed8f68fcc33fe768940255c4"
+  }
+}

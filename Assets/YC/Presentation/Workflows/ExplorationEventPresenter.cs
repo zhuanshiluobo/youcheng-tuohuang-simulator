@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
@@ -925,65 +925,7 @@ namespace YC.Presentation.Workflows
 
         private bool ShouldPromptForPathChoice(IReadOnlyList<MapPath> paths)
         {
-            if (paths == null || paths.Count <= 1)
-            {
-                return false;
-            }
-
-            var signatures = new HashSet<string>(StringComparer.Ordinal);
-            var hasOpponentToll = false;
-            for (var i = 0; i < paths.Count; i++)
-            {
-                var signature = BuildOpponentRecipientSignature(paths[i]);
-                if (!string.IsNullOrEmpty(signature))
-                {
-                    hasOpponentToll = true;
-                }
-
-                signatures.Add(signature);
-            }
-
-            return hasOpponentToll && signatures.Count > 1;
-        }
-
-        private string BuildOpponentRecipientSignature(MapPath path)
-        {
-            if (path == null)
-            {
-                return string.Empty;
-            }
-
-            var signatures = new List<string>();
-            var paidKeys = new HashSet<string>(StringComparer.Ordinal);
-            for (var i = 0; i < path.RouteIds.Count; i++)
-            {
-                var routeId = path.RouteIds[i];
-                var key = routeTollService.GetRoutePaymentKey(
-                    routeId,
-                    RouteTollPaymentKeyMode.SharedRegion);
-                if (!paidKeys.Add(key) ||
-                    !routeTollService.IsPaymentRequired(
-                        context.CurrentState,
-                        routeId,
-                        context.LocalPlayerId,
-                        RouteTollPaymentKeyMode.SharedRegion))
-                {
-                    continue;
-                }
-
-                var owners = routeTollService.GetOpponentInfluenceOwnersOnPaymentKey(
-                    context.CurrentState,
-                    key,
-                    context.LocalPlayerId,
-                    RouteTollPaymentKeyMode.SharedRegion);
-                owners.Sort();
-                if (owners.Count > 0)
-                {
-                    signatures.Add(string.Join(",", owners));
-                }
-            }
-
-            return string.Join("|", signatures);
+            return explorationService.RequiresPathChoice(context.CurrentState, context.LocalPlayerId, paths);
         }
 
         private string BuildPathChoiceLabel(MapPath path, int index)

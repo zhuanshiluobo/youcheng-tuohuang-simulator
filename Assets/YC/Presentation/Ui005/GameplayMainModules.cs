@@ -11,9 +11,12 @@ namespace YC.Presentation
         [SerializeField] private GameObject[] opponentEmpty;
         [SerializeField] private Text[] opponentName;
         [SerializeField] private Text[] opponentScore;
+        [SerializeField] private Text[] opponentInfluenceCount;
         [SerializeField] private Text[] opponentHandCount;
         [SerializeField] private Text[] opponentStyleCount;
         [SerializeField] private Image[] opponentColor;
+        [SerializeField] private Image selfColor;
+        [SerializeField] private Text selfScore;
         [SerializeField] private RawImage coveredBack;
         [SerializeField] private GameObject coveredEmpty;
         [SerializeField] private Text characterDeckCount;
@@ -25,9 +28,11 @@ namespace YC.Presentation
                 opponentEmpty == null || opponentEmpty.Length != 3 ||
                 opponentName == null || opponentName.Length != 3 ||
                 opponentScore == null || opponentScore.Length != 3 ||
+                opponentInfluenceCount == null || opponentInfluenceCount.Length != 3 ||
                 opponentHandCount == null || opponentHandCount.Length != 3 ||
                 opponentStyleCount == null || opponentStyleCount.Length != 3 ||
                 opponentColor == null || opponentColor.Length != 3 ||
+                selfColor == null || selfScore == null ||
                 coveredBack == null || coveredEmpty == null || characterDeckCount == null)
             {
                 reason = "主界面玩家或牌堆投影引用不完整。";
@@ -37,6 +42,7 @@ namespace YC.Presentation
             {
                 if (opponentData[i] == null || opponentEmpty[i] == null ||
                     opponentName[i] == null || opponentScore[i] == null ||
+                    opponentInfluenceCount[i] == null ||
                     opponentHandCount[i] == null || opponentStyleCount[i] == null ||
                     opponentColor[i] == null)
                 {
@@ -60,7 +66,7 @@ namespace YC.Presentation
                     if (player == null || player.PlayerId == localPlayerId) continue;
                     if (nextOpponent >= opponentData.Length) break;
                     RenderOpponent(nextOpponent++, player.PlayerId, player.Name, player.Color,
-                        player.Score, player.HandCardCount,
+                        player.Score, player.InfluenceSupply, player.HandCardCount,
                         player.DeclaredCityStyleIds == null ? 0 : player.DeclaredCityStyleIds.Count);
                 }
             }
@@ -71,7 +77,7 @@ namespace YC.Presentation
                     if (player == null || player.PlayerId == localPlayerId) continue;
                     if (nextOpponent >= opponentData.Length) break;
                     RenderOpponent(nextOpponent++, player.PlayerId, player.Name, player.Color,
-                        player.Score,
+                        player.Score, player.InfluenceSupply,
                         player.HandCardIds == null ? 0 : player.HandCardIds.Count,
                         player.DeclaredCityStyles == null ? 0 : player.DeclaredCityStyles.Count);
                 }
@@ -82,6 +88,8 @@ namespace YC.Presentation
                 opponentEmpty[i].SetActive(true);
             }
 
+            var hasLocalPlayer = false;
+            var localScore = 0;
             var hasCovered = false;
             var localColor = YC.Domain.Rules.PlayerColor.Red;
             if (visible != null && visible.Players != null)
@@ -89,6 +97,8 @@ namespace YC.Presentation
                 foreach (var player in visible.Players)
                 {
                     if (player == null || player.PlayerId != localPlayerId) continue;
+                    hasLocalPlayer = true;
+                    localScore = player.Score;
                     hasCovered = player.HasCoveredCharacterCard;
                     localColor = player.Color;
                     break;
@@ -98,8 +108,18 @@ namespace YC.Presentation
             {
                 var local = state == null ? null : state.FindPlayer(localPlayerId);
                 hasCovered = local != null && !string.IsNullOrEmpty(local.CoveredCharacterCardId);
-                if (local != null) localColor = local.Color;
+                if (local != null)
+                {
+                    hasLocalPlayer = true;
+                    localScore = local.Score;
+                    localColor = local.Color;
+                }
             }
+            // 自身名称和资源由 GameplayHudFrame 管理，这里只投影影响力颜色与分数。
+            selfColor.enabled = hasLocalPlayer;
+            if (hasLocalPlayer) selfColor.color = UiTheme.GetPlayerColor(localColor, 1f);
+            selfScore.text = hasLocalPlayer ? localScore.ToString() : string.Empty;
+
             var back = hasCovered && catalog != null ? catalog.GetCharacterBack(localColor) : null;
             coveredBack.texture = back;
             coveredBack.gameObject.SetActive(back != null);
@@ -111,13 +131,14 @@ namespace YC.Presentation
         }
 
         private void RenderOpponent(int slot, int playerId, string name,
-            YC.Domain.Rules.PlayerColor color, int score, int handCount, int styleCount)
+            YC.Domain.Rules.PlayerColor color, int score, int influenceSupply, int handCount, int styleCount)
         {
             opponentEmpty[slot].SetActive(false);
             opponentData[slot].SetActive(true);
             opponentName[slot].text = string.IsNullOrEmpty(name)
                 ? string.Format(unnamedPlayerFormat, playerId) : name;
             opponentScore[slot].text = score.ToString();
+            opponentInfluenceCount[slot].text = "× " + Mathf.Max(0, influenceSupply);
             // 只使用公开数量，不把对手卡 ID、缩略图或详情送到主界面。
             opponentHandCount[slot].text = handCount.ToString();
             opponentStyleCount[slot].text = styleCount.ToString();

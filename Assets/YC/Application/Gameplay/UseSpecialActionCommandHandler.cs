@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using YC.Application.Sessions;
@@ -86,59 +86,8 @@ namespace YC.Application.Gameplay
             if (string.IsNullOrEmpty(specialActionId)) specialActionId = command.TargetId;
             string markerId = GetParameter(command, DeclarationMarkerIdParameter);
             if (string.IsNullOrEmpty(markerId)) markerId = command.SourceId;
-            int originium = -1;
-            int iron = -1;
-            // 新链路由支付 Effect 收集组合；旧命令参数不代替权威交互。
-
-            var executor = new EffectTreeExecutor(state, effectRegistry);
-            string rootId;
-            var specialActionSpec = CityStyleSpecialActionEffectSpecFactory.Activate(
-                command.PlayerId, specialActionId, markerId, originium, iron, command.CommandId);
-            if (!executor.TryCreatePlayerActionEffect(
-                    command.PlayerId,
-                    specialActionSpec,
-                    string.Empty,
-                    command.CommandId,
-                    out rootId))
-                return Invalid(CommandErrorCode.InvalidTarget, executor.LastDiagnostic);
-            EffectRunReport report = executor.RunUntilQuiescent();
-            EffectNodeRuntimeState root = executor.GetNode(rootId);
-            if (report.Faulted)
-                return Invalid(CommandErrorCode.UnknownCommand, executor.LastDiagnostic);
-            if (root == null || root.Status == EffectNodeStatus.Failed || root.Status == EffectNodeStatus.Faulted)
-                return Invalid(CommandErrorCode.InvalidTarget, root == null ? executor.LastDiagnostic : root.FailureReason);
-
-            var events = new List<GameEvent>();
-            InteractionRequest request = state.EffectRuntime.InteractionRequests.Find(candidate =>
-                candidate != null && candidate.OwnerEffectId == rootId && candidate.Status == "open");
-            if (request != null)
-            {
-                events.Add(new GameEvent
-                {
-                    Kind = GameEventKind.ChoiceOpened,
-                    PlayerId = command.PlayerId,
-                    SubjectId = specialActionId,
-                    Message = request.PromptKey,
-                    Data =
-                    {
-                        { "interactionId", request.GetStableInteractionId() },
-                        { "candidateSetId", request.CandidateSetId ?? string.Empty },
-                        { "candidateSetVersion", request.CandidateSetVersion.ToString(CultureInfo.InvariantCulture) },
-                        { "candidateIds", string.Join(",", request.CandidateIds ?? new List<string>()) }
-                    }
-                });
-            }
-            else
-            {
-                events.Add(new GameEvent
-                {
-                    Kind = GameEventKind.LogOnly,
-                    PlayerId = command.PlayerId,
-                    SubjectId = specialActionId,
-                    Message = report.Completed ? "特殊行动已完成。" : "特殊行动已进入 Effect 结算。"
-                });
-            }
-            return CommandResult.SuccessResult(events, "特殊行动已交由通用 Effect 树结算。");
+            return MainActionEffectSubmission.Begin(state, command, effectRegistry,
+                MainActionSelectionEffectExecutor.Create(command.PlayerId, MainActionSelectionEffectExecutor.Special, specialActionId, markerId));
         }
 
         private CommandResult HandleBegin(GameState state, GameCommand command)
