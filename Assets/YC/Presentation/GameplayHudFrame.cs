@@ -22,6 +22,8 @@ namespace YC.Presentation
         [SerializeField] private RectTransform bottomBarContent;
         [SerializeField] private RectTransform contentRect;
         [SerializeField] private RectTransform mapRegion;
+        [SerializeField] private RectTransform mapViewport;
+        [SerializeField] private RectTransform mapVisibleBounds;
         [SerializeField] private RectTransform mainSurface;
         [SerializeField] private RectTransform mainRegions;
         [SerializeField] private HorizontalLayoutGroup columnsLayout;
@@ -92,6 +94,7 @@ namespace YC.Presentation
         private string currentFlowId;
         private InteractionRequestProjection currentProjection;
         private string lastActionSummary;
+        private string collectionCompletionSummary;
         private string interactionMessage;
         private float interactionMessageExpiresAt;
         private bool mapViewportDirty;
@@ -117,7 +120,7 @@ namespace YC.Presentation
         public bool TryValidateConfiguration(out string reason)
         {
             if (barCanvas == null || safeArea == null || topBar == null || bottomBar == null ||
-                contentRect == null || mapRegion == null || mainSurface == null || mainRegions == null ||
+                contentRect == null || mapRegion == null || mapViewport == null || mapVisibleBounds == null || mainSurface == null || mainRegions == null ||
                 columnsLayout == null || topContentLayout == null || mapSurroundLayout == null || citySlotsLayout == null ||
                 topBarContent == null || bottomBarContent == null ||
                 mapBackdrops == null || mapBackdrops.Length != 4 ||
@@ -186,6 +189,17 @@ namespace YC.Presentation
                 completedMapRect = rect;
                 mapViewportDirty = true;
             }
+            // 展开详情会在 Update 之后改变原生布局；同帧同步真实相机视口，
+            // 避免只缩小外框、地图仍绘制到刚腾出的详情区域。
+            if (mapViewportDirty)
+            {
+                mapViewportDirty = false;
+                ApplyMapViewport();
+                RefreshMapOpening();
+                if (mapSurroundLayout != null) mapSurroundLayout.Refresh();
+                ApplyBackdrops();
+            }
+            else RefreshMapOpening();
             for (var i = externalPages.Count - 1; i >= 0; i--)
             {
                 if (externalPages[i] == null) externalPages.RemoveAt(i);
@@ -214,17 +228,10 @@ namespace YC.Presentation
                 (mainSurface != null && lastSurfaceSize != mainSurface.rect.size) ||
                 (contentCanvas != null && lastContentScaleFactor != contentCanvas.scaleFactor)))
                 ApplyLayout(false);
-            if (mapViewportDirty)
-            {
-                mapViewportDirty = false;
-                // 首次布局可能晚于 Awake；地图开口和相机必须消费同一最终矩形。
-                if (mapSurroundLayout != null) mapSurroundLayout.Refresh();
-                ApplyBackdrops();
-                ApplyMapViewport();
-            }
         }
 
-        public void Refresh(GameState state, ActionPanelViewModel action, string endUnavailableReason)
+        public void Refresh(GameState state, ActionPanelViewModel action, string endUnavailableReason,
+            string collectionCompletion = null)
         {
             if (state == null || action == null) return;
             if (roundNumberText != null) roundNumberText.text = state.Round.ToString();
@@ -265,6 +272,7 @@ namespace YC.Presentation
                 }
             }
             lastActionSummary = action.CanEndAction ? action.StatusText : endUnavailableReason;
+            collectionCompletionSummary = action.AllCollectionLocationsSelected ? collectionCompletion : null;
             UpdateSummary();
             if (redZoneText != null)
             {
@@ -376,6 +384,7 @@ namespace YC.Presentation
                     : skippable ? skippableTargetSummary : targetSummary;
             }
             if (!string.IsNullOrEmpty(interactionMessage)) summary = interactionMessage;
+            if (!string.IsNullOrEmpty(collectionCompletionSummary)) summary += "\n" + collectionCompletionSummary;
             if (summaryText != null) summaryText.text = summary ?? string.Empty;
             if (shortSummaryText != null) shortSummaryText.text = summary ?? string.Empty;
         }
@@ -626,10 +635,10 @@ namespace YC.Presentation
 
         private void ApplyBackdrops()
         {
-            if (mainSurface == null || mapRegion == null || mapBackdrops == null ||
+            if (mainSurface == null || mapVisibleBounds == null || mapBackdrops == null ||
                 mapBackdrops.Length != 4) return;
             var corners = new Vector3[4];
-            mapRegion.GetWorldCorners(corners);
+            mapVisibleBounds.GetWorldCorners(corners);
             var lowerLeft = mainSurface.InverseTransformPoint(corners[0]);
             var upperRight = mainSurface.InverseTransformPoint(corners[2]);
             var rect = mainSurface.rect;
@@ -650,6 +659,20 @@ namespace YC.Presentation
             rect.pivot = Vector2.zero;
             rect.anchoredPosition = new Vector2(x, y);
             rect.sizeDelta = new Vector2(Mathf.Max(0f, width), Mathf.Max(0f, height));
+        }
+
+        private void RefreshMapOpening()
+        {
+            var display = MapDisplayController.Active;
+            if (mapVisibleBounds == null || display == null) return;
+            var opening = display.VisibleViewportInRegion;
+            var min = opening.min; var max = opening.max;
+            if (mapVisibleBounds.anchorMin == min && mapVisibleBounds.anchorMax == max) return;
+            mapVisibleBounds.anchorMin = min;
+            mapVisibleBounds.anchorMax = max;
+            mapVisibleBounds.offsetMin = mapVisibleBounds.offsetMax = Vector2.zero;
+            if (mapSurroundLayout != null) mapSurroundLayout.Refresh();
+            ApplyBackdrops();
         }
 
         private void ApplyMapViewport()

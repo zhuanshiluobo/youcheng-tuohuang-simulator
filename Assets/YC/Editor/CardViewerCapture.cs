@@ -22,7 +22,7 @@ namespace YC.Presentation.Editor
         private static double started;
         private static DateTime captureRequestedUtc;
         private static CardViewer viewer;
-        private static Texture texture;
+        private static Sprite texture;
         private static Rect inspectRect;
         private static bool applied;
         public static void RunBaseline() => Begin(1);
@@ -85,7 +85,7 @@ namespace YC.Presentation.Editor
                             .Invoke(hand, new object[] { "", hand.OrderedHand[0].CardId });
                         viewer = UnityEngine.Object.FindObjectOfType<CardViewer>();
                         if (viewer == null) throw new InvalidOperationException("手牌正式查看入口未打开 CardViewer");
-                        texture = viewer.CardImage.texture;
+                        texture = viewer.DisplayedSprite;
                     }
                     if (mode == 0) viewer.OpenInspect(texture);
                     else viewer.OpenCharacter("component-diagnostic",texture,true,mode == 1,"","诊断禁用状态", () => true, _ => {}, () => {});

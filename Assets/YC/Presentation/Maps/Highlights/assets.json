@@ -1,0 +1,482 @@
+{
+  "version": "1.2",
+  "source_map_size": [
+    2048,
+    2048
+  ],
+  "units": "source-map pixels",
+  "assets": [
+    {
+      "id": "resource-available",
+      "kind": "resource",
+      "state": "available",
+      "solid_band_width": 2.2,
+      "solid_band_width_v1": 1.1,
+      "solid_band_multiplier": 2,
+      "core_color": "#2388FF",
+      "glow_start_distance": 3.95,
+      "glow_reach": 10,
+      "glow_peak_alpha": 0.72,
+      "glow_direction": "outward beyond solid border",
+      "contrast_color": "#10121B",
+      "inner_rail_width": 0.75,
+      "outer_rail_width": 1,
+      "outline_width": 202,
+      "outline_height": 208,
+      "padding": 20,
+      "logical_width": 242,
+      "logical_height": 248,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "polygon_top_left": [
+        [
+          0,
+          0
+        ],
+        [
+          202,
+          0
+        ],
+        [
+          202,
+          208
+        ],
+        [
+          85,
+          208
+        ],
+        [
+          85,
+          192
+        ],
+        [
+          30,
+          192
+        ],
+        [
+          30,
+          85
+        ],
+        [
+          0,
+          85
+        ]
+      ],
+      "files": {
+        "svg": "assets/svg/resource-available.svg",
+        "1x": "assets/png-1x/resource-available@1x.png",
+        "2x": "assets/png-2x/resource-available@2x.png",
+        "4x": "assets/png-4x/resource-available@4x.png"
+      }
+    },
+    {
+      "id": "resource-selected",
+      "kind": "resource",
+      "state": "selected",
+      "solid_band_width": 4,
+      "solid_band_width_v1": 2,
+      "solid_band_multiplier": 2,
+      "core_color": "#FF3ACD",
+      "glow_start_distance": 5.75,
+      "glow_reach": 10,
+      "glow_peak_alpha": 0.72,
+      "glow_direction": "outward beyond solid border",
+      "contrast_color": "#10121B",
+      "inner_rail_width": 0.75,
+      "outer_rail_width": 1,
+      "outline_width": 202,
+      "outline_height": 208,
+      "padding": 20,
+      "logical_width": 242,
+      "logical_height": 248,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "polygon_top_left": [
+        [
+          0,
+          0
+        ],
+        [
+          202,
+          0
+        ],
+        [
+          202,
+          208
+        ],
+        [
+          85,
+          208
+        ],
+        [
+          85,
+          192
+        ],
+        [
+          30,
+          192
+        ],
+        [
+          30,
+          85
+        ],
+        [
+          0,
+          85
+        ]
+      ],
+      "files": {
+        "svg": "assets/svg/resource-selected.svg",
+        "1x": "assets/png-1x/resource-selected@1x.png",
+        "2x": "assets/png-2x/resource-selected@2x.png",
+        "4x": "assets/png-4x/resource-selected@4x.png"
+      }
+    },
+    {
+      "id": "route-single-available",
+      "kind": "route-single",
+      "state": "available",
+      "solid_band_width": 2.2,
+      "solid_band_width_v1": 1.1,
+      "solid_band_multiplier": 2,
+      "core_color": "#2388FF",
+      "glow_start_distance": 3.95,
+      "glow_reach": 8,
+      "glow_peak_alpha": 0.72,
+      "glow_direction": "outward beyond solid border",
+      "contrast_color": "#10121B",
+      "inner_rail_width": 0.75,
+      "outer_rail_width": 1,
+      "outline_width": 118,
+      "outline_height": 64,
+      "padding": 16,
+      "logical_width": 150,
+      "logical_height": 96,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "polygon_top_left": [
+        [
+          0,
+          41
+        ],
+        [
+          23.5,
+          0
+        ],
+        [
+          29.5,
+          10
+        ],
+        [
+          118,
+          10
+        ],
+        [
+          118,
+          64
+        ],
+        [
+          55.5,
+          64
+        ],
+        [
+          41.5,
+          41
+        ]
+      ],
+      "files": {
+        "svg": "assets/svg/route-single-available.svg",
+        "1x": "assets/png-1x/route-single-available@1x.png",
+        "2x": "assets/png-2x/route-single-available@2x.png",
+        "4x": "assets/png-4x/route-single-available@4x.png"
+      }
+    },
+    {
+      "id": "route-single-selected",
+      "kind": "route-single",
+      "state": "selected",
+      "solid_band_width": 4,
+      "solid_band_width_v1": 2,
+      "solid_band_multiplier": 2,
+      "core_color": "#FF3ACD",
+      "glow_start_distance": 5.75,
+      "glow_reach": 8,
+      "glow_peak_alpha": 0.72,
+      "glow_direction": "outward beyond solid border",
+      "contrast_color": "#10121B",
+      "inner_rail_width": 0.75,
+      "outer_rail_width": 1,
+      "outline_width": 118,
+      "outline_height": 64,
+      "padding": 16,
+      "logical_width": 150,
+      "logical_height": 96,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "polygon_top_left": [
+        [
+          0,
+          41
+        ],
+        [
+          23.5,
+          0
+        ],
+        [
+          29.5,
+          10
+        ],
+        [
+          118,
+          10
+        ],
+        [
+          118,
+          64
+        ],
+        [
+          55.5,
+          64
+        ],
+        [
+          41.5,
+          41
+        ]
+      ],
+      "files": {
+        "svg": "assets/svg/route-single-selected.svg",
+        "1x": "assets/png-1x/route-single-selected@1x.png",
+        "2x": "assets/png-2x/route-single-selected@2x.png",
+        "4x": "assets/png-4x/route-single-selected@4x.png"
+      }
+    },
+    {
+      "id": "route-double-available",
+      "kind": "route-double",
+      "state": "available",
+      "solid_band_width": 2.2,
+      "solid_band_width_v1": 1.1,
+      "solid_band_multiplier": 2,
+      "core_color": "#2388FF",
+      "glow_start_distance": 3.95,
+      "glow_reach": 8,
+      "glow_peak_alpha": 0.72,
+      "glow_direction": "outward beyond solid border",
+      "contrast_color": "#10121B",
+      "inner_rail_width": 0.75,
+      "outer_rail_width": 1,
+      "outline_width": 137,
+      "outline_height": 64,
+      "padding": 16,
+      "logical_width": 169,
+      "logical_height": 96,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "polygon_top_left": [
+        [
+          0,
+          41
+        ],
+        [
+          23.5,
+          0
+        ],
+        [
+          29.5,
+          10
+        ],
+        [
+          137,
+          10
+        ],
+        [
+          137,
+          64
+        ],
+        [
+          57,
+          64
+        ],
+        [
+          43,
+          41
+        ]
+      ],
+      "files": {
+        "svg": "assets/svg/route-double-available.svg",
+        "1x": "assets/png-1x/route-double-available@1x.png",
+        "2x": "assets/png-2x/route-double-available@2x.png",
+        "4x": "assets/png-4x/route-double-available@4x.png"
+      }
+    },
+    {
+      "id": "route-double-selected",
+      "kind": "route-double",
+      "state": "selected",
+      "solid_band_width": 4,
+      "solid_band_width_v1": 2,
+      "solid_band_multiplier": 2,
+      "core_color": "#FF3ACD",
+      "glow_start_distance": 5.75,
+      "glow_reach": 8,
+      "glow_peak_alpha": 0.72,
+      "glow_direction": "outward beyond solid border",
+      "contrast_color": "#10121B",
+      "inner_rail_width": 0.75,
+      "outer_rail_width": 1,
+      "outline_width": 137,
+      "outline_height": 64,
+      "padding": 16,
+      "logical_width": 169,
+      "logical_height": 96,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "polygon_top_left": [
+        [
+          0,
+          41
+        ],
+        [
+          23.5,
+          0
+        ],
+        [
+          29.5,
+          10
+        ],
+        [
+          137,
+          10
+        ],
+        [
+          137,
+          64
+        ],
+        [
+          57,
+          64
+        ],
+        [
+          43,
+          41
+        ]
+      ],
+      "files": {
+        "svg": "assets/svg/route-double-selected.svg",
+        "1x": "assets/png-1x/route-double-selected@1x.png",
+        "2x": "assets/png-2x/route-double-selected@2x.png",
+        "4x": "assets/png-4x/route-double-selected@4x.png"
+      }
+    },
+    {
+      "id": "influence-available",
+      "kind": "influence",
+      "state": "available",
+      "solid_band_width": 1.804,
+      "solid_band_width_v1": 0.902,
+      "solid_band_multiplier": 2,
+      "core_color": "#2388FF",
+      "glow_start_distance": 2.404,
+      "glow_reach": 6,
+      "glow_peak_alpha": 0.72,
+      "glow_direction": "outward beyond solid border",
+      "contrast_color": "#10121B",
+      "inner_rail_width": 0,
+      "outer_rail_width": 0.6,
+      "outline_width": 34,
+      "outline_height": 34,
+      "padding": 12,
+      "logical_width": 58,
+      "logical_height": 58,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "polygon_top_left": [
+        [
+          0,
+          0
+        ],
+        [
+          34,
+          0
+        ],
+        [
+          34,
+          34
+        ],
+        [
+          0,
+          34
+        ]
+      ],
+      "files": {
+        "svg": "assets/svg/influence-available.svg",
+        "1x": "assets/png-1x/influence-available@1x.png",
+        "2x": "assets/png-2x/influence-available@2x.png",
+        "4x": "assets/png-4x/influence-available@4x.png"
+      }
+    },
+    {
+      "id": "influence-selected",
+      "kind": "influence",
+      "state": "selected",
+      "solid_band_width": 3.28,
+      "solid_band_width_v1": 1.64,
+      "solid_band_multiplier": 2,
+      "core_color": "#FF3ACD",
+      "glow_start_distance": 3.88,
+      "glow_reach": 6,
+      "glow_peak_alpha": 0.72,
+      "glow_direction": "outward beyond solid border",
+      "contrast_color": "#10121B",
+      "inner_rail_width": 0,
+      "outer_rail_width": 0.6,
+      "outline_width": 34,
+      "outline_height": 34,
+      "padding": 12,
+      "logical_width": 58,
+      "logical_height": 58,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "polygon_top_left": [
+        [
+          0,
+          0
+        ],
+        [
+          34,
+          0
+        ],
+        [
+          34,
+          34
+        ],
+        [
+          0,
+          34
+        ]
+      ],
+      "files": {
+        "svg": "assets/svg/influence-selected.svg",
+        "1x": "assets/png-1x/influence-selected@1x.png",
+        "2x": "assets/png-2x/influence-selected@2x.png",
+        "4x": "assets/png-4x/influence-selected@4x.png"
+      }
+    }
+  ]
+}

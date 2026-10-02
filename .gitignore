@@ -61,3 +61,11 @@ Thumbs.db
 # Derived planning/reference exports
 /游城拓荒/_pdf_extracted_images/
 /ValidationScreenshots/
+
+# UI 验证生成物：保留说明、测试结果和资产映射，快照与批量截图仅作本地证据。
+/prompt/UI换新/执行记录/**/*.png
+/prompt/UI换新/执行记录/**/*.json
+/prompt/UI换新/执行记录/**/*.diff
+/prompt/UI换新/执行记录/**/*.zip
+# 资产映射清单需要继续纳入版本控制。
+!/prompt/UI换新/执行记录/*资产映射.json

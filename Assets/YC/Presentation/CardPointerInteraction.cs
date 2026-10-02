@@ -29,7 +29,7 @@ namespace YC.Presentation
         public static RectTransform CreateDragGhost(
             RectTransform canvas,
             RectTransform source,
-            Texture texture,
+            Sprite sprite,
             string fallbackLabel,
             Font fallbackFont,
             CardDragGhostLayout layout)
@@ -57,8 +57,8 @@ namespace YC.Presentation
             ghost.sizeDelta = source.rect.size;
 
             var image = ghostObject.GetComponent<RawImage>();
-            image.texture = texture;
-            image.color = texture == null ? CardBackground : Color.white;
+            CardArtworkView.Set(image, sprite);
+            image.color = sprite == null ? CardBackground : Color.white;
             image.raycastTarget = false;
 
             var canvasGroup = ghostObject.GetComponent<CanvasGroup>();
@@ -66,7 +66,7 @@ namespace YC.Presentation
             canvasGroup.interactable = false;
             canvasGroup.blocksRaycasts = false;
 
-            if (texture == null && !string.IsNullOrEmpty(fallbackLabel))
+            if (sprite == null && !string.IsNullOrEmpty(fallbackLabel))
             {
                 AddFallbackLabel(ghost, fallbackLabel, fallbackFont, layout);
             }

@@ -171,7 +171,7 @@ MonoBehaviour:
   characterTacticLabel: "计谋"
   characterFinishLabel: "结束使用"
   discardListTitleFormat: "弃牌（{0}）"
-  discardListDescription: "此页面仅供查看，不能使用或移动弃牌。"
+  discardListDescription: "点击空白处关闭"
   readOnlyCloseLabel: "关闭"
   saleDiscardDraftLabel: 放弃并结束
   specialActionTitle: 选择执行特殊行动

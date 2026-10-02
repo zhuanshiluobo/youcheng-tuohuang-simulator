@@ -313,7 +313,6 @@ namespace YC.Presentation.Workflows
 
         private void SelectDispatchSourceSlot(string slotId)
         {
-            ClearConfirmation();
             var state = context.CurrentState;
             var placement = state == null ? null : influenceService.FindInfluence(state, slotId);
             if (placement == null ||
@@ -330,6 +329,8 @@ namespace YC.Presentation.Workflows
                 return;
             }
 
+            if (!ConfirmOnSecondSelection("DispatchSource", slotId, CurrentPrompt,
+                    WorkflowHighlightSemantic.DispatchSource)) return;
             dispatchSourceSlotId = placement.SlotId;
             SetStage(InfluenceActionStage.SelectingDispatchTarget);
             PresentDispatchTargets(dispatchSourceSlotId);
@@ -417,9 +418,7 @@ namespace YC.Presentation.Workflows
 
             pendingConfirmationAction = action;
             pendingConfirmationSlotId = slotId;
-            var highlights = new List<WorkflowHighlight>();
-            AddSlotHighlight(highlights, slotId, semantic, true);
-            view.SetHighlights(highlights);
+            RestorePresentation();
             RefreshPreview();
             view.ShowPrompt(prompt);
             return false;
@@ -633,7 +632,7 @@ namespace YC.Presentation.Workflows
             }
         }
 
-        private static void AddSlotHighlight(
+        private void AddSlotHighlight(
             ICollection<WorkflowHighlight> highlights,
             string slotId,
             WorkflowHighlightSemantic semantic,
@@ -642,21 +641,8 @@ namespace YC.Presentation.Workflows
             highlights.Add(new WorkflowHighlight(
                 WorkflowHighlightTargetKind.InfluenceSlot,
                 slotId,
-                semantic));
-
-            if (!includeLocation ||
-                !slotId.StartsWith(InfluenceSlotReference.LocationPrefix, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            var rest = slotId.Substring(InfluenceSlotReference.LocationPrefix.Length);
-            var separator = rest.LastIndexOf(':');
-            var locationId = separator < 0 ? rest : rest.Substring(0, separator);
-            highlights.Add(new WorkflowHighlight(
-                WorkflowHighlightTargetKind.Location,
-                locationId,
-                semantic));
+                semantic,
+                pendingConfirmationSlotId == slotId ? WorkflowHighlightState.PendingConfirmation : WorkflowHighlightState.Available));
         }
 
         private PlayerState GetPlayer()

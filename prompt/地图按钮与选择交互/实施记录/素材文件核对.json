@@ -1,0 +1,34 @@
+[
+  {
+    "文件": "influence-available@4x.png",
+    "sha256": "7df5fab3d4265317c64ecbc272aa0f22c7fe10e3b850bac19a044e7c49820c62"
+  },
+  {
+    "文件": "influence-selected@4x.png",
+    "sha256": "88d3cacc3702b284281d9244c426972022918371104292c11b2c1fc2e15036ad"
+  },
+  {
+    "文件": "resource-available@4x.png",
+    "sha256": "f546013358083731f51970d639224aba813818ba15a76f2e8537bdea2947605e"
+  },
+  {
+    "文件": "resource-selected@4x.png",
+    "sha256": "eea989d180c12e3ff1e572d312eb108499989f329903d9488c19f7ccbd0b67cc"
+  },
+  {
+    "文件": "route-double-available@4x.png",
+    "sha256": "2a54faf80ceb443c7194dfca459f793e9e9d6421f8195ea5de3649833e622c29"
+  },
+  {
+    "文件": "route-double-selected@4x.png",
+    "sha256": "9f889dcd3db448ae08c3444ba20a1eca8a9bb74db656530531fe4dc89ccf573e"
+  },
+  {
+    "文件": "route-single-available@4x.png",
+    "sha256": "897017b61e4729df6d2d0365b3bcc086957294b000fa5d55e8151aa6c8dee39e"
+  },
+  {
+    "文件": "route-single-selected@4x.png",
+    "sha256": "3e5894721ff3e602560d2b5b689ff50fc2765b841e4a9dda9c32d1b859a83eb3"
+  }
+]

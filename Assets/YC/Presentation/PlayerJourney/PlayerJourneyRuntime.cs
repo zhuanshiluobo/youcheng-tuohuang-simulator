@@ -24,6 +24,8 @@ namespace YC.PlayerJourney
             public string finalScores;
             public List<string> settledAbilities = new List<string>();
             public List<string> completedMainActions = new List<string>();
+            public List<int> confirmedCoverRounds = new List<int>();
+            public bool discardPreviewOpened, discardBlankClosed;
         }
         [Serializable] private sealed class Trace
         {
@@ -32,6 +34,7 @@ namespace YC.PlayerJourney
         private Result result;
         private string directory;
         private readonly HashSet<int> rounds = new HashSet<int>();
+        private readonly HashSet<int> capturedCoverRounds = new HashSet<int>();
         private readonly PlayerPointerDriver pointer = new PlayerPointerDriver();
         private float started, lastAction;
         private string lastSignature = string.Empty;
@@ -40,19 +43,41 @@ namespace YC.PlayerJourney
         private bool usedCharacter;
         private bool testedCancel;
         private bool running;
+        private bool launchClaimed;
+        public static bool IsRunning => FindObjectsOfType<PlayerJourneyRuntime>().Any(driver => driver.running);
         private bool enteredGame;
         private int currentRound;
         private string pendingAbility, pendingMainAction;
+        private int pendingCoverRound;
+        private bool discardCloseRequested;
         private readonly HashSet<string> attemptedActions = new HashSet<string>();
         private readonly HashSet<string> triedBuildCandidates = new HashSet<string>();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
-            if (string.IsNullOrEmpty(Argument("--yc-player-journey-output="))) return;
+            if (!HasPendingRun()) return;
+            // 先占用一次性标记。重复 Play、编辑器重启或 Hub 重放旧参数都不能再次运行。
+            try
+            {
+                using (var claim = new FileStream(LaunchMarkerPath(), FileMode.CreateNew, FileAccess.Write)) { }
+            }
+            catch (IOException) { return; }
+            catch (UnauthorizedAccessException) { return; }
             var host = new GameObject("玩家黑盒测试");
-            DontDestroyOnLoad(host); host.AddComponent<PlayerJourneyRuntime>();
+            DontDestroyOnLoad(host);
+            host.AddComponent<PlayerJourneyRuntime>().launchClaimed = true;
         }
+        public static bool HasPendingRun()
+        {
+            if (!Environment.GetCommandLineArgs().Contains("--yc-player-journey-run-once")) return false;
+            var output = Argument("--yc-player-journey-output=");
+            return !string.IsNullOrEmpty(output) && Path.IsPathRooted(output) && Directory.Exists(output) &&
+                !string.IsNullOrEmpty(Argument("--yc-player-journey-scenario=")) &&
+                !File.Exists(Path.Combine(output, "result.json")) && !File.Exists(LaunchMarkerPath());
+        }
+        private static string LaunchMarkerPath() =>
+            Path.Combine(Argument("--yc-player-journey-output="), ".player-journey-started");
         private static string Argument(string prefix)
         {
             foreach (var arg in Environment.GetCommandLineArgs())
@@ -61,6 +86,7 @@ namespace YC.PlayerJourney
         }
         private void Start()
         {
+            if (!launchClaimed) { Destroy(gameObject); return; }
             directory = Path.GetFullPath(Argument("--yc-player-journey-output="));
             Directory.CreateDirectory(directory);
             result = new Result { scenario = Argument("--yc-player-journey-scenario="), seed = Argument("--yc-player-journey-seed=") };
@@ -110,6 +136,8 @@ namespace YC.PlayerJourney
                         if (result.characterScenario.StartsWith("all-")) usedCharacter = currentRound > 5;
                     }
                 }
+                if (text.Contains("盖放角色牌") && currentRound > 0 && capturedCoverRounds.Add(currentRound))
+                    ScreenCapture.CaptureScreenshot(Path.Combine(directory, "盖放-第" + currentRound + "回合.png"));
                 var coveredCount = FindObjectsOfType<Text>().FirstOrDefault(t => t.name == "Covered Count" && t.isActiveAndEnabled);
                 if (pendingAbility != null && (text.Contains("请选择一项主要行动") || coveredCount?.text == "0"))
                 {
@@ -119,6 +147,16 @@ namespace YC.PlayerJourney
                 var markers = FindObjectsOfType<PlayerAutomationId>().Where(m => PlayerPointerDriver.Reachable(m.gameObject)).ToList();
                 var buttons = FindObjectsOfType<Button>().Where(b => PlayerPointerDriver.Reachable(b.gameObject)).ToList();
                 var signature = scene + text + string.Join(";", markers.Select(m => m.Id + m.Highlighted));
+                if (pendingCoverRound > 0 && !text.Contains("盖放角色牌") &&
+                    markers.Exists(m => m.Id == "action.deploy"))
+                {
+                    if (!result.confirmedCoverRounds.Contains(pendingCoverRound))
+                        result.confirmedCoverRounds.Add(pendingCoverRound);
+                    pendingCoverRound = 0;
+                }
+                var discardPage = FindObjectsOfType<Canvas>().FirstOrDefault(c => c.isActiveAndEnabled &&
+                    c.gameObject.name == "Discard Card List")?.gameObject;
+                if (discardCloseRequested && discardPage == null) result.discardBlankClosed = true;
                 if (scene != "StartScene" && scene != "LoadingScene") enteredGame = true;
                 if (enteredGame && result.finalScoringVisible && scene == "StartScene")
                 { result.returnedToStart = true; Finish(null); yield break; }
@@ -138,6 +176,21 @@ namespace YC.PlayerJourney
                     target = buttons.FirstOrDefault(b => b.name == "Confirm Selection")?.gameObject ??
                         markers.Where(m => m.Id.StartsWith("selection.card."))
                             .OrderByDescending(m => m.Id.Contains(characterTemplate)).FirstOrDefault()?.gameObject;
+                if (target != null && target.name == "Confirm Selection" && text.Contains("盖放角色牌"))
+                    pendingCoverRound = currentRound;
+                if (target == null && result.scenario == "PJ-CARD-FLOW" && discardPage != null)
+                {
+                    if (!text.Contains("点击空白处关闭") || buttons.Any(b => b.name == "Cancel Selection"))
+                    { Finish("DISCARD_CLOSE_UI_MISMATCH"); yield break; }
+                    if (!result.discardPreviewOpened)
+                    {
+                        result.discardPreviewOpened = true;
+                        ScreenCapture.CaptureScreenshot(Path.Combine(directory, "弃牌-空白关闭提示.png"));
+                        yield return new WaitForEndOfFrame();
+                    }
+                    target = discardPage;
+                    discardCloseRequested = true;
+                }
                 if (target == null && result.finalScoringVisible)
                     target = buttons.FirstOrDefault(b => Label(b).Contains("返回开始") || Label(b).Contains("返回主菜单"))?.gameObject;
                 if (target == null && text.Contains("可以再调度一个影响力"))
@@ -195,11 +248,19 @@ namespace YC.PlayerJourney
                     else target = markers.FirstOrDefault(m => m.Id == "action.character")?.gameObject;
                     if (target == null) target = markers.FirstOrDefault(m => m.Id == "action.tab.1")?.gameObject;
                 }
+                if (target == null && result.scenario == "PJ-CARD-FLOW" && !result.discardPreviewOpened &&
+                    usedCharacter && pendingAbility == null)
+                {
+                    var count = FindObjectsOfType<Text>().FirstOrDefault(t => t.name == "Discard Count" && t.isActiveAndEnabled);
+                    if (count != null && int.TryParse(count.text, out var discarded) && discarded > 0)
+                        target = buttons.FirstOrDefault(b => b.name == "Discard Region")?.gameObject;
+                }
                 if (target == null)
                 {
                     target = markers.FirstOrDefault(m => m.Id == "action.end")?.gameObject;
                     if (target != null && pendingMainAction != null)
                     {
+                        if (pendingMainAction == "action.deploy") result.deployConfirmations++;
                         if (!result.completedMainActions.Contains(pendingMainAction)) result.completedMainActions.Add(pendingMainAction);
                         pendingMainAction = null;
                         attemptedActions.Clear();
@@ -215,7 +276,11 @@ namespace YC.PlayerJourney
                 if (target == null && usedCharacter) target = markers.FirstOrDefault(m => m.Id == "action.tab.0")?.gameObject;
                 if (target == null) target = buttons.FirstOrDefault(b => Label(b).Contains("采集") && !Excluded(Label(b)))?.gameObject;
 
-                if (target == null || (signature == lastSignature && Id(target) == lastTarget))
+                // 地图采用先预选、再次点击确认；第一下可能只改变图形高亮，不改变文字。
+                // 对同一可达地图目标允许一次确认点击，之后仍按无进展处理。
+                var awaitingMapConfirmation = target != null && Id(target) == lastTarget &&
+                    lastTarget.StartsWith("map.") && repeatedTarget == 0;
+                if (target == null || (signature == lastSignature && Id(target) == lastTarget && !awaitingMapConfirmation))
                 {
                     if (Time.realtimeSinceStartup - lastAction > 15)
                     {
@@ -240,7 +305,6 @@ namespace YC.PlayerJourney
                     result.requisitionSelections++;
                 if (clickedButton != null && lastTarget.StartsWith("Character Effect Option") && text.Contains("极境策略"))
                     result.resourceSelections++;
-                if (clickedButton != null && Label(clickedButton).Contains("确认放置")) result.deployConfirmations++;
                 File.AppendAllText(Path.Combine(directory, "actions.jsonl"), JsonUtility.ToJson(new Trace
                 { step = result.steps, time = lastAction - started, scene = scene, action = drag ? "drag" : "click", target = lastTarget, visible = text }) + "\n");
                 var action = drag ? pointer.Drag(target, cover.gameObject) : pointer.Click(target);
@@ -274,7 +338,11 @@ namespace YC.PlayerJourney
             bool characterVerified = result.characterScenario == "cannot-tactic"
                 ? result.requisitionSelections == 1 : result.characterScenario == "elysium-strategy"
                     ? result.resourceSelections == 1 : result.cleanupRemovals >= 1;
-            bool requiredActions = result.characterScenario.StartsWith("all-")
+            bool requiredActions = result.scenario == "PJ-CARD-FLOW"
+                ? result.confirmedCoverRounds.Count == 8 && result.deployConfirmations >= 16 &&
+                    result.characterActivations >= 1 && characterVerified &&
+                    result.discardPreviewOpened && result.discardBlankClosed
+                : result.characterScenario.StartsWith("all-")
                 ? result.settledAbilities.Count >= 5 && result.completedMainActions.Count >= 5
                 : characterVerified && result.cancelledDeployments >= 1 &&
                     result.characterActivations >= 1 && result.deployConfirmations >= 16;

@@ -9,7 +9,7 @@ using YC.Domain.State;
 
 namespace YC.Presentation.Workflows
 {
-    public sealed class MoveInteraction : InteractionBase
+    public sealed class MoveInteraction : InteractionBase, IMapConfirmationScope
     {
         private enum MoveStage
         {
@@ -26,6 +26,24 @@ namespace YC.Presentation.Workflows
         private readonly Func<bool> canStartMainAction;
         private readonly Action<string> completeAction;
         private MoveStage stage;
+        private int selectionVersion;
+        private string inFlightCommandId = string.Empty;
+
+        public bool IsSubmissionInFlight => !string.IsNullOrEmpty(inFlightCommandId);
+
+        public string MapConfirmationScope
+        {
+            get
+            {
+                var state = context.CurrentState;
+                var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
+                if (!IsActive || IsSubmissionInFlight || player == null || state.HasPendingChoice())
+                    return string.Empty;
+                return Id + ":" + selectionVersion + ":" + context.LocalPlayerId + ":" +
+                    state.Round + ":" + state.Phase + ":" + state.ActionRound + ":" +
+                    player.CityLocationId + ":" + (state.EffectRuntime?.StateRevision ?? 0);
+            }
+        }
 
         public MoveInteraction(
             IWritableGameplayContext context,
@@ -122,7 +140,10 @@ namespace YC.Presentation.Workflows
 
         public override InteractionResult OnLocationClicked(string locationId)
         {
-            return InteractionResult.Passthrough;
+            if (!IsActive) return InteractionResult.Passthrough;
+            // 统一路由已完成首击预选和二次合法性校验，这里只处理确认后的业务命令。
+            if (!IsSubmissionInFlight) Move(locationId);
+            return InteractionResult.Consumed;
         }
 
         public override InteractionResult OnInfluenceSlotClicked(string slotId)
@@ -137,7 +158,7 @@ namespace YC.Presentation.Workflows
 
         public override InteractionResult OnEscape()
         {
-            return InteractionResult.Passthrough;
+            return IsSubmissionInFlight ? InteractionResult.Consumed : InteractionResult.Passthrough;
         }
 
         public override InteractionPresentation BuildPresentation()
@@ -149,24 +170,30 @@ namespace YC.Presentation.Workflows
 
             return new InteractionPresentation(
                 BuildMoveTargetHighlights(),
-                "\u57ce\u5e02\u79fb\u52a8\uff1a\u9009\u62e9\u9ad8\u4eae\u8d44\u6e90\u70b9",
+                IsSubmissionInFlight
+                    ? CommandGateway.BuildWaitingForHostPrompt("\u79fb\u52a8\u547d\u4ee4")
+                    : "城市移动：预计花费" + new TravelCostService(mapQuery).GetCityMoveBaseCost().OriginiumShard + "源石碎片",
                 InteractionMode.Busy);
         }
 
         public void Activate()
         {
+            selectionVersion++;
             stage = MoveStage.SelectingTarget;
             PresentMoveTargets();
         }
 
         public override void Cancel()
         {
+            selectionVersion++;
+            inFlightCommandId = string.Empty;
             stage = MoveStage.Inactive;
             view.ClearHighlights();
         }
 
         public void Begin()
         {
+            if (IsSubmissionInFlight) return;
             if (IsActive)
             {
                 flowCoordinator.ResetToChooseAction();
@@ -195,19 +222,25 @@ namespace YC.Presentation.Workflows
 
         public void Move(string locationId)
         {
+            if (IsSubmissionInFlight) return;
+            var command = new GameCommand
+            {
+                Kind = GameCommandKind.MoveCity,
+                PlayerId = context.LocalPlayerId,
+                TargetId = CityMoveCandidateQueryService.CandidatePrefix + (locationId ?? string.Empty)
+            };
+            inFlightCommandId = command.CommandId;
+            view.ClearHighlights();
             commandGateway.Submit(
-                new GameCommand
-                {
-                    Kind = GameCommandKind.MoveCity,
-                    PlayerId = context.LocalPlayerId,
-                    TargetId = CityMoveCandidateQueryService.CandidatePrefix + (locationId ?? string.Empty)
-                },
+                command,
                 new SubmitCallbacks(
                     view.ShowPrompt,
                     CommandGateway.BuildWaitingForHostPrompt("\u79fb\u52a8\u547d\u4ee4"))
                 {
+                    BeforeRejectedPrompt = _ => NotifyCommandSettled(command.CommandId),
                     OnAppliedLocally = result =>
                     {
+                        inFlightCommandId = string.Empty;
                         if (context.CurrentState.HasPendingChoice())
                         {
                             flowCoordinator.SetMode(InteractionMode.Busy);
@@ -219,6 +252,15 @@ namespace YC.Presentation.Workflows
                         completeAction("\u57ce\u5e02\u79fb\u52a8");
                     }
                 });
+        }
+
+        public override void NotifyCommandSettled(string commandId)
+        {
+            if (!IsSubmissionInFlight || (!string.IsNullOrEmpty(commandId) && commandId != inFlightCommandId))
+                return;
+            inFlightCommandId = string.Empty;
+            selectionVersion++;
+            RestorePresentation();
         }
 
         public void RestorePresentation()
@@ -286,7 +328,9 @@ namespace YC.Presentation.Workflows
             var state = context.CurrentState;
             var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
             var highlights = new List<WorkflowHighlight>();
-            if (player == null || string.IsNullOrEmpty(player.CityLocationId))
+            if (player == null || string.IsNullOrEmpty(player.CityLocationId) ||
+                IsSubmissionInFlight || state.HasPendingChoice() || !IsLocalPlayersTurn() ||
+                (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2))
             {
                 return highlights;
             }

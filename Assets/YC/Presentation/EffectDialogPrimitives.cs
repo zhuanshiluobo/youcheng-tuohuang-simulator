@@ -37,7 +37,7 @@ namespace YC.Presentation
         public Func<string, string> Label;
         public Func<string, string> SourceLabel;
         public Func<string, string> DescriptionLabel;
-        public Func<string, Texture2D> CardTexture;
+        public Func<string, Sprite> CardSprite;
         public Action<string> Select;
         public Action Confirm;
         public Action Cancel;
@@ -50,12 +50,15 @@ namespace YC.Presentation
         public string CardPickerHint;
         public bool AllowStageFolding;
         public bool ReadOnly;
+        public bool CloseOnBackgroundClick;
+        public PlayerSelectionConfig Players;
+        public Action<IReadOnlyList<int>> PlayerSelectionChanged;
 
         internal bool HasCardArtwork()
         {
-            if (CardTexture == null || Request?.CandidateIds == null) return false;
+            if (CardSprite == null || Request?.CandidateIds == null) return false;
             foreach (var id in Request.CandidateIds)
-                if (!string.IsNullOrEmpty(id) && CardTexture(id) != null) return true;
+                if (!string.IsNullOrEmpty(id) && CardSprite(id) != null) return true;
             return false;
         }
     }
@@ -301,7 +304,7 @@ namespace YC.Presentation
                 selected.Count, request.MinSelections, request.MaxSelections);
             var cardMode = false;
             foreach (var candidate in candidates)
-                if (spec.CardTexture != null && spec.CardTexture(candidate) != null) { cardMode = true; break; }
+                if (spec.CardSprite != null && spec.CardSprite(candidate) != null) { cardMode = true; break; }
             var content = cardMode
                 ? shellView.ConfigureCardScroll(profile.SelectionCardSize, profile.SelectionMinimumCardWidth)
                 : shellView.ConfigureOptionScroll("Selection Scroll", profile.OptionsScrollBottomWithBack,
@@ -320,11 +323,11 @@ namespace YC.Presentation
                     var card = shellView.CreateFacilityCard();
                     card.gameObject.name = (spec.OptionNamePrefix ?? "Selection Card ") + i;
                     YC.PlayerJourney.PlayerAutomationId.Attach(card.Button.gameObject, "selection.card." + id);
-                    var texture = spec.CardTexture == null ? null : spec.CardTexture(id);
-                    card.CardImage.texture = texture;
-                    card.CardImage.color = texture == null ? Color.clear : Color.white;
+                    var sprite = spec.CardSprite == null ? null : spec.CardSprite(id);
+                    CardArtworkView.Set(card.CardImage, sprite);
+                    card.CardImage.color = sprite == null ? Color.clear : Color.white;
                     card.FallbackLabel.text = label;
-                    card.FallbackLabel.gameObject.SetActive(texture == null);
+                    card.FallbackLabel.gameObject.SetActive(sprite == null);
                     if (card.SelectionImage != null) card.SelectionImage.enabled = selected.Contains(id);
                     else card.Outline.enabled = selected.Contains(id);
                     card.Button.onClick.RemoveAllListeners();
@@ -338,7 +341,7 @@ namespace YC.Presentation
                     });
                     void OpenDetails()
                     {
-                            if (!CanAct() || texture == null) return;
+                            if (!CanAct() || sprite == null) return;
                             var savedScroll = shellView.ScrollPosition;
                             openingDetails = true;
                             try
@@ -346,7 +349,7 @@ namespace YC.Presentation
                                 if (cardViewer == null)
                                     cardViewer = registry.InstantiateCardViewer(shellView.transform.parent as RectTransform);
                                 CardImagePreviewUtility.Open(ref cardViewer, shellView.transform.parent,
-                                    texture);
+                                    sprite);
                             }
                             finally { openingDetails = false; }
                             if (cardViewer == null) return;
@@ -404,14 +407,20 @@ namespace YC.Presentation
             }
             if (spec.Cancel != null && request.AllowDecline)
             {
-                var cancel = CreateButton(panel, "Cancel Selection",
-                    string.IsNullOrEmpty(spec.CancelLabel) ? profile.SelectionCancelLabel : spec.CancelLabel, 18, false);
-                cancel.onClick.AddListener(() =>
+                void Cancel()
                 {
                     if (submitted || (!spec.ReadOnly && !CanAct())) return;
                     submitted = true;
                     spec.Cancel();
-                });
+                }
+                if (spec.ReadOnly && spec.CloseOnBackgroundClick)
+                    shellView.ConfigureBackgroundDismiss(Cancel);
+                else
+                {
+                    var cancel = CreateButton(panel, "Cancel Selection",
+                        string.IsNullOrEmpty(spec.CancelLabel) ? profile.SelectionCancelLabel : spec.CancelLabel, 18, false);
+                    cancel.onClick.AddListener(Cancel);
+                }
             }
         }
 

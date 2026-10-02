@@ -18,6 +18,18 @@ namespace YC.Presentation
         [SerializeField] private UiEffectRowView effectRowPrefab;
         [SerializeField] private EnterpriseSelectionDialogView enterpriseSelectionPrefab;
         [SerializeField] private EnterpriseSelectionDialogView departmentSelectionPrefab;
+        [SerializeField] private PlayerSelectionPageView playerSelectionPrefab;
+
+        public PlayerSelectionPageView PlayerSelectionPrefab => playerSelectionPrefab;
+        public PlayerSelectionPageView InstantiatePlayerSelection(RectTransform parent)
+        {
+            if (playerSelectionPrefab == null || !playerSelectionPrefab.TryValidateConfiguration(out var reason))
+                throw new InvalidOperationException("玩家选择页面预制体配置不完整。");
+            var host = GameplayHudFrame.Active == null ? parent : GameplayHudFrame.Active.ContentRect;
+            if (host == null) throw new InvalidOperationException("玩家选择页面缺少 PageHost。");
+            var page = Instantiate(playerSelectionPrefab,host,false);
+            page.gameObject.SetActive(false); page.transform.SetAsLastSibling(); return page;
+        }
 
         public EffectDialogShellView EffectDialogShellPrefab => effectDialogShellPrefab;
         public EffectDialogShellView CardPickerPrefab => cardPickerPrefab;
@@ -74,7 +86,7 @@ namespace YC.Presentation
             if (effectDialogShellPrefab == null || cardPickerPrefab == null || cardViewerPrefab == null || dispatchDecisionPrefab == null ||
                 eventChoiceDialogPrefab == null || cityStyleDeclarationPreviewPrefab == null ||
                 cardVisualCatalog == null || cardInteractionLayoutProfile == null ||
-                effectRowPrefab == null || enterpriseSelectionPrefab == null || departmentSelectionPrefab == null)
+                effectRowPrefab == null || enterpriseSelectionPrefab == null || departmentSelectionPrefab == null || playerSelectionPrefab == null)
             {
                 reason = "游戏流程对话框 Registry 的 Prefab 引用不完整。";
                 return false;
@@ -92,6 +104,7 @@ namespace YC.Presentation
             }
 
             if (!cardViewerPrefab.TryValidateConfiguration(out reason) ||
+                !playerSelectionPrefab.TryValidateConfiguration(out reason) ||
                 !enterpriseSelectionPrefab.TryValidateConfiguration(out reason) ||
                 !departmentSelectionPrefab.TryValidateConfiguration(out reason) ||
                 !effectRowPrefab.TryValidateConfiguration(out reason) ||

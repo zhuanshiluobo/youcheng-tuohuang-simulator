@@ -10,8 +10,7 @@ namespace YC.Presentation
     {
         [Serializable] public sealed class Card
         {
-            public string id, version, artworkPath, atlasId;
-            public Rect sourceRect;
+            public string id, version, artworkSpriteId;
             public string trackLayout;
         }
         [Serializable] public sealed class Track

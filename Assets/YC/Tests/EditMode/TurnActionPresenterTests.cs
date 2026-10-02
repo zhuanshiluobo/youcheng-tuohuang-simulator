@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
@@ -401,12 +402,13 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void MoveInteraction_ImplementsActiveActionContractAndPreservesMapPassthrough()
+        public void MoveInteraction_ImplementsActiveActionAndSharedMapConfirmationContract()
         {
             var fixture = CreateFixture();
             var interaction = fixture.Presenter.MoveInteraction;
 
             Assert.That(interaction, Is.InstanceOf<InteractionBase>());
+            Assert.That(interaction, Is.InstanceOf<IMapConfirmationScope>());
             Assert.That(interaction.Id, Is.EqualTo("move-city"));
             Assert.That(interaction.Priority, Is.EqualTo(InteractionPriority.ActiveAction));
             Assert.That(interaction.IsActive, Is.False);
@@ -422,9 +424,12 @@ namespace YC.Tests.EditMode
             Assert.That(presentation.IsEmpty, Is.False);
             Assert.That(presentation.PanelMode, Is.EqualTo(InteractionMode.Busy));
             Assert.That(presentation.PromptText, Is.Not.Empty);
-            Assert.That(
-                interaction.OnLocationClicked("B"),
-                Is.SameAs(InteractionResult.Passthrough));
+            var router = new InteractionRouter(fixture.View.ShowPrompt);
+            router.Register(interaction);
+            Assert.That(router.OnLocationClicked("B", 1), Is.SameAs(InteractionResult.Consumed));
+            Assert.That(fixture.Commands.SubmitCount, Is.Zero);
+            Assert.That(router.BuildActivePresentation().Highlights[0].State,
+                Is.EqualTo(WorkflowHighlightState.PendingConfirmation));
             Assert.That(
                 interaction.OnInfluenceSlotClicked("slot"),
                 Is.SameAs(InteractionResult.Passthrough));
@@ -444,6 +449,111 @@ namespace YC.Tests.EditMode
             Assert.That(interaction.IsActive, Is.False);
             Assert.That(interaction.BuildPresentation().IsEmpty, Is.True);
             Assert.That(fixture.View.Highlights, Is.Empty);
+        }
+
+        [Test]
+        public void MoveSelection_RefreshSwitchEscapeAndRestartUseTheSamePendingState()
+        {
+            var fixture = CreateFixture(true);
+            var move = fixture.Presenter.MoveInteraction;
+            var router = new InteractionRouter(fixture.View.ShowPrompt);
+            router.Register(move);
+            move.Begin();
+            router.OnLocationClicked("B", 1);
+            router.OnLocationClicked("B", 1);
+            for (var i = 0; i < 3; i++)
+            {
+                fixture.View.SetHighlights(router.BuildActivePresentation().Highlights);
+                Assert.That(fixture.View.Highlights.Single(h => h.TargetId == "B").State,
+                    Is.EqualTo(WorkflowHighlightState.PendingConfirmation));
+                Assert.That(fixture.View.Highlights.Single(h => h.TargetId == "C").State,
+                    Is.EqualTo(WorkflowHighlightState.Available));
+            }
+            router.OnLocationClicked("C", 2);
+            Assert.That(router.BuildActivePresentation().Highlights.Single(h => h.TargetId == "B").State,
+                Is.EqualTo(WorkflowHighlightState.Available));
+            Assert.That(router.BuildActivePresentation().Highlights.Single(h => h.TargetId == "C").State,
+                Is.EqualTo(WorkflowHighlightState.PendingConfirmation));
+            Assert.That(router.OnEscape(), Is.SameAs(InteractionResult.Consumed));
+            Assert.That(move.IsActive, Is.True, "Esc 只撤销临时预选");
+            Assert.That(router.BuildActivePresentation().Highlights.All(h => h.State == WorkflowHighlightState.Available), Is.True);
+            router.OnLocationClicked("B", 3);
+            fixture.Flow.ResetToChooseAction();
+            move.Begin();
+            router.OnLocationClicked("B", 4);
+            Assert.That(fixture.Commands.SubmitCount, Is.Zero, "取消重开不能继承前一次预选");
+            router.OnLocationClicked("B", 5);
+            Assert.That(fixture.Commands.SubmitCount, Is.EqualTo(1));
+            Assert.That(fixture.Commands.LastCommand.TargetId,
+                Is.EqualTo(YC.Domain.Movement.CityMoveCandidateQueryService.CandidatePrefix + "B"));
+            Assert.That(router.HasPendingMapConfirmation, Is.False);
+        }
+
+        [Test]
+        public void MoveSelection_StateRevisionAndInvalidCandidateInvalidatePendingTarget()
+        {
+            var fixture = CreateFixture();
+            var router = new InteractionRouter(fixture.View.ShowPrompt);
+            router.Register(fixture.Presenter.MoveInteraction);
+            fixture.Presenter.BeginMoveAction();
+            router.OnLocationClicked("B", 1);
+            fixture.Context.State.EffectRuntime.StateRevision++;
+            router.OnLocationClicked("B", 2);
+            Assert.That(fixture.Commands.SubmitCount, Is.Zero, "状态修订后必须重新预选");
+            fixture.Context.State.FindPlayer(2).CityLocationId = "B";
+            Assert.That(router.BuildActivePresentation().Highlights, Is.Empty);
+            Assert.That(router.HasPendingMapConfirmation, Is.False);
+            router.OnLocationClicked("B", 3);
+            Assert.That(fixture.Commands.SubmitCount, Is.Zero);
+        }
+
+        [Test]
+        public void MoveSelection_WaitingForHostBlocksRepeatedSubmissionUntilMatchingSettlement()
+        {
+            var fixture = CreateFixture();
+            fixture.Commands.NextResult = Success(false);
+            var move = fixture.Presenter.MoveInteraction;
+            var router = new InteractionRouter(fixture.View.ShowPrompt);
+            router.Register(move);
+            move.Begin();
+            router.OnLocationClicked("B", 1);
+            router.OnLocationClicked("B", 2);
+            var commandId = fixture.Commands.LastCommand.CommandId;
+            Assert.That(move.IsSubmissionInFlight, Is.True);
+            Assert.That(router.BuildActivePresentation().Highlights, Is.Empty);
+            router.OnLocationClicked("B", 3);
+            router.OnLocationClicked("B", 4);
+            move.Begin();
+            move.Move("B");
+            router.NotifyCommandSettled("unrelated-command");
+            Assert.That(move.IsSubmissionInFlight, Is.True);
+            Assert.That(fixture.Commands.SubmitCount, Is.EqualTo(1));
+            router.NotifyCommandSettled(commandId);
+            Assert.That(move.IsSubmissionInFlight, Is.False);
+            Assert.That(router.BuildActivePresentation().Highlights[0].State, Is.EqualTo(WorkflowHighlightState.Available));
+            router.OnLocationClicked("B", 5);
+            Assert.That(fixture.Commands.SubmitCount, Is.EqualTo(1));
+            router.OnLocationClicked("B", 6);
+            Assert.That(fixture.Commands.SubmitCount, Is.EqualTo(2));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void MoveSelection_RejectionOrMissingResultRestoresCandidatesAndRequiresNewConfirmation(bool missingResult)
+        {
+            var fixture = CreateFixture();
+            fixture.Commands.NextResult = missingResult ? null : Rejected("blocked");
+            var move = fixture.Presenter.MoveInteraction;
+            var router = new InteractionRouter(fixture.View.ShowPrompt);
+            router.Register(move);
+            move.Begin();
+            router.OnLocationClicked("B", 1);
+            router.OnLocationClicked("B", 2);
+            Assert.That(move.IsSubmissionInFlight, Is.False);
+            Assert.That(router.HasPendingMapConfirmation, Is.False);
+            Assert.That(router.BuildActivePresentation().Highlights[0].State, Is.EqualTo(WorkflowHighlightState.Available));
+            router.OnLocationClicked("B", 3);
+            Assert.That(fixture.Commands.SubmitCount, Is.EqualTo(1));
         }
 
         [Test]
@@ -527,6 +637,7 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.View.Prompt, Does.Contain("等待确认"));
 
             fixture.Commands.NextResult = Success(true);
+            fixture.Presenter.MoveInteraction.NotifyCommandSettled(fixture.Commands.LastCommand.CommandId);
             fixture.Presenter.MoveCity("B");
             Assert.That(fixture.View.CompletedAction, Is.EqualTo("城市移动"));
             Assert.That(fixture.Flow.CurrentMode, Is.EqualTo(InteractionMode.ChooseAction));
@@ -1377,7 +1488,7 @@ namespace YC.Tests.EditMode
             });
         }
 
-        private static Fixture CreateFixture()
+        private static Fixture CreateFixture(bool additionalMoveTarget = false)
         {
             var map = new GameMapDefinition
             {
@@ -1429,6 +1540,11 @@ namespace YC.Tests.EditMode
             var view = new FakeView();
             var flow = new InteractionFlowCoordinator();
             flow.ResetToChooseAction();
+            if (additionalMoveTarget)
+            {
+                map.Locations.Add(new MapLocationDefinition { LocationId = "C" });
+                map.Routes.Add(new MapRouteDefinition { RouteId = "R2", FromLocationId = "A", ToLocationId = "C" });
+            }
             var mapQuery = new MapQueryService(map);
             var influenceService = new InfluenceService(mapQuery);
             var resource = new ResourceCollectionPresenter(

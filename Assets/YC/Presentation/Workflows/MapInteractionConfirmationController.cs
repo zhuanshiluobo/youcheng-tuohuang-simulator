@@ -5,6 +5,7 @@ namespace YC.Presentation
     public sealed class MapInteractionConfirmationController
     {
         private Action callback;
+        private int lastInputFrame = -1;
 
         public string ActionKey { get; private set; } = string.Empty;
         public string TargetId { get; private set; } = string.Empty;
@@ -28,12 +29,15 @@ namespace YC.Presentation
             string locationId,
             string slotId,
             Action confirmedAction,
-            out Action confirmedCallback)
+            out Action confirmedCallback,
+            int inputFrame = -1)
         {
             confirmedCallback = null;
+            if (inputFrame >= 0 && lastInputFrame == inputFrame) return false;
+            lastInputFrame = inputFrame;
             if (Matches(actionKey, targetId) && HasPending)
             {
-                confirmedCallback = callback;
+                confirmedCallback = confirmedAction;
                 Clear();
                 return true;
             }

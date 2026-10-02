@@ -88,6 +88,7 @@ namespace YC.Presentation
             public Button Button;
             public Outline Outline;
             public RawImage CardImage;
+            public Sprite CardSprite;
             public Text FallbackText;
         }
 
@@ -365,8 +366,9 @@ namespace YC.Presentation
             pendingBuildGhost.offsetMax = Vector2.zero;
 
             var rawImage = ghost.RawImage;
-            rawImage.texture = TryLoadFacilityCardTexture(facilityId);
-            rawImage.color = rawImage.texture == null ? ExternalCardBackground : Color.white;
+            var sprite = TryLoadFacilityCardSprite(facilityId);
+            CardArtworkView.Set(rawImage, sprite);
+            rawImage.color = sprite == null ? ExternalCardBackground : Color.white;
             rawImage.raycastTarget = true;
             var canvasGroup = ghost.CanvasGroup;
             canvasGroup.alpha = 0.78f;
@@ -379,7 +381,8 @@ namespace YC.Presentation
                 Label = FacilityCardDatabase.Get(facilityId)?.Name ?? facilityId,
                 Item = ghost,
                 Button = ghost.Button,
-                CardImage = rawImage
+                CardImage = rawImage,
+                CardSprite = sprite
             };
             ghost.PointerInteraction.ConfigureDrag(
                 () => buildInteractionActive,
@@ -445,7 +448,7 @@ namespace YC.Presentation
                 var facilityId = currentState.Decks.FacilitySupply[i];
                 var facility = FacilityCardDatabase.Get(facilityId);
                 var label = facility == null ? facilityId : facility.Name;
-                BindExternalFacilitySlot(binding, facilityId, label, TryLoadFacilityCardTexture(facilityId));
+                BindExternalFacilitySlot(binding, facilityId, label, TryLoadFacilityCardSprite(facilityId));
             }
         }
 
@@ -453,7 +456,7 @@ namespace YC.Presentation
             ExternalCardBinding binding,
             string facilityId,
             string label,
-            Texture2D texture)
+            Sprite sprite)
         {
             if (binding.Item != null)
             {
@@ -467,16 +470,17 @@ namespace YC.Presentation
             binding.Slot.EmptyLabel.text = "空卡位";
             binding.Slot.EmptyLabel.gameObject.SetActive(string.IsNullOrEmpty(facilityId));
             binding.CardImage = null;
+            binding.CardSprite = sprite;
             binding.FallbackText = binding.Slot.EmptyLabel;
             if (!string.IsNullOrEmpty(facilityId))
             {
                 binding.Item = InstantiateItem(view.CardContentTemplate, binding.Slot.ContentRoot, "Card Content");
                 binding.CardImage = binding.Item.RawImage;
                 binding.FallbackText = binding.Item.FallbackText;
-                binding.CardImage.texture = texture;
-                binding.CardImage.gameObject.SetActive(texture != null);
-                binding.FallbackText.text = texture == null ? label : string.Empty;
-                binding.FallbackText.gameObject.SetActive(texture == null);
+                CardArtworkView.Set(binding.CardImage, sprite);
+                binding.CardImage.gameObject.SetActive(sprite != null);
+                binding.FallbackText.text = sprite == null ? label : string.Empty;
+                binding.FallbackText.gameObject.SetActive(sprite == null);
             }
 
             UpdateExternalFacilityAvailability(binding);
@@ -493,7 +497,7 @@ namespace YC.Presentation
             {
                 OpenCardImage(
                     binding.Label,
-                    binding.CardImage == null ? null : binding.CardImage.texture as Texture2D);
+                    binding.CardSprite);
                 return;
             }
 
@@ -596,11 +600,11 @@ namespace YC.Presentation
             ghost.Root.sizeDelta = binding.Button.GetComponent<RectTransform>().rect.size;
             ghost.Canvas.overrideSorting = true;
             ghost.Canvas.sortingOrder = GameplayUiLayers.ContentDrag;
-            ghost.RawImage.texture = binding.CardImage == null ? null : binding.CardImage.texture;
-            ghost.RawImage.color = ghost.RawImage.texture == null ? ExternalCardBackground : Color.white;
+            CardArtworkView.Set(ghost.RawImage, binding.CardSprite);
+            ghost.RawImage.color = binding.CardSprite == null ? ExternalCardBackground : Color.white;
             ghost.RawImage.raycastTarget = false;
-            ghost.FallbackText.text = ghost.RawImage.texture == null ? binding.Label : string.Empty;
-            ghost.FallbackText.gameObject.SetActive(ghost.RawImage.texture == null);
+            ghost.FallbackText.text = binding.CardSprite == null ? binding.Label : string.Empty;
+            ghost.FallbackText.gameObject.SetActive(binding.CardSprite == null);
             ghost.CanvasGroup.alpha = 0.82f;
             ghost.CanvasGroup.interactable = false;
             ghost.CanvasGroup.blocksRaycasts = false;
@@ -724,12 +728,12 @@ namespace YC.Presentation
             }
         }
 
-        private void OpenCardImage(string cardName, Texture2D texture)
+        private void OpenCardImage(string cardName, Sprite sprite)
         {
             CardImagePreviewUtility.Open(
                 ref cardImageViewer,
                 transform,
-                texture);
+                sprite);
         }
 
         private IReadOnlyList<string> GetCurrentCityStyleSupplyIds()
@@ -811,20 +815,20 @@ namespace YC.Presentation
                 }
 
                 binding.Item = InstantiateItem(view.CardContentTemplate, binding.Slot.ContentRoot, "设施卡内容");
-                var texture = TryLoadFacilityCardTexture(facilityId);
+                var sprite = TryLoadFacilityCardSprite(facilityId);
                 binding.Item.RawImage.gameObject.name = "设施卡图";
                 binding.Item.RawImage.rectTransform.anchorMin = Vector2.zero;
                 binding.Item.RawImage.rectTransform.anchorMax = Vector2.one;
                 binding.Item.RawImage.rectTransform.offsetMin = Vector2.zero;
                 binding.Item.RawImage.rectTransform.offsetMax = Vector2.zero;
-                binding.Item.RawImage.texture = texture;
-                binding.Item.RawImage.gameObject.SetActive(texture != null);
-                binding.Item.FallbackText.text = texture == null ? label : string.Empty;
-                binding.Item.FallbackText.gameObject.SetActive(texture == null);
+                CardArtworkView.Set(binding.Item.RawImage, sprite);
+                binding.Item.RawImage.gameObject.SetActive(sprite != null);
+                binding.Item.FallbackText.text = sprite == null ? label : string.Empty;
+                binding.Item.FallbackText.gameObject.SetActive(sprite == null);
                 var detailTitle = isUsedForDeclaration ? label + "（已使用）" : label;
                 binding.Slot.PointerInteraction.ConfigureClick(
                     binding.Slot.Button,
-                    () => OpenCardImage(detailTitle, TryLoadFacilityCardTexture(facilityId)),
+                    () => OpenCardImage(detailTitle, TryLoadFacilityCardSprite(facilityId)),
                     null);
             }
 
@@ -884,12 +888,12 @@ namespace YC.Presentation
             return false;
         }
 
-        internal Texture2D TryLoadFacilityCardTexture(string facilityId)
+        internal Sprite TryLoadFacilityCardSprite(string facilityId)
         {
             return cardVisualCatalog == null ? null : cardVisualCatalog.GetFacility(facilityId);
         }
 
-        private Texture2D TryLoadCityStyleCardTexture(string cityStyleId)
+        private Sprite TryLoadCityStyleCardSprite(string cityStyleId)
         {
             return cardVisualCatalog == null ? null : cardVisualCatalog.GetCityStyle(cityStyleId);
         }

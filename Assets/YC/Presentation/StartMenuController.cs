@@ -346,7 +346,8 @@ namespace YC.Presentation
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             var seed = GetCommandLineValue(Environment.GetCommandLineArgs(), "--yc-player-journey-seed=");
-            if (!string.IsNullOrEmpty(seed)) return LocalGameSeedSourcePrefix + seed;
+            if (YC.PlayerJourney.PlayerJourneyRuntime.IsRunning && !string.IsNullOrEmpty(seed))
+                return LocalGameSeedSourcePrefix + seed;
 #endif
             return LocalGameSeedSourcePrefix + Guid.NewGuid().ToString("N");
         }

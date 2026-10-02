@@ -117,6 +117,7 @@ namespace YC.Domain.State
         public List<PlayerStateView> Players = new List<PlayerStateView>();
         public PublicMapStateView Map = new PublicMapStateView();
         public PublicDeckStateView Decks = new PublicDeckStateView();
+        public GameBoxState GameBox = new GameBoxState();
         public FinalScoringView FinalScoring;
         public List<InteractionView> Interactions = new List<InteractionView>();
         public List<int> WaitingForPlayerIds = new List<int>();
@@ -393,6 +394,7 @@ namespace YC.Domain.State
             ProjectPlayers(state, viewer, view.Players);
             ProjectMap(state.Map, view.Map, viewer);
             ProjectDecks(state.Decks, view.Decks);
+            view.GameBox = GameBoxState.ForViewer(state.GameBox, viewer);
             ProjectFinalScoring(state.FinalScoring, viewer, view);
             ProjectInteractions(state, viewer, view);
             ProjectEffects(runtime, viewer, view.Effects);
@@ -421,6 +423,7 @@ namespace YC.Domain.State
                 EffectRuntime = null
             };
             if (view == null) return state;
+            state.GameBox = GameBoxState.ForViewer(view.GameBox, new GameStateViewer { Role = view.ViewerRole, PlayerId = view.ViewerPlayerId });
 
             for (int i = 0; i < view.Players.Count; i++)
             {

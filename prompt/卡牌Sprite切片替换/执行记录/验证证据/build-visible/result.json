@@ -1,0 +1,94 @@
+{
+  "scene": "SampleScene",
+  "componentDiagnostic": true,
+  "note": "使用实际场景及其 Registry 的运行实例；交互回调仅记录验收结果，不提交游戏命令。",
+  "registry": "Gameplay Dialog Registry",
+  "catalog": "CardVisualCatalog",
+  "contentHash": "c2f7a32684559ed2692ce205be83823e253bd4a0d0bee40f12824ffc06136190",
+  "activeDefinitions": 78,
+  "textures": [
+    {
+      "name": "artwork/sheets/city_style_level_1.jpg",
+      "width": 2790,
+      "height": 1800,
+      "format": "RGB24",
+      "runtimeBytes": 20088480,
+      "readable": false
+    },
+    {
+      "name": "artwork/sheets/city_style_level_2.jpg",
+      "width": 1860,
+      "height": 1200,
+      "format": "RGB24",
+      "runtimeBytes": 8928480,
+      "readable": false
+    },
+    {
+      "name": "artwork/sheets/character_faces.jpg",
+      "width": 2400,
+      "height": 1700,
+      "format": "RGB24",
+      "runtimeBytes": 16320480,
+      "readable": false
+    },
+    {
+      "name": "artwork/sheets/facility_faces.jpg",
+      "width": 5400,
+      "height": 5100,
+      "format": "RGB24",
+      "runtimeBytes": 110160480,
+      "readable": false
+    },
+    {
+      "name": "artwork/sheets/event_green_faces.jpg",
+      "width": 1700,
+      "height": 1800,
+      "format": "RGB24",
+      "runtimeBytes": 12240480,
+      "readable": false
+    },
+    {
+      "name": "artwork/sheets/event_yellow_faces.jpg",
+      "width": 1700,
+      "height": 3600,
+      "format": "RGB24",
+      "runtimeBytes": 24480480,
+      "readable": false
+    },
+    {
+      "name": "artwork/sheets/event_red_faces.jpg",
+      "width": 1700,
+      "height": 2400,
+      "format": "RGB24",
+      "runtimeBytes": 28560576,
+      "readable": false
+    }
+  ],
+  "maxTextureSize": 16384,
+  "graphicsDevice": "NVIDIA GeForce RTX 4060 Ti",
+  "checks": [
+    "94切片/7纹理",
+    "实际场景引用",
+    "四类详情/关闭",
+    "角色/设施选择回调",
+    "三色事件选项/点击区域",
+    "设施拖拽虚影"
+  ],
+  "success": true,
+  "errors": 0,
+  "errorMessages": [],
+  "screenshots": [
+    "01-实际场景与供应区.png",
+    "事件选项-event_green_01.png",
+    "事件选项-event_red_03.png",
+    "事件选项-event_yellow_02.png",
+    "城市样式预览-横牌与设施.png",
+    "拖拽-设施切片.png",
+    "详情-character.png",
+    "详情-city_style.png",
+    "详情-event.png",
+    "详情-facility.png",
+    "选择-角色.png",
+    "选择-设施与三色枢纽.png"
+  ]
+}

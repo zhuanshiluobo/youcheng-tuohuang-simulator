@@ -256,13 +256,13 @@ namespace YC.Presentation
                 var slotButton = slot.Button;
                 slotButton.transition = Selectable.Transition.None;
                 slotButton.interactable = false;
-                var facilityTexture = occupied
+                var facilitySprite = occupied
                     ? dialogRegistry.CardVisualCatalog.GetFacility(facilityId)
                     : null;
-                slot.FacilityImage.texture = facilityTexture;
+                CardArtworkView.Set(slot.FacilityImage, facilitySprite);
                 slot.FacilityImage.color = Color.white;
                 slot.FacilityImage.raycastTarget = false;
-                slot.FacilityImage.gameObject.SetActive(facilityTexture != null);
+                slot.FacilityImage.gameObject.SetActive(facilitySprite != null);
                 slot.UsedBadge.SetActive(used);
 
                 var binding = new CityBoardSlotBinding
@@ -293,17 +293,17 @@ namespace YC.Presentation
             if (option == null)
             {
                 cityStyleTitleText.text = view.EmptyStatus;
-                cityStyleCardImage.texture = null;
+                CardArtworkView.Set(cityStyleCardImage, null);
                 cityStyleCardImage.gameObject.SetActive(false);
                 cityStyleCardPlaceholder.gameObject.SetActive(true);
             }
             else
             {
                 cityStyleTitleText.text = option.Name;
-                var texture = dialogRegistry.CardVisualCatalog.GetCityStyle(option.CityStyleId);
-                cityStyleCardImage.texture = texture;
-                cityStyleCardImage.gameObject.SetActive(texture != null);
-                cityStyleCardPlaceholder.gameObject.SetActive(texture == null);
+                var sprite = dialogRegistry.CardVisualCatalog.GetCityStyle(option.CityStyleId);
+                CardArtworkView.Set(cityStyleCardImage, sprite);
+                cityStyleCardImage.gameObject.SetActive(sprite != null);
+                cityStyleCardPlaceholder.gameObject.SetActive(sprite == null);
             }
 
             view.SelectOption(option == null ? string.Empty : option.CityStyleId);

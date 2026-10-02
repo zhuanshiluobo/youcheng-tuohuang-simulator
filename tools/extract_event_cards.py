@@ -130,4 +130,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit("旧单张卡图生产入口已退役。请维护 Content/core/artwork_slices.json 与七张完整整图；此脚本仅保留历史核对用途。")

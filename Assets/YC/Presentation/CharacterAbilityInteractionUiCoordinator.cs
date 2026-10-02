@@ -18,6 +18,7 @@ namespace YC.Presentation
     internal sealed class CharacterAbilityInteractionUiCoordinator :
         InteractionBase,
         IInteractionRequestRenderer,
+        IMapConfirmationScope,
         IDisposable
     {
         private readonly Func<GameState> getState;
@@ -36,6 +37,8 @@ namespace YC.Presentation
         private readonly HashSet<string> selectedCandidates = new HashSet<string>(StringComparer.Ordinal);
         public Func<GameStateView> GetVisibleState { private get; set; }
         public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
+        public string MapConfirmationScope => !string.IsNullOrEmpty(inFlightCommandId) || !TryGetRequest(out var request)
+            ? string.Empty : request.InteractionId + ":" + request.StateRevision + ":" + request.CandidateSetVersion;
 
         public CharacterAbilityInteractionUiCoordinator(
             Func<GameState> getState,
@@ -206,6 +209,7 @@ namespace YC.Presentation
 
         public override InteractionPresentation BuildPresentation()
         {
+            if (!string.IsNullOrEmpty(inFlightCommandId)) return InteractionPresentation.Busy;
             InteractionRequest request;
             if (!TryGetRequest(out request)) return InteractionPresentation.Empty;
 
@@ -280,6 +284,9 @@ namespace YC.Presentation
             {
                 Request = projection,
                 SelectedIds = selectedCandidates,
+                Players = PlayerSelectionRequestAdapter.Build(projection,getState(),getLocalPlayerId(),selectedCandidates),
+                PlayerSelectionChanged = ids =>
+                { selectedCandidates.Clear(); foreach (var id in ids) selectedCandidates.Add("player:"+id); },
                 Label = FormatCandidateLabel,
                 OptionNamePrefix = "Character Effect Option ",
                 IsCurrent = () => IsCurrent(projection),

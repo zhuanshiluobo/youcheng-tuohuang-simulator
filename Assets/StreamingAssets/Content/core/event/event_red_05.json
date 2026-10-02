@@ -3,7 +3,7 @@
   "contentType": "event",
   "version": "1.0.0",
   "displayName": "深层矿床（4）",
-  "artwork": "artwork/event/event_red_05.jpg",
+  "artwork": "artwork/sheets/event_red_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
@@ -60,5 +60,6 @@
     ]
   },
   "expansionId": "core",
-  "replaces": null
+  "replaces": null,
+  "artworkSpriteId": "event_red_005"
 }

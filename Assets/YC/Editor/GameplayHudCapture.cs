@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -610,11 +611,11 @@ namespace YC.Presentation.Editor
             if (cards)
             {
                 dialogsComponent.ConfigureCardScroll(profile.SelectionCardSize, profile.SelectionMinimumCardWidth);
-                var entries = (CardVisualCatalog.IdTextureEntry[])typeof(CardVisualCatalog).GetField("facilityTextures", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(registry.CardVisualCatalog);
+                var entries = Enumerable.Range(1, 7).Select(i => registry.CardVisualCatalog.GetFacility("building_" + i.ToString("000"))).ToArray();
                 for (int i = 0; i < 7; i++)
                 {
                     var card = dialogsComponent.CreateFacilityCard();
-                    card.CardImage.texture = entries[i].Texture;
+                    CardArtworkView.Set(card.CardImage, entries[i]);
                     card.FallbackLabel.gameObject.SetActive(false);
                     card.SelectionImage.enabled = i < 2;
                     card.DetailsButton.onClick.RemoveAllListeners();

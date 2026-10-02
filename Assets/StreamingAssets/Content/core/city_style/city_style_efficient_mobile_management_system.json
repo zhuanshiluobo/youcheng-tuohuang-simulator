@@ -3,7 +3,7 @@
   "contentType": "city_style",
   "version": "1.0.0",
   "displayName": "高效移动管理体系",
-  "artwork": "artwork/city_style/city_style_efficient_mobile_management_system.jpg",
+  "artwork": "artwork/sheets/city_style_level_2.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
@@ -100,5 +100,6 @@
     "luaVersion": "1.1.0"
   },
   "expansionId": "core",
-  "replaces": null
+  "replaces": null,
+  "artworkSpriteId": "city_style_2_002"
 }

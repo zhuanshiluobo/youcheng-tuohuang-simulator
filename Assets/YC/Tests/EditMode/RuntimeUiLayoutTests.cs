@@ -355,6 +355,7 @@ namespace YC.Tests.EditMode
                     noop,
                     noop,
                     noop,
+                    noop,
                     noop
                 });
         }

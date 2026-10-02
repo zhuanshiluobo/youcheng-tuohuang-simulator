@@ -231,6 +231,10 @@ namespace YC.Presentation
                 return;
             }
             RefreshLocalPlayerUi(false);
+            var informationPages = gameplayInteractionHud.GetComponent<GameplayInformationPages>();
+            if (informationPages != null)
+                informationPages.Configure(() => CurrentState, () => localPlayerId, mapQuery,
+                    gameplayInteractionHud.DialogRegistry);
             EnsureSettingsMenu();
             ShowInitialPlacementChoices();
             facilityInteraction = new FacilityInteractionUiCoordinator(
@@ -277,9 +281,11 @@ namespace YC.Presentation
 
         private void Update()
         {
+            if (UpdateEffectMapConfirmationCancellation()) return;
             workflowView?.RefreshCityStylePreview();
             gameplayInteractionHud?.Frame?.UpdateInteractionMessage(
-                mapInteractionRouter != null && mapInteractionRouter.HasPendingConfirmation);
+                (mapInteractionRouter != null && mapInteractionRouter.HasPendingConfirmation) ||
+                (interactionRouter != null && interactionRouter.HasPendingMapConfirmation));
             buildFacilityInteraction?.Synchronize();
             if (Input.GetKeyDown(KeyCode.Escape) && TryHandleInteractionEscape())
             {
@@ -349,6 +355,45 @@ namespace YC.Presentation
         public void OnHotspotClicked(string locationId)
         {
             interactionRouter.OnLocationClicked(locationId);
+        }
+
+        private int lastMapButtonInputFrame = -1;
+
+        public void OnMapButtonClicked(WorkflowHighlightTargetKind kind, string targetId)
+        {
+            if (lastMapButtonInputFrame == Time.frameCount || interactionRouter == null ||
+                mapView == null || !mapView.IsButtonInteractive(kind, targetId)) return;
+            lastMapButtonInputFrame = Time.frameCount;
+            if (kind == WorkflowHighlightTargetKind.Location) interactionRouter.OnLocationClicked(targetId, Time.frameCount);
+            else if (kind == WorkflowHighlightTargetKind.Route) interactionRouter.OnRouteClicked(targetId, Time.frameCount);
+            else interactionRouter.OnInfluenceSlotClicked(targetId, Time.frameCount);
+            RefreshRoutedMapPresentation();
+        }
+
+        private void RefreshRoutedMapPresentation()
+        {
+            var presentation = interactionRouter.BuildActivePresentation();
+            if (presentation.ReplacesHighlights) workflowView.SetHighlights(presentation.Highlights);
+        }
+
+        private bool UpdateEffectMapConfirmationCancellation()
+        {
+            if (interactionRouter == null || !interactionRouter.HasPendingMapConfirmation) return false;
+            if (Input.GetKeyDown(KeyCode.Escape)) return TryHandleInteractionEscape();
+            var cancel = false;
+            if (Input.GetMouseButtonUp(0) && TabletopPointerClassifier.CanRouteMapPointer(Input.mousePosition))
+            {
+                cancel = true;
+                var camera = Camera.main;
+                if (camera != null)
+                    foreach (var hit in Physics2D.GetRayIntersectionAll(camera.ScreenPointToRay(Input.mousePosition)))
+                        if (hit.collider != null && hit.collider.GetComponent<MapButtonView>() != null)
+                        { cancel = false; break; }
+            }
+            if (!cancel) return false;
+            interactionRouter.ClearMapConfirmation();
+            RefreshRoutedMapPresentation();
+            return true;
         }
 
         public void OnMobileCityClicked()
@@ -448,6 +493,11 @@ namespace YC.Presentation
                 return true;
             }
 
+            if (gameplayInteractionHud.GetComponent<GameplayInformationPages>()?.TryHandleEscape() == true)
+            {
+                interactionEscapeConsumedFrame = Time.frameCount;
+                return true;
+            }
             if (characterHandPanel != null && characterHandPanel.TryHandleEscape())
             {
                 interactionEscapeConsumedFrame = Time.frameCount;
@@ -458,6 +508,7 @@ namespace YC.Presentation
                 return false;
             }
 
+            var hadMapConfirmation = interactionRouter.HasPendingMapConfirmation;
             var result = interactionRouter.OnEscape();
             if (result.Kind == InteractionResultKind.Passthrough)
             {
@@ -465,6 +516,7 @@ namespace YC.Presentation
             }
 
             interactionEscapeConsumedFrame = Time.frameCount;
+            if (hadMapConfirmation) RefreshRoutedMapPresentation();
             return true;
         }
 
@@ -558,17 +610,23 @@ namespace YC.Presentation
             mapView?.RefreshScoreTrackDisplay(session == null ? null : session.State);
             RefreshActionPanel();
             RefreshFinalScoreFromState();
+            gameplayInteractionHud.GetComponent<GameplayInformationPages>()?.Refresh();
         }
 
         private void SynchronizeInteractionFromState()
         {
             turnActionPresenter.SynchronizeFromState();
-            flowCoordinator.ResetToChooseAction();
-            ClearPendingDispatch();
+            interactionRouter?.ClearMapConfirmation();
+            mapInteractionRouter?.ClearConfirmation(false);
+            var preserveCollection = flowCoordinator.IsActive(resourceCollectionPresenter) && resourceCollectionPresenter.CanResumeDraft;
+            if (!preserveCollection) flowCoordinator.ResetToChooseAction();
+            if (!preserveCollection) ClearPendingDispatch();
             // 同一城市样式支付请求由路由器按 ID/版本刷新，保留收起状态与尚未支付的选择。
-            if (specialActionInteraction == null || !specialActionInteraction.HasAuthoritativeRequest)
+            if (preserveCollection) eventChoiceDialog.Hide();
+            else if (specialActionInteraction == null || !specialActionInteraction.HasAuthoritativeRequest)
                 HideEventCardOptions();
             RefreshAllFromState();
+            if (preserveCollection) resourceCollectionPresenter.RefreshFromState();
             RefreshPendingChoiceOrHighlights();
             SynchronizeCharacterSettlementPresentation();
             PresentLatestCharacterSettlementBroadcast();
@@ -745,7 +803,9 @@ namespace YC.Presentation
             actionPanel.Render(actionViewModel);
             actionPanel.RenderCharacterQuickAction(characterView);
             gameplayInteractionHud.Frame.Refresh(session.State, actionViewModel,
-                turnActionPresenter.ActionPanelPresenter.GetUnavailableEndActionPrompt());
+                turnActionPresenter.ActionPanelPresenter.GetUnavailableEndActionPrompt(),
+                actionViewModel.AllCollectionLocationsSelected
+                    ? gameplayInteractionHud.ActionPanelView.AllCollectionLocationsSelectedText : string.Empty);
             gameplayInteractionHud.MainModules.Render(session.State, session.View, localPlayerId,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog);
             gameplayInteractionHud.MainModules.RenderDiscardCount(

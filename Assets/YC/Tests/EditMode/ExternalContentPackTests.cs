@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -40,7 +40,7 @@ namespace YC.Tests.EditMode
             };
             File.WriteAllText(Path.Combine(root, "card.json"), card.ToString());
             File.WriteAllText(Path.Combine(root, "pack.json"), new JObject { ["schemaVersion"] = 2, ["packId"] = "test", ["version"] = "1", ["definitions"] = new JArray("card.json") }.ToString());
-            File.Copy(Path.Combine(CoreRoot, "artwork/character/elysium.jpg"), Path.Combine(root, "front.jpg"));
+            File.Copy(Path.Combine(CoreRoot, "artwork/sheets/character_faces.jpg"), Path.Combine(root, "front.jpg"));
             File.WriteAllText(Path.Combine(root, "effect.lua"), script ?? "return function(ctx) return { Effect.GainResource({recipient=ctx.playerId,resourceType='iron',amount=7}) } end");
             return root;
         }
@@ -80,7 +80,7 @@ namespace YC.Tests.EditMode
             Assert.That(pack.Definitions, Has.Count.EqualTo(79));
             Assert.That(pack.CreateCharacters(), Has.Count.EqualTo(5));
             Assert.That(pack.CreateEvents(), Has.Count.EqualTo(22));
-            Assert.That(pack.CreateFacilities(), Has.Count.EqualTo(46));
+            Assert.That(pack.CreateFacilities(), Has.Count.EqualTo(45));
             Assert.That(pack.CreateCityStyles(), Has.Count.EqualTo(6));
             Assert.That(pack.CreateSpecialActions(), Has.Count.EqualTo(5));
             Assert.That(pack.CreateEvents().Single(e => e.CardId == "event_green_01").ChoiceRewards[0].OriginiumShard, Is.EqualTo(3));
@@ -92,7 +92,9 @@ namespace YC.Tests.EditMode
             }
             // 与当前启动目录合同兼容；不是只验证 JSON 能反序列化。
             Assert.DoesNotThrow(() => EventCardDatabase.Initialize(pack.CreateEvents()));
-            Assert.DoesNotThrow(() => FacilityCardDatabase.Initialize(pack.CreateFacilities()));
+            Assert.That(pack.CreateFacilities().Count(f => !f.ReserveOnly && f.DefaultSupply > 0), Is.EqualTo(41));
+            Assert.That(pack.CreateFacilities().Count(f => f.ReserveOnly), Is.EqualTo(4));
+            Assert.That(pack.CreateFacilities().Any(f => f.FacilityId == FacilityCardDatabase.EnterpriseOffice), Is.False);
             Assert.DoesNotThrow(() => CityStyleDatabase.Initialize(pack.CreateCityStyles()));
             Assert.DoesNotThrow(() => SpecialActionDatabase.Initialize(pack.CreateSpecialActions()));
             Assert.That(pack.ContentHash, Is.Not.Empty);
@@ -360,17 +362,17 @@ namespace YC.Tests.EditMode
         public void RuntimeArtworkUsesExternalPackAndCachesDecodedTexture()
         {
             var runtime = Type.GetType("YC.Presentation.ExternalContentRuntime, Assembly-CSharp", true);
-            var method = runtime.GetMethod("GetArtwork");
-            var first = method.Invoke(null, new object[] { "character", "elysium" }) as Texture2D;
-            var second = method.Invoke(null, new object[] { "character", "elysium" }) as Texture2D;
+            var method = runtime.GetMethod("GetArtworkSprite");
+            var first = method.Invoke(null, new object[] { "character", "elysium" }) as Sprite;
+            var second = method.Invoke(null, new object[] { "character", "elysium" }) as Sprite;
             Assert.That(first, Is.Not.Null);
-            Assert.That(first.name, Is.EqualTo("artwork/character/elysium.jpg"));
-            Assert.That(first.width, Is.GreaterThan(100));
+            Assert.That(first.name, Is.EqualTo("character_005"));
+            Assert.That(first.rect.width, Is.EqualTo(600));
             Assert.That(second, Is.SameAs(first));
             UnityEngine.Object.DestroyImmediate(first);
-            var reloaded = method.Invoke(null, new object[] { "character", "elysium" }) as Texture2D;
+            var reloaded = method.Invoke(null, new object[] { "character", "elysium" }) as Sprite;
             Assert.That(reloaded, Is.Not.Null);
-            Assert.That(reloaded.width, Is.GreaterThan(100));
+            Assert.That(reloaded.rect.width, Is.EqualTo(600));
         }
     }
 }

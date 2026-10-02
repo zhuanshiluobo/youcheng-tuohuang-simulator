@@ -393,7 +393,7 @@ namespace YC.Infrastructure.Lua
         private static LuaSnapshotValue CreateMapSnapshot(GameState state)
         {
             GameMapDefinition map = state.MapId == StaticMapDefinitions.ThreePlayerMapId
-                ? StaticMapDefinitions.CreateThreePlayerPlaceholder()
+                ? StaticMapDefinitions.CreateThreePlayerMap()
                 : StaticMapDefinitions.CreateFourPlayerMap();
             var locations = new List<LuaSnapshotValue>();
             var resourcePoints = new List<LuaSnapshotValue>();
@@ -425,6 +425,7 @@ namespace YC.Infrastructure.Lua
                 new LuaSnapshotEntry("locationId", LuaSnapshotValue.String(location.LocationId)),
                 new LuaSnapshotEntry("regionId", LuaSnapshotValue.String(location.RegionId)),
                 new LuaSnapshotEntry("resourceType", LuaSnapshotValue.String(location.ResourceType.ToString())),
+                new LuaSnapshotEntry("eventColor", LuaSnapshotValue.String(location.EventColor.ToString())),
                 new LuaSnapshotEntry("hasResourcePointIndicator", LuaSnapshotValue.Boolean(
                     HasResourcePointIndicator(state, location.LocationId)))
                 });

@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e6eba7502e753a08c0fe1e08a755c38, type: 3}
+  m_Name: MapHighlightCatalog
+  m_EditorClassIdentifier: 
+  SourceManifest: {fileID: 4900000, guid: a798ec79b7455d73a6efacfc7a69dcf2, type: 3}
+  Version: 1.2
+  SourceMapSize: {x: 2048, y: 2048}
+  Shapes:
+  - Id: resource
+    OutlineSize: {x: 202, y: 208}
+    CanvasSize: {x: 242, y: 248}
+    Pivot: {x: 0.5, y: 0.5}
+    PolygonTopLeft:
+    - {x: 0, y: 0}
+    - {x: 202, y: 0}
+    - {x: 202, y: 208}
+    - {x: 85, y: 208}
+    - {x: 85, y: 192}
+    - {x: 30, y: 192}
+    - {x: 30, y: 85}
+    - {x: 0, y: 85}
+    Available: {fileID: 21300000, guid: 9623323c8c2d58578425daf414aff14b, type: 3}
+    Selected: {fileID: 21300000, guid: f8b8dba20d5a501a88fb07cbd2a7f76f, type: 3}
+  - Id: route-single
+    OutlineSize: {x: 118, y: 64}
+    CanvasSize: {x: 150, y: 96}
+    Pivot: {x: 0.5, y: 0.5}
+    PolygonTopLeft:
+    - {x: 0, y: 41}
+    - {x: 23.5, y: 0}
+    - {x: 29.5, y: 10}
+    - {x: 118, y: 10}
+    - {x: 118, y: 64}
+    - {x: 55.5, y: 64}
+    - {x: 41.5, y: 41}
+    Available: {fileID: 21300000, guid: f62911998bf55701bd9dce24395a2f8a, type: 3}
+    Selected: {fileID: 21300000, guid: 6c82d4ac858351529913880e0a02ffd2, type: 3}
+  - Id: route-double
+    OutlineSize: {x: 137, y: 64}
+    CanvasSize: {x: 169, y: 96}
+    Pivot: {x: 0.5, y: 0.5}
+    PolygonTopLeft:
+    - {x: 0, y: 41}
+    - {x: 23.5, y: 0}
+    - {x: 29.5, y: 10}
+    - {x: 137, y: 10}
+    - {x: 137, y: 64}
+    - {x: 57, y: 64}
+    - {x: 43, y: 41}
+    Available: {fileID: 21300000, guid: dab24ee3c0f45230879f55ccbb307ba4, type: 3}
+    Selected: {fileID: 21300000, guid: 3f5b8a75dd8a54d19a0cece816cc304d, type: 3}
+  - Id: influence
+    OutlineSize: {x: 34, y: 34}
+    CanvasSize: {x: 58, y: 58}
+    Pivot: {x: 0.5, y: 0.5}
+    PolygonTopLeft:
+    - {x: 0, y: 0}
+    - {x: 34, y: 0}
+    - {x: 34, y: 34}
+    - {x: 0, y: 34}
+    Available: {fileID: 21300000, guid: c975225e91a25bc8bceb38f5786aadd7, type: 3}
+    Selected: {fileID: 21300000, guid: 06fa51ee597c511f9a44cba7318604a9, type: 3}

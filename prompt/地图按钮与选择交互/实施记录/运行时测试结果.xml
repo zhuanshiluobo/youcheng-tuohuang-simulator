@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Passed" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-30 09:41:19Z" end-time="2026-09-30 09:41:24Z" duration="5.1116301">
+  <test-suite type="TestSuite" id="1062" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="43" result="Passed" start-time="2026-09-30 09:41:19Z" end-time="2026-09-30 09:41:24Z" duration="5.111630" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1120" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="43" result="Passed" start-time="2026-09-30 09:41:19Z" end-time="2026-09-30 09:41:24Z" duration="5.104107" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="48832" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1121" name="YC" fullname="YC" runstate="Runnable" testcasecount="43" result="Passed" start-time="2026-09-30 09:41:19Z" end-time="2026-09-30 09:41:24Z" duration="5.101011" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1122" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="43" result="Passed" start-time="2026-09-30 09:41:19Z" end-time="2026-09-30 09:41:24Z" duration="5.098916" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1123" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="43" result="Passed" start-time="2026-09-30 09:41:19Z" end-time="2026-09-30 09:41:24Z" duration="5.096935" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1100" name="MapFeedbackVisualPlayModeTests" fullname="YC.Tests.PlayMode.MapFeedbackVisualPlayModeTests" classname="YC.Tests.PlayMode.MapFeedbackVisualPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-30 09:41:19Z" end-time="2026-09-30 09:41:22Z" duration="2.291042" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1101" name="PlacementFeedback_TimeScaleZero_CompletesAndDisablesAnimator" fullname="YC.Tests.PlayMode.MapFeedbackVisualPlayModeTests.PlacementFeedback_TimeScaleZero_CompletesAndDisablesAnimator" methodname="PlacementFeedback_TimeScaleZero_CompletesAndDisablesAnimator" classname="YC.Tests.PlayMode.MapFeedbackVisualPlayModeTests" runstate="Runnable" seed="1453201699" result="Passed" start-time="2026-09-30 09:41:19Z" end-time="2026-09-30 09:41:22Z" duration="2.281614" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[TelepathyTransport initialized!
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1102" name="MapHighlightPlayModeTests" fullname="YC.Tests.PlayMode.MapHighlightPlayModeTests" classname="YC.Tests.PlayMode.MapHighlightPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-30 09:41:22Z" end-time="2026-09-30 09:41:24Z" duration="2.802092" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1103" name="BothActualScenes_CollectionAndIndependentConfirmation_ProduceEvidence" fullname="YC.Tests.PlayMode.MapHighlightPlayModeTests.BothActualScenes_CollectionAndIndependentConfirmation_ProduceEvidence" methodname="BothActualScenes_CollectionAndIndependentConfirmation_ProduceEvidence" classname="YC.Tests.PlayMode.MapHighlightPlayModeTests" runstate="Runnable" seed="803969170" result="Passed" start-time="2026-09-30 09:41:22Z" end-time="2026-09-30 09:41:24Z" duration="2.797936" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

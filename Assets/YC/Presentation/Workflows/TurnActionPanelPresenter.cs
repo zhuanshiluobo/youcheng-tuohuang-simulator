@@ -137,7 +137,8 @@ namespace YC.Presentation.Workflows
                 canChooseMainAction && player != null,
                 canChooseMainAction,
                 canEndCurrentAction() && !RoundTrackRule.IsFinalState(state),
-                waiting) { CanViewFacilitySupply = player != null &&
+                waiting) { AllCollectionLocationsSelected = resourceCollectionPresenter.AllLocationsCovered,
+                    CanViewFacilitySupply = player != null &&
                     (mainActionDone || !isLocalTurn || !isActionPhase) };
         }
 

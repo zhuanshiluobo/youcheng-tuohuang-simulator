@@ -190,6 +190,8 @@ namespace YC.Tests.EditMode
             var slotId = fixture.View.FirstHighlightedSlot();
             Assert.That(slotId, Is.Not.Empty);
             fixture.Presenter.SelectInfluenceSlot(slotId);
+            Assert.That(fixture.Presenter.SelectedInfluenceSlotIds, Is.Empty);
+            fixture.Presenter.SelectInfluenceSlot(slotId);
 
             Assert.That(
                 fixture.Commands.LastCommand.Parameters[ExploreLocationCommandHandler.EventInfluenceSlotIdsParameter],
@@ -219,6 +221,7 @@ namespace YC.Tests.EditMode
                 LocationIds = { "A", "B" },
                 RouteIds = { "R1" }
             };
+            // 当前四槽测试卡不能被夹具默认牌堆顶的两槽卡覆盖。
             fixture.Presenter.BeginWithPathAndCard("B", path, card);
             Assert.That(fixture.Presenter.IsChoosingEventOption, Is.True);
             fixture.Presenter.SelectEventChoice(0);
@@ -229,6 +232,7 @@ namespace YC.Tests.EditMode
             fixture.Presenter.SelectInfluenceSlot(first);
             fixture.Presenter.SelectInfluenceSlot(first);
             Assert.That(fixture.Presenter.SelectedInfluenceSlotIds.Count, Is.EqualTo(1));
+            fixture.Presenter.SelectInfluenceSlot(first);
             Assert.That(fixture.View.Prompt, Does.Contain("\u91cd\u590d"));
 
             var selectedSlotIds = new List<string> { first };
@@ -248,6 +252,7 @@ namespace YC.Tests.EditMode
 
                 Assert.That(next, Is.Not.Empty, "第 " + (selectionIndex + 1) + " 个影响力槽位应可选。");
                 selectedSlotIds.Add(next);
+                fixture.Presenter.SelectInfluenceSlot(next);
                 fixture.Presenter.SelectInfluenceSlot(next);
             }
 
@@ -273,6 +278,8 @@ namespace YC.Tests.EditMode
             fixture.Presenter.SelectInfluenceSlot(first, 11);
             var second = fixture.View.FirstHighlightedSlot();
             fixture.Presenter.SelectInfluenceSlot(second, 11);
+            Assert.That(fixture.Presenter.SelectedInfluenceSlotIds, Is.Empty);
+            fixture.Presenter.SelectInfluenceSlot(first, 12);
             Assert.That(fixture.Presenter.SelectedInfluenceSlotIds.Count, Is.EqualTo(1));
         }
 

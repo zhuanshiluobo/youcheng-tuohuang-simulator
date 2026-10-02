@@ -34,6 +34,19 @@ namespace YC.Infrastructure.Lua
         public string DefinitionId = "";
     }
 
+    /// <summary>内容包内的卡牌裁切矩形；以 Unity 纹理左下角为原点，单位为源像素。</summary>
+    public sealed class ExternalArtworkSlice
+    {
+        public string Id = "";
+        public string Artwork = "";
+        public int SourceWidth;
+        public int SourceHeight;
+        public int X;
+        public int Y;
+        public int Width;
+        public int Height;
+    }
+
     public sealed class ExternalContentDefinition
     {
         public bool Enabled = true;
@@ -44,6 +57,8 @@ namespace YC.Infrastructure.Lua
         public string Version = "";
         public string DisplayName = "";
         public string Artwork = "";
+        public string ArtworkSpriteId = "";
+        [JsonIgnore] public ExternalArtworkSlice ArtworkSlice;
         public string[] Tags = Array.Empty<string>();
         public JArray PlayerMarkerZones = new JArray();
         public List<ExternalAbilityDefinition> Abilities = new List<ExternalAbilityDefinition>();
@@ -62,6 +77,8 @@ namespace YC.Infrastructure.Lua
         private readonly Dictionary<string, string> scripts = new Dictionary<string, string>(StringComparer.Ordinal);
         private readonly Dictionary<string, byte[]> files = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         private readonly Dictionary<string, string> sharedArtwork = new Dictionary<string, string>(StringComparer.Ordinal);
+        private readonly Dictionary<string, ExternalArtworkSlice> artworkSlices = new Dictionary<string, ExternalArtworkSlice>(StringComparer.Ordinal);
+        public IReadOnlyList<ExternalArtworkSlice> ArtworkSlices => artworkSlices.Values.Select(CloneSlice).ToList().AsReadOnly();
         public string RootPath { get; private set; }
         public string ContentHash { get; private set; }
         public string PackId { get; private set; }
@@ -73,6 +90,7 @@ namespace YC.Infrastructure.Lua
         {
             var result = JsonConvert.DeserializeObject<ExternalContentDefinition>(JsonConvert.SerializeObject(value));
             result.RuntimeId = value.RuntimeId;
+            result.ArtworkSlice = CloneSlice(value.ArtworkSlice);
             return result;
         }
 
@@ -84,6 +102,7 @@ namespace YC.Infrastructure.Lua
                 string.IsNullOrWhiteSpace((string)manifest["version"]) || !(manifest["definitions"] is JArray))
                 throw new InvalidDataException("内容包 pack.json 缺少必需字段或 schemaVersion 不支持。");
             pack.PackId = (string)manifest["packId"];
+            if (manifest["artworkSlices"] != null) pack.ReadArtworkSlices((string)manifest["artworkSlices"]);
             var ids = new HashSet<string>(StringComparer.Ordinal);
             var abilityIds = new HashSet<string>(StringComparer.Ordinal);
             var subscriptionIds = new HashSet<string>(StringComparer.Ordinal);
@@ -111,6 +130,12 @@ namespace YC.Infrastructure.Lua
                     definition.Data = data;
                 }
                 pack.ReadArtwork(definition.Artwork);
+                if (!string.IsNullOrEmpty(definition.ArtworkSpriteId))
+                {
+                    definition.ArtworkSlice = pack.FindRegisteredArtworkSlice(definition.ArtworkSpriteId);
+                    if (definition.ArtworkSlice == null || definition.ArtworkSlice.Artwork != definition.Artwork)
+                        throw new InvalidDataException("卡牌的 artworkSpriteId 未登记或整图路径不一致：" + definition.DefinitionId);
+                }
                 if (definition.Data["effectScript"] != null) pack.LoadScript((string)definition.Data["effectScript"]);
                 var zones = new HashSet<string>(StringComparer.Ordinal);
                 if (definition.PlayerMarkerZones == null) throw new InvalidDataException("playerMarkerZones 不能为空。");
@@ -195,6 +220,7 @@ namespace YC.Infrastructure.Lua
                         var definition = (JObject)basis.DeepClone();
                         definition["definitionId"] = id;
                         definition["artwork"] = (string)entry?["artwork"] ?? (string)variant["artwork"];
+                        definition["artworkSpriteId"] = (string)entry?["artworkSpriteId"] ?? (string)variant["artworkSpriteId"] ?? "";
                         var data = definition["data"] as JObject ?? new JObject();
                         data["color"] = color; data["facilityId"] = id; data["manifestId"] = id;
                         definition["data"] = data;
@@ -286,6 +312,61 @@ namespace YC.Infrastructure.Lua
             if (ext != ".png" && ext != ".jpg" && ext != ".jpeg") throw new InvalidDataException("贴图必须为 PNG 或 JPEG：" + relative);
             ReadFile(relative);
         }
+        private static void ValidateArtworkSlice(ExternalArtworkSlice slice, string definitionId)
+        {
+            if (slice == null || slice.X < 0 || slice.Y < 0 || slice.Width <= 0 || slice.Height <= 0 ||
+                (long)slice.X + slice.Width > slice.SourceWidth || (long)slice.Y + slice.Height > slice.SourceHeight)
+                throw new InvalidDataException("卡牌内容必须提供有效 artworkSlice 矩形：" + definitionId);
+        }
+
+        private static ExternalArtworkSlice CloneSlice(ExternalArtworkSlice slice) => slice == null ? null :
+            new ExternalArtworkSlice { Id = slice.Id, Artwork = slice.Artwork, SourceWidth = slice.SourceWidth,
+                SourceHeight = slice.SourceHeight, X = slice.X, Y = slice.Y, Width = slice.Width, Height = slice.Height };
+
+        private void ReadArtworkSlices(string relative)
+        {
+            var document = ReadJson(relative);
+            if ((int?)document["schemaVersion"] != 1 || (string)document["coordinateOrigin"] != "bottom-left" ||
+                !(document["sheets"] is JArray sheets) || !(document["slices"] is JArray slices))
+                throw new InvalidDataException("卡牌切片清单缺字段或坐标系不支持：" + relative);
+            var byId = new Dictionary<string, JObject>(StringComparer.Ordinal);
+            foreach (JObject sheet in sheets)
+            {
+                string id = (string)sheet["id"];
+                if (string.IsNullOrWhiteSpace(id) || byId.ContainsKey(id)) throw new InvalidDataException("整图 ID 为空或重复。");
+                int width = (int?)sheet["width"] ?? 0, height = (int?)sheet["height"] ?? 0;
+                int rows = (int?)sheet["rows"] ?? 0, columns = (int?)sheet["columns"] ?? 0;
+                int cellWidth = (int?)sheet["cellWidth"] ?? 0, cellHeight = (int?)sheet["cellHeight"] ?? 0;
+                if (rows <= 0 || columns <= 0 || cellWidth <= 0 || cellHeight <= 0 ||
+                    (long)columns * cellWidth != width || (long)rows * cellHeight != height)
+                    throw new InvalidDataException("整图网格尺寸不一致：" + id);
+                ReadArtwork((string)sheet["artwork"]);
+                byId.Add(id, sheet);
+            }
+            var occupied = new HashSet<string>(StringComparer.Ordinal);
+            foreach (JObject entry in slices)
+            {
+                string id = (string)entry["id"], sheetId = (string)entry["sheetId"];
+                if (string.IsNullOrWhiteSpace(id) || artworkSlices.ContainsKey(id) ||
+                    sheetId == null || !byId.TryGetValue(sheetId, out var sheet) || !(entry["rect"] is JObject rect))
+                    throw new InvalidDataException("切片 ID、整图引用或矩形无效：" + id);
+                if (new[] { "x", "y", "width", "height" }.Any(field => rect[field]?.Type != JTokenType.Integer))
+                    throw new InvalidDataException("切片矩形必须明确填写四个整数像素值：" + id);
+                var slice = rect.ToObject<ExternalArtworkSlice>();
+                slice.Id = id; slice.Artwork = (string)sheet["artwork"];
+                slice.SourceWidth = (int)sheet["width"]; slice.SourceHeight = (int)sheet["height"];
+                ValidateArtworkSlice(slice, id);
+                int cell = (int?)entry["cell"] ?? 0, columns = (int)sheet["columns"], rows = (int)sheet["rows"];
+                int w = (int)sheet["cellWidth"], h = (int)sheet["cellHeight"];
+                if (cell <= 0 || cell > rows * columns || !occupied.Add(sheetId + ":" + cell) ||
+                    (sheet["skippedCells"] as JArray)?.Values<int>().Contains(cell) == true ||
+                    (int?)entry["row"] != (cell - 1) / columns + 1 || (int?)entry["column"] != (cell - 1) % columns + 1 ||
+                    slice.X != ((cell - 1) % columns) * w || slice.Y != slice.SourceHeight - ((cell - 1) / columns + 1) * h ||
+                    slice.Width != w || slice.Height != h)
+                    throw new InvalidDataException("切片格子越界、重复、已跳过或矩形与原图序号不一致：" + id);
+                artworkSlices.Add(id, slice);
+            }
+        }
         private void LoadScript(string relative)
         {
             if (scripts.ContainsKey(relative)) return;
@@ -310,6 +391,8 @@ namespace YC.Infrastructure.Lua
         public string GetScript(string relative) => scripts.TryGetValue(relative, out var source) ? source : throw new InvalidDataException("未登记脚本：" + relative);
         public byte[] GetArtworkBytes(string relative) => (byte[])ReadFile(relative).Clone();
         public string FindArtwork(string type, string id) => FindActiveDefinition(type, id)?.Artwork;
+        public ExternalArtworkSlice FindArtworkSlice(string type, string id) => CloneSlice(FindActiveDefinition(type, id)?.ArtworkSlice);
+        public ExternalArtworkSlice FindRegisteredArtworkSlice(string id) => id != null && artworkSlices.TryGetValue(id, out var slice) ? CloneSlice(slice) : null;
         public string FindSharedArtwork(string id) => sharedArtwork.TryGetValue(id, out var path) ? path : null;
         public IReadOnlyList<CharacterCardDefinition> CreateCharacters() => activeDefinitions.Where(d => d.ContentType == "character").Select(d =>
         {

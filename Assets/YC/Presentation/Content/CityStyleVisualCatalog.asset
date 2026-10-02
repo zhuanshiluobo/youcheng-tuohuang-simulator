@@ -8,69 +8,27 @@ MonoBehaviour:
   cards:
   - id: city_style_composite_power_system
     version: formal-1.0.0-original
-    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_composite_power_system.jpg
-    atlasId: asset-056
-    sourceRect:
-      serializedVersion: 2
-      x: 1860
-      y: 0
-      width: 930
-      height: 600
+    artworkSpriteId: city_style_1_003
     trackLayout: active
   - id: city_style_efficient_mobile_management_system
     version: formal-1.0.0-original
-    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_efficient_mobile_management_system.jpg
-    atlasId: asset-073
-    sourceRect:
-      serializedVersion: 2
-      x: 930
-      y: 0
-      width: 930
-      height: 600
+    artworkSpriteId: city_style_2_002
     trackLayout: limited
   - id: city_style_material_relay_station
     version: formal-1.0.0-original
-    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_material_relay_station.jpg
-    atlasId: asset-056
-    sourceRect:
-      serializedVersion: 2
-      x: 1860
-      y: 1200
-      width: 930
-      height: 600
+    artworkSpriteId: city_style_1_009
     trackLayout: reward
   - id: city_style_military_industrial_area
     version: formal-1.0.0-base
-    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_military_industrial_area.jpg
-    atlasId: asset-056
-    sourceRect:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 930
-      height: 600
+    artworkSpriteId: city_style_1_001
     trackLayout: active
   - id: city_style_mobilization_support_system
     version: formal-1.0.0-original
-    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_mobilization_support_system.jpg
-    atlasId: asset-056
-    sourceRect:
-      serializedVersion: 2
-      x: 930
-      y: 0
-      width: 930
-      height: 600
+    artworkSpriteId: city_style_1_002
     trackLayout: active
   - id: city_style_source_stone_industrial_hub
     version: formal-1.0.0-original
-    artworkPath: Assets/StreamingAssets/Content/core/artwork/city_style/city_style_source_stone_industrial_hub.jpg
-    atlasId: asset-073
-    sourceRect:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 930
-      height: 600
+    artworkSpriteId: city_style_2_001
     trackLayout: limited
   tracks:
   - layout: active

@@ -31,15 +31,8 @@ namespace YC.Presentation.Editor
             var canvas = GameObject.Find("Preview Canvas").GetComponent<Canvas>();
             var frame = GameObject.Find("Preview SharedFrame").GetComponent<RectTransform>();
             var card = GameObject.Find("Preview CardSlot").GetComponent<UiCardSlotView>();
-            var cardTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(
-                "Assets/YC/Presentation/Resources/CardImages/Facilities/trade_district.jpg");
-            Sprite sampleCard = null;
-            if (cardTexture != null)
-            {
-                sampleCard = Sprite.Create(cardTexture,
-                    new Rect(0, 0, cardTexture.width, cardTexture.height), new Vector2(0.5f, 0.5f));
-                card.SetArtwork(sampleCard);
-            }
+            var sampleCard = YC.Presentation.ExternalContentRuntime.GetArtworkSprite("facility", "building_019");
+            card.SetArtwork(sampleCard);
             foreach (var size in new[] { new Vector2Int(900, 600), new Vector2Int(1280, 720), new Vector2Int(1920, 1080) })
             {
                 ((RectTransform)canvas.transform).sizeDelta = size;
@@ -55,7 +48,6 @@ namespace YC.Presentation.Editor
                 Render(camera, size);
             }
             card.SetArtwork(null);
-            if (sampleCard != null) UnityEngine.Object.DestroyImmediate(sampleCard);
             CaptureStates(camera, canvas, frame);
             Debug.Log("PREVIEW captured 900x600, 1280x720, 1920x1080 and state grid from " + ScenePath);
         }

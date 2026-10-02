@@ -13,9 +13,9 @@ namespace YC.Presentation
         public static void Open(
             ref CardViewer viewer,
             Transform owner,
-            Texture2D texture)
+            Sprite sprite)
         {
-            if (owner == null || texture == null)
+            if (owner == null || sprite == null)
             {
                 return;
             }
@@ -29,7 +29,7 @@ namespace YC.Presentation
                 }
             }
 
-            viewer.OpenInspect(texture);
+            viewer.OpenInspect(sprite);
         }
     }
 
@@ -279,14 +279,18 @@ namespace YC.Presentation
             rect.localRotation = Quaternion.identity;
             rect.localScale = Vector3.one;
             marker.gameObject.name = objectName;
-            marker.sprite = layout.CityStyleVisuals.PlayerMarkerSprite(color);
+            var square = marker.GetComponent<InfluenceMarker2DView>();
+            if (square != null)
+                square.RenderPlayer((YC.Domain.Rules.PlayerColor)layout.CityStyleVisuals.PlayerIndex(color), placement.PlayerMarkerCount);
+            else
+                marker.sprite = layout.CityStyleVisuals.PlayerMarkerSprite(color);
             marker.type = Image.Type.Simple;
             marker.preserveAspect = true;
             marker.color = Color.white;
             marker.raycastTarget = false;
             marker.gameObject.SetActive(placement.PlayerMarkerIndex == 0 && bounds.width > 0);
             var label = marker.GetComponentInChildren<Text>(true);
-            if (label != null) label.text = placement.PlayerMarkerCount.ToString();
+            if (square == null && label != null) label.text = placement.PlayerMarkerCount.ToString();
         }
 
         private static void RequireLayout(CardBoardVisualLayout layout)

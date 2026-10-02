@@ -44,6 +44,8 @@ namespace YC.Tests.EditMode
             Assert.That(dispatch.BuildPresentation().PromptText, Does.Contain("调度"));
 
             fixture.Presenter.SelectSlot(fixture.FirstSource);
+            Assert.That(fixture.Presenter.IsSelectingDispatchSource, Is.True, "来源首击只预选");
+            fixture.Presenter.SelectSlot(fixture.FirstSource);
             Assert.That(fixture.Presenter.IsSelectingDispatchTarget, Is.True);
             Assert.That(dispatch.IsActive, Is.True);
             Assert.That(deploy.IsActive, Is.False);
@@ -92,6 +94,8 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.Presenter.IsSelectingDispatchSource, Is.True);
 
             fixture.Presenter.SelectSlot(fixture.FirstSource);
+            Assert.That(fixture.Presenter.IsSelectingDispatchSource, Is.True, "来源首击只预选");
+            fixture.Presenter.SelectSlot(fixture.FirstSource);
 
             Assert.That(fixture.Presenter.Mode, Is.EqualTo(InteractionMode.Busy));
             Assert.That(fixture.Presenter.IsSelectingDispatchSource, Is.False);
@@ -108,6 +112,8 @@ namespace YC.Tests.EditMode
         {
             var fixture = CreateFixture();
             fixture.Presenter.BeginDispatch();
+            fixture.Presenter.SelectSlot(fixture.FirstSource);
+            Assert.That(fixture.Presenter.IsSelectingDispatchSource, Is.True, "来源首击只预选");
             fixture.Presenter.SelectSlot(fixture.FirstSource);
 
             fixture.Presenter.SelectSlot(fixture.SecondSource);
@@ -164,6 +170,7 @@ namespace YC.Tests.EditMode
             var fixture = CreateFixture();
             SelectFirstMove(fixture);
             fixture.View.Decision.ContinueAction();
+            fixture.Presenter.SelectSlot(fixture.SecondSource);
             fixture.Presenter.SelectSlot(fixture.SecondSource);
             fixture.Presenter.SelectSlot(fixture.SecondTarget);
             fixture.Presenter.SelectSlot(fixture.SecondTarget);
@@ -235,6 +242,8 @@ namespace YC.Tests.EditMode
         private static void SelectFirstMove(Fixture fixture)
         {
             fixture.Presenter.BeginDispatch();
+            fixture.Presenter.SelectSlot(fixture.FirstSource);
+            Assert.That(fixture.Presenter.IsSelectingDispatchSource, Is.True, "来源首击只预选");
             fixture.Presenter.SelectSlot(fixture.FirstSource);
             fixture.Presenter.SelectSlot(fixture.FirstTarget);
             fixture.Presenter.SelectSlot(fixture.FirstTarget);

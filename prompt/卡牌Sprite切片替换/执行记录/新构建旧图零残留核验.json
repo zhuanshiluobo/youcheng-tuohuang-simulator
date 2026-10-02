@@ -1,0 +1,22 @@
+{
+  "buildResult": "Succeeded",
+  "packedOldFaces": [],
+  "streamingArtworkFiles": [
+    "artwork/character_back_0.jpg",
+    "artwork/character_back_1.jpg",
+    "artwork/character_back_2.jpg",
+    "artwork/character_back_3.jpg",
+    "artwork/city_board.png",
+    "artwork/sheets/character_faces.jpg",
+    "artwork/sheets/city_style_level_1.jpg",
+    "artwork/sheets/city_style_level_2.jpg",
+    "artwork/sheets/event_green_faces.jpg",
+    "artwork/sheets/event_red_faces.jpg",
+    "artwork/sheets/event_yellow_faces.jpg",
+    "artwork/sheets/facility_faces.jpg"
+  ],
+  "oldStreamingFaces": [],
+  "sheetHashesMatch": true,
+  "registeredSlices": 94,
+  "packedSourcesCount": 1888
+}

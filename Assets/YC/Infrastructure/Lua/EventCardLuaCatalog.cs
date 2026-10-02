@@ -64,7 +64,7 @@ return function(ctx)
         eventDeck = 'main',
         placeResourcePointIndicator = true,
         resourcePoint = payload.targetLocationId,
-        eventColor = 'green'
+        eventColor = point.eventColor
     }) }
 end";
             dispatcher.Register(new LuaHandlerDefinition(

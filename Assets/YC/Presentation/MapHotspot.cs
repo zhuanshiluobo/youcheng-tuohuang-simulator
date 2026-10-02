@@ -2,9 +2,9 @@ using UnityEngine;
 
 namespace YC.Presentation
 {
-    public sealed class MapHotspot : MonoBehaviour, UnityEngine.EventSystems.IPointerClickHandler
+    public sealed class MapHotspot : MonoBehaviour
     {
-        public const float HighlightScaleMultiplier = 2f;
+        public const float HighlightScaleMultiplier = 1f;
         public const float HighlightPulseDuration = MapHighlightPulse.PulseDuration * 2f;
 
         [SerializeField] private SpriteRenderer spriteRenderer;
@@ -26,7 +26,6 @@ namespace YC.Presentation
             }
             controller = owner;
             LocationId = locationId;
-            YC.PlayerJourney.PlayerAutomationId.Attach(gameObject, "map.location." + locationId);
             if (Camera.main != null && Camera.main.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() == null)
                 Camera.main.gameObject.AddComponent<UnityEngine.EventSystems.Physics2DRaycaster>();
             restingScale = spriteRenderer.transform.localScale;
@@ -50,7 +49,6 @@ namespace YC.Presentation
 
         public void SetHighlighted(bool highlighted)
         {
-            YC.PlayerJourney.PlayerAutomationId.Attach(gameObject, "map.location." + LocationId, highlighted);
             if (spriteRenderer != null)
             {
                 spriteRenderer.transform.localScale = highlighted
@@ -61,18 +59,6 @@ namespace YC.Presentation
         }
         public void PlayPlacementFeedback() => placementFeedback?.Play();
 
-        private void OnMouseDown()
-        {
-            if (Camera.main != null && Camera.main.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() != null) return;
-            if (controller != null && TabletopPointerClassifier.CanRouteMapPointer(Input.mousePosition))
-                controller.OnHotspotClicked(LocationId);
-        }
-        public void OnPointerClick(UnityEngine.EventSystems.PointerEventData eventData)
-        {
-            if (eventData != null &&
-                eventData.button == UnityEngine.EventSystems.PointerEventData.InputButton.Left &&
-                controller != null && TabletopPointerClassifier.CanRouteMapPointer(eventData.position))
-                controller.OnHotspotClicked(LocationId);
-        }
+        // 旧对象只保留放置反馈；地图输入统一由 MapButtonView 分发。
     }
 }

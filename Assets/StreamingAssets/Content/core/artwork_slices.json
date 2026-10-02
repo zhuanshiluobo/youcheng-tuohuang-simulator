@@ -1,0 +1,2019 @@
+{
+  "schemaVersion": 1,
+  "coordinateOrigin": "bottom-left",
+  "sheets": [
+    {
+      "id": "city_style_1",
+      "artwork": "artwork/sheets/city_style_level_1.jpg",
+      "sourcePath": "游城拓荒/素材/城市样式牌1.jpg",
+      "sourceSha256": "7644904a93cb936dce3dd4ced190ae8533ebbcc58a6eb3f78506e6528a8f75e0",
+      "width": 2790,
+      "height": 1800,
+      "rows": 3,
+      "columns": 3,
+      "cellWidth": 930,
+      "cellHeight": 600,
+      "skippedCells": [
+        4
+      ]
+    },
+    {
+      "id": "city_style_2",
+      "artwork": "artwork/sheets/city_style_level_2.jpg",
+      "sourcePath": "游城拓荒/素材/城市样式牌2.jpg",
+      "sourceSha256": "3945062c584e2309efee54db608403e9977a7b35143b1da17af3ddc9177a9eda",
+      "width": 1860,
+      "height": 1200,
+      "rows": 2,
+      "columns": 2,
+      "cellWidth": 930,
+      "cellHeight": 600,
+      "skippedCells": []
+    },
+    {
+      "id": "character",
+      "artwork": "artwork/sheets/character_faces.jpg",
+      "sourcePath": "游城拓荒/素材/角色卡.jpg",
+      "sourceSha256": "42859d86d80867bea640052ef8e85348063c45b72f4c0add8cc0a47f4ae76847",
+      "width": 2400,
+      "height": 1700,
+      "rows": 2,
+      "columns": 4,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": [
+        8
+      ]
+    },
+    {
+      "id": "facility",
+      "artwork": "artwork/sheets/facility_faces.jpg",
+      "sourcePath": "游城拓荒/素材/建设牌堆.jpg",
+      "sourceSha256": "5025430462e59fb39e424f0ff44c30d7027fb1e04d40ed26b880ae98146eb269",
+      "width": 5400,
+      "height": 5100,
+      "rows": 6,
+      "columns": 9,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": [
+        52,
+        53,
+        54
+      ]
+    },
+    {
+      "id": "event_green",
+      "artwork": "artwork/sheets/event_green_faces.jpg",
+      "sourcePath": "游城拓荒/素材/绿色.jpg",
+      "sourceSha256": "63b1bd527eff0c8b75e9d3746cb4ebf296473f6108fecbbcfe613c75f7a8db2d",
+      "width": 1700,
+      "height": 1800,
+      "rows": 3,
+      "columns": 2,
+      "cellWidth": 850,
+      "cellHeight": 600,
+      "skippedCells": []
+    },
+    {
+      "id": "event_yellow",
+      "artwork": "artwork/sheets/event_yellow_faces.jpg",
+      "sourcePath": "游城拓荒/素材/黄色.jpg",
+      "sourceSha256": "bbbeae9e4a6dfc7898e8020e1e1c757854b447e0ce6f9e4ab5cad064fe5d6612",
+      "width": 1700,
+      "height": 3600,
+      "rows": 6,
+      "columns": 2,
+      "cellWidth": 850,
+      "cellHeight": 600,
+      "skippedCells": [
+        11
+      ]
+    },
+    {
+      "id": "event_red",
+      "artwork": "artwork/sheets/event_red_faces.jpg",
+      "sourcePath": "游城拓荒/素材/红色.jpg",
+      "sourceSha256": "8c7b40b058feef043701c249fe8c4602be5eac1ea7002baf75580f6111e06eff",
+      "width": 1700,
+      "height": 2400,
+      "rows": 4,
+      "columns": 2,
+      "cellWidth": 850,
+      "cellHeight": 600,
+      "skippedCells": [
+        8
+      ]
+    }
+  ],
+  "slices": [
+    {
+      "id": "city_style_1_001",
+      "sheetId": "city_style_1",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "军工化区域",
+      "contentType": "city_style",
+      "definitionIds": [
+        "city_style_military_industrial_area"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 1200,
+        "width": 930,
+        "height": 600
+      },
+      "level": 1,
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "city_style_1_002",
+      "sheetId": "city_style_1",
+      "cell": 2,
+      "row": 1,
+      "column": 2,
+      "name": "动员配套体系",
+      "contentType": "city_style",
+      "definitionIds": [
+        "city_style_mobilization_support_system"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 930,
+        "y": 1200,
+        "width": 930,
+        "height": 600
+      },
+      "level": 1,
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "city_style_1_003",
+      "sheetId": "city_style_1",
+      "cell": 3,
+      "row": 1,
+      "column": 3,
+      "name": "复合动力系统",
+      "contentType": "city_style",
+      "definitionIds": [
+        "city_style_composite_power_system"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1860,
+        "y": 1200,
+        "width": 930,
+        "height": 600
+      },
+      "level": 1,
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "city_style_1_005",
+      "sheetId": "city_style_1",
+      "cell": 5,
+      "row": 2,
+      "column": 2,
+      "name": "城建开拓区",
+      "contentType": "city_style",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 930,
+        "y": 600,
+        "width": 930,
+        "height": 600
+      },
+      "level": 1,
+      "ruleStatus": "missing"
+    },
+    {
+      "id": "city_style_1_006",
+      "sheetId": "city_style_1",
+      "cell": 6,
+      "row": 2,
+      "column": 3,
+      "name": "拓荒者据点",
+      "contentType": "city_style",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 1860,
+        "y": 600,
+        "width": 930,
+        "height": 600
+      },
+      "level": 1,
+      "ruleStatus": "missing"
+    },
+    {
+      "id": "city_style_1_007",
+      "sheetId": "city_style_1",
+      "cell": 7,
+      "row": 3,
+      "column": 1,
+      "name": "核心商业区",
+      "contentType": "city_style",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 930,
+        "height": 600
+      },
+      "level": 1,
+      "ruleStatus": "missing"
+    },
+    {
+      "id": "city_style_1_008",
+      "sheetId": "city_style_1",
+      "cell": 8,
+      "row": 3,
+      "column": 2,
+      "name": "大型企业园",
+      "contentType": "city_style",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 930,
+        "y": 0,
+        "width": 930,
+        "height": 600
+      },
+      "level": 1,
+      "ruleStatus": "missing"
+    },
+    {
+      "id": "city_style_1_009",
+      "sheetId": "city_style_1",
+      "cell": 9,
+      "row": 3,
+      "column": 3,
+      "name": "物资中继站",
+      "contentType": "city_style",
+      "definitionIds": [
+        "city_style_material_relay_station"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1860,
+        "y": 0,
+        "width": 930,
+        "height": 600
+      },
+      "level": 1,
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "city_style_2_001",
+      "sheetId": "city_style_2",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "源石工业中枢",
+      "contentType": "city_style",
+      "definitionIds": [
+        "city_style_source_stone_industrial_hub"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 600,
+        "width": 930,
+        "height": 600
+      },
+      "level": 2,
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "city_style_2_002",
+      "sheetId": "city_style_2",
+      "cell": 2,
+      "row": 1,
+      "column": 2,
+      "name": "高效移动管理体系",
+      "contentType": "city_style",
+      "definitionIds": [
+        "city_style_efficient_mobile_management_system"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 930,
+        "y": 600,
+        "width": 930,
+        "height": 600
+      },
+      "level": 2,
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "city_style_2_003",
+      "sheetId": "city_style_2",
+      "cell": 3,
+      "row": 2,
+      "column": 1,
+      "name": "警备队辖区",
+      "contentType": "city_style",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 930,
+        "height": 600
+      },
+      "level": 2,
+      "ruleStatus": "missing"
+    },
+    {
+      "id": "city_style_2_004",
+      "sheetId": "city_style_2",
+      "cell": 4,
+      "row": 2,
+      "column": 2,
+      "name": "拓荒指挥中枢",
+      "contentType": "city_style",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 930,
+        "y": 0,
+        "width": 930,
+        "height": 600
+      },
+      "level": 2,
+      "ruleStatus": "missing"
+    },
+    {
+      "id": "character_001",
+      "sheetId": "character",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "雷蛇",
+      "contentType": "character",
+      "definitionIds": [
+        "liskarm"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "character_002",
+      "sheetId": "character",
+      "cell": 2,
+      "row": 1,
+      "column": 2,
+      "name": "德克萨斯",
+      "contentType": "character",
+      "definitionIds": [
+        "texas"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 600,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "character_003",
+      "sheetId": "character",
+      "cell": 3,
+      "row": 1,
+      "column": 3,
+      "name": "锡人",
+      "contentType": "character",
+      "definitionIds": [
+        "tin-man"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1200,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "character_004",
+      "sheetId": "character",
+      "cell": 4,
+      "row": 1,
+      "column": 4,
+      "name": "坎诺特",
+      "contentType": "character",
+      "definitionIds": [
+        "cannot"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1800,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "character_005",
+      "sheetId": "character",
+      "cell": 5,
+      "row": 2,
+      "column": 1,
+      "name": "极境",
+      "contentType": "character",
+      "definitionIds": [
+        "elysium"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "character_006",
+      "sheetId": "character",
+      "cell": 6,
+      "row": 2,
+      "column": 2,
+      "name": "玛恩纳",
+      "contentType": "character",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 600,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "missing"
+    },
+    {
+      "id": "character_007",
+      "sheetId": "character",
+      "cell": 7,
+      "row": 2,
+      "column": 3,
+      "name": "山",
+      "contentType": "character",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 1200,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "missing"
+    },
+    {
+      "id": "facility_001",
+      "sheetId": "facility",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "城邦行政区",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_001"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 4250,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_002",
+      "sheetId": "facility",
+      "cell": 2,
+      "row": 1,
+      "column": 2,
+      "name": "城邦行政区",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_002"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 600,
+        "y": 4250,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_003",
+      "sheetId": "facility",
+      "cell": 3,
+      "row": 1,
+      "column": 3,
+      "name": "城邦行政区",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_003"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1200,
+        "y": 4250,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_004",
+      "sheetId": "facility",
+      "cell": 4,
+      "row": 1,
+      "column": 4,
+      "name": "附属能源设施",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_004"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1800,
+        "y": 4250,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_005",
+      "sheetId": "facility",
+      "cell": 5,
+      "row": 1,
+      "column": 5,
+      "name": "附属能源设施",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_005"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 2400,
+        "y": 4250,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_006",
+      "sheetId": "facility",
+      "cell": 6,
+      "row": 1,
+      "column": 6,
+      "name": "附属能源设施",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_006"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 3000,
+        "y": 4250,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_007",
+      "sheetId": "facility",
+      "cell": 7,
+      "row": 1,
+      "column": 7,
+      "name": "联邦理事处",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_007"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 3600,
+        "y": 4250,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_008",
+      "sheetId": "facility",
+      "cell": 8,
+      "row": 1,
+      "column": 8,
+      "name": "联邦理事处",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_008"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 4200,
+        "y": 4250,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_009",
+      "sheetId": "facility",
+      "cell": 9,
+      "row": 1,
+      "column": 9,
+      "name": "联邦理事处",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_009"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 4800,
+        "y": 4250,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_010",
+      "sheetId": "facility",
+      "cell": 10,
+      "row": 2,
+      "column": 1,
+      "name": "简陋工程营",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_010"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 3400,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_011",
+      "sheetId": "facility",
+      "cell": 11,
+      "row": 2,
+      "column": 2,
+      "name": "简陋工程营",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_011"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 600,
+        "y": 3400,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_012",
+      "sheetId": "facility",
+      "cell": 12,
+      "row": 2,
+      "column": 3,
+      "name": "物流枢纽",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_012"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1200,
+        "y": 3400,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_013",
+      "sheetId": "facility",
+      "cell": 13,
+      "row": 2,
+      "column": 4,
+      "name": "物流枢纽",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_013"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1800,
+        "y": 3400,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_014",
+      "sheetId": "facility",
+      "cell": 14,
+      "row": 2,
+      "column": 5,
+      "name": "源石精炼厂",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_014"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 2400,
+        "y": 3400,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_015",
+      "sheetId": "facility",
+      "cell": 15,
+      "row": 2,
+      "column": 6,
+      "name": "城市化区域",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_015"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 3000,
+        "y": 3400,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_016",
+      "sheetId": "facility",
+      "cell": 16,
+      "row": 2,
+      "column": 7,
+      "name": "城市化区域",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_016"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 3600,
+        "y": 3400,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_017",
+      "sheetId": "facility",
+      "cell": 17,
+      "row": 2,
+      "column": 8,
+      "name": "城市化区域",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_017"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 4200,
+        "y": 3400,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_018",
+      "sheetId": "facility",
+      "cell": 18,
+      "row": 2,
+      "column": 9,
+      "name": "异铁冶炼厂",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_018"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 4800,
+        "y": 3400,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_019",
+      "sheetId": "facility",
+      "cell": 19,
+      "row": 3,
+      "column": 1,
+      "name": "贸易街区",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_019"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 2550,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_020",
+      "sheetId": "facility",
+      "cell": 20,
+      "row": 3,
+      "column": 2,
+      "name": "贸易街区",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_020"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 600,
+        "y": 2550,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_021",
+      "sheetId": "facility",
+      "cell": 21,
+      "row": 3,
+      "column": 3,
+      "name": "贸易街区",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_021"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1200,
+        "y": 2550,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_022",
+      "sheetId": "facility",
+      "cell": 22,
+      "row": 3,
+      "column": 4,
+      "name": "蓝色延伸枢纽",
+      "contentType": "facility",
+      "definitionIds": [
+        "reserve_002"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1800,
+        "y": 2550,
+        "width": 600,
+        "height": 850
+      },
+      "color": "blue",
+      "ruleStatus": "implemented",
+      "supply": "reserve_only"
+    },
+    {
+      "id": "facility_023",
+      "sheetId": "facility",
+      "cell": 23,
+      "row": 3,
+      "column": 5,
+      "name": "城邦工业区",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_022"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 2400,
+        "y": 2550,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_024",
+      "sheetId": "facility",
+      "cell": 24,
+      "row": 3,
+      "column": 6,
+      "name": "城邦工业区",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_023"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 3000,
+        "y": 2550,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_025",
+      "sheetId": "facility",
+      "cell": 25,
+      "row": 3,
+      "column": 7,
+      "name": "城邦工业区",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_024"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 3600,
+        "y": 2550,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_026",
+      "sheetId": "facility",
+      "cell": 26,
+      "row": 3,
+      "column": 8,
+      "name": "高性能动力设施",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_025"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 4200,
+        "y": 2550,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_027",
+      "sheetId": "facility",
+      "cell": 27,
+      "row": 3,
+      "column": 9,
+      "name": "高性能动力设施",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_026"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 4800,
+        "y": 2550,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_028",
+      "sheetId": "facility",
+      "cell": 28,
+      "row": 4,
+      "column": 1,
+      "name": "固源岩提纯厂",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_027"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 1700,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_029",
+      "sheetId": "facility",
+      "cell": 29,
+      "row": 4,
+      "column": 2,
+      "name": "源石精炼厂",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_028"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 600,
+        "y": 1700,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_030",
+      "sheetId": "facility",
+      "cell": 30,
+      "row": 4,
+      "column": 3,
+      "name": "开采电铲",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_029"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1200,
+        "y": 1700,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_031",
+      "sheetId": "facility",
+      "cell": 31,
+      "row": 4,
+      "column": 4,
+      "name": "开采电铲",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_030"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1800,
+        "y": 1700,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_032",
+      "sheetId": "facility",
+      "cell": 32,
+      "row": 4,
+      "column": 5,
+      "name": "开采电铲",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_031"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 2400,
+        "y": 1700,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_033",
+      "sheetId": "facility",
+      "cell": 33,
+      "row": 4,
+      "column": 6,
+      "name": "黄色延伸枢纽",
+      "contentType": "facility",
+      "definitionIds": [
+        "reserve_003"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 3000,
+        "y": 1700,
+        "width": 600,
+        "height": 850
+      },
+      "color": "yellow",
+      "ruleStatus": "implemented",
+      "supply": "reserve_only"
+    },
+    {
+      "id": "facility_034",
+      "sheetId": "facility",
+      "cell": 34,
+      "row": 4,
+      "column": 7,
+      "name": "异铁冶炼厂",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_032"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 3600,
+        "y": 1700,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_035",
+      "sheetId": "facility",
+      "cell": 35,
+      "row": 4,
+      "column": 8,
+      "name": "固源岩提纯厂",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_033"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 4200,
+        "y": 1700,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_036",
+      "sheetId": "facility",
+      "cell": 36,
+      "row": 4,
+      "column": 9,
+      "name": "佣兵指挥部",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_034"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 4800,
+        "y": 1700,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_037",
+      "sheetId": "facility",
+      "cell": 37,
+      "row": 5,
+      "column": 1,
+      "name": "佣兵指挥部",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_035"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_038",
+      "sheetId": "facility",
+      "cell": 38,
+      "row": 5,
+      "column": 2,
+      "name": "佣兵指挥部",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_036"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 600,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_039",
+      "sheetId": "facility",
+      "cell": 39,
+      "row": 5,
+      "column": 3,
+      "name": "护航调度中心",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_037"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1200,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_040",
+      "sheetId": "facility",
+      "cell": 40,
+      "row": 5,
+      "column": 4,
+      "name": "护航调度中心",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_038"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1800,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_041",
+      "sheetId": "facility",
+      "cell": 41,
+      "row": 5,
+      "column": 5,
+      "name": "载具仓库",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_039"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 2400,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_042",
+      "sheetId": "facility",
+      "cell": 42,
+      "row": 5,
+      "column": 6,
+      "name": "载具仓库",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_040"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 3000,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_043",
+      "sheetId": "facility",
+      "cell": 43,
+      "row": 5,
+      "column": 7,
+      "name": "载具仓库",
+      "contentType": "facility",
+      "definitionIds": [
+        "building_041"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 3600,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "facility_044",
+      "sheetId": "facility",
+      "cell": 44,
+      "row": 5,
+      "column": 8,
+      "name": "红色延伸枢纽",
+      "contentType": "facility",
+      "definitionIds": [
+        "reserve_004"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 4200,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "color": "red",
+      "ruleStatus": "implemented",
+      "supply": "reserve_only"
+    },
+    {
+      "id": "facility_045",
+      "sheetId": "facility",
+      "cell": 45,
+      "row": 5,
+      "column": 9,
+      "name": "核心指挥塔",
+      "contentType": "facility",
+      "definitionIds": [
+        "reserve_001"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 4800,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "physicalCopy": 1,
+      "physicalCopies": 4,
+      "ruleStatus": "implemented",
+      "supply": "one_per_player_setup",
+      "note": "共用规则定义；开局每位玩家建立一座，源图四个位置均登记，不加入普通牌堆。"
+    },
+    {
+      "id": "facility_046",
+      "sheetId": "facility",
+      "cell": 46,
+      "row": 6,
+      "column": 1,
+      "name": "核心指挥塔",
+      "contentType": "facility",
+      "definitionIds": [
+        "reserve_001"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "physicalCopy": 2,
+      "physicalCopies": 4,
+      "ruleStatus": "implemented",
+      "supply": "one_per_player_setup",
+      "note": "共用规则定义；开局每位玩家建立一座，源图四个位置均登记，不加入普通牌堆。"
+    },
+    {
+      "id": "facility_047",
+      "sheetId": "facility",
+      "cell": 47,
+      "row": 6,
+      "column": 2,
+      "name": "核心指挥塔",
+      "contentType": "facility",
+      "definitionIds": [
+        "reserve_001"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 600,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "physicalCopy": 3,
+      "physicalCopies": 4,
+      "ruleStatus": "implemented",
+      "supply": "one_per_player_setup",
+      "note": "共用规则定义；开局每位玩家建立一座，源图四个位置均登记，不加入普通牌堆。"
+    },
+    {
+      "id": "facility_048",
+      "sheetId": "facility",
+      "cell": 48,
+      "row": 6,
+      "column": 3,
+      "name": "核心指挥塔",
+      "contentType": "facility",
+      "definitionIds": [
+        "reserve_001"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 1200,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "physicalCopy": 4,
+      "physicalCopies": 4,
+      "ruleStatus": "implemented",
+      "supply": "one_per_player_setup",
+      "note": "共用规则定义；开局每位玩家建立一座，源图四个位置均登记，不加入普通牌堆。"
+    },
+    {
+      "id": "facility_049",
+      "sheetId": "facility",
+      "cell": 49,
+      "row": 6,
+      "column": 4,
+      "name": "红色企业办事处",
+      "contentType": "facility",
+      "definitionIds": [
+        "facility_enterprise_office"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 1800,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "color": "red",
+      "ruleStatus": "missing",
+      "note": "旧 facility_enterprise_office 为无色占位且无企业规则，保留旧 ID 的禁用定义仅用于追溯，不加入任何牌池。"
+    },
+    {
+      "id": "facility_050",
+      "sheetId": "facility",
+      "cell": 50,
+      "row": 6,
+      "column": 5,
+      "name": "蓝色企业办事处",
+      "contentType": "facility",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 2400,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "color": "blue",
+      "ruleStatus": "missing",
+      "note": "无有效规则定义，仅登记切片。"
+    },
+    {
+      "id": "facility_051",
+      "sheetId": "facility",
+      "cell": 51,
+      "row": 6,
+      "column": 6,
+      "name": "黄色企业办事处",
+      "contentType": "facility",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 3000,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "color": "yellow",
+      "ruleStatus": "missing",
+      "note": "无有效规则定义，仅登记切片。"
+    },
+    {
+      "id": "event_green_001",
+      "sheetId": "event_green",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "中立采石场",
+      "contentType": "event",
+      "definitionIds": [
+        "event_green_01"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 1200,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_green_002",
+      "sheetId": "event_green",
+      "cell": 2,
+      "row": 1,
+      "column": 2,
+      "name": "清理虫巢",
+      "contentType": "event",
+      "definitionIds": [
+        "event_green_02"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 850,
+        "y": 1200,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_green_003",
+      "sheetId": "event_green",
+      "cell": 3,
+      "row": 2,
+      "column": 1,
+      "name": "外露矿床",
+      "contentType": "event",
+      "definitionIds": [
+        "event_green_03"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 600,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_green_004",
+      "sheetId": "event_green",
+      "cell": 4,
+      "row": 2,
+      "column": 2,
+      "name": "富饶岩层",
+      "contentType": "event",
+      "definitionIds": [
+        "event_green_04"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 850,
+        "y": 600,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_green_005",
+      "sheetId": "event_green",
+      "cell": 5,
+      "row": 3,
+      "column": 1,
+      "name": "矿业聚落",
+      "contentType": "event",
+      "definitionIds": [
+        "event_green_05"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_green_006",
+      "sheetId": "event_green",
+      "cell": 6,
+      "row": 3,
+      "column": 2,
+      "name": "废弃矿坑（4）",
+      "contentType": "event",
+      "definitionIds": [
+        "event_green_06"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 850,
+        "y": 0,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_yellow_001",
+      "sheetId": "event_yellow",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "大型源岩场",
+      "contentType": "event",
+      "definitionIds": [
+        "event_yellow_01"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 3000,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_yellow_002",
+      "sheetId": "event_yellow",
+      "cell": 2,
+      "row": 1,
+      "column": 2,
+      "name": "洞穴遗迹",
+      "contentType": "event",
+      "definitionIds": [
+        "event_yellow_02"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 850,
+        "y": 3000,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_yellow_003",
+      "sheetId": "event_yellow",
+      "cell": 3,
+      "row": 2,
+      "column": 1,
+      "name": "荒地人村落",
+      "contentType": "event",
+      "definitionIds": [
+        "event_yellow_03"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 2400,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_yellow_004",
+      "sheetId": "event_yellow",
+      "cell": 4,
+      "row": 2,
+      "column": 2,
+      "name": "锈锤领地",
+      "contentType": "event",
+      "definitionIds": [
+        "event_yellow_04"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 850,
+        "y": 2400,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_yellow_005",
+      "sheetId": "event_yellow",
+      "cell": 5,
+      "row": 3,
+      "column": 1,
+      "name": "情报交换（4）",
+      "contentType": "event",
+      "definitionIds": [
+        "event_yellow_05"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 1800,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_yellow_006",
+      "sheetId": "event_yellow",
+      "cell": 6,
+      "row": 3,
+      "column": 2,
+      "name": "风险任务",
+      "contentType": "event",
+      "definitionIds": [
+        "event_yellow_06"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 850,
+        "y": 1800,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_yellow_007",
+      "sheetId": "event_yellow",
+      "cell": 7,
+      "row": 4,
+      "column": 1,
+      "name": "异铁开采权",
+      "contentType": "event",
+      "definitionIds": [
+        "event_yellow_07"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 1200,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_yellow_008",
+      "sheetId": "event_yellow",
+      "cell": 8,
+      "row": 4,
+      "column": 2,
+      "name": "敌对生态圈（4）",
+      "contentType": "event",
+      "definitionIds": [
+        "event_yellow_08"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 850,
+        "y": 1200,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_yellow_009",
+      "sheetId": "event_yellow",
+      "cell": 9,
+      "row": 5,
+      "column": 1,
+      "name": "富异铁区",
+      "contentType": "event",
+      "definitionIds": [
+        "event_yellow_09"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 600,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_yellow_010",
+      "sheetId": "event_yellow",
+      "cell": 10,
+      "row": 5,
+      "column": 2,
+      "name": "遭弃矿场",
+      "contentType": "event",
+      "definitionIds": [
+        "event_yellow_10"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 850,
+        "y": 600,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_yellow_012",
+      "sheetId": "event_yellow",
+      "cell": 12,
+      "row": 6,
+      "column": 2,
+      "name": "洞穴遗迹（企业选项版）",
+      "contentType": "event",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 850,
+        "y": 0,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "missing",
+      "replaces": {
+        "expansionId": "core",
+        "contentType": "event",
+        "definitionId": "event_yellow_02"
+      },
+      "note": "企业规则未实现；仅登记替换关系，不展示该版本来执行基础规则。"
+    },
+    {
+      "id": "event_red_001",
+      "sheetId": "event_red",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "险中净土",
+      "contentType": "event",
+      "definitionIds": [
+        "event_red_01"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 1800,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_red_002",
+      "sheetId": "event_red",
+      "cell": 2,
+      "row": 1,
+      "column": 2,
+      "name": "裂谷矿脉",
+      "contentType": "event",
+      "definitionIds": [
+        "event_red_02"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 850,
+        "y": 1800,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_red_003",
+      "sheetId": "event_red",
+      "cell": 3,
+      "row": 2,
+      "column": 1,
+      "name": "采集平台残骸",
+      "contentType": "event",
+      "definitionIds": [
+        "event_red_03"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 1200,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_red_004",
+      "sheetId": "event_red",
+      "cell": 4,
+      "row": 2,
+      "column": 2,
+      "name": "高污染环境",
+      "contentType": "event",
+      "definitionIds": [
+        "event_red_04"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 850,
+        "y": 1200,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_red_005",
+      "sheetId": "event_red",
+      "cell": 5,
+      "row": 3,
+      "column": 1,
+      "name": "深层矿床（4）",
+      "contentType": "event",
+      "definitionIds": [
+        "event_red_05"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 0,
+        "y": 600,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_red_006",
+      "sheetId": "event_red",
+      "cell": 6,
+      "row": 3,
+      "column": 2,
+      "name": "地质瑰宝",
+      "contentType": "event",
+      "definitionIds": [
+        "event_red_06"
+      ],
+      "expansionId": "core",
+      "rect": {
+        "x": 850,
+        "y": 600,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "event_red_007",
+      "sheetId": "event_red",
+      "cell": 7,
+      "row": 4,
+      "column": 1,
+      "name": "采集平台残骸（企业选项版）",
+      "contentType": "event",
+      "definitionIds": [],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 850,
+        "height": 600
+      },
+      "ruleStatus": "missing",
+      "replaces": {
+        "expansionId": "core",
+        "contentType": "event",
+        "definitionId": "event_red_03"
+      },
+      "note": "企业规则未实现；仅登记替换关系，不展示该版本来执行基础规则。"
+    }
+  ]
+}

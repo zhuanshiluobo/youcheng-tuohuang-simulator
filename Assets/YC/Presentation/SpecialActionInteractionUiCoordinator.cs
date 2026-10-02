@@ -49,6 +49,50 @@ namespace YC.Presentation
         public void Clear() => ResetAndHide();
         public bool HasAuthoritativeRequest => TryGetGenericInteraction(out _);
 
+        public string MapConfirmationScope
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(inFlightCommandId)) return string.Empty;
+                if (TryGetGenericInteraction(out var request))
+                    return request.GetStableInteractionId() + ":" + request.StateRevision + ":" + request.CandidateSetVersion;
+                return TryGetPending(out var pending) ? pending.SessionId + ":" + pending.Step + ":" +
+                    pending.RemainingRepetitions + ":" + selectedMilitarySlotIds.Count : string.Empty;
+            }
+        }
+
+        public InteractionPresentation BuildMapPresentation()
+        {
+            if (string.IsNullOrEmpty(MapConfirmationScope)) return InteractionPresentation.Busy;
+            IReadOnlyList<WorkflowHighlight> targets = Array.Empty<WorkflowHighlight>();
+            if (TryGetGenericInteraction(out var request))
+            {
+                if (request.InteractionTypeId != ResourcePaymentChoiceEffectExecutor.InteractionTypeId)
+                {
+                    var highlights = new List<WorkflowHighlight>();
+                    foreach (var id in request.CandidateIds)
+                        highlights.Add(new WorkflowHighlight(id.Contains(":") ? WorkflowHighlightTargetKind.InfluenceSlot : WorkflowHighlightTargetKind.Location,
+                            id, WorkflowHighlightSemantic.MoveTarget));
+                    targets = highlights;
+                }
+            }
+            else if (TryGetPending(out var pending))
+            {
+                switch (pending.Step)
+                {
+                    case SpecialActionPendingSteps.AwaitMilitaryTargets:
+                        targets = BuildInfluenceHighlights(optionQuery.GetLegalInfluencePlacementSlotIds(getState(), getLocalPlayerId()), WorkflowHighlightSemantic.DeployTarget); break;
+                    case SpecialActionPendingSteps.AwaitMobilizationTarget:
+                        targets = BuildInfluenceHighlights(optionQuery.GetReplaceableInfluenceSlotIds(getState(), getLocalPlayerId()), WorkflowHighlightSemantic.EventInfluenceTarget); break;
+                    case SpecialActionPendingSteps.AwaitFreeMoveTarget:
+                        targets = BuildLocationHighlights(optionQuery.GetLegalFreeMoveTargetIds(getState(), getLocalPlayerId())); break;
+                    case SpecialActionPendingSteps.AwaitRouteInfluence:
+                        targets = BuildInfluenceHighlights(optionQuery.GetLegalRouteInfluenceSlotIds(getState(), getLocalPlayerId(), pending.TraversedRouteId), WorkflowHighlightSemantic.DeployTarget); break;
+                }
+            }
+            return new InteractionPresentation(targets, string.Empty, InteractionMode.Busy);
+        }
+
         public SpecialActionInteractionUiCoordinator(
             Func<GameState> getState,
             Func<int> getLocalPlayerId,
@@ -124,7 +168,7 @@ namespace YC.Presentation
                     for (int i = 0; i < generic.CandidateIds.Count; i++)
                     {
                         string candidate = generic.CandidateIds[i];
-                        highlights.Add(candidate.IndexOf("location", StringComparison.OrdinalIgnoreCase) >= 0
+                        highlights.Add(!candidate.Contains(":")
                             ? new WorkflowHighlight(WorkflowHighlightTargetKind.Location, candidate, WorkflowHighlightSemantic.MoveTarget)
                             : new WorkflowHighlight(WorkflowHighlightTargetKind.InfluenceSlot, candidate, WorkflowHighlightSemantic.DeployTarget));
                     }

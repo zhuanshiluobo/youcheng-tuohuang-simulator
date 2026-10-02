@@ -67,6 +67,12 @@ namespace YC.Presentation
         }
 
         public string Id => "effect.facility.renderer";
+        public string MapConfirmationScope => string.IsNullOrEmpty(inFlightCommandId) && TryGetRequest(out var request)
+            ? request.InteractionId + ":" + request.StateRevision + ":" + request.CandidateSetVersion + ":" + selectedCandidates.Count
+            : string.Empty;
+        public InteractionPresentation BuildMapPresentation() => string.IsNullOrEmpty(MapConfirmationScope) || !TryGetRequest(out var request)
+            ? InteractionPresentation.Busy
+            : new InteractionPresentation(BuildHighlights(request), string.Empty, InteractionMode.Busy);
         public int Priority => 305;
         public bool CanRender(InteractionRequestProjection request) => request != null && request.VisibleToViewer && request.Status == "open" &&
             request.AnsweringPlayerId == getLocalPlayerId() && request.InteractionTypeId == FacilityEntryEffectTypeIds.InteractionType;
@@ -168,10 +174,17 @@ namespace YC.Presentation
         private bool TryHandleCandidateClicked(string candidateId)
         {
             InteractionRequestProjection request;
-            if (!TryGetRequest(out request) || string.IsNullOrEmpty(candidateId) ||
-                request.CandidateIds == null || !request.CandidateIds.Contains(candidateId))
+            if (!TryGetRequest(out request) || string.IsNullOrEmpty(candidateId) || request.CandidateIds == null)
             {
                 return false;
+            }
+
+            if (!request.CandidateIds.Contains(candidateId))
+            {
+                var match = request.CandidateIds.Find(id => id == "explore:" + candidateId ||
+                    id == "replace:" + candidateId || id == "deploy:" + candidateId);
+                if (match == null) return false;
+                candidateId = match;
             }
 
             SelectCandidate(request, candidateId);
@@ -184,6 +197,9 @@ namespace YC.Presentation
             {
                 Request = request,
                 SelectedIds = selectedCandidates,
+                Players = PlayerSelectionRequestAdapter.Build(request,getState(),getLocalPlayerId(),selectedCandidates),
+                PlayerSelectionChanged = ids =>
+                { selectedCandidates.Clear(); foreach (var id in ids) selectedCandidates.Add("player:"+id); },
                 Label = FormatCandidateLabel,
                 OptionNamePrefix = "Option ",
                 IsCurrent = () => IsCurrent(request),
@@ -343,7 +359,7 @@ namespace YC.Presentation
                     target = candidate.Substring(candidate.IndexOf(':') + 1);
                     semantic = WorkflowHighlightSemantic.DeployTarget;
                 }
-                else if (candidate.IndexOf('-', StringComparison.Ordinal) > 0)
+                else if (!candidate.Contains(":") && candidate.IndexOf('-', StringComparison.Ordinal) > 0)
                 {
                     targetKind = WorkflowHighlightTargetKind.Location;
                     semantic = WorkflowHighlightSemantic.MoveTarget;

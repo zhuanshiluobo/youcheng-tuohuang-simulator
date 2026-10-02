@@ -147,10 +147,11 @@ namespace YC.Presentation
                 item.transform.SetSiblingIndex(i);
                 item.gameObject.SetActive(true);
                 item.name = option.CityStyleId;
-                item.RawImage.texture = catalog.GetCityStyle(option.CityStyleId);
-                item.RawImage.gameObject.SetActive(item.RawImage.texture != null);
+                var sprite = catalog.GetCityStyle(option.CityStyleId);
+                CardArtworkView.Set(item.RawImage, sprite);
+                item.RawImage.gameObject.SetActive(sprite != null);
                 item.FallbackText.text = option.Name;
-                item.FallbackText.gameObject.SetActive(item.RawImage.texture == null);
+                item.FallbackText.gameObject.SetActive(sprite == null);
                 int index = i;
                 item.Button.onClick.RemoveAllListeners();
                 item.PointerInteraction.ConfigureClick(item.Button, () => choose(index), null);
@@ -381,7 +382,7 @@ namespace YC.Presentation
             ClearCallbacks();
             ShowDetail(false);
             DestroyDynamicInstances();
-            cityStyleCardImage.texture = null;
+            CardArtworkView.Set(cityStyleCardImage, null);
             cityStyleCardImage.gameObject.SetActive(false);
             cityStyleCardPlaceholder.gameObject.SetActive(true);
             cityStyleTitleText.text = string.Empty;
@@ -393,7 +394,7 @@ namespace YC.Presentation
             for (var slotIndex = 0; slotIndex < CityBoardSlotCount; slotIndex++)
             {
                 var slot = GetCityBoardSlot(slotIndex);
-                slot.FacilityImage.texture = null;
+                CardArtworkView.Set(slot.FacilityImage, null);
                 slot.FacilityImage.gameObject.SetActive(false);
                 slot.UsedBadge.SetActive(false);
             }

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace YC.Presentation
 {
-    public sealed class InfluenceSlotClickTarget : MonoBehaviour, UnityEngine.EventSystems.IPointerClickHandler
+    public sealed class InfluenceSlotClickTarget : MonoBehaviour
     {
         private MobileCityInteractionController controller;
         private string slotId = string.Empty;
@@ -16,23 +16,10 @@ namespace YC.Presentation
             }
             controller = owner;
             slotId = influenceSlotId;
-            YC.PlayerJourney.PlayerAutomationId.Attach(gameObject, "map.influence_slot." + slotId);
             reason = string.Empty;
             return true;
         }
 
-        private void OnMouseDown()
-        {
-            if (Camera.main != null && Camera.main.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() != null) return;
-            if (controller != null && TabletopPointerClassifier.CanRouteMapPointer(Input.mousePosition))
-                controller.OnInfluenceSlotClicked(slotId);
-        }
-        public void OnPointerClick(UnityEngine.EventSystems.PointerEventData eventData)
-        {
-            if (eventData != null &&
-                eventData.button == UnityEngine.EventSystems.PointerEventData.InputButton.Left &&
-                controller != null && TabletopPointerClassifier.CanRouteMapPointer(eventData.position))
-                controller.OnInfluenceSlotClicked(slotId);
-        }
+        // 保留旧序列化绑定；输入由对应的固定 MapButtonView 承接。
     }
 }

@@ -370,7 +370,8 @@ namespace YC.Presentation.Workflows
         public ActionPanelViewModel BuildActionPanelViewModel()
         {
             var model = ActionPanelPresenter.BuildViewModel();
-            model.CanUseSpecialAction = CityStyleInteraction.CanUseSpecialAction;
+            // 渲染是只读查询；不能调用会写入错误提示的行动入口校验，覆盖采集结算文案。
+            model.CanUseSpecialAction = model.CanDeploy && CityStyleInteraction.QuerySpecialActions().HasUsableOption;
             return model;
         }
 

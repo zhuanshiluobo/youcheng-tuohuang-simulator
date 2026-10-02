@@ -80,6 +80,7 @@ namespace YC.Presentation
         [SerializeField] private RectTransform actionArea;
         [SerializeField] private Button closeButton;
         [SerializeField] private Text closeButtonLabel;
+        [SerializeField] private Text resourcePaymentCloseLabel;
         [SerializeField] private WindowCloseInputHandler closeInputHandler;
         [SerializeField] private EventChoiceDialogLayoutProfile layoutProfile;
         [SerializeField] private UiWindowSizeInput boundedLayout;
@@ -116,6 +117,13 @@ namespace YC.Presentation
         [SerializeField] private RectTransform resourcePaymentRecipientHost;
         [SerializeField] private Button resourcePaymentBankButton;
         [SerializeField] private Text resourcePaymentBankLabel;
+        [SerializeField] private Button resourcePaymentCancelButton;
+        [SerializeField] private string resourcePaymentBankPrompt = "支付给银行";
+        [SerializeField] private string resourcePaymentPlayerPrompt = "选择路费接收玩家";
+        [SerializeField] private string resourcePaymentSelectedFormat = "已选择支付给{0} {1}金券";
+        [SerializeField] private string resourcePaymentBankName = "银行";
+        [SerializeField] private string resourcePaymentBankFormat = "支付 {0}";
+        [SerializeField] private string resourcePaymentPlayerFormat = "向 {0} 支付 {1}";
         [SerializeField] private RawImage facilityPreviewImage;
         [SerializeField] private AspectRatioFitter facilityPreviewAspect;
         [SerializeField] private Text facilityPreviewFallback;
@@ -140,6 +148,7 @@ namespace YC.Presentation
 
         [Header("禁用动态模板")]
         [SerializeField] private ButtonRow choiceRowTemplate = new ButtonRow();
+        [SerializeField] private ButtonRow artworkChoiceRowTemplate = new ButtonRow();
         [SerializeField] private ButtonRow pathRowTemplate = new ButtonRow();
         [SerializeField] private PaymentRouteRow paymentRouteRowTemplate = new PaymentRouteRow();
         [SerializeField] private ButtonRow paymentRecipientButtonTemplate = new ButtonRow();
@@ -157,7 +166,8 @@ namespace YC.Presentation
         public Text DescriptionText => descriptionText;
         public RectTransform ActionArea => actionArea;
         public Button CloseButton => closeButton;
-        public Text CloseButtonLabel => closeButtonLabel;
+        public Text CloseButtonLabel => resourcePaymentCloseLabel != null && resourcePaymentCloseLabel.gameObject.activeSelf
+            ? resourcePaymentCloseLabel : closeButtonLabel;
         public WindowCloseInputHandler CloseInputHandler => closeInputHandler;
         public EventChoiceDialogLayoutProfile LayoutProfile => layoutProfile;
         public RectTransform ArtworkChoiceHost => artworkChoiceHost;
@@ -176,6 +186,13 @@ namespace YC.Presentation
         public RectTransform ResourcePaymentRecipientHost => resourcePaymentRecipientHost;
         public Button ResourcePaymentBankButton => resourcePaymentBankButton;
         public Text ResourcePaymentBankLabel => resourcePaymentBankLabel;
+        public Button ResourcePaymentCancelButton => resourcePaymentCancelButton;
+        public string ResourcePaymentBankPrompt => resourcePaymentBankPrompt;
+        public string ResourcePaymentPlayerPrompt => resourcePaymentPlayerPrompt;
+        public string ResourcePaymentSelectedFormat => resourcePaymentSelectedFormat;
+        public string ResourcePaymentBankName => resourcePaymentBankName;
+        public string ResourcePaymentBankFormat => resourcePaymentBankFormat;
+        public string ResourcePaymentPlayerFormat => resourcePaymentPlayerFormat;
         public RawImage FacilityPreviewImage => facilityPreviewImage;
         public AspectRatioFitter FacilityPreviewAspect => facilityPreviewAspect;
         public Text FacilityPreviewFallback => facilityPreviewFallback;
@@ -203,7 +220,7 @@ namespace YC.Presentation
             if (overlayCanvas == null || overlayRect == null || overlayImage == null || panel == null ||
                 expandedContent == null || titleText == null || metadataText == null || descriptionText == null ||
                 actionArea == null || closeButton == null ||
-                closeButtonLabel == null ||
+                closeButtonLabel == null || resourcePaymentCloseLabel == null ||
                 closeInputHandler == null || layoutProfile == null)
             {
                 reason = "事件选择窗口固定壳引用不完整。";
@@ -232,6 +249,7 @@ namespace YC.Presentation
                 explorePaymentRouteHost == null || exploreConfirmButton == null || exploreConfirmLabel == null ||
                 resourcePaymentReceiverText == null || resourcePaymentRecipientHost == null ||
                 resourcePaymentBankButton == null || resourcePaymentBankLabel == null ||
+                resourcePaymentCancelButton == null ||
                 facilityPreviewImage == null || facilityPreviewAspect == null || facilityPreviewFallback == null ||
                 buildFocusDetailsText == null || buildResourceButton == null || buildResourceLabel == null ||
                 buildResourceReasonText == null || buildGoldButton == null || buildGoldLabel == null ||
@@ -247,6 +265,7 @@ namespace YC.Presentation
             }
 
             if (choiceRowTemplate == null || !choiceRowTemplate.IsValid ||
+                artworkChoiceRowTemplate == null || !artworkChoiceRowTemplate.IsValid ||
                 pathRowTemplate == null || !pathRowTemplate.IsValid ||
                 paymentRouteRowTemplate == null || !paymentRouteRowTemplate.IsValid ||
                 paymentRecipientButtonTemplate == null || !paymentRecipientButtonTemplate.IsValid ||
@@ -283,6 +302,8 @@ namespace YC.Presentation
 
         public void SetMode(EventChoiceDialogMode mode)
         {
+            closeButtonLabel.gameObject.SetActive(mode != EventChoiceDialogMode.ResourceCollectionPayment);
+            resourcePaymentCloseLabel.gameObject.SetActive(mode == EventChoiceDialogMode.ResourceCollectionPayment);
             if (pageLayout != null) pageLayout.Configure(mode);
             if (artworkLayoutRoot != null) artworkLayoutRoot.SetActive(false);
             if (eventTextScroll != null) eventTextScroll.SetActive(true);
@@ -304,6 +325,9 @@ namespace YC.Presentation
 
         public ButtonRow CreateChoiceRow(RectTransform parent) =>
             CloneButtonRow(choiceRowTemplate, parent);
+
+        public ButtonRow CreateArtworkChoiceRow(RectTransform parent) =>
+            CloneButtonRow(artworkChoiceRowTemplate, parent);
 
         public ButtonRow CreatePathRow(RectTransform parent) =>
             CloneButtonRow(pathRowTemplate, parent);
@@ -359,6 +383,7 @@ namespace YC.Presentation
             facilityPreviewFallback.text = string.Empty;
             facilityPreviewFallback.gameObject.SetActive(false);
             resourcePaymentBankButton.gameObject.SetActive(false);
+            resourcePaymentCancelButton.gameObject.SetActive(false);
         }
 
         public void ClearCallbacks()
@@ -380,6 +405,7 @@ namespace YC.Presentation
             closeButton.onClick.RemoveAllListeners();
             exploreConfirmButton.onClick.RemoveAllListeners();
             resourcePaymentBankButton.onClick.RemoveAllListeners();
+            resourcePaymentCancelButton.onClick.RemoveAllListeners();
             buildResourceButton.onClick.RemoveAllListeners();
             buildGoldButton.onClick.RemoveAllListeners();
             buildBackButton.onClick.RemoveAllListeners();
@@ -505,7 +531,7 @@ namespace YC.Presentation
             EventChoiceDialogButtonStyle buttonStyle)
         {
             closeButton.gameObject.name = objectName;
-            ApplyButtonStyle(closeButton, closeButtonLabel, buttonStyle);
+            // 关闭按钮的文字、位置和样式来自当前预制体，模式切换只控制显隐。
             closeButton.gameObject.SetActive(true);
             closeButton.transform.SetAsLastSibling();
         }

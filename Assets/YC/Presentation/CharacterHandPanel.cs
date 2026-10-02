@@ -73,7 +73,7 @@ namespace YC.Presentation
             if (model != null) orderedHand.AddRange(model.HandCards);
             var ids = new List<string>();
             foreach (var card in orderedHand) ids.Add(card.CardId);
-            view.HandPile.Render(ids, id => cardVisualCatalog.GetCharacterFront(id),
+            view.HandPile.RenderSprites(ids, id => cardVisualCatalog.GetCharacterFront(id),
                 id => OpenCardViewer(CharacterCardPanelPresenter.ResolveCardDisplayName(id), id));
             var hud = GetComponentInParent<GameplayInteractionHudView>();
             if (hud != null && hud.MainModules != null)
@@ -120,23 +120,25 @@ namespace YC.Presentation
             var ids = new List<string>();
             foreach (var card in currentViewModel.DiscardCards) ids.Add(card.CardId);
             var owner = currentPlayerId;
+            var useCardPicker = ids.Exists(id => cardVisualCatalog.GetCharacterFront(id) != null);
             bool Current() => initialized && owner == currentPlayerId && currentViewModel != null &&
                 ids.TrueForAll(id => ContainsCard(currentViewModel.DiscardCards, id));
             var panel = discardPage.Rebuild((RectTransform)transform, "Discard Card List", "Discard List Panel",
                 copy.SelectionPanelSize, copy.CharacterPanelPosition, true, false, true,
-                cardPicker: ids.Exists(id => cardVisualCatalog.GetCharacterFront(id) != null));
+                cardPicker: useCardPicker);
             EffectDialogShell.AddHeading(panel, string.Format(copy.DiscardListTitleFormat, ids.Count),
-                copy.DiscardListDescription);
+                useCardPicker ? string.Empty : copy.DiscardListDescription);
             discardPage.AddSelection(panel, new EffectDialogSelectionSpec
             {
-                ReadOnly = true, IsEffectPage = false,
+                ReadOnly = true, IsEffectPage = false, CloseOnBackgroundClick = true,
+                CardPickerHint = copy.DiscardListDescription,
                 Request = new InteractionRequestProjection
                 {
                     VisibleToViewer = true, CandidateIds = ids, MinSelections = 0, MaxSelections = 0,
                     AllowDecline = true, InteractionId = "discard-view", Status = "open"
                 },
                 Label = CharacterCardPanelPresenter.ResolveCardDisplayName,
-                CardTexture = id => cardVisualCatalog.GetCharacterFront(id),
+                CardSprite = id => cardVisualCatalog.GetCharacterFront(id),
                 IsCurrent = Current, CanSelect = _ => false,
                 OptionNamePrefix = "Discard Card ", Cancel = CloseDiscardPreview,
                 CancelLabel = copy.ReadOnlyCloseLabel
@@ -158,8 +160,8 @@ namespace YC.Presentation
                 return;
             }
 
-            var texture = cardVisualCatalog.GetCharacterFront(cardId);
-            if (texture == null)
+            var sprite = cardVisualCatalog.GetCharacterFront(cardId);
+            if (sprite == null)
             {
                 return;
             }
@@ -175,7 +177,7 @@ namespace YC.Presentation
             }
 
             var owner = currentPlayerId;
-            cardImageViewer.OpenInspect(texture, valid: () => initialized && currentPlayerId == owner &&
+            cardImageViewer.OpenInspect(sprite, valid: () => initialized && currentPlayerId == owner &&
                 currentViewModel != null && (cardId == currentViewModel.CoveredCardId ||
                     ContainsCard(currentViewModel.HandCards, cardId)));
         }

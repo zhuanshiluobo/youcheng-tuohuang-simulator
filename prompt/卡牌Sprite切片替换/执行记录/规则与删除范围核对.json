@@ -1,0 +1,18 @@
+{
+  "nonVisualChanges": [
+    {
+      "file": "Assets/StreamingAssets/Content/core/facility/facility_enterprise_office.json",
+      "nonVisualChange": true
+    },
+    {
+      "file": "Assets/StreamingAssets/Content/core/facility_inventory.json",
+      "nonVisualChange": true
+    }
+  ],
+  "deletedImageDirectories": {
+    "StreamingAssets": 79,
+    "Resources": 90,
+    "sourceMaterial": 133
+  },
+  "ruleSourceScriptsChangedByThisTask": false
+}

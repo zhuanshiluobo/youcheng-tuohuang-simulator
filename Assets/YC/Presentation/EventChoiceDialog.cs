@@ -150,11 +150,11 @@ namespace YC.Presentation
         private void ShowAssetizedEventCardOptions(
             EventCardDefinition card,
             string metadataLabel,
-            Texture2D artwork,
+            Sprite artwork,
             Action<int> onChoiceSelected)
         {
             var layout = GetLayoutProfile();
-            var eventCardExpandedSize = new Vector2(artwork.width, artwork.height);
+            var eventCardExpandedSize = new Vector2(artwork.rect.width, artwork.rect.height);
             if (!PrepareView(
                     EventChoiceDialogMode.EventCard,
                     "Event Choice Overlay",
@@ -167,7 +167,7 @@ namespace YC.Presentation
             }
 
             view.ConfigureArtworkMode();
-            view.EventCardArtworkImage.texture = artwork;
+            CardArtworkView.Set(view.EventCardArtworkImage, artwork);
             view.EventCardArtworkImage.gameObject.SetActive(true);
             view.EventCardArtworkImage.transform.SetAsFirstSibling();
 
@@ -188,7 +188,7 @@ namespace YC.Presentation
             {
                 // 图片顺序不等于规则编号；仅转换图片按钮，保留原待选会话编号。
                 var capturedIndex = GetArtworkChoiceIndex(card.CardId, i);
-                var row = view.CreateChoiceRow(view.ArtworkChoiceHost);
+                var row = view.CreateArtworkChoiceRow(view.ArtworkChoiceHost);
                 YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject, "event.option." + i);
                 row.Root.gameObject.name = "Choice " + (i + 1);
                 ConfigureAssetizedChoiceRow(
@@ -385,11 +385,13 @@ namespace YC.Presentation
             Func<int, string> getPlayerDisplayName,
             Action<int> onRecipientSelected,
             Action onBankSelected,
-            Action onCancel)
+            Action onCancel,
+            int? selectedRecipientPlayerId = null,
+            Action onPaymentRemoved = null)
         {
             var layout = GetLayoutProfile();
             var recipientCount = recipientPlayerIds == null ? 0 : recipientPlayerIds.Count;
-            var buttonCount = Math.Max(1, recipientCount);
+            var buttonCount = Math.Max(1, recipientCount) + (selectedRecipientPlayerId.HasValue ? 1 : 0);
             if (!PrepareView(
                     EventChoiceDialogMode.ResourceCollectionPayment,
                     "Resource Collection Payment Overlay",
@@ -407,16 +409,27 @@ namespace YC.Presentation
             view.ResourcePaymentRecipientHost.gameObject.SetActive(recipientCount > 0);
 
             var receiverLabel = recipientCount <= 0
-                ? "航道 " + routeId + "：支付给银行"
-                : "航道 " + routeId + "：选择路费接收玩家";
+                ? view.ResourcePaymentBankPrompt
+                : view.ResourcePaymentPlayerPrompt;
+            if (selectedRecipientPlayerId.HasValue)
+            {
+                var selectedName = selectedRecipientPlayerId.Value <= 0
+                    ? view.ResourcePaymentBankName
+                    : getPlayerDisplayName == null ? selectedRecipientPlayerId.Value.ToString()
+                        : getPlayerDisplayName(selectedRecipientPlayerId.Value);
+                receiverLabel = string.Format(view.ResourcePaymentSelectedFormat, selectedName, amount);
+                view.ResourcePaymentCancelButton.gameObject.SetActive(onPaymentRemoved != null);
+                view.ResourcePaymentCancelButton.onClick.AddListener(() => InvokeTerminal(onPaymentRemoved));
+            }
             view.ResourcePaymentReceiverText.text = receiverLabel;
             ConfigureClose(onCancel, true);
 
             if (recipientCount <= 0)
             {
                 view.ResourcePaymentBankButton.gameObject.SetActive(true);
-                view.ResourcePaymentBankLabel.text = "支付 " + amount + " 金券";
+                view.ResourcePaymentBankLabel.text = string.Format(view.ResourcePaymentBankFormat, amount);
                 view.ResourcePaymentBankButton.onClick.AddListener(() => InvokeTerminal(onBankSelected));
+                if (selectedRecipientPlayerId.HasValue) view.ResourcePaymentBankButton.Select();
                 return;
             }
 
@@ -429,9 +442,10 @@ namespace YC.Presentation
                 var row = view.CreateResourceCollectionRecipientButton(
                     view.ResourcePaymentRecipientHost);
                 row.Root.gameObject.name = "Pay Player " + recipientPlayerId;
-                row.Label.text = "向 " + playerName + " 支付 " + amount + " 金券";
+                row.Label.text = string.Format(view.ResourcePaymentPlayerFormat, playerName, amount);
                 row.Button.onClick.AddListener(() => InvokeTerminal(
                     () => onRecipientSelected?.Invoke(recipientPlayerId)));
+                if (selectedRecipientPlayerId == recipientPlayerId) row.Button.Select();
             }
         }
 
@@ -631,14 +645,14 @@ namespace YC.Presentation
 
         private void ConfigureFacilityPreview(string facilityId, string fallbackLabel)
         {
-            var texture = dialogRegistry.CardVisualCatalog.GetFacility(facilityId);
-            view.FacilityPreviewImage.texture = texture;
-            view.FacilityPreviewImage.gameObject.SetActive(texture != null);
-            view.FacilityPreviewFallback.text = texture == null ? fallbackLabel ?? facilityId ?? string.Empty : string.Empty;
-            view.FacilityPreviewFallback.gameObject.SetActive(texture == null);
-            if (texture != null)
+            var sprite = dialogRegistry.CardVisualCatalog.GetFacility(facilityId);
+            CardArtworkView.Set(view.FacilityPreviewImage, sprite);
+            view.FacilityPreviewImage.gameObject.SetActive(sprite != null);
+            view.FacilityPreviewFallback.text = sprite == null ? fallbackLabel ?? facilityId ?? string.Empty : string.Empty;
+            view.FacilityPreviewFallback.gameObject.SetActive(sprite == null);
+            if (sprite != null)
             {
-                view.FacilityPreviewAspect.aspectRatio = (float)texture.width / texture.height;
+                view.FacilityPreviewAspect.aspectRatio = CardArtworkView.AspectRatio(sprite);
             }
         }
 

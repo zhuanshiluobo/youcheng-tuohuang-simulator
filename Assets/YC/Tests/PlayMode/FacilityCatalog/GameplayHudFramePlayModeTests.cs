@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -202,6 +203,12 @@ namespace YC.Tests.PlayMode
         [UnityTest]
         public IEnumerator BothGameplayScenes_KeepBarsClickableAboveSettingsAndContent()
         {
+#if UNITY_EDITOR
+            var captureType = Type.GetType("YC.Presentation.Editor.GameplaySupplementalPageCapture, Assembly-CSharp-Editor", true);
+            captureType.GetMethod("PrepareGameView", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+            captureType.GetMethod("SelectSize", BindingFlags.Static | BindingFlags.NonPublic)
+                .Invoke(null, new object[] { new Vector2Int(1920,1080) });
+#endif
             foreach (var sceneName in new[] { "SampleScene", "ThreePlayerScene" })
             {
                 yield return ClearLaunchContext();
@@ -238,13 +245,31 @@ namespace YC.Tests.PlayMode
                     Get<RectTransform>(frame, "ContentRect"), barCanvas, sceneName);
                 AssertMainSurfaceLayerOrder(frame, sceneName);
 
-                settingsType.GetMethod("Open").Invoke(settings, null);
+                settingsButton.onClick.Invoke();
                 yield return null;
                 Canvas.ForceUpdateCanvases();
                 var settingsView = settingsType.GetField("view", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(settings);
                 var actionLogButton = Get<Button>(settingsView, "ActionLogButton");
                 var settingsOverlay = Get<GameObject>(settingsView, "OverlayObject");
+                Assert.That(Get<bool>(settings, "IsOpen"), Is.True, "点击右上角入口应打开设置页面");
+                var backdropButton = Get<Button>(settingsView, "OverlayCloseButton");
+                Assert.That(backdropButton.IsInteractable(), Is.False, "遮罩只阻止穿透，不是铺满内容区的行动按钮");
+                Assert.That(backdropButton.navigation.mode, Is.EqualTo(Navigation.Mode.None));
+                Assert.That(backdropButton.GetComponent(Type.GetType("YC.Presentation.UiMainButtonState, Assembly-CSharp", true)),
+                    Is.Null, "设置遮罩不能应用普通按钮换肤组件");
+                var backdrop = settingsOverlay.GetComponent<Image>();
+                Assert.That(backdrop.raycastTarget, Is.True, "设置遮罩仍应阻止输入穿透");
+                var originalSprite = backdrop.overrideSprite;
+                var originalColor = backdrop.color;
+                var pointer = new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left };
+                ExecuteEvents.Execute(settingsOverlay, pointer, ExecuteEvents.pointerEnterHandler);
+                ExecuteEvents.Execute(settingsOverlay, pointer, ExecuteEvents.pointerDownHandler);
+                ExecuteEvents.Execute(settingsOverlay, pointer, ExecuteEvents.pointerUpHandler);
+                ExecuteEvents.Execute(settingsOverlay, pointer, ExecuteEvents.pointerClickHandler);
+                Assert.That(backdrop.overrideSprite, Is.SameAs(originalSprite), "指针移入或按下不能把遮罩换成按钮底图");
+                Assert.That(backdrop.color, Is.EqualTo(originalColor));
+                Assert.That(Get<bool>(settings, "IsOpen"), Is.True, "点击遮罩不会意外关闭设置");
                 Assert.That(actionLogButton.transform.IsChildOf(settingsOverlay.transform), Is.True,
                     sceneName + " 日志入口未纳入设置页面");
                 Assert.That(actionLogButton.gameObject.activeInHierarchy, Is.True,
@@ -253,6 +278,7 @@ namespace YC.Tests.PlayMode
                     Is.SameAs(settingsButton.gameObject), sceneName + " 设置页遮住常驻栏");
                 Assert.That(FirstHitAt(end.transform as RectTransform),
                     Is.SameAs(end.gameObject), sceneName + " 设置页遮住底栏");
+                yield return CaptureSettings(sceneName);
                 EventSystem.current.SetSelectedGameObject(settingsButton.gameObject);
                 Assert.That(EventSystem.current.currentSelectedGameObject,
                     Is.SameAs(settingsButton.gameObject), sceneName + " 顶栏不可取得导航焦点");
@@ -289,6 +315,18 @@ namespace YC.Tests.PlayMode
                 yield return null;
                 Debug.Log("PLAY OK " + sceneName + " " + Screen.width + "x" + Screen.height);
             }
+        }
+
+        private static IEnumerator CaptureSettings(string sceneName)
+        {
+            var configured = Environment.GetEnvironmentVariable("YC_HUD_SUPPLY_CAPTURE_OUTPUT");
+            if (string.IsNullOrWhiteSpace(configured)) yield break;
+            var directory = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "../", configured));
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, sceneName + "-settings-" + Screen.width + "x" + Screen.height + ".png");
+            ScreenCapture.CaptureScreenshot(path);
+            for (var i = 0; i < 12; i++) yield return null;
+            Assert.That(File.Exists(path), Is.True);
         }
 
         private static IEnumerator ClearLaunchContext()

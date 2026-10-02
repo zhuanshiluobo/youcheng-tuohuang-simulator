@@ -3,7 +3,7 @@
   "contentType": "event",
   "version": "1.0.0",
   "displayName": "洞穴和遗迹",
-  "artwork": "artwork/event/event_yellow_02.jpg",
+  "artwork": "artwork/sheets/event_yellow_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
@@ -42,5 +42,6 @@
     ]
   },
   "expansionId": "core",
-  "replaces": null
+  "replaces": null,
+  "artworkSpriteId": "event_yellow_002"
 }

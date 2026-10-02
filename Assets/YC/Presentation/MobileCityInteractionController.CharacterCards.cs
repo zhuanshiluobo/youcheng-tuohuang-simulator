@@ -11,6 +11,7 @@ namespace YC.Presentation
     public sealed partial class MobileCityInteractionController
     {
         private CharacterCardEffectChoiceDialog characterCardEffectChoiceDialog;
+        private CharacterCardEffectChoiceDialog characterCoverChoiceDialog;
         private CharacterCardEffectInteractionUiCoordinator characterCardEffectInteraction; private CharacterAbilityInteractionUiCoordinator characterAbilityInteraction;
         private string automaticSecondEffectMode = string.Empty;
         private bool submittingSecondEffectDecision;
@@ -47,6 +48,10 @@ namespace YC.Presentation
             characterCardEffectChoiceDialog = new CharacterCardEffectChoiceDialog(
                 gameplayInteractionHud.DialogRegistry,
                 GetUiCanvasTransform());
+            // 盖放是回合阶段页面，不能与会在旧效果结束时被 Clear 的结算弹窗共用实例。
+            characterCoverChoiceDialog = new CharacterCardEffectChoiceDialog(
+                gameplayInteractionHud.DialogRegistry,
+                GetUiCanvasTransform());
             characterCardEffectInteraction = new CharacterCardEffectInteractionUiCoordinator(
                 () => session == null ? null : session.State,
                 () => localPlayerId,
@@ -63,6 +68,8 @@ namespace YC.Presentation
 
         private void DisposeCharacterCardEffectInteraction()
         {
+            characterCoverChoiceDialog?.Hide();
+            characterCoverChoiceDialog = null;
             characterCardEffectInteraction?.HideDialog(); characterAbilityInteraction?.Dispose();
             characterCardEffectInteraction = null; characterAbilityInteraction = null;
         }
@@ -74,7 +81,7 @@ namespace YC.Presentation
                            state.CurrentPlayerId == localPlayerId && model != null && model.CanCover;
             if (!eligible)
             {
-                if (coverCandidateKey.Length > 0) characterCardEffectChoiceDialog?.Hide();
+                if (coverCandidateKey.Length > 0) characterCoverChoiceDialog?.Hide();
                 if (coverCandidateKey.Length > 0 || coverSubmissionInFlight) coverContextVersion++;
                 coverSubmissionInFlight = false;
                 submittedCoverCardId = string.Empty;
@@ -102,8 +109,8 @@ namespace YC.Presentation
                 selectedCoverCardId = string.Empty;
             }
             if (!coverCandidates.Contains(selectedCoverCardId)) selectedCoverCardId = string.Empty;
-            if (nextKey == coverCandidateKey && characterCardEffectChoiceDialog != null &&
-                characterCardEffectChoiceDialog.IsShowing) return;
+            if (nextKey == coverCandidateKey && characterCoverChoiceDialog != null &&
+                characterCoverChoiceDialog.IsShowing) return;
             if (nextKey != coverCandidateKey) coverContextVersion++;
             coverCandidateKey = nextKey;
             ShowCurrentCoverSelection();
@@ -124,7 +131,7 @@ namespace YC.Presentation
         private void ShowCurrentCoverSelection()
         {
             var version = coverContextVersion;
-            characterCardEffectChoiceDialog?.ShowCoverSelection(
+            characterCoverChoiceDialog?.ShowCoverSelection(
                 coverCandidates, selectedCoverCardId,
                 id => version == coverContextVersion && IsCurrentCoverCandidate(id),
                 id => { if (version == coverContextVersion) SelectCoverCard(id); },
@@ -156,7 +163,7 @@ namespace YC.Presentation
             var cardId = selectedCoverCardId;
             coverSubmissionInFlight = true;
             submittedCoverCardId = cardId;
-            characterCardEffectChoiceDialog?.Hide();
+            characterCoverChoiceDialog?.Hide();
             SubmitCoverCharacterCard(cardId);
         }
 

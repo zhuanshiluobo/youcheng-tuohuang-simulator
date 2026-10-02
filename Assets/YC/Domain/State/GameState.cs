@@ -24,6 +24,7 @@ namespace YC.Domain.State
         public List<PlayerState> Players = new List<PlayerState>();
         public MapRuntimeState Map = new MapRuntimeState();
         public DeckRuntimeState Decks = new DeckRuntimeState();
+        public GameBoxState GameBox = new GameBoxState();
         public PendingChoiceState PendingChoice;
         public PendingCardSessionState PendingCardSession;
         public PendingCharacterEffectState PendingCharacterEffect;

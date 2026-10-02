@@ -41,7 +41,7 @@ namespace YC.Presentation
         [SerializeField] private Text supplyDeckText;
         [SerializeField] private Text extensionHubsText;
         [SerializeField] private string supplyDeckFormat = "设施牌堆·{0}";
-        [SerializeField] private string extensionHubFormat = "<color=#{0}>延申枢纽</color>";
+        [SerializeField] private string extensionHubFormat = "<color=#{0}>延伸枢纽</color>";
         [SerializeField] private string extensionHubSeparator = "·";
         [SerializeField] private UiResourceCostView ownedResources;
         [SerializeField] private Color[] availableHubColors;
@@ -105,9 +105,10 @@ namespace YC.Presentation
                 var card = Instantiate(cardTemplate, parent, false);
                 card.gameObject.SetActive(true);
                 card.FitIntoCell();
-                card.CardImage.texture = catalog.GetFacility(id);
-                card.CardImage.color = card.CardImage.texture == null ? Color.clear : Color.white;
-                card.FallbackLabel.gameObject.SetActive(card.CardImage.texture == null);
+                var sprite = catalog.GetFacility(id);
+                CardArtworkView.Set(card.CardImage, sprite);
+                card.CardImage.color = sprite == null ? Color.clear : Color.white;
+                card.FallbackLabel.gameObject.SetActive(sprite == null);
                 card.FallbackLabel.text = FacilityCardDatabase.Get(id)?.Name ?? id;
                 if (card.SelectionImage != null) card.SelectionImage.enabled = selected;
                 card.Button.interactable = click != null;
@@ -115,9 +116,9 @@ namespace YC.Presentation
                 card.Button.onClick.AddListener(() => { if (Current()) click?.Invoke(); });
                 card.ConfigureInspection(() =>
                 {
-                    if (!Current() || card.CardImage.texture == null) return;
+                    if (!Current() || sprite == null) return;
                     if (viewer == null) viewer = CardViewer.InstantiateFor(transform);
-                    viewer.OpenInspect(card.CardImage.texture, () =>
+                    viewer.OpenInspect(sprite, () =>
                     {
                         if (!isCurrent()) return;
                         if (placing) GameplayHudFrame.Active?.ResumeEffectPage();
@@ -160,8 +161,9 @@ namespace YC.Presentation
                 YC.PlayerJourney.PlayerAutomationId.Attach(citySlots[i].gameObject, "build.slot." + i);
                 var id = placement?.FacilityCardId;
                 if (id == null && placing && model.CityBoardSlotIndex == i) id = model.Facility?.FacilityId;
-                cityCards[i].texture = string.IsNullOrEmpty(id) ? null : catalog.GetFacility(id);
-                cityCards[i].enabled = cityCards[i].texture != null;
+                var sprite = string.IsNullOrEmpty(id) ? null : catalog.GetFacility(id);
+                CardArtworkView.Set(cityCards[i], sprite);
+                cityCards[i].enabled = sprite != null;
             }
             // 两个支付按钮由预制体固定提供；刷新选择只更新状态，不销毁重建按钮。
             for (var i = 0; i < paymentRows.Length; i++)

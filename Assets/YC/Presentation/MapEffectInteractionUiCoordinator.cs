@@ -12,7 +12,7 @@ using YC.Presentation.Workflows;
 namespace YC.Presentation
 {
     /// <summary>通用地图交互；入场、主要行动、角色和设施共用候选高亮与回答入口。</summary>
-    internal sealed class MapEffectInteractionUiCoordinator : InteractionBase, IInteractionRequestRenderer
+    internal sealed class MapEffectInteractionUiCoordinator : InteractionBase, IInteractionRequestRenderer, IMapConfirmationScope
     {
         private readonly Func<GameState> state;
         private readonly Func<int> player;
@@ -25,6 +25,15 @@ namespace YC.Presentation
         private string rendered = string.Empty;
         private int revision = -1;
         public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
+        public string MapConfirmationScope
+        {
+            get
+            {
+                var request = Current();
+                return request == null || !string.IsNullOrEmpty(inFlight) ? string.Empty :
+                    request.InteractionId + ":" + request.StateRevision + ":" + request.CandidateSetVersion;
+            }
+        }
 
         public MapEffectInteractionUiCoordinator(Func<GameState> state, Func<int> player,
             CharacterCardEffectChoiceDialog dialog, Action<IReadOnlyList<WorkflowHighlight>> highlights,
@@ -119,6 +128,7 @@ namespace YC.Presentation
 
         public override InteractionPresentation BuildPresentation()
         {
+            if (!string.IsNullOrEmpty(inFlight)) return InteractionPresentation.Busy;
             var request = Current();
             return request == null ? InteractionPresentation.Empty :
                 new InteractionPresentation(Targets(request), Prompt(request), InteractionMode.Busy, true);
@@ -132,12 +142,7 @@ namespace YC.Presentation
             if (!string.IsNullOrEmpty(inFlight)) return InteractionResult.Consumed;
             var candidate = request.CandidateIds.Find(id => Slot(request, id) == slotId);
             if (string.IsNullOrEmpty(candidate)) { prompt("请选择高亮的合法目标。"); return InteractionResult.Consumed; }
-            if (request.AllowDecline)
-                dialog.ShowOptions("放置影响力", "确认将影响力放置到 " + slotId + "？", new[]
-                {
-                    new EffectDialogOption("确认放置", () => Answer(request, candidate, false))
-                }, () => Answer(request, null, true));
-            else Answer(request, candidate, false);
+            Answer(request, candidate, false);
             return InteractionResult.Consumed;
         }
 

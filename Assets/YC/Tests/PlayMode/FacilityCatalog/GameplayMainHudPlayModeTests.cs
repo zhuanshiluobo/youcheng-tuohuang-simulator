@@ -20,6 +20,93 @@ namespace YC.Tests.PlayMode
     public sealed class GameplayMainHudPlayModeTests
     {
         [UnityTest]
+        public IEnumerator BothScenes_EightMainButtonsUseFourDistributedRowsAndInfoStates()
+        {
+            var capture = Type.GetType("YC.Presentation.Editor.GameplaySupplementalPageCapture, Assembly-CSharp-Editor", true);
+            var directory = CaptureDirectory("Logs/MainInfoButtons-20261001/visual");
+            foreach (var scene in new[] { "SampleScene", "ThreePlayerScene" })
+            {
+                yield return ClearLaunchContext();
+                yield return SceneManager.LoadSceneAsync(scene, LoadSceneMode.Single);
+                yield return null;
+                var hud = Find("YC.Presentation.GameplayInteractionHudView");
+                var group = (RectTransform)Child(hud.transform, "Main Actions");
+                var grid = group.GetComponent<GridLayoutGroup>();
+                Assert.That(grid.constraint, Is.EqualTo(GridLayoutGroup.Constraint.FixedColumnCount));
+                Assert.That(grid.constraintCount, Is.EqualTo(2));
+                Assert.That(group.childCount, Is.EqualTo(8), "原行动组追加两个入口，保留两列结构");
+                var infoButtons = new[] { group.GetChild(6).GetComponent<Button>(), group.GetChild(7).GetComponent<Button>() };
+                Assert.That(infoButtons, Is.All.Not.Null);
+
+                foreach (var size in new[] { new Vector2Int(1920, 1080), new Vector2Int(900, 600) })
+                {
+                    capture.GetMethod("PrepareGameView", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+                    capture.GetMethod("SelectSize", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { size });
+                    var deadline = Time.realtimeSinceStartup + 15f;
+                    while (new Vector2Int(Screen.width, Screen.height) != size && Time.realtimeSinceStartup < deadline)
+                        yield return null;
+                    Assert.That(new Vector2Int(Screen.width, Screen.height), Is.EqualTo(size));
+                    for (var i = 0; i < 8; i++) yield return null;
+                    Canvas.ForceUpdateCanvases();
+
+                    var rowGap = 0f;
+                    for (var row = 0; row < 4; row++)
+                    {
+                        var left = (RectTransform)group.GetChild(row * 2);
+                        var right = (RectTransform)group.GetChild(row * 2 + 1);
+                        Assert.That(left.anchoredPosition.y, Is.EqualTo(right.anchoredPosition.y).Within(.5f));
+                        Assert.That(right.anchoredPosition.x, Is.GreaterThan(left.anchoredPosition.x));
+                        AssertVerticalInside(left, group, "第四行不得溢出主要行动内容");
+                        AssertHorizontalInside(right, group, "按钮不得横向溢出");
+                        if (row == 0) continue;
+                        var previous = (RectTransform)group.GetChild((row - 1) * 2);
+                        var gap = previous.anchoredPosition.y - previous.rect.height - left.anchoredPosition.y;
+                        Assert.That(gap, Is.GreaterThanOrEqualTo(-.5f), "四行按钮不得相互重叠");
+                        if (row == 1) rowGap = gap;
+                        else Assert.That(gap, Is.EqualTo(rowGap).Within(.5f), "四行之间必须均分间隙");
+                    }
+
+                    var face = (GameObject)Property(Property(hud, "ActionPanelView"), "MainFaceObject");
+                    var scroll = face.GetComponent<ScrollRect>();
+                    scroll.StopMovement();
+                    scroll.verticalNormalizedPosition = 0f;
+                    Canvas.ForceUpdateCanvases();
+                    yield return null;
+                    foreach (var button in infoButtons)
+                    {
+                        AssertVerticalInside((RectTransform)button.transform, scroll.viewport, "新增入口必须可滚动到达");
+                        Assert.That(FirstHit((RectTransform)button.transform), Is.SameAs(button.gameObject), "新增按钮不能被装饰或其他面板遮挡");
+                    }
+                    var screenshot = Path.Combine(directory, scene + "-四行按钮-" + size.x + "x" + size.y + ".png");
+                    ScreenCapture.CaptureScreenshot(screenshot);
+                    for (var i = 0; i < 12; i++) yield return null;
+                    Assert.That(File.Exists(screenshot), Is.True);
+                }
+
+                foreach (var button in infoButtons)
+                {
+                    var state = button.GetComponent(Type.GetType("YC.Presentation.UiMainButtonState, Assembly-CSharp", true));
+                    var image = button.GetComponent<Image>();
+                    var icon = (Image)Field(state, "icon");
+                    Assert.That(state, Is.Not.Null);
+                    Assert.That(image.type, Is.EqualTo(Image.Type.Sliced));
+                    var pointer = new PointerEventData(EventSystem.current);
+                    state.GetType().GetMethod("OnPointerEnter").Invoke(state, new object[] { pointer });
+                    Assert.That(image.sprite, Is.SameAs(Field(state, "hover")));
+                    state.GetType().GetMethod("OnPointerDown").Invoke(state, new object[] { pointer });
+                    Assert.That(image.sprite, Is.SameAs(Field(state, "pressed")));
+                    state.GetType().GetMethod("SetAvailable").Invoke(state, new object[] { false });
+                    Assert.That(image.sprite, Is.SameAs(Field(state, "disabled")));
+                    Assert.That(icon.sprite, Is.SameAs(Field(state, "mutedIcon")));
+                    state.GetType().GetMethod("OnPointerExit").Invoke(state, new object[] { pointer });
+                    state.GetType().GetMethod("SetAvailable").Invoke(state, new object[] { true });
+                    Assert.That(image.sprite, Is.SameAs(Field(state, "normal")));
+                    Assert.That(icon.sprite, Is.SameAs(Field(state, "lightIcon")));
+                }
+            }
+        }
+
+        [UnityTest]
         public IEnumerator BothScenes_UseOneBottomActionAndTabbedFormalEntries()
         {
             foreach (var scene in new[] { "SampleScene", "ThreePlayerScene" })
@@ -242,7 +329,7 @@ namespace YC.Tests.PlayMode
             Assert.That((bool)Property(panel, "IsDiscardPreviewOpen"), Is.True);
             var discardPage = Field(panel, "discardPage");
             var discardView = (Component)Field(discardPage, "view");
-            Child(discardView.transform, "Cancel Selection").GetComponent<Button>().onClick.Invoke();
+            ClickDiscardBackground(discardView);
             Assert.That((bool)Property(panel, "IsDiscardPreviewOpen"), Is.False);
         }
 
@@ -423,7 +510,7 @@ namespace YC.Tests.PlayMode
                 Assert.That(state.CurrentPlayerId, Is.EqualTo(local));
                 var hand = state.FindPlayer(local).HandCardIds;
                 var count = hand.Count;
-                var dialog = Field(controller, "characterCardEffectChoiceDialog");
+                var dialog = Field(controller, "characterCoverChoiceDialog");
                 var shell = Field(dialog, "shell");
                 var page = (Component)Field(shell, "view");
                 Assert.That(page.gameObject.activeInHierarchy, Is.True);
@@ -630,7 +717,7 @@ namespace YC.Tests.PlayMode
             var initialPhase = state.Phase;
             var initialPlayer = state.CurrentPlayerId;
             var catalog = Property(registry, "CardVisualCatalog");
-            var fronts = (Array)Field(catalog, "characterFrontTextures");
+            var fronts = new[] { "liskarm", "texas", "tin-man", "cannot", "elysium" };
             Assert.That(fronts.Length, Is.GreaterThan(0));
             var page = registry.GetType().GetMethod("InstantiateEffectDialogShell")
                 .Invoke(registry, new object[] { Property(frame, "ContentRect"), false, false, true }) as Component;
@@ -652,7 +739,8 @@ namespace YC.Tests.PlayMode
                     var card = (Component)page.GetType().GetMethod("CreateFacilityCard").Invoke(page, null);
                     card.name = "滚动诊断卡牌 " + i;
                     var image = (RawImage)Property(card, "CardImage");
-                    image.texture = (Texture)Property(fronts.GetValue(i % fronts.Length), "Texture");
+                    var sprite = (Sprite)catalog.GetType().GetMethod("GetCharacterFront").Invoke(catalog, new object[] { fronts[i % fronts.Length] });
+                    Type.GetType("YC.Presentation.CardArtworkView, Assembly-CSharp", true).GetMethod("Set").Invoke(null, new object[] { image, sprite });
                     Assert.That(image.texture, Is.Not.Null);
                     image.color = Color.white;
                     ((Text)Property(card, "FallbackLabel")).gameObject.SetActive(false);
@@ -895,7 +983,7 @@ namespace YC.Tests.PlayMode
                     Assert.That(discardView.gameObject.activeInHierarchy, Is.True);
                     Assert.That((float)Property(discardView, "ScrollPosition"), Is.EqualTo(scrollPosition).Within(.01f));
                     Assert.That(EventSystem.current.currentSelectedGameObject, Is.SameAs(detail.gameObject));
-                    Child(discardView.transform, "Cancel Selection").GetComponent<Button>().onClick.Invoke();
+                    ClickDiscardBackground(discardView);
                     Assert.That(player.DiscardCardIds.FindAll(id => id == cardId).Count, Is.EqualTo(1));
                 }
                 else
@@ -1056,7 +1144,7 @@ namespace YC.Tests.PlayMode
                 yield return null;
                 Assert.That(page.gameObject.activeInHierarchy, Is.True, "关闭详情应返回有效弃牌列表。");
                 Assert.That(player.DiscardCardIds.FindAll(value => value == id).Count, Is.EqualTo(1));
-                Child(page.transform, "Cancel Selection").GetComponent<Button>().onClick.Invoke();
+                ClickDiscardBackground(page);
             }
         }
 
@@ -1127,6 +1215,21 @@ namespace YC.Tests.PlayMode
                 ((Button)Property(logView, "CloseButton")).onClick.Invoke();
                 Assert.That(state.EffectRuntime.StateRevision, Is.EqualTo(revision), "资料操作不得发出游戏命令。");
             }
+        }
+
+        private static void ClickDiscardBackground(Component page)
+        {
+            Assert.That(Child(page.transform, "Cancel Selection"), Is.Null,
+                "弃牌查看不应再显示取消按钮。");
+            var background = ((Image)Property(page, "OverlayImage")).gameObject;
+            ExecuteEvents.ExecuteHierarchy(background, new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left,
+                pointerPressRaycast = new RaycastResult { gameObject = background },
+                pointerCurrentRaycast = new RaycastResult { gameObject = background }
+            }, ExecuteEvents.pointerClickHandler);
+            Assert.That(page == null || !page.gameObject.activeInHierarchy, Is.True,
+                "点击弃牌页空白处应关闭列表。");
         }
 
         private static void OpenCardPreview(Button card)

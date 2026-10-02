@@ -47,5 +47,6 @@
   "enabledExpansionIds": [
     "core"
   ],
-  "facilityInventory": "facility_inventory.json"
+  "facilityInventory": "facility_inventory.json",
+  "artworkSlices": "artwork_slices.json"
 }

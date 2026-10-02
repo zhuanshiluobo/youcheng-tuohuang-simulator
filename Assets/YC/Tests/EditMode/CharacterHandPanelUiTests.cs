@@ -91,10 +91,55 @@ namespace YC.Tests.EditMode
             Assert.That(cards.Length, Is.EqualTo(1), "只读弃牌页不得混入手牌或其他玩家的牌。");
             Assert.That(GetProperty<Button>(cards[0], "Button").interactable, Is.False);
             Assert.That(Array.Exists(list.GetComponentsInChildren<Button>(), button => button.name == "Confirm Selection"), Is.False);
+            Assert.That(Array.Exists(list.GetComponentsInChildren<Button>(), button => button.name == "Cancel Selection"), Is.False);
             Assert.That(GetProperty<Button>(cards[0], "Button").GetType().Name, Is.EqualTo("CardPickerCardButton"));
-            panel.CloseDiscardPreview();
+            var cardImage = GetProperty<RawImage>(cards[0], "CardImage");
+            ClickHierarchy(cardImage.gameObject);
+            Assert.That(panel.IsDiscardPreviewOpen, Is.True, "点击角色牌不得触发空白处关闭。");
+            ClickHierarchy(GetProperty<Image>(list, "OverlayImage").gameObject);
             Assert.That(panel.IsDiscardPreviewOpen, Is.False);
             Assert.That(panel.OrderedHandCount, Is.EqualTo(2));
+        }
+
+        [TestCase(false, false)]
+        [TestCase(true, false)]
+        [TestCase(false, true)]
+        [TestCase(true, true)]
+        public void DiscardList_BlankClickClosesPopulatedAndEmptyLists_WithoutClosingOnDragOrRightClick(bool empty,
+            bool viewportBlank)
+        {
+            CreatePanel();
+            panel.Render(1, BuildModel(new[] { CardIds[0] }, empty ? new string[0] : new[] { CardIds[1] }, false));
+            panel.OpenDiscardPreview();
+            var list = owner.GetComponentInChildren(GetRuntimeType("YC.Presentation.EffectDialogShellView"), false);
+            Assert.That(list, Is.Not.Null);
+            Assert.That(Array.Exists(list.GetComponentsInChildren<Text>(false),
+                label => label.text == "点击空白处关闭"), Is.True, "弃牌页应显示用户指定的关闭提示。");
+            var background = viewportBlank ? GetProperty<ScrollRect>(list, "OptionScroll").viewport.gameObject :
+                GetProperty<Image>(list, "OverlayImage").gameObject;
+            Assert.That(ExecuteEvents.GetEventHandler<IPointerClickHandler>(background), Is.SameAs(list.gameObject),
+                "视口及外围空白点击都必须路由到弃牌页，而非被滚动组件截断。");
+            ClickHierarchy(background, PointerEventData.InputButton.Right);
+            Assert.That(panel.IsDiscardPreviewOpen, Is.True);
+            ClickHierarchy(background, PointerEventData.InputButton.Left, true);
+            Assert.That(panel.IsDiscardPreviewOpen, Is.True, "滚动拖动结束不得关闭弃牌页。");
+            ClickHierarchy(background);
+            Assert.That(panel.IsDiscardPreviewOpen, Is.False);
+            Assert.That(panel.OrderedHandCount, Is.EqualTo(1));
+        }
+
+        private static void ClickHierarchy(GameObject target,
+            PointerEventData.InputButton button = PointerEventData.InputButton.Left, bool dragging = false)
+        {
+            var handler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(target);
+            Assert.That(handler, Is.Not.Null);
+            // 与输入模块抬起时的派发一致；避免 EditMode 立即销毁窗口后 ExecuteHierarchy 再取其 Transform。
+            ExecuteEvents.Execute(handler, new PointerEventData(EventSystem.current)
+            {
+                button = button, dragging = dragging,
+                pointerPressRaycast = new RaycastResult { gameObject = target },
+                pointerCurrentRaycast = new RaycastResult { gameObject = target }
+            }, ExecuteEvents.pointerClickHandler);
         }
 
         [Test]

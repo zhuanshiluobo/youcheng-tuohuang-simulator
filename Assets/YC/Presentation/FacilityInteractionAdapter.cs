@@ -4,7 +4,7 @@ using YC.Presentation.Workflows;
 namespace YC.Presentation
 {
     /// <summary>把设施通用 InteractionRequest 接入统一交互路由。</summary>
-    internal sealed class FacilityInteractionAdapter : InteractionBase
+    internal sealed class FacilityInteractionAdapter : InteractionBase, IMapConfirmationScope
     {
         private readonly FacilityInteractionUiCoordinator coordinator;
 
@@ -18,6 +18,7 @@ namespace YC.Presentation
         public override InteractionPriority Priority => InteractionPriority.PendingResolution;
 
         public override bool IsActive => coordinator.IsActive;
+        public string MapConfirmationScope => coordinator.MapConfirmationScope;
 
         public override InteractionResult OnLocationClicked(string locationId)
         {
@@ -48,7 +49,7 @@ namespace YC.Presentation
         public override InteractionPresentation BuildPresentation()
         {
             return coordinator.Synchronize()
-                ? InteractionPresentation.Busy
+                ? coordinator.BuildMapPresentation()
                 : InteractionPresentation.Empty;
         }
 

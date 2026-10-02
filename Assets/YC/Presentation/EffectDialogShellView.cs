@@ -1,11 +1,12 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace YC.Presentation
 {
     /// <summary>编辑器资产化的效果对话框固定壳引用；不承载游戏规则或回调决策。</summary>
-    public sealed class EffectDialogShellView : MonoBehaviour
+    public sealed class EffectDialogShellView : MonoBehaviour, IPointerClickHandler
     {
         [SerializeField] private EffectDialogLayoutProfile layoutProfile;
         [SerializeField] private Canvas overlayCanvas;
@@ -31,6 +32,7 @@ namespace YC.Presentation
         [SerializeField] private string cardPickerSelectionHint;
         [SerializeField] private string cardPickerReadOnlyHint;
         private float? pendingScrollPosition;
+        private Action dismissOnBackgroundClick;
         public bool IsCardPicker => cardPickerRow != null;
         // 保留既有“1 = 列表开头”的草稿协议；卡牌页将其映射到横向滚动。
         public float ScrollPosition => pendingScrollPosition ?? (optionScroll == null ? 1f :
@@ -84,7 +86,25 @@ namespace YC.Presentation
         public void ConfigureSelectionMode(bool readOnly, string hintOverride = null)
         {
             if (IsCardPicker && cardPickerHint != null)
+            {
                 cardPickerHint.text = hintOverride ?? (readOnly ? cardPickerReadOnlyHint : cardPickerSelectionHint);
+                // 提示与动作按钮共用页脚；只读列表没有动作按钮，也必须显示提示。
+                if (footer != null) footer.gameObject.SetActive(true);
+            }
+        }
+
+        public void ConfigureBackgroundDismiss(Action dismiss) => dismissOnBackgroundClick = dismiss;
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (dismissOnBackgroundClick == null || eventData == null ||
+                eventData.button != PointerEventData.InputButton.Left || eventData.dragging) return;
+            var threshold = EventSystem.current == null ? 10 : EventSystem.current.pixelDragThreshold;
+            if ((eventData.position - eventData.pressPosition).sqrMagnitude > threshold * threshold) return;
+            var hit = eventData.pointerPressRaycast.gameObject ?? eventData.pointerCurrentRaycast.gameObject;
+            if (hit != null && (hit.GetComponentInParent<FacilityEffectCardView>() != null ||
+                hit.GetComponentInParent<Selectable>() != null)) return;
+            dismissOnBackgroundClick();
         }
 
         public bool TryValidateConfiguration(out string reason)
@@ -152,6 +172,7 @@ namespace YC.Presentation
         public void PrepareForUse(string overlayName, string panelName, Vector2 panelSize, Vector2 panelPosition,
             bool blockBackgroundInput)
         {
+            dismissOnBackgroundClick = null;
             gameObject.name = overlayName ?? string.Empty;
             panel.gameObject.name = panelName ?? string.Empty;
             // 窗口尺寸由实际预制体决定。旧调用方的候选数量不能缩小窗口、裁掉支付项。

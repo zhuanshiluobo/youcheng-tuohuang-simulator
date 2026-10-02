@@ -3,7 +3,7 @@
   "contentType": "character",
   "version": "1.0.0",
   "displayName": "德克萨斯",
-  "artwork": "artwork/character/texas.jpg",
+  "artwork": "artwork/sheets/character_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [
@@ -42,5 +42,6 @@
     "tacticAbilityId": "character.texas.tactic"
   },
   "expansionId": "core",
-  "replaces": null
+  "replaces": null,
+  "artworkSpriteId": "character_002"
 }

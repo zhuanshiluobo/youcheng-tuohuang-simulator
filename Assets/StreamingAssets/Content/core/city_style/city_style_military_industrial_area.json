@@ -3,7 +3,7 @@
   "contentType": "city_style",
   "version": "1.0.0",
   "displayName": "军工化区域",
-  "artwork": "artwork/city_style/city_style_military_industrial_area.jpg",
+  "artwork": "artwork/sheets/city_style_level_1.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
@@ -73,5 +73,6 @@
     "luaVersion": "1.0.0"
   },
   "expansionId": "core",
-  "replaces": null
+  "replaces": null,
+  "artworkSpriteId": "city_style_1_001"
 }

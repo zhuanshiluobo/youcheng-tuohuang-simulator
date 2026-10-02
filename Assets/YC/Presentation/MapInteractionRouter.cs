@@ -60,7 +60,7 @@ namespace YC.Presentation
             this.refreshInfluence = refreshInfluence;
         }
 
-        public bool HasPendingConfirmation => confirmation.HasPending || influence.HasPendingConfirmation;
+        public bool HasPendingConfirmation => confirmation.HasPending || influence.HasPendingConfirmation || exploration.HasPendingInfluenceConfirmation;
 
         public override string Id => "default.map-route";
 
@@ -114,9 +114,8 @@ namespace YC.Presentation
                 var initialMapView = getMapView();
                 if (initialMapView != null && initialMapView.ContainsHighlightedLocation(locationId))
                 {
-                    initialMapView.PlayLocationConfirmation(locationId);
+                    Request("InitialPlacement", locationId, GetCurrentPrompt(), () => turn.PlaceInitialCity(locationId));
                 }
-                turn.PlaceInitialCity(locationId);
                 return;
             }
 
@@ -128,27 +127,13 @@ namespace YC.Presentation
                 return;
             }
 
-            // 采集取消后按规则不再显示高亮，但该资源点仍必须保留点击入口，
-            // 否则用户无法把它重新加入本次采集。
-            if (coordinator.IsActive(collection) && collection.CanToggleLocation(locationId))
+            if (coordinator.IsActive(collection))
             {
-                collection.SelectLocation(locationId);
+                if (collection.CanToggleLocation(locationId)) collection.SelectLocation(locationId);
                 return;
             }
 
             if (!mapView.ContainsHighlightedLocation(locationId)) { CancelConfirmation(true); return; }
-
-            if (coordinator.IsActive(collection))
-            {
-                collection.SelectLocation(locationId);
-                return;
-            }
-
-            if (coordinator.IsActive(turn) && turn.IsSelectingMoveTarget)
-            {
-                RequestMove(locationId);
-                return;
-            }
 
             if (coordinator.IsActive(exploration) && exploration.IsSelectingExploreTarget)
             {
@@ -184,19 +169,7 @@ namespace YC.Presentation
             }
             if (!mapView.ContainsHighlightedInfluenceSlot(slotId)) { CancelConfirmation(true); return; }
 
-            if (coordinator.IsActive(collection))
-            {
-                InfluenceSlotReference slot;
-                string reason;
-                if (!InfluenceSlotReference.TryParse(mapQuery, slotId, out slot, out reason) ||
-                    slot.Kind != InfluenceSlotKind.Route)
-                {
-                    view.ShowPrompt("请选择高亮航道支付路费。");
-                    return;
-                }
-                collection.SelectRoutePayment(slot.RouteId);
-                return;
-            }
+            if (coordinator.IsActive(collection)) return;
 
             if (coordinator.IsActive(influence))
             {
@@ -222,7 +195,7 @@ namespace YC.Presentation
 
         public void UpdateCancellation()
         {
-            if (!HasPendingConfirmation || !Input.GetMouseButtonDown(0)) return;
+            if (!HasPendingConfirmation || !Input.GetMouseButtonUp(0) || MapDisplayController.SuppressMapClick) return;
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
             if (IsPointerOverInteractionTarget()) return;
             CancelConfirmation(true);
@@ -230,6 +203,7 @@ namespace YC.Presentation
 
         public void ClearConfirmation(bool restorePresentation)
         {
+            if (exploration.HasPendingInfluenceConfirmation) exploration.CancelPendingInfluenceConfirmation(restorePresentation);
             var hadMapConfirmation = confirmation.HasPending;
             var hadInfluenceConfirmation = influence.HasPendingConfirmation;
             if (hadMapConfirmation) confirmation.Clear();
@@ -240,12 +214,6 @@ namespace YC.Presentation
                 refreshActionPanel();
                 view.ShowPrompt(GetCurrentPrompt());
             }
-        }
-
-        private void RequestMove(string locationId)
-        {
-            var cost = new TravelCostService(mapQuery).GetCityMoveBaseCost().OriginiumShard;
-            Request("MoveCity", locationId, "城市移动：预计花费" + cost + "源石碎片", () => turn.MoveCity(locationId));
         }
 
         private void RequestExplore(string locationId)
@@ -263,7 +231,7 @@ namespace YC.Presentation
         private void Request(string actionKey, string targetId, string prompt, Action action)
         {
             Action callback;
-            if (confirmation.Request(actionKey, targetId, targetId, string.Empty, action, out callback))
+            if (confirmation.Request(actionKey, targetId, targetId, string.Empty, action, out callback, Time.frameCount))
             {
                 view.ClearHighlights();
                 getMapView()?.PlayLocationConfirmation(targetId);
@@ -276,18 +244,23 @@ namespace YC.Presentation
 
         private void HighlightConfirmation()
         {
-            view.ClearHighlights();
+            RestorePresentation();
             var mapView = getMapView();
             if (mapView == null) return;
             if (!string.IsNullOrEmpty(confirmation.LocationId))
-                mapView.SetHighlighted(confirmation.LocationId, new Color(1f, 0.82f, 0.2f, 0.95f));
-            if (!string.IsNullOrEmpty(confirmation.SlotId)) mapView.HighlightInfluenceSlot(confirmation.SlotId);
+                mapView.SetPendingButton(WorkflowHighlightTargetKind.Location, confirmation.LocationId);
+            if (!string.IsNullOrEmpty(confirmation.SlotId)) mapView.SetPendingButton(WorkflowHighlightTargetKind.InfluenceSlot, confirmation.SlotId);
             refreshInfluence();
         }
 
         private void RestorePresentation()
         {
             view.ClearHighlights();
+            if (turn.IsAwaitingInitialPlacement)
+            {
+                view.SetHighlights(turn.BuildInitialPlacementHighlights());
+                return;
+            }
             if (exploration.IsSelectingInfluenceTarget)
             {
                 exploration.RestorePresentation();
@@ -362,7 +335,7 @@ namespace YC.Presentation
             for (var i = 0; i < hits.Length; i++)
             {
                 var hit = hits[i].collider;
-                if (hit != null && (hit.GetComponent<MapHotspot>() != null ||
+                if (hit != null && (hit.GetComponent<MapButtonView>() != null || hit.GetComponent<MapHotspot>() != null ||
                                     hit.GetComponent<InfluenceSlotClickTarget>() != null ||
                                     hit.GetComponent<MobileCityClickTarget>() != null)) return true;
             }

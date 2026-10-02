@@ -181,7 +181,7 @@ namespace YC.Presentation
         [SerializeField] private string discardListTitleFormat = "弃牌（{0}）";
         public string DiscardListTitleFormat => discardListTitleFormat;
 
-        [SerializeField] private string discardListDescription = "此页面仅供查看，不能使用或移动弃牌。";
+        [SerializeField] private string discardListDescription = "点击空白处关闭";
         public string DiscardListDescription => discardListDescription;
 
         [SerializeField] private string readOnlyCloseLabel = "关闭";

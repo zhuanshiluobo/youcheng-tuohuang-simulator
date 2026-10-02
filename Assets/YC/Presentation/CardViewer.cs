@@ -34,6 +34,7 @@ namespace YC.Presentation
         private static int escapeFrame = -1;
         public CardViewerMode Mode { get; private set; }
         public string CardId { get; private set; }
+        public Sprite DisplayedSprite { get; private set; }
         public bool IsShowing => this != null && gameObject.activeInHierarchy;
         public RectTransform Window => window;
         public RawImage CardImage => cardImage;
@@ -67,22 +68,22 @@ namespace YC.Presentation
             return registry == null ? null : registry.InstantiateCardViewer();
         }
 
-        public void OpenInspect(Texture texture, Action onClose = null, Func<bool> valid = null)
+        public void OpenInspect(Sprite sprite, Action onClose = null, Func<bool> valid = null)
         {
-            Present(CardViewerMode.Inspect, texture, valid, onClose);
+            Present(CardViewerMode.Inspect, sprite, valid, onClose);
             CardId = string.Empty;
             requestEffect = null;
             plotButton.interactable = strategyButton.interactable = false;
             hint.text = string.Empty;
         }
 
-        public void OpenCharacter(string cardId, Texture texture, bool canPlot, bool canStrategy,
+        public void OpenCharacter(string cardId, Sprite sprite, bool canPlot, bool canStrategy,
             string plotReason, string strategyReason, Func<bool> valid,
             Action<CardViewerEffect> onRequest, Action onClose)
         {
             if (string.IsNullOrEmpty(cardId) || valid == null || onRequest == null)
                 throw new ArgumentException("角色使用必须提供明确卡牌、资格校验和唯一提交入口。");
-            Present(CardViewerMode.UseCharacter, texture, valid, onClose);
+            Present(CardViewerMode.UseCharacter, sprite, valid, onClose);
             CardId = cardId;
             requestEffect = onRequest;
             plotButton.interactable = canPlot;
@@ -93,17 +94,18 @@ namespace YC.Presentation
                 (!canStrategy ? string.Format(strategyUnavailableFormat, strategyReason) : string.Empty);
         }
 
-        private void Present(CardViewerMode mode, Texture texture, Func<bool> valid, Action onClose)
+        private void Present(CardViewerMode mode, Sprite sprite, Func<bool> valid, Action onClose)
         {
-            if (texture == null) throw new ArgumentNullException(nameof(texture));
+            if (sprite == null) throw new ArgumentNullException(nameof(sprite));
             if (!TryValidateConfiguration(out var reason)) throw new InvalidOperationException(reason);
             Mode = mode;
             pending = false;
             isCurrent = valid;
             closed = onClose;
             returnFocus = EventSystem.current == null ? null : EventSystem.current.currentSelectedGameObject;
-            cardImage.texture = texture;
-            cardAspect.aspectRatio = (float)texture.width / texture.height;
+            DisplayedSprite = sprite;
+            CardArtworkView.Set(cardImage, sprite);
+            cardAspect.aspectRatio = CardArtworkView.AspectRatio(sprite);
             title.text = mode == CardViewerMode.Inspect ? inspectTitle : useTitle;
             actions.SetActive(mode == CardViewerMode.UseCharacter);
             inspectHint.SetActive(mode == CardViewerMode.Inspect);
@@ -151,7 +153,8 @@ namespace YC.Presentation
             returnFocus = null;
             CardId = string.Empty;
             if (this == null) return;
-            if (cardImage != null) cardImage.texture = null;
+            DisplayedSprite = null;
+            CardArtworkView.Set(cardImage, null);
             var frame = GameplayHudFrame.Active;
             if (frame != null) frame.HidePage(gameObject);
             gameObject.SetActive(false);

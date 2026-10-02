@@ -17,7 +17,7 @@ namespace YC.Presentation
     /// 事件牌选项使用现有事件牌弹窗，影响力目标使用地图槽位高亮；两者都只提交
     /// 通用 AnswerInteraction，不再回退到旧 PendingCardSession 流程。
     /// </summary>
-    internal sealed class EventCardInteractionUiCoordinator : InteractionBase, IInteractionRequestRenderer, IDisposable
+    internal sealed class EventCardInteractionUiCoordinator : InteractionBase, IInteractionRequestRenderer, IMapConfirmationScope, IDisposable
     {
         private readonly Func<GameState> getState;
         private readonly Func<int> getLocalPlayerId;
@@ -152,6 +152,7 @@ namespace YC.Presentation
 
         public override InteractionPresentation BuildPresentation()
         {
+            if (!string.IsNullOrEmpty(inFlightCommandId)) return InteractionPresentation.Busy;
             InteractionRequest request;
             if (!TryGetRequest(out request)) return InteractionPresentation.Empty;
 
@@ -231,6 +232,9 @@ namespace YC.Presentation
                 null);
             setPrompt("请选择事件牌选项。");
         }
+
+        public string MapConfirmationScope => !string.IsNullOrEmpty(inFlightCommandId) || !TryGetRequest(out var request)
+            ? string.Empty : request.InteractionId + ":" + request.StateRevision + ":" + request.CandidateSetVersion + ":" + selectedInfluenceSlots.Count;
 
         private bool TryHandleInfluenceSlotClicked(InteractionRequest request, string slotId)
         {

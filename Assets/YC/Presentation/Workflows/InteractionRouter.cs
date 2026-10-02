@@ -9,6 +9,9 @@ namespace YC.Presentation.Workflows
         private readonly List<Registration> registrations = new List<Registration>();
         private readonly HashSet<string> registeredIds =
             new HashSet<string>(StringComparer.Ordinal);
+        private readonly MapInteractionConfirmationController mapConfirmation = new MapInteractionConfirmationController();
+        public bool HasPendingMapConfirmation => mapConfirmation.HasPending;
+        public void ClearMapConfirmation() => mapConfirmation.Clear();
 
         public InteractionRouter(Action<string> showPrompt)
         {
@@ -66,14 +69,25 @@ namespace YC.Presentation.Workflows
             registeredIds.Add(id);
         }
 
-        public InteractionResult OnLocationClicked(string locationId)
+        public InteractionResult OnLocationClicked(string locationId, int inputFrame = -1)
         {
-            return Route(interaction => interaction.OnLocationClicked(locationId));
+            return Route(interaction => RouteMapTarget(interaction, WorkflowHighlightTargetKind.Location,
+                locationId, inputFrame, () => interaction.OnLocationClicked(locationId)));
         }
 
-        public InteractionResult OnInfluenceSlotClicked(string slotId)
+        public InteractionResult OnInfluenceSlotClicked(string slotId, int inputFrame = -1)
         {
-            return Route(interaction => interaction.OnInfluenceSlotClicked(slotId));
+            return Route(interaction => RouteMapTarget(interaction, WorkflowHighlightTargetKind.InfluenceSlot,
+                slotId, inputFrame, () => interaction.OnInfluenceSlotClicked(slotId)));
+        }
+
+        public InteractionResult OnRouteClicked(string routeId, int inputFrame = -1)
+        {
+            return Route(interaction => interaction is IRouteInteraction route
+                ? RouteMapTarget(interaction, WorkflowHighlightTargetKind.Route, routeId, inputFrame,
+                    () => route.OnRouteClicked(routeId))
+                : interaction.Priority >= InteractionPriority.ActiveAction
+                    ? InteractionResult.Consumed : InteractionResult.Passthrough);
         }
 
         public InteractionResult OnMobileCityClicked()
@@ -83,6 +97,11 @@ namespace YC.Presentation.Workflows
 
         public InteractionResult OnEscape()
         {
+            if (HasPendingMapConfirmation)
+            {
+                ClearMapConfirmation();
+                return InteractionResult.Consumed;
+            }
             return Route(interaction => interaction.OnEscape());
         }
 
@@ -133,14 +152,16 @@ namespace YC.Presentation.Workflows
                     continue;
                 }
 
-                return presentation;
+                return WithMapConfirmation(registration.Interaction, presentation);
             }
 
+            ClearMapConfirmation();
             return InteractionPresentation.Empty;
         }
 
         public void CancelAll()
         {
+            ClearMapConfirmation();
             List<Exception> failures = null;
             try
             {
@@ -177,6 +198,7 @@ namespace YC.Presentation.Workflows
 
         public void NotifyCommandSettled(string commandId)
         {
+            ClearMapConfirmation();
             List<Exception> failures = null;
             for (var i = 0; i < registrations.Count; i++)
             {
@@ -201,6 +223,47 @@ namespace YC.Presentation.Workflows
                     "One or more interactions failed while handling command settlement.",
                     failures);
             }
+        }
+
+        private InteractionResult RouteMapTarget(IInteraction interaction, WorkflowHighlightTargetKind kind,
+            string targetId, int frame, Func<InteractionResult> dispatch)
+        {
+            if (!(interaction is IMapConfirmationScope scope)) return dispatch();
+            var presentation = interaction.BuildPresentation();
+            if (string.IsNullOrEmpty(scope.MapConfirmationScope) || presentation == null) return InteractionResult.Consumed;
+            var legal = false;
+            foreach (var highlight in presentation.Highlights)
+                if (highlight.TargetKind == kind && highlight.TargetId == targetId && highlight.IsInteractive)
+                { legal = true; break; }
+            if (!legal) { ClearMapConfirmation(); return InteractionResult.Consumed; }
+            Action ignored;
+            if (!mapConfirmation.Request(scope.MapConfirmationScope, kind + ":" + targetId,
+                    kind == WorkflowHighlightTargetKind.Location ? targetId : string.Empty,
+                    kind == WorkflowHighlightTargetKind.InfluenceSlot ? targetId : string.Empty,
+                    null, out ignored, frame))
+            {
+                if (!string.IsNullOrEmpty(presentation.PromptText)) showPrompt(presentation.PromptText);
+                return InteractionResult.Consumed;
+            }
+            return dispatch();
+        }
+
+        private InteractionPresentation WithMapConfirmation(IInteraction interaction, InteractionPresentation presentation)
+        {
+            if (!mapConfirmation.HasPending) return presentation;
+            if (!(interaction is IMapConfirmationScope scope) || mapConfirmation.ActionKey != scope.MapConfirmationScope)
+            { ClearMapConfirmation(); return presentation; }
+            var targets = new List<WorkflowHighlight>();
+            var valid = false;
+            foreach (var target in presentation.Highlights)
+            {
+                var pending = target.IsInteractive && mapConfirmation.TargetId == target.TargetKind + ":" + target.TargetId;
+                valid |= pending;
+                targets.Add(new WorkflowHighlight(target.TargetKind, target.TargetId, target.Semantic,
+                    pending ? WorkflowHighlightState.PendingConfirmation : target.State, target.IsInteractive));
+            }
+            if (!valid) ClearMapConfirmation();
+            return new InteractionPresentation(targets, presentation.PromptText, presentation.PanelMode, presentation.ReplacesHighlights);
         }
 
         private InteractionResult Route(Func<IInteraction, InteractionResult> dispatch)

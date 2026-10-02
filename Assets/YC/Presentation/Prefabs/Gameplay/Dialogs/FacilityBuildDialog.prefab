@@ -1201,7 +1201,7 @@ MonoBehaviour:
   supplyDeckText: {fileID: 7540000000000000012}
   extensionHubsText: {fileID: 7540000000000000016}
   supplyDeckFormat: "\u8BBE\u65BD\u724C\u5806\xB7{0}"
-  extensionHubFormat: "<color=#{0}>\u5EF6\u7533\u67A2\u7EBD</color>"
+  extensionHubFormat: "<color=#{0}>\u5EF6\u4F38\u67A2\u7EBD</color>"
   extensionHubSeparator: "\xB7"
   ownedResources: {fileID: 7550000000000000011}
   availableHubColors:
@@ -16478,7 +16478,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "<color=#E96666>\u5EF6\u7533\u67A2\u7EBD</color>\xB7<color=#F1CB53>\u5EF6\u7533\u67A2\u7EBD</color>\xB7<color=#6EA9EC>\u5EF6\u7533\u67A2\u7EBD</color>"
+  m_Text: "<color=#E96666>\u5EF6\u4F38\u67A2\u7EBD</color>\xB7<color=#F1CB53>\u5EF6\u4F38\u67A2\u7EBD</color>\xB7<color=#6EA9EC>\u5EF6\u4F38\u67A2\u7EBD</color>"
 --- !u!1 &7540000000000000017
 GameObject:
   m_ObjectHideFlags: 0

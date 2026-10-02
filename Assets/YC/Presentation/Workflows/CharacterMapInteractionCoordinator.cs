@@ -59,6 +59,20 @@ namespace YC.Presentation
             get { return kind != SelectionKind.None; }
         }
 
+        public string MapConfirmationScope => !IsActive ? string.Empty : kind + ":" + effectMode + ":" + stepIndex + ":" +
+            getState()?.Round + ":" + getState()?.Phase + ":" + CurrentPending()?.SourceCommandId;
+
+        public InteractionPresentation BuildMapPresentation()
+        {
+            var targets = new List<WorkflowHighlight>();
+            var key = CurrentKey();
+            foreach (var option in CurrentOptions())
+                targets.Add(new WorkflowHighlight(key == CharacterEffectParameterKeys.TargetLocationId
+                    ? WorkflowHighlightTargetKind.Location : WorkflowHighlightTargetKind.InfluenceSlot,
+                    option.Id, SemanticFor(key)));
+            return new InteractionPresentation(targets, PromptFor(key), InteractionMode.Busy);
+        }
+
         public bool TryBeginEffect(string selectedEffectMode, CharacterCardEffectKind selectedEffect)
         {
             var keys = KeysFor(selectedEffect);

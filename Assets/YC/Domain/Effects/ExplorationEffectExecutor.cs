@@ -212,7 +212,7 @@ namespace YC.Domain.Effects
                     }
                 }
 
-                EventColor color = StaticMapDefinitions.GetEventColor(targetLocationId);
+                EventColor color = StaticMapDefinitions.GetEventColor(mapQuery.Map, targetLocationId);
                 children.Add(EventCardEffectSpecFactory.Resolve(
                     context.Node.PlayerId,
                     color,

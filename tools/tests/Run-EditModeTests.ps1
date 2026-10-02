@@ -293,7 +293,7 @@ function Invoke-UnityTestsWithTimeout {
         [int]$NoLogSeconds
     )
 
-    $process = Start-Process -FilePath $UnityExe -WorkingDirectory $WorkingDirectory -ArgumentList $Arguments -PassThru
+    $process = Start-Process -FilePath $UnityExe -WorkingDirectory $WorkingDirectory -ArgumentList $Arguments -WindowStyle Hidden -PassThru
     $startedAt = Get-Date
     $lastStatusAt = $startedAt.AddSeconds(-[Math]::Max(1, $StatusEverySeconds))
 

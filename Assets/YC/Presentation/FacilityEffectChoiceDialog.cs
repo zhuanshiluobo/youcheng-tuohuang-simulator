@@ -27,6 +27,8 @@ namespace YC.Presentation
     {
         private readonly RectTransform canvas;
         private readonly EffectDialogShell shell;
+        private readonly GameplayDialogRegistry registry;
+        private PlayerSelectionPageView players;
         private readonly CardVisualCatalog cardVisualCatalog;
         private readonly EffectDialogLayoutProfile layoutProfile;
         private readonly CardInteractionLayoutProfile cardInteractionLayoutProfile;
@@ -58,6 +60,7 @@ namespace YC.Presentation
                 throw new InvalidOperationException(
                     "FacilityEffectChoiceDialog 缺少有效的 CardInteractionLayoutProfile：" + layoutReason);
             }
+            registry = dialogRegistry;
             shell = new EffectDialogShell(
                 dialogRegistry);
         }
@@ -66,7 +69,7 @@ namespace YC.Presentation
 
         public bool IsShowing
         {
-            get { return shell.IsShowing; }
+            get { return shell.IsShowing || players != null && players.gameObject.activeInHierarchy; }
         }
 
         public void ShowOptions(
@@ -81,8 +84,20 @@ namespace YC.Presentation
         public void ShowSelection(string title, string description, EffectDialogSelectionSpec spec,
             bool preserveScroll)
         {
+            if (spec.Players != null)
+            {
+                shell.Hide();
+                if (players == null) players = registry.InstantiatePlayerSelection(canvas);
+                spec.Players.Title = title; spec.Players.Description = description;
+                spec.Players.AllowCancel &= spec.Cancel != null;
+                players.Present(spec.Players,ids =>
+                    { spec.PlayerSelectionChanged?.Invoke(ids); spec.Confirm?.Invoke(); },spec.Cancel,spec.IsCurrent,
+                    spec.IsEffectPage,spec.PlayerSelectionChanged);
+                return;
+            }
+            if (players != null) players.Close();
             var scroll = preserveScroll ? shell.ScrollPosition : 1f;
-            spec.CardTexture = id => cardVisualCatalog.GetFacility(id);
+            spec.CardSprite = id => cardVisualCatalog.GetFacility(id);
             var panel = Rebuild(layoutProfile.SelectionPanelSize, Vector2.zero, cardPicker: spec.HasCardArtwork());
             AddHeading(panel, title, description);
             shell.AddSelection(panel, spec);
@@ -123,7 +138,7 @@ namespace YC.Presentation
             for (var i = 0; i < optionCount; i++)
             {
                 var option = options[i];
-                var texture = cardVisualCatalog.GetFacility(option.FacilityId);
+                var sprite = cardVisualCatalog.GetFacility(option.FacilityId);
                 var card = EffectDialogShell.CreateFacilityCard(panel);
                 card.gameObject.name = "Extension Hub Card " + option.FacilityId;
                 var cardRect = card.CardRect;
@@ -140,8 +155,8 @@ namespace YC.Presentation
 
                 var imageRect = card.CardImage.rectTransform;
                 layoutProfile.FacilityCardImageLayout.ApplyTo(imageRect);
-                card.CardImage.texture = texture;
-                card.CardImage.color = texture == null ? Color.clear : Color.white;
+                CardArtworkView.Set(card.CardImage, sprite);
+                card.CardImage.color = sprite == null ? Color.clear : Color.white;
                 card.CardImage.raycastTarget = false;
 
                 var label = card.FallbackLabel;
@@ -151,7 +166,7 @@ namespace YC.Presentation
                 label.alignment = TextAnchor.MiddleCenter;
                 label.fontStyle = FontStyle.Normal;
                 label.color = UiTheme.GoldText;
-                label.gameObject.SetActive(texture == null);
+                label.gameObject.SetActive(sprite == null);
                 layoutProfile.FacilityCardFallbackLayout.ApplyTo(label.rectTransform);
 
                 var facilityId = option.FacilityId;
@@ -161,11 +176,11 @@ namespace YC.Presentation
                 Action showDetails = () =>
                 {
                     if (presentationRevision != displayedRevision || card == null ||
-                        !card.gameObject.activeInHierarchy || GameplayHudFrame.EffectInputSuspended || texture == null) return;
+                        !card.gameObject.activeInHierarchy || GameplayHudFrame.EffectInputSuspended || sprite == null) return;
                     CardImagePreviewUtility.Open(
                         ref facilityCardImageViewer,
                         canvas,
-                        texture);
+                        sprite);
                     if (facilityCardImageViewer == null) return;
                     facilityCardImageViewer.SetReturn(() =>
                     {
@@ -176,7 +191,7 @@ namespace YC.Presentation
                 interaction.ConfigureClick(button, showDetails, null);
                 if (card.DetailsButton != null)
                 {
-                    card.DetailsButton.gameObject.SetActive(texture != null);
+                    card.DetailsButton.gameObject.SetActive(sprite != null);
                     card.DetailsButton.onClick.RemoveAllListeners();
                     card.DetailsButton.onClick.AddListener(() => showDetails());
                 }
@@ -185,7 +200,7 @@ namespace YC.Presentation
                         card.gameObject.activeInHierarchy && !GameplayHudFrame.EffectInputSuspended,
                     eventData =>
                     {
-                        BeginFacilityCardDrag(cardRect, texture, cardName, card.FallbackLabel.font, eventData);
+                        BeginFacilityCardDrag(cardRect, sprite, cardName, card.FallbackLabel.font, eventData);
                         beginDrag?.Invoke();
                     },
                     MoveFacilityCardDrag,
@@ -386,6 +401,7 @@ namespace YC.Presentation
 
         public void Hide()
         {
+            if (players != null) { players.Close(); UnityEngine.Object.Destroy(players.gameObject); players = null; }
             presentationRevision++;
             backAction = null;
             DestroyFacilityCardDragGhost();
@@ -420,7 +436,7 @@ namespace YC.Presentation
 
         private void BeginFacilityCardDrag(
             RectTransform source,
-            Texture2D texture,
+            Sprite sprite,
             string fallbackLabel,
             Font fallbackFont,
             PointerEventData eventData)
@@ -429,7 +445,7 @@ namespace YC.Presentation
             facilityCardDragGhost = FacilityCardDragUtility.CreateDragGhost(
                 canvas,
                 source,
-                texture,
+                sprite,
                 fallbackLabel,
                 fallbackFont,
                 cardInteractionLayoutProfile.DragGhostLayout);

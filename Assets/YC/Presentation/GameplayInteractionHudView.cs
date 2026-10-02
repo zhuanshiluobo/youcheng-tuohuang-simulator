@@ -38,6 +38,8 @@ namespace YC.Presentation
                 !actionPanelView.TryValidateConfiguration(out reason) ||
                 !characterHandPanel.TryValidateConfiguration(out reason) ||
                 !mainModules.TryValidateConfiguration(out reason) ||
+                (GetComponent<GameplayInformationPages>() != null &&
+                 !GetComponent<GameplayInformationPages>().TryValidateConfiguration(out reason)) ||
                 buildInfoPanel.View == null ||
                 !buildInfoPanel.View.IsBoundTo(buildInfoPanel) ||
                 !buildInfoPanel.View.TryValidateConfiguration(out reason) ||

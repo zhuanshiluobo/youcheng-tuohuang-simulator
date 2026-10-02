@@ -8,6 +8,7 @@ namespace YC.Editor
     {
         public static void Run()
         {
+            if (!YC.PlayerJourney.PlayerJourneyRuntime.HasPendingRun()) return;
             EditorSceneManager.OpenScene("Assets/Scenes/StartScene.unity");
             EditorApplication.ExecuteMenuItem("Window/General/Game");
             ConfigureResolution();

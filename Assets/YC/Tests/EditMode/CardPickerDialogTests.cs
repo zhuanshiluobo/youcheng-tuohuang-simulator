@@ -79,7 +79,7 @@ namespace YC.Tests.EditMode
                 Assert.That(artwork.texture, Is.Not.Null);
                 Assert.That(artwork.rectTransform.rect.height, Is.GreaterThan(0));
                 Assert.That(artwork.rectTransform.rect.width / artwork.rectTransform.rect.height,
-                    Is.EqualTo((float)artwork.texture.width / artwork.texture.height).Within(.002f));
+                    Is.EqualTo((artwork.uvRect.width * artwork.texture.width + 1f) / (artwork.uvRect.height * artwork.texture.height + 1f)).Within(.002f));
                 var face = Property<Button>(card, "Button");
                 Assert.That(face.transform, Is.Not.SameAs(card.transform),
                     "卡牌空槽不能整体充当选择按钮。");
@@ -210,6 +210,30 @@ namespace YC.Tests.EditMode
             }
         }
 
+        [Test]
+        public void ActionSelection_BackgroundClickDoesNotCancelBusinessSelection()
+        {
+            var dialog = NewDialog("CharacterCardEffectChoiceDialog");
+            var spec = NewSelection(FacilityIds(2));
+            var cancellations = 0;
+            ((InteractionRequestProjection)Field(spec, "Request")).AllowDecline = true;
+            Set(spec, "CloseOnBackgroundClick", true);
+            Set(spec, "Cancel", new Action(() => cancellations++));
+            ShowSelection(dialog, spec, false);
+            var page = Page(dialog);
+            var background = Property<Image>(page, "OverlayImage").gameObject;
+            ExecuteEvents.ExecuteHierarchy(background, new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left,
+                pointerPressRaycast = new RaycastResult { gameObject = background }
+            }, ExecuteEvents.pointerClickHandler);
+            Assert.That(cancellations, Is.Zero, "空白关闭只允许显式启用的只读列表使用。");
+            var cancel = FindButton(page, "Cancel Selection");
+            Assert.That(cancel, Is.Not.Null);
+            cancel.onClick.Invoke();
+            Assert.That(cancellations, Is.EqualTo(1));
+        }
+
         private static void OpenCardPreview(Button card)
         {
             ExecuteEvents.Execute(card.gameObject, new PointerEventData(EventSystem.current)
@@ -241,10 +265,9 @@ namespace YC.Tests.EditMode
 
         private string[] FacilityIds(int count)
         {
-            var entries = (Array)Field(Property<object>(registry, "CardVisualCatalog"), "facilityTextures");
-            Assert.That(entries.Length, Is.GreaterThanOrEqualTo(count));
+            Assert.That(count, Is.LessThanOrEqualTo(41));
             var result = new string[count];
-            for (var i = 0; i < count; i++) result[i] = Property<string>(entries.GetValue(i), "Id");
+            for (var i = 0; i < count; i++) result[i] = "building_" + (i + 1).ToString("000");
             return result;
         }
 

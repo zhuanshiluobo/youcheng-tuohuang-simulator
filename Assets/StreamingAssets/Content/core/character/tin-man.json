@@ -3,7 +3,7 @@
   "contentType": "character",
   "version": "1.0.0",
   "displayName": "锡人",
-  "artwork": "artwork/character/tin-man.jpg",
+  "artwork": "artwork/sheets/character_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [
@@ -42,5 +42,6 @@
     "tacticAbilityId": "character.tin-man.tactic"
   },
   "expansionId": "core",
-  "replaces": null
+  "replaces": null,
+  "artworkSpriteId": "character_003"
 }

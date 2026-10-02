@@ -4,7 +4,7 @@ using YC.Presentation.Workflows;
 namespace YC.Presentation
 {
     /// <summary>把特殊行动待选协调器接入统一交互路由，保留原有在途命令追踪。</summary>
-    internal sealed class SpecialActionInteractionAdapter : InteractionBase
+    internal sealed class SpecialActionInteractionAdapter : InteractionBase, IMapConfirmationScope
     {
         private readonly SpecialActionInteractionUiCoordinator coordinator;
 
@@ -18,6 +18,7 @@ namespace YC.Presentation
         public override InteractionPriority Priority => InteractionPriority.PendingResolution;
 
         public override bool IsActive => coordinator.IsActive;
+        public string MapConfirmationScope => coordinator.MapConfirmationScope;
 
         public override InteractionResult OnLocationClicked(string locationId)
         {
@@ -50,7 +51,7 @@ namespace YC.Presentation
         public override InteractionPresentation BuildPresentation()
         {
             return coordinator.Synchronize()
-                ? InteractionPresentation.Busy
+                ? coordinator.BuildMapPresentation()
                 : InteractionPresentation.Empty;
         }
 

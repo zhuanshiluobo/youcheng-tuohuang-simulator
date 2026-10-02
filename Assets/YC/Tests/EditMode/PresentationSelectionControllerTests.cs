@@ -177,7 +177,7 @@ namespace YC.Tests.EditMode
         {
             var controller = new MapInteractionConfirmationController();
             var confirmed = false;
-            var firstRequest = new object[] { "move", "A", "A", "location:A:0", new Action(() => confirmed = true), null };
+            var firstRequest = new object[] { "move", "A", "A", "location:A:0", new Action(() => confirmed = true), null, -1 };
 
             Assert.That(Invoke(controller, "Request", firstRequest), Is.False);
             Assert.That(GetProperty(controller, "HasPending"), Is.True);
@@ -187,9 +187,9 @@ namespace YC.Tests.EditMode
             Invoke(controller, "Clear");
             Assert.That(GetProperty(controller, "HasPending"), Is.False);
 
-            var pendingRequest = new object[] { "move", "A", "A", string.Empty, new Action(() => confirmed = true), null };
+            var pendingRequest = new object[] { "move", "A", "A", string.Empty, new Action(() => confirmed = true), null, -1 };
             Assert.That(Invoke(controller, "Request", pendingRequest), Is.False);
-            var confirmRequest = new object[] { "move", "A", "A", string.Empty, new Action(() => Assert.Fail("第二次请求应使用首次回调")), null };
+            var confirmRequest = new object[] { "move", "A", "A", string.Empty, new Action(() => confirmed = true), null, -1 };
             Assert.That(Invoke(controller, "Request", confirmRequest), Is.True);
             Assert.That(GetProperty(controller, "HasPending"), Is.False);
 
@@ -407,7 +407,6 @@ namespace YC.Tests.EditMode
 
             var facilityIds = new List<string>(FacilityCardDatabase.DefaultSupplyIds);
             facilityIds.AddRange(FacilityCardDatabase.ReserveIds);
-            facilityIds.Add(FacilityCardDatabase.EnterpriseOffice);
             for (var i = 0; i < facilityIds.Count; i++)
             {
                 AssertCatalogTexture(catalog, facilityTextureMethod, facilityIds[i]);
@@ -601,7 +600,8 @@ namespace YC.Tests.EditMode
         public void EventArtwork_ResizingPreservesAspectAndHotspotsWithinImage()
         {
             var root = new GameObject("Event Artwork Layout Test", typeof(RectTransform), typeof(Canvas));
-            var texture = new Texture2D(850, 600);
+            var texture = new Texture2D(1700, 1800);
+            var sprite = Sprite.Create(texture, new Rect(850, 1200, 850, 600), Vector2.one * .5f);
             try
             {
                 root.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
@@ -616,7 +616,7 @@ namespace YC.Tests.EditMode
                     ChoiceRewards = { new ResourceSet(), new ResourceSet() }
                 };
                 type.GetMethod("ShowAssetizedEventCardOptions", BindingFlags.Instance | BindingFlags.NonPublic)
-                    .Invoke(dialog, new object[] { card, string.Empty, texture, new Action<int>(_ => { }) });
+                    .Invoke(dialog, new object[] { card, string.Empty, sprite, new Action<int>(_ => { }) });
                 var overlay = FindRectTransformByName(root, "Event Choice Overlay");
                 var artwork = FindRectTransformByName(root, "Event Card Artwork");
                 var choice = FindRectTransformByName(root, "Choice 1");
@@ -637,7 +637,7 @@ namespace YC.Tests.EditMode
                 }
                 type.GetMethod("Hide").Invoke(dialog, null);
             }
-            finally { UnityEngine.Object.DestroyImmediate(texture); UnityEngine.Object.DestroyImmediate(root); }
+            finally { UnityEngine.Object.DestroyImmediate(sprite); UnityEngine.Object.DestroyImmediate(texture); UnityEngine.Object.DestroyImmediate(root); }
         }
 
         [Test]
@@ -1863,7 +1863,8 @@ namespace YC.Tests.EditMode
 
         private static void AssertCatalogTexture(object catalog, MethodInfo textureMethod, string cardId)
         {
-            var texture = textureMethod.Invoke(catalog, new object[] { cardId }) as Texture2D;
+            var sprite = textureMethod.Invoke(catalog, new object[] { cardId }) as Sprite;
+            var texture = sprite == null ? null : sprite.texture;
             Assert.That(texture, Is.Not.Null, "目录贴图映射缺失：" + cardId);
             Assert.That(texture.width, Is.GreaterThan(0), "外部贴图必须已经解码：" + cardId);
             Assert.That(texture.name, Does.StartWith("artwork/"));

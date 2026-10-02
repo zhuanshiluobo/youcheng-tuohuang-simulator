@@ -139,6 +139,13 @@ namespace YC.Presentation
             return paidRouteIds.Contains(routeId) && !paymentRecipients.ContainsKey(routeId);
         }
 
+        public void RemoveRoutePayment(string routeId)
+        {
+            if (string.IsNullOrEmpty(routeId)) return;
+            paidRouteIds.Remove(routeId);
+            paymentRecipients.Remove(routeId);
+        }
+
         public CollectionToggleResult ToggleLocation(string locationId, Func<string, bool> isLocationAvailable)
         {
             if (!candidateLocationIds.Contains(locationId))

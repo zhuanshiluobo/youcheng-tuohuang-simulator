@@ -12,29 +12,76 @@ namespace YC.PlayerJourney
     {
         public static Vector2 Position(GameObject target)
         {
+            return TryPosition(target, out var position) ? position :
+                new Vector2(float.NaN, float.NaN);
+        }
+
+        public static bool TryPosition(GameObject target, out Vector2 position)
+        {
+            position = default;
+            if (target == null || !target.activeInHierarchy) return false;
             var rect = target.transform as RectTransform;
             if (rect != null)
             {
                 var canvas = target.GetComponentInParent<Canvas>();
-                var camera = canvas != null && canvas.renderMode == RenderMode.ScreenSpaceOverlay
-                    ? null : canvas == null ? Camera.main : canvas.worldCamera;
+                if (canvas == null || !canvas.isActiveAndEnabled) return false;
+                canvas = canvas.rootCanvas;
+                var overlay = canvas.renderMode == RenderMode.ScreenSpaceOverlay;
+                var camera = overlay ? null : canvas.worldCamera;
+                if (!overlay && (camera == null || !camera.isActiveAndEnabled)) return false;
                 var center = RectTransformUtility.WorldToScreenPoint(camera, rect.TransformPoint(rect.rect.center));
+                var ownClickHandler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(target) == target;
                 foreach (var x in new[] { 0.5f, 0.15f, 0.85f })
                     foreach (var y in new[] { 0.5f, 0.85f, 0.15f })
                     {
                         var pos = RectTransformUtility.WorldToScreenPoint(camera, rect.TransformPoint(new Vector2(
                             Mathf.Lerp(rect.rect.xMin, rect.rect.xMax, x), Mathf.Lerp(rect.rect.yMin, rect.rect.yMax, y))));
                         var hit = Hit(pos);
-                        if (hit != null && (hit == target || hit.transform.IsChildOf(target.transform))) return pos;
+                        if (BelongsTo(hit, target) && (!ownClickHandler ||
+                            ExecuteEvents.GetEventHandler<IPointerClickHandler>(hit) == target))
+                        { position = pos; return true; }
                     }
-                return center;
+                position = center;
+                return IsFinite(position) && (!ownClickHandler ||
+                    ExecuteEvents.GetEventHandler<IPointerClickHandler>(Hit(position)) == target);
             }
-            return Camera.main.WorldToScreenPoint(target.transform.position);
+
+            // 地图使用 Physics2DRaycaster；按真正参与 EventSystem 命中的相机投影，
+            // 不依赖场景是否存在 MainCamera 标签（加载切换期间也可能完全没有相机）。
+            var collider2D = target.GetComponentInChildren<Collider2D>();
+            var collider3D = target.GetComponentInChildren<Collider>();
+            if ((collider2D == null || !collider2D.enabled) &&
+                (collider3D == null || !collider3D.enabled)) return false;
+            var renderer = target.GetComponentInChildren<Renderer>();
+            if (renderer != null && (!renderer.enabled ||
+                (renderer is SpriteRenderer sprite && sprite.color.a < .01f))) return false;
+            var point = collider2D != null && collider2D.enabled ? collider2D.bounds.center : collider3D.bounds.center;
+            foreach (var raycaster in RaycasterManager.GetRaycasters())
+            {
+                if (!(raycaster is PhysicsRaycaster) || !raycaster.isActiveAndEnabled) continue;
+                var camera = raycaster.eventCamera;
+                if (camera == null || !camera.isActiveAndEnabled || camera.targetTexture != null) continue;
+                var projected = camera.WorldToScreenPoint(point);
+                if (projected.z < camera.nearClipPlane || projected.z > camera.farClipPlane ||
+                    !camera.pixelRect.Contains(projected)) continue;
+                var candidate = new Vector2(projected.x, projected.y);
+                if (!BelongsTo(Hit(candidate), target)) continue;
+                position = candidate;
+                return true;
+            }
+            return false;
         }
+
+        private static bool BelongsTo(GameObject hit, GameObject target) =>
+            hit != null && (hit == target || hit.transform.IsChildOf(target.transform));
+
+        private static bool IsFinite(Vector2 position) =>
+            !float.IsNaN(position.x) && !float.IsNaN(position.y) &&
+            !float.IsInfinity(position.x) && !float.IsInfinity(position.y);
 
         public static GameObject Hit(Vector2 position)
         {
-            if (EventSystem.current == null) return null;
+            if (!IsFinite(position) || EventSystem.current == null || !EventSystem.current.isActiveAndEnabled) return null;
             var hits = new List<RaycastResult>();
             EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) { position = position }, hits);
             return hits.Count == 0 ? null : hits[0].gameObject;
@@ -47,10 +94,10 @@ namespace YC.PlayerJourney
             if (selectable != null && !selectable.IsInteractable()) return false;
             foreach (var group in target.GetComponentsInParent<CanvasGroup>())
                 if (group.alpha < 0.01f || !group.blocksRaycasts) return false;
-            var pos = Position(target);
+            if (!TryPosition(target, out var pos)) return false;
             if (pos.x < 0 || pos.y < 0 || pos.x > Screen.width || pos.y > Screen.height) return false;
             var hit = Hit(pos);
-            return hit != null && (hit == target || hit.transform.IsChildOf(target.transform));
+            return BelongsTo(hit, target);
         }
 
         private static PointerEventData Down(GameObject target)

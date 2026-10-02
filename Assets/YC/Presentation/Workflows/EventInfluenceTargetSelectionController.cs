@@ -9,6 +9,15 @@ namespace YC.Presentation
         private readonly List<string> selectedSlotIds = new List<string>();
 
         public int ChoiceIndex { get; private set; } = -1;
+        public string PendingSlotId { get; private set; } = string.Empty;
+        public void ClearPendingSelection() => PendingSlotId = string.Empty;
+        public bool ConfirmSelection(string slotId)
+        {
+            if (PendingSlotId == slotId)
+            { ClearPendingSelection(); return true; }
+            PendingSlotId = slotId;
+            return false;
+        }
 
         public IReadOnlyList<string> SelectedSlotIds
         {
@@ -22,12 +31,14 @@ namespace YC.Presentation
 
         public void Begin(int choiceIndex)
         {
+            ClearPendingSelection();
             ChoiceIndex = choiceIndex;
             selectedSlotIds.Clear();
         }
 
         public void Clear()
         {
+            ClearPendingSelection();
             ChoiceIndex = -1;
             selectedSlotIds.Clear();
         }

@@ -18,21 +18,25 @@
         {
           "color": "rainbow",
           "count": 3,
-          "artwork": "artwork/facility/building_001.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_001",
-              "artwork": "artwork/facility/building_001.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_001"
             },
             {
               "id": "building_002",
-              "artwork": "artwork/facility/building_002.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_002"
             },
             {
               "id": "building_003",
-              "artwork": "artwork/facility/building_003.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_003"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_001"
         }
       ]
     },
@@ -54,21 +58,25 @@
         {
           "color": "rainbow",
           "count": 3,
-          "artwork": "artwork/facility/building_004.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_004",
-              "artwork": "artwork/facility/building_004.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_004"
             },
             {
               "id": "building_005",
-              "artwork": "artwork/facility/building_005.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_005"
             },
             {
               "id": "building_006",
-              "artwork": "artwork/facility/building_006.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_006"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_004"
         }
       ]
     },
@@ -90,21 +98,25 @@
         {
           "color": "rainbow",
           "count": 3,
-          "artwork": "artwork/facility/building_007.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_007",
-              "artwork": "artwork/facility/building_007.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_007"
             },
             {
               "id": "building_008",
-              "artwork": "artwork/facility/building_008.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_008"
             },
             {
               "id": "building_009",
-              "artwork": "artwork/facility/building_009.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_009"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_007"
         }
       ]
     },
@@ -126,17 +138,20 @@
         {
           "color": "rainbow",
           "count": 2,
-          "artwork": "artwork/facility/building_010.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_010",
-              "artwork": "artwork/facility/building_010.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_010"
             },
             {
               "id": "building_011",
-              "artwork": "artwork/facility/building_011.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_011"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_010"
         }
       ]
     },
@@ -158,17 +173,20 @@
         {
           "color": "blue",
           "count": 2,
-          "artwork": "artwork/facility/building_012.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_012",
-              "artwork": "artwork/facility/building_012.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_012"
             },
             {
               "id": "building_013",
-              "artwork": "artwork/facility/building_013.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_013"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_012"
         }
       ]
     },
@@ -190,24 +208,28 @@
         {
           "color": "blue",
           "count": 1,
-          "artwork": "artwork/facility/building_014.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_014",
-              "artwork": "artwork/facility/building_014.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_014"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_014"
         },
         {
           "color": "yellow",
           "count": 1,
-          "artwork": "artwork/facility/building_028.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_028",
-              "artwork": "artwork/facility/building_028.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_029"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_029"
         }
       ]
     },
@@ -229,21 +251,25 @@
         {
           "color": "blue",
           "count": 3,
-          "artwork": "artwork/facility/building_015.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_015",
-              "artwork": "artwork/facility/building_015.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_015"
             },
             {
               "id": "building_016",
-              "artwork": "artwork/facility/building_016.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_016"
             },
             {
               "id": "building_017",
-              "artwork": "artwork/facility/building_017.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_017"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_015"
         }
       ]
     },
@@ -265,24 +291,28 @@
         {
           "color": "blue",
           "count": 1,
-          "artwork": "artwork/facility/building_018.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_018",
-              "artwork": "artwork/facility/building_018.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_018"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_018"
         },
         {
           "color": "red",
           "count": 1,
-          "artwork": "artwork/facility/building_032.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_032",
-              "artwork": "artwork/facility/building_032.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_034"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_034"
         }
       ]
     },
@@ -304,21 +334,25 @@
         {
           "color": "blue",
           "count": 3,
-          "artwork": "artwork/facility/building_019.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_019",
-              "artwork": "artwork/facility/building_019.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_019"
             },
             {
               "id": "building_020",
-              "artwork": "artwork/facility/building_020.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_020"
             },
             {
               "id": "building_021",
-              "artwork": "artwork/facility/building_021.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_021"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_019"
         }
       ]
     },
@@ -340,21 +374,25 @@
         {
           "color": "yellow",
           "count": 3,
-          "artwork": "artwork/facility/building_022.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_022",
-              "artwork": "artwork/facility/building_022.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_023"
             },
             {
               "id": "building_023",
-              "artwork": "artwork/facility/building_023.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_024"
             },
             {
               "id": "building_024",
-              "artwork": "artwork/facility/building_024.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_025"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_023"
         }
       ]
     },
@@ -376,17 +414,20 @@
         {
           "color": "yellow",
           "count": 2,
-          "artwork": "artwork/facility/building_025.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_025",
-              "artwork": "artwork/facility/building_025.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_026"
             },
             {
               "id": "building_026",
-              "artwork": "artwork/facility/building_026.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_027"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_026"
         }
       ]
     },
@@ -408,24 +449,28 @@
         {
           "color": "yellow",
           "count": 1,
-          "artwork": "artwork/facility/building_027.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_027",
-              "artwork": "artwork/facility/building_027.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_028"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_028"
         },
         {
           "color": "red",
           "count": 1,
-          "artwork": "artwork/facility/building_033.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_033",
-              "artwork": "artwork/facility/building_033.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_035"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_035"
         }
       ]
     },
@@ -447,21 +492,25 @@
         {
           "color": "yellow",
           "count": 3,
-          "artwork": "artwork/facility/building_029.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_029",
-              "artwork": "artwork/facility/building_029.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_030"
             },
             {
               "id": "building_030",
-              "artwork": "artwork/facility/building_030.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_031"
             },
             {
               "id": "building_031",
-              "artwork": "artwork/facility/building_031.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_032"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_030"
         }
       ]
     },
@@ -483,21 +532,25 @@
         {
           "color": "red",
           "count": 3,
-          "artwork": "artwork/facility/building_034.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_034",
-              "artwork": "artwork/facility/building_034.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_036"
             },
             {
               "id": "building_035",
-              "artwork": "artwork/facility/building_035.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_037"
             },
             {
               "id": "building_036",
-              "artwork": "artwork/facility/building_036.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_038"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_036"
         }
       ]
     },
@@ -519,17 +572,20 @@
         {
           "color": "red",
           "count": 2,
-          "artwork": "artwork/facility/building_037.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_037",
-              "artwork": "artwork/facility/building_037.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_039"
             },
             {
               "id": "building_038",
-              "artwork": "artwork/facility/building_038.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_040"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_039"
         }
       ]
     },
@@ -551,21 +607,25 @@
         {
           "color": "red",
           "count": 3,
-          "artwork": "artwork/facility/building_039.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "building_039",
-              "artwork": "artwork/facility/building_039.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_041"
             },
             {
               "id": "building_040",
-              "artwork": "artwork/facility/building_040.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_042"
             },
             {
               "id": "building_041",
-              "artwork": "artwork/facility/building_041.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_043"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_041"
         }
       ]
     },
@@ -578,22 +638,25 @@
         "tags": [],
         "playerMarkerZones": [],
         "abilities": [],
-        "expansionId": "core",
+        "expansionId": "enterprise",
         "replaces": null,
         "dataTemplate": "templates/facilities/enterprise_office.json",
-        "data": {}
+        "data": {},
+        "enabled": false
       },
       "variants": [
         {
           "color": "rainbow",
           "count": 1,
-          "artwork": "artwork/facility/facility_enterprise_office.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "facility_enterprise_office",
-              "artwork": "artwork/facility/facility_enterprise_office.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_049"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_049"
         }
       ]
     },
@@ -615,13 +678,15 @@
         {
           "color": "rainbow",
           "count": 1,
-          "artwork": "artwork/facility/reserve_001.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "reserve_001",
-              "artwork": "artwork/facility/reserve_001.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_045"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_045"
         }
       ]
     },
@@ -643,35 +708,41 @@
         {
           "color": "blue",
           "count": 1,
-          "artwork": "artwork/facility/reserve_002.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "reserve_002",
-              "artwork": "artwork/facility/reserve_002.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_022"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_022"
         },
         {
           "color": "yellow",
           "count": 1,
-          "artwork": "artwork/facility/reserve_003.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "reserve_003",
-              "artwork": "artwork/facility/reserve_003.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_033"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_033"
         },
         {
           "color": "red",
           "count": 1,
-          "artwork": "artwork/facility/reserve_004.jpg",
+          "artwork": "artwork/sheets/facility_faces.jpg",
           "instances": [
             {
               "id": "reserve_004",
-              "artwork": "artwork/facility/reserve_004.jpg"
+              "artwork": "artwork/sheets/facility_faces.jpg",
+              "artworkSpriteId": "facility_044"
             }
-          ]
+          ],
+          "artworkSpriteId": "facility_044"
         }
       ]
     }

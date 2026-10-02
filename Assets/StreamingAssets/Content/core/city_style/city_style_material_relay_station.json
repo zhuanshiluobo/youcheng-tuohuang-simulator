@@ -3,7 +3,7 @@
   "contentType": "city_style",
   "version": "1.0.0",
   "displayName": "物资中继站",
-  "artwork": "artwork/city_style/city_style_material_relay_station.jpg",
+  "artwork": "artwork/sheets/city_style_level_1.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
@@ -49,5 +49,6 @@
     "specialAction": null
   },
   "expansionId": "core",
-  "replaces": null
+  "replaces": null,
+  "artworkSpriteId": "city_style_1_009"
 }

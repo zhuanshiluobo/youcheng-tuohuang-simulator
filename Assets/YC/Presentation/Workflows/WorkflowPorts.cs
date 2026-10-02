@@ -470,19 +470,26 @@ namespace YC.Presentation.Workflows
         CollectionSelected,
         CollectionPaymentRequired,
         CollectionBankPaymentGhost,
-        InitialPlacement
+        InitialPlacement,
+        CollectionPaymentSelected
     }
+
+    public enum WorkflowHighlightState { Available, Selected, PendingConfirmation }
 
     public sealed class WorkflowHighlight
     {
         public WorkflowHighlight(
             WorkflowHighlightTargetKind targetKind,
             string targetId,
-            WorkflowHighlightSemantic semantic)
+            WorkflowHighlightSemantic semantic,
+            WorkflowHighlightState state = WorkflowHighlightState.Available,
+            bool isInteractive = true)
         {
             TargetKind = targetKind;
             TargetId = targetId ?? string.Empty;
             Semantic = semantic;
+            State = state;
+            IsInteractive = isInteractive;
         }
 
         public WorkflowHighlightTargetKind TargetKind { get; private set; }
@@ -490,5 +497,7 @@ namespace YC.Presentation.Workflows
         public string TargetId { get; private set; }
 
         public WorkflowHighlightSemantic Semantic { get; private set; }
+        public WorkflowHighlightState State { get; private set; }
+        public bool IsInteractive { get; private set; }
     }
 }

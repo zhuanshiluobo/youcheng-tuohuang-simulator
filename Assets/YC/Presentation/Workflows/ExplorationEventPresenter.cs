@@ -535,6 +535,11 @@ namespace YC.Presentation.Workflows
                 return false;
             }
 
+            if (!influenceTargetSelection.ConfirmSelection(slotId))
+            {
+                PresentInfluenceTargets();
+                return true;
+            }
             bool completed;
             if (!influenceTargetSelection.TrySelectSlot(card, slotId, out completed))
             {
@@ -1046,6 +1051,14 @@ namespace YC.Presentation.Workflows
             return recipientNames.Count == 0 ? "\u65e0" : string.Join("\u3001", recipientNames);
         }
 
+        public bool HasPendingInfluenceConfirmation => !string.IsNullOrEmpty(influenceTargetSelection.PendingSlotId);
+
+        public void CancelPendingInfluenceConfirmation(bool restore)
+        {
+            influenceTargetSelection.ClearPendingSelection();
+            if (restore && IsSelectingInfluenceTarget) PresentInfluenceTargets();
+        }
+
         private int PresentInfluenceTargets()
         {
             selectableInfluenceSlotIds.Clear();
@@ -1073,7 +1086,9 @@ namespace YC.Presentation.Workflows
                 highlights.Add(new WorkflowHighlight(
                     WorkflowHighlightTargetKind.InfluenceSlot,
                     slotId,
-                    WorkflowHighlightSemantic.EventInfluenceTarget));
+                    WorkflowHighlightSemantic.EventInfluenceTarget,
+                    influenceTargetSelection.PendingSlotId == slotId
+                        ? WorkflowHighlightState.PendingConfirmation : WorkflowHighlightState.Available));
             }
 
             view.SetHighlights(highlights);
@@ -1221,7 +1236,8 @@ namespace YC.Presentation.Workflows
                 return EventCardDatabase.Get(pendingChoice.CardId);
             }
 
-            return PeekExploreEventCard(pathSelection.TargetLocationId) ?? optionSelection.PendingEventCard;
+            // 多步地图选择必须使用当前已展示的卡牌，不能被牌堆顶部另一张牌改变所需槽数。
+            return optionSelection.PendingEventCard ?? PeekExploreEventCard(pathSelection.TargetLocationId);
         }
 
         private EventCardDefinition PeekExploreEventCard(string locationId)

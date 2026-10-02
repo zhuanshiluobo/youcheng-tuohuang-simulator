@@ -16,6 +16,8 @@ namespace YC.Presentation
         private readonly EffectDialogShell shell;
         private readonly EffectDialogLayoutProfile layoutProfile;
         private readonly CardVisualCatalog cards;
+        private readonly GameplayDialogRegistry registry;
+        private PlayerSelectionPageView players;
 
         internal CharacterCardEffectChoiceDialog(
             GameplayDialogRegistry dialogRegistry,
@@ -25,6 +27,7 @@ namespace YC.Presentation
             if (dialogRegistry == null) throw new ArgumentNullException(nameof(dialogRegistry));
             layoutProfile = dialogRegistry.EffectDialogLayoutProfile;
             cards = dialogRegistry.CardVisualCatalog;
+            registry = dialogRegistry;
             var layoutReason = string.Empty;
             if (layoutProfile == null || !layoutProfile.TryValidateConfiguration(out layoutReason))
             {
@@ -39,7 +42,7 @@ namespace YC.Presentation
 
         public bool IsShowing
         {
-            get { return shell.IsShowing; }
+            get { return shell.IsShowing || players != null && players.gameObject.activeInHierarchy; }
         }
 
         public void ShowSecondEffectStep(CharacterCardPanelViewModel model, Action strategy, Action tactic,
@@ -122,8 +125,20 @@ namespace YC.Presentation
         public void ShowSelection(string title, string description, EffectDialogSelectionSpec spec,
             bool preserveScroll)
         {
+            if (spec.Players != null)
+            {
+                shell.Hide();
+                if (players == null) players = registry.InstantiatePlayerSelection(canvas);
+                spec.Players.Title = title; spec.Players.Description = description;
+                spec.Players.AllowCancel &= spec.Cancel != null;
+                players.Present(spec.Players,ids =>
+                    { spec.PlayerSelectionChanged?.Invoke(ids); spec.Confirm?.Invoke(); },spec.Cancel,spec.IsCurrent,
+                    spec.IsEffectPage,spec.PlayerSelectionChanged);
+                return;
+            }
+            if (players != null) players.Close();
             var scroll = preserveScroll ? shell.ScrollPosition : 1f;
-            spec.CardTexture = id => cards.GetFacility(id) ?? cards.GetCharacterFront(id) ?? cards.GetEvent(id);
+            spec.CardSprite = id => cards.GetFacility(id) ?? cards.GetCharacterFront(id) ?? cards.GetEvent(id);
             var panel = Rebuild(layoutProfile.SelectionPanelSize, spec.IsEffectPage, spec.HasCardArtwork());
             EffectDialogShell.AddHeading(panel, title, description);
             shell.AddSelection(panel, spec);
@@ -201,7 +216,7 @@ namespace YC.Presentation
                         ? new string[0]
                         : new[] { selectedId },
                     Label = CharacterCardPanelPresenter.ResolveCardDisplayName,
-                    CardTexture = id => cards.GetCharacterFront(id),
+                    CardSprite = id => cards.GetCharacterFront(id),
                     IsCurrent = () => candidates.Exists(id => canCover == null || canCover(id)),
                     CanSelect = id => canCover == null || canCover(id),
                     OptionNamePrefix = "Character Cover Card ",
@@ -263,7 +278,7 @@ namespace YC.Presentation
                                 option.Reason) + "）"
                             : name;
                     },
-                    CardTexture = cards.GetFacility,
+                    CardSprite = cards.GetFacility,
                     IsCurrent = isCurrent,
                     CanSelect = id => buildable.Contains(id),
                     OptionNamePrefix = "Build Facility Card ",
@@ -501,6 +516,7 @@ namespace YC.Presentation
 
         public void Hide()
         {
+            if (players != null) { players.Close(); UnityEngine.Object.Destroy(players.gameObject); players = null; }
             shell.Hide();
         }
 

@@ -204,7 +204,13 @@ namespace YC.Presentation.Editor
             return true;
         }
 
-        private static void Invoke(string method, params object[] args) => dialog.GetType().GetMethod(method).Invoke(dialog, args);
+        private static void Invoke(string method, params object[] args)
+        {
+            var target = dialog.GetType().GetMethod(method);
+            var values = Enumerable.Repeat<object>(Type.Missing, target.GetParameters().Length).ToArray();
+            Array.Copy(args, values, args.Length);
+            target.Invoke(dialog, values);
+        }
 
         private static bool Ready()
         {

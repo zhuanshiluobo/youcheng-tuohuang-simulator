@@ -1,0 +1,63 @@
+Mono path[0] = 'G:/NoMadCity/Builds/CardSpriteMigration/tuohuang_Data/Managed'
+Mono config path = 'G:/NoMadCity/Builds/CardSpriteMigration/MonoBleedingEdge/etc'
+Found 4 interfaces on host : 0) 192.168.1.21 1) 172.28.182.139 2) 192.168.56.1 3) 192.168.232.1
+Player connection [35832]  Target information:
+
+Player connection [35832]  * "[IP] 192.168.1.21 [Port] 55000 [Flags] 2 [Guid] 1536401965 [EditorId] 2217725212 [Version] 1048832 [Id] WindowsPlayer(2,DESKTOP-IKMDFV8) [Debug] 0 [PackageName] WindowsPlayer [ProjectName] 游城拓荒模拟器" 
+
+Player connection [35832]  * "[IP] 172.28.182.139 [Port] 55000 [Flags] 2 [Guid] 1536401965 [EditorId] 2217725212 [Version] 1048832 [Id] WindowsPlayer(2,DESKTOP-IKMDFV8) [Debug] 0 [PackageName] WindowsPlayer [ProjectName] 游城拓荒模拟器" 
+
+Player connection [35832]  * "[IP] 192.168.56.1 [Port] 55000 [Flags] 2 [Guid] 1536401965 [EditorId] 2217725212 [Version] 1048832 [Id] WindowsPlayer(2,DESKTOP-IKMDFV8) [Debug] 0 [PackageName] WindowsPlayer [ProjectName] 游城拓荒模拟器" 
+
+Player connection [35832]  * "[IP] 192.168.232.1 [Port] 55000 [Flags] 2 [Guid] 1536401965 [EditorId] 2217725212 [Version] 1048832 [Id] WindowsPlayer(2,DESKTOP-IKMDFV8) [Debug] 0 [PackageName] WindowsPlayer [ProjectName] 游城拓荒模拟器" 
+
+Player connection [35832] Started UDP target info broadcast (1) on [225.0.0.222:54997].
+
+Input System module state changed to: Initialized.
+[PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+Initialize engine version: 2022.3.62f1c1 (b0109b07edb8)
+[Subsystems] Discovering subsystems at path G:/NoMadCity/Builds/CardSpriteMigration/tuohuang_Data/UnitySubsystems
+GfxDevice: creating device client; threaded=1; jobified=0
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.1]
+    Renderer: NVIDIA GeForce RTX 4060 Ti (ID=0x2803)
+    Vendor:   NVIDIA
+    VRAM:     7949 MB
+    Driver:   32.0.15.9186
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  0.080 seconds
+- Finished resetting the current domain, in  0.001 seconds
+<RI> Initializing input.
+<RI> Input initialized.
+<RI> Initialized touch support.
+[PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+UnloadTime: 0.640400 ms
+ThreadLog initialized.
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at C:/jenkins/sharedspace/ra_2022.3/Runtime/Export/Scripting/StackTrace.cs:37)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+Mirror.ThreadLog:Initialize () (at ./Library/PackageCache/com.mirrornetworking.mirror@96.6.4/Mirror/Assets/Mirror/Core/Threading/ThreadLog.cs:63)
+
+(Filename: ./Library/PackageCache/com.mirrornetworking.mirror@96.6.4/Mirror/Assets/Mirror/Core/Threading/ThreadLog.cs Line: 63)
+
+TelepathyTransport initialized!
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at C:/jenkins/sharedspace/ra_2022.3/Runtime/Export/Scripting/StackTrace.cs:37)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+Mirror.TelepathyTransport:Awake () (at ./Library/PackageCache/com.mirrornetworking.mirror@96.6.4/Mirror/Assets/Mirror/Transports/Telepathy/TelepathyTransport.cs:75)
+
+(Filename: ./Library/PackageCache/com.mirrornetworking.mirror@96.6.4/Mirror/Assets/Mirror/Transports/Telepathy/TelepathyTransport.cs Line: 75)
+
+NullReferenceException: Object reference not set to an instance of an object
+  at YC.PlayerJourney.PlayerPointerDriver.Position (UnityEngine.GameObject target) [0x00183] in G:\NoMadCity\Assets\YC\Presentation\PlayerJourney\PlayerPointerDriver.cs:32 
+  at YC.PlayerJourney.PlayerPointerDriver.Reachable (UnityEngine.GameObject target) [0x00098] in G:\NoMadCity\Assets\YC\Presentation\PlayerJourney\PlayerPointerDriver.cs:50 
+  at YC.PlayerJourney.PlayerJourneyRuntime+<>c.<Run>b__26_2 (YC.PlayerJourney.PlayerAutomationId m) [0x00000] in G:\NoMadCity\Assets\YC\Presentation\PlayerJourney\PlayerJourneyRuntime.cs:119 
+  at System.Linq.Enumerable+WhereArrayIterator`1[TSource].ToList () [0x00019] in <ea489521390f48908a7ce45cb17a6848>:0 
+  at System.Linq.Enumerable.ToList[TSource] (System.Collections.Generic.IEnumerable`1[T] source) [0x0001f] in <ea489521390f48908a7ce45cb17a6848>:0 
+  at YC.PlayerJourney.PlayerJourneyRuntime+<Run>d__26.MoveNext () [0x002ed] in G:\NoMadCity\Assets\YC\Presentation\PlayerJourney\PlayerJourneyRuntime.cs:119 
+  at UnityEngine.SetupCoroutine.InvokeMoveNext (System.Collections.IEnumerator enumerator, System.IntPtr returnValueAddress) [0x00020] in C:\jenkins\sharedspace\ra_2022.3\Runtime\Export\Scripting\Coroutines.cs:17 
+
+(Filename: G:/NoMadCity/Assets/YC/Presentation/PlayerJourney/PlayerPointerDriver.cs Line: 32)
+

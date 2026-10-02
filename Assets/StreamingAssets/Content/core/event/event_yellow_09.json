@@ -3,7 +3,7 @@
   "contentType": "event",
   "version": "1.0.0",
   "displayName": "富异铁区",
-  "artwork": "artwork/event/event_yellow_09.jpg",
+  "artwork": "artwork/sheets/event_yellow_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
@@ -42,5 +42,6 @@
     ]
   },
   "expansionId": "core",
-  "replaces": null
+  "replaces": null,
+  "artworkSpriteId": "event_yellow_009"
 }

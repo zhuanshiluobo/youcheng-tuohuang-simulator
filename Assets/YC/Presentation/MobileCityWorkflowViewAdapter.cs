@@ -20,7 +20,6 @@ namespace YC.Presentation
         private readonly Func<RectTransform> getCanvas;
         private readonly Func<MapViewPresenter> getMapView;
         private readonly IMapQueryService mapQuery;
-        private readonly InfluenceService mapInfluenceService;
         private readonly EventChoiceDialog eventChoiceDialog;
         private readonly CityStyleDeclarationPreviewDialog cityStyleDeclarationDialog;
         private readonly DispatchDecisionView dispatchDecisionView;
@@ -63,7 +62,6 @@ namespace YC.Presentation
                 getCanvas ?? throw new ArgumentNullException(nameof(getCanvas)));
             this.getMapView = getMapView;
             this.mapQuery = mapQuery;
-            mapInfluenceService = new InfluenceService(mapQuery);
             this.eventChoiceDialog = eventChoiceDialog;
             dispatchDecisionView = new DispatchDecisionView(dialogRegistry, getCanvas);
             this.showPrompt = showPrompt;
@@ -102,56 +100,9 @@ namespace YC.Presentation
             {
                 var highlight = highlights[i];
                 if (highlight == null) continue;
-                if (highlight.TargetKind == WorkflowHighlightTargetKind.Location)
-                {
-                    mapView.SetHighlighted(highlight.TargetId, GetHighlightColor(highlight.Semantic));
-                }
-                else if (highlight.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot)
-                {
-                    mapView.HighlightInfluenceSlot(highlight.TargetId);
-                }
-                else if (highlight.TargetKind == WorkflowHighlightTargetKind.Route)
-                {
-                    var route = mapQuery.GetRoute(highlight.TargetId);
-                    if (highlight.Semantic == WorkflowHighlightSemantic.CollectionBankPaymentGhost)
-                    {
-                        PreviewBankPaymentInfluence(mapView, route);
-                        continue;
-                    }
-
-                    for (var slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
-                    {
-                        mapView.HighlightInfluenceSlot(InfluenceService.GetRouteSlotId(highlight.TargetId, slotIndex));
-                    }
-                }
+                mapView.ApplyHighlight(highlight);
             }
             refreshInfluence();
-        }
-
-        private void PreviewBankPaymentInfluence(MapViewPresenter mapView, MapRouteDefinition route)
-        {
-            var state = getState();
-            if (state == null || route == null)
-            {
-                return;
-            }
-
-            var previewPlayerId = getLocalPlayerId();
-            if (previewPlayerId <= 0)
-            {
-                previewPlayerId = state.CurrentPlayerId;
-            }
-
-            for (var slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
-            {
-                var slotId = InfluenceService.GetRouteSlotId(route.RouteId, slotIndex);
-                // 只登记展示虚影，不写入 GameState，也不会消耗玩家影响力库存。
-                if (mapInfluenceService.FindInfluence(state, slotId) == null &&
-                    mapView.PreviewInfluenceSlot(slotId, previewPlayerId, state))
-                {
-                    return;
-                }
-            }
         }
 
         public void ClearHighlights()
@@ -166,7 +117,9 @@ namespace YC.Presentation
                 routeId, cost, recipientPlayerIds, getPlayerDisplayName,
                 receiver => resourceCollectionPresenter.ConfirmRoutePayment(routeId, receiver),
                 () => resourceCollectionPresenter.ConfirmRoutePayment(routeId, -1),
-                resourceCollectionPresenter.CancelRoutePayment);
+                resourceCollectionPresenter.CancelRoutePayment,
+                resourceCollectionPresenter.GetSelectedPaymentRecipient(routeId),
+                () => resourceCollectionPresenter.RemoveRoutePayment(routeId));
         }
 
         public string GetPlayerDisplayName(int playerId) => getPlayerDisplayName(playerId);
@@ -281,20 +234,5 @@ namespace YC.Presentation
             cityStyleDeclarationDialog.Show(model);
         }
 
-        private static Color GetHighlightColor(WorkflowHighlightSemantic semantic)
-        {
-            switch (semantic)
-            {
-                case WorkflowHighlightSemantic.CollectionSelected:
-                case WorkflowHighlightSemantic.DeployTarget:
-                    return new Color(0.25f, 0.95f, 0.45f, 0.82f);
-                case WorkflowHighlightSemantic.DispatchSource:
-                    return new Color(0.86f, 0.75f, 0.2f, 0.8f);
-                case WorkflowHighlightSemantic.DispatchTarget:
-                    return new Color(0.15f, 0.8f, 1f, 0.85f);
-                default:
-                    return new Color(0.15f, 0.8f, 1f, 0.65f);
-            }
-        }
     }
 }

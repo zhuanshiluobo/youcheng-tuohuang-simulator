@@ -152,7 +152,8 @@ namespace YC.Presentation
                 viewModel.CanBuild || viewModel.CanViewFacilitySupply,
                 viewModel.CanEndAction, viewModel.CanUseSpecialAction);
             view.SetBuildSupplyMode(viewModel.CanViewFacilitySupply);
-            SetStatus(viewModel.StatusText);
+            SetStatus(viewModel.StatusText + (viewModel.AllCollectionLocationsSelected
+                ? "\n" + view.AllCollectionLocationsSelectedText : string.Empty));
         }
 
         public void RenderCharacterQuickAction(CharacterCardPanelViewModel model)

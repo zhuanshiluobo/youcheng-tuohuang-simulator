@@ -178,12 +178,16 @@ namespace YC.Presentation
                 markerSlots[i].gameObject.SetActive(hasMarker);
                 if (!hasMarker) continue;
                 var marker = validMarkers[i];
-                markerImages[i].sprite = markerByMask[marker.Mask];
                 var singleColor = (marker.Mask & (marker.Mask - 1)) == 0;
-                markerCounts[i].gameObject.SetActive(singleColor);
-                markerCounts[i].text = marker.Count.ToString();
-                markerSlots[i].gameObject.name = string.IsNullOrEmpty(marker.Description)
-                    ? "玩家标记" : marker.Description;
+                var square = markerImages[i].GetComponent<InfluenceMarker2DView>();
+                if (square != null)
+                    square.RenderMask(marker.Mask, marker.Count, singleColor);
+                else
+                {
+                    markerImages[i].sprite = markerByMask[marker.Mask];
+                    markerCounts[i].gameObject.SetActive(singleColor);
+                    markerCounts[i].text = marker.Count.ToString();
+                }
             }
             if (showBody != null)
             {

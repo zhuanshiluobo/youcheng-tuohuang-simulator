@@ -6,10 +6,11 @@ using YC.Domain.Harvest;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Travel;
 
 namespace YC.Presentation.Workflows
 {
-    public sealed class ResourceCollectionPresenter : IInteractionWorkflow, IInteraction
+    public sealed class ResourceCollectionPresenter : IInteractionWorkflow, IInteraction, IRouteInteraction
     {
         private readonly IGameplayContext context;
         private readonly CommandGateway commandGateway;
@@ -20,6 +21,36 @@ namespace YC.Presentation.Workflows
         private readonly Dictionary<string, ResourceCollectionRouteOption> paymentOptionsByRouteId =
             new Dictionary<string, ResourceCollectionRouteOption>(StringComparer.Ordinal);
         private ResourceCollectionSelectionQuery selectionQuery;
+        private string inFlightCommandId = string.Empty;
+        private bool allLocationsCovered;
+        private string editingRouteId = string.Empty;
+        private string draftScope = string.Empty;
+        private string CurrentDraftScope => context.CurrentState == null ? string.Empty :
+            context.CurrentState.Round + ":" + context.LocalPlayerId + ":" + context.CurrentState.FindPlayer(context.LocalPlayerId)?.CityLocationId;
+        public bool CanResumeDraft => IsActive && draftScope == CurrentDraftScope;
+
+        public bool IsSubmissionPending => !string.IsNullOrEmpty(inFlightCommandId);
+        public bool AllLocationsCovered => IsActive && !IsSubmissionPending && allLocationsCovered;
+
+        public int? GetSelectedPaymentRecipient(string routeId)
+        {
+            if (!ContainsString(selection.PaidRouteIds, routeId)) return null;
+            return selection.PaymentRecipients.TryGetValue(routeId, out var recipient) ? recipient : -1;
+        }
+
+        public void RefreshFromState()
+        {
+            editingRouteId = string.Empty;
+            if (IsActive && !IsSubmissionPending) RefreshPresentation();
+            else { allLocationsCovered = false; view.ClearHighlights(); view.RefreshSelectionView(); }
+        }
+
+        public InteractionResult OnRouteClicked(string routeId)
+        {
+            if (!IsActive) return InteractionResult.Passthrough;
+            SelectRoutePayment(routeId);
+            return InteractionResult.Consumed;
+        }
 
         public ResourceCollectionPresenter(
             IGameplayContext context,
@@ -88,6 +119,10 @@ namespace YC.Presentation.Workflows
 
         public void Begin()
         {
+            draftScope = CurrentDraftScope;
+            allLocationsCovered = false;
+            editingRouteId = string.Empty;
+            inFlightCommandId = string.Empty;
             selection.Clear();
             paymentOptionsByRouteId.Clear();
             selectionQuery = null;
@@ -110,6 +145,10 @@ namespace YC.Presentation.Workflows
 
         public void Cancel()
         {
+            draftScope = string.Empty;
+            allLocationsCovered = false;
+            editingRouteId = string.Empty;
+            inFlightCommandId = string.Empty;
             selection.Clear();
             paymentOptionsByRouteId.Clear();
             selectionQuery = null;
@@ -150,10 +189,15 @@ namespace YC.Presentation.Workflows
 
         public void NotifyCommandSettled(string commandId)
         {
+            if (commandId != inFlightCommandId) return;
+            inFlightCommandId = string.Empty;
+            RefreshFromState();
         }
 
         public void SelectLocation(string locationId)
         {
+            // 未连通候选只显示 available，不进入旧“请先支付”点击回调。
+            if (!CanToggleLocation(locationId) || IsSubmissionPending || !string.IsNullOrEmpty(editingRouteId)) return;
             var result = selection.ToggleLocation(locationId, IsLocationAvailable);
             RefreshPresentation();
 
@@ -174,7 +218,7 @@ namespace YC.Presentation.Workflows
 
         public bool CanToggleLocation(string locationId)
         {
-            if (!selection.HasCandidateLocation(locationId))
+            if (!IsActive || !selection.HasCandidateLocation(locationId) || !IsLocationAvailable(locationId))
             {
                 return false;
             }
@@ -186,6 +230,8 @@ namespace YC.Presentation.Workflows
 
         public void SelectRoutePayment(string routeId)
         {
+            if (!IsActive || IsSubmissionPending || !string.IsNullOrEmpty(editingRouteId)) return;
+            if (!RefreshQuery()) return;
             ResourceCollectionRouteOption option;
             if (selectionQuery == null ||
                 string.IsNullOrEmpty(routeId) ||
@@ -195,38 +241,56 @@ namespace YC.Presentation.Workflows
                 return;
             }
 
-            if (!option.CanAfford)
+            if (!option.CanAfford && !ContainsString(selection.PaidRouteIds, routeId))
             {
                 view.ShowPrompt("\u9636\u6bb5\u5f00\u59cb\u65f6\u7684\u91d1\u5238\u4e0d\u8db3\uff0c\u65e0\u6cd5\u518d\u652f\u4ed8\u8be5\u822a\u9053\u8def\u8d39\u3002");
                 return;
             }
 
+            editingRouteId = routeId;
             view.ShowRoutePaymentOptions(routeId, option.Cost, option.OpponentOwnerPlayerIds);
         }
 
         public void ConfirmRoutePayment(string routeId, int receiverPlayerId)
         {
+            if (!IsActive || IsSubmissionPending || editingRouteId != routeId) return;
+            editingRouteId = string.Empty;
+            if (!RefreshQuery()) return;
             ResourceCollectionRouteOption option;
             if (selectionQuery == null ||
                 !paymentOptionsByRouteId.TryGetValue(routeId, out option) ||
-                (receiverPlayerId > 0 && !ContainsPlayer(option.OpponentOwnerPlayerIds, receiverPlayerId)))
+                (!ContainsString(selection.PaidRouteIds, routeId) && !option.CanAfford) ||
+                (receiverPlayerId > 0 ? !ContainsPlayer(option.OpponentOwnerPlayerIds, receiverPlayerId)
+                    : option.OpponentOwnerPlayerIds.Count > 0))
             {
                 view.ShowPrompt("\u8def\u8d39\u63a5\u6536\u65b9\u4e0d\u53ef\u7528\u3002");
                 return;
             }
 
             selection.ConfirmRoutePayment(routeId, receiverPlayerId);
+            editingRouteId = string.Empty;
             RefreshPresentation();
             view.ShowPrompt(BuildStatus());
         }
 
         public void CancelRoutePayment()
         {
+            editingRouteId = string.Empty;
+            view.ShowPrompt(BuildStatus());
+        }
+
+        public void RemoveRoutePayment(string routeId)
+        {
+            if (!IsActive || IsSubmissionPending || editingRouteId != routeId) return;
+            editingRouteId = string.Empty;
+            selection.RemoveRoutePayment(routeId);
+            RefreshPresentation();
             view.ShowPrompt(BuildStatus());
         }
 
         public void Submit()
         {
+            if (IsSubmissionPending || !string.IsNullOrEmpty(editingRouteId)) return;
             if (!RefreshQuery())
             {
                 return;
@@ -249,7 +313,11 @@ namespace YC.Presentation.Workflows
                 command.Parameters[CollectResourceCommandHandler.PaymentRecipientsParameter] = paymentRecipients;
             }
 
-            commandGateway.Submit(
+            inFlightCommandId = command.CommandId;
+            allLocationsCovered = false;
+            view.ClearHighlights();
+            view.RefreshSelectionView();
+            var outcome = commandGateway.Submit(
                 command,
                 new SubmitCallbacks(
                     view.ShowPrompt,
@@ -263,10 +331,16 @@ namespace YC.Presentation.Workflows
                         view.ShowPrompt(BuildResultPrompt(result));
                     }
                 });
+            if (outcome.Kind != SubmitOutcomeKind.WaitingForHost)
+            {
+                inFlightCommandId = string.Empty;
+                if (outcome.Kind != SubmitOutcomeKind.AppliedLocally) RefreshPresentation();
+            }
         }
 
         public string BuildStatus()
         {
+            if (IsSubmissionPending) return CommandGateway.BuildWaitingForHostPrompt("采集命令");
             var state = context.CurrentState;
             var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
             if (player == null)
@@ -284,6 +358,7 @@ namespace YC.Presentation.Workflows
 
         private void RefreshPresentation()
         {
+            allLocationsCovered = false;
             if (!RefreshQuery())
             {
                 view.ClearHighlights();
@@ -298,24 +373,14 @@ namespace YC.Presentation.Workflows
                 var routeId = pair.Key;
                 var option = pair.Value;
 
-                if (!ContainsString(selection.PaidRouteIds, routeId) ||
-                    option.OpponentOwnerPlayerIds.Count > 1)
+                var paid = ContainsString(selection.PaidRouteIds, routeId);
+                if (paid || option.CanAfford)
                 {
                     highlights.Add(new WorkflowHighlight(
                         WorkflowHighlightTargetKind.Route,
                         routeId,
-                        WorkflowHighlightSemantic.CollectionPaymentRequired));
-                }
-            }
-
-            foreach (var routeId in selection.PaidRouteIds)
-            {
-                if (selection.IsRoutePaidToBank(routeId))
-                {
-                    highlights.Add(new WorkflowHighlight(
-                        WorkflowHighlightTargetKind.Route,
-                        routeId,
-                        WorkflowHighlightSemantic.CollectionBankPaymentGhost));
+                        paid ? WorkflowHighlightSemantic.CollectionPaymentSelected : WorkflowHighlightSemantic.CollectionPaymentRequired,
+                        paid ? WorkflowHighlightState.Selected : WorkflowHighlightState.Available));
                 }
             }
 
@@ -325,10 +390,7 @@ namespace YC.Presentation.Workflows
             for (var i = 0; i < mapQuery.Map.Locations.Count; i++)
             {
                 var locationId = mapQuery.Map.Locations[i].LocationId;
-                if (!selection.HasCandidateLocation(locationId) ||
-                    selection.HasDeselectedLocation(locationId) ||
-                    !IsLocationAvailable(locationId) ||
-                    (player != null && player.CityLocationId == locationId))
+                if (!selection.HasCandidateLocation(locationId))
                 {
                     continue;
                 }
@@ -338,9 +400,15 @@ namespace YC.Presentation.Workflows
                     locationId,
                     ContainsString(selection.SelectedLocationIds, locationId)
                         ? WorkflowHighlightSemantic.CollectionSelected
-                        : WorkflowHighlightSemantic.CollectionCandidate));
+                        : WorkflowHighlightSemantic.CollectionCandidate,
+                    ContainsString(selection.SelectedLocationIds, locationId)
+                        ? WorkflowHighlightState.Selected : WorkflowHighlightState.Available,
+                    CanToggleLocation(locationId)));
             }
 
+            allLocationsCovered = ResourceCollectionCoverage.IsComplete(selectionQuery,
+                selection.SelectedLocationIds, selection.PaidRouteIds,
+                plan => resourceCollectionService.QuerySelection(context.CurrentState, context.LocalPlayerId, plan));
             view.SetHighlights(highlights);
             view.RefreshSelectionView();
         }
@@ -364,6 +432,17 @@ namespace YC.Presentation.Workflows
             {
                 paymentOptionsByRouteId[pair.Key] = pair.Value;
             }
+            var tolls = new RouteTollService(mapQuery);
+            foreach (var routeId in selection.PaidRouteIds)
+                paymentOptionsByRouteId[routeId] = new ResourceCollectionRouteOption
+                {
+                    RouteId = routeId,
+                    PaymentKey = routeId,
+                    Cost = RouteTollService.RouteCostGoldVoucher,
+                    CanAfford = selectionQuery.ConfirmedTollCost <= selectionQuery.AvailableGoldVoucher,
+                    OpponentOwnerPlayerIds = tolls.GetOpponentInfluenceOwnersOnPaymentKey(
+                        state, routeId, context.LocalPlayerId, RouteTollPaymentKeyMode.RouteId)
+                };
             selection.ApplyQuery(selectionQuery);
             if (selectionQuery.IsValid)
             {

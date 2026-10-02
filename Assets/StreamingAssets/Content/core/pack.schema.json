@@ -48,6 +48,10 @@
     "facilityInventory": {
       "type": "string",
       "minLength": 1
+    },
+    "artworkSlices": {
+      "type": "string",
+      "minLength": 1
     }
   },
   "anyOf": [

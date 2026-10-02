@@ -9,7 +9,8 @@ $ErrorActionPreference = 'Stop'
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $output = (Resolve-Path -LiteralPath $OutputDirectory).Path
 if (Test-Path -LiteralPath (Join-Path $output 'result.json')) { throw '结果目录已有记录，请使用新的目录。' }
-$arguments = @('-screen-width','1920','-screen-height','1080','-screen-fullscreen','0',
+if (Test-Path -LiteralPath (Join-Path $output '.player-journey-started')) { throw '该目录的测试已启动过，请使用新的目录。' }
+$arguments = @('--yc-player-journey-run-once', '-screen-width','1920','-screen-height','1080','-screen-fullscreen','0',
     ('--yc-player-journey-scenario=' + $Scenario), ('--yc-player-journey-seed=' + $Seed),
     ('"--yc-player-journey-output=' + $output + '"'), '-logFile', ('"' + (Join-Path $output 'unity.log') + '"'))
 $process = Start-Process -FilePath $Executable -ArgumentList $arguments -WindowStyle Hidden -PassThru

@@ -1,0 +1,9 @@
+NullReferenceException: Object reference not set to an instance of an object
+YC.PlayerJourney.PlayerPointerDriver.Position (UnityEngine.GameObject target) (at G:/NoMadCity/Assets/YC/Presentation/PlayerJourney/PlayerPointerDriver.cs:32)
+YC.PlayerJourney.PlayerPointerDriver.Reachable (UnityEngine.GameObject target) (at G:/NoMadCity/Assets/YC/Presentation/PlayerJourney/PlayerPointerDriver.cs:50)
+YC.PlayerJourney.PlayerJourneyRuntime+<>c.<Run>b__26_2 (YC.PlayerJourney.PlayerAutomationId m) (at G:/NoMadCity/Assets/YC/Presentation/PlayerJourney/PlayerJourneyRuntime.cs:119)
+System.Linq.Enumerable+WhereArrayIterator`1[TSource].ToList () (at <ea489521390f48908a7ce45cb17a6848>:0)
+System.Linq.Enumerable.ToList[TSource] (System.Collections.Generic.IEnumerable`1[T] source) (at <ea489521390f48908a7ce45cb17a6848>:0)
+YC.PlayerJourney.PlayerJourneyRuntime+<Run>d__26.MoveNext () (at G:/NoMadCity/Assets/YC/Presentation/PlayerJourney/PlayerJourneyRuntime.cs:119)
+UnityEngine.SetupCoroutine.InvokeMoveNext (System.Collections.IEnumerator enumerator, System.IntPtr returnValueAddress) (at C:/jenkins/sharedspace/ra_2022.3/Runtime/Export/Scripting/Coroutines.cs:17)
+

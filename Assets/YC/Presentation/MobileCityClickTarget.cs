@@ -19,7 +19,7 @@ namespace YC.Presentation
             return true;
         }
 
-        private void OnMouseDown()
+        private void OnMouseUp()
         {
             if (Camera.main != null &&
                 Camera.main.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() != null) return;

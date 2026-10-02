@@ -4,6 +4,7 @@ using YC.Domain.Maps;
 using YC.Domain.Scoring;
 using YC.Domain.State;
 using YC.Presentation.Maps;
+using YC.Presentation.Workflows;
 using UnityEngine;
 
 namespace YC.Presentation
@@ -12,7 +13,7 @@ namespace YC.Presentation
     {
         private static readonly Vector3 ResourceTokenIconScale = Vector3.one;
         private const float MapPlaneZ = 0f;
-        private const float HotspotOverlayZ = -0.05f;
+        private const float HotspotOverlayZ = 0f;
         private const float ScoreMarkerZ = -0.62f;
         private readonly MobileCityInteractionController controller;
         private readonly MapView view;
@@ -43,6 +44,36 @@ namespace YC.Presentation
             new Dictionary<int, MapScoreMarkerViewBinding>();
         private readonly HashSet<string> highlightedLocationIds = new HashSet<string>();
         private readonly HashSet<string> highlightedInfluenceSlotIds = new HashSet<string>();
+
+        public bool IsButtonInteractive(WorkflowHighlightTargetKind kind, string id)
+        {
+            if (view == null) return false;
+            foreach (var button in view.Buttons)
+                if (button.TargetKind == kind && button.TargetId == id) return button.IsInteractive;
+            return false;
+        }
+
+        public void ApplyHighlight(WorkflowHighlight highlight)
+        {
+            foreach (var city in cityBindingsByPlayerId.Values) city.Collider.enabled = false;
+            if (highlight.TargetKind == WorkflowHighlightTargetKind.Location)
+                highlightedLocationIds.Add(highlight.TargetId);
+            if (highlight.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot)
+                highlightedInfluenceSlotIds.Add(highlight.TargetId);
+            if (view == null) return;
+            foreach (var button in view.Buttons)
+                if (button.TargetKind == highlight.TargetKind && button.TargetId == highlight.TargetId)
+                    button.SetState(true, highlight.State != WorkflowHighlightState.Available,
+                        highlight.IsInteractive);
+        }
+
+        public void SetPendingButton(WorkflowHighlightTargetKind kind, string id)
+        {
+            if (view == null) return;
+            foreach (var button in view.Buttons)
+                if (button.TargetKind == kind && button.TargetId == id && button.IsInteractive)
+                    button.SetState(true, true, true);
+        }
 
         public MapViewPresenter(
             MobileCityInteractionController controller,
@@ -95,18 +126,14 @@ namespace YC.Presentation
 
         public void SetHighlighted(string locationId, Color color)
         {
-            highlightedLocationIds.Add(locationId);
-            MapHotspot hotspot;
-            if (hotspotsById.TryGetValue(locationId, out hotspot))
-            {
-                hotspot.SetHighlighted(true);
-            }
+            ApplyHighlight(new WorkflowHighlight(WorkflowHighlightTargetKind.Location,
+                locationId, WorkflowHighlightSemantic.MoveTarget));
         }
 
         public void HighlightInfluenceSlot(string slotId)
         {
-            highlightedInfluenceSlotIds.Add(slotId);
-            SetInfluenceSlotBorderVisible(slotId, true);
+            ApplyHighlight(new WorkflowHighlight(WorkflowHighlightTargetKind.InfluenceSlot,
+                slotId, WorkflowHighlightSemantic.DeployTarget));
         }
 
         public bool PreviewInfluenceSlot(string slotId, int playerId, GameState state)
@@ -154,6 +181,8 @@ namespace YC.Presentation
 
         public void ClearHighlights()
         {
+            if (view != null)
+                foreach (var button in view.Buttons) button.SetState(false, false, false);
             highlightedLocationIds.Clear();
             highlightedInfluenceSlotIds.Clear();
             foreach (var pair in influenceSlotPreviewPlayerIds)
@@ -182,20 +211,7 @@ namespace YC.Presentation
 
         public void ApplyDebugHotspotHighlights(bool debugClicks)
         {
-            if (!debugClicks)
-            {
-                return;
-            }
-
-            foreach (var pair in hotspotsById)
-            {
-                if (highlightedLocationIds.Contains(pair.Key))
-                {
-                    continue;
-                }
-
-                pair.Value.SetColor(new Color(1f, 0.78f, 0.18f, 0.42f));
-            }
+            // 调试模式也不能重新启用已替代的热点图像和输入。
         }
 
         public void RefreshCityViewsFromState(GameState state, int localPlayerId)
@@ -241,8 +257,16 @@ namespace YC.Presentation
             cityBinding.Renderer.enabled = false;
             cityBinding.PieceVisual.SetPlayerColor(GetPlayerColor(state, playerId, 1f));
             cityBinding.PieceVisual.SetVisible(true);
-            cityBinding.Collider.enabled = playerId == localPlayerId;
+            cityBinding.Collider.enabled = playerId == localPlayerId && !HasVisibleMapButtons();
             cityBinding.Renderer.gameObject.SetActive(true);
+        }
+
+        private bool HasVisibleMapButtons()
+        {
+            if (view == null) return false;
+            foreach (var button in view.Buttons)
+                if (button.Image.enabled) return true;
+            return false;
         }
 
         public void RefreshResourceTokenDisplay(GameState state)
@@ -418,9 +442,12 @@ namespace YC.Presentation
             {
                 var binding = view.Locations[i];
                 var location = locationsById[binding.LocationId];
-                binding.Hotspot.transform.position = ToWorldPosition(location.NormalizedPosition, HotspotOverlayZ);
+                binding.Hotspot.transform.position = ToWorldPosition(
+                    mapDisplayLayout.Locations.Find(item => item.LocationId == binding.LocationId).ButtonPosition,
+                    HotspotOverlayZ);
                 binding.Hotspot.Renderer.sprite = sprites.Hotspot;
                 binding.Hotspot.SetColor(new Color(0.25f, 0.95f, 0.45f, 0f));
+                foreach (var collider in binding.Hotspot.GetComponents<Collider2D>()) collider.enabled = false;
                 hotspotsById.Add(binding.LocationId, binding.Hotspot);
             }
 
@@ -459,6 +486,7 @@ namespace YC.Presentation
                 binding.Renderer.enabled = false;
                 binding.Renderer.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
                 binding.Collider.radius = definition.ColliderRadius;
+                binding.Collider.enabled = false;
                 binding.PieceVisual.SetVisible(false);
                 binding.BorderRenderer.sprite = sprites.MovableInfluenceBorder;
                 binding.BorderRenderer.color = UiTheme.CyanAccent;
@@ -581,7 +609,7 @@ namespace YC.Presentation
             else
             {
                 renderer.sprite = sprites.EmptyInfluenceSlot;
-                renderer.enabled = highlightedInfluenceSlotIds.Contains(slotId);
+                renderer.enabled = false;
                 renderer.color = GetPlayerColor(state, state.CurrentPlayerId, 1f);
                 pieceVisual.SetGhosted(false);
                 pieceVisual.SetVisible(false);
@@ -613,21 +641,15 @@ namespace YC.Presentation
 
         private void SetInfluenceSlotBorderVisible(string slotId, bool visible)
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (view != null)
-                foreach (var binding in view.InfluenceSlots)
-                    if (binding != null && binding.SlotId == slotId && binding.ClickTarget != null)
-                        YC.PlayerJourney.PlayerAutomationId.Attach(binding.ClickTarget.gameObject, "map.influence_slot." + slotId, visible);
-#endif
             MapHighlightPulse pulse;
             if (influenceSlotPulses.TryGetValue(slotId, out pulse) && pulse != null)
             {
-                pulse.SetHighlighted(visible);
+                pulse.SetHighlighted(false);
             }
             MapHighlightPulse emptyPulse;
             if (influenceSlotEmptyPulses.TryGetValue(slotId, out emptyPulse) && emptyPulse != null)
             {
-                emptyPulse.SetHighlighted(visible);
+                emptyPulse.SetHighlighted(false);
             }
         }
 
