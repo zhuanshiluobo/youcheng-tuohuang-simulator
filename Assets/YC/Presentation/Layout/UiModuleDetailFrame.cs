@@ -9,9 +9,12 @@ namespace YC.Presentation
     {
         [SerializeField] private RectTransform frame;
         [SerializeField] private RectTransform detail;
+        [SerializeField] private RectTransform joinedContentBackground;
+        [SerializeField] private float joinedContentBottomInset;
         private Vector2 originalMin;
         private Vector2 originalMax;
         private bool captured;
+        private Vector2 originalContentMin;
         private readonly Vector3[] corners = new Vector3[4];
 
         protected override void OnEnable()
@@ -22,6 +25,7 @@ namespace YC.Presentation
                 originalMin = frame.offsetMin;
                 originalMax = frame.offsetMax;
                 captured = true;
+                if (joinedContentBackground != null) originalContentMin = joinedContentBackground.offsetMin;
             }
             Canvas.willRenderCanvases += RefreshFrame;
             LayoutRebuilder.MarkLayoutForRebuild(transform as RectTransform);
@@ -31,6 +35,7 @@ namespace YC.Presentation
         {
             Canvas.willRenderCanvases -= RefreshFrame;
             if (frame != null && captured) ApplyOffsets(originalMin, originalMax);
+            RestoreContentBackground();
             base.OnDisable();
         }
 
@@ -43,7 +48,15 @@ namespace YC.Presentation
             var owner = transform as RectTransform;
             var minimum = owner.rect.min;
             var maximum = owner.rect.max;
-            if (detail != null && detail.gameObject.activeInHierarchy)
+            var expanded = detail != null && detail.gameObject.activeInHierarchy;
+            if (joinedContentBackground != null)
+            {
+                var contentMin = expanded
+                    ? new Vector2(originalContentMin.x, joinedContentBottomInset) : originalContentMin;
+                if ((joinedContentBackground.offsetMin - contentMin).sqrMagnitude > .0001f)
+                    joinedContentBackground.offsetMin = contentMin;
+            }
+            if (expanded)
             {
                 detail.GetWorldCorners(corners);
                 foreach (var corner in corners)
@@ -54,6 +67,12 @@ namespace YC.Presentation
                 }
             }
             ApplyOffsets(originalMin + minimum - owner.rect.min, originalMax + maximum - owner.rect.max);
+        }
+
+        private void RestoreContentBackground()
+        {
+            if (joinedContentBackground != null && captured)
+                joinedContentBackground.offsetMin = originalContentMin;
         }
 
         private void ApplyOffsets(Vector2 minimum, Vector2 maximum)

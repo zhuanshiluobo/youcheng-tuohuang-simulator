@@ -54,6 +54,8 @@ namespace YC.Tests.PlayMode
                     "左右各一条视为一行，完整显示实际条目高度");
                 Contains(ScreenRect(scroll.viewport), ScreenRect(firstLeft), "单行左栏完整可见");
                 Contains(ScreenRect(scroll.viewport), ScreenRect(firstRight), "单行右栏完整可见");
+                AssertCenteredDetailRow(scroll.viewport, firstLeft);
+                AssertCenteredDetailRow(scroll.viewport, firstRight);
                 AssertDetailFrames(modules);
                 var secondRight = AddDetailRow(hosts[1], "较长右栏的第二条");
                 for (var i = 0; i < 3; i++) yield return null;
@@ -68,6 +70,8 @@ namespace YC.Tests.PlayMode
                 secondRight.gameObject.SetActive(false);
                 for (var i = 0; i < 3; i++) yield return null;
                 Assert.That(scroll.viewport.rect.height - padding, Is.EqualTo(114f).Within(.1f));
+                AssertCenteredDetailRow(scroll.viewport, firstLeft);
+                AssertCenteredDetailRow(scroll.viewport, firstRight);
                 localToggle.onClick.Invoke();
                 for (var i = 0; i < 2; i++) yield return null;
                 Assert.That(enclosingFrame.offsetMin, Is.EqualTo(originalMin));
@@ -162,6 +166,10 @@ namespace YC.Tests.PlayMode
                         Canvas.ForceUpdateCanvases();
                         Contains(ScreenRect(singleScroll.viewport), ScreenRect(rows[0].transform as RectTransform), "单行左栏正式条目完整可见");
                         Contains(ScreenRect(singleScroll.viewport), ScreenRect(rows[2].transform as RectTransform), "单行右栏正式条目完整可见");
+                        AssertCenteredDetailRow(singleScroll.viewport, rows[0].transform as RectTransform);
+                        AssertCenteredDetailRow(singleScroll.viewport, rows[2].transform as RectTransform);
+                        var singleOpponentScroll = panels[opponent].GetComponent<ScrollRect>();
+                        AssertCenteredDetailRow(singleOpponentScroll.viewport, rows[4 + opponent * 2].transform as RectTransform);
                         yield return CaptureDetails(sceneName + "-single-effect-player" + (opponent + 2) + "-" + size.x + "x" + size.y);
                         for (var second = 1; second < rows.Count; second += 2) rows[second].gameObject.SetActive(true);
                         yield return null; Layout(main);
@@ -593,6 +601,17 @@ namespace YC.Tests.PlayMode
                 (GameObject)Field(modules, "localDetailPanel"), type);
         }
 
+        private static void AssertCenteredDetailRow(RectTransform backdrop, RectTransform row)
+        {
+            var background = ScreenRect(backdrop);
+            var item = ScreenRect(row);
+            var top = background.yMax - item.yMax;
+            var bottom = item.yMin - background.yMin;
+            Assert.That(top, Is.GreaterThan(0f), "条目边框与详情整体底板之间仍有上内边距");
+            Assert.That(bottom, Is.GreaterThan(0f), "条目边框与详情整体底板之间仍有下内边距");
+            Assert.That(top, Is.EqualTo(bottom).Within(.1f), "单条目在详情整体底板中垂直居中");
+        }
+
         private static void AssertDetailFrame(RectTransform owner, GameObject panel, Type type)
         {
             var binding = owner.GetComponent(type);
@@ -602,7 +621,17 @@ namespace YC.Tests.PlayMode
             Assert.That(panel.transform.parent, Is.SameAs(owner.parent), "条目区仍是原生布局中的同级项");
             Contains(ScreenRect(frame), ScreenRect(owner), "Module Frame 包住原模块");
             if (panel.activeInHierarchy)
+            {
                 Contains(ScreenRect(frame), ScreenRect(panel.transform as RectTransform), "Module Frame 视觉包住展开条目区");
+                var background = (RectTransform)Field(binding, "joinedContentBackground");
+                if (background == null) background = owner.Find("Module Background") as RectTransform;
+                Assert.That(background, Is.Not.Null, "接合位置应使用当前模块实际显示的背景");
+                var initial = ScreenRect(background);
+                var detailBackground = ScreenRect(panel.GetComponent<ScrollRect>().viewport.GetComponent<Image>().rectTransform);
+                var below = ScreenRect(panel.transform as RectTransform).center.y < ScreenRect(owner).center.y;
+                Assert.That(below ? initial.yMin - detailBackground.yMax : detailBackground.yMin - initial.yMax,
+                    Is.EqualTo(0f).Within(.05f), "展开条目整体背景与模块原有内容背景的间距必须为 0");
+            }
         }
 
         private static RectTransform AddDetailRow(RectTransform host, string title)
