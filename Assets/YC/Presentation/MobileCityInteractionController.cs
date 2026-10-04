@@ -127,7 +127,15 @@ namespace YC.Presentation
                         Color = colors[i], IsReady = true });
                 GameLaunchContext.Ensure().Configure(LaunchMode.Local, 1, "three-player-editor", seats, sceneMapId);
             }
-            BuildSession();
+            try { BuildSession(); }
+            catch (System.Exception ex)
+            {
+                Debug.LogError("对局恢复/初始化失败：" + ex.Message, this);
+                GameLaunchContext.Instance?.ClearRestore();
+                enabled = false;
+                GameLaunchContext.ReturnToStartScene("StartScene");
+                return;
+            }
             if (mapQuery.Map.MapId != sceneMapId)
             {
                 Debug.LogError("场景地图与启动人数不一致，请从开始菜单选择对应地图。", this);
@@ -301,6 +309,8 @@ namespace YC.Presentation
 
         private void OnDestroy()
         {
+            if (gameplayInteractionHud != null && gameplayInteractionHud.Frame != null)
+                gameplayInteractionHud.Frame.BindMainActionCancellation(null, null);
             characterUsePage?.Hide();
             specialActionUsePage?.Hide();
             if (facilityBuildPage != null) facilityBuildPage.Hide();
@@ -440,6 +450,58 @@ namespace YC.Presentation
             }
         }
 
+        private bool CanSubmitMainActionCancellation => session != null && !session.CommandsSuspended &&
+            (commandSubmission == null || !commandSubmission.HasPendingCommands) &&
+            (GameLaunchContext.Instance == null || !GameLaunchContext.Instance.IsLeavingGameplay);
+
+        private YC.Domain.Interactions.InteractionRequestProjection GetCancelableMainActionRequest()
+        {
+            if (!CanSubmitMainActionCancellation) return null;
+            // 客户端只读取玩家投影；当前部署执行器仅在主要行动的支付前允许取消。
+            foreach (var request in VisibleInteractionRequestSource.Read(session.State, session.View, localPlayerId))
+            {
+                if (!request.AllowDecline || request.InteractionTypeId != "effect.influence.place.target") continue;
+                return YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, localPlayerId);
+            }
+            return null;
+        }
+
+        private bool CanCancelSpecialActionSelection => specialActionUsePage != null &&
+            specialActionUsePage.IsShowing && specialActionPageIsCurrent != null && specialActionPageIsCurrent();
+
+        public bool CanCancelMainAction => CanSubmitMainActionCancellation &&
+            (GetCancelableMainActionRequest() != null ||
+             (turnActionPresenter != null && turnActionPresenter.CanCancelMainActionSelection) ||
+             CanCancelSpecialActionSelection);
+
+        public bool TryCancelMainAction()
+        {
+            if (!CanSubmitMainActionCancellation) return false;
+            var request = GetCancelableMainActionRequest();
+            if (request != null)
+            {
+                mapInteractionRouter?.ClearConfirmation(false);
+                SubmitPendingEffectCommand(YC.Application.Interactions.EffectInteractionCommands.Answer(
+                    request, localPlayerId, null, true));
+                return true;
+            }
+            if (turnActionPresenter != null && turnActionPresenter.CanCancelMainActionSelection)
+            {
+                mapInteractionRouter?.ClearConfirmation(false);
+                if (!turnActionPresenter.TryCancelMainActionSelection()) return false;
+                specialActionUsePage?.Hide();
+                RefreshBuildFacilityDialog();
+                RefreshInfluenceDisplay();
+                UpdateEntranceOrActionPrompt();
+                return true;
+            }
+            if (!CanCancelSpecialActionSelection) return false;
+            specialActionUsePage.Hide();
+            specialActionPageIsCurrent = null;
+            UpdateEntranceOrActionPrompt();
+            return true;
+        }
+
         public bool TryHandleInteractionEscape()
         {
             if (CardViewer.HasOpenViewer() || CardViewer.WasEscapeConsumedThisFrame()) return false;
@@ -449,6 +511,11 @@ namespace YC.Presentation
             }
 
             if (characterHandPanel != null && characterHandPanel.TryHandleEscape())
+            {
+                interactionEscapeConsumedFrame = Time.frameCount;
+                return true;
+            }
+            if ((commandSubmission != null && commandSubmission.HasPendingCommands) || TryCancelMainAction())
             {
                 interactionEscapeConsumedFrame = Time.frameCount;
                 return true;
@@ -490,10 +557,11 @@ namespace YC.Presentation
 
         private void BuildSession()
         {
-            var result = GameSessionBootstrapper.Build(
+            var restore = GameLaunchContext.Instance?.ConsumeRestore();
+            var result = restore == null ? GameSessionBootstrapper.Build(
                 GameLaunchContext.Instance,
                 useRightCardSmokeState,
-                prepareSharedCityStyleSmokeState);
+                prepareSharedCityStyleSmokeState) : GameSessionBootstrapper.Restore(GameLaunchContext.Instance, restore);
             session = result.Session;
             mapQuery = result.MapQuery;
             influenceService = result.InfluenceService;
@@ -501,6 +569,7 @@ namespace YC.Presentation
             explorationService = result.ExplorationService;
             resourceCollectionService = result.ResourceCollectionService;
             localPlayerId = result.LocalPlayerId;
+            MatchSaveController.Ensure().Bind(session, result.ContentHash, GameLaunchContext.Instance, restore != null);
         }
 
         private void BuildCommandSubmission(GameLaunchContext launchContext)
@@ -699,6 +768,7 @@ namespace YC.Presentation
         private bool BindGameplayInteractionHud()
         {
             uiCanvas = gameplayInteractionHud.Canvas;
+            gameplayInteractionHud.Frame.BindMainActionCancellation(() => CanCancelMainAction, () => TryCancelMainAction());
             actionPanel = ActionPanelController.Bind(
                 gameplayInteractionHud.ActionPanelView,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog,

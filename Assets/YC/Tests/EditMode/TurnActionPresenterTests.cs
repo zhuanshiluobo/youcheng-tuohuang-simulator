@@ -21,6 +21,74 @@ namespace YC.Tests.EditMode
 {
     public sealed class TurnActionPresenterTests
     {
+        [TestCase("move")]
+        [TestCase("build")]
+        [TestCase("explore")]
+        public void Undo_MainActionSelectionClearsDraftWithoutSubmittingOrChangingGameState(string action)
+        {
+            var f = CreateFixture();
+            var before = UnityEngine.JsonUtility.ToJson(f.Context.State);
+            if (action == "move") f.Presenter.BeginMoveAction();
+            else if (action == "build") f.Presenter.BeginBuildAction();
+            else f.Presenter.BeginExploreAction();
+
+            Assert.That(f.Presenter.CanCancelMainActionSelection, Is.True);
+            Assert.That(f.Presenter.TryCancelMainActionSelection(), Is.True);
+            Assert.That(f.Presenter.CanCancelMainActionSelection, Is.False);
+            Assert.That(f.Presenter.BuildInteraction.IsActive, Is.False);
+            Assert.That(f.Presenter.IsSelectingMoveTarget, Is.False);
+            Assert.That(f.Exploration.IsActive, Is.False);
+            Assert.That(f.Commands.SubmitCount, Is.Zero);
+            Assert.That(UnityEngine.JsonUtility.ToJson(f.Context.State), Is.EqualTo(before));
+        }
+
+        [Test]
+        public void Undo_DispatchDiscardsFirstMovePreviewInsteadOfFinishingIt()
+        {
+            var f = CreateFixture();
+            var source = InfluenceService.GetLocationSlotId("A", 0);
+            var target = InfluenceService.GetLocationSlotId("B", 0);
+            f.Context.State.Map.Influences.Add(new InfluencePlacement
+            {
+                PlayerId = 1, SlotId = source, LocationId = "A"
+            });
+            f.Context.State.Map.ResourceTokens.Add(new ResourceTokenState
+            {
+                LocationId = "B", ResourceType = ResourceType.Iron
+            });
+            var before = UnityEngine.JsonUtility.ToJson(f.Context.State);
+            f.Presenter.BeginDispatchAction();
+            f.Influence.SelectSlot(source);
+            f.Influence.SelectSlot(target);
+            f.Influence.SelectSlot(target);
+            Assert.That(f.Influence.HasPendingFirstMove, Is.True);
+
+            Assert.That(f.Presenter.TryCancelMainActionSelection(), Is.True);
+            Assert.That(f.Influence.HasPendingFirstMove, Is.False);
+            Assert.That(f.Influence.HasPendingConfirmation, Is.False);
+            Assert.That(f.Influence.IsActive, Is.False);
+            Assert.That(f.Commands.SubmitCount, Is.Zero);
+            Assert.That(UnityEngine.JsonUtility.ToJson(f.Context.State), Is.EqualTo(before));
+        }
+
+        [Test]
+        public void Undo_RequiredSettlementAndOtherPlayersTurnCannotCancelLocalDraft()
+        {
+            var f = CreateFixture();
+            f.Presenter.BeginMoveAction();
+            f.Context.State.CurrentPlayerId = 2;
+            Assert.That(f.Presenter.TryCancelMainActionSelection(), Is.False);
+            f.Context.State.CurrentPlayerId = 1;
+            f.Context.State.EffectRuntime.InteractionRequests.Add(new InteractionRequest
+            {
+                InteractionId = "required-settlement", Status = "open", AnsweringPlayerId = 1,
+                InteractionTypeId = "character.ability.choice.awaiting", AllowDecline = false
+            });
+            Assert.That(f.Presenter.TryCancelMainActionSelection(), Is.False);
+            Assert.That(f.Presenter.IsSelectingMoveTarget, Is.True);
+            Assert.That(f.Commands.SubmitCount, Is.Zero);
+        }
+
         [Test]
         public void CityStyle_ViewHasNoDeclarationAndPlayerChangeInvalidatesTheDraft()
         {

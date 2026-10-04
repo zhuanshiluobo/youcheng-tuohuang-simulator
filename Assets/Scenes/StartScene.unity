@@ -340,14 +340,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 6682730334664130301, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
-      propertyPath: m_Text
-      value: "\u524D\u5F80wiki"
-      objectReference: {fileID: 0}
-    - target: {fileID: 7257264668407522402, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
-      propertyPath: m_Text
-      value: "\u524D\u5F80github"
-      objectReference: {fileID: 0}
     - target: {fileID: 174254055163450458, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_Name
       value: "\u591A\u4EBA\u8054\u673A Button"
@@ -446,7 +438,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1890019742853207646, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_Text
-      value: "\u6536\u85CF\u4E0E\u6210\u5C31"
+      value: "\u6210\u5C31\u4E0E\u6536\u85CF"
       objectReference: {fileID: 0}
     - target: {fileID: 1921159072480541951, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_SizeDelta.y
@@ -486,7 +478,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2464863708669273868, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2895064275912673758, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_Name
@@ -608,6 +600,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6682730334664130301, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
+      propertyPath: m_Text
+      value: "\u524D\u5F80wiki"
+      objectReference: {fileID: 0}
     - target: {fileID: 6683645725675672658, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -619,6 +615,14 @@ PrefabInstance:
     - target: {fileID: 6683645725675672658, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6871308515486909611, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 55.80005
+      objectReference: {fileID: 0}
+    - target: {fileID: 7257264668407522402, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
+      propertyPath: m_Text
+      value: "\u524D\u5F80github"
       objectReference: {fileID: 0}
     - target: {fileID: 7443471641762290702, guid: a6c5387646ec56f43babb66b8d1b68bd, type: 3}
       propertyPath: m_SizeDelta.x

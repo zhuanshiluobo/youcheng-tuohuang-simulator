@@ -41,6 +41,7 @@ namespace YC.Presentation
         private bool pendingLobbyJoinRequested;
         private int selectedRoomPlayerCount = 4;
         private int selectedLocalCityCount = 1;
+        [System.NonSerialized] private MatchSaveData resumeArchive;
         private bool loadingGame;
         private bool joiningRoom;
         private bool autoStartLocalMirrorGame;
@@ -81,6 +82,7 @@ namespace YC.Presentation
                 return;
             }
 
+            MatchSaveController.Instance?.Unbind();
             ProcessPendingLobbyJoinRequest();
         }
 
@@ -314,12 +316,44 @@ namespace YC.Presentation
             OnlineRoomServiceProvider.DisposeActive();
         }
 
+        public async System.Threading.Tasks.Task RestoreMatch(MatchSaveData data)
+        {
+            if (loadingGame || joiningRoom) throw new InvalidOperationException("已有启动流程正在进行。");
+            GameLaunchContext.Ensure().ClearRestore();
+            resumeArchive = null;
+            if (data.Mode == LaunchMode.Local)
+            {
+                roomService.Shutdown();
+                var context = GameLaunchContext.Ensure();
+                context.Configure(LaunchMode.Local, data.LocalPlayerId, data.GameId, data.Seats.ConvertAll(s => s.ToSeat()), data.MapId);
+                context.SetRestore(data);
+                BeginMapSceneLoad();
+                if (!loadingGame) { context.ClearRestore(); throw new InvalidOperationException("无法启动存档地图。"); }
+                return;
+            }
+            if (data.LocalTestNetwork != LocalMirrorTestMode.IsEnabled)
+                throw new InvalidOperationException("此存档的联机后端与当前运行模式不一致。");
+            joiningRoom = true;
+            try
+            {
+                var resumable = roomService as IResumableOnlineRoomService;
+                if (resumable == null) throw new InvalidOperationException("当前后端不支持续局。");
+                var room = await resumable.CreateResumeRoomAsync(ResumeRoomOptions.FromSave(data));
+                if (this == null) { roomService.Shutdown(); return; }
+                resumeArchive = data;
+                ShowRoomPanel(room, true);
+            }
+            catch { resumeArchive = null; roomService.Shutdown(); throw; }
+            finally { joiningRoom = false; }
+        }
         public void StartGame()
         {
             if (loadingGame)
             {
                 return;
             }
+            resumeArchive = null;
+            GameLaunchContext.Instance?.ClearRestore();
 
             var seats = new List<PlayerSeat>();
             var colors = new[] { PlayerColor.Blue, PlayerColor.Red, PlayerColor.Green, PlayerColor.Yellow };
@@ -357,6 +391,8 @@ namespace YC.Presentation
             {
                 return;
             }
+            resumeArchive = null;
+            GameLaunchContext.Instance?.ClearRestore();
 
             joiningRoom = true;
             ShowRoomProgressPanel(
@@ -578,6 +614,8 @@ namespace YC.Presentation
                 return;
             }
 
+            resumeArchive = null;
+            GameLaunchContext.Instance?.ClearRestore();
             var roomCode = joinRoomInput.text.Trim();
             joiningRoom = true;
             SetRoomStatus(LocalMirrorTestMode.IsEnabled
@@ -626,6 +664,9 @@ namespace YC.Presentation
             switch (result.Status)
             {
                 case LobbyJoinRequestStatus.Joined:
+                    resumeArchive = null;
+                    GameLaunchContext.Instance?.ClearRestore();
+                    goto case LobbyJoinRequestStatus.AlreadyInRoom;
                 case LobbyJoinRequestStatus.AlreadyInRoom:
                     ShowRoomPanel(
                         result.Room,
@@ -844,7 +885,14 @@ namespace YC.Presentation
             }
 
             var mode = localPlayerId == room.HostPlayerId ? LaunchMode.Host : LaunchMode.Client;
-            GameLaunchContext.Ensure().Configure(mode, localPlayerId, room.RoomId, room.Seats);
+            if (room.Resume != null && mode == LaunchMode.Host && resumeArchive == null)
+            {
+                Debug.LogWarning("续局存档已失效，已中止启动。", this); return;
+            }
+            var context = GameLaunchContext.Ensure();
+            context.Configure(mode, localPlayerId, room.RoomId, room.Seats, room.Resume?.MapId);
+            if (mode == LaunchMode.Host && resumeArchive != null) context.SetRestore(resumeArchive);
+            resumeArchive = null;
             BeginMapSceneLoad();
         }
 
@@ -903,6 +951,8 @@ namespace YC.Presentation
 
         private void HideRoomPanel()
         {
+            resumeArchive = null;
+            GameLaunchContext.Instance?.ClearRestore();
             view.HideRoomPanels();
             roomPanel = null;
             ClearRoomSeatRows();
@@ -944,6 +994,8 @@ namespace YC.Presentation
 
         private void ConfirmRoomDisbanded()
         {
+            resumeArchive = null;
+            GameLaunchContext.Instance?.ClearRestore();
             view.HideRoomPanels();
             roomPanel = null;
             ClearRoomSeatRows();

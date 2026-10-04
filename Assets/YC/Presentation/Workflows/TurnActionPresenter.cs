@@ -107,6 +107,34 @@ namespace YC.Presentation.Workflows
 
         public void Cancel() { MoveInteraction.Cancel(); }
 
+        public bool CanCancelMainActionSelection
+        {
+            get
+            {
+                var state = context.CurrentState;
+                if (state == null || state.CurrentPlayerId != context.LocalPlayerId ||
+                    (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2) ||
+                    state.HasPendingChoice() || state.HasOpenActionableInteraction() ||
+                    !MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId)) return false;
+                return (BuildInteraction.IsActive && !BuildInteraction.IsSubmissionInFlight) ||
+                       (flowCoordinator.IsActive(this) && MoveInteraction.IsSelectingMoveTarget) ||
+                       (flowCoordinator.IsActive(influenceActionPresenter) && influenceActionPresenter.IsActive) ||
+                       (flowCoordinator.IsActive(explorationEventPresenter) &&
+                        (explorationEventPresenter.IsSelectingExploreTarget || explorationEventPresenter.IsChoosingPath ||
+                         explorationEventPresenter.IsChoosingPaymentRecipient));
+            }
+        }
+
+        public bool TryCancelMainActionSelection()
+        {
+            if (!CanCancelMainActionSelection) return false;
+            if (BuildInteraction.IsActive) BuildInteraction.CancelExplicitly();
+            else flowCoordinator.ResetToChooseAction();
+            view.ClearHighlights();
+            view.RefreshActionPanel();
+            return true;
+        }
+
         public void SynchronizeFromState()
         {
             localPlayerResolver.ResolveAndApply(context);

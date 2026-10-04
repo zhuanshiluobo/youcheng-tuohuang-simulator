@@ -12,6 +12,8 @@ namespace YC.Infrastructure.Multiplayer
         public int LocalPlayerId = -1;
         public int PlayerCount;
         public bool HasStarted;
+        public ResumeRoomOptions Resume;
+        public List<RoomMember> WaitingMembers = new List<RoomMember>();
         public List<PlayerSeat> Seats = new List<PlayerSeat>();
 
         public RoomState Clone()
@@ -22,7 +24,8 @@ namespace YC.Infrastructure.Multiplayer
                 HostPlayerId = HostPlayerId,
                 LocalPlayerId = LocalPlayerId,
                 PlayerCount = PlayerCount,
-                HasStarted = HasStarted
+                HasStarted = HasStarted,
+                Resume = Resume?.Clone()
             };
 
             for (var i = 0; i < Seats.Count; i++)
@@ -32,6 +35,7 @@ namespace YC.Infrastructure.Multiplayer
                 {
                     PlayerId = seat.PlayerId,
                     SteamId = seat.SteamId,
+                    OperatorId = seat.OperatorId,
                     NetworkClientId = seat.NetworkClientId,
                     PlayerName = seat.PlayerName,
                     Color = seat.Color,
@@ -43,6 +47,7 @@ namespace YC.Infrastructure.Multiplayer
                 });
             }
 
+            foreach (var member in WaitingMembers) clone.WaitingMembers.Add(new RoomMember { MemberId = member.MemberId, PlayerName = member.PlayerName });
             return clone;
         }
 

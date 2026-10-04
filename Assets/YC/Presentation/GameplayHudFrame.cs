@@ -101,6 +101,8 @@ namespace YC.Presentation
         private bool effectSuspended;
         private bool mapInteractionActive;
         private readonly List<RectTransform> externalPages = new List<RectTransform>();
+        private System.Func<bool> canCancelMainAction;
+        private System.Action cancelMainAction;
 
         public static GameplayHudFrame Active => active;
         public static bool EffectInputSuspended => active != null && active.effectSuspended &&
@@ -111,6 +113,7 @@ namespace YC.Presentation
         public RectTransform BottomBar => bottomBar;
         public Button SettingsButton => settingsButton;
         public Button FoldButton => foldButton;
+        public Button UndoButton => undoButton;
         public Button EndActionButton => endActionButton;
         public string InteractionMessage => interactionMessage ?? string.Empty;
 
@@ -160,16 +163,40 @@ namespace YC.Presentation
                 foldButton.onClick.RemoveAllListeners();
                 foldButton.onClick.AddListener(ToggleEffectPage);
             }
-            if (undoButton != null) undoButton.interactable = false;
+            if (undoButton != null) undoButton.onClick.AddListener(CancelMainAction);
+            RefreshUndoButton();
             ApplyLayout(true);
             UpdateFoldButton();
         }
 
         private void OnDestroy()
         {
+            if (undoButton != null) undoButton.onClick.RemoveListener(CancelMainAction);
             Canvas.willRenderCanvases -= ReadCompletedLayout;
             InteractionRequestRouter.RequestRouted -= HandleRequestRouted;
             if (active == this) active = null;
+        }
+
+        public void BindMainActionCancellation(System.Func<bool> canCancel, System.Action cancel)
+        {
+            canCancelMainAction = canCancel;
+            cancelMainAction = cancel;
+            RefreshUndoButton();
+        }
+
+        private void CancelMainAction()
+        {
+            if (canCancelMainAction != null && canCancelMainAction()) cancelMainAction?.Invoke();
+            RefreshUndoButton();
+        }
+
+        private void RefreshUndoButton()
+        {
+            if (undoButton == null) return;
+            var available = canCancelMainAction != null && canCancelMainAction();
+            var buttonState = undoButton.GetComponent<UiMainButtonState>();
+            if (buttonState != null) buttonState.SetAvailable(available);
+            else undoButton.interactable = available;
         }
 
         private readonly Vector3[] completedMapCorners = new Vector3[4];
@@ -207,6 +234,7 @@ namespace YC.Presentation
 
         private void Update()
         {
+            RefreshUndoButton();
             if (stagePage != null && !stagePageSuspended && (visiblePage == null || !visiblePage.activeSelf))
                 ShowPage(stagePage, false);
             if (barCanvas != null && (lastScreenWidth != Screen.width || lastScreenHeight != Screen.height ||
@@ -226,6 +254,7 @@ namespace YC.Presentation
 
         public void Refresh(GameState state, ActionPanelViewModel action, string endUnavailableReason)
         {
+            RefreshUndoButton();
             if (state == null || action == null) return;
             if (roundNumberText != null) roundNumberText.text = state.Round.ToString();
             if (roundTotalText != null) roundTotalText.text = "/ " + state.MaxRounds + " 回合";

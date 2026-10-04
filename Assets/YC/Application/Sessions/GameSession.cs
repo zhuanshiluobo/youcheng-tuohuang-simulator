@@ -18,6 +18,9 @@ namespace YC.Application.Sessions
         private readonly List<IGameCommandHandler> commandHandlers = new List<IGameCommandHandler>();
         private PendingActionLog pendingActionLog;
 
+        public event Action StateCommitted;
+        public event Action<Exception> CommitObserverFailed;
+        public bool CommandsSuspended { get; set; }
         public GameState State { get; private set; }
         public GameStateView View { get; private set; }
 
@@ -76,7 +79,7 @@ namespace YC.Application.Sessions
             YC.Domain.Effects.EffectRegistry registry = null)
         {
             HostRecoveryResult result = HostRecoveryService.Recover(archive, registry);
-            if (result.State != null)
+            if (result.Succeeded && result.State != null)
             {
                 GameStateCloneService.CopyTo(State, result.State);
                 View = null;
@@ -105,6 +108,9 @@ namespace YC.Application.Sessions
 
         public CommandResult Submit(GameCommand command)
         {
+            if (CommandsSuspended)
+                return CreateTransactionFailure("正在保存并离开对局，请稍候。");
+
             if (command == null)
             {
                 throw new ArgumentNullException(nameof(command));
@@ -200,6 +206,7 @@ namespace YC.Application.Sessions
                 }
 
                 pendingActionLog = nextPendingActionLog;
+                NotifyStateCommitted();
                 return result;
             }
 
@@ -210,6 +217,21 @@ namespace YC.Application.Sessions
             }
 
             return CommandResult.Invalid(invalid);
+        }
+
+        private void NotifyStateCommitted()
+        {
+            var observers = StateCommitted;
+            if (observers == null) return;
+            foreach (Action observer in observers.GetInvocationList())
+            {
+                try { observer(); }
+                catch (Exception exception)
+                {
+                    // 提交已经完成；外部持久化故障不能伪装成命令回滚。
+                    try { CommitObserverFailed?.Invoke(exception); } catch { }
+                }
+            }
         }
 
         private static CommandResult CreateTransactionFailure(string reason)

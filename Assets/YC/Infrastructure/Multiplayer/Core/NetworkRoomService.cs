@@ -95,9 +95,10 @@ namespace YC.Infrastructure.Multiplayer
             }
         }
 
-        public RoomState CreateRoom(string hostPlayerName, int playerCount)
+        public RoomState CreateRoom(string hostPlayerName, int playerCount, ResumeRoomOptions resume = null, string operatorId = "")
         {
             ThrowIfDisposed();
+            resume?.Validate();
             Shutdown();
 
             playerCount = Math.Max(3, Math.Min(4, playerCount));
@@ -110,6 +111,13 @@ namespace YC.Infrastructure.Multiplayer
                 isHost = true;
                 roomGeneration++;
                 currentRoom = CreateDefaultRoom(roomId, playerCount);
+                currentRoom.Resume = resume?.Clone();
+                if (resume != null) foreach (var saved in resume.Seats)
+                {
+                    var seat = currentRoom.Seats.Find(s => s.PlayerId == saved.PlayerId);
+                    seat.PlayerName = saved.PlayerName; seat.Color = saved.Color; seat.OperatorId = saved.OperatorId;
+                }
+                currentRoom.Seats[0].OperatorId = operatorId;
                 currentRoom.LocalPlayerId = currentRoom.HostPlayerId;
                 currentRoom.Seats[0].PlayerName = string.IsNullOrEmpty(hostPlayerName) ? "Player 1" : hostPlayerName;
                 currentRoom.Seats[0].LobbyMemberPresent = true;
@@ -126,7 +134,7 @@ namespace YC.Infrastructure.Multiplayer
             return GetCurrentRoom();
         }
 
-        public RoomState JoinRoom(string roomId, string playerName)
+        public RoomState JoinRoom(string roomId, string playerName, string operatorId = "")
         {
             ThrowIfDisposed();
             if (!enableNetworking) throw new InvalidOperationException("Networking is disabled for this room service instance.");
@@ -138,7 +146,7 @@ namespace YC.Infrastructure.Multiplayer
 
             var stream = activeClient.GetStream();
             var activeWriter = new StreamWriter(stream) { AutoFlush = true };
-            activeWriter.WriteLine("JOIN|" + Escape(playerName));
+            activeWriter.WriteLine("JOIN4|" + Escape(playerName) + "|" + Escape(operatorId));
 
             lock (syncRoot)
             {
@@ -418,12 +426,16 @@ namespace YC.Infrastructure.Multiplayer
             try
             {
                 var line = connection.ReadLine();
-                if (line == null || !line.StartsWith("JOIN|", StringComparison.Ordinal))
+                if (line == null || (!line.StartsWith("JOIN4|", StringComparison.Ordinal) && !line.StartsWith("JOIN|", StringComparison.Ordinal)))
                 {
                     return;
                 }
 
-                var playerName = Unescape(line.Substring("JOIN|".Length));
+                bool modern = line.StartsWith("JOIN4|", StringComparison.Ordinal);
+                if (!modern && GetCurrentRoom()?.Resume != null) { connection.WriteLine("ERROR|Protocol version mismatch."); return; }
+                var hello = line.Substring(modern ? 6 : 5).Split('|');
+                var playerName = Unescape(hello[0]);
+                connection.OperatorId = hello.Length > 1 ? Unescape(hello[1]) : string.Empty;
                 var assignedPlayerId = AssignSeat(playerName, connection);
                 if (assignedPlayerId < 0)
                 {
@@ -434,7 +446,7 @@ namespace YC.Infrastructure.Multiplayer
                 connection.WriteLine("WELCOME|" + assignedPlayerId + "|" + connection.IdentityTicket);
                 connection.WriteLine("ROOM|" + SerializeRoom(GetCurrentRoom()));
                 Broadcast("ROOM|" + SerializeRoom(GetCurrentRoom()));
-                if (IsSeatOwner(connection)) RaiseRoomUpdated();
+                RaiseRoomUpdated();
 
                 while (true)
                 {
@@ -463,6 +475,8 @@ namespace YC.Infrastructure.Multiplayer
             lock (syncRoot)
             {
                 hostClients.Remove(connection);
+                if (currentRoom != null && currentRoom.WaitingMembers.RemoveAll(m => m.MemberId == connection.MemberId) > 0)
+                    roomChanged = true;
                 ClientConnection owner;
                 if (connection.PlayerId > 0 &&
                     seatOwners.TryGetValue(connection.PlayerId, out owner) &&
@@ -480,7 +494,7 @@ namespace YC.Infrastructure.Multiplayer
                             var defaultName = "Player " + seat.PlayerId;
                             roomChanged = seat.LobbyMemberPresent || seat.IsReady ||
                                           !string.Equals(seat.PlayerName, defaultName, StringComparison.Ordinal);
-                            seat.PlayerName = defaultName;
+                            if (currentRoom.Resume == null) seat.PlayerName = defaultName;
                             seat.LobbyMemberPresent = false;
                             seat.TransportConnected = false;
                             seat.IdentityVerified = false;
@@ -520,6 +534,22 @@ namespace YC.Infrastructure.Multiplayer
                     return connection.PlayerId;
                 }
 
+                if (currentRoom.Resume != null)
+                {
+                    if (string.IsNullOrEmpty(connection.OperatorId) || hostClients.Exists(c => !ReferenceEquals(c, connection) && c.OperatorId == connection.OperatorId && !c.IsDisposed)) return -1;
+                    var original = currentRoom.Seats.Find(s => !string.IsNullOrEmpty(connection.OperatorId) && s.OperatorId == connection.OperatorId);
+                    if (original != null)
+                    {
+                        if (original.PlayerId == 1 || original.LobbyMemberPresent) return -1;
+                        BindResumeSeat(connection, original, playerName);
+                        return original.PlayerId;
+                    }
+                    if (currentRoom.WaitingMembers.Count >= 8) return -1;
+                    connection.PlayerName = playerName;
+                    connection.IdentityTicket = "waiting"; // 永不进入游戏身份握手。
+                    currentRoom.WaitingMembers.Add(new RoomMember { MemberId = connection.MemberId, PlayerName = playerName });
+                    return 0;
+                }
                 for (var i = 0; i < currentRoom.Seats.Count; i++)
                 {
                     var seat = currentRoom.Seats[i];
@@ -528,6 +558,7 @@ namespace YC.Infrastructure.Multiplayer
                         continue;
                     }
 
+                    seat.OperatorId = connection.OperatorId;
                     seat.PlayerName = string.IsNullOrEmpty(playerName) ? "Player " + seat.PlayerId : playerName;
                     seat.LobbyMemberPresent = true;
                     seat.TransportConnected = false;
@@ -545,6 +576,37 @@ namespace YC.Infrastructure.Multiplayer
             return -1;
         }
 
+        public void AssignResumeSeat(string memberId, int playerId)
+        {
+            ClientConnection connection;
+            long generation;
+            lock (syncRoot)
+            {
+                connection = hostClients.Find(c => c.MemberId == memberId);
+                var seat = currentRoom?.Seats.Find(s => s.PlayerId == playerId);
+                if (!isHost || currentRoom?.Resume == null || currentRoom.HasStarted || seat == null ||
+                    playerId == 1 || seat.LobbyMemberPresent || connection == null || connection.PlayerId > 0 ||
+                    currentRoom.Seats.Exists(s => !string.IsNullOrEmpty(connection.OperatorId) && s.OperatorId == connection.OperatorId))
+                    throw new InvalidOperationException("席位或候选成员已变化，请刷新后重试。");
+                BindResumeSeat(connection, seat, connection.PlayerName);
+                currentRoom.WaitingMembers.RemoveAll(m => m.MemberId == memberId);
+                generation = roomGeneration;
+            }
+            connection.WriteLine("WELCOME|" + playerId + "|" + connection.IdentityTicket);
+            PublishRoomUpdate(generation);
+        }
+        private void BindResumeSeat(ClientConnection connection, PlayerSeat seat, string playerName)
+        {
+            seat.OperatorId = connection.OperatorId;
+            seat.PlayerName = playerName;
+            seat.LobbyMemberPresent = true;
+            seat.TransportConnected = seat.IdentityVerified = seat.IsReady = seat.GameStateSynchronized = false;
+            seat.NetworkClientId = 0;
+            connection.PlayerId = seat.PlayerId;
+            connection.IdentityTicket = Guid.NewGuid().ToString("N");
+            seatOwners[seat.PlayerId] = connection;
+            playerByIdentityTicket[connection.IdentityTicket] = seat.PlayerId;
+        }
         private void ClientReadLoop(TcpClient tcpClient)
         {
             try
@@ -672,9 +734,10 @@ namespace YC.Infrastructure.Multiplayer
                 {
                     var connection = hostClients[i];
                     ClientConnection owner;
-                    if (connection.PlayerId > 0 &&
+                    if ((connection.PlayerId > 0 &&
                         seatOwners.TryGetValue(connection.PlayerId, out owner) &&
-                        ReferenceEquals(owner, connection))
+                        ReferenceEquals(owner, connection)) ||
+                        (currentRoom != null && currentRoom.WaitingMembers.Exists(m => m.MemberId == connection.MemberId)))
                     {
                         activeRecipients.Add(connection);
                     }
@@ -891,14 +954,15 @@ namespace YC.Infrastructure.Multiplayer
                           (seat.IdentityVerified ? "1" : "0") + "," +
                           seat.NetworkClientId + "," +
                           (seat.IsReady ? "1" : "0") + "," +
-                          (seat.GameStateSynchronized ? "1" : "0"));
+                          (seat.GameStateSynchronized ? "1" : "0") + "," + Escape(seat.OperatorId));
             }
 
             return Escape(room.RoomId) + "|" +
                    room.HostPlayerId + "|" +
                    room.PlayerCount + "|" +
                    (room.HasStarted ? "1" : "0") + "|" +
-                   string.Join(";", seats.ToArray());
+                   string.Join(";", seats.ToArray()) + "|4|" + SerializeResume(room.Resume) + "|" +
+                   string.Join(";", room.WaitingMembers.ConvertAll(m => Escape(m.MemberId) + "," + Escape(m.PlayerName)).ToArray());
         }
 
         internal static RoomState DeserializeRoom(string payload)
@@ -946,15 +1010,41 @@ namespace YC.Infrastructure.Multiplayer
                         LobbyMemberPresent = lobbyMemberPresent,
                         TransportConnected = transportConnected,
                         IdentityVerified = identityVerified,
+                        OperatorId = seatParts.Length > 9 ? Unescape(seatParts[9]) : string.Empty,
                         GameStateSynchronized = synchronized,
                         IsReady = isReady
                     });
                 }
             }
 
+            if (parts.Length > 6 && !string.IsNullOrEmpty(parts[6])) room.Resume = DeserializeResume(parts[6]);
+            if (parts.Length > 7 && !string.IsNullOrEmpty(parts[7])) foreach (var member in parts[7].Split(';'))
+            {
+                var fields = member.Split(',');
+                if (fields.Length == 2) room.WaitingMembers.Add(new RoomMember { MemberId = Unescape(fields[0]), PlayerName = Unescape(fields[1]) });
+            }
             return room;
         }
-
+        private static string SerializeResume(ResumeRoomOptions resume)
+        {
+            if (resume == null) return string.Empty;
+            var seats = resume.Seats.ConvertAll(s => s.PlayerId + "," + s.SteamId + "," + Escape(s.PlayerName) + "," + (int)s.Color + "," + Escape(s.OperatorId));
+            return Escape(Escape(resume.MapId) + "|" + Escape(resume.GameId) + "|" + resume.Round + "|" + string.Join(";", seats.ToArray()));
+        }
+        private static ResumeRoomOptions DeserializeResume(string payload)
+        {
+            var fields = Unescape(payload).Split('|');
+            if (fields.Length != 4) throw new InvalidDataException("续局摘要损坏。");
+            var resume = new ResumeRoomOptions { MapId = Unescape(fields[0]), GameId = Unescape(fields[1]), Round = ParseInt(fields[2], 0) };
+            foreach (var item in fields[3].Split(';'))
+            {
+                var s = item.Split(',');
+                if (s.Length != 5) throw new InvalidDataException("续局席位损坏。");
+                resume.Seats.Add(new MatchSaveSeat { PlayerId = ParseInt(s[0], -1), SteamId = ParseUlong(s[1], 0), PlayerName = Unescape(s[2]), Color = (PlayerColor)ParseInt(s[3], 0), OperatorId = Unescape(s[4]) });
+            }
+            resume.Validate();
+            return resume;
+        }
         private static int ParseInt(string value, int fallback)
         {
             int parsed;
@@ -969,7 +1059,7 @@ namespace YC.Infrastructure.Multiplayer
         private static string Escape(string value)
         {
             return (value ?? string.Empty)
-                .Replace("%", "%25")
+                .Replace("%", "%25").Replace("\r", "%0D").Replace("\n", "%0A")
                 .Replace("|", "%7C")
                 .Replace(";", "%3B")
                 .Replace(",", "%2C");
@@ -978,7 +1068,7 @@ namespace YC.Infrastructure.Multiplayer
         private static string Unescape(string value)
         {
             return (value ?? string.Empty)
-                .Replace("%2C", ",")
+                .Replace("%0D", "\r").Replace("%0A", "\n").Replace("%2C", ",")
                 .Replace("%3B", ";")
                 .Replace("%7C", "|")
                 .Replace("%25", "%");
@@ -993,6 +1083,9 @@ namespace YC.Infrastructure.Multiplayer
             private readonly Action disposeAction;
             private int disposeState;
 
+            internal string MemberId = Guid.NewGuid().ToString("N");
+            internal string OperatorId = string.Empty;
+            internal string PlayerName = string.Empty;
             internal int PlayerId = -1;
             internal string IdentityTicket = string.Empty;
             internal Thread ReadThread;

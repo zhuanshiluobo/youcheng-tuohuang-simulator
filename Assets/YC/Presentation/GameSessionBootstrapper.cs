@@ -1,4 +1,4 @@
-﻿using YC.Application.Gameplay;
+using YC.Application.Gameplay;
 using YC.Application.Interactions;
 using YC.Application.Sessions;
 using YC.Application.Setup;
@@ -27,6 +27,7 @@ namespace YC.Presentation
         public sealed class Result
         {
             public GameSession Session;
+            public string ContentHash;
             public MapQueryService MapQuery;
             public InfluenceService InfluenceService;
             public CityMovementService MovementService;
@@ -39,17 +40,19 @@ namespace YC.Presentation
         public static Result Build(
             GameLaunchContext launchContext,
             bool useRightCardSmokeState = false,
-            bool prepareSharedCityStyleSmokeState = false)
+            bool prepareSharedCityStyleSmokeState = false,
+            MatchSaveData restore = null)
         {
+            if (restore != null) restore.Validate();
             var mapQuery = new MapQueryService(StaticMapDefinitions.Resolve(
-                launchContext == null ? StaticMapDefinitions.FourPlayerMapId : launchContext.MapId));
+                restore != null ? restore.MapId : (launchContext == null ? StaticMapDefinitions.FourPlayerMapId : launchContext.MapId)));
             var launchMode = launchContext == null ? LaunchMode.Local : launchContext.Mode;
-            var eventDeckSeed = GetEventDeckSeed(launchContext);
+            var eventDeckSeed = restore == null ? GetEventDeckSeed(launchContext) : restore.Archive.Snapshot.State.EventDeckSeed;
             var eventDeckService = new EventDeckService(eventDeckSeed);
             var localPlayerId = ResolveLocalPlayerId(launchContext);
 
             var players = launchContext == null ? null : launchContext.Players;
-            var state = useRightCardSmokeState
+            var state = restore != null ? GameStateCloneService.DeepClone(restore.Archive.Snapshot.State) : useRightCardSmokeState
                 ? RightCardSmokeStateFactory.CreateInitialState(
                     launchMode,
                     localPlayerId,
@@ -63,12 +66,13 @@ namespace YC.Presentation
                     players,
                     mapQuery.Map.MapId,
                     eventDeckSeed);
+            if (restore == null) state.GameId = System.Guid.NewGuid().ToString("N");
             if (useRightCardSmokeState)
             {
                 localPlayerId = state.CurrentPlayerId;
             }
 
-            eventDeckService.InitializeDecks(
+            if (restore == null) eventDeckService.InitializeDecks(
                 state.Decks,
                 EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Green),
                 EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Yellow),
@@ -193,7 +197,15 @@ namespace YC.Presentation
             var resourceCollectionService = new ResourceCollectionService(mapQuery);
             session.RegisterHandler(new CollectResourceCommandHandler(resourceCollectionService, roundAdvanceService));
 
-            if (session.State.Phase == GamePhase.Entrance)
+            if (restore != null)
+            {
+                if (restore.ContentHash != effectRegistry.ContentPackHash)
+                    throw new System.InvalidOperationException("存档内容包与当前游戏不一致，不能恢复。");
+                var recovered = session.RecoverHost(restore.Archive, effectRegistry);
+                if (!recovered.Succeeded)
+                    throw new System.InvalidOperationException("对局恢复失败：" + recovered.FaultCode + " " + recovered.Diagnostic);
+            }
+            if (restore == null && session.State.Phase == GamePhase.Entrance)
             {
                 var entrance = roundExecutionService.StartEntrance(session.State);
                 if (!entrance.IsValid) throw new System.InvalidOperationException(entrance.Reason);
@@ -202,6 +214,7 @@ namespace YC.Presentation
             return new Result
             {
                 Session = session,
+                ContentHash = effectRegistry.ContentPackHash,
                 MapQuery = mapQuery,
                 InfluenceService = influenceService,
                 MovementService = movementService,
@@ -210,6 +223,21 @@ namespace YC.Presentation
                 EventDeckService = eventDeckService,
                 LocalPlayerId = localPlayerId
             };
+        }
+
+        public static Result Restore(GameLaunchContext context, MatchSaveData data)
+        {
+            if (data == null) throw new System.ArgumentNullException(nameof(data));
+            if (data.MapId != StaticMapDefinitions.ThreePlayerMapId && data.MapId != StaticMapDefinitions.FourPlayerMapId)
+                throw new System.InvalidOperationException("存档地图不存在。");
+            // 主菜单预检也必须具有完整内容和处理器，不依赖地图场景 Awake 的先后顺序。
+            var pack = ExternalContentRuntime.Pack;
+            EventCardDatabase.InitializeExternal(pack.CreateEvents());
+            CharacterCardDatabase.Initialize(pack.CreateCharacters());
+            FacilityCardDatabase.InitializeExternal(pack.CreateFacilities());
+            CityStyleDatabase.InitializeExternal(pack.CreateCityStyles());
+            SpecialActionDatabase.InitializeExternal(pack.CreateSpecialActions());
+            return Build(context, restore: data);
         }
 
         public static int GetEventDeckSeed(GameLaunchContext launchContext)

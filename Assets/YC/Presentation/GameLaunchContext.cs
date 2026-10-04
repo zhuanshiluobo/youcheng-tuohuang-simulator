@@ -15,6 +15,10 @@ namespace YC.Presentation
         public string MapId = YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId;
         public string RoomId = string.Empty;
         public List<PlayerSeat> Players = new List<PlayerSeat>();
+        [System.NonSerialized] private MatchSaveData pendingRestore;
+        public void SetRestore(MatchSaveData data) { pendingRestore = data; }
+        public MatchSaveData ConsumeRestore() { var data = pendingRestore; pendingRestore = null; return data; }
+        public void ClearRestore() { pendingRestore = null; }
         private bool returningToStart;
         public bool IsLeavingGameplay => returningToStart;
         private bool completedSessionDetached;
@@ -56,6 +60,7 @@ namespace YC.Presentation
             completedSessionDetached = false;
             pendingReturnScene = null;
             pendingOnlineSessionNotice = null;
+            pendingRestore = null;
             MapId = mapId ?? (mode != LaunchMode.Local && players != null && players.Count == 3
                 ? YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId : YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId);
             Mode = mode;
@@ -72,6 +77,7 @@ namespace YC.Presentation
                     {
                         PlayerId = seat.PlayerId,
                         SteamId = seat.SteamId,
+                        OperatorId = seat.OperatorId,
                         NetworkClientId = seat.NetworkClientId,
                         PlayerName = seat.PlayerName,
                         Color = seat.Color,
@@ -126,6 +132,12 @@ namespace YC.Presentation
         }
 
         public static void ReturnToStartScene(string sceneName)
+        {
+            var saves = MatchSaveController.Instance;
+            if (saves != null && saves.CanSave) { saves.RequestLeave(() => ReturnToStartAfterSave(sceneName)); return; }
+            ReturnToStartAfterSave(sceneName);
+        }
+        private static void ReturnToStartAfterSave(string sceneName)
         {
             var transport = MirrorCommandTransport.Instance;
             if (Instance != null && !Instance.completedSessionDetached &&
@@ -185,6 +197,7 @@ namespace YC.Presentation
                 Instance.LocalPlayerId = 1;
                 Instance.RoomId = string.Empty;
                 Instance.Players.Clear();
+                Instance.pendingRestore = null;
             }
 
             MirrorCommandTransport.Instance?.Shutdown();
