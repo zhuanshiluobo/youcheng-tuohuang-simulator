@@ -37,8 +37,8 @@ namespace YC.Tests.EditMode
         }
         private static Task Save(object store, MatchSaveData data, int slot = -1)
             => (Task)StoreType.GetMethod("SaveAsync").Invoke(store, new object[] { data, slot });
-        private static MatchSaveData Read(object store, int slot, bool backup = false)
-            => (MatchSaveData)StoreType.GetMethod("Read").Invoke(store, new object[] { slot, backup });
+        private static MatchSaveData Read(object store, int slot)
+            => (MatchSaveData)StoreType.GetMethod("Read").Invoke(store, new object[] { slot });
 
         [Test]
         public void JsonRoundTrip_PreservesDeepEffectParametersPendingChoiceAndDeckOrder()
@@ -75,19 +75,20 @@ namespace YC.Tests.EditMode
             Assert.That(Directory.GetFiles(directory, "auto-*.json").Length, Is.EqualTo(3));
         }
         [Test]
-        public void CorruptPrimary_ReadsBackupAndFailedWritePreservesOldFile()
+        public void OverwriteKeepsLatestWithoutBackup_CorruptSaveFailsAndFailedWritePreservesOldFile()
         {
             var store = Store(out var directory); var data = Sample();
             Save(store, data, 0).GetAwaiter().GetResult();
             data.Round = data.Archive.Snapshot.State.Round = 8;
             Save(store, data, 0).GetAwaiter().GetResult();
             var file = Path.Combine(directory, "manual-1.json"); var before = File.ReadAllText(file);
+            Assert.That(Read(store, 0).Round, Is.EqualTo(8));
+            Assert.That(File.Exists(file + ".bak"), Is.False);
             using (var locked = new FileStream(file + ".tmp", FileMode.Create, FileAccess.ReadWrite, FileShare.None))
                 Assert.Throws<IOException>(() => Save(store, data, 0).GetAwaiter().GetResult());
             Assert.That(File.ReadAllText(file), Is.EqualTo(before));
             File.WriteAllText(file, "broken");
             Assert.Throws<TargetInvocationException>(() => Read(store, 0));
-            Assert.That(Read(store, 0, true).Round, Is.EqualTo(2));
         }
         [Test]
         public void AutomaticSave_DoesNotOverwriteIncompatibleOrCorruptSlots()

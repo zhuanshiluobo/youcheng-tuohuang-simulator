@@ -48,6 +48,7 @@ namespace YC.Presentation
 
         public void HandleEscapePressed()
         {
+            if (MatchSaveWindowView.IsAnyOpen || MatchSaveWindowView.WasClosedThisFrame) return;
             if (!TryInitialize())
             {
                 return;
@@ -104,6 +105,8 @@ namespace YC.Presentation
             view.ConfirmationObject.SetActive(false);
             ResetLegacyPanelPosition();
             view.OverlayObject.SetActive(true);
+            if (view.SaveGameButton != null)
+                view.SaveGameButton.gameObject.SetActive(MatchSaveController.Instance != null && MatchSaveController.Instance.CanSave);
             GameplayHudFrame.Active?.ShowPage(view.OverlayObject, false);
         }
 
@@ -212,7 +215,8 @@ namespace YC.Presentation
             BindButton(view.GeneralTabButton, () => SelectTab(SettingsTab.General));
             BindButton(view.RulebookButton, SelectRulebookTab);
             BindButton(view.PlaceholderTabButton, () => SelectTab(SettingsTab.Placeholder));
-            BindButton(view.ReturnButton, ShowConfirmation);
+            BindButton(view.ReturnButton, ReturnToStartScene);
+            if (view.SaveGameButton != null) BindButton(view.SaveGameButton, MatchSaveWindowView.OpenSave);
             BindButton(view.ConfirmReturnButton, ReturnToStartScene);
             BindButton(view.CancelReturnButton, HideConfirmation);
         }
@@ -313,11 +317,6 @@ namespace YC.Presentation
         {
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(action);
-        }
-
-        private void ShowConfirmation()
-        {
-            view.ConfirmationObject.SetActive(true);
         }
 
         private void HideConfirmation()

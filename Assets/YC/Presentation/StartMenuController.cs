@@ -27,15 +27,17 @@ namespace YC.Presentation
         [SerializeField] private Texture2D coverTexture;
         [SerializeField] private StartMenuView view;
 
-        private IOnlineRoomService roomService;
-        private LobbyJoinRequestFlow lobbyJoinRequestFlow;
+        [NonSerialized] private IOnlineRoomService roomService;
+        [NonSerialized] private LobbyJoinRequestFlow lobbyJoinRequestFlow;
+        [NonSerialized] private bool roomEventsSubscribed;
         private readonly object networkEventLock = new object();
         private readonly List<Text> roomSeatRows = new List<Text>();
         private GameObject roomPanel;
         private InputField joinRoomInput;
         private Text roomStatusText;
-        private RoomState pendingRoomUpdate;
-        private RoomState pendingGameStart;
+        // 临时通知不参与热重载序列化，避免 null 被还原为空房间并触发弹窗。
+        [NonSerialized] private RoomState pendingRoomUpdate;
+        [NonSerialized] private RoomState pendingGameStart;
         private string pendingNetworkError;
         private bool pendingRoomDisbanded;
         private bool pendingLobbyJoinRequested;
@@ -44,6 +46,7 @@ namespace YC.Presentation
         [System.NonSerialized] private MatchSaveData resumeArchive;
         private bool loadingGame;
         private bool joiningRoom;
+        public bool CanOpenMatchSave => !loadingGame && !joiningRoom && roomPanel == null;
         private bool autoStartLocalMirrorGame;
         private bool autoStartLocalMirrorRequestPending;
         private float nextAutoStartLocalMirrorAttemptTime;
@@ -53,9 +56,11 @@ namespace YC.Presentation
 
         private void Awake()
         {
+            // 每次进入运行模式都从无待处理房间通知开始。
+            pendingRoomUpdate = null;
+            pendingGameStart = null;
             UnityEngine.Application.runInBackground = true;
-            roomService = OnlineRoomServiceProvider.GetOrCreate();
-            lobbyJoinRequestFlow = new LobbyJoinRequestFlow(roomService);
+            BindRoomService();
             if (TryRunDevCommandLineTask())
             {
                 return;
@@ -67,11 +72,6 @@ namespace YC.Presentation
                 return;
             }
 
-            roomService.RoomUpdated += QueueRoomUpdate;
-            roomService.GameStarted += QueueGameStart;
-            roomService.RoomDisbanded += QueueRoomDisbanded;
-            roomService.ErrorOccurred += QueueNetworkError;
-            roomService.LobbyJoinRequested += QueueLobbyJoinRequested;
             roomService.Shutdown();
             if (!BuildMenu())
             {
@@ -84,6 +84,37 @@ namespace YC.Presentation
 
             MatchSaveController.Instance?.Unbind();
             ProcessPendingLobbyJoinRequest();
+        }
+
+        private void OnEnable() => BindRoomService();
+
+        private void OnDisable() => UnbindRoomServiceEvents();
+
+        private void BindRoomService()
+        {
+            // 脚本重载会丢失托管服务；OnEnable 只恢复服务和订阅，不重建菜单或关闭房间。
+            if (roomService == null) roomService = OnlineRoomServiceProvider.GetOrCreate();
+            if (lobbyJoinRequestFlow == null) lobbyJoinRequestFlow = new LobbyJoinRequestFlow(roomService);
+            if (roomEventsSubscribed) return;
+            roomService.RoomUpdated += QueueRoomUpdate;
+            roomService.GameStarted += QueueGameStart;
+            roomService.RoomDisbanded += QueueRoomDisbanded;
+            roomService.ErrorOccurred += QueueNetworkError;
+            roomService.LobbyJoinRequested += QueueLobbyJoinRequested;
+            roomEventsSubscribed = true;
+        }
+
+        private void UnbindRoomServiceEvents()
+        {
+            if (roomService != null && roomEventsSubscribed)
+            {
+                roomService.RoomUpdated -= QueueRoomUpdate;
+                roomService.GameStarted -= QueueGameStart;
+                roomService.RoomDisbanded -= QueueRoomDisbanded;
+                roomService.ErrorOccurred -= QueueNetworkError;
+                roomService.LobbyJoinRequested -= QueueLobbyJoinRequested;
+            }
+            roomEventsSubscribed = false;
         }
 
         private static bool ShouldStartLocalhostFromCommandLine()
@@ -232,6 +263,7 @@ namespace YC.Presentation
 
         private void Update()
         {
+            if (roomService == null) return;
             RoomState roomUpdate = null;
             RoomState gameStart = null;
             string networkError = null;
@@ -298,12 +330,8 @@ namespace YC.Presentation
 
         private void OnDestroy()
         {
+            UnbindRoomServiceEvents();
             if (roomService == null) return;
-            roomService.RoomUpdated -= QueueRoomUpdate;
-            roomService.GameStarted -= QueueGameStart;
-            roomService.RoomDisbanded -= QueueRoomDisbanded;
-            roomService.ErrorOccurred -= QueueNetworkError;
-            roomService.LobbyJoinRequested -= QueueLobbyJoinRequested;
 
             if (!loadingGame)
             {
@@ -450,11 +478,19 @@ namespace YC.Presentation
             view.CoverImage.texture = coverTexture;
             BindStaticUi();
             view.HideRoomPanels();
+            RefreshMatchSaveAvailability();
             return true;
+        }
+
+        public void RefreshMatchSaveAvailability()
+        {
+            if (view != null) view.SetMatchSaveAvailable(MatchSaveController.Ensure().HasSaves);
         }
 
         private void BindStaticUi()
         {
+            if (view.LoadGameButton != null)
+                BindButton(view.LoadGameButton, () => MatchSaveWindowView.OpenLoad(this));
             BindButton(view.StartGameButton, ShowLocalMapSelectionPanel);
             YC.PlayerJourney.PlayerAutomationId.Attach(view.StartGameButton.gameObject, "start.local_game");
             // 地图选择已改为人数与地图轮换面板，确认按钮承担原四人地图按钮的自动化入口。
@@ -485,6 +521,8 @@ namespace YC.Presentation
             BindButton(view.RoomPanel.InviteButton, InviteSteamFriends);
             BindButton(view.RoomPanel.StartButton, StartOnlineGame);
             BindButton(view.RoomPanel.BackButton, HideRoomPanel);
+            if (view.RoomPanel.ResumeSeatsButton != null)
+                BindButton(view.RoomPanel.ResumeSeatsButton, MatchSaveWindowView.OpenSeats);
         }
 
         private static void BindButton(Button button, UnityEngine.Events.UnityAction action)
@@ -759,6 +797,8 @@ namespace YC.Presentation
             panel.InviteButton.gameObject.SetActive(roomService.SupportsFriendInvites);
             panel.StartButton.gameObject.SetActive(hostControls);
             panel.StartButton.interactable = canStart;
+            if (panel.ResumeSeatsButton != null)
+                panel.ResumeSeatsButton.gameObject.SetActive(hostControls && room.Resume != null && !room.HasStarted);
 
             if (autoStartLocalMirrorGame && hostControls && canStart)
             {

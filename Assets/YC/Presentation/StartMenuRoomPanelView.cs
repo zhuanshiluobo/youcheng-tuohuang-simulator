@@ -14,6 +14,7 @@ namespace YC.Presentation
         [SerializeField] private Button inviteButton;
         [SerializeField] private Button startButton;
         [SerializeField] private Button backButton;
+        [SerializeField] private Button resumeSeatsButton;
 
         public Text RoomCodeText => roomCodeText;
         public Button CopyButton => copyButton;
@@ -24,6 +25,7 @@ namespace YC.Presentation
         public Button InviteButton => inviteButton;
         public Button StartButton => startButton;
         public Button BackButton => backButton;
+        public Button ResumeSeatsButton => resumeSeatsButton;
 
         public bool TryValidateConfiguration(out string reason)
         {

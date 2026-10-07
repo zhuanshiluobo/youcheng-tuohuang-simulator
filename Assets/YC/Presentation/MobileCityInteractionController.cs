@@ -285,6 +285,7 @@ namespace YC.Presentation
 
         private void Update()
         {
+            if (MatchSaveWindowView.IsAnyOpen || MatchSaveWindowView.WasClosedThisFrame) return;
             workflowView?.RefreshCityStylePreview();
             gameplayInteractionHud?.Frame?.UpdateInteractionMessage(
                 mapInteractionRouter != null && mapInteractionRouter.HasPendingConfirmation);
@@ -504,6 +505,7 @@ namespace YC.Presentation
 
         public bool TryHandleInteractionEscape()
         {
+            if (MatchSaveWindowView.IsAnyOpen || MatchSaveWindowView.WasClosedThisFrame) return false;
             if (CardViewer.HasOpenViewer() || CardViewer.WasEscapeConsumedThisFrame()) return false;
             if (interactionEscapeConsumedFrame == Time.frameCount)
             {

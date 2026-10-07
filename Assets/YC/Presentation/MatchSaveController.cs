@@ -21,6 +21,7 @@ namespace YC.Presentation
         private long saveSequence, completedSaveSequence;
         private string lastFailure;
         public bool CanSave => session != null && configuration != null;
+        public string LastFailure => lastFailure;
 
         public static MatchSaveController Ensure()
         {
@@ -42,11 +43,13 @@ namespace YC.Presentation
             UnityEngine.Application.wantsToQuit -= WantsToQuit;
             Instance = null;
         }
-        // 保留手动槽位和读档预检能力，暂不提供界面入口。
+        public bool HasSaves => store.HasSaves();
         public List<MatchSaveSlot> ListSlots() => store.List();
-        public MatchSaveData Read(int slot, bool backup = false)
+        public Task<List<MatchSaveSlot>> ListSlotsAsync() => store.ListAsync();
+        public Task Delete(int slot) => store.DeleteAsync(slot);
+        public MatchSaveData Read(int slot)
         {
-            var data = store.Read(slot, backup);
+            var data = store.Read(slot);
             GameSessionBootstrapper.Restore(null, data);
             return data;
         }
@@ -128,8 +131,8 @@ namespace YC.Presentation
             session.CommandsSuspended = true;
             try
             {
-                // 上次保存失败时，本次退出请求重试；不创建确认或错误弹窗。
-                if (!string.IsNullOrEmpty(lastFailure) && !await Save())
+                // 保存并退出始终捕获最新状态；保存过程不创建提示窗口。
+                if (!await Save())
                     throw new IOException(lastFailure);
                 await store.FlushAsync();
                 if (epoch != generation) return;

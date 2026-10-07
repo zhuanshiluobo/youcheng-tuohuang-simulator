@@ -139,7 +139,7 @@ namespace YC.PlayerJourney
                         markers.Where(m => m.Id.StartsWith("selection.card."))
                             .OrderByDescending(m => m.Id.Contains(characterTemplate)).FirstOrDefault()?.gameObject;
                 if (target == null && result.finalScoringVisible)
-                    target = buttons.FirstOrDefault(b => Label(b).Contains("返回开始") || Label(b).Contains("返回主菜单"))?.gameObject;
+                    target = buttons.FirstOrDefault(b => Label(b).Contains("返回开始") || Label(b).Contains("返回主菜单") || Label(b).Contains("保存并退出"))?.gameObject;
                 if (target == null && text.Contains("可以再调度一个影响力"))
                     target = buttons.FirstOrDefault(b => Label(b).Contains("取消"))?.gameObject;
                 if (target == null) target = markers.FirstOrDefault(m => m.Id == "start.local_game" || m.Id == "start.four_player_map")?.gameObject;

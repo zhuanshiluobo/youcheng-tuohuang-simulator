@@ -15,7 +15,6 @@ namespace YC.Infrastructure.Persistence
     {
         public int Index;
         public bool Exists;
-        public bool HasBackup;
         public MatchSaveData Data;
         public string Error;
     }
@@ -61,16 +60,22 @@ namespace YC.Infrastructure.Persistence
             lock (queueLock) incompatibleSlots.Add(slot);
         }
         public MatchSaveStore(string directory) { this.directory = directory; }
+        public bool HasSaves()
+        {
+            for (int i = 0; i < SlotCount; i++)
+                if (File.Exists(PathFor(i))) return true;
+            return false;
+        }
         private string PathFor(int slot)
         {
             if (slot < 0 || slot >= SlotCount) throw new ArgumentOutOfRangeException(nameof(slot));
             return Path.Combine(directory, (slot < ManualCount ? "manual-" : "auto-") + (slot % 3 + 1) + ".json");
         }
-        public MatchSaveData Read(int slot, bool backup = false)
+        public MatchSaveData Read(int slot)
         {
             string text;
             // 槽位列表读取不阻挡后台原子替换；已打开句柄仍读取同一份完整文件。
-            using (var stream = new FileStream(PathFor(slot) + (backup ? ".bak" : ""), FileMode.Open,
+            using (var stream = new FileStream(PathFor(slot), FileMode.Open,
                 FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
             using (var reader = new StreamReader(stream, Encoding.UTF8)) text = reader.ReadToEnd();
             // 在反序列化前检查包装版本；禁用类型名称加载。
@@ -80,7 +85,7 @@ namespace YC.Infrastructure.Persistence
             if (envelope == null || envelope.Format != "YC.MatchSave" || envelope.Version != MatchSaveData.CurrentVersion)
                 throw new InvalidDataException("不支持此对局存档文件版本。");
             if (string.IsNullOrEmpty(envelope.Payload) || envelope.Checksum != Hash(envelope.Payload))
-                throw new InvalidDataException("存档完整性检查失败，可尝试读取备份。");
+                throw new InvalidDataException("存档完整性检查失败，无法读取。");
             var data = JsonConvert.DeserializeObject<MatchSaveData>(envelope.Payload, JsonSettings);
             if (data == null) throw new InvalidDataException("对局存档内容为空。");
             data.Validate();
@@ -91,7 +96,7 @@ namespace YC.Infrastructure.Persistence
             var result = new List<MatchSaveSlot>();
             for (int i = 0; i < SlotCount; i++)
             {
-                var row = new MatchSaveSlot { Index = i, Exists = File.Exists(PathFor(i)), HasBackup = File.Exists(PathFor(i) + ".bak") };
+                var row = new MatchSaveSlot { Index = i, Exists = File.Exists(PathFor(i)) };
                 if (row.Exists)
                 {
                     try { row.Data = Read(i); }
@@ -101,6 +106,8 @@ namespace YC.Infrastructure.Persistence
             }
             return result;
         }
+        // 列表中的文件读取、校验和 DTO 反序列化不访问 Unity，可在后台完成。
+        public Task<List<MatchSaveSlot>> ListAsync() => Task.Run(List);
         public Task SaveAsync(MatchSaveData data, int manualSlot = -1)
         {
             if (manualSlot < -1 || manualSlot >= ManualCount) throw new ArgumentOutOfRangeException(nameof(manualSlot));
@@ -128,13 +135,31 @@ namespace YC.Infrastructure.Persistence
                             if (slot < 0 || File.GetLastWriteTimeUtc(PathFor(i)) < File.GetLastWriteTimeUtc(PathFor(slot))) slot = i;
                         }
                     }
-                    if (slot < 0) throw new IOException("自动槽位均为损坏或不兼容存档，请先备份文件再手动处理。");
+                    if (slot < 0) throw new IOException("自动槽位均为损坏或不兼容存档，请手动处理对应槽位。");
                     WriteAtomic(PathFor(slot), json);
                 });
                 return tail;
             }
         }
         public Task FlushAsync() { lock (queueLock) return tail; }
+        public Task DeleteAsync(int slot)
+        {
+            string path = PathFor(slot);
+            lock (queueLock)
+            {
+                var previous = tail;
+                tail = Task.Run(async () =>
+                {
+                    try { await previous.ConfigureAwait(false); } catch { }
+                    // 仅处理玩家确认的这个槽位，不枚举或递归删除目录。
+                    File.Delete(path);
+                    File.Delete(path + ".bak"); // 删除槽位时一并清理旧版本留下的文件。
+                    File.Delete(path + ".tmp");
+                    lock (queueLock) incompatibleSlots.Remove(slot);
+                });
+                return tail;
+            }
+        }
         private static void WriteAtomic(string path, string json)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -146,7 +171,7 @@ namespace YC.Infrastructure.Persistence
                 stream.Flush(true);
             }
             // 临时文件和目标位于同一卷；替换失败保留原档，不使用删除再移动的退化路径。
-            if (File.Exists(path)) File.Replace(temp, path, path + ".bak", true);
+            if (File.Exists(path)) File.Replace(temp, path, null, true);
             else File.Move(temp, path);
         }
     }

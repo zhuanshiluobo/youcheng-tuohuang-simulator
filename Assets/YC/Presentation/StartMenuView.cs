@@ -11,6 +11,8 @@ namespace YC.Presentation
 
         [Header("Main menu")]
         [SerializeField] private Button startGameButton;
+        [SerializeField] private Button loadGameButton;
+        [SerializeField] private Vector2 localGamePositionWithoutSave;
         [SerializeField] private Button onlineModeButton;
         [SerializeField] private Button achievementsButton;
         [SerializeField] private Button quitGameButton;
@@ -29,6 +31,7 @@ namespace YC.Presentation
         public RectTransform CoverFrame => coverFrame;
         public RawImage CoverImage => coverImage;
         public Button StartGameButton => startGameButton;
+        public Button LoadGameButton => loadGameButton;
         public Button OnlineModeButton => onlineModeButton;
         public Button AchievementsButton => achievementsButton;
         public Button QuitGameButton => quitGameButton;
@@ -41,6 +44,22 @@ namespace YC.Presentation
         public StartMenuJoinPanelView JoinPanel => joinPanel;
         public StartMenuRoomPanelView RoomPanel => roomPanel;
         public StartMenuMessagePanelView MessagePanel => messagePanel;
+
+        private Vector2 localGamePositionWithSave;
+        private bool saveLayoutInitialized;
+
+        public void SetMatchSaveAvailable(bool available)
+        {
+            if (loadGameButton == null || startGameButton == null) return;
+            var localRect = (RectTransform)startGameButton.transform;
+            if (!saveLayoutInitialized)
+            {
+                localGamePositionWithSave = localRect.anchoredPosition;
+                saveLayoutInitialized = true;
+            }
+            loadGameButton.gameObject.SetActive(available);
+            localRect.anchoredPosition = available ? localGamePositionWithSave : localGamePositionWithoutSave;
+        }
 
         public bool TryValidateConfiguration(out string reason)
         {
