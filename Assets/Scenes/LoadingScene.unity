@@ -203,7 +203,7 @@ Light:
   m_RenderMode: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2147483648
+    m_Bits: 1073741824
   m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
@@ -533,7 +533,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: cb7baf4d0573b42408ddccfdecb31d52, type: 2}
     - target: {fileID: -2379927216011172480, guid: 2836e71516d0b0e4cbbc2a2f7a8e335f, type: 3}
       propertyPath: m_Layer
-      value: 31
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 2836e71516d0b0e4cbbc2a2f7a8e335f, type: 3}
       propertyPath: m_Name
@@ -541,11 +541,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 2836e71516d0b0e4cbbc2a2f7a8e335f, type: 3}
       propertyPath: m_Layer
-      value: 31
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 1714530535463677008, guid: 2836e71516d0b0e4cbbc2a2f7a8e335f, type: 3}
       propertyPath: m_Layer
-      value: 31
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 3381108731275570468, guid: 2836e71516d0b0e4cbbc2a2f7a8e335f, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -553,7 +553,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 79b7de0e4efc8334ebe52ad339ccf584, type: 2}
     - target: {fileID: 3472256119416335558, guid: 2836e71516d0b0e4cbbc2a2f7a8e335f, type: 3}
       propertyPath: m_Layer
-      value: 31
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 3794602537420399099, guid: 2836e71516d0b0e4cbbc2a2f7a8e335f, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -561,7 +561,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 0fb052a7a78379c428f94169d3dfff69, type: 2}
     - target: {fileID: 4096907710805949015, guid: 2836e71516d0b0e4cbbc2a2f7a8e335f, type: 3}
       propertyPath: m_Layer
-      value: 31
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 9104284474167930019, guid: 2836e71516d0b0e4cbbc2a2f7a8e335f, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -681,7 +681,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 731986758}
-  m_Layer: 31
+  m_Layer: 30
   m_Name: Originite Model Pivot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -859,7 +859,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1117885082}
-  m_Layer: 31
+  m_Layer: 30
   m_Name: Originite Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -963,7 +963,7 @@ Light:
   m_RenderMode: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2147483648
+    m_Bits: 1073741824
   m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
@@ -1032,7 +1032,7 @@ Camera:
   m_Depth: -100
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2147483648
+    m_Bits: 1073741824
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 5e71cb041c1520b458d27ce60478a06b, type: 2}
   m_TargetDisplay: 0
@@ -1313,7 +1313,7 @@ GameObject:
   - component: {fileID: 2080692097}
   - component: {fileID: 2080692099}
   - component: {fileID: 2080692098}
-  m_Layer: 31
+  m_Layer: 30
   m_Name: Originite Core Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
