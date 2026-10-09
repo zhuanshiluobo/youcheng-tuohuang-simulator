@@ -16,6 +16,10 @@ namespace YC.Presentation
         [SerializeField] private Button backButton;
         [SerializeField] private Button resumeSeatsButton;
 
+        [Header("状态文案")]
+        [SerializeField] private string steamTwoPlayerValidationDescription =
+            "Steam 双人联机验证：复用四人地图，仅验证 Lobby、P2P、身份和同步链路。";
+
         public Text RoomCodeText => roomCodeText;
         public Button CopyButton => copyButton;
         public Text ValidationText => validationText;
@@ -26,6 +30,7 @@ namespace YC.Presentation
         public Button StartButton => startButton;
         public Button BackButton => backButton;
         public Button ResumeSeatsButton => resumeSeatsButton;
+        public string SteamTwoPlayerValidationDescription => steamTwoPlayerValidationDescription;
 
         public bool TryValidateConfiguration(out string reason)
         {

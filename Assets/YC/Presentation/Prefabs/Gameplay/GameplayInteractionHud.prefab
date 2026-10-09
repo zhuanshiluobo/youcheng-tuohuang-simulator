@@ -3591,6 +3591,7 @@ GameObject:
   - component: {fileID: 1579141873036047765}
   - component: {fileID: 1084437596187710385}
   - component: {fileID: 6823248915806767882}
+  - component: {fileID: 8300100000000000002}
   m_Layer: 0
   m_Name: City Board Artwork
   m_TagString: Untagged
@@ -3646,7 +3647,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: cfbcd3b26b03e954999a7fd904f94250, type: 3}
+  m_Texture: {fileID: 0}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -32570,6 +32571,7 @@ GameObject:
   - component: {fileID: 8807913944223220397}
   - component: {fileID: 761644152756693693}
   - component: {fileID: 5912855819219400742}
+  - component: {fileID: 8300100000000000003}
   m_Layer: 0
   m_Name: "\u57CE\u5E02\u9762\u677F\u5E95\u56FE"
   m_TagString: Untagged
@@ -32636,7 +32638,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: cfbcd3b26b03e954999a7fd904f94250, type: 3}
+  m_Texture: {fileID: 0}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -48940,3 +48942,29 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8300100000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1119894773331228573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4af13b75f654103a5925bcc7aeea41b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  sharedArtworkId: city_board
+--- !u!114 &8300100000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9218131079922411471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4af13b75f654103a5925bcc7aeea41b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  sharedArtworkId: city_board

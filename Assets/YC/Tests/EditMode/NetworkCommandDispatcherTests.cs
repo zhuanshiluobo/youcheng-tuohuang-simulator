@@ -87,7 +87,12 @@ namespace YC.Tests.EditMode
             Assert.That(accepted, Has.Count.EqualTo(1));
             Assert.That(accepted[0].Sequence, Is.EqualTo(1));
             Assert.That(accepted[0].Command.CommandId, Is.EqualTo("cmd-2"));
-            Assert.That(accepted[0].State.Logs[0].CommandId, Is.EqualTo("cmd-2"));
+            Assert.That(accepted[0].State, Is.Null);
+            var confirmedView = dispatcher.CreateConfirmedStateViewSynchronization(
+                accepted[0], GameStateViewer.Player(2));
+            Assert.That(confirmedView.Command.CommandId, Is.EqualTo("cmd-2"));
+            Assert.That(confirmedView.View.Logs, Has.Count.EqualTo(1));
+            Assert.That(confirmedView.View.Logs[0].Message, Is.EqualTo(session.State.Logs[0].Message));
         }
 
         [Test]
@@ -377,7 +382,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void ApplyInitialStateSynchronization_ThenConfirmedEntranceDraw_UsesHostDeckState()
+        public void ApplyInitialStateViewSynchronization_ThenConfirmedEntranceDraw_UsesHostDrawResult()
         {
             var hostSession = CreateFourPlayerEntranceSession("event_green_01");
             var clientSession = CreateFourPlayerEntranceSession("event_green_02");
@@ -386,10 +391,11 @@ namespace YC.Tests.EditMode
             var accepted = new List<ConfirmedGameCommandDto>();
             hostDispatcher.CommandAccepted += accepted.Add;
 
-            var snapshot = CloneJson(hostDispatcher.CreateInitialStateSynchronization());
-            var syncResult = clientDispatcher.ApplyInitialStateSynchronization(snapshot);
+            var snapshot = CloneJson(hostDispatcher.CreateInitialStateViewSynchronization(GameStateViewer.Player(1)));
+            var syncResult = clientDispatcher.ApplyInitialStateViewSynchronization(snapshot);
             Assert.That(syncResult.Succeeded, Is.True);
-            Assert.That(clientSession.State.Decks.EventDeckGreen, Is.EqualTo(new[] { "event_green_01" }));
+            Assert.That(clientSession.View.Decks.EventDeckGreenCount, Is.EqualTo(1));
+            Assert.That(clientSession.State.EffectRuntime, Is.Null);
 
             var hostResult = hostDispatcher.SubmitHostCommand(new GameCommandDto
             {
@@ -398,23 +404,33 @@ namespace YC.Tests.EditMode
                 PlayerId = 1,
                 TargetId = "G-01"
             });
-            var clientResult = clientDispatcher.ApplyConfirmedCommand(CloneJson(accepted[0]));
-
             Assert.That(hostResult.Succeeded, Is.True);
+            Assert.That(accepted, Has.Count.EqualTo(1));
+            Assert.That(accepted[0].State, Is.Null);
+            var confirmedView = CloneJson(hostDispatcher.CreateConfirmedStateViewSynchronization(
+                accepted[0], GameStateViewer.Player(1)));
+            Assert.That(confirmedView.Sequence, Is.EqualTo(snapshot.NextConfirmedSequence));
+            var clientResult = clientDispatcher.ApplyConfirmedStateViewSynchronization(confirmedView);
+
             Assert.That(clientResult.Succeeded, Is.True);
             Assert.That(hostSession.State.PendingChoice, Is.Null);
             Assert.That(clientSession.State.PendingChoice, Is.Null);
+            Assert.That(clientSession.State.EffectRuntime, Is.Null);
+            Assert.That(clientSession.View.Decks.EventDeckGreenCount,
+                Is.EqualTo(hostSession.State.Decks.EventDeckGreen.Count));
             var hostChoice = hostSession.State.EffectRuntime.InteractionRequests.Find(request =>
                 request.Status == "open" && request.InteractionTypeId == YC.Domain.Effects.EventCardEffectExecutor.OptionInteractionTypeId);
-            var clientChoice = clientSession.State.EffectRuntime.InteractionRequests.Find(request =>
-                request.Status == "open" && request.InteractionTypeId == YC.Domain.Effects.EventCardEffectExecutor.OptionInteractionTypeId);
+            var clientChoice = clientSession.View.Interactions.Find(request =>
+                request.Status == "open" && request.Kind == YC.Domain.Effects.EventCardEffectExecutor.OptionInteractionTypeId);
             Assert.That(hostChoice, Is.Not.Null);
             Assert.That(clientChoice, Is.Not.Null);
             Assert.That(hostChoice.CandidateIds[0], Does.StartWith("event_green_01:option:"));
             Assert.That(clientChoice.CandidateIds, Is.EqualTo(hostChoice.CandidateIds));
             Assert.That(clientChoice.InteractionId, Is.EqualTo(hostChoice.InteractionId));
             Assert.That(clientSession.State.Map.ResourceTokens[0].ResourceType, Is.EqualTo(hostSession.State.Map.ResourceTokens[0].ResourceType));
-            Assert.That(clientSession.State.Logs[0].CommandId, Is.EqualTo("cmd-place-host"));
+            Assert.That(confirmedView.Command.CommandId, Is.EqualTo("cmd-place-host"));
+            Assert.That(clientSession.State.Logs, Has.Count.EqualTo(hostSession.State.Logs.Count));
+            Assert.That(clientSession.State.Logs[0].Message, Is.EqualTo(hostSession.State.Logs[0].Message));
         }
 
         private static T CloneJson<T>(T source)

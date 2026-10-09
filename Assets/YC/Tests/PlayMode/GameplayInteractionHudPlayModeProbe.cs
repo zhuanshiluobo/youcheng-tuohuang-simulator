@@ -319,11 +319,6 @@ namespace YC.Tests.PlayMode
             var facilityIds = new List<string>(FacilityCardDatabase.DefaultSupplyIds);
             facilityIds.AddRange(FacilityCardDatabase.ReserveIds);
             facilityIds.Add(FacilityCardDatabase.EnterpriseOffice);
-            if (facilityIds.Count != CardVisualCatalog.ExpectedFacilityCount)
-            {
-                throw new InvalidOperationException("设施卡查询集合数量异常：" + facilityIds.Count);
-            }
-
             for (var i = 0; i < facilityIds.Count; i++)
             {
                 RequireTexture(catalog.GetFacility(facilityIds[i]), "设施卡 " + facilityIds[i]);

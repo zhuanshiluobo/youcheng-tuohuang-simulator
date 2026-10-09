@@ -5,6 +5,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using YC.Domain.Facilities;
 
 namespace YC.Presentation.Editor
 {
@@ -31,8 +32,7 @@ namespace YC.Presentation.Editor
             var canvas = GameObject.Find("Preview Canvas").GetComponent<Canvas>();
             var frame = GameObject.Find("Preview SharedFrame").GetComponent<RectTransform>();
             var card = GameObject.Find("Preview CardSlot").GetComponent<UiCardSlotView>();
-            var cardTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(
-                "Assets/YC/Presentation/Resources/CardImages/Facilities/trade_district.jpg");
+            var cardTexture = ExternalContentRuntime.GetArtwork("facility", FacilityCardDatabase.TradeDistrict);
             Sprite sampleCard = null;
             if (cardTexture != null)
             {

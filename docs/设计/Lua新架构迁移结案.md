@@ -77,7 +77,7 @@ NMC-015 的审计与清理有必要，已在本轮执行；**不能宣布 NMC-01
 
 ### 完整状态兼容路径与性能审查
 
-`AuthoritativeCommandDispatcher.SubmitAuthorityCommand` 仍给内部 `ConfirmedGameCommandDto.State` 深克隆完整状态；Mirror 的实际 `CreateConfirmedStateViewSynchronization` 从会话按连接投影，不发送此完整副本。旧初始状态/客户端重执行 API 的调用者主要是兼容测试，但不能由此说完整 DTO 类型整体没有生产引用。后续应把内部确认事件改为命令/序号收据，迁移独特旧同步断言，再删无用副本及旧 API。反射深克隆和完整树累积是性能排查候选，当前只有全量慢项测量，尚未有 profiler 证据证明该副本占了多少耗时。
+2026-10-08：`AuthoritativeCommandDispatcher.SubmitAuthorityCommand` 的内部确认通知只携带命令和序号，已移除未被生产消费者使用的 `ConfirmedGameCommandDto.State` 完整副本。Mirror 继续通过 `CreateConfirmedStateViewSynchronization` 从会话按连接投影，状态隔离和入场抽牌同步断言也迁到该视图链路。旧完整状态 DTO 字段及显式同步 API 仍保留兼容用途，事务工作副本及归档副本继续保留。`GameStateCloneService` 按类型缓存可序列化字段，克隆、发布和比较复用字段信息；完整树累积仍需独立排查，本次不代表整局性能验收。
 
 ### 角色能力的迁移边界（历史阶段，已由文末外部内容迁移更新）
 

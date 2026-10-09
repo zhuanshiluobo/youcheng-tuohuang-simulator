@@ -237,7 +237,6 @@ namespace YC.Presentation
             cancelFacilityEffectSelection = cancel;
             cardImageViewer?.Close();
             DestroyFacilityDragGhost();
-            UpdateExternalCardHighlights();
             UpdateExternalFacilityAvailability();
             return true;
         }
@@ -257,11 +256,15 @@ namespace YC.Presentation
 
         public void EndFacilityEffectSelection()
         {
+            if (!facilityEffectSelectionActive)
+            {
+                return;
+            }
+
             facilityEffectSelectionActive = false;
             selectableFacilityEffectIds.Clear();
             selectFacilityForEffect = null;
             cancelFacilityEffectSelection = null;
-            UpdateExternalCardHighlights();
             UpdateExternalFacilityAvailability();
         }
 
@@ -303,7 +306,6 @@ namespace YC.Presentation
                 DestroyFacilityDragGhost();
             }
 
-            UpdateExternalCardHighlights();
             UpdateExternalFacilityAvailability();
             UpdateCityBoardSlotHighlights();
         }
@@ -543,12 +545,12 @@ namespace YC.Presentation
             {
                 if (facilityEffectSelectionActive)
                 {
-                    binding.Outline.effectColor = selectableForEffect
-                        ? FacilityEffectSelectableOutline
-                        : ExternalCardNormalOutline;
-                    binding.Outline.effectDistance = selectableForEffect
-                        ? view.CardInteractionLayoutProfile.FacilitySelectableOutlineDistance
-                        : view.CardInteractionLayoutProfile.NormalOutlineDistance;
+                    SetOutline(
+                        binding.Outline,
+                        selectableForEffect ? FacilityEffectSelectableOutline : ExternalCardNormalOutline,
+                        selectableForEffect
+                            ? view.CardInteractionLayoutProfile.FacilitySelectableOutlineDistance
+                            : view.CardInteractionLayoutProfile.NormalOutlineDistance);
                 }
                 else
                 {
@@ -699,10 +701,12 @@ namespace YC.Presentation
                                   binding.IsEmpty &&
                                   legalCityBoardSlotIndexes.Contains(binding.SlotIndex);
                 binding.Image.color = highlighted ? LegalCityBoardSlotBackground : binding.DefaultBackground;
-                binding.Outline.effectColor = highlighted ? LegalCityBoardSlotOutline : binding.DefaultOutline;
-                binding.Outline.effectDistance = highlighted
-                    ? view.CardInteractionLayoutProfile.LegalCityBoardSlotOutlineDistance
-                    : binding.DefaultOutlineDistance;
+                SetOutline(
+                    binding.Outline,
+                    highlighted ? LegalCityBoardSlotOutline : binding.DefaultOutline,
+                    highlighted
+                        ? view.CardInteractionLayoutProfile.LegalCityBoardSlotOutlineDistance
+                        : binding.DefaultOutlineDistance);
             }
         }
 
@@ -744,33 +748,27 @@ namespace YC.Presentation
             return CityStyleDatabase.PresentationSupplyIds;
         }
 
-        private void UpdateExternalCardHighlights()
-        {
-            UpdateExternalFacilityAvailability();
-        }
-
-        private void UpdateExternalCardHighlights(List<ExternalCardBinding> bindings, string selectedId)
-        {
-            for (var i = 0; i < bindings.Count; i++)
-            {
-                var binding = bindings[i];
-                if (binding == null || binding.Outline == null)
-                {
-                    continue;
-                }
-
-                SetExternalCardOutline(
-                    binding.Outline,
-                    !string.IsNullOrEmpty(binding.Id) && binding.Id == selectedId);
-            }
-        }
-
         private void SetExternalCardOutline(Outline outline, bool selected)
         {
-            outline.effectColor = selected ? ExternalCardSelectedOutline : ExternalCardNormalOutline;
-            outline.effectDistance = selected
-                ? view.CardInteractionLayoutProfile.FacilitySelectableOutlineDistance
-                : view.CardInteractionLayoutProfile.NormalOutlineDistance;
+            SetOutline(
+                outline,
+                selected ? ExternalCardSelectedOutline : ExternalCardNormalOutline,
+                selected
+                    ? view.CardInteractionLayoutProfile.FacilitySelectableOutlineDistance
+                    : view.CardInteractionLayoutProfile.NormalOutlineDistance);
+        }
+
+        private static void SetOutline(Outline outline, Color color, Vector2 distance)
+        {
+            if (outline.effectColor != color)
+            {
+                outline.effectColor = color;
+            }
+
+            if (outline.effectDistance != distance)
+            {
+                outline.effectDistance = distance;
+            }
         }
 
         private void AddCityBoardSection()

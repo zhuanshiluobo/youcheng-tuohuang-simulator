@@ -21,6 +21,7 @@ namespace YC.Presentation
         private long saveSequence, completedSaveSequence;
         private string lastFailure;
         public bool CanSave => session != null && configuration != null;
+        public string CurrentGameId => session?.State.GameId;
         public string LastFailure => lastFailure;
 
         public static MatchSaveController Ensure()
@@ -51,6 +52,8 @@ namespace YC.Presentation
         {
             var data = store.Read(slot);
             GameSessionBootstrapper.Restore(null, data);
+            store.EnsureResumeCapacity(data.GameId);
+            store.SetRestoreSource(slot, data.GameId);
             return data;
         }
         public void Bind(GameSession value, string contentHash, GameLaunchContext context, bool restored)
@@ -71,6 +74,7 @@ namespace YC.Presentation
                     PlayerName = seat == null ? player.PlayerId.ToString() : seat.PlayerName, Color = player.Color });
             }
             configuration.HostSteamId = configuration.Seats.Find(s => s.PlayerId == 1)?.SteamId ?? 0;
+            store.BeginMatch(session.State.GameId, !restored);
             foreach (var slot in store.List())
             {
                 if (slot.Data == null) continue;

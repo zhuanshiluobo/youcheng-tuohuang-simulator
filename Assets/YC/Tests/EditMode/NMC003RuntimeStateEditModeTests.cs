@@ -157,8 +157,14 @@ namespace YC.Tests.EditMode
 
             Assert.That(result.Succeeded, Is.True);
             Assert.That(accepted, Is.Not.Null);
-            accepted.State.Players[0].Score = 101;
+            Assert.That(accepted.State, Is.Null);
+            var confirmedView = dispatcher.CreateConfirmedStateViewSynchronization(
+                accepted, GameStateViewer.Player(1));
+            confirmedView.View.Players[0].Score = 101;
+            confirmedView.Command.CommandId = "changed-view-command";
             Assert.That(session.State.Players[0].Score, Is.EqualTo(5));
+            Assert.That(accepted.Command.CommandId, Is.EqualTo("command-network-boundary"));
+            Assert.That(session.State.Logs[0].CommandId, Is.EqualTo("command-network-boundary"));
         }
 
         [TestCase(true, 1)]

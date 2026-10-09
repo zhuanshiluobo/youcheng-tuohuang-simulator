@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -13,6 +14,9 @@ namespace YC.Domain.State
     /// </summary>
     public static class GameStateCloneService
     {
+        private static readonly ConcurrentDictionary<Type, FieldInfo[]> SerializableFieldsByType =
+            new ConcurrentDictionary<Type, FieldInfo[]>();
+
         public static GameState DeepClone(GameState source)
         {
             return DeepClone<GameState>(source);
@@ -445,6 +449,16 @@ namespace YC.Domain.State
         }
 
         private static FieldInfo[] GetSerializableFields(Type type)
+        {
+            if (SerializableFieldsByType.TryGetValue(type, out FieldInfo[] fields))
+            {
+                return fields;
+            }
+
+            return SerializableFieldsByType.GetOrAdd(type, CollectSerializableFields);
+        }
+
+        private static FieldInfo[] CollectSerializableFields(Type type)
         {
             List<FieldInfo> fields = new List<FieldInfo>();
             for (Type current = type; current != null && current != typeof(object); current = current.BaseType)

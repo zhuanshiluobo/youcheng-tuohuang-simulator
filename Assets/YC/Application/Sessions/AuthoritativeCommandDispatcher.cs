@@ -25,6 +25,7 @@ namespace YC.Application.Sessions
             initialStateSynchronized = !requireInitialStateSynchronization;
         }
 
+        // 接受通知仅携带命令和序号；广播时从当前会话按观察者权限投影视图。
         public event Action<ConfirmedGameCommandDto> CommandAccepted;
         public event Action<ulong, RejectedGameCommandDto> CommandRejected;
 
@@ -285,8 +286,7 @@ namespace YC.Application.Sessions
             var confirmed = new ConfirmedGameCommandDto
             {
                 Sequence = nextAcceptedSequence++,
-                Command = GameCommandDto.FromCommand(command),
-                State = GameStateCloneService.DeepClone(session.State)
+                Command = GameCommandDto.FromCommand(command)
             };
 
             var handler = CommandAccepted;

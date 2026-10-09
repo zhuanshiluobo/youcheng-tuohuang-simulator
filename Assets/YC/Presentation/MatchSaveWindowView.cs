@@ -53,6 +53,7 @@ namespace YC.Presentation
         private List<MatchSaveSlot> slots;
         private RoomState room;
         private int selected = -1, memberIndex;
+        private int ownedManualSlot = -1;
         private bool busy;
         private float nextRoomRefresh;
         private string[] labels;
@@ -143,6 +144,15 @@ namespace YC.Presentation
             {
                 slots = await MatchSaveController.Ensure().ListSlotsAsync();
                 if (this == null || !isActiveAndEnabled) return;
+                ownedManualSlot = -1;
+                if (mode == Mode.Save)
+                {
+                    string gameId = MatchSaveController.Instance.CurrentGameId;
+                    for (int i = 0; i < MatchSaveStore.ManualCount; i++)
+                        if (slots[i].Data?.GameId == gameId && (ownedManualSlot < 0 ||
+                            slots[i].Data.SavedUtcTicks > slots[ownedManualSlot].Data.SavedUtcTicks)) ownedManualSlot = i;
+                    if (ownedManualSlot >= 0) selected = ownedManualSlot;
+                }
                 // 展示列表只读取并校验存档文件，不为每个槽位初始化内容库和恢复整局。
                 // 玩家确认读取所选存档时，Read 仍执行完整恢复预检。
                 for (int i = 0; i < rows.Length; i++)
@@ -199,6 +209,9 @@ namespace YC.Presentation
         private void Select(int index)
         {
             if (busy) return;
+            if (mode == Mode.Load && (slots == null || !slots[index].Exists)) return;
+            if (mode == Mode.Save && (index >= MatchSaveStore.ManualCount ||
+                (ownedManualSlot >= 0 && index != ownedManualSlot))) return;
             selected = index;
             if (mode != Mode.Seats)
                 message.text = mode == Mode.Save && slots[index].Exists ? overwriteHint
@@ -208,13 +221,18 @@ namespace YC.Presentation
         }
         private void UpdateSelection()
         {
+            if (mode == Mode.Load && selected >= 0 && (slots == null || !slots[selected].Exists))
+                selected = -1;
             for (int i = 0; i < rows.Length; i++)
             {
                 rowTexts[i].text = i == selected ? string.Format(selectedFormat, labels[i]) : labels[i];
-                rows[i].interactable = !busy;
+                rows[i].interactable = !busy && (mode != Mode.Load || (slots != null && slots[i].Exists)) &&
+                    (mode != Mode.Save || ownedManualSlot < 0 || i == ownedManualSlot);
                 deleteButtons[i].interactable = !busy;
             }
             bool canConfirm = selected >= 0;
+            if (mode == Mode.Save && canConfirm) canConfirm = selected < MatchSaveStore.ManualCount &&
+                (ownedManualSlot < 0 || selected == ownedManualSlot);
             if (mode == Mode.Load && canConfirm) canConfirm = slots[selected].Data != null && slots[selected].Error == null;
             if (mode == Mode.Seats && canConfirm) canConfirm = room != null && selected < room.Seats.Count &&
                 room.LocalPlayerId == room.HostPlayerId && room.Seats[selected].PlayerId != room.HostPlayerId &&

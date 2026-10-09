@@ -3486,6 +3486,7 @@ GameObject:
   - component: {fileID: 7162000000000000098}
   - component: {fileID: 7162000000000000099}
   - component: {fileID: 7162000000000000100}
+  - component: {fileID: 8300100000000000004}
   m_Layer: 5
   m_Name: City Board
   m_TagString: Untagged
@@ -3552,7 +3553,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: cab20d565c024cd78d8dfdf4062a6bb3, type: 3}
+  m_Texture: {fileID: 0}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -19397,3 +19398,16 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: "\u53D6\u6D88"
+--- !u!114 &8300100000000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7162000000000000096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4af13b75f654103a5925bcc7aeea41b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  sharedArtworkId: city_board

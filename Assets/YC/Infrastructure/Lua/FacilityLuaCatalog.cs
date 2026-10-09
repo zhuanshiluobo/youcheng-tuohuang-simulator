@@ -21,12 +21,15 @@ namespace YC.Infrastructure.Lua
         public static void Register(EffectRegistry registry, ExternalContentPack pack)
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
+            var facilityDefinitionsByEffectId = pack.ActiveDefinitions
+                .Where(d => d.ContentType == "facility")
+                .ToLookup(d => (string)d.Data["effectId"], StringComparer.Ordinal);
             foreach (FacilityContentRegistration registration in pack.CreateFacilities().Select(FacilityContentRegistrationCatalog.Create))
             {
                 if (!registration.HasEntryEffect || registry.HasEventHandler(registration.SubscriptionId)) continue;
                 string source = pack.GetFacilityScript(registration.EffectId);
                 var dispatcher = new LuaEffectEventDispatcher(registry);
-                var content = pack.ActiveDefinitions.First(d => d.ContentType == "facility" && (string)d.Data["effectId"] == registration.EffectId);
+                var content = facilityDefinitionsByEffectId[registration.EffectId].First();
                 string continuation = (string)content.Data["completionHandlerId"] ?? "";
                 if (continuation.Length > 0)
                     dispatcher.RegisterContinuation(new LuaHandlerDefinition(continuation, "EffectCompleted", "",

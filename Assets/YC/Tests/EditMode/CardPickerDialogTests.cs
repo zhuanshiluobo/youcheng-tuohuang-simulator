@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
@@ -7,6 +8,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YC.Domain.Interactions;
+using YC.Infrastructure.Lua;
 
 namespace YC.Tests.EditMode
 {
@@ -241,11 +243,12 @@ namespace YC.Tests.EditMode
 
         private string[] FacilityIds(int count)
         {
-            var entries = (Array)Field(Property<object>(registry, "CardVisualCatalog"), "facilityTextures");
-            Assert.That(entries.Length, Is.GreaterThanOrEqualTo(count));
-            var result = new string[count];
-            for (var i = 0; i < count; i++) result[i] = Property<string>(entries.GetValue(i), "Id");
-            return result;
+            var runtime = RuntimeType("ExternalContentRuntime");
+            var pack = (ExternalContentPack)runtime.GetProperty("Pack").GetValue(null);
+            var ids = pack.ActiveDefinitions.Where(definition => definition.ContentType == "facility")
+                .Select(definition => definition.RuntimeId).Take(count).ToArray();
+            Assert.That(ids.Length, Is.EqualTo(count), "外部内容包没有足够的设施卡供交互验证。");
+            return ids;
         }
 
         private static void ShowSelection(object dialog, object spec, bool preserveScroll) =>

@@ -581,7 +581,7 @@ namespace YC.Presentation
             view.HideRoomPanels();
             var panel = view.MapSelectionPanel;
             panel.gameObject.SetActive(true);
-            panel.TitleText.text = createsOnlineRoom ? "联机模式" : configuredLocalMapSelectionTitle;
+            panel.TitleText.text = createsOnlineRoom ? panel.OnlineModeTitle : configuredLocalMapSelectionTitle;
             mapSelectionCreatesOnlineRoom = createsOnlineRoom;
             RefreshMapSelection();
             roomPanel = panel.gameObject;
@@ -626,16 +626,13 @@ namespace YC.Presentation
             joinRoomInput = panel.RoomCodeInput;
             roomStatusText = panel.StatusText;
             roomStatusText.text = string.Empty;
-            panel.DescriptionText.text = LocalMirrorTestMode.IsEnabled
-                ? "输入房主显示的本地地址（IP:端口）"
-                : "输入房主显示的 Lobby 房间码";
+            var isLocalTest = LocalMirrorTestMode.IsEnabled;
+            panel.DescriptionText.text = isLocalTest ? panel.LocalDescription : panel.SteamDescription;
 
             var placeholder = joinRoomInput.placeholder as Text;
             if (placeholder != null)
             {
-                placeholder.text = LocalMirrorTestMode.IsEnabled
-                    ? "例如 127.0.0.1:7780"
-                    : "请输入 Steam Lobby ID";
+                placeholder.text = isLocalTest ? panel.LocalRoomCodePlaceholder : panel.SteamRoomCodePlaceholder;
             }
         }
 
@@ -768,7 +765,7 @@ namespace YC.Presentation
                                              roomService.SupportsFriendInvites;
             panel.ValidationText.gameObject.SetActive(isTwoPlayerSteamValidation);
             panel.ValidationText.text = isTwoPlayerSteamValidation
-                ? "Steam 双人联机验证：复用四人地图，仅验证 Lobby、P2P、身份和同步链路。"
+                ? panel.SteamTwoPlayerValidationDescription
                 : string.Empty;
 
             for (var i = 0; i < room.Seats.Count; i++)
@@ -1011,9 +1008,8 @@ namespace YC.Presentation
             joinRoomInput = null;
             roomStatusText = panel.MessageText;
             panel.TitleText.text = title;
-            panel.MessageText.text = string.IsNullOrEmpty(message) ? "发生未知错误，请重试。" : message;
+            panel.MessageText.text = string.IsNullOrEmpty(message) ? panel.UnknownErrorMessage : message;
             panel.ActionButton.gameObject.SetActive(true);
-            panel.ActionButtonText.text = "确认";
             BindButton(panel.ActionButton, HideRoomPanel);
         }
 
@@ -1025,10 +1021,9 @@ namespace YC.Presentation
             roomPanel = panel.gameObject;
             roomStatusText = null;
             joinRoomInput = null;
-            panel.TitleText.text = "房间已解散";
-            panel.MessageText.text = "点击确认后返回主页";
+            panel.TitleText.text = panel.RoomDisbandedTitle;
+            panel.MessageText.text = panel.RoomDisbandedMessage;
             panel.ActionButton.gameObject.SetActive(true);
-            panel.ActionButtonText.text = "确认";
             BindButton(panel.ActionButton, ConfirmRoomDisbanded);
         }
 

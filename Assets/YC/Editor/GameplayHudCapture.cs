@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -610,11 +611,15 @@ namespace YC.Presentation.Editor
             if (cards)
             {
                 dialogsComponent.ConfigureCardScroll(profile.SelectionCardSize, profile.SelectionMinimumCardWidth);
-                var entries = (CardVisualCatalog.IdTextureEntry[])typeof(CardVisualCatalog).GetField("facilityTextures", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(registry.CardVisualCatalog);
+                var facilityIds = ExternalContentRuntime.Pack.ActiveDefinitions
+                    .Where(definition => definition.ContentType == "facility")
+                    .Select(definition => definition.RuntimeId).ToArray();
+                if (facilityIds.Length == 0)
+                    throw new InvalidOperationException("外部内容包没有可用于诊断的设施卡。");
                 for (int i = 0; i < 7; i++)
                 {
                     var card = dialogsComponent.CreateFacilityCard();
-                    card.CardImage.texture = entries[i].Texture;
+                    card.CardImage.texture = registry.CardVisualCatalog.GetFacility(facilityIds[i % facilityIds.Length]);
                     card.FallbackLabel.gameObject.SetActive(false);
                     card.SelectionImage.enabled = i < 2;
                     card.DetailsButton.onClick.RemoveAllListeners();

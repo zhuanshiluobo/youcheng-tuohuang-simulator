@@ -27,7 +27,7 @@ namespace YC.Presentation.Editor
 
         private static EffectDialogShellView page;
         private static readonly List<FacilityEffectCardView> Cards = new List<FacilityEffectCardView>();
-        private static CardVisualCatalog.IdTextureEntry[] fronts;
+        private static string[] fronts;
         private static SourceProof source;
         private static int step, stable;
         private static bool scrollApplied;
@@ -161,11 +161,11 @@ namespace YC.Presentation.Editor
 
         private static void CreateDiagnostic(GameplayDialogRegistry registry, RectTransform parent, CaptureCase captureCase)
         {
-            var field = typeof(CardVisualCatalog).GetField("characterFrontTextures", BindingFlags.Instance | BindingFlags.NonPublic);
-            fronts = field == null ? null : field.GetValue(registry.CardVisualCatalog) as CardVisualCatalog.IdTextureEntry[];
-            if (fronts == null || fronts.Length == 0 || fronts.Any(entry => entry == null || entry.Texture == null ||
-                string.IsNullOrEmpty(AssetDatabase.GetAssetPath(entry.Texture))))
-                throw new InvalidOperationException("真实角色正面卡面目录缺失或不是持久纹理资产。");
+            fronts = ExternalContentRuntime.Pack.ActiveDefinitions
+                .Where(definition => definition.ContentType == "character")
+                .Select(definition => definition.RuntimeId).ToArray();
+            if (fronts.Length == 0 || fronts.Any(id => registry.CardVisualCatalog.GetCharacterFront(id) == null))
+                throw new InvalidOperationException("外部内容包的角色正面卡面缺失或无法解码。");
             page = registry.InstantiateEffectDialogShell(parent, false, false, true);
             if (page == null || !page.IsCardPicker) throw new InvalidOperationException("实际实例不是卡牌选择窗口。");
             page.PrepareForUse("Card Picker Component Diagnostic", "Card Picker Window",
@@ -178,7 +178,7 @@ namespace YC.Presentation.Editor
                 var card = page.CreateFacilityCard();
                 card.name = "Diagnostic Character Card " + index;
                 if (!card.TryValidateConfiguration(out var reason)) throw new InvalidOperationException(reason);
-                card.CardImage.texture = fronts[index % fronts.Length].Texture;
+                card.CardImage.texture = registry.CardVisualCatalog.GetCharacterFront(fronts[index % fronts.Length]);
                 card.CardImage.gameObject.SetActive(true);
                 card.CardImage.color = Color.white;
                 card.FallbackLabel.gameObject.SetActive(false);
@@ -236,8 +236,9 @@ namespace YC.Presentation.Editor
                     page.OptionScroll.horizontalScrollbar.gameObject.activeInHierarchy,
                 cards = Cards.Select((card, index) => new CardRecord
                 {
-                    index = index, roleId = fronts[index % fronts.Length].Id,
-                    textureAsset = AssetDatabase.GetAssetPath(card.CardImage.texture),
+                    index = index, roleId = fronts[index % fronts.Length],
+                    textureAsset = ExternalContentRuntime.Pack.ResolvePath(
+                        ExternalContentRuntime.Pack.FindArtwork("character", fronts[index % fronts.Length])),
                     itemRect = ScreenRect(card.CardRect), faceRect = ScreenRect(card.CardImage.rectTransform),
                     faceFullyInsideViewport = Contains(viewport, ScreenRect(card.CardImage.rectTransform)),
                     selected = card.SelectionImage.enabled && card.SelectionImage.gameObject.activeInHierarchy,
@@ -264,7 +265,13 @@ namespace YC.Presentation.Editor
 
         private static string TexturePath(Graphic graphic)
         {
-            if (graphic is RawImage raw) return AssetDatabase.GetAssetPath(raw.texture);
+            if (graphic is RawImage raw)
+            {
+                var assetPath = AssetDatabase.GetAssetPath(raw.texture);
+                if (!string.IsNullOrEmpty(assetPath) || raw.texture == null) return assetPath;
+                return raw.texture.name.StartsWith("artwork/", StringComparison.Ordinal)
+                    ? ExternalContentRuntime.Pack.ResolvePath(raw.texture.name) : raw.texture.name;
+            }
             if (graphic is Image image && image.sprite != null) return AssetDatabase.GetAssetPath(image.sprite);
             return AssetDatabase.GetAssetPath(graphic.mainTexture);
         }

@@ -46,7 +46,7 @@ namespace YC.Application.Sessions
                 (Archive.Journal != null && Archive.Journal.SchemaVersion != HostJournalDto.CurrentSchemaVersion))
                 throw new InvalidOperationException("存档缺少有效的权威快照。");
             var state = Archive.Snapshot.State;
-            if (string.IsNullOrEmpty(ContentHash) || ContentHash != Archive.Snapshot.ContentHash ||
+            if (string.IsNullOrWhiteSpace(GameId) || string.IsNullOrEmpty(ContentHash) || ContentHash != Archive.Snapshot.ContentHash ||
                 MapId != state.MapId || GameId != state.GameId || Round != state.Round ||
                 SavedUtcTicks <= 0 || SavedUtcTicks > DateTime.MaxValue.Ticks)
                 throw new InvalidOperationException("存档摘要与权威快照不一致。");

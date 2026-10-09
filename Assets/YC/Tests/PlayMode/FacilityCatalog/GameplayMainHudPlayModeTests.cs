@@ -630,8 +630,8 @@ namespace YC.Tests.PlayMode
             var initialPhase = state.Phase;
             var initialPlayer = state.CurrentPlayerId;
             var catalog = Property(registry, "CardVisualCatalog");
-            var fronts = (Array)Field(catalog, "characterFrontTextures");
-            Assert.That(fronts.Length, Is.GreaterThan(0));
+            var fronts = CharacterCardDatabase.GetInitialCardIds(state.FindPlayer(initialPlayer));
+            Assert.That(fronts.Count, Is.GreaterThan(0));
             var page = registry.GetType().GetMethod("InstantiateEffectDialogShell")
                 .Invoke(registry, new object[] { Property(frame, "ContentRect"), false, false, true }) as Component;
             Assert.That(page, Is.Not.Null);
@@ -652,7 +652,8 @@ namespace YC.Tests.PlayMode
                     var card = (Component)page.GetType().GetMethod("CreateFacilityCard").Invoke(page, null);
                     card.name = "滚动诊断卡牌 " + i;
                     var image = (RawImage)Property(card, "CardImage");
-                    image.texture = (Texture)Property(fronts.GetValue(i % fronts.Length), "Texture");
+                    image.texture = catalog.GetType().GetMethod("GetCharacterFront").Invoke(catalog,
+                        new object[] { fronts[i % fronts.Count] }) as Texture;
                     Assert.That(image.texture, Is.Not.Null);
                     image.color = Color.white;
                     ((Text)Property(card, "FallbackLabel")).gameObject.SetActive(false);
