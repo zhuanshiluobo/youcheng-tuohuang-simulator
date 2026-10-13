@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-09",
+  "version": "2.1",
+  "status": "全部制作完成，用户复核通过",
+  "approved": {
+    "status": "已获用户认可，主体制作标记完成",
+    "scope": "大部分既有皮肤；窗口、输入、按钮、图标、拨片、滑块和其他未点名 UI 保持不变"
+  },
+  "revisions": [
+    {
+      "name": "复选框选中与取消动画",
+      "status": "制作完成，用户复核通过",
+      "webSeconds": {"select": 0.18, "cancel": 0.14},
+      "nativeClips": [
+        {"path": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/animations/CheckboxSelect.anim", "seconds": 0.196666673, "frames": 8},
+        {"path": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/animations/CheckboxCancel.anim", "seconds": 0.156666666, "frames": 8}
+      ]
+    },
+    {
+      "name": "当前结算区消息与提示适配",
+      "status": "制作完成，用户复核通过",
+      "sourceAsset": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+      "target": "Bottom Bar Content/Resolution Summary Slot",
+      "logicalSize": [1424, 60],
+      "widthOwnership": "现有 HorizontalLayoutGroup 与 LayoutElement，宽度弹性伸缩",
+      "sceneOverridesReviewed": ["Assets/Scenes/SampleScene.unity", "Assets/Scenes/ThreePlayerScene.unity"],
+      "existingSceneOrPrefabModified": false
+    }
+  ],
+  "newPngCount": 15,
+  "existingPngRedrawn": false,
+  "integration": "本轮为资产修订，不更换已搭建的场景、预制体或正式运行逻辑"
+}

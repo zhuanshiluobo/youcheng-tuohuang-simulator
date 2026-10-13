@@ -1,0 +1,2588 @@
+{
+  "name": "游城拓荒 · 移动城市调度终端皮肤补充包",
+  "version": "2.1",
+  "date": "2026-10-09",
+  "status": "全部制作完成，用户复核通过；未接入正式对局",
+  "renderScale": 2,
+  "borderOrder": [
+    "left",
+    "bottom",
+    "right",
+    "top"
+  ],
+  "palette": {
+    "ink": "#ECEBDA",
+    "dark": "#293131",
+    "muted": "#7B827B",
+    "face": "#343A3B",
+    "edge": "#858980",
+    "inner": "#555D59",
+    "paper": "#E3E0D1",
+    "gold": "#DDC063",
+    "info": "#6F929B",
+    "success": "#758459",
+    "warning": "#B59538",
+    "error": "#AA6657",
+    "pending": "#B59538"
+  },
+  "styleReferences": "style-references.md",
+  "assets": [
+    {
+      "id": "icon-info-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-info-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-info-light.svg",
+      "guid": "1d6c37e3635b5243af9f4e6e8c54f3d6",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-info-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-info-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-info-dark.svg",
+      "guid": "5de0a9c38bd35a0aaa2dba74b4fc32a6",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-info-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-info-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-info-muted.svg",
+      "guid": "2b2b0b136e5a5a338ba88d447f978225",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-info-semantic",
+      "category": "icons",
+      "state": "semantic",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-info-semantic.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-info-semantic.svg",
+      "guid": "37558ae3447e5d3e9e777267a079a294",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-success-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-success-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-success-light.svg",
+      "guid": "237ae7939bc0504f91da01e785962100",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-success-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-success-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-success-dark.svg",
+      "guid": "08721a8d78dc5fa3ba80332568790b2b",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-success-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-success-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-success-muted.svg",
+      "guid": "91d49c8b4b2450af97b204d78bb76ee1",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-success-semantic",
+      "category": "icons",
+      "state": "semantic",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-success-semantic.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-success-semantic.svg",
+      "guid": "22262cea74d055919170ceee06c10404",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-warning-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-warning-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-warning-light.svg",
+      "guid": "42f1f1afb4e25ff7940efdc79d5c4d36",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-warning-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-warning-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-warning-dark.svg",
+      "guid": "03374f9940a950a4b11ab003b9d701eb",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-warning-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-warning-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-warning-muted.svg",
+      "guid": "f60ec241eaef5da9affcf8517f5faa97",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-warning-semantic",
+      "category": "icons",
+      "state": "semantic",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-warning-semantic.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-warning-semantic.svg",
+      "guid": "326be8d5bb9a5cfe83cb9d0b69c1c623",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-error-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-error-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-error-light.svg",
+      "guid": "35eaeaeb2a6952329391e558bea10fe5",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-error-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-error-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-error-dark.svg",
+      "guid": "715a089118075cf6a6405e27f72a23dd",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-error-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-error-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-error-muted.svg",
+      "guid": "44dea59c941b5613827fdd7feffb582d",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-error-semantic",
+      "category": "icons",
+      "state": "semantic",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-error-semantic.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-error-semantic.svg",
+      "guid": "f0b0bfd1f69157209583bb7284d1aba0",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-pending-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-pending-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-pending-light.svg",
+      "guid": "c70736b6b53b5641a5bd6de00cc9c84d",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-pending-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-pending-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-pending-dark.svg",
+      "guid": "79e433d3431554a8b33c6a91ed04e8eb",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-pending-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-pending-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-pending-muted.svg",
+      "guid": "8a6bfb11f16b503581512d4aa6b18802",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-reconnect-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-reconnect-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-reconnect-light.svg",
+      "guid": "d135790345805ae9bc4c205da6a46133",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-reconnect-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-reconnect-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-reconnect-dark.svg",
+      "guid": "863611134d4050848d7a669ced154bd5",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-reconnect-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-reconnect-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-reconnect-muted.svg",
+      "guid": "39f91b30b8f556ab881baae929acd59c",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-offline-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-offline-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-offline-light.svg",
+      "guid": "105e9846836f569d89458650013cb45d",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-offline-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-offline-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-offline-dark.svg",
+      "guid": "1cd9717acedb5ed98baa4aff55c67ddc",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-offline-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-offline-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-offline-muted.svg",
+      "guid": "b9400493682b53238423ff0db9a0d20b",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-retry-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-retry-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-retry-light.svg",
+      "guid": "d4211f22878259f3ad537f8fed98de76",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-retry-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-retry-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-retry-dark.svg",
+      "guid": "908de0263f6a5d9b9abe44d73c17cb09",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-retry-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-retry-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-retry-muted.svg",
+      "guid": "24cf7c1aedae55b38983a0010391d6ef",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-save-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-save-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-save-light.svg",
+      "guid": "9887623ed52058f880e45bc8edff0a1f",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-save-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-save-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-save-dark.svg",
+      "guid": "3245196bb2de563a98d0e31ea4a22413",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-save-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-save-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-save-muted.svg",
+      "guid": "77e74162d94b57e6b9334277a7a9f48b",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-chevron-down-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-chevron-down-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-chevron-down-light.svg",
+      "guid": "14da2fe9042d5416af76faed495aa59e",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-chevron-down-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-chevron-down-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-chevron-down-dark.svg",
+      "guid": "b761fbbe38255e70a956d8eba37d4aff",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-chevron-down-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-chevron-down-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-chevron-down-muted.svg",
+      "guid": "8afaf0df3805527b90171cb365469e5b",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-check-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-check-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-check-light.svg",
+      "guid": "51c6b5537a085fa2b0504143319c93a4",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-check-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-check-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-check-dark.svg",
+      "guid": "4d2fe479e18e5e1aa43b30a0af6b9a55",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-check-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-check-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-check-muted.svg",
+      "guid": "a8b14bed47435fb39fa081c9d5930252",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-close-light",
+      "category": "icons",
+      "state": "light",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-close-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-close-light.svg",
+      "guid": "01df3287ec9a57d88498583ebd1d41e7",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-close-dark",
+      "category": "icons",
+      "state": "dark",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-close-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-close-dark.svg",
+      "guid": "137006ed074b53008c4257d39549e8b3",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "icon-close-muted",
+      "category": "icons",
+      "state": "muted",
+      "role": "semantic-icon",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-close-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/icons/icon-close-muted.svg",
+      "guid": "c2cad0d6ecd85defb9940ef1238756a6",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "notice-info",
+      "category": "feedback",
+      "state": "info",
+      "role": "notification-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-info.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/notice-info.svg",
+      "guid": "244eb4c5d341526fa362234dedc58488",
+      "logicalSize": [
+        400,
+        96
+      ],
+      "pixelSize": [
+        800,
+        192
+      ],
+      "border": [
+        44,
+        36,
+        44,
+        36
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "notice-success",
+      "category": "feedback",
+      "state": "success",
+      "role": "notification-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-success.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/notice-success.svg",
+      "guid": "2de26c0d0def56a99d0415935a99d291",
+      "logicalSize": [
+        400,
+        96
+      ],
+      "pixelSize": [
+        800,
+        192
+      ],
+      "border": [
+        44,
+        36,
+        44,
+        36
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "notice-warning",
+      "category": "feedback",
+      "state": "warning",
+      "role": "notification-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-warning.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/notice-warning.svg",
+      "guid": "1c99d85c26b35417a2139cd4c4cf5c75",
+      "logicalSize": [
+        400,
+        96
+      ],
+      "pixelSize": [
+        800,
+        192
+      ],
+      "border": [
+        44,
+        36,
+        44,
+        36
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "notice-error",
+      "category": "feedback",
+      "state": "error",
+      "role": "notification-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-error.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/notice-error.svg",
+      "guid": "c9d5047eb51156d5bc2f5f740cdc35ba",
+      "logicalSize": [
+        400,
+        96
+      ],
+      "pixelSize": [
+        800,
+        192
+      ],
+      "border": [
+        44,
+        36,
+        44,
+        36
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "notice-pending",
+      "category": "feedback",
+      "state": "pending",
+      "role": "notification-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-pending.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/notice-pending.svg",
+      "guid": "06b2d66a08545a1b80be74bd1e8aa45b",
+      "logicalSize": [
+        400,
+        96
+      ],
+      "pixelSize": [
+        800,
+        192
+      ],
+      "border": [
+        44,
+        36,
+        44,
+        36
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "tooltip-dark",
+      "category": "feedback",
+      "state": "dark",
+      "role": "tooltip-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/tooltip-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/tooltip-dark.svg",
+      "guid": "71d205b365be56fd9e168af6fe8c39d9",
+      "logicalSize": [
+        320,
+        112
+      ],
+      "pixelSize": [
+        640,
+        224
+      ],
+      "border": [
+        40,
+        36,
+        40,
+        36
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "tooltip-light",
+      "category": "feedback",
+      "state": "light",
+      "role": "tooltip-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/tooltip-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/tooltip-light.svg",
+      "guid": "90b8ff6414825ef789aa29d991eeb76e",
+      "logicalSize": [
+        320,
+        112
+      ],
+      "pixelSize": [
+        640,
+        224
+      ],
+      "border": [
+        40,
+        36,
+        40,
+        36
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "tooltip-pointer-up",
+      "category": "feedback",
+      "state": "",
+      "role": "tooltip-pointer",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/tooltip-pointer-up.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/tooltip-pointer-up.svg",
+      "guid": "9e9e807870fc564f95fda93e5dc9ba4b",
+      "logicalSize": [
+        24,
+        12
+      ],
+      "pixelSize": [
+        48,
+        24
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "tooltip-pointer-down",
+      "category": "feedback",
+      "state": "",
+      "role": "tooltip-pointer",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/tooltip-pointer-down.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/tooltip-pointer-down.svg",
+      "guid": "cc0b2c85e0da515790e71602a7ac98dd",
+      "logicalSize": [
+        24,
+        12
+      ],
+      "pixelSize": [
+        48,
+        24
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "spinner-gold",
+      "category": "feedback",
+      "state": "",
+      "role": "rotating-indicator",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/spinner-gold.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/spinner-gold.svg",
+      "guid": "a15886802ee35add90f533dea8ed269d",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "spinner-light",
+      "category": "feedback",
+      "state": "",
+      "role": "rotating-indicator",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/spinner-light.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/spinner-light.svg",
+      "guid": "069dd73cad0f5d2b8c7d6a9ddb2e76bc",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "spinner-muted",
+      "category": "feedback",
+      "state": "",
+      "role": "rotating-indicator",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/spinner-muted.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/spinner-muted.svg",
+      "guid": "7bd30a6561bd54dfb4cf4f6a1ff3b0e8",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "spinner-dark",
+      "category": "feedback",
+      "state": "",
+      "role": "rotating-indicator",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/spinner-dark.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/spinner-dark.svg",
+      "guid": "0772a6fe027d51fe9230bc5bfd2d93b3",
+      "logicalSize": [
+        64,
+        64
+      ],
+      "pixelSize": [
+        128,
+        128
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "input-normal",
+      "category": "forms",
+      "state": "normal",
+      "role": "input-or-dropdown-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/input-normal.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/input-normal.svg",
+      "guid": "7c2a16cc7e835c659ee4c753928fc0d4",
+      "logicalSize": [
+        256,
+        48
+      ],
+      "pixelSize": [
+        512,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "input-hover",
+      "category": "forms",
+      "state": "hover",
+      "role": "input-or-dropdown-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/input-hover.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/input-hover.svg",
+      "guid": "5596facc4c145b7c834c9b472f1caeca",
+      "logicalSize": [
+        256,
+        48
+      ],
+      "pixelSize": [
+        512,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "input-focus",
+      "category": "forms",
+      "state": "focus",
+      "role": "input-or-dropdown-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/input-focus.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/input-focus.svg",
+      "guid": "e7880d3b3a1a505986003193263f94f3",
+      "logicalSize": [
+        256,
+        48
+      ],
+      "pixelSize": [
+        512,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "input-error",
+      "category": "forms",
+      "state": "error",
+      "role": "input-or-dropdown-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/input-error.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/input-error.svg",
+      "guid": "a7c9857307dd5ef49b2fde1768206c11",
+      "logicalSize": [
+        256,
+        48
+      ],
+      "pixelSize": [
+        512,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "input-disabled",
+      "category": "forms",
+      "state": "disabled",
+      "role": "input-or-dropdown-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/input-disabled.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/input-disabled.svg",
+      "guid": "5a92aa8246225c6ba78529bbb22bddb7",
+      "logicalSize": [
+        256,
+        48
+      ],
+      "pixelSize": [
+        512,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "dropdown-panel",
+      "category": "forms",
+      "state": "",
+      "role": "dropdown-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/dropdown-panel.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/dropdown-panel.svg",
+      "guid": "a332664569d05109a044032470e848e6",
+      "logicalSize": [
+        256,
+        176
+      ],
+      "pixelSize": [
+        512,
+        352
+      ],
+      "border": [
+        40,
+        36,
+        40,
+        36
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "dropdown-row-normal",
+      "category": "forms",
+      "state": "normal",
+      "role": "dropdown-item-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/dropdown-row-normal.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/dropdown-row-normal.svg",
+      "guid": "a52f1811e51e57a1be8c3398f6b1f113",
+      "logicalSize": [
+        256,
+        40
+      ],
+      "pixelSize": [
+        512,
+        80
+      ],
+      "border": [
+        28,
+        12,
+        28,
+        12
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "dropdown-row-hover",
+      "category": "forms",
+      "state": "hover",
+      "role": "dropdown-item-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/dropdown-row-hover.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/dropdown-row-hover.svg",
+      "guid": "c23896dcb6dc59e48ab28e3e3e996c26",
+      "logicalSize": [
+        256,
+        40
+      ],
+      "pixelSize": [
+        512,
+        80
+      ],
+      "border": [
+        28,
+        12,
+        28,
+        12
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "dropdown-row-selected",
+      "category": "forms",
+      "state": "selected",
+      "role": "dropdown-item-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/dropdown-row-selected.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/dropdown-row-selected.svg",
+      "guid": "d969576896ac529287a7f3c0e0246a17",
+      "logicalSize": [
+        256,
+        40
+      ],
+      "pixelSize": [
+        512,
+        80
+      ],
+      "border": [
+        28,
+        12,
+        28,
+        12
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "dropdown-row-disabled",
+      "category": "forms",
+      "state": "disabled",
+      "role": "dropdown-item-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/dropdown-row-disabled.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/dropdown-row-disabled.svg",
+      "guid": "fbc40e6393c4501999ee752d89c1d680",
+      "logicalSize": [
+        256,
+        40
+      ],
+      "pixelSize": [
+        512,
+        80
+      ],
+      "border": [
+        28,
+        12,
+        28,
+        12
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-off",
+      "category": "forms",
+      "state": "off",
+      "role": "checkbox-full-state",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-off.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-off.svg",
+      "guid": "0b69b3f6b5d55c11bacafb6998c08191",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-on",
+      "category": "forms",
+      "state": "on",
+      "role": "checkbox-full-state",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-on.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-on.svg",
+      "guid": "bba6b792514c5435aadb5a15c1b41b0c",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-off-focus",
+      "category": "forms",
+      "state": "off-focus",
+      "role": "checkbox-full-state",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-off-focus.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-off-focus.svg",
+      "guid": "3fae0b23f18a5167bef4949faf3f0f94",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-on-focus",
+      "category": "forms",
+      "state": "on-focus",
+      "role": "checkbox-full-state",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-on-focus.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-on-focus.svg",
+      "guid": "e94d4964a4b158a79e2dd2cb25499aa0",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-off-disabled",
+      "category": "forms",
+      "state": "off-disabled",
+      "role": "checkbox-full-state",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-off-disabled.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-off-disabled.svg",
+      "guid": "de56f2e118dc5fe59f0f9b187122ab2b",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-on-disabled",
+      "category": "forms",
+      "state": "on-disabled",
+      "role": "checkbox-full-state",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-on-disabled.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-on-disabled.svg",
+      "guid": "c5416df8d787544c8d24aab0336e3818",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "switch-track-off",
+      "category": "forms",
+      "state": "off",
+      "role": "switch-track",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-track-off.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/switch-track-off.svg",
+      "guid": "520ec604efee5fd992bb708b1ae78ede",
+      "logicalSize": [
+        52,
+        28
+      ],
+      "pixelSize": [
+        104,
+        56
+      ],
+      "border": [
+        24,
+        16,
+        24,
+        16
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "switch-track-on",
+      "category": "forms",
+      "state": "on",
+      "role": "switch-track",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-track-on.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/switch-track-on.svg",
+      "guid": "67812e69cefd5cc39683a0229c9c26cb",
+      "logicalSize": [
+        52,
+        28
+      ],
+      "pixelSize": [
+        104,
+        56
+      ],
+      "border": [
+        24,
+        16,
+        24,
+        16
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "switch-track-off-disabled",
+      "category": "forms",
+      "state": "off-disabled",
+      "role": "switch-track",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-track-off-disabled.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/switch-track-off-disabled.svg",
+      "guid": "b8e895b645d454f0a34f1f9c49880885",
+      "logicalSize": [
+        52,
+        28
+      ],
+      "pixelSize": [
+        104,
+        56
+      ],
+      "border": [
+        24,
+        16,
+        24,
+        16
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "switch-track-on-disabled",
+      "category": "forms",
+      "state": "on-disabled",
+      "role": "switch-track",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-track-on-disabled.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/switch-track-on-disabled.svg",
+      "guid": "105e7fc3512350b0b7c1329d565fbef4",
+      "logicalSize": [
+        52,
+        28
+      ],
+      "pixelSize": [
+        104,
+        56
+      ],
+      "border": [
+        24,
+        16,
+        24,
+        16
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "switch-thumb-normal",
+      "category": "forms",
+      "state": "normal",
+      "role": "switch-handle",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-thumb-normal.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/switch-thumb-normal.svg",
+      "guid": "ee02802b8cf65114b1625c6d90c2da8a",
+      "logicalSize": [
+        20,
+        22
+      ],
+      "pixelSize": [
+        40,
+        44
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "switch-thumb-hover",
+      "category": "forms",
+      "state": "hover",
+      "role": "switch-handle",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-thumb-hover.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/switch-thumb-hover.svg",
+      "guid": "280b06d4be405a18ad49855efd3eb302",
+      "logicalSize": [
+        20,
+        22
+      ],
+      "pixelSize": [
+        40,
+        44
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "switch-thumb-disabled",
+      "category": "forms",
+      "state": "disabled",
+      "role": "switch-handle",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-thumb-disabled.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/switch-thumb-disabled.svg",
+      "guid": "47c3e841e4a05276ba8609c4a1f36f43",
+      "logicalSize": [
+        20,
+        22
+      ],
+      "pixelSize": [
+        40,
+        44
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "slider-track",
+      "category": "forms",
+      "state": "track",
+      "role": "slider-or-progress-track",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-track.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/slider-track.svg",
+      "guid": "f12b0c2ef2a552c98dc6aabec08b5de0",
+      "logicalSize": [
+        256,
+        8
+      ],
+      "pixelSize": [
+        512,
+        16
+      ],
+      "border": [
+        10,
+        6,
+        10,
+        6
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "slider-fill",
+      "category": "forms",
+      "state": "fill",
+      "role": "slider-or-progress-track",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-fill.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/slider-fill.svg",
+      "guid": "c9d4153ca0af5d219459246a022da344",
+      "logicalSize": [
+        256,
+        8
+      ],
+      "pixelSize": [
+        512,
+        16
+      ],
+      "border": [
+        10,
+        6,
+        10,
+        6
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "slider-thumb-normal",
+      "category": "forms",
+      "state": "normal",
+      "role": "slider-handle",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-thumb-normal.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/slider-thumb-normal.svg",
+      "guid": "2cffcdc0b0f75a82b65afab214a64ed6",
+      "logicalSize": [
+        20,
+        28
+      ],
+      "pixelSize": [
+        40,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "slider-thumb-hover",
+      "category": "forms",
+      "state": "hover",
+      "role": "slider-handle",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-thumb-hover.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/slider-thumb-hover.svg",
+      "guid": "45c7a236b1585a4cbc051047f8f7c8c4",
+      "logicalSize": [
+        20,
+        28
+      ],
+      "pixelSize": [
+        40,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "slider-thumb-pressed",
+      "category": "forms",
+      "state": "pressed",
+      "role": "slider-handle",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-thumb-pressed.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/slider-thumb-pressed.svg",
+      "guid": "733f7ddbb0f05838a8f80560cc24269e",
+      "logicalSize": [
+        20,
+        28
+      ],
+      "pixelSize": [
+        40,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "slider-thumb-disabled",
+      "category": "forms",
+      "state": "disabled",
+      "role": "slider-handle",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-thumb-disabled.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/slider-thumb-disabled.svg",
+      "guid": "d4caa3ca5d1c5ccdb272c662fef7cdfb",
+      "logicalSize": [
+        20,
+        28
+      ],
+      "pixelSize": [
+        40,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "button-action-normal",
+      "category": "buttons",
+      "state": "normal",
+      "role": "action-button-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-action-normal.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/buttons/button-action-normal.svg",
+      "guid": "d96cc4ec07ed53dba557f6a276e1df72",
+      "logicalSize": [
+        180,
+        48
+      ],
+      "pixelSize": [
+        360,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "button-action-hover",
+      "category": "buttons",
+      "state": "hover",
+      "role": "action-button-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-action-hover.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/buttons/button-action-hover.svg",
+      "guid": "0c00eb1924245b8db704a5ae8bb01508",
+      "logicalSize": [
+        180,
+        48
+      ],
+      "pixelSize": [
+        360,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "button-action-pressed",
+      "category": "buttons",
+      "state": "pressed",
+      "role": "action-button-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-action-pressed.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/buttons/button-action-pressed.svg",
+      "guid": "e6ea07d13d2e50fe982cefbaee3d66dd",
+      "logicalSize": [
+        180,
+        48
+      ],
+      "pixelSize": [
+        360,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "button-action-disabled",
+      "category": "buttons",
+      "state": "disabled",
+      "role": "action-button-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-action-disabled.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/buttons/button-action-disabled.svg",
+      "guid": "3deea527741059f99e15f4a5d5bc6f43",
+      "logicalSize": [
+        180,
+        48
+      ],
+      "pixelSize": [
+        360,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "button-primary-normal",
+      "category": "buttons",
+      "state": "normal",
+      "role": "primary-button-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-primary-normal.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/buttons/button-primary-normal.svg",
+      "guid": "ce6bfba3658156aca9588bb0726e5765",
+      "logicalSize": [
+        180,
+        48
+      ],
+      "pixelSize": [
+        360,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "button-primary-hover",
+      "category": "buttons",
+      "state": "hover",
+      "role": "primary-button-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-primary-hover.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/buttons/button-primary-hover.svg",
+      "guid": "ba54152369325574891e843bd7d88247",
+      "logicalSize": [
+        180,
+        48
+      ],
+      "pixelSize": [
+        360,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "button-primary-pressed",
+      "category": "buttons",
+      "state": "pressed",
+      "role": "primary-button-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-primary-pressed.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/buttons/button-primary-pressed.svg",
+      "guid": "810ab502ac6e5d27ba34a8a3e247bb9d",
+      "logicalSize": [
+        180,
+        48
+      ],
+      "pixelSize": [
+        360,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "button-primary-disabled",
+      "category": "buttons",
+      "state": "disabled",
+      "role": "primary-button-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-primary-disabled.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/buttons/button-primary-disabled.svg",
+      "guid": "f0605624e834522bb70dfe5267d904a5",
+      "logicalSize": [
+        180,
+        48
+      ],
+      "pixelSize": [
+        360,
+        96
+      ],
+      "border": [
+        40,
+        24,
+        40,
+        24
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "dispatch-panel",
+      "category": "panels",
+      "role": "dispatch-window-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/panels/dispatch-panel.png",
+      "source": "ArtSource/UI/FrontierSupplementV2/generated/dispatch-panel.png",
+      "guid": "778f6b6697db54a988773a0bfd3ffb71",
+      "logicalSize": [
+        768,
+        512
+      ],
+      "pixelSize": [
+        1536,
+        1024
+      ],
+      "border": [
+        80,
+        104,
+        80,
+        184
+      ],
+      "pixelsPerUnit": 200,
+      "notes": "内建图像生成工具；推荐固定 3:2 比例，九宫格仅供保持标题与角部的受控伸展。"
+    },
+    {
+      "id": "notice-bar-info",
+      "category": "feedback",
+      "state": "info",
+      "role": "persistent-resolution-message-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-bar-info.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/notice-bar-info.svg",
+      "guid": "89a68684abd75339816215c3eeffbcde",
+      "logicalSize": [
+        1424,
+        60
+      ],
+      "pixelSize": [
+        2848,
+        120
+      ],
+      "border": [
+        28,
+        20,
+        28,
+        20
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "notice-bar-success",
+      "category": "feedback",
+      "state": "success",
+      "role": "persistent-resolution-message-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-bar-success.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/notice-bar-success.svg",
+      "guid": "6e22986c2b1e551c94829e28c2e2af7e",
+      "logicalSize": [
+        1424,
+        60
+      ],
+      "pixelSize": [
+        2848,
+        120
+      ],
+      "border": [
+        28,
+        20,
+        28,
+        20
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "notice-bar-warning",
+      "category": "feedback",
+      "state": "warning",
+      "role": "persistent-resolution-message-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-bar-warning.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/notice-bar-warning.svg",
+      "guid": "592acdba69c75625a7a523b4f3bc8c81",
+      "logicalSize": [
+        1424,
+        60
+      ],
+      "pixelSize": [
+        2848,
+        120
+      ],
+      "border": [
+        28,
+        20,
+        28,
+        20
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "notice-bar-error",
+      "category": "feedback",
+      "state": "error",
+      "role": "persistent-resolution-message-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-bar-error.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/notice-bar-error.svg",
+      "guid": "f2e8a6a0c4f9541e80917c0ee5589e73",
+      "logicalSize": [
+        1424,
+        60
+      ],
+      "pixelSize": [
+        2848,
+        120
+      ],
+      "border": [
+        28,
+        20,
+        28,
+        20
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "notice-bar-pending",
+      "category": "feedback",
+      "state": "pending",
+      "role": "persistent-resolution-message-background",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-bar-pending.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/feedback/notice-bar-pending.svg",
+      "guid": "b7abc101cc085f769e5064431c515b4f",
+      "logicalSize": [
+        1424,
+        60
+      ],
+      "pixelSize": [
+        2848,
+        120
+      ],
+      "border": [
+        28,
+        20,
+        28,
+        20
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-on-plate",
+      "category": "forms",
+      "state": "",
+      "role": "checkbox-animation-face",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-on-plate.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-on-plate.svg",
+      "guid": "aa1ae62fa6ea55beb5f4520cb8055061",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-mark-gold",
+      "category": "forms",
+      "state": "",
+      "role": "checkbox-animation-mark",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-mark-gold.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-mark-gold.svg",
+      "guid": "29d0fc34a5cd54de9ae8fedf9e82b6cc",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-transition-00",
+      "category": "forms",
+      "state": "0/7",
+      "role": "checkbox-animation-frame",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-transition-00.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-transition-00.svg",
+      "guid": "1eef897fcef75fe08d6ea08282295e4b",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-transition-01",
+      "category": "forms",
+      "state": "1/7",
+      "role": "checkbox-animation-frame",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-transition-01.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-transition-01.svg",
+      "guid": "aa26eef43dec5026a7bff8b172d9359f",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-transition-02",
+      "category": "forms",
+      "state": "2/7",
+      "role": "checkbox-animation-frame",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-transition-02.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-transition-02.svg",
+      "guid": "3dcdbff1d036525f8edb220080a08711",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-transition-03",
+      "category": "forms",
+      "state": "3/7",
+      "role": "checkbox-animation-frame",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-transition-03.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-transition-03.svg",
+      "guid": "84eca21f4244508c97c5ee6a36646be4",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-transition-04",
+      "category": "forms",
+      "state": "4/7",
+      "role": "checkbox-animation-frame",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-transition-04.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-transition-04.svg",
+      "guid": "58254168836751bc9eace2017b5d38f6",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-transition-05",
+      "category": "forms",
+      "state": "5/7",
+      "role": "checkbox-animation-frame",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-transition-05.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-transition-05.svg",
+      "guid": "c47fbdb3ae595fc281a2b32167b97587",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-transition-06",
+      "category": "forms",
+      "state": "6/7",
+      "role": "checkbox-animation-frame",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-transition-06.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-transition-06.svg",
+      "guid": "689f221c7969581cbb61f4c3d437bb82",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    },
+    {
+      "id": "checkbox-transition-07",
+      "category": "forms",
+      "state": "7/7",
+      "role": "checkbox-animation-frame",
+      "png": "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-transition-07.png",
+      "svg": "ArtSource/UI/FrontierSupplementV2/sources/forms/checkbox-transition-07.svg",
+      "guid": "058c5100142e5ad4b8304f44cd8def06",
+      "logicalSize": [
+        28,
+        28
+      ],
+      "pixelSize": [
+        56,
+        56
+      ],
+      "border": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixelsPerUnit": 200
+    }
+  ],
+  "revision": {
+    "scope": [
+      "checkbox-animation",
+      "persistent-resolution-message"
+    ],
+    "existingPngRedrawn": false,
+    "messageSlotLogicalSize": [
+      1424,
+      60
+    ],
+    "checkboxSelectSeconds": 0.18,
+    "checkboxCancelSeconds": 0.14
+  }
+}

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>游城拓荒 · 两项定向修订</title>
+<style>
+@font-face { font-family:Project; src:url('../../../Assets/YC/Presentation/CommonUi/Fonts/MicrosoftYaHei-Regular-face0.ttf'); }
+* { box-sizing:border-box; }
+body { margin:0; color:#ecebda; background:#292f30; font:15px/1.6 Project,'Microsoft YaHei',sans-serif; letter-spacing:0; }
+header { padding:22px 32px; color:#293131; background:url('../../../Assets/YC/Presentation/CommonUi/Sprites/Frontier31/paper-bg.png') center/cover; }
+h1 { font-size:25px; margin:0; } header p { font-size:13px; margin:4px 0 0; }
+main { max-width:1488px; margin:auto; padding:22px 32px; }
+section { padding-bottom:22px; margin-bottom:20px; border-bottom:1px solid #555d59; }
+h2 { font-size:18px; font-weight:500; margin:0 0 12px; }
+.note { font-size:12px; color:#a7ada6; margin:6px 0 14px; }
+.check-examples { max-width:600px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; }
+.check-example { display:flex; align-items:center; justify-content:space-between; gap:12px; height:52px; }
+.check { appearance:none; border:0; padding:0; cursor:pointer; }
+.check:disabled { cursor:default; }
+.muted { color:#a7ada6; }
+.motion-panel { width:600px; max-width:100%; padding:22px 0; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.motion-panel .check-shell { width:56px; height:56px; flex-basis:56px; }
+.motion-label { display:flex; align-items:center; justify-content:space-between; width:320px; max-width:100%; gap:20px; font-size:19px; }
+.motion-actions { display:flex; gap:8px; flex-wrap:wrap; }
+button { color:#ecebda; font:inherit; min-height:40px; padding:6px 18px; border:1px solid #858980; background:#343a3b; cursor:pointer; }
+button:focus-visible { outline:2px solid #ddc063; outline-offset:2px; }
+.source-strip { width:828px; max-width:100%; display:block; height:auto; margin:6px 0 16px; }
+.slot-description { font-size:12px; color:#a7ada6; margin-top:12px; }
+a { color:#ddc063; }
+@media(max-width:700px) { header,main { padding:18px 20px; } h1 { font-size:21px; } .check-examples { grid-template-columns:1fr; gap:0; } .motion-panel { flex-direction:column; align-items:flex-start; } }
+</style>
+<link rel="stylesheet" href="revision-controls.css">
+</head>
+<body>
+<header><h1>游城拓荒 · 两项定向修订</h1><p>主体已认可并记录完成；仅修复勾选动效与当前结算区消息适配，其他贴图未改。</p></header>
+<main>
+<section><h2>选中与取消动画</h2><div class="check-examples">
+ <label class="check-example"><span class="check-state-label">未选中</span><input class="check" type="checkbox" aria-label="第一组勾选状态"></label>
+ <label class="check-example"><span class="check-state-label">选中</span><input class="check" type="checkbox" checked aria-label="第二组勾选状态"></label>
+ <label class="check-example muted"><span>禁用</span><input class="check" type="checkbox" checked disabled aria-label="禁用勾选状态"></label>
+</div>
+<div class="motion-panel" id="checkbox-motion"><label class="motion-label"><span class="check-state-label">未选中</span><input class="check" id="motion-check" type="checkbox" aria-label="勾选动画放大示意"></label><div class="motion-actions"><button type="button" id="select-check">选中</button><button type="button" id="cancel-check">取消</button></div></div>
+<p class="note">选中 180 毫秒，取消 140 毫秒；动效示意采用 2 倍尺寸。禁用态不响应。</p>
+</section>
+<section><h2>当前结算区参考</h2><img class="source-strip" src="references/current-resolution-slot.png" alt="用户提供的当前结算区截图"><p class="note">实际资产：GameplayInteractionHud / Bottom Bar Content / Resolution Summary Slot。高度 60，首选宽度 1424，宽度由现有横向布局分配；场景覆盖没有另改高度。</p>
+<div class="message-slots" id="compact-messages">
+ <div class="message-slot" data-state="warning"><span class="message-face"></span><span class="message-caption">结算区域</span><div class="message-content"><span>待处理选择：1～1 项</span></div></div>
+ <div class="message-slot" data-state="info"><span class="message-face"></span><span class="message-caption">结算区域</span><div class="message-content"><span>请选择目标，继续结算。</span></div></div>
+ <div class="message-slot" data-state="success"><span class="message-face"></span><span class="message-caption">结算区域</span><div class="message-content"><span>建设完成：设施已加入城市面板。</span></div></div>
+ <div class="message-slot" data-state="error"><span class="message-face"></span><span class="message-caption">结算区域</span><div class="message-content"><span>连接中断，当前命令尚未确认，请重试。</span></div></div>
+ <div class="message-slot" data-state="pending"><span class="message-face"></span><span class="message-caption">结算区域</span><div class="message-content"><span>正在等待主机确认。</span></div></div>
+</div><p class="slot-description">保持原标题与摘要的锚点区域，深色底兼容现有浅色文字；只新增九宫格底图，不改现有结算逻辑。此页仍为资产预览，尚未替换正式场景。</p>
+</section>
+<p class="note"><a href="preview.html">完整皮肤预览</a> · <a href="approval-status.json">完成与审批记录</a></p>
+</main>
+<script src="revision-controls.js"></script>
+<script>
+const motionCheck=document.getElementById('motion-check');
+function setChecked(value){motionCheck.checked=value;motionCheck.dispatchEvent(new Event('change',{bubbles:true}));}
+document.getElementById('select-check').onclick=()=>setChecked(true);
+document.getElementById('cancel-check').onclick=()=>setChecked(false);
+</script>
+</body>
+</html>
