@@ -314,7 +314,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u5220\u9664\u5B58\u6863"
+  m_Text: "确定要删除本存档吗？"
 --- !u!1 &1845912219653966723
 GameObject:
   m_ObjectHideFlags: 0
@@ -421,6 +421,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 562971630681843790}
+  - {fileID: 4819713997830478235}
   m_Father: {fileID: 884763508472044496}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -445,8 +446,8 @@ MonoBehaviour:
     m_Right: 8
     m_Top: 10
     m_Bottom: 10
-  m_ChildAlignment: 0
-  m_Spacing: 16
+  m_ChildAlignment: 4
+  m_Spacing: 4
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -1491,12 +1492,12 @@ GameObject:
   - component: {fileID: 2299610104298931289}
   - component: {fileID: 7392837209858300428}
   m_Layer: 5
-  m_Name: Subtitle
+  m_Name: WarningNote
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &4819713997830478235
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1509,7 +1510,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7391022464601410212}
+  m_Father: {fileID: 2181684806423720899}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1537,7 +1538,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.37, g: 0.34, b: 0.28, a: 1}
+  m_Color: {r: 0.76, g: 0.74, b: 0.68, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1546,18 +1547,18 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 43e9d69dcca63724db85852acd46004d, type: 3}
-    m_FontSize: 18
+    m_FontSize: 20
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
     m_MaxSize: 40
-    m_Alignment: 0
+    m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 0
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text: "（真的很久！）"
 --- !u!1 &4876908270994369090
 GameObject:
   m_ObjectHideFlags: 0
@@ -2009,7 +2010,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4200231700190937067}
-  - {fileID: 4819713997830478235}
   m_Father: {fileID: 7083112414250682633}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -2198,7 +2198,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1.3
-  m_Text: "\u771F\u7684\u8981\u5220\u9664\u5B58\u6863\u5417\uFF1F"
+  m_Text: "存档将会永久消失"
 --- !u!114 &7518938733454495072
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2215,7 +2215,7 @@ MonoBehaviour:
   m_MinWidth: -1
   m_MinHeight: -1
   m_PreferredWidth: -1
-  m_PreferredHeight: 100
+  m_PreferredHeight: 48
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -2686,7 +2686,7 @@ MonoBehaviour:
   m_MinWidth: 0
   m_MinHeight: 0
   m_PreferredWidth: -1
-  m_PreferredHeight: 96
+  m_PreferredHeight: 84
   m_FlexibleWidth: 0
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
@@ -2743,8 +2743,8 @@ MonoBehaviour:
   m_Padding:
     m_Left: 18
     m_Right: 18
-    m_Top: 14
-    m_Bottom: 14
+    m_Top: 10
+    m_Bottom: 10
   m_ChildAlignment: 4
   m_Spacing: 16
   m_ChildForceExpandWidth: 0

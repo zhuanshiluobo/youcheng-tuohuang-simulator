@@ -278,8 +278,9 @@ namespace YC.Presentation
             BuildCharacterCardEffectInteraction();
             BuildInteractionRouting();
             BuildCommandSubmission(GameLaunchContext.Instance);
+            // 固定地图池初始化会隐藏棋子，读档后也要立即按恢复状态显示城市等地图数据。
+            RefreshAllFromState();
             RefreshPendingChoiceOrHighlights();
-            RefreshFinalScoreFromState();
             PrepareRightCardSmokePresentation();
         }
 
