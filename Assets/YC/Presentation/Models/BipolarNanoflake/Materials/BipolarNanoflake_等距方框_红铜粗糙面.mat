@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: "BipolarNanoflake_\u7B49\u8DDD\u65B9\u6846_\u7EA2\u94DC\u7C97\u7CD9\u9762"
+  m_Shader: {fileID: 4800000, guid: 30504b0c20bb7b34fbdd0bdeea1a9971, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _EnvironmentResponse: 0.7
+    - _Glossiness: 0.42000002
+    - _GlossyReflections: 1
+    - _HighlightCompression: 1
+    - _LightResponse: 0.35
+    - _Metallic: 0.78
+    - _SpecularHighlights: 1
+    m_Colors:
+    - _Color: {r: 0.66999996, g: 0.09499998, b: 0.035, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BuildTextureStacks: []

@@ -1,0 +1,1889 @@
+{
+  "camera": {
+    "right": [
+      0.8336605429649353,
+      0.5522772073745728,
+      -1.8095753375746426e-06
+    ],
+    "up": [
+      -0.12069471180438995,
+      0.18219146132469177,
+      0.9758273959159851
+    ],
+    "forward": [
+      -0.5389273762702942,
+      0.8135083913803101,
+      -0.21854272484779358
+    ]
+  },
+  "objects": [
+    {
+      "name": "外围纵向大环线_闭合.001",
+      "parent": "共用X轴_固定枢轴",
+      "materials": [
+        "BipolarNanoflake_纵向大环青灰金属"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        }
+      },
+      "worldVertices": [
+        [
+          1.0844405889511108,
+          0.14309541881084442,
+          -0.17773188650608063
+        ],
+        [
+          1.0841208696365356,
+          0.13927938044071198,
+          -0.17591778934001923
+        ],
+        [
+          1.0817402601242065,
+          0.1362025886774063,
+          -0.17423799633979797
+        ],
+        [
+          1.0779366493225098,
+          0.13468950986862183,
+          -0.17314258217811584
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912581861019135,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": []
+    },
+    {
+      "name": "完整铜红长方形外框_1_橙.003",
+      "parent": "共用X轴_固定枢轴",
+      "materials": [
+        "BipolarNanoflake_等距方框_统一红铜"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        "框面粗糙度遮罩": {
+          "domain": "CORNER",
+          "type": "FLOAT"
+        }
+      },
+      "worldVertices": [
+        [
+          -0.9267705678939819,
+          -0.9433417916297913,
+          -0.3661409020423889
+        ],
+        [
+          0.9716606140136719,
+          -0.6928377151489258,
+          -0.6772798895835876
+        ],
+        [
+          0.9135293960571289,
+          0.9754385948181152,
+          0.31119126081466675
+        ],
+        [
+          -0.9849017858505249,
+          0.7249345183372498,
+          0.6223302483558655
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "完整铜红长方形外框_2_蓝.003",
+      "parent": "共用X轴_固定枢轴",
+      "materials": [
+        "BipolarNanoflake_前框_氧化红铜暗面",
+        "BipolarNanoflake_等距方框_统一红铜"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        "框面粗糙度遮罩": {
+          "domain": "CORNER",
+          "type": "FLOAT"
+        }
+      },
+      "worldVertices": [
+        [
+          -0.7160595655441284,
+          -0.8771640658378601,
+          -0.011352788656949997
+        ],
+        [
+          0.8734557628631592,
+          -0.6674224138259888,
+          -0.2718627154827118
+        ],
+        [
+          0.6952524185180664,
+          0.8873411417007446,
+          -0.1074095368385315
+        ],
+        [
+          -0.8942629098892212,
+          0.6775994896888733,
+          0.1531004011631012
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "完整铜红长方形外框_3_绿.003",
+      "parent": "共用X轴_固定枢轴",
+      "materials": [
+        "BipolarNanoflake_后框_磨砂红铜"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        "框面粗糙度遮罩": {
+          "domain": "CORNER",
+          "type": "FLOAT"
+        }
+      },
+      "worldVertices": [
+        [
+          -0.6727505326271057,
+          -0.1924571990966797,
+          -0.43263527750968933
+        ],
+        [
+          0.5285453200340271,
+          -0.033942364156246185,
+          -0.6295188665390015
+        ],
+        [
+          0.6562321186065674,
+          0.28484973311424255,
+          0.40623435378074646
+        ],
+        [
+          -0.5450637340545654,
+          0.12633490562438965,
+          0.6031179428100586
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "完整铜红长方形外框_4_黑.003",
+      "parent": "共用X轴_固定枢轴",
+      "materials": [
+        "BipolarNanoflake_等距方框_统一红铜"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        "框面粗糙度遮罩": {
+          "domain": "CORNER",
+          "type": "FLOAT"
+        }
+      },
+      "worldVertices": [
+        [
+          -0.8157090544700623,
+          0.19660556316375732,
+          -0.23409083485603333
+        ],
+        [
+          0.6233800053596497,
+          0.38649797439575195,
+          -0.4699470102787018
+        ],
+        [
+          0.8137828707695007,
+          -0.11331412941217422,
+          0.2893975079059601
+        ],
+        [
+          -0.6253061890602112,
+          -0.30320653319358826,
+          0.5252536535263062
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "最大框_附属内层.001",
+      "parent": "共用X轴_固定枢轴",
+      "materials": [
+        "BipolarNanoflake_等距方框_统一红铜"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        "框面粗糙度遮罩": {
+          "domain": "CORNER",
+          "type": "FLOAT"
+        }
+      },
+      "worldVertices": [
+        [
+          -0.8410981297492981,
+          -0.8575468063354492,
+          -0.33075669407844543
+        ],
+        [
+          0.8826772570610046,
+          -0.6300891637802124,
+          -0.6132708787918091
+        ],
+        [
+          0.8298941254615784,
+          0.884705662727356,
+          0.2842608094215393
+        ],
+        [
+          -0.8938812613487244,
+          0.6572480201721191,
+          0.5667750239372253
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "核心_一体圆盘与灰色边框.001",
+      "parent": "共用X轴_固定枢轴",
+      "materials": [
+        "BipolarNanoflake_固定视角_集中红橙核心",
+        "BipolarNanoflake_青线银色端接.001",
+        "BipolarNanoflake_参考核心_琥珀金侧缘.001",
+        "BipolarNanoflake_参考核心_薄金片.001",
+        "BipolarNanoflake_参考核心_浅金透光片体.001",
+        "BipolarNanoflake_参考核心_内部亮面_0.001",
+        "BipolarNanoflake_参考核心_内部亮面_1.001",
+        "BipolarNanoflake_参考核心_内部亮面_2.001",
+        "BipolarNanoflake_参考核心_内部亮面_3.001",
+        "BipolarNanoflake_参考核心_内部亮面_4.001",
+        "BipolarNanoflake_固定视角_红橙细导路"
+      ],
+      "attributes": {
+        "核心红橙渐变": {
+          "domain": "CORNER",
+          "type": "FLOAT_COLOR"
+        },
+        "核心烘焙UV": {
+          "domain": "CORNER",
+          "type": "FLOAT2"
+        },
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        ".uv_select_vert": {
+          "domain": "CORNER",
+          "type": "BOOLEAN"
+        },
+        ".uv_select_edge": {
+          "domain": "CORNER",
+          "type": "BOOLEAN"
+        },
+        ".uv_select_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "material_index": {
+          "domain": "FACE",
+          "type": "INT"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        }
+      },
+      "worldVertices": [
+        [
+          0.3781193494796753,
+          0.04820418357849121,
+          -0.06005515530705452
+        ],
+        [
+          0.37791910767555237,
+          0.060779016464948654,
+          -0.0488627552986145
+        ],
+        [
+          0.37700045108795166,
+          0.07323505729436874,
+          -0.03757384791970253
+        ],
+        [
+          0.37536510825157166,
+          0.08554860204458237,
+          -0.026209935545921326
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": []
+    },
+    {
+      "name": "核心_红色平行轴线_1",
+      "parent": "核心_一体圆盘与灰色边框.001",
+      "materials": [
+        "BipolarNanoflake_双红轴_由核心向外渐暗"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        },
+        "双红轴发光烘焙UV": {
+          "domain": "CORNER",
+          "type": "FLOAT2"
+        }
+      },
+      "worldVertices": [
+        [
+          -1.035988211631775,
+          -0.16551940143108368,
+          0.16406218707561493
+        ],
+        [
+          -1.03572416305542,
+          -0.1666240692138672,
+          0.16478419303894043
+        ],
+        [
+          -1.0355373620986938,
+          -0.1679551899433136,
+          0.16485191881656647
+        ],
+        [
+          -1.0354779958724976,
+          -0.16915608942508698,
+          0.16424721479415894
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": []
+    },
+    {
+      "name": "核心_红色平行轴线_2",
+      "parent": "核心_一体圆盘与灰色边框.001",
+      "materials": [
+        "BipolarNanoflake_双红轴_由核心向外渐暗"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        },
+        "双红轴发光烘焙UV": {
+          "domain": "CORNER",
+          "type": "FLOAT2"
+        }
+      },
+      "worldVertices": [
+        [
+          -1.0354586839675903,
+          -0.12352412194013596,
+          0.2011042684316635
+        ],
+        [
+          -1.0351946353912354,
+          -0.12462879717350006,
+          0.201826274394989
+        ],
+        [
+          -1.0350079536437988,
+          -0.12595991790294647,
+          0.20189400017261505
+        ],
+        [
+          -1.0349485874176025,
+          -0.12716080248355865,
+          0.20128929615020752
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": []
+    },
+    {
+      "name": "红导线外侧节点_右",
+      "parent": "核心_一体圆盘与灰色边框.001",
+      "materials": [
+        "BipolarNanoflake_完整红导线_外侧青灰节点",
+        "BipolarNanoflake_红蓝交点_金属套环"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "material_index": {
+          "domain": "FACE",
+          "type": "INT"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        }
+      },
+      "worldVertices": [
+        [
+          1.0213674306869507,
+          0.10917255282402039,
+          -0.19279588758945465
+        ],
+        [
+          1.0672883987426758,
+          0.11352548748254776,
+          -0.17197836935520172
+        ],
+        [
+          1.0409388542175293,
+          0.11175507307052612,
+          -0.1960034966468811
+        ],
+        [
+          1.0673441886901855,
+          0.11381189525127411,
+          -0.1688593626022339
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": []
+    },
+    {
+      "name": "红导线外侧节点_左",
+      "parent": "核心_一体圆盘与灰色边框.001",
+      "materials": [
+        "BipolarNanoflake_完整红导线_外侧青灰节点",
+        "BipolarNanoflake_红蓝交点_金属套环"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "material_index": {
+          "domain": "FACE",
+          "type": "INT"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        }
+      },
+      "worldVertices": [
+        [
+          -1.0228708982467651,
+          -0.16057124733924866,
+          0.14223985373973846
+        ],
+        [
+          -1.0672883987426758,
+          -0.11352548748254776,
+          0.17197836935520172
+        ],
+        [
+          -1.066429853439331,
+          -0.11315366625785828,
+          0.17496800422668457
+        ],
+        [
+          -1.0424423217773438,
+          -0.1631537675857544,
+          0.14544746279716492
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": []
+    },
+    {
+      "name": "红轴接线片_右",
+      "parent": "核心_一体圆盘与灰色边框.001",
+      "materials": [
+        "BipolarNanoflake_双红轴_暗红铜接线片"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        }
+      },
+      "worldVertices": [
+        [
+          0.5383170247077942,
+          0.03876764327287674,
+          -0.10607138276100159
+        ],
+        [
+          0.5578864812850952,
+          0.04134989529848099,
+          -0.10927867144346237
+        ],
+        [
+          0.5607948899269104,
+          0.032175738364458084,
+          -0.0989193320274353
+        ],
+        [
+          0.5578611493110657,
+          0.031788621097803116,
+          -0.09843851625919342
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": []
+    },
+    {
+      "name": "红轴接线片_左",
+      "parent": "核心_一体圆盘与灰色边框.001",
+      "materials": [
+        "BipolarNanoflake_双红轴_暗红铜接线片"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        }
+      },
+      "worldVertices": [
+        [
+          -0.5357645153999329,
+          -0.10296084731817245,
+          0.06996272504329681
+        ],
+        [
+          -0.5553339719772339,
+          -0.1055430993437767,
+          0.0731700137257576
+        ],
+        [
+          -0.5524255633354187,
+          -0.11471725255250931,
+          0.08352935314178467
+        ],
+        [
+          -0.549491822719574,
+          -0.11433013528585434,
+          0.08304853737354279
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": []
+    },
+    {
+      "name": "青色环绕细线_闭合.001",
+      "parent": "共用X轴_固定枢轴",
+      "materials": [
+        "BipolarNanoflake_青色环绕导线"
+      ],
+      "attributes": {
+        ".select_vert": {
+          "domain": "POINT",
+          "type": "BOOLEAN"
+        },
+        "position": {
+          "domain": "POINT",
+          "type": "FLOAT_VECTOR"
+        },
+        ".corner_vert": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".corner_edge": {
+          "domain": "CORNER",
+          "type": "INT"
+        },
+        ".select_poly": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        "sharp_face": {
+          "domain": "FACE",
+          "type": "BOOLEAN"
+        },
+        ".edge_verts": {
+          "domain": "EDGE",
+          "type": "INT32_2D"
+        },
+        ".select_edge": {
+          "domain": "EDGE",
+          "type": "BOOLEAN"
+        }
+      },
+      "worldVertices": [
+        [
+          1.0597941875457764,
+          0.13984324038028717,
+          -0.173692524433136
+        ],
+        [
+          1.0593342781066895,
+          0.1401287168264389,
+          -0.16958697140216827
+        ],
+        [
+          1.0568996667861938,
+          0.1400609016418457,
+          -0.1662376970052719
+        ],
+        [
+          1.0531432628631592,
+          0.13965798914432526,
+          -0.16454216837882996
+        ]
+      ],
+      "axis": [
+        0.9785727262496948,
+        0.12912580370903015,
+        -0.16038091480731964
+      ],
+      "roughnessMaskValues": []
+    }
+  ],
+  "materials": {
+    "BipolarNanoflake_纵向大环青灰金属": {
+      "baseColor": [
+        0.0300741046667099,
+        0.13286831974983215,
+        0.1473190039396286,
+        1.0
+      ],
+      "metallic": 0.800000011920929,
+      "roughness": 0.25,
+      "emissionColor": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "emissionStrength": 1.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_等距方框_统一红铜": {
+      "baseColor": [
+        0.4064483046531677,
+        0.009264310821890831,
+        0.0027089782524853945,
+        1.0
+      ],
+      "metallic": 0.7799999713897705,
+      "roughness": 0.23999999463558197,
+      "emissionColor": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "Principled BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "ATTRIBUTE",
+          "fromName": "属性",
+          "fromSocket": "Factor",
+          "to": "MAP_RANGE",
+          "toSocket": "Value"
+        },
+        {
+          "from": "ATTRIBUTE",
+          "fromName": "属性",
+          "fromSocket": "Factor",
+          "to": "MAP_RANGE",
+          "toSocket": "Value"
+        },
+        {
+          "from": "MAP_RANGE",
+          "fromName": "映射范围",
+          "fromSocket": "Result",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Roughness"
+        },
+        {
+          "from": "MAP_RANGE",
+          "fromName": "映射范围.001",
+          "fromSocket": "Result",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Coat Weight"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "属性",
+          "attribute": "框面粗糙度遮罩"
+        }
+      ],
+      "mapRanges": [
+        {
+          "name": "映射范围",
+          "inputs": {
+            "Value": 1.0,
+            "From Min": 0.0,
+            "From Max": 1.0,
+            "To Min": 0.23999999463558197,
+            "To Max": 0.5799999833106995,
+            "Steps": 4.0
+          }
+        },
+        {
+          "name": "映射范围.001",
+          "inputs": {
+            "Value": 1.0,
+            "From Min": 0.0,
+            "From Max": 1.0,
+            "To Min": 1.0,
+            "To Max": 0.0,
+            "Steps": 4.0
+          }
+        }
+      ]
+    },
+    "BipolarNanoflake_前框_氧化红铜暗面": {
+      "baseColor": [
+        0.08941862732172012,
+        0.0020381484646350145,
+        0.0005959752015769482,
+        1.0
+      ],
+      "metallic": 1.0,
+      "roughness": 0.3199999928474426,
+      "emissionColor": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "Principled BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_后框_磨砂红铜": {
+      "baseColor": [
+        0.10161207616329193,
+        0.0023160777054727077,
+        0.0006772445631213486,
+        1.0
+      ],
+      "metallic": 0.75,
+      "roughness": 0.5,
+      "emissionColor": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "Principled BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_固定视角_集中红橙核心": {
+      "baseColor": [
+        0.800000011920929,
+        0.800000011920929,
+        0.800000011920929,
+        1.0
+      ],
+      "metallic": 0.05000000074505806,
+      "roughness": 0.6499999761581421,
+      "emissionColor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionStrength": 4.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_BaseColor",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Base Color"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_Emission",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_青线银色端接.001": {
+      "baseColor": [
+        0.4479884207248688,
+        0.6038273572921753,
+        0.5870163440704346,
+        1.0
+      ],
+      "metallic": 0.8399999737739563,
+      "roughness": 0.2199999988079071,
+      "emissionColor": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "emissionStrength": 4.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_BaseColor",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Base Color"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_Emission",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_参考核心_琥珀金侧缘.001": {
+      "baseColor": [
+        0.6800000071525574,
+        0.2800000011920929,
+        0.04500000178813934,
+        1.0
+      ],
+      "metallic": 0.3799999952316284,
+      "roughness": 0.23999999463558197,
+      "emissionColor": [
+        0.6800000071525574,
+        0.2800000011920929,
+        0.04500000178813934,
+        1.0
+      ],
+      "emissionStrength": 4.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_BaseColor",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Base Color"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_Emission",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_参考核心_薄金片.001": {
+      "baseColor": [
+        0.8500000238418579,
+        0.550000011920929,
+        0.20000000298023224,
+        1.0
+      ],
+      "metallic": 0.6200000047683716,
+      "roughness": 0.23000000417232513,
+      "emissionColor": [
+        0.8500000238418579,
+        0.550000011920929,
+        0.20000000298023224,
+        1.0
+      ],
+      "emissionStrength": 4.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_BaseColor",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Base Color"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_Emission",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_参考核心_浅金透光片体.001": {
+      "baseColor": [
+        0.911407470703125,
+        0.7105664610862732,
+        0.34239163994789124,
+        1.0
+      ],
+      "metallic": 0.10000000149011612,
+      "roughness": 0.20999999344348907,
+      "emissionColor": [
+        0.911407470703125,
+        0.7105664610862732,
+        0.34239163994789124,
+        1.0
+      ],
+      "emissionStrength": 4.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_BaseColor",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Base Color"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_Emission",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_参考核心_内部亮面_0.001": {
+      "baseColor": [
+        0.8999999761581421,
+        0.6000000238418579,
+        0.25999999046325684,
+        1.0
+      ],
+      "metallic": 0.20000000298023224,
+      "roughness": 0.25999999046325684,
+      "emissionColor": [
+        0.8999999761581421,
+        0.6000000238418579,
+        0.25999999046325684,
+        1.0
+      ],
+      "emissionStrength": 4.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_BaseColor",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Base Color"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_Emission",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_参考核心_内部亮面_1.001": {
+      "baseColor": [
+        1.0,
+        0.8100000023841858,
+        0.46000000834465027,
+        1.0
+      ],
+      "metallic": 0.20000000298023224,
+      "roughness": 0.25999999046325684,
+      "emissionColor": [
+        1.0,
+        0.8100000023841858,
+        0.46000000834465027,
+        1.0
+      ],
+      "emissionStrength": 4.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_BaseColor",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Base Color"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_Emission",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_参考核心_内部亮面_2.001": {
+      "baseColor": [
+        1.0,
+        0.9399999976158142,
+        0.7200000286102295,
+        1.0
+      ],
+      "metallic": 0.20000000298023224,
+      "roughness": 0.25999999046325684,
+      "emissionColor": [
+        1.0,
+        0.9399999976158142,
+        0.7200000286102295,
+        1.0
+      ],
+      "emissionStrength": 4.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_BaseColor",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Base Color"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_Emission",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_参考核心_内部亮面_3.001": {
+      "baseColor": [
+        0.7400000095367432,
+        0.41999998688697815,
+        0.12999999523162842,
+        1.0
+      ],
+      "metallic": 0.20000000298023224,
+      "roughness": 0.25999999046325684,
+      "emissionColor": [
+        0.7400000095367432,
+        0.41999998688697815,
+        0.12999999523162842,
+        1.0
+      ],
+      "emissionStrength": 4.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_BaseColor",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Base Color"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_Emission",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_参考核心_内部亮面_4.001": {
+      "baseColor": [
+        1.0,
+        0.8899999856948853,
+        0.5799999833106995,
+        1.0
+      ],
+      "metallic": 0.20000000298023224,
+      "roughness": 0.25999999046325684,
+      "emissionColor": [
+        1.0,
+        0.8899999856948853,
+        0.5799999833106995,
+        1.0
+      ],
+      "emissionStrength": 4.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_BaseColor",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Base Color"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_Emission",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_固定视角_红橙细导路": {
+      "baseColor": [
+        0.9551045894622803,
+        0.07828831672668457,
+        0.0035010159481316805,
+        1.0
+      ],
+      "metallic": 0.25,
+      "roughness": 0.550000011920929,
+      "emissionColor": [
+        0.9551045894622803,
+        0.07828831672668457,
+        0.0035010159481316805,
+        1.0
+      ],
+      "emissionStrength": 1.100000023841858,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_BaseColor",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Base Color"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "固定视角核心烘焙_Emission",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_双红轴_由核心向外渐暗": {
+      "baseColor": [
+        0.04500000178813934,
+        0.0005499999970197678,
+        3.9999998989515007e-05,
+        1.0
+      ],
+      "metallic": 0.0,
+      "roughness": 0.8199999928474426,
+      "emissionColor": [
+        1.0,
+        0.006000000052154064,
+        0.0010000000474974513,
+        1.0
+      ],
+      "emissionStrength": 2.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        },
+        {
+          "from": "TEX_COORD",
+          "fromName": "纹理坐标",
+          "fromSocket": "Generated",
+          "to": "SEPXYZ",
+          "toSocket": "Vector"
+        },
+        {
+          "from": "SEPXYZ",
+          "fromName": "分离 XYZ",
+          "fromSocket": "X",
+          "to": "MATH",
+          "toSocket": "Value"
+        },
+        {
+          "from": "MATH",
+          "fromName": "运算",
+          "fromSocket": "Value",
+          "to": "MATH",
+          "toSocket": "Value"
+        },
+        {
+          "from": "MATH",
+          "fromName": "运算.001",
+          "fromSocket": "Value",
+          "to": "MATH",
+          "toSocket": "Value"
+        },
+        {
+          "from": "MATH",
+          "fromName": "运算.002",
+          "fromSocket": "Value",
+          "to": "VALTORGB",
+          "toSocket": "Factor"
+        },
+        {
+          "from": "TEX_IMAGE",
+          "fromName": "图像纹理",
+          "fromSocket": "Color",
+          "to": "BSDF_PRINCIPLED",
+          "toSocket": "Emission Color"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_完整红导线_外侧青灰节点": {
+      "baseColor": [
+        0.024000000208616257,
+        0.06400000303983688,
+        0.06199999898672104,
+        1.0
+      ],
+      "metallic": 0.44999998807907104,
+      "roughness": 0.550000011920929,
+      "emissionColor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_红蓝交点_金属套环": {
+      "baseColor": [
+        0.054999999701976776,
+        0.07999999821186066,
+        0.07699999958276749,
+        1.0
+      ],
+      "metallic": 0.7200000286102295,
+      "roughness": 0.2800000011920929,
+      "emissionColor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_双红轴_暗红铜接线片": {
+      "baseColor": [
+        0.05999999865889549,
+        0.0013000000035390258,
+        0.0002500000118743628,
+        1.0
+      ],
+      "metallic": 0.3499999940395355,
+      "roughness": 0.6800000071525574,
+      "emissionColor": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    },
+    "BipolarNanoflake_青色环绕导线": {
+      "baseColor": [
+        0.0134117491543293,
+        0.4479884207248688,
+        0.4919050335884094,
+        1.0
+      ],
+      "metallic": 0.6800000071525574,
+      "roughness": 0.23000000417232513,
+      "emissionColor": [
+        0.0011609906796365976,
+        0.015325203537940979,
+        0.01960664801299572,
+        1.0
+      ],
+      "emissionStrength": 1.0,
+      "links": [
+        {
+          "from": "BSDF_PRINCIPLED",
+          "fromName": "原理化 BSDF",
+          "fromSocket": "BSDF",
+          "to": "OUTPUT_MATERIAL",
+          "toSocket": "Surface"
+        }
+      ],
+      "attributes": [],
+      "mapRanges": []
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "stage": "完成",
+  "model": {
+    "name": "固源岩组",
+    "key": "OrirockCluster",
+    "parts": 10,
+    "triangles": 302
+  },
+  "revision": "不规则高岩、斜向薄片、横向搭接、灰褐连续断面，闭合三维石块"
+}

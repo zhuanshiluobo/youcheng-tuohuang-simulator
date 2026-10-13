@@ -1,0 +1,69 @@
+if (UnityEditor.EditorApplication.isPlaying) throw new System.InvalidOperationException("替换必须在编辑模式执行");
+var project=System.IO.Path.GetDirectoryName(UnityEngine.Application.dataPath);
+var modelFolder="Assets/YC/Presentation/Models/BipolarNanoflake";
+var modelPath=modelFolder+"/BipolarNanoflake_Finished.fbx";
+var manifestPath=System.IO.Path.Combine(project,modelFolder+"/material_manifest.json");
+var manifest=Newtonsoft.Json.Linq.JObject.Parse(System.IO.File.ReadAllText(manifestPath));
+var sourcePath=System.IO.Path.Combine(project,"ArtSource/Materials/BipolarNanoflake/RedCoreRegionReview/FixedViewFrameReview/AxisLockedFrameReview/approved_export_data.json");
+var source=Newtonsoft.Json.Linq.JObject.Parse(System.IO.File.ReadAllText(sourcePath));
+foreach(var entry in ((Newtonsoft.Json.Linq.JObject)source["materials"]).Properties()) {
+    var value=(Newtonsoft.Json.Linq.JObject)entry.Value;
+    if(manifest["materials"][entry.Name]==null) manifest["materials"][entry.Name]=new Newtonsoft.Json.Linq.JObject {
+        ["baseColor"]=value["baseColor"].DeepClone(),["metallic"]=value["metallic"].DeepClone(),
+        ["roughness"]=value["roughness"].DeepClone(),["emissionStrength"]=value["emissionStrength"].DeepClone(),
+        ["unityShader"]="沿用现有展品着色器",["coreTextureAtlas"]=false};
+    manifest["materials"][entry.Name]["emissionColor"]=value["emissionColor"].DeepClone();
+}
+var textureNames=new[]{"BipolarNanoflake_Core_BaseColor.png","BipolarNanoflake_Core_Emission.png","BipolarNanoflake_RedAxes_Emission.png"};
+foreach(var name in textureNames) {
+    var path=modelFolder+"/Textures/"+name;
+    var importer=(UnityEditor.TextureImporter)UnityEditor.AssetImporter.GetAtPath(path);
+    importer.textureType=UnityEditor.TextureImporterType.Default;importer.sRGBTexture=true;
+    importer.alphaSource=UnityEditor.TextureImporterAlphaSource.None;importer.alphaIsTransparency=false;
+    importer.maxTextureSize=1024;importer.mipmapEnabled=true;importer.wrapMode=UnityEngine.TextureWrapMode.Clamp;
+    importer.textureCompression=UnityEditor.TextureImporterCompression.Uncompressed;
+    importer.SaveAndReimport();
+}
+var baseTexture=UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Texture2D>(modelFolder+"/Textures/BipolarNanoflake_Core_BaseColor.png");
+var emissionTexture=UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Texture2D>(modelFolder+"/Textures/BipolarNanoflake_Core_Emission.png");
+var redTexture=UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Texture2D>(modelFolder+"/Textures/BipolarNanoflake_RedAxes_Emission.png");
+var imported=(UnityEditor.ModelImporter)UnityEditor.AssetImporter.GetAtPath(modelPath);
+foreach(var pair in imported.GetExternalObjectMap().ToArray()) if(pair.Key.type==typeof(UnityEngine.Material)) imported.RemoveRemap(pair.Key);
+var output=new System.Collections.Generic.List<object>();
+foreach(var entry in ((Newtonsoft.Json.Linq.JObject)manifest["materials"]).Properties()) {
+    var p=(Newtonsoft.Json.Linq.JObject)entry.Value;
+    var path=modelFolder+"/Materials/"+entry.Name+".mat";
+    var shaderName=(string)p["unityShader"]=="Standard"?"Standard":"YC/Collection/ExhibitPBR";
+    var shader=UnityEngine.Shader.Find(shaderName);
+    if(shader==null)throw new System.InvalidOperationException("缺少着色器 "+shaderName);
+    var material=UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Material>(path);
+    if(material==null) {material=new UnityEngine.Material(shader);UnityEditor.AssetDatabase.CreateAsset(material,path);} else material.shader=shader;
+    material.name=entry.Name;material.shaderKeywords=new string[0];material.renderQueue=-1;
+    var rgba=(Newtonsoft.Json.Linq.JArray)p["baseColor"];
+    var color=new UnityEngine.Color((float)rgba[0],(float)rgba[1],(float)rgba[2],1f);
+    var atlas=p["coreTextureAtlas"]!=null&&(bool)p["coreTextureAtlas"];
+    material.SetColor("_Color",atlas?UnityEngine.Color.white:color.gamma);
+    material.SetFloat("_Metallic",(float)p["metallic"]);material.SetFloat("_Glossiness",1f-(float)p["roughness"]);
+    if(material.HasProperty("_Mode")) {material.SetFloat("_Mode",0);material.SetInt("_SrcBlend",1);material.SetInt("_DstBlend",0);material.SetInt("_ZWrite",1);}
+    if(material.HasProperty("_LightResponse")){material.SetFloat("_LightResponse",.35f);material.SetFloat("_EnvironmentResponse",.7f);material.SetFloat("_HighlightCompression",1f);}
+    var strength=p["emissionStrength"]==null?0f:(float)p["emissionStrength"];
+    UnityEngine.Color emission=UnityEngine.Color.black;
+    if(atlas) {material.mainTexture=baseTexture;material.SetTexture("_EmissionMap",emissionTexture);emission=new UnityEngine.Color(strength,strength,strength,1f);}
+    else if(p["emissionTexture"]!=null){material.SetTexture("_EmissionMap",redTexture);emission=new UnityEngine.Color(strength,strength,strength,1f);}
+    else if(p["emissionColor"]!=null){var e=(Newtonsoft.Json.Linq.JArray)p["emissionColor"];emission=new UnityEngine.Color((float)e[0]*strength,(float)e[1]*strength,(float)e[2]*strength,1f);}
+    material.SetColor("_EmissionColor",emission.gamma);
+    if(emission.maxColorComponent>0.00001f){material.EnableKeyword("_EMISSION");material.globalIlluminationFlags=UnityEngine.MaterialGlobalIlluminationFlags.None;} else material.globalIlluminationFlags=UnityEngine.MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+    var specular=p["specular"]==null?1f:(float)p["specular"];
+    material.SetFloat("_SpecularHighlights",specular==0f?0f:1f);
+    if(specular==0f)material.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
+    UnityEditor.EditorUtility.SetDirty(material);
+    imported.AddRemap(new UnityEditor.AssetImporter.SourceAssetIdentifier(typeof(UnityEngine.Material),entry.Name),material);
+    p["unityMaterial"]=path;p["unityMaterialGuid"]=UnityEditor.AssetDatabase.AssetPathToGUID(path);
+    output.Add(new {material=entry.Name,shader=shaderName,atlas=atlas});
+}
+UnityEditor.AssetDatabase.SaveAssets();
+imported.importCameras=false;imported.importLights=false;imported.importAnimation=false;imported.SaveAndReimport();
+manifest["status"]="材质与网格已导入；展示预制体更新中";
+System.IO.File.WriteAllText(manifestPath,manifest.ToString());
+System.IO.File.WriteAllText(System.IO.Path.Combine(project,"ArtSource/Materials/BipolarNanoflake/RedCoreRegionReview/UnityDelivery/material_manifest.json"),manifest.ToString());
+return new {modelGuid=UnityEditor.AssetDatabase.AssetPathToGUID(modelPath),materials=output};

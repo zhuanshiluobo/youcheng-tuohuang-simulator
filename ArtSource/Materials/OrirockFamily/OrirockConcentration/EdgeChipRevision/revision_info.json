@@ -1,0 +1,30 @@
+{
+  "source": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockConcentration\\HexPrismRevision\\OrirockConcentration_HexPrisms.blend",
+  "blend": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockConcentration\\EdgeChipRevision\\OrirockConcentration_EdgeChips.blend",
+  "meshes": [
+    {
+      "name": "提纯源岩_左后_宽顶短壁",
+      "chips": 5,
+      "non_manifold_edges": 0,
+      "triangles": 162
+    },
+    {
+      "name": "提纯源岩_右后_斜切与下阶",
+      "chips": 4,
+      "non_manifold_edges": 0,
+      "triangles": 148
+    },
+    {
+      "name": "提纯源岩_前方_宽扁断块",
+      "chips": 6,
+      "non_manifold_edges": 0,
+      "triangles": 182
+    }
+  ],
+  "description": "三根六边形棱柱的位置、尺度和主体面保持原样，只在参考图顶缘与转角添加15处小崩口。",
+  "export_contents": "仅模型根和三根岩柱，不含刀具、地板、背景、相机或灯光",
+  "texture_resolution": [
+    2048,
+    2048
+  ]
+}

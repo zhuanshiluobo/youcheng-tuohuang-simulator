@@ -14,6 +14,7 @@ namespace YC.Presentation
         [SerializeField] private LoadingModelDragController dragController;
         [SerializeField] private Button backButton;
         [SerializeField] private Button resetViewButton;
+        [SerializeField] private CollectionModelViewController modelViewController;
         [SerializeField] private string returnSceneName = "StartScene";
         [Header("藏品目录与列表")]
         [SerializeField] private CollectionCatalog catalog;
@@ -124,6 +125,7 @@ namespace YC.Presentation
                     dragController.StopMotion();
                     dragController.enabled = false;
                     if (resetViewButton != null) resetViewButton.interactable = false;
+                    if (modelViewController != null) modelViewController.SetInteractionEnabled(false);
                     while (spotlightArea != null && spotlightArea.IsTransitioning) yield return null;
                     // 复用既有过渡；只传入稀有度背景色，保留灯位、强度和过渡参数。
                     int version = selectionVersion;
@@ -171,6 +173,9 @@ namespace YC.Presentation
                 if (item.UseInteriorReflection)
                     interiorReflection = new CollectionInteriorReflection(CurrentModel.transform, previewCamera, keyLight);
             }
+            if (modelViewController != null)
+                modelViewController.BindModel(CurrentModel, item != null ? item.ViewPosePath : null,
+                    item != null ? item.FrontViewEuler : Vector3.zero);
             if (nameLabel != null) nameLabel.text = item != null ? item.DisplayName : string.Empty;
             if (englishNameLabel != null) englishNameLabel.text = item != null ? item.EnglishName : string.Empty;
             if (categoryLabel != null) categoryLabel.text = item != null ? item.Rarity : string.Empty;
@@ -200,6 +205,7 @@ namespace YC.Presentation
             bool available = isActiveAndEnabled && CurrentModel != null && !switching;
             if (dragController != null) dragController.enabled = available;
             if (resetViewButton != null) resetViewButton.interactable = available;
+            if (modelViewController != null) modelViewController.SetInteractionEnabled(available);
         }
         private void ReleaseModel()
         {
@@ -243,6 +249,7 @@ namespace YC.Presentation
             if (modelPivot == null || dragController == null || switching) return;
             dragController.StopMotion();
             modelPivot.localRotation = initialRotation;
+            if (modelViewController != null) modelViewController.ResetToPreset();
         }
         public void ReturnToStart()
         {

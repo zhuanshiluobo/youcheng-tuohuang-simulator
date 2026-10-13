@@ -1,0 +1,90 @@
+{
+  "scene": "提纯源岩_正面修订_可编辑源",
+  "scenes": [
+    "提纯源岩_正面修订_可编辑源"
+  ],
+  "source_meshes": [
+    "提纯源岩_左后_宽顶短壁",
+    "提纯源岩_右后_斜切与下阶",
+    "提纯源岩_前方_宽扁断块"
+  ],
+  "source_material_graphs": 10,
+  "fbx_objects": [
+    {
+      "name": "提纯源岩_前方_宽扁断块.001",
+      "type": "MESH",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "triangles": 410,
+      "uv_layers": 1,
+      "non_manifold_edges": 0,
+      "material_slots": 1
+    },
+    {
+      "name": "提纯源岩_右后_斜切与下阶.001",
+      "type": "MESH",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "triangles": 384,
+      "uv_layers": 1,
+      "non_manifold_edges": 0,
+      "material_slots": 1
+    },
+    {
+      "name": "提纯源岩_左后_宽顶短壁.001",
+      "type": "MESH",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "triangles": 408,
+      "uv_layers": 1,
+      "non_manifold_edges": 0,
+      "material_slots": 1
+    },
+    {
+      "name": "OrirockConcentration_Root.001",
+      "type": "EMPTY",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "fbx_mesh_count": 3,
+  "fbx_triangle_count": 1202,
+  "fbx_preview_equipment_count": 0,
+  "fbx_world_bounds_size": [
+    1.649999976158142,
+    1.512582778930664,
+    1.0486828088760376
+  ]
+}

@@ -1,0 +1,557 @@
+{
+  "status": "红蓝交点已补齐并实际渲染复核；待用户人工验收；未替换Unity",
+  "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\BipolarNanoflake_红蓝交点修复前_20261007_172900.blend",
+  "nodes": [
+    "红导线外侧节点_左",
+    "红导线外侧节点_右"
+  ],
+  "ring": "青色环绕细线_闭合.001",
+  "tubeRadius": 0.008,
+  "collarInnerRadius": 0.00855,
+  "collarOuterRadius": 0.012,
+  "collarArcLength": 0.05375,
+  "protectedStateChanges": [
+    {
+      "object": "共用X轴_固定枢轴",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0
+    },
+    {
+      "object": "外围纵向大环线_闭合.001",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "完整铜红长方形外框_1_橙.003",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "完整铜红长方形外框_2_蓝.003",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "完整铜红长方形外框_3_绿.003",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "完整铜红长方形外框_4_黑.003",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "最大框_附属内层.001",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "核心_一体圆盘与灰色边框.001",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "核心_红色平行轴线_1",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "核心_红色平行轴线_2",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "红轴接线片_右",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "红轴接线片_左",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "青色环绕细线_闭合.001",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0.0
+    },
+    {
+      "object": "BipolarNanoflake_FixedView_Root",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0
+    },
+    {
+      "object": "独立参考相机.001",
+      "matrixDelta": 0.0,
+      "vertexDelta": 0
+    }
+  ],
+  "intersections": [
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "完整铜红长方形外框_1_橙.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "完整铜红长方形外框_2_蓝.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "完整铜红长方形外框_3_绿.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "完整铜红长方形外框_4_黑.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "最大框_附属内层.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "完整铜红长方形外框_2_蓝.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "完整铜红长方形外框_3_绿.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "完整铜红长方形外框_4_黑.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "最大框_附属内层.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "完整铜红长方形外框_3_绿.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "完整铜红长方形外框_4_黑.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "最大框_附属内层.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "完整铜红长方形外框_4_黑.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "最大框_附属内层.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "最大框_附属内层.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_2",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_2",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_2",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_2",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_2",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_右",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_右",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_右",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_右",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_左",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_左",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_左",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红轴接线片_右",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红轴接线片_右",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红轴接线片_左",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    }
+  ],
+  "meshCount": 14,
+  "inference": "保留现有青环中心线，按参考交点补全中空金属套环；精确截面按单图合理推定。",
+  "images": [
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\双极纳米片_红蓝交点_展示视角.png",
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\双极纳米片_红蓝交点_左侧近景.png",
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\双极纳米片_红蓝交点_右侧近景.png"
+  ],
+  "renderReviewed": true,
+  "fbx": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\BipolarNanoflake_FixedView_Review.fbx",
+  "fbxBackup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\BipolarNanoflake_红蓝交点修复前导出_20261007_173222.fbx"
+}

@@ -1,0 +1,36 @@
+var room=UnityEngine.Object.FindObjectOfType<YC.Presentation.CollectionRoomController>();
+if(room==null||!UnityEditor.EditorApplication.isPlaying)return new{started=false,reason="收藏室当前未运行"};
+var ten=UnityEditor.AssetDatabase.LoadAssetAtPath<YC.Presentation.CollectionItemDefinition>("Assets/YC/Presentation/Collection/Items/10.asset");
+var nine=UnityEditor.AssetDatabase.LoadAssetAtPath<YC.Presentation.CollectionItemDefinition>("Assets/YC/Presentation/Collection/Items/09.asset");
+var output=System.IO.Path.GetDirectoryName(UnityEngine.Application.dataPath)+"/ArtSource/Materials/BipolarNanoflake/RedCoreRegionReview/UnityDelivery/unity_runtime_review.json";
+var report=Newtonsoft.Json.Linq.JObject.Parse(System.IO.File.ReadAllText(output));
+room.SelectItem(ten);
+int phase=0;
+var deadline=UnityEditor.EditorApplication.timeSinceStartup+45;
+UnityEditor.EditorApplication.CallbackFunction tick=null;
+tick=()=>{
+    if(!UnityEditor.EditorApplication.isPlaying||room==null||UnityEditor.EditorApplication.timeSinceStartup>deadline){UnityEditor.EditorApplication.update-=tick;return;}
+    if(room.IsSwitching||room.CurrentItem==null||room.CurrentModel==null)return;
+    if(phase==0&&room.CurrentItem==ten){
+        var view=UnityEngine.Object.FindObjectOfType<YC.Presentation.CollectionModelViewController>();
+        view.SetZoom(.75f);var zoom=view.ZoomMultiplier;room.ResetView();
+        report["zoomInteraction"]=Newtonsoft.Json.Linq.JObject.FromObject(new{changed=zoom,reset=view.ZoomMultiplier});
+        var frames=room.CurrentModel.GetComponentsInChildren<UnityEngine.Transform>().Where(t=>t.name.StartsWith("完整铜红长方形外框")||t.name.StartsWith("最大框_附属")).ToArray();
+        var axis=frames[0].right;
+        report["commonAxis"]=Newtonsoft.Json.Linq.JObject.FromObject(new{frameCount=frames.Length,maxAxisAngleDegrees=frames.Max(t=>UnityEngine.Vector3.Angle(axis,t.right)),maxCenterDistance=frames.Max(t=>(t.position-frames[0].position).magnitude)});
+        room.SelectItem(nine);phase=1;
+    }else if(phase==1&&room.CurrentItem==nine){
+        report["switchAwayItem"]=nine.ItemId;report["switchAwayFinished"]=true;
+        room.SelectItem(ten);phase=2;
+    }else if(phase==2&&room.CurrentItem==ten){
+        report["switchBackItem"]=ten.ItemId;report["switchBackFinished"]=true;
+        report["finalMeshCount"]=room.CurrentModel.GetComponentsInChildren<UnityEngine.MeshFilter>().Length;
+        report["missingMeshes"]=room.CurrentModel.GetComponentsInChildren<UnityEngine.MeshFilter>().Count(m=>m.sharedMesh==null);
+        report["missingMaterials"]=room.CurrentModel.GetComponentsInChildren<UnityEngine.Renderer>().Sum(r=>r.sharedMaterials.Count(m=>m==null));
+        room.ResetView();
+        System.IO.File.WriteAllText(output,report.ToString());
+        UnityEditor.EditorApplication.update-=tick;
+    }
+};
+UnityEditor.EditorApplication.update+=tick;
+return new{started=true,sequence="10→09→10",report=output};

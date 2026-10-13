@@ -1,0 +1,217 @@
+{
+  "source": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\CrystallineElectronicUnit\\MaterialReview\\CrystallineElectronicUnit_MaterialReview.blend",
+  "source_sha256": "34fabab5f4ba5f6c5c630ea30cf6f44fbf02ec5f4236ea100dc495efe5f0869c",
+  "scene": "晶体电子单元_材质验收",
+  "source_objects": 106,
+  "export_meshes": 33,
+  "layers": 32,
+  "triangles": 45756,
+  "bounds_min": [
+    -1.6736549139022827,
+    -1.6870653629302979,
+    0.02500000037252903
+  ],
+  "bounds_max": [
+    1.6736549139022827,
+    1.6736549139022827,
+    2.4019999504089355
+  ],
+  "source_center": [
+    0.0,
+    -0.006705224514007568,
+    1.2135000228881836
+  ],
+  "size": [
+    3.3473098278045654,
+    3.360720157623291,
+    2.376999855041504
+  ],
+  "materials": {
+    "CEU_Approved_bronze": {
+      "key": "bronze",
+      "base_color_srgb": [
+        0.450980401079165,
+        0.3960784288835877,
+        0.29803922179860404,
+        1.0
+      ],
+      "metallic": 0.9399999976158142,
+      "roughness": 0.3100000023841858,
+      "transparent": false
+    },
+    "CEU_Approved_vent": {
+      "key": "vent",
+      "base_color_srgb": [
+        0.20598415771281758,
+        0.18974827810079856,
+        0.15170371739116362,
+        1.0
+      ],
+      "metallic": 0.9399999976158142,
+      "roughness": 0.3100000023841858,
+      "transparent": false
+    },
+    "CEU_Approved_rim": {
+      "key": "rim",
+      "base_color_srgb": [
+        0.811764696685562,
+        0.7490195976216635,
+        0.5686274466962614,
+        1.0
+      ],
+      "metallic": 1.0,
+      "roughness": 0.23999999463558197,
+      "transparent": false
+    },
+    "CEU_Approved_black": {
+      "key": "black",
+      "base_color_srgb": [
+        0.09411764799993177,
+        0.09803921802643792,
+        0.08235294228292067,
+        1.0
+      ],
+      "metallic": 0.15000000596046448,
+      "roughness": 0.49000000953674316,
+      "transparent": false
+    },
+    "CEU_Approved_silver": {
+      "key": "silver",
+      "base_color_srgb": [
+        0.7490195976216635,
+        0.7803921704164768,
+        0.7803921704164768,
+        1.0
+      ],
+      "metallic": 1.0,
+      "roughness": 0.13500000536441803,
+      "transparent": false
+    },
+    "CEU_Approved_letter": {
+      "key": "letter",
+      "base_color_srgb": [
+        0.7921568674553525,
+        0.7490195976216635,
+        0.6470588276982571,
+        1.0
+      ],
+      "metallic": 0.550000011920929,
+      "roughness": 0.3199999928474426,
+      "transparent": false
+    },
+    "CEU_Approved_mark": {
+      "key": "mark",
+      "base_color_srgb": [
+        0.20392157214273665,
+        0.23921568891566358,
+        0.23921568891566358,
+        1.0
+      ],
+      "metallic": 0.47999998927116394,
+      "roughness": 0.3799999952316284,
+      "transparent": false
+    },
+    "CEU_Approved_cap": {
+      "key": "cap",
+      "base_color_srgb": [
+        0.16078431560149153,
+        0.1254901962314727,
+        0.10588235106293153,
+        1.0
+      ],
+      "metallic": 0.8500000238418579,
+      "roughness": 0.3499999940395355,
+      "transparent": false
+    },
+    "CEU_Approved_copper": {
+      "key": "copper",
+      "base_color_srgb": [
+        0.8745097940162357,
+        0.49019607794098646,
+        0.2784313658030324,
+        1.0
+      ],
+      "metallic": 1.0,
+      "roughness": 0.23499999940395355,
+      "transparent": false
+    },
+    "CEU_Approved_steel": {
+      "key": "steel",
+      "base_color_srgb": [
+        0.5372548974272265,
+        0.56470589341675,
+        0.5411764657272118,
+        1.0
+      ],
+      "metallic": 0.8999999761581421,
+      "roughness": 0.27000001072883606,
+      "transparent": false
+    },
+    "CEU_Approved_core": {
+      "key": "core",
+      "base_color_srgb": [
+        0.10196078418737242,
+        0.13333333691741428,
+        0.17647059007901564,
+        1.0
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5299999713897705,
+      "transparent": false
+    },
+    "CEU_Approved_iron": {
+      "key": "iron",
+      "base_color_srgb": [
+        0.2078431350468649,
+        0.23137255388019295,
+        0.23921568891566358,
+        1.0
+      ],
+      "metallic": 0.75,
+      "roughness": 0.30000001192092896,
+      "transparent": false
+    },
+    "CEU_Approved_crystal": {
+      "key": "crystal",
+      "base_color_srgb": [
+        0.07843137259267122,
+        0.5529411756436519,
+        0.450980401079165,
+        1.0
+      ],
+      "metallic": 0.07999999821186066,
+      "roughness": 0.20000000298023224,
+      "transparent": true
+    },
+    "CEU_Approved_edge": {
+      "key": "edge",
+      "base_color_srgb": [
+        0.14117646889981897,
+        0.623529419466394,
+        0.5254901906525217,
+        1.0
+      ],
+      "metallic": 0.11999999731779099,
+      "roughness": 0.17000000178813934,
+      "transparent": true
+    }
+  },
+  "surface_map": "R=metallic,G=AO,B=unused,A=smoothness; linear data",
+  "bake_stats": {
+    "0": [
+      0.0,
+      1.0,
+      0.3687070608139038
+    ],
+    "1": [
+      0.0,
+      1.0,
+      0.44238799810409546
+    ],
+    "2": [
+      0.0,
+      0.8690361976623535,
+      0.4763202667236328
+    ]
+  }
+}

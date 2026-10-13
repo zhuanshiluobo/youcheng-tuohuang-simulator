@@ -1,0 +1,85 @@
+{
+  "source": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockConcentration\\ViewSizeRevision\\OrirockConcentration_ViewSizeReview.blend",
+  "old_left_bottom": 0.07793689519166946,
+  "new_left_bottom": -0.4585767984390259,
+  "left_top": 0.5132332444190979,
+  "top_and_chip_positions_preserved": true,
+  "whole_shell_components": 1,
+  "whole_shell_non_manifold_edges": 0,
+  "whole_shell_volume": 1.192367922063763,
+  "whole_shell_mesh": "提纯源岩_完整闭合嵌合外壳",
+  "triangles": 632,
+  "parts": [
+    {
+      "name": "提纯源岩_左后_宽顶短壁",
+      "dimensions": [
+        1.0342239141464233,
+        0.8992902636528015,
+        0.9718100428581238
+      ],
+      "material": "提纯源岩_统一黄褐岩石_全表面共用",
+      "material_slots": 1,
+      "bottom": -0.4585767984390259,
+      "top": 0.5132332444190979
+    },
+    {
+      "name": "提纯源岩_右后_斜切与下阶",
+      "dimensions": [
+        0.874688982963562,
+        0.9557251930236816,
+        0.656512439250946
+      ],
+      "material": "提纯源岩_统一黄褐岩石_全表面共用",
+      "material_slots": 1,
+      "bottom": -0.4585767984390259,
+      "top": 0.19793565571308136
+    },
+    {
+      "name": "提纯源岩_前方_宽扁断块",
+      "dimensions": [
+        1.028502345085144,
+        0.7898865342140198,
+        0.4138883352279663
+      ],
+      "material": "提纯源岩_统一黄褐岩石_全表面共用",
+      "material_slots": 1,
+      "bottom": -0.4014887809753418,
+      "top": 0.012399554252624512
+    }
+  ],
+  "note": "三个表面分件保留导出引用，合并后的外壳为单个闭合连通岩体，没有内部交叠面。",
+  "final_blend": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockConcentration\\EmbeddedRevision\\OrirockConcentration_Embedded.blend",
+  "fbx": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockConcentration\\EmbeddedRevision\\OrirockConcentration_Embedded.fbx",
+  "texture_resolution": [
+    2048,
+    2048
+  ],
+  "camera_matrix": [
+    [
+      0.994743287563324,
+      -0.07942350208759308,
+      0.06463497132062912,
+      0.548361599445343
+    ],
+    [
+      0.10240006446838379,
+      0.7715423703193665,
+      -0.6278825402259827,
+      -5.104496002197266
+    ],
+    [
+      8.487959668457279e-09,
+      0.6312006711959839,
+      0.7756195068359375,
+      6.267765522003174
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "export_contents": "三个岩柱与模型根；无背景、底板、相机和灯光",
+  "unity_live_verified": false
+}

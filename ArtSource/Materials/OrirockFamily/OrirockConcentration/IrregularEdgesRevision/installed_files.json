@@ -1,0 +1,27 @@
+[
+  {
+    "target": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\OrirockFamily\\OrirockConcentration\\OrirockConcentration_Finished.fbx",
+    "sha256": "d6538e0f5aa8ff90a171b1494f71b204c33a170c57aec44891216e0985bfa393",
+    "meta_sha256": "ed44bbce221cc05c83ec15b2c28f25e27f80a97f6941b942fd77690882d65167"
+  },
+  {
+    "target": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\OrirockFamily\\OrirockConcentration\\Textures\\OrirockConcentration_BaseColor.png",
+    "sha256": "28446710980ca5fa12c18b483ed59f8436178bf4d1018ccbff234320aea55554",
+    "meta_sha256": "91299ce07133fbeb1fc37a3b3e02a65300c454b8bb770f5676b1d991d8ee52bb"
+  },
+  {
+    "target": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\OrirockFamily\\OrirockConcentration\\Textures\\OrirockConcentration_Normal.png",
+    "sha256": "666f613ae55725ded55ddc72fd0bf5eb2bdfdbdde42a25dbb2a2901afb681b59",
+    "meta_sha256": "5880ff6d07f82e6c3180ddff3ac0e38e1582c76107047c3c5d75f32686c8c99e"
+  },
+  {
+    "target": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\OrirockFamily\\OrirockConcentration\\Textures\\OrirockConcentration_Occlusion.png",
+    "sha256": "6e9e91c90499230bc9ab7ca53c6db4da7dc0bed9402bb7c9f5078edb605c318d",
+    "meta_sha256": "9c7f2422e2ad14f66aa51d2de452e90206574071fec146b45f9596e36df8d565"
+  },
+  {
+    "target": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\OrirockFamily\\OrirockConcentration\\Textures\\OrirockConcentration_MetallicSmoothness.png",
+    "sha256": "9e6e56b61d82869aba5063adeb4c2fdba22595d8df43a08d780cc49f03de33df",
+    "meta_sha256": "0b07b9f6004d4026894635eb3d8304900820df39796658872506ae164d5d931a"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "stage": "后撑改为两个不同朝向大立方体，待正面对照，未添加纹理",
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 2.223153085498734,
+    "triangles": 252
+  }
+}

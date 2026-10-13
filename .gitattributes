@@ -17,3 +17,6 @@
 *.jpg binary
 *.jpeg binary
 *.pdf binary
+
+# Blender 可编辑源使用 Git LFS，保留现有提交历史
+*.blend filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,19 @@
+{
+  "file": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockConcentration\\EmbeddedRevision\\OrirockConcentration_Embedded.blend",
+  "camera_angle_difference_radians": 0.0,
+  "views": [
+    {
+      "rotation": [
+        0.9409975409507751,
+        0.3345075845718384,
+        0.01717192679643631,
+        0.04830607399344444
+      ],
+      "perspective": "CAMERA",
+      "shading": "SOLID"
+    }
+  ],
+  "shared_materials": [
+    "提纯源岩_统一黄褐岩石_全表面共用"
+  ]
+}

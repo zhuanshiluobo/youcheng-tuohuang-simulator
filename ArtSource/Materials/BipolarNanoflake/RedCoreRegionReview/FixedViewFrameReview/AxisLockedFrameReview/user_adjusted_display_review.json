@@ -1,0 +1,240 @@
+{
+  "status": "已保留用户调整并应用方框缩放；展示相机更新为用户当前视口；尚未替换Unity",
+  "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\BipolarNanoflake_用户调整_应用缩放前_20261006_210251.blend",
+  "blend": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\BipolarNanoflake_FixedView_Review.blend",
+  "view": {
+    "rotation": [
+      0.7473947405815125,
+      0.5985243320465088,
+      0.18026931583881378,
+      0.22510597109794617
+    ],
+    "location": [
+      -1.1920928955078125e-06,
+      -0.0,
+      9.5367431640625e-07
+    ],
+    "distance": 3.8046207427978516,
+    "perspective": "ORTHO",
+    "cameraZoom": 14.14213752746582,
+    "cameraOffset": [
+      0.0,
+      0.0
+    ],
+    "projection": [
+      [
+        0.3650532066822052,
+        0.0,
+        0.0,
+        -0.0
+      ],
+      [
+        0.0,
+        0.6697600483894348,
+        0.0,
+        -0.0
+      ],
+      [
+        0.0,
+        0.0,
+        -0.0020000000949949026,
+        -0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "width": 1576,
+    "height": 859
+  },
+  "frames": [
+    {
+      "object": "完整铜红长方形外框_1_橙.003",
+      "previousScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "localEulerDegrees": [
+        -33.99999866940647,
+        0.0,
+        0.0
+      ],
+      "dimensionsXY": [
+        1.94,
+        1.94
+      ],
+      "railXY": [
+        0.04999999999999993,
+        0.04999999999999993
+      ],
+      "depth": 0.06499999761581421,
+      "rotationLocked": [
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "object": "完整铜红长方形外框_2_蓝.003",
+      "previousScale": [
+        0.9599999785423279,
+        0.9300000071525574,
+        1.100000023841858
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "localEulerDegrees": [
+        -59.00000050345972,
+        0.0,
+        0.0
+      ],
+      "dimensionsXY": [
+        1.62432,
+        1.57356
+      ],
+      "railXY": [
+        0.057599999999999985,
+        0.05580000000000007
+      ],
+      "depth": 0.12099999934434891,
+      "rotationLocked": [
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "object": "完整铜红长方形外框_3_绿.003",
+      "previousScale": [
+        0.8999999761581421,
+        0.7999999523162842,
+        1.5
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "localEulerDegrees": [
+        9.000000250447817,
+        0.0,
+        0.0
+      ],
+      "dimensionsXY": [
+        1.2276,
+        1.0911998
+      ],
+      "railXY": [
+        0.04500000000000004,
+        0.03999989999999998
+      ],
+      "depth": 0.09749999642372131,
+      "rotationLocked": [
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "object": "完整铜红长方形外框_4_黑.003",
+      "previousScale": [
+        0.949999988079071,
+        0.6000000238418579,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "localEulerDegrees": [
+        59.00000733364888,
+        0.0,
+        0.0
+      ],
+      "dimensionsXY": [
+        1.4706,
+        0.9288
+      ],
+      "railXY": [
+        0.07599999999999996,
+        0.04799999999999999
+      ],
+      "depth": 0.10000000149011612,
+      "rotationLocked": [
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "object": "最大框_附属内层.001",
+      "previousScale": [
+        0.9699999690055847,
+        0.9699999690055847,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "localEulerDegrees": [
+        -33.99999866940647,
+        0.0,
+        0.0
+      ],
+      "dimensionsXY": [
+        1.76152,
+        1.76152
+      ],
+      "railXY": [
+        0.04849999999999999,
+        0.04849999999999999
+      ],
+      "depth": 0.054999999701976776,
+      "rotationLocked": [
+        false,
+        true,
+        true
+      ]
+    }
+  ],
+  "maximumBaseMeshWorldChange": 7.300048299977713e-08,
+  "camera": {
+    "name": "独立参考相机.001",
+    "type": "ORTHO",
+    "location": [
+      2.0504136085510254,
+      -3.0950911045074463,
+      0.8314749598503113
+    ],
+    "rotation": [
+      77.37652884273064,
+      0.00010742879570623522,
+      33.523381238933815
+    ],
+    "orthoScale": 5.478653430938721,
+    "renderSize": [
+      1576,
+      859
+    ]
+  },
+  "coreEulerDegrees": [
+    -23.000004624310325,
+    7.768705820530509e-08,
+    2.1344341156289847e-07
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "key": "OrirockCluster",
+  "item_id": "04",
+  "blend": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\OrirockCluster_Finished.blend",
+  "fbx": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\OrirockCluster_Finished.fbx",
+  "geometry": {
+    "connected_components": 1,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 5.183868484926691,
+    "triangles": 920
+  },
+  "editable_parts": 9,
+  "textures": {
+    "BaseColor": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\textures\\OrirockCluster_BaseColor.png",
+    "Normal": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\textures\\OrirockCluster_Normal.png",
+    "Occlusion": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\textures\\OrirockCluster_Occlusion.png",
+    "MetallicSmoothness": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\textures\\OrirockCluster_MetallicSmoothness.png"
+  },
+  "renders": {
+    "正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\正面_完整实体.png",
+    "左侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\左侧_完整实体.png",
+    "右侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\右侧_完整实体.png",
+    "背面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\背面_完整实体.png"
+  },
+  "camera_position": [
+    3.799999952316284,
+    -6.199999809265137,
+    4.0
+  ],
+  "changes": [
+    "左下碎岩与右侧岩块完整重做",
+    "连续实体体积替代贯通空隙",
+    "侧背隆起与完整断面",
+    "保留可编辑分块和此前阶段"
+  ],
+  "limitations": "背侧设计为单图推定，但以真实完整体积制作，不是正面遮挡片。"
+}

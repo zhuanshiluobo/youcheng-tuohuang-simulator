@@ -14,14 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: 02
   displayName: "\u6E90\u5CA9"
-  englishName: 
+  englishName: ORIROCK
   category: "\u5E38\u89C1"
   displayNumber: 02
-  description: 
-  defaultDisplay: 0
+  description: "\u5BCC\u542B\u6709\u673A\u7269\u7684\u5730\u8868\u5CA9\u77F3\uFF0C\u5E38\u89C1\u4E8E\u6E90\u77F3\u6325\u53D1\u540E\u7684\u5730\u533A\uFF0C\u4FBF\u4E8E\u91C7\u96C6\uFF0C\u53EF\u7528\u4E8E\u5F3A\u5316\u4E0E\u5408\u6210\u3002"
+  defaultDisplay: 1
   acquisitionRequirementText: 
   overrideSpotlightColor: 1
   spotlightColor: {r: 0.627451, g: 0.627451, b: 0.627451, a: 1}
   icon: {fileID: 0}
   displayPrefab: {fileID: 0}
   useInteriorReflection: 0
+  viewPosePath:
+  frontViewEuler: {x: 0, y: 0, z: 0}

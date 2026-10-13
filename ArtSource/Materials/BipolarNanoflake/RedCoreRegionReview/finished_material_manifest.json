@@ -1,0 +1,726 @@
+{
+  "material": "双极纳米片",
+  "revision": "同心共轴参考完成版",
+  "sourceBlend": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\BipolarNanoflake_Finished.blend",
+  "sharedCenter": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "sharedRotationAxis": [
+    0.9961947202682495,
+    -0.038206547498703,
+    -0.07833504676818848
+  ],
+  "objects": [
+    {
+      "name": "BNF_一体红盘与暖白薄片",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotationEuler": [
+        0.5395480990409851,
+        0.0784153863787651,
+        -0.0383337028324604
+      ],
+      "axis": [
+        0.9961947202682495,
+        -0.038206547498703,
+        -0.07833504676818848
+      ],
+      "axisAgreement": 1.0000000443542376,
+      "axisDistance": 0.0,
+      "materialSlots": [
+        "BipolarNanoflake_完成_连续红橙核心",
+        "BipolarNanoflake_完成_银灰盘沿",
+        "BipolarNanoflake_完成_琥珀铜薄片边",
+        "BipolarNanoflake_完成_暖白纳米片",
+        "BipolarNanoflake_完成_纳米片暖白亮面",
+        "BipolarNanoflake_完成_纳米片浅琥珀断面",
+        "BipolarNanoflake_完成_铜红细导路",
+        "BipolarNanoflake_完成_银色细端接"
+      ]
+    },
+    {
+      "name": "BNF_横向青色细环",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotationEuler": [
+        -0.31566309928894043,
+        0.0784153863787651,
+        -0.0383337028324604
+      ],
+      "axis": [
+        0.9961947202682495,
+        -0.038206547498703,
+        -0.07833504676818848
+      ],
+      "axisAgreement": 1.0000000443542376,
+      "axisDistance": 0.0,
+      "materialSlots": [
+        "BipolarNanoflake_完成_青色横环"
+      ]
+    },
+    {
+      "name": "BNF_纵向青灰细环",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotationEuler": [
+        0.626814603805542,
+        0.0784153863787651,
+        -0.0383337028324604
+      ],
+      "axis": [
+        0.9961947202682495,
+        -0.038206547498703,
+        -0.07833504676818848
+      ],
+      "axisAgreement": 1.0000000443542376,
+      "axisDistance": 0.0,
+      "materialSlots": [
+        "BipolarNanoflake_完成_青灰纵环"
+      ]
+    },
+    {
+      "name": "BNF_铜框_01_主外框",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotationEuler": [
+        0.5395480990409851,
+        0.0784153863787651,
+        -0.0383337028324604
+      ],
+      "axis": [
+        0.9961947202682495,
+        -0.038206547498703,
+        -0.07833504676818848
+      ],
+      "axisAgreement": 1.0000000443542376,
+      "axisDistance": 0.0,
+      "materialSlots": [
+        "BipolarNanoflake_完成_红铜侧面",
+        "BipolarNanoflake_完成_深铜内壁",
+        "BipolarNanoflake_完成_浅铜银窄亮面",
+        "BipolarNanoflake_完成_铜框暗面"
+      ]
+    },
+    {
+      "name": "BNF_铜框_02_后立框",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotationEuler": [
+        1.0631471872329712,
+        0.0784153863787651,
+        -0.0383337028324604
+      ],
+      "axis": [
+        0.9961947202682495,
+        -0.038206547498703,
+        -0.07833504676818848
+      ],
+      "axisAgreement": 1.0000000443542376,
+      "axisDistance": 0.0,
+      "materialSlots": [
+        "BipolarNanoflake_完成_红铜侧面",
+        "BipolarNanoflake_完成_深铜内壁",
+        "BipolarNanoflake_完成_浅铜银窄亮面",
+        "BipolarNanoflake_完成_铜框暗面"
+      ]
+    },
+    {
+      "name": "BNF_铜框_03_前横框",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotationEuler": [
+        0.20793581008911133,
+        0.0784153863787651,
+        -0.0383337028324604
+      ],
+      "axis": [
+        0.9961947202682495,
+        -0.038206547498703,
+        -0.07833504676818848
+      ],
+      "axisAgreement": 1.0000000443542376,
+      "axisDistance": 0.0,
+      "materialSlots": [
+        "BipolarNanoflake_完成_红铜侧面",
+        "BipolarNanoflake_完成_深铜内壁",
+        "BipolarNanoflake_完成_浅铜银窄亮面",
+        "BipolarNanoflake_完成_铜框暗面"
+      ]
+    },
+    {
+      "name": "BNF_铜框_04_交错框",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotationEuler": [
+        2.0405311584472656,
+        0.0784153863787651,
+        -0.0383337028324604
+      ],
+      "axis": [
+        0.9961947202682495,
+        -0.038206547498703,
+        -0.07833504676818848
+      ],
+      "axisAgreement": 1.0000000443542376,
+      "axisDistance": 0.0,
+      "materialSlots": [
+        "BipolarNanoflake_完成_红铜侧面",
+        "BipolarNanoflake_完成_深铜内壁",
+        "BipolarNanoflake_完成_浅铜银窄亮面",
+        "BipolarNanoflake_完成_铜框暗面"
+      ]
+    },
+    {
+      "name": "BNF_铜框_05_最大框内层",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotationEuler": [
+        0.5395480990409851,
+        0.0784153863787651,
+        -0.0383337028324604
+      ],
+      "axis": [
+        0.9961947202682495,
+        -0.038206547498703,
+        -0.07833504676818848
+      ],
+      "axisAgreement": 1.0000000443542376,
+      "axisDistance": 0.0,
+      "materialSlots": [
+        "BipolarNanoflake_完成_红铜侧面",
+        "BipolarNanoflake_完成_深铜内壁",
+        "BipolarNanoflake_完成_浅铜银窄亮面",
+        "BipolarNanoflake_完成_铜框暗面"
+      ]
+    }
+  ],
+  "materials": {
+    "BipolarNanoflake_完成_连续红橙核心": {
+      "color": [
+        0.4200332760810852,
+        0.010022825561463833,
+        0.001934984466060996,
+        1.0
+      ],
+      "metallic": 0.10000000149011612,
+      "smoothness": 0.6599999964237213,
+      "emission": [
+        0.4200332760810852,
+        0.010022825561463833,
+        0.001934984466060996
+      ],
+      "transparent": false,
+      "shaderType": "Standard",
+      "coreTexture": true,
+      "emissionTextureScale": 2.0,
+      "unityAlbedoMultiplierLinear": 0.005,
+      "unityEmissionScale": 0.7,
+      "unitySpecularHighlights": false
+    },
+    "BipolarNanoflake_完成_银灰盘沿": {
+      "color": [
+        0.4064483046531677,
+        0.5225215554237366,
+        0.4919050335884094,
+        1.0
+      ],
+      "metallic": 0.8399999737739563,
+      "smoothness": 0.7800000011920929,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "transparent": false,
+      "shaderType": "Standard",
+      "coreTexture": true,
+      "emissionTextureScale": 2.0,
+      "unityAlbedoMultiplierLinear": 0.12,
+      "unityEmissionScale": 2.0,
+      "unitySpecularHighlights": true
+    },
+    "BipolarNanoflake_完成_琥珀铜薄片边": {
+      "color": [
+        0.7293471097946167,
+        0.17064493894577026,
+        0.01960664801299572,
+        1.0
+      ],
+      "metallic": 0.6200000047683716,
+      "smoothness": 0.7400000095367432,
+      "emission": [
+        0.16045636328536617,
+        0.03754188636464484,
+        0.004313462539486113
+      ],
+      "transparent": false,
+      "shaderType": "Standard",
+      "coreTexture": true,
+      "emissionTextureScale": 2.0,
+      "unityAlbedoMultiplierLinear": 0.12,
+      "unityEmissionScale": 2.0,
+      "unitySpecularHighlights": true
+    },
+    "BipolarNanoflake_完成_暖白纳米片": {
+      "color": [
+        0.9551045894622803,
+        0.848088264465332,
+        0.6038273572921753,
+        1.0
+      ],
+      "metallic": 0.15000000596046448,
+      "smoothness": 0.699999988079071,
+      "emission": [
+        1.1461255528976722,
+        1.0177059577983982,
+        0.7245928575433425
+      ],
+      "transparent": false,
+      "shaderType": "Standard",
+      "coreTexture": true,
+      "emissionTextureScale": 2.0,
+      "unityAlbedoMultiplierLinear": 0.002,
+      "unityEmissionScale": 0.8,
+      "unitySpecularHighlights": false
+    },
+    "BipolarNanoflake_完成_纳米片暖白亮面": {
+      "color": [
+        1.0,
+        0.9331068396568298,
+        0.7484140992164612,
+        1.0
+      ],
+      "metallic": 0.10000000149011612,
+      "smoothness": 0.7299999892711639,
+      "emission": [
+        1.7000000476837158,
+        1.586281671910612,
+        1.2723040043551492
+      ],
+      "transparent": false,
+      "shaderType": "Standard",
+      "coreTexture": true,
+      "emissionTextureScale": 2.0,
+      "unityAlbedoMultiplierLinear": 0.002,
+      "unityEmissionScale": 0.8,
+      "unitySpecularHighlights": false
+    },
+    "BipolarNanoflake_完成_纳米片浅琥珀断面": {
+      "color": [
+        0.8073459267616272,
+        0.6559306979179382,
+        0.38005632162094116,
+        1.0
+      ],
+      "metallic": 0.23999999463558197,
+      "smoothness": 0.6899999976158142,
+      "emission": [
+        0.7669786207992324,
+        0.6231341552027381,
+        0.3610535010092697
+      ],
+      "transparent": false,
+      "shaderType": "Standard",
+      "coreTexture": true,
+      "emissionTextureScale": 2.0,
+      "unityAlbedoMultiplierLinear": 0.12,
+      "unityEmissionScale": 2.0,
+      "unitySpecularHighlights": true
+    },
+    "BipolarNanoflake_完成_铜红细导路": {
+      "color": [
+        0.7293471097946167,
+        0.06838485598564148,
+        0.004896310158073902,
+        1.0
+      ],
+      "metallic": 0.6200000047683716,
+      "smoothness": 0.7100000083446503,
+      "emission": [
+        0.09481512079550214,
+        0.008890030952048988,
+        0.0006365202972021811
+      ],
+      "transparent": false,
+      "shaderType": "Standard",
+      "coreTexture": true,
+      "emissionTextureScale": 2.0,
+      "unityAlbedoMultiplierLinear": 0.12,
+      "unityEmissionScale": 2.0,
+      "unitySpecularHighlights": true
+    },
+    "BipolarNanoflake_完成_银色细端接": {
+      "color": [
+        0.31854677200317383,
+        0.5225215554237366,
+        0.4919050335884094,
+        1.0
+      ],
+      "metallic": 0.8199999928474426,
+      "smoothness": 0.75,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "transparent": false,
+      "shaderType": "Standard",
+      "coreTexture": true,
+      "emissionTextureScale": 2.0,
+      "unityAlbedoMultiplierLinear": 0.12,
+      "unityEmissionScale": 2.0,
+      "unitySpecularHighlights": true
+    },
+    "BipolarNanoflake_完成_青色横环": {
+      "color": [
+        0.01960664801299572,
+        0.3931231200695038,
+        0.4064483046531677,
+        1.0
+      ],
+      "metallic": 0.7200000286102295,
+      "smoothness": 0.760000005364418,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "transparent": false,
+      "shaderType": "ExhibitPBR",
+      "coreTexture": false,
+      "emissionTextureScale": 1
+    },
+    "BipolarNanoflake_完成_青灰纵环": {
+      "color": [
+        0.010816383175551891,
+        0.06838485598564148,
+        0.07323895394802094,
+        1.0
+      ],
+      "metallic": 0.800000011920929,
+      "smoothness": 0.7199999988079071,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "transparent": false,
+      "shaderType": "ExhibitPBR",
+      "coreTexture": false,
+      "emissionTextureScale": 1
+    },
+    "BipolarNanoflake_完成_红铜侧面": {
+      "color": [
+        0.5070785284042358,
+        0.01633814536035061,
+        0.004400849808007479,
+        1.0
+      ],
+      "metallic": 0.7799999713897705,
+      "smoothness": 0.7199999988079071,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "transparent": false,
+      "shaderType": "ExhibitPBR",
+      "coreTexture": false,
+      "emissionTextureScale": 1
+    },
+    "BipolarNanoflake_完成_深铜内壁": {
+      "color": [
+        0.03310476616024971,
+        0.004400849808007479,
+        0.0028637771029025316,
+        1.0
+      ],
+      "metallic": 0.6800000071525574,
+      "smoothness": 0.6800000071525574,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "transparent": false,
+      "shaderType": "ExhibitPBR",
+      "coreTexture": false,
+      "emissionTextureScale": 1
+    },
+    "BipolarNanoflake_完成_浅铜银窄亮面": {
+      "color": [
+        0.848088264465332,
+        0.7874122858047485,
+        0.6559306979179382,
+        1.0
+      ],
+      "metallic": 0.800000011920929,
+      "smoothness": 0.760000005364418,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "transparent": false,
+      "shaderType": "ExhibitPBR",
+      "coreTexture": false,
+      "emissionTextureScale": 1
+    },
+    "BipolarNanoflake_完成_铜框暗面": {
+      "color": [
+        0.0300741046667099,
+        0.010022825561463833,
+        0.006331374868750572,
+        1.0
+      ],
+      "metallic": 0.6800000071525574,
+      "smoothness": 0.7100000083446503,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "transparent": false,
+      "shaderType": "ExhibitPBR",
+      "coreTexture": false,
+      "emissionTextureScale": 1
+    }
+  },
+  "bounds": {
+    "min": [
+      -1.1625473499298096,
+      -1.0735793113708496,
+      -0.7245970964431763
+    ],
+    "max": [
+      1.1625473499298096,
+      1.0735793113708496,
+      0.7245970964431763
+    ],
+    "size": [
+      2.325094699859619,
+      2.147158622741699,
+      1.4491941928863525
+    ]
+  },
+  "textures": {
+    "BaseColor": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\Textures\\BipolarNanoflake_Core_BaseColor.png",
+    "Emission": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\Textures\\BipolarNanoflake_Core_Emission.png"
+  },
+  "emissionTextureScale": 2.0,
+  "colorEncoding": "材质常量为线性；PNG经过Standard转换保存为sRGB；Emission图归一化乘2恢复强度",
+  "bakedCoreMaterials": [
+    "BipolarNanoflake_完成_连续红橙核心",
+    "BipolarNanoflake_完成_银灰盘沿",
+    "BipolarNanoflake_完成_琥珀铜薄片边",
+    "BipolarNanoflake_完成_暖白纳米片",
+    "BipolarNanoflake_完成_纳米片暖白亮面",
+    "BipolarNanoflake_完成_纳米片浅琥珀断面",
+    "BipolarNanoflake_完成_铜红细导路",
+    "BipolarNanoflake_完成_银色细端接"
+  ],
+  "export": {
+    "axisForward": "-Z",
+    "axisUp": "Y",
+    "previewObjectsExcluded": true
+  },
+  "excluded": "外金色稀有度圈、灰色背景、粒子、悬空光晕、电路板",
+  "backside": "根据薄片结构合理补齐，单张原图无法核实。",
+  "reviewStatus": "已完成Blender与Unity验收：整体、红橙核心渐变、暖白亮片、双环、同心共轴侧视、背面、旋转缩放复位、切换重载均通过",
+  "unityReview": {
+    "entry": "StartScene 成就与收藏按钮 → 收藏室按钮 → 藏品编号10；实际使用 BipolarNanoflakeDisplay.prefab",
+    "selectedItem": "10",
+    "rendererCount": 8,
+    "materialCount": 14,
+    "triangles": 20796,
+    "sharedCenterMaxError": 0,
+    "sharedAxisCrossMaxError": 1.91220792E-07,
+    "defaultBoundsCenter": [
+      0,
+      0,
+      0
+    ],
+    "defaultBoundsSize": [
+      1.70615947,
+      1.34450245,
+      1.72164083
+    ],
+    "rootPlacementAdjustment": "未调整；保留原展示姿态、导入轴补偿、统一根比例、局部两灯和反射探针",
+    "uvCheck": "各核心子网格UV0均为非零图集坐标；红盘位于左侧双圆；BaseColor/Emission均为sRGB1024",
+    "rotationAndReset": "三轴滑条触发整体旋转27.342度、缩放1.6倍；实际复位按钮恢复角度误差0、比例误差0、缩放1倍",
+    "switchAndReload": "切换源岩后通过列表按钮重选双极纳米片，新实例加载正式8网格及已保存14材质",
+    "console": "验收末次检查 Error/Warning 均为0",
+    "protectedAssets": "藏品10定义、目录、收藏室场景、配置Excel、两公共shader SHA256均与操作前一致",
+    "oldGuidAndMaterials": "备份中的所有旧meta GUID无变化，30个旧材质无内容变化；未删除文件",
+    "screenshots": {
+      "overall": "双极纳米片_Unity_验收整体.png",
+      "coreCloseup": "双极纳米片_Unity_验收核心近景.png",
+      "commonAxisSide": "双极纳米片_Unity_验收同轴侧视.png",
+      "backsideDefaultZoom": "双极纳米片_Unity_验收背面-1.png",
+      "reset": "双极纳米片_Unity_验收复位.png"
+    },
+    "screenshotFolder": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview",
+    "limitations": "核心采用Standard不透明稳定显示；背面由薄片结构合理补齐；中心暖白亮片保留强发光"
+  },
+  "unityCalibration": {
+    "reason": "当前收藏室强光下 Standard 核心过曝；仅校准本模型核心材质，保留框环、银边高光、公共灯光与着色器",
+    "encoding": "下列为 Material.GetColor/GetFloat 读取的实际 shader property 值，无需再次 gamma 转换。materials 内乘数供 import_finished_unity.cs 重放使用",
+    "referenceScreenshot": "双极纳米片_Unity_验收核心近景.png",
+    "materials": {
+      "BipolarNanoflake_完成_连续红橙核心": {
+        "_Color": [
+          0.0610084981,
+          0.0610084981,
+          0.0610084981,
+          1.0
+        ],
+        "_EmissionColor": [
+          0.854305744,
+          0.854305744,
+          0.854305744,
+          1.0
+        ],
+        "_SpecularHighlights": 0.0,
+        "_SPECULARHIGHLIGHTS_OFF": true
+      },
+      "BipolarNanoflake_完成_银灰盘沿": {
+        "_Color": [
+          0.381091774,
+          0.381091774,
+          0.381091774,
+          1.0
+        ],
+        "_EmissionColor": [
+          1.370351,
+          1.370351,
+          1.370351,
+          1.0
+        ],
+        "_SpecularHighlights": 1.0,
+        "_SPECULARHIGHLIGHTS_OFF": false
+      },
+      "BipolarNanoflake_完成_琥珀铜薄片边": {
+        "_Color": [
+          0.381091774,
+          0.381091774,
+          0.381091774,
+          1.0
+        ],
+        "_EmissionColor": [
+          1.370351,
+          1.370351,
+          1.370351,
+          1.0
+        ],
+        "_SpecularHighlights": 1.0,
+        "_SPECULARHIGHLIGHTS_OFF": false
+      },
+      "BipolarNanoflake_完成_暖白纳米片": {
+        "_Color": [
+          0.0258400012,
+          0.0258400012,
+          0.0258400012,
+          1.0
+        ],
+        "_EmissionColor": [
+          0.9063317,
+          0.9063317,
+          0.9063317,
+          1.0
+        ],
+        "_SpecularHighlights": 0.0,
+        "_SPECULARHIGHLIGHTS_OFF": true
+      },
+      "BipolarNanoflake_完成_纳米片暖白亮面": {
+        "_Color": [
+          0.0258400012,
+          0.0258400012,
+          0.0258400012,
+          1.0
+        ],
+        "_EmissionColor": [
+          0.9063317,
+          0.9063317,
+          0.9063317,
+          1.0
+        ],
+        "_SpecularHighlights": 0.0,
+        "_SPECULARHIGHLIGHTS_OFF": true
+      },
+      "BipolarNanoflake_完成_纳米片浅琥珀断面": {
+        "_Color": [
+          0.381091774,
+          0.381091774,
+          0.381091774,
+          1.0
+        ],
+        "_EmissionColor": [
+          1.370351,
+          1.370351,
+          1.370351,
+          1.0
+        ],
+        "_SpecularHighlights": 1.0,
+        "_SPECULARHIGHLIGHTS_OFF": false
+      },
+      "BipolarNanoflake_完成_铜红细导路": {
+        "_Color": [
+          0.381091774,
+          0.381091774,
+          0.381091774,
+          1.0
+        ],
+        "_EmissionColor": [
+          1.370351,
+          1.370351,
+          1.370351,
+          1.0
+        ],
+        "_SpecularHighlights": 1.0,
+        "_SPECULARHIGHLIGHTS_OFF": false
+      },
+      "BipolarNanoflake_完成_银色细端接": {
+        "_Color": [
+          0.381091774,
+          0.381091774,
+          0.381091774,
+          1.0
+        ],
+        "_EmissionColor": [
+          1.370351,
+          1.370351,
+          1.370351,
+          1.0
+        ],
+        "_SpecularHighlights": 1.0,
+        "_SPECULARHIGHLIGHTS_OFF": false
+      }
+    }
+  }
+}

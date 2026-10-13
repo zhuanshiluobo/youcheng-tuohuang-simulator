@@ -1,0 +1,98 @@
+[
+  {
+    "path": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\CubeRefinement\\PreviousAssets\\OrirockCube_Finished.fbx",
+    "objects": [
+      {
+        "name": "OrirockCube_Body",
+        "type": "MESH",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "mesh_name": "OrirockCube_连续崩裂主体_Mesh.001",
+        "size": [
+          1.3408666849136353,
+          1.0526338815689087,
+          1.221449375152588
+        ],
+        "non_manifold": 0,
+        "triangles": 1792
+      },
+      {
+        "name": "OrirockCube_Chip",
+        "type": "MESH",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "mesh_name": "OrirockCube_左下原位断角_Mesh.001",
+        "size": [
+          0.38455623388290405,
+          0.2115108072757721,
+          0.24461212754249573
+        ],
+        "non_manifold": 0,
+        "triangles": 224
+      },
+      {
+        "name": "OrirockCube_Root",
+        "type": "EMPTY",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ]
+  },
+  {
+    "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\OrirockFamily\\OrirockCube\\OrirockCube_Finished.fbx",
+    "objects": [
+      {
+        "name": "OrirockCube_Body",
+        "type": "MESH",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "mesh_name": "OrirockCube_连续崩裂主体_Mesh.001",
+        "size": [
+          1.2799999713897705,
+          1.2799999713897705,
+          1.2799999713897705
+        ],
+        "non_manifold": 0,
+        "triangles": 2560
+      },
+      {
+        "name": "OrirockCube_Chip",
+        "type": "MESH",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "mesh_name": "OrirockCube_左下原位断角_Mesh.001",
+        "size": [
+          0.3073405921459198,
+          0.20899862051010132,
+          0.24000000953674316
+        ],
+        "non_manifold": 0,
+        "triangles": 224
+      },
+      {
+        "name": "OrirockCube_Root",
+        "type": "EMPTY",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ]
+  }
+]

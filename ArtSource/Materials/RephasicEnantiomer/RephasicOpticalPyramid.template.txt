@@ -1,0 +1,212 @@
+Shader "YC/Collection/RephasicOpticalPyramid"
+{
+    Properties
+    {
+        _OpticalCube ("中性棚拍反射环境", Cube) = "black" {}
+        _IOR ("晶体折射率", Range(1.05,2.4)) = 1.52
+        _CubeIntensity ("环境反射能量", Range(0,3)) = 0.95
+        _Exposure ("光学显示曝光", Range(0.1,3)) = 1.18
+        _PanelEnergy ("中性棚拍光卡能量", Range(0,8)) = 4.2
+        _EnvironmentFloor ("中性环境底光", Range(0,1)) = 0.18
+        _Absorption ("内部每米吸收系数", Vector) = (0.025,0.045,0.075,0)
+    }
+    SubShader
+    {
+        Tags { "Queue"="Geometry+5" "RenderType"="Opaque" }
+        Pass
+        {
+            Name "FINITE_INTERIOR_OPTICS"
+            Cull Back ZWrite On ZTest LEqual
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 4.5
+            #include "UnityCG.cginc"
+
+            // 各界面及内部镜片由同一 Blender 源脚本生成，不是表面图案。
+            __OPTICAL_GEOMETRY__
+
+            samplerCUBE _OpticalCube;
+            float _IOR, _CubeIntensity, _Exposure, _PanelEnergy, _EnvironmentFloor;
+            float4 _Absorption;
+
+            struct inputData
+            {
+                float4 vertex : POSITION;
+                float3 normal : NORMAL;
+                float2 opticalXY : TEXCOORD1;
+                float2 opticalZFace : TEXCOORD2;
+            };
+            struct pixelData
+            {
+                float4 pos : SV_POSITION;
+                float3 world : TEXCOORD0;
+                float3 normal : TEXCOORD1;
+                float3 source : TEXCOORD2;
+                float face : TEXCOORD3;
+            };
+            pixelData vert(inputData v)
+            {
+                pixelData o;
+                o.pos=UnityObjectToClipPos(v.vertex);
+                o.world=mul(unity_ObjectToWorld,v.vertex).xyz;
+                o.normal=UnityObjectToWorldNormal(v.normal);
+                o.source=float3(v.opticalXY,v.opticalZFace.x);
+                o.face=v.opticalZFace.y;
+                return o;
+            }
+
+            // 使用表面导数和真实法线重建源坐标/世界坐标映射。
+            // UV 中的源坐标不受 Blender FBX 轴转换、Unity 层级旋转与缩放影响。
+            float3 sourceToWorld(float3 direction,float3 sa,float3 sb,float3 wa,float3 wb,float3 sn,float3 wn,float scale)
+            {
+                float aa=dot(sa,sa),ab=dot(sa,sb),bb=dot(sb,sb);
+                float denominator=max(aa*bb-ab*ab,1e-16);
+                float u=(dot(direction,sa)*bb-dot(direction,sb)*ab)/denominator;
+                float v=(dot(direction,sb)*aa-dot(direction,sa)*ab)/denominator;
+                return normalize(u*wa+v*wb+dot(direction,sn)*wn*scale);
+            }
+            float3 worldToSource(float3 direction,float3 sa,float3 sb,float3 wa,float3 wb,float3 sn,float3 wn,float scale)
+            {
+                float aa=dot(wa,wa),ab=dot(wa,wb),bb=dot(wb,wb);
+                float denominator=max(aa*bb-ab*ab,1e-16);
+                float u=(dot(direction,wa)*bb-dot(direction,wb)*ab)/denominator;
+                float v=(dot(direction,wb)*aa-dot(direction,wa)*ab)/denominator;
+                return normalize(u*sa+v*sb+dot(direction,wn)*sn/max(scale,1e-5));
+            }
+            float triangleDistance(float3 origin,float3 direction,int index)
+            {
+                float3 edge1=mirrorB[index]-mirrorA[index];
+                float3 edge2=mirrorC[index]-mirrorA[index];
+                float3 h=cross(direction,edge2);
+                float determinant=dot(edge1,h);
+                if(abs(determinant)<1e-7) return 1e5;
+                float inverseDeterminant=1/determinant;
+                float3 offset=origin-mirrorA[index];
+                float u=dot(offset,h)*inverseDeterminant;
+                if(u<0 || u>1) return 1e5;
+                float3 q=cross(offset,edge1);
+                float v=dot(direction,q)*inverseDeterminant;
+                if(v<0 || u+v>1) return 1e5;
+                float distance=dot(edge2,q)*inverseDeterminant;
+                return distance>.0007?distance:1e5;
+            }
+            float fresnel(float cosine)
+            {
+                float r=(_IOR-1)/(_IOR+1);
+                float r0=r*r;
+                return r0+(1-r0)*pow(1-saturate(cosine),5);
+            }
+            float rectangularLightCard(float3 ray,float3 axis,float2 halfSize)
+            {
+                axis=normalize(axis);
+                float cosine=dot(ray,axis);
+                if(cosine<=.001) return 0;
+                float3 horizontal=normalize(cross(float3(0,1,0),axis));
+                float3 vertical=cross(axis,horizontal);
+                float2 coordinate=abs(float2(dot(ray,horizontal),dot(ray,vertical))/cosine);
+                float2 coverage=1-smoothstep(halfSize-.015,halfSize+.015,coordinate);
+                return coverage.x*coverage.y;
+            }
+            float3 environment(float3 direction,float3 sa,float3 sb,float3 wa,float3 wb,float3 sn,float3 wn,float scale)
+            {
+                float3 worldDirection=sourceToWorld(direction,sa,sb,wa,wb,sn,wn,scale);
+                float3 backdrop=max(texCUBElod(_OpticalCube,float4(worldDirection,0)).rgb,0)*_EnvironmentFloor;
+                // 真实方向上的中性矩形光卡，代表棚拍入射光源的有限角面积。
+                // 它们固定在世界环境，壳体旋转时镜像随路径移动；无表面或屏幕图案。
+                float cardA=rectangularLightCard(worldDirection,float3(-.55,.75,-.35),float2(.65,.42));
+                float cardB=rectangularLightCard(worldDirection,float3(.72,.28,-.55),float2(.45,.78));
+                float cardC=rectangularLightCard(worldDirection,float3(.22,.65,.73),float2(.68,.45));
+                // 下方和背侧的大面积反射板给多次折转后的路径提供入射光。
+                // 板固定在世界环境；颜色通过真实内部路径和镜片反射率进入视线。
+                float warmReflector=rectangularLightCard(worldDirection,float3(-.18,-.65,-.72),float2(1.9,1.6));
+                float silverReflector=rectangularLightCard(worldDirection,float3(-.8,-.12,.6),float2(1.7,1.6));
+                float3 broadReflections=warmReflector*float3(1,.83,.55)*.32
+                    +silverReflector*float3(.95,.98,1)*.30;
+                return (backdrop+_PanelEnergy*(cardA+cardB*.85+cardC*.92+broadReflections))*_CubeIntensity;
+            }
+            float4 frag(pixelData i) : SV_Target
+            {
+                float3 sa=ddx(i.source),sb=ddy(i.source),wa=ddx(i.world),wb=ddy(i.world);
+                int faceIndex=clamp((int)round(i.face),0,3);
+                float3 sn=opticalPlanes[faceIndex].xyz,wn=normalize(i.normal);
+                float scale=sqrt((dot(wa,wa)+dot(wb,wb))/max(dot(sa,sa)+dot(sb,sb),1e-12));
+                float3 towardCamera=normalize(lerp(_WorldSpaceCameraPos-i.world,UNITY_MATRIX_V[2].xyz,unity_OrthoParams.w));
+                float3 incoming=worldToSource(-towardCamera,sa,sb,wa,wb,sn,wn,scale);
+                float entryFresnel=fresnel(-dot(incoming,sn));
+                float3 radiance=environment(reflect(incoming,sn),sa,sb,wa,wb,sn,wn,scale)*entryFresnel;
+                float3 direction=normalize(refract(incoming,sn,1/_IOR));
+                float3 origin=i.source+direction*.001;
+                float3 throughput=1-entryFresnel;
+
+                // 每一步优先求真实有限内部三角镜片和四面边界中的最近交点。
+                // 面内全反射会继续行进；可出射时按 Fresnel 分出出口辐射，剩余反射继续。
+                [loop] for(int bounce=0;bounce<8;bounce++)
+                {
+                    float distance=1e5;
+                    int hitFace=-1,hitMirror=-1;
+                    [unroll] for(int face=0;face<4;face++)
+                    {
+                        float denominator=dot(direction,opticalPlanes[face].xyz);
+                        if(denominator>.00001)
+                        {
+                            float candidate=(opticalPlanes[face].w-dot(origin,opticalPlanes[face].xyz))/denominator;
+                            if(candidate>.0005 && candidate<distance)
+                            {distance=candidate;hitFace=face;}
+                        }
+                    }
+                    [loop] for(int mirror=0;mirror<36;mirror++)
+                    {
+                        float candidate=triangleDistance(origin,direction,mirror);
+                        if(candidate<distance)
+                        {distance=candidate;hitMirror=mirror;hitFace=-1;}
+                    }
+                    if(distance>1000) break;
+                    throughput*=exp(-distance*_Absorption.rgb);
+                    origin+=direction*distance;
+                    if(hitMirror>=0)
+                    {
+                        float3 n=normalize(cross(mirrorB[hitMirror]-mirrorA[hitMirror],mirrorC[hitMirror]-mirrorA[hitMirror]));
+                        float grazing=pow(1-saturate(abs(dot(direction,n))),5);
+                        direction=reflect(direction,n);
+                        // 金属掠射 Fresnel 增强反射；金银色仍来自内部实体镜片。
+                        throughput*=lerp(mirrorTint[hitMirror],float3(1,1,1),grazing)*.97;
+                    }
+                    else
+                    {
+                        float3 n=opticalPlanes[hitFace].xyz;
+                        float3 outgoing=refract(direction,-n,_IOR);
+                        bool totalInternalReflection=dot(outgoing,outgoing)<.000001;
+                        float f=totalInternalReflection?1:fresnel(dot(direction,n));
+                        if(!totalInternalReflection)
+                            radiance+=throughput*(1-f)*environment(normalize(outgoing),sa,sb,wa,wb,sn,wn,scale);
+                        throughput*=f;
+                        direction=reflect(direction,n);
+                    }
+                    origin+=direction*.001;
+                    if(max(throughput.r,max(throughput.g,throughput.b))<.0001) break;
+                }
+                // 十跳截断处用剩余方向的环境闭合路径，保留尚未被吸收的能量。
+                // 这里仍是有限路径近似，不将全反射剩余能量额外削减为 16%。
+                radiance+=throughput*environment(direction,sa,sb,wa,wb,sn,wn,scale);
+                return float4(1-exp(-max(radiance,0)*_Exposure),1);
+            }
+            ENDCG
+        }
+        Pass
+        {
+            Name "SHADOWCASTER"
+            Tags { "LightMode"="ShadowCaster" }
+            ZWrite On ZTest LEqual Cull Back
+            CGPROGRAM
+            #pragma vertex shadowVert
+            #pragma fragment shadowFrag
+            #pragma multi_compile_shadowcaster
+            #include "UnityCG.cginc"
+            struct shadowData {V2F_SHADOW_CASTER;};
+            shadowData shadowVert(appdata_base v){shadowData o;TRANSFER_SHADOW_CASTER_NORMALOFFSET(o);return o;}
+            float4 shadowFrag(shadowData i):SV_Target{SHADOW_CASTER_FRAGMENT(i)}
+            ENDCG
+        }
+    }
+}

@@ -1,0 +1,401 @@
+{
+  "model": "NucleicCrystalSinter",
+  "source": "ArtSource/Materials/NucleicCrystalSinter/NucleicCrystalSinter_Finished.blend",
+  "revision": "已验收同视角版补齐顶盖左侧宽斜撑板",
+  "materials": {
+    "NCS_BlackHousing": {
+      "linear_color": [
+        0.004400849808007479,
+        0.004896310158073902,
+        0.006571403704583645,
+        1.0
+      ],
+      "metallic": 0.8500000238418579,
+      "smoothness": 0.5999999940395355,
+      "transmission": 0.0,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.0549999848,
+        0.05999998,
+        0.07499998,
+        1
+      ],
+      "transparent": false
+    },
+    "NCS_CrystalCore": {
+      "linear_color": [
+        0.9774019122123718,
+        0.9551045894622803,
+        1.0,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.9200000017881393,
+      "transmission": 0.0,
+      "ior": 1.4800000190734863,
+      "emission": [
+        4.799999892711639,
+        4.600000083446503,
+        5.0
+      ],
+      "color": [
+        0.98999995,
+        0.979999959,
+        1.0,
+        1
+      ],
+      "transparent": false
+    },
+    "NCS_CrystalIce": {
+      "linear_color": [
+        0.9331068396568298,
+        0.9331068396568298,
+        1.0,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.974999999627471,
+      "transmission": 1.0,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.969999969,
+        0.969999969,
+        1.0,
+        1
+      ],
+      "transparent": true
+    },
+    "NCS_CrystalLavender": {
+      "linear_color": [
+        0.6738595366477966,
+        0.47699978947639465,
+        0.9551045894622803,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.9620000012218952,
+      "transmission": 0.9800000190734863,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.8399999,
+        0.719999969,
+        0.979999959,
+        1
+      ],
+      "transparent": true
+    },
+    "NCS_CrystalPearl": {
+      "linear_color": [
+        0.9222199320793152,
+        0.868899405002594,
+        1.0,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.9620000012218952,
+      "transmission": 0.8600000143051147,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.965,
+        0.94,
+        1.0,
+        1
+      ],
+      "transparent": true
+    },
+    "NCS_CrystalShadow": {
+      "linear_color": [
+        0.2529500722885132,
+        0.08353512734174728,
+        0.5704815983772278,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.9549999982118607,
+      "transmission": 0.8600000143051147,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.5399999,
+        0.319999963,
+        0.78,
+        1
+      ],
+      "transparent": true
+    },
+    "NCS_DarkSteel": {
+      "linear_color": [
+        0.0134117491543293,
+        0.015325203537940979,
+        0.01960664801299572,
+        1.0
+      ],
+      "metallic": 0.7200000286102295,
+      "smoothness": 0.6800000071525574,
+      "transmission": 0.0,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.119999968,
+        0.129999965,
+        0.149999976,
+        1
+      ],
+      "transparent": false
+    },
+    "NCS_DeepViolet": {
+      "linear_color": [
+        0.04696420207619667,
+        0.015325203537940979,
+        0.11928018927574158,
+        1.0
+      ],
+      "metallic": 0.41999998688697815,
+      "smoothness": 0.8400000035762787,
+      "transmission": 0.0,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.23999995,
+        0.129999965,
+        0.379999936,
+        1
+      ],
+      "transparent": false
+    },
+    "NCS_LavenderShell": {
+      "linear_color": [
+        0.34239163994789124,
+        0.1873166710138321,
+        0.5870163440704346,
+        1.0
+      ],
+      "metallic": 0.41999998688697815,
+      "smoothness": 0.8100000023841858,
+      "transmission": 0.0,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.62,
+        0.469999969,
+        0.7899999,
+        1
+      ],
+      "transparent": false
+    },
+    "NCS_SilverEdge": {
+      "linear_color": [
+        0.5704815983772278,
+        0.4919050335884094,
+        0.6920710802078247,
+        1.0
+      ],
+      "metallic": 0.6499999761581421,
+      "smoothness": 0.8400000035762787,
+      "transmission": 0.0,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.78,
+        0.729999959,
+        0.849999964,
+        1
+      ],
+      "transparent": false
+    },
+    "NCS_WedgeViolet": {
+      "linear_color": [
+        0.13286831974983215,
+        0.03310476616024971,
+        0.3931231200695038,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.9649999998509884,
+      "transmission": 0.6800000071525574,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.399999946,
+        0.199999958,
+        0.6599999,
+        1
+      ],
+      "transparent": true
+    },
+    "NCS_LabelPlate": {
+      "linear_color": [
+        0.13286831974983215,
+        0.09462962299585342,
+        0.17886750400066376,
+        1.0
+      ],
+      "metallic": 0.25,
+      "smoothness": 0.6399999856948853,
+      "transmission": 0.0,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.399999946,
+        0.339999944,
+        0.459999919,
+        1
+      ],
+      "transparent": false
+    },
+    "NCS_GoldMark": {
+      "linear_color": [
+        0.47699978947639465,
+        0.2632734179496765,
+        0.00854038167744875,
+        1.0
+      ],
+      "metallic": 0.3499999940395355,
+      "smoothness": 0.6599999964237213,
+      "transmission": 0.0,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.719999969,
+        0.549999952,
+        0.08999998,
+        1
+      ],
+      "transparent": false
+    },
+    "NCS_LabelInk": {
+      "linear_color": [
+        0.9774019122123718,
+        0.9551045894622803,
+        1.0,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.9200000017881393,
+      "transmission": 0.0,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.98999995,
+        0.979999959,
+        1.0,
+        1
+      ],
+      "transparent": false
+    },
+    "NCS_WarmStep": {
+      "linear_color": [
+        0.31854677200317383,
+        0.27383843064308167,
+        0.1473190039396286,
+        1.0
+      ],
+      "metallic": 0.6800000071525574,
+      "smoothness": 0.7999999970197678,
+      "transmission": 0.0,
+      "ior": 1.4800000190734863,
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color": [
+        0.599999964,
+        0.559999943,
+        0.419999957,
+        1
+      ],
+      "transparent": false
+    }
+  },
+  "reference_orientation": {
+    "forward": [
+      -0.2892785668373108,
+      -0.6229568719863892,
+      -0.7268030047416687
+    ],
+    "up": [
+      -0.19573569297790527,
+      0.7817174792289734,
+      -0.5921193361282349
+    ],
+    "blender_position": [
+      -1.8803110122680664,
+      -4.724219799041748,
+      4.909219264984131
+    ],
+    "blender_lens": 82.45609283447266,
+    "blender_shift": [
+      0.03162414953112602,
+      0.1077888086438179
+    ]
+  },
+  "mesh_count": 122,
+  "unity_rendering": {
+    "glass_shader": "YC/Collection/NucleicCrystalGlass",
+    "opaque_shader": "YC/Collection/ExhibitPBR",
+    "light_response": 0.09,
+    "environment_response": 0.5,
+    "refraction": 0.012,
+    "reflection": 1.35,
+    "transmission": 1.05,
+    "background_neutrality": 0.94,
+    "projection": "沿用收藏室正交相机；展示预制体按验收视角定向"
+  }
+}

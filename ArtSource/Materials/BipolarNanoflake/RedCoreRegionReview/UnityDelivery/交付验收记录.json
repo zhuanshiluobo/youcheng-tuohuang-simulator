@@ -1,0 +1,38 @@
+{
+  "status": "用户已人工验收；Unity 正式模型、材质与展示预制体已替换并完成轻量运行验收",
+  "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006",
+  "protectedFilesChanged": [],
+  "existingGuidsChanged": [],
+  "modelSha256": "6863cffacb78ae77fb2c3c74610002fdda72f389d3af7431a2b5304c0d61c5ef",
+  "prefabSha256": "c74990aac26605331c208ba11b47f0d87412be364dde39f403865cf39116d007",
+  "actualScreenshot": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityDelivery\\双极纳米片_Unity收藏室_实际界面.png",
+  "runtime": {
+    "scene": "Assets/Scenes/CollectionRoom.unity",
+    "item": "10",
+    "displaySource": "Assets/YC/Presentation/Collection/Prefabs/BipolarNanoflakeDisplay.prefab",
+    "meshCount": 14,
+    "rotationChangeDegrees": 25.0,
+    "resetRotationErrorDegrees": 0.0,
+    "resetScaleError": 0.0,
+    "zoom": 1.0,
+    "posePath": "展示姿态",
+    "modelGuid": "ca190b803d780e742bc10dafa9760d11",
+    "animationClips": 0,
+    "zoomInteraction": {
+      "changed": 0.75,
+      "reset": 1.0
+    },
+    "commonAxis": {
+      "frameCount": 5,
+      "maxAxisAngleDegrees": 0.0,
+      "maxCenterDistance": 0.0
+    },
+    "switchAwayItem": "09",
+    "switchAwayFinished": true,
+    "switchBackItem": "10",
+    "switchBackFinished": true,
+    "finalMeshCount": 14,
+    "missingMeshes": 0,
+    "missingMaterials": 0
+  }
+}

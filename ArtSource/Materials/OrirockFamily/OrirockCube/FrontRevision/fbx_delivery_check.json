@@ -1,0 +1,22 @@
+{
+  "mesh_count": 2,
+  "object_types": [
+    "MESH",
+    "MESH",
+    "EMPTY"
+  ],
+  "bounds_size": [
+    1.350000023841858,
+    1.1643085479736328,
+    1.2982434034347534
+  ],
+  "triangle_count": 2016,
+  "image_references": [
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\FrontRevision\\textures\\OrirockCube_BaseColor.png",
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\FrontRevision\\textures\\OrirockCube_Normal.png",
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\FrontRevision\\textures\\OrirockCube_BaseColor.png",
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\FrontRevision\\textures\\OrirockCube_BaseColor.png",
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\FrontRevision\\textures\\OrirockCube_Normal.png",
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\FrontRevision\\textures\\OrirockCube_BaseColor.png"
+  ]
+}

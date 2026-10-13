@@ -1,0 +1,214 @@
+fileFormatVersion: 2
+guid: ca190b803d780e742bc10dafa9760d11
+ModelImporter:
+  serializedVersion: 22200
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u524D\u6846_\u6C27\u5316\u7EA2\u94DC\u6697\u9762"
+    second: {fileID: 2100000, guid: c650d2027a01c0348aaa088297392e2f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u53C2\u8003\u6838\u5FC3_\u5185\u90E8\u4EAE\u9762_0.001"
+    second: {fileID: 2100000, guid: 601971ae92a98a2459b241cdf77e0a3e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u53C2\u8003\u6838\u5FC3_\u5185\u90E8\u4EAE\u9762_1.001"
+    second: {fileID: 2100000, guid: 45962df1af50044489cb8606346f8f5a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u53C2\u8003\u6838\u5FC3_\u5185\u90E8\u4EAE\u9762_2.001"
+    second: {fileID: 2100000, guid: e7a3475a503371343a37588ed9f2293b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u53C2\u8003\u6838\u5FC3_\u5185\u90E8\u4EAE\u9762_3.001"
+    second: {fileID: 2100000, guid: 056863697f3b6304890fd20af36ee985, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u53C2\u8003\u6838\u5FC3_\u5185\u90E8\u4EAE\u9762_4.001"
+    second: {fileID: 2100000, guid: 727b003b3f90d1346816d7bb19f3ec4e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u53C2\u8003\u6838\u5FC3_\u6D45\u91D1\u900F\u5149\u7247\u4F53.001"
+    second: {fileID: 2100000, guid: 8c4b0ee0e9c96044bac867cb31ec578a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u53C2\u8003\u6838\u5FC3_\u7425\u73C0\u91D1\u4FA7\u7F18.001"
+    second: {fileID: 2100000, guid: 37021d0f3a39bd34bb9f256ee6a2748d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u53C2\u8003\u6838\u5FC3_\u8584\u91D1\u7247.001"
+    second: {fileID: 2100000, guid: c3c0b4e61a1ade743be325a6a1a41a5f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u53CC\u7EA2\u8F74_\u6697\u7EA2\u94DC\u63A5\u7EBF\u7247"
+    second: {fileID: 2100000, guid: d8a58659780af114b88990dc719b0062, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u53CC\u7EA2\u8F74_\u7531\u6838\u5FC3\u5411\u5916\u6E10\u6697"
+    second: {fileID: 2100000, guid: 0826310b87a9f8844844885f41ebccb7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u540E\u6846_\u78E8\u7802\u7EA2\u94DC"
+    second: {fileID: 2100000, guid: 6ddc23e4b286d14418339c6c58c54b99, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u56FA\u5B9A\u89C6\u89D2_\u7EA2\u6A59\u7EC6\u5BFC\u8DEF"
+    second: {fileID: 2100000, guid: d520d167931727e4c9229673a37eba36, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u56FA\u5B9A\u89C6\u89D2_\u96C6\u4E2D\u7EA2\u6A59\u6838\u5FC3"
+    second: {fileID: 2100000, guid: d49a0ab7995b6294a83d3f3750e4a69b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u5B8C\u6574\u7EA2\u5BFC\u7EBF_\u5916\u4FA7\u9752\u7070\u8282\u70B9"
+    second: {fileID: 2100000, guid: c68c6676591df834aa27f9ce2487c50b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u7B49\u8DDD\u65B9\u6846_\u7EA2\u94DC\u7C97\u7CD9\u9762"
+    second: {fileID: 2100000, guid: 472f302938a35fd4382b52f805a0925d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u7B49\u8DDD\u65B9\u6846_\u7EDF\u4E00\u7EA2\u94DC"
+    second: {fileID: 2100000, guid: 1144a30134520df4ca8a586f697daa72, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u7EA2\u84DD\u4EA4\u70B9_\u91D1\u5C5E\u5957\u73AF"
+    second: {fileID: 2100000, guid: 969089dd4b9020d47acbde4f3ffec6c0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u7EB5\u5411\u5927\u73AF\u9752\u7070\u91D1\u5C5E"
+    second: {fileID: 2100000, guid: 588790518dce01245adebd7bda3afece, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u9752\u7EBF\u94F6\u8272\u7AEF\u63A5.001"
+    second: {fileID: 2100000, guid: 9306ae26071592d4ba1b1571589702aa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "BipolarNanoflake_\u9752\u8272\u73AF\u7ED5\u5BFC\u7EBF"
+    second: {fileID: 2100000, guid: 0f577c59f2f391049bda85edfa512efe, type: 2}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 0
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

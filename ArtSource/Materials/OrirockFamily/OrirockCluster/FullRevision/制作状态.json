@@ -1,0 +1,21 @@
+{
+  "stage": "烘焙与导出完成，尚未通过实图验收",
+  "model": {
+    "name": "固源岩组全组",
+    "key": "OrirockClusterFull",
+    "parts": 1,
+    "triangles": 138
+  },
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 1.8338154401354376,
+    "triangles": 138
+  },
+  "renders": {
+    "正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FullRevision\\正面_全组修订.png",
+    "左侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FullRevision\\左侧_全组修订.png",
+    "右侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FullRevision\\右侧_全组修订.png",
+    "背面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FullRevision\\背面_全组修订.png"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "old": {
+    "file": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockConcentration\\EdgeChipRevision\\previous_unity\\OrirockConcentration_Finished.fbx",
+    "names": {
+      "Geometry": [
+        "提纯源岩_前方_宽扁断块_闭合连续阶面\u0000\u0001Geometry",
+        "提纯源岩_右后_斜切与下阶_闭合连续阶面\u0000\u0001Geometry",
+        "提纯源岩_左后_宽顶短壁_闭合连续阶面\u0000\u0001Geometry"
+      ],
+      "Model": [
+        "OrirockConcentration_Root\u0000\u0001Model",
+        "提纯源岩_前方_宽扁断块\u0000\u0001Model",
+        "提纯源岩_右后_斜切与下阶\u0000\u0001Model",
+        "提纯源岩_左后_宽顶短壁\u0000\u0001Model"
+      ]
+    },
+    "mesh_count": 3,
+    "triangles": 204,
+    "size": [
+      1.6477269530296326,
+      1.5628207921981812,
+      1.064891278743744
+    ],
+    "objects": [
+      {
+        "name": "提纯源岩_前方_宽扁断块",
+        "type": "MESH"
+      },
+      {
+        "name": "提纯源岩_右后_斜切与下阶",
+        "type": "MESH"
+      },
+      {
+        "name": "提纯源岩_左后_宽顶短壁",
+        "type": "MESH"
+      },
+      {
+        "name": "OrirockConcentration_Root",
+        "type": "EMPTY"
+      }
+    ]
+  },
+  "new": {
+    "file": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\OrirockFamily\\OrirockConcentration\\OrirockConcentration_Finished.fbx",
+    "names": {
+      "Geometry": [
+        "提纯源岩_前方_宽扁断块_闭合连续阶面\u0000\u0001Geometry",
+        "提纯源岩_右后_斜切与下阶_闭合连续阶面\u0000\u0001Geometry",
+        "提纯源岩_左后_宽顶短壁_闭合连续阶面\u0000\u0001Geometry"
+      ],
+      "Model": [
+        "OrirockConcentration_Root\u0000\u0001Model",
+        "提纯源岩_前方_宽扁断块\u0000\u0001Model",
+        "提纯源岩_右后_斜切与下阶\u0000\u0001Model",
+        "提纯源岩_左后_宽顶短壁\u0000\u0001Model"
+      ]
+    },
+    "mesh_count": 3,
+    "triangles": 492,
+    "size": [
+      1.6477269530296326,
+      1.5628207921981812,
+      1.064891278743744
+    ],
+    "objects": [
+      {
+        "name": "提纯源岩_前方_宽扁断块.001",
+        "type": "MESH"
+      },
+      {
+        "name": "提纯源岩_右后_斜切与下阶.001",
+        "type": "MESH"
+      },
+      {
+        "name": "提纯源岩_左后_宽顶短壁.001",
+        "type": "MESH"
+      },
+      {
+        "name": "OrirockConcentration_Root.001",
+        "type": "EMPTY"
+      }
+    ]
+  },
+  "names_preserved": {
+    "Geometry": true,
+    "Model": true
+  },
+  "unity_live_verified": false
+}

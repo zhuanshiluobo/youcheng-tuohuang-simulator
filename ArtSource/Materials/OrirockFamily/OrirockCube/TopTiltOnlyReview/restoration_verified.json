@@ -1,0 +1,15 @@
+{
+  "回退基准": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\UnifiedStoneReview\\OrirockCube_UnifiedStoneReview.blend",
+  "验收文件": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\TopTiltOnlyReview\\OrirockCube_TopTiltOnlyReview.blend",
+  "正面相机与缩放相同": true,
+  "主体拓扑相同": true,
+  "主体变换相同": true,
+  "材质槽相同": true,
+  "仅高度变化顶点数": 456,
+  "横向位置变化顶点数": 0,
+  "崩口变化顶点数": 0,
+  "顶部以外变化顶点数": 0,
+  "其他网格完全相同": true,
+  "侧面顶边高度差": 0.00029098987579345703,
+  "状态": "仅供 Blender 验收，未导出或导入 Unity"
+}

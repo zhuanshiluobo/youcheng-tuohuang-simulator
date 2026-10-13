@@ -17,6 +17,9 @@ namespace YC.Presentation
         [SerializeField] private Sprite icon;
         [SerializeField, Tooltip("根节点保存模型默认姿态与比例；不要包含公共灯光、地板或摄像机。")] private GameObject displayPrefab;
         [SerializeField, Tooltip("仅使用收藏室水晶着色器的藏品需要开启。")] private bool useInteriorReflection;
+        [Header("模型视角零位")]
+        [SerializeField, Tooltip("保存展示旋转的节点相对路径；留空使用预制体根节点。")] private string viewPosePath;
+        [SerializeField, Tooltip("此节点完全正视相机时的旋转，包含模型的导入坐标补偿；不是默认展示姿态。")] private Vector3 frontViewEuler;
         public string ItemId => itemId;
         public string DisplayName => displayName;
         public string EnglishName => englishName;
@@ -30,5 +33,7 @@ namespace YC.Presentation
         public Sprite Icon => icon;
         public GameObject DisplayPrefab => displayPrefab;
         public bool UseInteriorReflection => useInteriorReflection;
+        public string ViewPosePath => viewPosePath;
+        public Vector3 FrontViewEuler => frontViewEuler;
     }
 }

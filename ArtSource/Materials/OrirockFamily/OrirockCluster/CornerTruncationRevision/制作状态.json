@@ -1,0 +1,158 @@
+{
+  "stage": "顶部、左块、右后块三处真实平面截角，待实际视觉确认",
+  "scene": "固源岩组_三处真实平面截角",
+  "cuts": [
+    {
+      "label": "上块顶部_单平面截角",
+      "block": 0,
+      "corner": 1,
+      "neighbors": [
+        0,
+        2,
+        5
+      ],
+      "fractions": [
+        0.35,
+        0.52,
+        0.25
+      ],
+      "material_face": 5,
+      "plane_world_points": [
+        [
+          0.19513162970542908,
+          -0.03665739297866821,
+          0.9694090485572815
+        ],
+        [
+          -0.3403386175632477,
+          -0.0002059638500213623,
+          0.8682451844215393
+        ],
+        [
+          0.03212492913007736,
+          0.29488348960876465,
+          1.0323553085327148
+        ]
+      ],
+      "plane_world_normal": [
+        -0.19652986526489258,
+        -0.2752954959869385,
+        0.9410571455955505
+      ],
+      "new_face_vertices": 4,
+      "cap_area": 0.09112495183944702,
+      "boundary_edges": 0,
+      "plane_error": 3.3527612686157227e-08,
+      "removed_corner": true,
+      "original_cube_pose_preserved": true
+    },
+    {
+      "label": "左块三色交角_单平面截角",
+      "block": 1,
+      "corner": 0,
+      "neighbors": [
+        1,
+        3,
+        4
+      ],
+      "fractions": [
+        0.15,
+        0.12,
+        0.2
+      ],
+      "material_face": 2,
+      "plane_world_points": [
+        [
+          -0.2770642042160034,
+          -0.7750511765480042,
+          -0.0344591923058033
+        ],
+        [
+          -0.15988361835479736,
+          -0.7260226607322693,
+          -0.090775266289711
+        ],
+        [
+          -0.2238977700471878,
+          -0.6085852980613708,
+          0.012052219361066818
+        ]
+      ],
+      "plane_world_normal": [
+        0.5250493884086609,
+        -0.3804093897342682,
+        0.7613224387168884
+      ],
+      "new_face_vertices": 3,
+      "cap_area": 0.011099028401076794,
+      "boundary_edges": 0,
+      "plane_error": 2.9802322387695312e-08,
+      "removed_corner": true,
+      "original_cube_pose_preserved": true
+    },
+    {
+      "label": "右后块三色交角_单平面截角",
+      "block": 4,
+      "corner": 0,
+      "neighbors": [
+        1,
+        3,
+        4
+      ],
+      "fractions": [
+        0.13,
+        0.2,
+        0.1
+      ],
+      "material_face": 2,
+      "plane_world_points": [
+        [
+          0.9354600310325623,
+          0.2378748059272766,
+          -0.1140059307217598
+        ],
+        [
+          1.0068572759628296,
+          0.32355135679244995,
+          -0.2744516134262085
+        ],
+        [
+          1.0167826414108276,
+          0.34264451265335083,
+          -0.09255114197731018
+        ]
+      ],
+      "plane_world_normal": [
+        0.7876158952713013,
+        -0.6157857775688171,
+        0.021659737452864647
+      ],
+      "new_face_vertices": 3,
+      "cap_area": 0.011838272213935852,
+      "boundary_edges": 0,
+      "plane_error": 1.1874362826347351e-08,
+      "removed_corner": true,
+      "original_cube_pose_preserved": true
+    }
+  ],
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 2.2183142952598596,
+    "triangles": 460,
+    "model_zmin": -0.8809438943862915,
+    "floor_z": -0.8809438943862915
+  },
+  "renders": {
+    "截角_材质正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CornerTruncationRevision\\截角_材质正面.png",
+    "截角_白模正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CornerTruncationRevision\\截角_白模正面.png",
+    "截角_白模斜视": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CornerTruncationRevision\\截角_白模斜视.png"
+  },
+  "prior_scene_preserved": "固源岩组_小崩口局部精修",
+  "whole_cube_pose_unchanged": true,
+  "floor_contact_unchanged": true,
+  "posterior_cubes_unchanged": true,
+  "unity_imported": false,
+  "approved_for_import": false,
+  "full_reference_match_accepted": false
+}

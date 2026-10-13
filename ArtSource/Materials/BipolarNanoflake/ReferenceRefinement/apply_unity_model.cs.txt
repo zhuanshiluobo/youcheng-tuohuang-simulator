@@ -1,0 +1,43 @@
+if(UnityEditor.EditorApplication.isPlaying) throw new System.Exception("请先退出运行模式");
+var dir="Assets/YC/Presentation/Models/BipolarNanoflake/";
+var fbx=dir+"BipolarNanoflake_Finished.fbx";
+var manifest=Newtonsoft.Json.Linq.JObject.Parse(System.IO.File.ReadAllText(dir+"material_manifest.json"));
+var mats=new System.Collections.Generic.Dictionary<string,UnityEngine.Material>();
+var importer=(UnityEditor.ModelImporter)UnityEditor.AssetImporter.GetAtPath(fbx);
+foreach(var prop in ((Newtonsoft.Json.Linq.JObject)manifest["materials"]).Properties()){
+ var rec=prop.Value; var path=dir+"Materials/"+prop.Name+".mat";
+ var mat=UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Material>(path);
+ var shader=UnityEngine.Shader.Find((bool)rec["transparent"]?"YC/Collection/ExhibitPBRTransparent":"YC/Collection/ExhibitPBR");
+ if(shader==null)throw new System.Exception("缺少展品着色器");
+ if(mat==null){ mat=new UnityEngine.Material(shader); mat.name=prop.Name; UnityEditor.AssetDatabase.CreateAsset(mat,path); }
+ mat.shader=shader;
+ var c=rec["color"]; mat.SetColor("_Color",new UnityEngine.Color((float)c[0],(float)c[1],(float)c[2],(float)c[3]).linear);
+ mat.SetFloat("_Metallic",(float)rec["metallic"]); mat.SetFloat("_Glossiness",(float)rec["smoothness"]);
+ var e=rec["emission"]; var ec=e==null?UnityEngine.Color.black:new UnityEngine.Color((float)e[0],(float)e[1],(float)e[2],1).linear;
+ mat.SetColor("_EmissionColor",ec);
+ if(ec.maxColorComponent>0){mat.EnableKeyword("_EMISSION"); mat.globalIlluminationFlags=UnityEngine.MaterialGlobalIlluminationFlags.BakedEmissive;}else{mat.DisableKeyword("_EMISSION");}
+ UnityEditor.EditorUtility.SetDirty(mat); UnityEditor.AssetDatabase.SaveAssetIfDirty(mat); mats[prop.Name]=mat;
+ importer.AddRemap(new UnityEditor.AssetImporter.SourceAssetIdentifier(typeof(UnityEngine.Material),prop.Name),mat);
+}
+importer.SaveAndReimport();
+var model=UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.GameObject>(fbx);
+var prefabPath="Assets/YC/Presentation/Collection/Prefabs/BipolarNanoflakeDisplay.prefab";
+var edit=UnityEditor.PrefabUtility.LoadPrefabContents(prefabPath);
+int added=0,updated=0,tris=0;
+try{
+ var target=edit.transform.Find("展示姿态/BipolarNanoflake_模型");
+ if(target==null)throw new System.Exception("未找到现有模型节点");
+ foreach(var source in model.GetComponentsInChildren<UnityEngine.MeshFilter>(true)){
+  if(source.transform.parent!=model.transform)throw new System.Exception("发现非扁平模型层级");
+  var dest=target.Find(source.name);
+  if(dest==null){var obj=new UnityEngine.GameObject(source.name); dest=obj.transform; dest.SetParent(target,false); added++;}
+  else updated++;
+  dest.localPosition=source.transform.localPosition; dest.localRotation=source.transform.localRotation; dest.localScale=source.transform.localScale;
+  var filter=dest.GetComponent<UnityEngine.MeshFilter>()??dest.gameObject.AddComponent<UnityEngine.MeshFilter>(); filter.sharedMesh=source.sharedMesh;
+  var render=dest.GetComponent<UnityEngine.MeshRenderer>()??dest.gameObject.AddComponent<UnityEngine.MeshRenderer>(); render.sharedMaterials=source.GetComponent<UnityEngine.MeshRenderer>().sharedMaterials;
+  for(int sm=0;sm<source.sharedMesh.subMeshCount;sm++) tris+=(int)source.sharedMesh.GetIndexCount(sm)/3;
+  foreach(var mat in render.sharedMaterials)if(mat==null||!mats.ContainsKey(mat.name))throw new System.Exception("材质未匹配："+source.name);
+ }
+ UnityEditor.PrefabUtility.SaveAsPrefabAsset(edit,prefabPath);
+}finally{UnityEditor.PrefabUtility.UnloadPrefabContents(edit);}
+return "更新网格="+updated+" 新增网格="+added+" 三角面="+tris+" 材质="+mats.Count+"；保留原展示姿态与补光";

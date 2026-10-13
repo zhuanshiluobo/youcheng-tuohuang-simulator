@@ -1,0 +1,56 @@
+if(UnityEditor.EditorApplication.isPlaying)throw new System.InvalidOperationException("需要编辑模式");
+var project=System.IO.Path.GetDirectoryName(UnityEngine.Application.dataPath);
+var output=System.IO.Path.Combine(project,"ArtSource/Materials/BipolarNanoflake/RedCoreRegionReview/UnityDelivery");
+var prefabPath="Assets/YC/Presentation/Collection/Prefabs/BipolarNanoflakeDisplay.prefab";
+var modelPath="Assets/YC/Presentation/Models/BipolarNanoflake/BipolarNanoflake_Finished.fbx";
+var source=Newtonsoft.Json.Linq.JObject.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(project,"ArtSource/Materials/BipolarNanoflake/RedCoreRegionReview/FixedViewFrameReview/AxisLockedFrameReview/approved_export_data.json")));
+var prefab=UnityEditor.PrefabUtility.LoadPrefabContents(prefabPath);
+try {
+    var pose=prefab.transform.Find("展示姿态");
+    var oldModel=pose.Find("BipolarNanoflake_模型");
+    if(oldModel==null)throw new System.InvalidOperationException("未找到旧模型子树");
+    var renderers=oldModel.GetComponentsInChildren<UnityEngine.Renderer>(true);
+    var oldBounds=renderers[0].bounds;foreach(var r in renderers)oldBounds.Encapsulate(r.bounds);
+    var poseBefore=UnityEditor.EditorJsonUtility.ToJson(pose);
+    var protectedComponents=prefab.GetComponentsInChildren<UnityEngine.Component>(true).Where(c=>c is UnityEngine.Light||c is UnityEngine.ReflectionProbe).ToArray();
+    var protectedBefore=protectedComponents.Select(c=>UnityEditor.EditorJsonUtility.ToJson(c)).ToArray();
+    var lightsBefore=protectedComponents.Select(c=>UnityEditor.EditorJsonUtility.ToJson(c.transform)).ToArray();
+    UnityEngine.Object.DestroyImmediate(oldModel.gameObject);
+    var alignment=new UnityEngine.GameObject("验收视角对齐").transform;
+    alignment.SetParent(pose,false);
+    var forward=source["camera"]["forward"];
+    var up=source["camera"]["up"];
+    var convertedForward=new UnityEngine.Vector3(-(float)forward[0],(float)forward[2],-(float)forward[1]);
+    var convertedUp=new UnityEngine.Vector3(-(float)up[0],(float)up[2],-(float)up[1]);
+    var approvedCamera=UnityEngine.Quaternion.LookRotation(convertedForward,convertedUp);
+    // 收藏室实际相机和公共旋转中心的初始旋转均为单位旋转。
+    alignment.localRotation=UnityEngine.Quaternion.Inverse(pose.rotation)*UnityEngine.Quaternion.Inverse(approvedCamera);
+    var asset=UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.GameObject>(modelPath);
+    var model=(UnityEngine.GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(asset,alignment);
+    model.name="BipolarNanoflake_模型";
+    UnityEditor.PrefabUtility.UnpackPrefabInstance(model,UnityEditor.PrefabUnpackMode.Completely,UnityEditor.InteractionMode.AutomatedAction);
+    // 保留 FBX 自带的旋转和 100 倍单位换算；只调最外层适配展示尺寸。
+    var rs=model.GetComponentsInChildren<UnityEngine.Renderer>(true);
+    var bound=rs[0].bounds;foreach(var r in rs)bound.Encapsulate(r.bounds);
+    var scale=UnityEngine.Mathf.Max(oldBounds.size.x,oldBounds.size.y,oldBounds.size.z)/UnityEngine.Mathf.Max(bound.size.x,bound.size.y,bound.size.z);
+    alignment.localScale=UnityEngine.Vector3.one*scale;
+    bound=rs[0].bounds;foreach(var r in rs)bound.Encapsulate(r.bounds);
+    alignment.position+=oldBounds.center-bound.center;
+    foreach(var r in rs){
+        var mesh=r.GetComponent<UnityEngine.MeshFilter>().sharedMesh;
+        if(mesh==null||r.sharedMaterials.Any(m=>m==null)||r.sharedMaterials.Length!=mesh.subMeshCount)throw new System.InvalidOperationException("网格或材质槽缺失："+r.name);
+    }
+    var poseUnchanged=pose.localRotation==new UnityEngine.Quaternion(-0.047536246f,-0.9491154f,0.1754246f,0.2571896f);
+    var protectedUnchanged=protectedComponents.Select((c,i)=>UnityEditor.EditorJsonUtility.ToJson(c)==protectedBefore[i]&&UnityEditor.EditorJsonUtility.ToJson(c.transform)==lightsBefore[i]).All(x=>x);
+    UnityEditor.PrefabUtility.SaveAsPrefabAsset(prefab,prefabPath);
+    bound=rs[0].bounds;foreach(var r in rs)bound.Encapsulate(r.bounds);
+    var result=new {prefabGuid=UnityEditor.AssetDatabase.AssetPathToGUID(prefabPath),modelGuid=UnityEditor.AssetDatabase.AssetPathToGUID(modelPath),meshCount=rs.Length,
+        beforeBounds=new {center=oldBounds.center.ToString("F6"),size=oldBounds.size.ToString("F6")},
+        afterBounds=new {center=bound.center.ToString("F6"),size=bound.size.ToString("F6")},
+        alignmentRotation=alignment.localRotation.ToString("F8"),alignmentScale=alignment.localScale.ToString("F8"),
+        poseRotation=pose.localRotation.ToString("F8"),poseScale=pose.localScale.ToString("F8"),protectedComponentsUnchanged=protectedUnchanged,
+        lights=prefab.GetComponentsInChildren<UnityEngine.Light>(true).Length,probes=prefab.GetComponentsInChildren<UnityEngine.ReflectionProbe>(true).Length,
+        parts=rs.Select(r=>new {name=r.name,mesh=r.GetComponent<UnityEngine.MeshFilter>().sharedMesh.name,materials=r.sharedMaterials.Select(m=>UnityEditor.AssetDatabase.GetAssetPath(m)).ToArray()}).ToArray()};
+    System.IO.File.WriteAllText(System.IO.Path.Combine(output,"unity_replacement_review.json"),Newtonsoft.Json.JsonConvert.SerializeObject(result,Newtonsoft.Json.Formatting.Indented));
+    return result;
+} finally {UnityEditor.PrefabUtility.UnloadPrefabContents(prefab);}

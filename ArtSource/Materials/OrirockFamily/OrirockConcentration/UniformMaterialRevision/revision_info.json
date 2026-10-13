@@ -1,0 +1,80 @@
+{
+  "source": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockConcentration\\EdgeChipRevision\\OrirockConcentration_EdgeChips.blend",
+  "blend": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockConcentration\\UniformMaterialRevision\\OrirockConcentration_UniformStone.blend",
+  "original_materials": [
+    {
+      "name": "提纯源岩_左后_宽顶短壁",
+      "materials": [
+        "提纯源岩_左后_宽顶短壁_顶面_褐金颗粒_六棱修订",
+        "断棱_褐金矿质_六棱修订",
+        "提纯源岩_左后_宽顶短壁_连续深褐断面_六棱修订",
+        "左侧_灰蓝断面_六棱修订",
+        "下阶_灰蓝矿心_六棱修订",
+        "下部_暖褐断棱_六棱修订",
+        "提纯源岩_左后_崩口新鲜断面"
+      ],
+      "used_materials": [
+        0,
+        2,
+        3,
+        6
+      ]
+    },
+    {
+      "name": "提纯源岩_右后_斜切与下阶",
+      "materials": [
+        "提纯源岩_右后_斜切与下阶_顶面_褐金颗粒_六棱修订",
+        "断棱_褐金矿质_六棱修订.001",
+        "提纯源岩_右后_斜切与下阶_连续深褐断面_六棱修订",
+        "左侧_灰蓝断面_六棱修订.001",
+        "下阶_灰蓝矿心_六棱修订.001",
+        "下部_暖褐断棱_六棱修订.001",
+        "提纯源岩_右后_崩口新鲜断面"
+      ],
+      "used_materials": [
+        0,
+        2,
+        3,
+        6
+      ]
+    },
+    {
+      "name": "提纯源岩_前方_宽扁断块",
+      "materials": [
+        "提纯源岩_前方_宽扁断块_顶面_褐金颗粒_六棱修订",
+        "断棱_褐金矿质_六棱修订.002",
+        "提纯源岩_前方_宽扁断块_连续深褐断面_六棱修订",
+        "左侧_灰蓝断面_六棱修订.002",
+        "下阶_灰蓝矿心_六棱修订.002",
+        "下部_暖褐断棱_六棱修订.002",
+        "提纯源岩_前方_崩口新鲜断面"
+      ],
+      "used_materials": [
+        0,
+        2,
+        3,
+        6
+      ]
+    }
+  ],
+  "shared_material": "提纯源岩_统一黄褐岩石_全表面共用",
+  "geometry_uv_transform_unchanged": true,
+  "mesh_hashes": {
+    "提纯源岩_左后_宽顶短壁": "a0752eaa8adf369db02f9343c8dd1e0677fc4ad77de38ec38de49a1ee78ddc00",
+    "提纯源岩_右后_斜切与下阶": "efd3a0fd825563e9901b2db87641e34aeec9945e5d8f69eb2728a316d2b88901",
+    "提纯源岩_前方_宽扁断块": "a1ae5eb431e9d7c527d719fe9a0051a1222d0d5b7864a8e443979f486d063974"
+  },
+  "triangles": 492,
+  "material_slots_per_mesh": [
+    1,
+    1,
+    1
+  ],
+  "all_faces_use_same_material": true,
+  "validation": [
+    "相同基础色无光照渲染",
+    "正面光照渲染",
+    "侧面换光渲染"
+  ],
+  "export_contents": "三个岩柱与模型根；无背景、底板、相机或灯光"
+}

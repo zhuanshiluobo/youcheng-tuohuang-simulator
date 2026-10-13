@@ -1,0 +1,177 @@
+{
+  "stage": "局部小缺口与断口材质精修，待整体正面对照",
+  "scene": "固源岩组_小崩口局部精修",
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 2.223795953431472,
+    "triangles": 448,
+    "model_zmin": -0.8809438943862915,
+    "floor_z": -0.8809438943862915
+  },
+  "chip_changes": [
+    {
+      "label": "上灰面左棱上段小缺口",
+      "block": 0,
+      "width_factor": 1.13,
+      "depth_factor": 1.16
+    },
+    {
+      "label": "上块浅面外侧小缺口",
+      "block": 0,
+      "width_factor": 1.1,
+      "depth_factor": 1.12
+    },
+    {
+      "label": "右后褐浅交界下段凹口",
+      "block": 4,
+      "width_factor": 1.12,
+      "depth_factor": 1.15
+    }
+  ],
+  "tone_changes": [
+    {
+      "block": 0,
+      "face": 0,
+      "linear_multiplier": [
+        0.7252785409382213,
+        0.7215248603811147,
+        0.7604883308866902
+      ]
+    },
+    {
+      "block": 0,
+      "face": 2,
+      "linear_multiplier": [
+        0.6840119794604939,
+        0.5611731510075373,
+        0.5814758851088897
+      ]
+    },
+    {
+      "block": 0,
+      "face": 5,
+      "linear_multiplier": [
+        0.8189614305439699,
+        0.8090551645946394,
+        0.7498033438178475
+      ]
+    },
+    {
+      "block": 1,
+      "face": 0,
+      "linear_multiplier": [
+        1.040131039630698,
+        1.0315304991564394,
+        1.0633730275095319
+      ]
+    },
+    {
+      "block": 1,
+      "face": 2,
+      "linear_multiplier": [
+        0.936770433272384,
+        0.879044061151547,
+        0.813626657203142
+      ]
+    },
+    {
+      "block": 1,
+      "face": 5,
+      "linear_multiplier": [
+        0.5085281639312028,
+        0.48418463559569597,
+        0.478001959916567
+      ]
+    },
+    {
+      "block": 2,
+      "face": 0,
+      "linear_multiplier": [
+        0.5567902828898945,
+        0.5427780616073499,
+        0.521414501086442
+      ]
+    },
+    {
+      "block": 2,
+      "face": 2,
+      "linear_multiplier": [
+        0.5567902828898945,
+        0.5427780616073499,
+        0.521414501086442
+      ]
+    },
+    {
+      "block": 2,
+      "face": 5,
+      "linear_multiplier": [
+        0.5567902828898945,
+        0.5427780616073499,
+        0.521414501086442
+      ]
+    },
+    {
+      "block": 3,
+      "face": 0,
+      "linear_multiplier": [
+        0.7175563805665548,
+        0.7901007197877976,
+        0.8739894617962293
+      ]
+    },
+    {
+      "block": 3,
+      "face": 2,
+      "linear_multiplier": [
+        0.5768115378073605,
+        0.5458634778627449,
+        0.5417678952284694
+      ]
+    },
+    {
+      "block": 3,
+      "face": 5,
+      "linear_multiplier": [
+        0.6161514081411325,
+        0.5771100488168381,
+        0.41943766666993065
+      ]
+    },
+    {
+      "block": 4,
+      "face": 0,
+      "linear_multiplier": [
+        0.6644989663424203,
+        0.6230001737430737,
+        0.6894271002924184
+      ]
+    },
+    {
+      "block": 4,
+      "face": 2,
+      "linear_multiplier": [
+        0.5928901956308734,
+        0.6127207868094797,
+        0.6239598469783819
+      ]
+    },
+    {
+      "block": 4,
+      "face": 5,
+      "linear_multiplier": [
+        0.7473158896911518,
+        0.6408691665690306,
+        0.6096881846978517
+      ]
+    }
+  ],
+  "renders": {
+    "正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\ChipDetailRevision\\精修_正面.png",
+    "侧背": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\ChipDetailRevision\\精修_侧背.png"
+  },
+  "main_cube_pose_unchanged": true,
+  "floor_contact_unchanged": true,
+  "posterior_cubes": 2,
+  "unity_imported": false
+}

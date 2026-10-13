@@ -1,0 +1,227 @@
+{
+  "model": "CrystallineElectronicUnit",
+  "materials": {
+    "CEU_Graphite": {
+      "color": [
+        0.13,
+        0.15,
+        0.15,
+        1
+      ],
+      "metallic": 0.55,
+      "smoothness": 0.33,
+      "transparent": false
+    },
+    "CEU_BrushedSilver": {
+      "color": [
+        0.7,
+        0.75,
+        0.73,
+        1
+      ],
+      "metallic": 0.7,
+      "smoothness": 0.55,
+      "transparent": false
+    },
+    "CEU_BronzePanels": {
+      "color": [
+        0.51,
+        0.4,
+        0.23,
+        1
+      ],
+      "metallic": 0.68,
+      "smoothness": 0.46,
+      "transparent": false
+    },
+    "CEU_CopperClamps": {
+      "color": [
+        0.7,
+        0.35,
+        0.17,
+        1
+      ],
+      "metallic": 0.58,
+      "smoothness": 0.43,
+      "transparent": false
+    },
+    "CEU_JadeLaminate": {
+      "color": [
+        0.17,
+        0.55,
+        0.47,
+        1
+      ],
+      "metallic": 0.22,
+      "smoothness": 0.48,
+      "transparent": false
+    },
+    "CEU_MintRibEdges": {
+      "color": [
+        0.35,
+        0.69,
+        0.59,
+        1
+      ],
+      "metallic": 0.3,
+      "smoothness": 0.54,
+      "transparent": false
+    },
+    "CEU_DeepTeal": {
+      "color": [
+        0.1,
+        0.36,
+        0.31,
+        1
+      ],
+      "metallic": 0.28,
+      "smoothness": 0.4,
+      "transparent": false
+    },
+    "CEU_Stencil": {
+      "color": [
+        0.67,
+        0.67,
+        0.55,
+        1
+      ],
+      "metallic": 0.12,
+      "smoothness": 0.3,
+      "transparent": false
+    }
+  },
+  "reference": "用户附图；https://prts.wiki/w/晶体电子单元；MTL_SL_OEU.png",
+  "backside": "单视图推定：具有封闭前后截面、独立底截面的三维帐篷形晶体；铜导电连接位于真实后截面，不含稀有度圆环",
+  "tent_sections": [
+    {
+      "t": 0,
+      "left_eave": [
+        -0.58,
+        -0.44,
+        0.43799999999999994
+      ],
+      "ridge": [
+        0.0,
+        -0.44,
+        1.33
+      ],
+      "right_eave": [
+        0.58,
+        -0.44,
+        0.43799999999999994
+      ],
+      "bottom_left": [
+        -0.58,
+        -0.44,
+        0.38
+      ],
+      "bottom_right": [
+        0.58,
+        -0.44,
+        0.38
+      ]
+    },
+    {
+      "t": 0.5,
+      "left_eave": [
+        -0.58,
+        0.010000000000000009,
+        0.43799999999999994
+      ],
+      "ridge": [
+        0.0,
+        0.010000000000000009,
+        1.33
+      ],
+      "right_eave": [
+        0.58,
+        0.010000000000000009,
+        0.43799999999999994
+      ],
+      "bottom_left": [
+        -0.58,
+        0.010000000000000009,
+        0.38
+      ],
+      "bottom_right": [
+        0.58,
+        0.010000000000000009,
+        0.38
+      ]
+    },
+    {
+      "t": 1,
+      "left_eave": [
+        -0.58,
+        0.46,
+        0.43799999999999994
+      ],
+      "ridge": [
+        0.0,
+        0.46,
+        1.33
+      ],
+      "right_eave": [
+        0.58,
+        0.46,
+        0.43799999999999994
+      ],
+      "bottom_left": [
+        -0.58,
+        0.46,
+        0.38
+      ],
+      "bottom_right": [
+        0.58,
+        0.46,
+        0.38
+      ]
+    }
+  ],
+  "ridge_endpoints": [
+    [
+      0.0,
+      -0.44,
+      1.33
+    ],
+    [
+      0.0,
+      0.46,
+      1.33
+    ]
+  ],
+  "roof_definition": "恒高平直屋脊，左右两侧为真正平面，沿0.9纵深延伸的A形三角棱柱；无前低后高弯曲坡体",
+  "housing_opening": {
+    "shape": "八角缺口属于外壳；帐篷底边保持矩形与直线",
+    "inner_radius": 0.807,
+    "top_z": 0.462,
+    "floor_z": 0.38,
+    "core_bottom_z": 0.38,
+    "core_eave_z": 0.438,
+    "insert_depth": 0.08200000000000002
+  },
+  "tent_closed_edges": true,
+  "tent_body_volume": 0.52617601236391,
+  "bounds": {
+    "min": [
+      -0.8790000081062317,
+      -0.8795000314712524,
+      -0.668749988079071
+    ],
+    "max": [
+      0.8790000081062317,
+      0.8795000314712524,
+      0.668749988079071
+    ],
+    "size": [
+      1.7580000162124634,
+      1.7590000629425049,
+      1.337499976158142
+    ]
+  },
+  "mesh_count": 71,
+  "revision": "独立子代理平直屋脊帐篷返工：0.476高八角壳与真实八角内缺口；核心为恒高平直屋脊+左右平斜面的三角棱柱，矩形底边，宽1.16/纵深0.90，底面嵌入缺口0.082，前后闭合三角截面",
+  "export_normals": "保留源多边形绕序与源分裂法线，不对孤立面重算法线",
+  "game_mesh_count": 8,
+  "triangles": 24344
+}

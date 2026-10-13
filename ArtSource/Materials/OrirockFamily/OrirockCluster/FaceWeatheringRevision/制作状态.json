@@ -1,0 +1,244 @@
+{
+  "scene": "固源岩组_正面色面与风化修订",
+  "source_scene": "固源岩组_左下在前_重定地板与后撑",
+  "front_six_parts_unchanged": true,
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "connected_components": 1,
+    "volume": 2.307552400692035,
+    "triangles": 554,
+    "model_zmin": 0.0,
+    "floor_z": 0
+  },
+  "rear_gap_plan": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FaceWeatheringRevision\\背部透空修正方案.json",
+  "materials": [
+    {
+      "part": 0,
+      "material_slot": 2,
+      "reference": [
+        216,
+        191,
+        142
+      ],
+      "before": [
+        218,
+        193,
+        151
+      ],
+      "factor": [
+        0.9794372320175171,
+        0.9769709706306458,
+        0.874070942401886,
+        1.0
+      ]
+    },
+    {
+      "part": 0,
+      "material_slot": 5,
+      "reference": [
+        107,
+        97,
+        65
+      ],
+      "before": [
+        114,
+        102,
+        68
+      ],
+      "factor": [
+        0.8737611770629883,
+        0.8996759057044983,
+        0.914458155632019,
+        1.0
+      ]
+    },
+    {
+      "part": 4,
+      "material_slot": 2,
+      "reference": [
+        168,
+        135,
+        84
+      ],
+      "before": [
+        135,
+        115,
+        76
+      ],
+      "factor": [
+        1.6161906719207764,
+        1.413203239440918,
+        1.2266958951950073,
+        1.0
+      ]
+    },
+    {
+      "part": 4,
+      "material_slot": 0,
+      "reference": [
+        79,
+        70,
+        62
+      ],
+      "before": [
+        87,
+        81,
+        80
+      ],
+      "factor": [
+        0.8203703761100769,
+        0.7443369030952454,
+        0.6004977822303772,
+        1.0
+      ]
+    },
+    {
+      "part": 1,
+      "material_slot": 0,
+      "reference": [
+        43,
+        51,
+        59
+      ],
+      "before": [
+        45,
+        53,
+        61
+      ],
+      "factor": [
+        0.9205986261367798,
+        0.929874837398529,
+        0.9372109174728394,
+        1.0
+      ]
+    },
+    {
+      "part": 1,
+      "material_slot": 2,
+      "reference": [
+        106,
+        98,
+        73
+      ],
+      "before": [
+        99,
+        86,
+        65
+      ],
+      "factor": [
+        1.1551364660263062,
+        1.3124879598617554,
+        1.2604072093963623,
+        1.0
+      ]
+    },
+    {
+      "part": 1,
+      "material_slot": 5,
+      "reference": [
+        181,
+        164,
+        127
+      ],
+      "before": [
+        216,
+        201,
+        164
+      ],
+      "factor": [
+        0.6729093790054321,
+        0.6355956196784973,
+        0.5716843008995056,
+        1.0
+      ]
+    },
+    {
+      "part": 3,
+      "material_slot": 0,
+      "reference": [
+        43,
+        51,
+        59
+      ],
+      "before": [
+        38,
+        44,
+        51
+      ],
+      "factor": [
+        1.2463719844818115,
+        1.3143665790557861,
+        1.3211097717285156,
+        1.0
+      ]
+    },
+    {
+      "part": 3,
+      "material_slot": 2,
+      "reference": [
+        200,
+        183,
+        150
+      ],
+      "before": [
+        205,
+        186,
+        145
+      ],
+      "factor": [
+        0.9460845589637756,
+        0.9643816351890564,
+        1.0771275758743286,
+        1.0
+      ]
+    },
+    {
+      "part": 3,
+      "material_slot": 5,
+      "reference": [
+        107,
+        90,
+        57
+      ],
+      "before": [
+        93,
+        75,
+        47
+      ],
+      "factor": [
+        1.343184471130371,
+        1.4531210660934448,
+        1.4393562078475952,
+        1.0
+      ]
+    },
+    {
+      "part": 0,
+      "material_slot": 6,
+      "reference": [
+        108,
+        83,
+        44
+      ],
+      "before": [
+        128,
+        99,
+        63
+      ],
+      "factor": [
+        0.6947069764137268,
+        0.6932692527770996,
+        0.506710946559906,
+        1.0
+      ]
+    }
+  ],
+  "renders": {
+    "front": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FaceWeatheringRevision\\色面校准_正面.png",
+    "rear_gap_fix": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FaceWeatheringRevision\\空缺修正_背面.png",
+    "front_gap_fix": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FaceWeatheringRevision\\空缺修正_正面.png"
+  },
+  "full_reference_match_accepted": false,
+  "unity_imported": false
+}

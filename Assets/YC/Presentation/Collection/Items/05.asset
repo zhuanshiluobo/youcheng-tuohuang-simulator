@@ -14,14 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: 05
   displayName: "\u63D0\u7EAF\u6E90\u5CA9"
-  englishName: 
+  englishName: ORIROCK CONCENTRATION
   category: "\u7F55\u89C1"
   displayNumber: 05
-  description: 
-  defaultDisplay: 0
+  description: "\u7ECF\u9AD8\u5EA6\u63D0\u7EAF\u548C\u89C4\u5219\u5207\u5272\u5F97\u5230\u7684\u6E90\u5CA9\uFF0C\u5DE5\u827A\u4E0E\u63D0\u7EAF\u6210\u672C\u8F83\u9AD8\uFF0C\u53EF\u7528\u4E8E\u5F3A\u5316\u53CA\u5236\u4F5C\u805A\u5408\u5242\u3002"
+  defaultDisplay: 1
   acquisitionRequirementText: 
   overrideSpotlightColor: 1
   spotlightColor: {r: 0.8392157, g: 0.77254903, b: 0.8392157, a: 1}
   icon: {fileID: 0}
-  displayPrefab: {fileID: 0}
+  displayPrefab: {fileID: 2211039011392336273, guid: cba6fd93d7e542d449f2a81afa40bce7, type: 3}
   useInteriorReflection: 0
+  viewPosePath: "\u63D0\u7EAF\u6E90\u5CA9_\u51E0\u4F55"
+  frontViewEuler: {x: -90, y: 180, z: 0}

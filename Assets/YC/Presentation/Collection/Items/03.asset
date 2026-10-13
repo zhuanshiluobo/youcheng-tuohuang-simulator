@@ -14,14 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: 03
   displayName: "\u56FA\u6E90\u5CA9"
-  englishName: 
+  englishName: ORIROCK CUBE
   category: "\u666E\u901A"
   displayNumber: 03
-  description: 
-  defaultDisplay: 0
+  description: "\u5177\u6709\u5BC6\u96C6\u5FAE\u5B54\u7684\u5CA9\u77F3\u56FA\u5757\uFF0C\u53EF\u5438\u9644\u6E90\u77F3\u6C14\u4F53\u7684\u5206\u89E3\u7269\uFF0C\u5E38\u7528\u4E8E\u9632\u62A4\u5939\u5C42\u53CA\u5F3A\u5316\u3002"
+  defaultDisplay: 1
   acquisitionRequirementText: 
   overrideSpotlightColor: 1
   spotlightColor: {r: 0.8627451, g: 0.8980392, b: 0.21568628, a: 1}
   icon: {fileID: 0}
-  displayPrefab: {fileID: 0}
+  displayPrefab: {fileID: 8851719387186704035, guid: 84c1ec268a73cdc47a128a1e01f8ec0a, type: 3}
   useInteriorReflection: 0
+  viewPosePath: "\u56FA\u6E90\u5CA9_\u51E0\u4F55"
+  frontViewEuler: {x: -90, y: 180, z: 0}

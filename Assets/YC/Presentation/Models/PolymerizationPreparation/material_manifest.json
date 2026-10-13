@@ -1,0 +1,316 @@
+{
+  "model": "PolymerizationPreparation",
+  "editableSource": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\PolymerizationPreparation\\GlassEmissionReview\\PolymerizationPreparation_GlassEmission.blend",
+  "materials": {
+    "PolymerizationPreparation_青蓝透光盖板_玻璃发光验收": {
+      "unityMaterialName": "PolymerizationPreparation_青蓝透光盖板",
+      "colorLinear": [
+        0.8199999928474426,
+        0.9549999833106995,
+        0.9800000190734863,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.9350000023841858,
+      "emissionLinear": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "glass": true
+    },
+    "PolymerizationPreparation_青灰托盘内衬": {
+      "unityMaterialName": "PolymerizationPreparation_青灰托盘内衬",
+      "colorLinear": [
+        0.021980946883559227,
+        0.06838485598564148,
+        0.07828831672668457,
+        1.0
+      ],
+      "metallic": 0.41999998688697815,
+      "smoothness": 0.6100000143051147,
+      "emissionLinear": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "glass": false
+    },
+    "PolymerizationPreparation_标签深色印记": {
+      "unityMaterialName": "PolymerizationPreparation_标签深色印记",
+      "colorLinear": [
+        0.0035010159481316805,
+        0.021980946883559227,
+        0.00854038167744875,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.3799999952316284,
+      "emissionLinear": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "glass": false
+    },
+    "PolymerizationPreparation_凹槽黑": {
+      "unityMaterialName": "PolymerizationPreparation_凹槽黑",
+      "colorLinear": [
+        0.004400849808007479,
+        0.007850573398172855,
+        0.00854038167744875,
+        1.0
+      ],
+      "metallic": 0.25,
+      "smoothness": 0.38999998569488525,
+      "emissionLinear": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "glass": false
+    },
+    "PolymerizationPreparation_金属银边": {
+      "unityMaterialName": "PolymerizationPreparation_金属银边",
+      "colorLinear": [
+        0.38005632162094116,
+        0.5070785284042358,
+        0.5542217493057251,
+        1.0
+      ],
+      "metallic": 0.7799999713897705,
+      "smoothness": 0.75,
+      "emissionLinear": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "glass": false
+    },
+    "PolymerizationPreparation_层板亮边_玻璃发光验收": {
+      "unityMaterialName": "PolymerizationPreparation_层板亮边",
+      "colorLinear": [
+        0.004896310158073902,
+        0.4338795244693756,
+        0.5070785284042358,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.880000002682209,
+      "emissionLinear": [
+        0.00800000037997961,
+        0.6000000238418579,
+        0.6899999976158142,
+        1.0
+      ],
+      "emissionStrength": 1.0,
+      "glass": false
+    },
+    "PolymerizationPreparation_黄绿标签": {
+      "unityMaterialName": "PolymerizationPreparation_黄绿标签",
+      "colorLinear": [
+        0.17064493894577026,
+        0.5870163440704346,
+        0.0030959751456975937,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.48000001907348633,
+      "emissionLinear": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "glass": false
+    },
+    "PolymerizationPreparation_青色聚合层板_玻璃发光验收": {
+      "unityMaterialName": "PolymerizationPreparation_青色聚合层板",
+      "colorLinear": [
+        0.0013931888388469815,
+        0.19599418342113495,
+        0.2529500722885132,
+        1.0
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.8199999928474426,
+      "emissionLinear": [
+        0.0020000000949949026,
+        0.46000000834465027,
+        0.550000011920929,
+        1.0
+      ],
+      "emissionStrength": 1.149999976158142,
+      "glass": false
+    },
+    "PolymerizationPreparation_容器深灰": {
+      "unityMaterialName": "PolymerizationPreparation_容器深灰",
+      "colorLinear": [
+        0.04696420207619667,
+        0.07078763842582703,
+        0.08353512734174728,
+        1.0
+      ],
+      "metallic": 0.44999998807907104,
+      "smoothness": 0.5200000107288361,
+      "emissionLinear": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissionStrength": 0.0,
+      "glass": false
+    }
+  },
+  "meshCount": 110,
+  "bounds": {
+    "min": [
+      -1.085207223892212,
+      -0.8355029821395874,
+      -0.7867066860198975
+    ],
+    "max": [
+      1.085207223892212,
+      0.8355029821395874,
+      0.8309341669082642
+    ],
+    "size": [
+      2.170414447784424,
+      1.6710059642791748,
+      1.6176408529281616
+    ]
+  },
+  "geometryReview": [
+    {
+      "name": "前侧横置管",
+      "angleDegrees": 0,
+      "grip": [
+        0.5562130212783813,
+        -0.4378698468208313,
+        -0.2729886770248413
+      ],
+      "axis": [
+        1.0,
+        0.0,
+        -0.0
+      ],
+      "targetLength": 1.3117633832671423,
+      "measuredLength": 1.311763466076627,
+      "measuredAxis": [
+        1.0,
+        9.268699614040088E-06,
+        2.317174948984757E-05
+      ],
+      "planViewAxisError": 9.268699614040088E-06
+    },
+    {
+      "name": "中部斜置管",
+      "angleDegrees": 30,
+      "grip": [
+        0.5562130212783813,
+        -0.047337278723716736,
+        -0.2706218361854553
+      ],
+      "axis": [
+        0.8660253882408142,
+        0.0,
+        -0.5
+      ],
+      "targetLength": 1.3117633832671423,
+      "measuredLength": 1.3117634951570665,
+      "measuredAxis": [
+        0.8660302758216858,
+        -6.737403055012692E-06,
+        -0.49999165534973145
+      ],
+      "planViewAxisError": 6.737403055012692E-06
+    },
+    {
+      "name": "后部斜立管",
+      "angleDegrees": 65,
+      "grip": [
+        0.5562130212783813,
+        0.3786982297897339,
+        -0.2647046744823456
+      ],
+      "axis": [
+        0.4226182699203491,
+        0.0,
+        -0.9063078165054321
+      ],
+      "targetLength": 1.3117633832671423,
+      "measuredLength": 1.3117634323416496,
+      "measuredAxis": [
+        0.4226379990577698,
+        -2.5025503418873996E-05,
+        -0.9062985777854919
+      ],
+      "planViewAxisError": 2.5025503418873996E-05
+    }
+  ],
+  "materialReview": {
+    "geometryUnchanged": true,
+    "geometryHash": "2eb574998fa9ee948e1c85f7aaf67bc46d8ece751fe2a5edac183051d9ea4571",
+    "liquidOriginalBaseColor": [
+      0.0013931888388469815,
+      0.19599418342113495,
+      0.2529500722885132,
+      1.0
+    ],
+    "glass": {
+      "ior": 1.46,
+      "transmission": 1,
+      "roughness": 0.065,
+      "emission": 0
+    },
+    "fluid": {
+      "ior": 1.333,
+      "transmission": 0.18,
+      "emissionColorLinear": [
+        0.002,
+        0.46,
+        0.55
+      ],
+      "emissionStrength": 1.15
+    },
+    "glassClearMix": "Fresnel * 0.84 + 0.075",
+    "meniscusEmissionStrength": 1.0,
+    "unityImported": true
+  },
+  "description": "已验收：六个独立底夹，等长加长圆头管，0/30/65度夹持姿态，加高盒体与加厚侧框，玻璃与青色液体自发光。",
+  "unityImport": {
+    "date": "2026-10-05",
+    "prefab": "Assets/YC/Presentation/Collection/Prefabs/PolymerizationPreparationDisplay.prefab",
+    "renderers": 110,
+    "materialCount": 9,
+    "missingReferences": 0,
+    "shaderErrors": 0,
+    "glassShader": "YC/Collection/PolymerizationGlass",
+    "glassOpacity": 0.025,
+    "glassEdgeOpacity": 0.18,
+    "glassDirectLightResponse": 0.035,
+    "glassEnvironmentResponse": 0.18,
+    "opaqueDirectLightResponse": 0.045,
+    "opaqueEnvironmentResponse": 0.4,
+    "liquidDirectLightResponse": 0.012,
+    "liquidEmissionStrength": 0.5,
+    "meniscusEmissionStrength": 0.45,
+    "liquidBaseColorPreserved": true,
+    "localLiquidLights": 3,
+    "localLiquidLightIntensity": 0.35,
+    "screenshot": "ArtSource/Materials/PolymerizationPreparation/GlassEmissionReview/PolymerizationPreparation_UnityApproved-1.png",
+    "note": "Unity采用实时透明反光近似Blender玻璃；按现有收藏室照明适配发光强度，未修改场景及界面。"
+  }
+}

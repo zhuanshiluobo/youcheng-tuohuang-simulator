@@ -1,0 +1,25 @@
+{
+  "stage": "已回退并撤销：用户要求标准正方体，不允许非等边校形",
+  "scene": "固源岩组_原图六面块体校形",
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 2.064897781913314,
+    "connected_components": [
+      230
+    ],
+    "triangles": 460,
+    "model_zmin": -0.8809438943862915,
+    "floor_z": -0.8809438943862915
+  },
+  "renders": {
+    "正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\ReferenceShapeRevision\\校形_正面.png",
+    "背侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\ReferenceShapeRevision\\校形_背侧.png"
+  },
+  "posterior_cubes": 2,
+  "shape_note": "六面块体而非前侧薄片，远侧略校形；非严格等边数学立方体",
+  "unity_imported": false,
+  "withdrawn": true,
+  "approved_for_import": false,
+  "restored_source": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\ChipDetailRevision\\OrirockCluster_ChipDetail.blend"
+}

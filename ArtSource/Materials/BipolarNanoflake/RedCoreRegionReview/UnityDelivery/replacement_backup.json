@@ -1,0 +1,526 @@
+{
+  "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006",
+  "savedFiles": [
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\BipolarNanoflake_Finished.fbx",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\BipolarNanoflake_Finished.fbx",
+      "sha256": "86276c85a5ec7f739f2cf5cda9c2b793a4521eb29eb0e5b531eb0c09539338f3"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\BipolarNanoflake_Finished.fbx.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\BipolarNanoflake_Finished.fbx.meta",
+      "sha256": "88555a25cae790aff73bc9ac8bb490eea5f8723e4d6f4652196ed13999ec51fd"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials.meta",
+      "sha256": "5c37a93e27918d03f24086c567866c201c3b6e98640641cf4feda36ef95f9144"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\material_manifest.json",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\material_manifest.json",
+      "sha256": "253cd0a426afb3adea6ec1e75b0456fa3faf4356cc186b19e2cd6311e58858ba"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\material_manifest.json.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\material_manifest.json.meta",
+      "sha256": "444bb2c3abc856695b2f7621682e13aeed3c6aada5561a3bd0562ea0ad63b0ba"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Textures.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Textures.meta",
+      "sha256": "7e7945f2c10f4dde1375507de7aed8204315b8dbfeb3ecad1d09788564bc9b39"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_三个铜红外框.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_三个铜红外框.mat",
+      "sha256": "7823a56b94a0aba5819a1229e965e0e9de329a2168cd4a710fd65251f99253c5"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_三个铜红外框.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_三个铜红外框.mat.meta",
+      "sha256": "7af4f25afd9524350fa0abec54b818cd98570fa96e965e870d98e5b29bf43e5a"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_后侧隔热底片.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_后侧隔热底片.mat",
+      "sha256": "14e4d632e72177ea61bcf7813ee7e53f6805df7a9c16974edec4ad30e1cda110"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_后侧隔热底片.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_后侧隔热底片.mat.meta",
+      "sha256": "5d9edd8fbe710b13129543f138ffa88655ee7c01e7235f48cc6c1effc9e3a526"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_四个红铜外框.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_四个红铜外框.mat",
+      "sha256": "aa35ffb6469c67a88f87b5db088dd68db735692d923011c96ba4aa14c45d3cd6"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_四个红铜外框.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_四个红铜外框.mat.meta",
+      "sha256": "5a54f32b16a076f76685fc4cfa764aa91d3470467d3f110fc518d1729342a107"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_暖白纳米片.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_暖白纳米片.mat",
+      "sha256": "e7bcdd6be0a8b5345490823275949d81d057604fc49b7baa0fca03b4e3a3f64a"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_暖白纳米片.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_暖白纳米片.mat.meta",
+      "sha256": "816400b6e7783cac732047e35de4ee4d179eec6aad2445bb706e63f99b6ab7df"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_浅铜银窄亮面.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_浅铜银窄亮面.mat",
+      "sha256": "f4154add9f4bd375142139d16a9963541a76d75175d7c4fc66385afa12ca5f68"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_浅铜银窄亮面.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_浅铜银窄亮面.mat.meta",
+      "sha256": "81cd6e8460bc2f6f08420c1262026fbbeb40dcba6481dd4462c4115af1ee2854"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_深铜内壁.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_深铜内壁.mat",
+      "sha256": "e388c2f36bd29fc606f426a8e0a0228013b7edd2745c06986a71ee7980fa8036"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_深铜内壁.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_深铜内壁.mat.meta",
+      "sha256": "5c284233bdff1978c169e4e82f7fbec458b583ff432e7a47ce599d81646facf5"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_琥珀铜薄片边.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_琥珀铜薄片边.mat",
+      "sha256": "bce95b4a7048828bde33192b53a5d0f3ba56e9288b6fc3cda90d6cc971db2dcf"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_琥珀铜薄片边.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_琥珀铜薄片边.mat.meta",
+      "sha256": "ea23119cf56c08bb499f94d90b7d684a111f636ed0afda63bbc1218a396d1b4d"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_红铜侧面.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_红铜侧面.mat",
+      "sha256": "4b7a31be3cbf3878b14fc5b6c85363b16c1765297f89d06c318950268be24e6c"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_红铜侧面.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_红铜侧面.mat.meta",
+      "sha256": "8e8d3c551da79daeaa042d877752f0926248def672147e46df3223af9a758cfa"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_纳米片暖白亮面.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_纳米片暖白亮面.mat",
+      "sha256": "3b7326c53ef28344e26f318665320810abcfaf92c40acf4daa7e805f0d8b7c1f"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_纳米片暖白亮面.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_纳米片暖白亮面.mat.meta",
+      "sha256": "79aa82991c084d60a6346e12f44d07a5dec04852b4a1021bee2b17fe54cb1bd9"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_纳米片浅琥珀断面.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_纳米片浅琥珀断面.mat",
+      "sha256": "ecf42d11e1d2929cb648cca288d1ab52f3f1a03fe6e4be97fc562bb4a76280ed"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_纳米片浅琥珀断面.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_纳米片浅琥珀断面.mat.meta",
+      "sha256": "c556d8633a8b6495526713e132d6583f55a215f3305c30dcc400a04b57b53569"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_连续红橙核心.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_连续红橙核心.mat",
+      "sha256": "a39a8f3e4d872a8b10cdd5fee2951bbf5cf960722b628f01ad30726c17959b29"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_连续红橙核心.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_连续红橙核心.mat.meta",
+      "sha256": "d98847481338ab72fb60f2a069d474708734605c337c38c30d13beb822cbe704"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_铜框暗面.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_铜框暗面.mat",
+      "sha256": "88cf02eb0a6ce89f53e174690b408d47db69aa7212adbeedbb52d8328357aa5e"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_铜框暗面.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_铜框暗面.mat.meta",
+      "sha256": "630d64d4556b2404806ffb769e296c097aaa3583b49b4a6a67a8bd2d475e860d"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_铜红细导路.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_铜红细导路.mat",
+      "sha256": "62f523858f0c6637eed7d207e41c92629530c2151375d6a7d95820209662803d"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_铜红细导路.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_铜红细导路.mat.meta",
+      "sha256": "9b9e50e418126420ef41733bbdd63c946384daf01af8cb6144ded9bca6554ee2"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_银灰盘沿.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_银灰盘沿.mat",
+      "sha256": "34b7a5504eace503f900276cb2dc3a4a6ec47d1ed512598351b132594752036a"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_银灰盘沿.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_银灰盘沿.mat.meta",
+      "sha256": "a5fa09af2b508ed28036652162a01ebcfd14e982ea8d629c823ac2d33d0bd0ed"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_银色细端接.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_银色细端接.mat",
+      "sha256": "ea4c0ed0cbd8a49b4e78e01c9cfff6819bc0aa8644184e28416c3d3469f04786"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_银色细端接.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_银色细端接.mat.meta",
+      "sha256": "273d5b5be1c559af5be3ad2676d82e6bed29351e5fee660063ac9e55ef2b1929"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_青灰纵环.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_青灰纵环.mat",
+      "sha256": "46159486b6312a9fbf384fede1e0c201f069ba482a83f587b507138b78fee7e8"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_青灰纵环.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_青灰纵环.mat.meta",
+      "sha256": "9d1dc61f304b81d41778529893b04c513df1e3956038c59040a2aad7e3fb0417"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_青色横环.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_青色横环.mat",
+      "sha256": "cf7dac5673f7736d973138ef2003b88a60e33dad711847aff217aa053f121517"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_青色横环.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_完成_青色横环.mat.meta",
+      "sha256": "457d0a9729a8ca484dbc65e0cb95f79381f2aa9ee747fd638a46a45839634858"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_小型银色端接.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_小型银色端接.mat",
+      "sha256": "238164ec9a1b6ca9759c01f24c0c1d6ad0780330763d28e840d8f80d78b6d280"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_小型银色端接.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_小型银色端接.mat.meta",
+      "sha256": "2eb96b4bcabd4feb26aadb640bba016c27155417ea59421625a3e2f792b6db0a"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_微弱热核细缝.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_微弱热核细缝.mat",
+      "sha256": "17346c0d380cdc9350009b297505ffa9264000c6782898ebb68236580dd16689"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_微弱热核细缝.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_微弱热核细缝.mat.meta",
+      "sha256": "6c973e23f7477ac28d9fa3fc2bf845fc0de7880592cfc3327631910111f24d2a"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙白亮晶.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙白亮晶.mat",
+      "sha256": "a1d2ae88eb58b8bb524a4ebfb3cb2d091394aa7398b1ed1807cf3b6d7bcf42ea"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙白亮晶.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙白亮晶.mat.meta",
+      "sha256": "5bca059b7e2b70ffbaf0a2774aee01cd6ea61a9abf95decf09e44e9d4c3b3f35"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙红活性层.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙红活性层.mat",
+      "sha256": "3f6a0d0baa35030899a5d9e5144c66fb477cad446fab4e709e0822a5785fb577"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙红活性层.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙红活性层.mat.meta",
+      "sha256": "2587668999b1fbc586efb4ee4e657bab93aac632eee0f7367a0c7661599aa2e6"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙色碎晶.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙色碎晶.mat",
+      "sha256": "0578f0acc815b8e8ebc9dc59d7a604cf099dc5924c133ec2ca878fbed74d067c"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙色碎晶.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心橙色碎晶.mat.meta",
+      "sha256": "438688083b364b46b77398f3b86f3a78c706e19e5a6f45acb4482b4639b87f18"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心深红层压片.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心深红层压片.mat",
+      "sha256": "c0ba534db61ff45d9217407b8f6e494ce2d7b07e0ba18f79e2bf0de9493c9206"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心深红层压片.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心深红层压片.mat.meta",
+      "sha256": "713849ab9fbe61d0df9c2e60b3b4a820e764491effa41bd98855ce6fd1f7d426"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心窄亮层.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心窄亮层.mat",
+      "sha256": "7dce39345967399ffe822c93d9f4289c01b032277be8aa1c36b68083c398f565"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心窄亮层.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心窄亮层.mat.meta",
+      "sha256": "ae1610609251496f07867b97d4309f2e99a34abcd0f6961121048b97f32aaff2"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心红橙碎块.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心红橙碎块.mat",
+      "sha256": "fd451312cc01259a3038121181b377c6aac1b7f83ec01a24aa6c58aa4250273e"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心红橙碎块.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心红橙碎块.mat.meta",
+      "sha256": "bfcc1e70143c70e6269aa2042d925bb62b6c348ff6e3a332f2d8f1e6c2659619"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心红橙透光圆盘.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心红橙透光圆盘.mat",
+      "sha256": "b4690e10e0592c09fa44faa6cd30e19f699fedc01beef0da54c5a3f6a2389606"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心红橙透光圆盘.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心红橙透光圆盘.mat.meta",
+      "sha256": "01d304bfa0a09eb3eb32167e2695017330937c453030f3fea5470e4cc3eb3f6a"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心赤红层压片.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心赤红层压片.mat",
+      "sha256": "4b4b8cc7cf0e15486dde5564b64b359e8bc3cc2e5e35b7684c9256a07404b56d"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心赤红层压片.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_核心赤红层压片.mat.meta",
+      "sha256": "8ffb6d1beaff4a43ef399c2e98b619c98631f054d92122b6ba899282925a95a7"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_框面浅铜金属亮边.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_框面浅铜金属亮边.mat",
+      "sha256": "908e39584bba1170d5c9378246bf46d5c2cb60d6b3059fc40f5e0b9f67d9162e"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_框面浅铜金属亮边.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_框面浅铜金属亮边.mat.meta",
+      "sha256": "e3d1a788d766187d34788b94315223ba25fe5c0d2179b944b5c2edafc14775b9"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_橙红活性片.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_橙红活性片.mat",
+      "sha256": "1f13cd058a28bfeaedf053332d5a1d984f3991c879265004a7f97242d5e1732a"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_橙红活性片.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_橙红活性片.mat.meta",
+      "sha256": "68e6f92edd1fb03b615c4a594a9eee9144c87c82f674a1ce0c199e8870435cd0"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_橙红热核.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_橙红热核.mat",
+      "sha256": "2485d7669503d54d0f55d1636dd5d90b5365baaea2610534b365c2ac37334251"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_橙红热核.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_橙红热核.mat.meta",
+      "sha256": "f309bea0bc89561e8390f1e06dfdd86b65330e5fe15780c8f991902f37b8b1e7"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_深红纳米片.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_深红纳米片.mat",
+      "sha256": "f1a61dab5ecda52a84dd4d1f548ff3b0dc8308d485644802e9e05486bf6ee2e4"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_深红纳米片.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_深红纳米片.mat.meta",
+      "sha256": "04b58a2c2776d5efdc7f7a2c444d9f623449042d5549f2d577b31a926a8261b1"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_深红隔热薄片.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_深红隔热薄片.mat",
+      "sha256": "173c49bee2c84b9aea0b3d23a1d9d9cc0a5b6834df08e156da58651551b14d44"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_深红隔热薄片.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_深红隔热薄片.mat.meta",
+      "sha256": "a209f19614248b4cdd6bc84e67e9ebbd556646b2b50c564f8f8586f28c2affdb"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_炽热琥珀裂片.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_炽热琥珀裂片.mat",
+      "sha256": "0ba46903d2fe466416df5d4c952d7306c1e0bcfc6f37fd60edc1017285db9b1a"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_炽热琥珀裂片.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_炽热琥珀裂片.mat.meta",
+      "sha256": "a2c3a8eb8a3d068cff1a1d6a6c01812135c9a44da66bd63c88bebfa8f05bebe7"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_盘内深红凝聚层.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_盘内深红凝聚层.mat",
+      "sha256": "eabf2c9efa948a3d48bc419855392fb50190d88e1a883435203e707c4245d132"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_盘内深红凝聚层.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_盘内深红凝聚层.mat.meta",
+      "sha256": "3ddf22ed6402221cf296009e6e7ef1faf8712692467885d5f09efebc96aeb52f"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_石墨外缘.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_石墨外缘.mat",
+      "sha256": "2bea94947a817d66df0e32e8f20fba9fe106728d364174f73523a68a61ed8146"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_石墨外缘.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_石墨外缘.mat.meta",
+      "sha256": "68946fb39013dd109e2ac2e62d00b4f85a113c9876b8c2d2d6baccd181838fa4"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_石墨边条.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_石墨边条.mat",
+      "sha256": "6007e27bac293ba56117e224f36076d5dfcc36ef21d7c8b5e4ea761b4aa02119"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_石墨边条.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_石墨边条.mat.meta",
+      "sha256": "6779a2502f8f6e33b89e57d11d49d91f34c35443dc8a5cfed87856581e7e3074"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_红铜框架.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_红铜框架.mat",
+      "sha256": "e70133cabee0bff5670391d99d398dc6f8bf12114299be19f5e98949e685ce9d"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_红铜框架.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_红铜框架.mat.meta",
+      "sha256": "164561ff1e9ef1200ad16d4161174d39735ec9478f2f608f2102364c2940ce34"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_红铜矩形薄框.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_红铜矩形薄框.mat",
+      "sha256": "f0d360f7f0032edd6ee64dbe3a482ef6de473297cf6b0f3482e755e4b64e7cc2"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_红铜矩形薄框.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_红铜矩形薄框.mat.meta",
+      "sha256": "b5d65a350e1b597aad0a6a3dc3be6389b3ea69bd39a825556d7ac2c04a553db5"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_纳米片深红.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_纳米片深红.mat",
+      "sha256": "f8c7ae64727f25d88f5e4d8e19dd9217528e7e44393fd7b3777c968937be5a18"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_纳米片深红.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_纳米片深红.mat.meta",
+      "sha256": "3ead7a7226db8f7f0e91c800a3cec111f70461e454934ba5f38314f97b46ff5d"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_细金属导路.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_细金属导路.mat",
+      "sha256": "e5e3a80aaec02a2a6e0610065dd68cecab5182f2c24a83f2ac690f0c60f495dc"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_细金属导路.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_细金属导路.mat.meta",
+      "sha256": "29ef2de18ae9bdcf3c316f8f50242aa40dbb13c3834ed4d3be61e27524215f85"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_细铜导路.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_细铜导路.mat",
+      "sha256": "1586c620b023bdf93c9355e407c9ca878887153fca164603066b9213e8e652a4"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_细铜导路.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_细铜导路.mat.meta",
+      "sha256": "af090068cf1216cbe22b5cd05b7a294470ec02fa0549c42031111188167c5798"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_赤红纳米片.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_赤红纳米片.mat",
+      "sha256": "eb7b312e40b2a3585c5b66f9875c931a8900d242066a4e91d2ffd797fdab885f"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_赤红纳米片.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_赤红纳米片.mat.meta",
+      "sha256": "06a6e107c0a0a38673f7cba9a0505bf771732881400a4aea0c60626d12a7f842"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_铜框浅色窄边.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_铜框浅色窄边.mat",
+      "sha256": "9cfbd8f5419504d629e17449f1e0bdabe884e9a899d84a0da73331176000a6ba"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_铜框浅色窄边.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_铜框浅色窄边.mat.meta",
+      "sha256": "ad6c410d39877610bbcb91482da01007f72b914d6f6d430949ea817be41dc072"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_银色卡扣.mat",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_银色卡扣.mat",
+      "sha256": "e3663d6e00946c4eaa24a64b55c98ceb261349913dc59449a2614ad6bdf13673"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_银色卡扣.mat.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Materials\\BipolarNanoflake_银色卡扣.mat.meta",
+      "sha256": "a70f99df6200affc06b5c1a2c1c4ad6886f81ce31c9122878bcc81bbc0ade34f"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Textures\\BipolarNanoflake_Core_BaseColor.png",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Textures\\BipolarNanoflake_Core_BaseColor.png",
+      "sha256": "b1b324992790f28237dfedcbaa63888a702961a3dabbf77846e113c6f05ae8d0"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Textures\\BipolarNanoflake_Core_BaseColor.png.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Textures\\BipolarNanoflake_Core_BaseColor.png.meta",
+      "sha256": "12be3e8ef97b1ccfa02ac06601e4cd8b3bab43bde3bff8d71526cea56ac893fa"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Textures\\BipolarNanoflake_Core_Emission.png",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Textures\\BipolarNanoflake_Core_Emission.png",
+      "sha256": "ce0c47f2fd99134a7c1ed1997d36e9ee93bf811a45428c667073d41fc8bcd98c"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Textures\\BipolarNanoflake_Core_Emission.png.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Models\\BipolarNanoflake\\Textures\\BipolarNanoflake_Core_Emission.png.meta",
+      "sha256": "e971585cd48d97eb7fa30dcee70796b9ed2d18d4dc6b5f37bdfe20632bdf3934"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Collection\\Prefabs\\BipolarNanoflakeDisplay.prefab",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Collection\\Prefabs\\BipolarNanoflakeDisplay.prefab",
+      "sha256": "188cfa22d5cdd48ded3bd0c341d5919e37042271ead0f19df2b42e94eb5e27a2"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Collection\\Prefabs\\BipolarNanoflakeDisplay.prefab.meta",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\Assets\\YC\\Presentation\\Collection\\Prefabs\\BipolarNanoflakeDisplay.prefab.meta",
+      "sha256": "fb4d5a97f965eed233fcdc12326f3f06532f988976e34d01340372ffd6e975aa"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\BipolarNanoflake_Finished.blend",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\BipolarNanoflake_Finished.blend",
+      "sha256": "b2dd8993b3b0f937e81d1de5f1e204e0a597b39cfdf6575a7f3e009bdfc5b276"
+    },
+    {
+      "path": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\BipolarNanoflake_Finished.fbx",
+      "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\UnityReplacementBackups\\20261007_174006\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\BipolarNanoflake_Finished.fbx",
+      "sha256": "86276c85a5ec7f739f2cf5cda9c2b793a4521eb29eb0e5b531eb0c09539338f3"
+    }
+  ],
+  "protectedFiles": {
+    "F:\\游城拓荒模拟器\\Assets\\Scenes\\CollectionRoom.unity": "047aa5852006931804610c9a6986064cd1161ce05cd5f1f8791b1ff3985dbde1",
+    "F:\\游城拓荒模拟器\\Assets\\Scenes\\StartScene.unity": "117805955b88a8652fc1869bb9595b1e3fffbb6eb75714bd5ce4a7a8000d6186",
+    "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Collection\\Items\\10.asset": "78387781de695a883765c8e6f0667aaa82e8c0582841030badd81f00bbf321f8",
+    "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Collection\\CollectionCatalog.asset": "4b72f0d19baecd7e15a547838c0a13ed9c58e393ba45e28d585f28681081056d",
+    "F:\\游城拓荒模拟器\\ConfigTables\\收藏室配置.xlsx": "e9b4f0c48103ee72860c22a56a8c826357f8edb2c306d30fc20599468ec4ed08",
+    "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\CollectionRoomController.cs": "47039db6b48bd8d93690226702ec717257989740c60b77daa0c9867ad0f7ac73",
+    "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\CollectionModelViewController.cs": "247015402d002fd99a8b0647ce321f295abd6a6a0aed3f849bd5636d58d6e91e"
+  },
+  "approvedBlend": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\BipolarNanoflake_FixedView_Review.blend",
+  "approvedFbx": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\BipolarNanoflake_FixedView_Review.fbx"
+}

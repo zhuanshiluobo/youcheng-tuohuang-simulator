@@ -1,0 +1,663 @@
+{
+  "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\BipolarNanoflake_核心对齐前_20261006_211848.blend",
+  "core": "核心_一体圆盘与灰色边框.001",
+  "layerAlignment": [
+    {
+      "layer": "底片",
+      "previousCenterXY": [
+        -0.00299999862909317,
+        -0.00299999862909317
+      ],
+      "previousEdgeAngle": -2.578310946128941,
+      "centerXY": [
+        0,
+        0
+      ],
+      "edgeAngle": 0,
+      "zRange": [
+        0.004000000189989805,
+        0.00800000037997961
+      ]
+    },
+    {
+      "layer": "中层",
+      "previousCenterXY": [
+        0.0,
+        0.0
+      ],
+      "previousEdgeAngle": 1.0313229714733276,
+      "centerXY": [
+        0,
+        0
+      ],
+      "edgeAngle": 0,
+      "zRange": [
+        0.00800000037997961,
+        0.020999999716877937
+      ]
+    },
+    {
+      "layer": "上盖",
+      "previousCenterXY": [
+        0.0020000003278255463,
+        0.0020000003278255463
+      ],
+      "previousEdgeAngle": 1.0313249028322882,
+      "centerXY": [
+        0,
+        0
+      ],
+      "edgeAngle": 0,
+      "zRange": [
+        0.020999999716877937,
+        0.023000000044703484
+      ]
+    }
+  ],
+  "facetComponentsFollowingCap": 77,
+  "frameAndCameraTransformsPreserved": true,
+  "coreEulerDegrees": [
+    -23.000004624310325,
+    7.768705820530509e-08,
+    2.1344341156289847e-07
+  ],
+  "axisLineStatus": "两条平行红轴已制作，每条向核心左右两侧延伸",
+  "redAxisLines": [
+    {
+      "name": "核心_红色平行轴线_1",
+      "radius": 0.0026,
+      "yOffset": -0.028,
+      "localSegments": [
+        [
+          -1.0614750000000002,
+          -0.9700250286102295
+        ],
+        [
+          -0.9199750166893005,
+          -0.8807849544525147
+        ],
+        [
+          -0.8322349530220031,
+          -0.8121850151062012
+        ],
+        [
+          -0.7545349937438964,
+          -0.7353250044822693
+        ],
+        [
+          -0.6592749696731567,
+          -0.6138249892234803
+        ],
+        [
+          -0.5657750321388244,
+          -0.1055400126
+        ],
+        [
+          0.1055400126,
+          0.5657750321388244
+        ],
+        [
+          0.6138249892234803,
+          0.6592749696731567
+        ],
+        [
+          0.7353250044822693,
+          0.7545349937438964
+        ],
+        [
+          0.8121850151062012,
+          0.8322349530220031
+        ],
+        [
+          0.8807849544525147,
+          0.9199750166893005
+        ],
+        [
+          0.9700250286102295,
+          1.0614750000000002
+        ]
+      ],
+      "height": 0.0145,
+      "emissionTexture": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\Textures\\BipolarNanoflake_RedAxes_Emission.png",
+      "emissionScale": 2,
+      "outerEndX": 1.0614750000000002,
+      "hiddenFrameConnections": true
+    },
+    {
+      "name": "核心_红色平行轴线_2",
+      "radius": 0.0026,
+      "yOffset": 0.028,
+      "localSegments": [
+        [
+          -1.0614750000000002,
+          -0.9700250286102295
+        ],
+        [
+          -0.9199750166893005,
+          -0.8807849544525147
+        ],
+        [
+          -0.8322349530220031,
+          -0.8121850151062012
+        ],
+        [
+          -0.7545349937438964,
+          -0.7353250044822693
+        ],
+        [
+          -0.6592749696731567,
+          -0.6138249892234803
+        ],
+        [
+          -0.5657750321388244,
+          -0.1055400126
+        ],
+        [
+          0.1055400126,
+          0.5657750321388244
+        ],
+        [
+          0.6138249892234803,
+          0.6592749696731567
+        ],
+        [
+          0.7353250044822693,
+          0.7545349937438964
+        ],
+        [
+          0.8121850151062012,
+          0.8322349530220031
+        ],
+        [
+          0.8807849544525147,
+          0.9199750166893005
+        ],
+        [
+          0.9700250286102295,
+          1.0614750000000002
+        ]
+      ],
+      "height": 0.0145,
+      "emissionTexture": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\Textures\\BipolarNanoflake_RedAxes_Emission.png",
+      "emissionScale": 2,
+      "outerEndX": 1.0614750000000002,
+      "hiddenFrameConnections": true
+    }
+  ],
+  "redAxisCoreSideGap": 4e-05,
+  "minimumFrameRailEndGap": 0.003025,
+  "intersections": [
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "完整铜红长方形外框_1_橙.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "完整铜红长方形外框_2_蓝.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "完整铜红长方形外框_3_绿.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "完整铜红长方形外框_4_黑.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "最大框_附属内层.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "外围纵向大环线_闭合.001",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "完整铜红长方形外框_2_蓝.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "完整铜红长方形外框_3_绿.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "完整铜红长方形外框_4_黑.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "最大框_附属内层.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_1_橙.003",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "完整铜红长方形外框_3_绿.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "完整铜红长方形外框_4_黑.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "最大框_附属内层.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_2_蓝.003",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "完整铜红长方形外框_4_黑.003",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "最大框_附属内层.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_3_绿.003",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "最大框_附属内层.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "完整铜红长方形外框_4_黑.003",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "核心_一体圆盘与灰色边框.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "最大框_附属内层.001",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "核心_红色平行轴线_1",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_一体圆盘与灰色边框.001",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "核心_红色平行轴线_2",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_1",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_2",
+      "b": "红导线外侧节点_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_2",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_2",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_2",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "核心_红色平行轴线_2",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_右",
+      "b": "红导线外侧节点_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_右",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_右",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_右",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_左",
+      "b": "红轴接线片_右",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_左",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红导线外侧节点_左",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红轴接线片_右",
+      "b": "红轴接线片_左",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红轴接线片_右",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    },
+    {
+      "a": "红轴接线片_左",
+      "b": "青色环绕细线_闭合.001",
+      "triangleCrossings": 0
+    }
+  ],
+  "parallelAxisErrors": [
+    0.0,
+    0.0
+  ],
+  "status": "核心及完整双红导线已修复；待用户人工验收；未替换Unity",
+  "blend": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\BipolarNanoflake_FixedView_Review.blend",
+  "images": [
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\双极纳米片_完整红导线_展示视角.png",
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\双极纳米片_完整红导线_横向近景.png",
+    "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\双极纳米片_完整红导线_外侧节点.png"
+  ],
+  "socketObjects": [
+    "红轴接线片_左",
+    "红轴接线片_右"
+  ],
+  "refinementReport": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\red_axis_refinement_review.json",
+  "completeRedAxisReport": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\BipolarNanoflake\\RedCoreRegionReview\\FixedViewFrameReview\\AxisLockedFrameReview\\complete_red_axis_review.json"
+}

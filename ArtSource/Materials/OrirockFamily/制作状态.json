@@ -1,0 +1,24 @@
+{
+  "stage": "完成",
+  "models": [
+    {
+      "name": "固源岩",
+      "key": "OrirockCube",
+      "parts": 3,
+      "triangles": 1710
+    },
+    {
+      "name": "固源岩组",
+      "key": "OrirockCluster",
+      "parts": 5,
+      "triangles": 3212
+    },
+    {
+      "name": "提纯源岩",
+      "key": "OrirockConcentration",
+      "parts": 3,
+      "triangles": 492
+    }
+  ],
+  "revision": "Wiki 最终对照：收尖轮廓、矿质深浅、提纯石料大小与高低"
+}

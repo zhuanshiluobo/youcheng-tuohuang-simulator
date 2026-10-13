@@ -1,0 +1,138 @@
+{
+  "prefabGuid": "8e46640c8ce186e4bb80da4077c83811",
+  "modelGuid": "ca190b803d780e742bc10dafa9760d11",
+  "meshCount": 14,
+  "beforeBounds": {
+    "center": "(0.000000, 0.000000, 0.000000)",
+    "size": "(1.706159, 1.344502, 1.721641)",
+    "source": "替换前实时读取的旧展示预制体"
+  },
+  "afterBounds": {
+    "center": "(0.000000, 0.000000, 0.000000)",
+    "size": "(1.721641, 1.437195, 1.403408)"
+  },
+  "alignmentRotation": "(-0.06157057, 0.02784601, -0.03836039, 0.99697660)",
+  "alignmentScale": "(1.12096900, 1.12096900, 1.12096900)",
+  "poseRotation": "(-0.04753625, -0.94911540, 0.17542460, 0.25718960)",
+  "poseScale": "(0.59099620, 0.59099620, 0.59099620)",
+  "protectedComponentsUnchanged": true,
+  "lights": 2,
+  "probes": 1,
+  "parts": [
+    {
+      "name": "外围纵向大环线_闭合.001",
+      "mesh": "外围纵向大环线_闭合.001",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_纵向大环青灰金属.mat"
+      ]
+    },
+    {
+      "name": "完整铜红长方形外框_1_橙.003",
+      "mesh": "完整铜红长方形外框_1_橙.003",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_等距方框_统一红铜.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_等距方框_红铜粗糙面.mat"
+      ]
+    },
+    {
+      "name": "完整铜红长方形外框_2_蓝.003",
+      "mesh": "完整铜红长方形外框_2_蓝.003",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_等距方框_统一红铜.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_前框_氧化红铜暗面.mat"
+      ]
+    },
+    {
+      "name": "完整铜红长方形外框_3_绿.003",
+      "mesh": "完整铜红长方形外框_3_绿.003",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_后框_磨砂红铜.mat"
+      ]
+    },
+    {
+      "name": "完整铜红长方形外框_4_黑.003",
+      "mesh": "完整铜红长方形外框_4_黑.003",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_等距方框_统一红铜.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_等距方框_红铜粗糙面.mat"
+      ]
+    },
+    {
+      "name": "最大框_附属内层.001",
+      "mesh": "最大框_附属内层.001",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_等距方框_统一红铜.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_等距方框_红铜粗糙面.mat"
+      ]
+    },
+    {
+      "name": "核心_一体圆盘与灰色边框.001",
+      "mesh": "核心_一体圆盘与灰色边框.001",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_青线银色端接.001.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_固定视角_集中红橙核心.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_参考核心_琥珀金侧缘.001.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_参考核心_薄金片.001.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_参考核心_浅金透光片体.001.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_参考核心_内部亮面_4.001.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_参考核心_内部亮面_2.001.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_参考核心_内部亮面_1.001.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_参考核心_内部亮面_0.001.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_参考核心_内部亮面_3.001.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_固定视角_红橙细导路.mat"
+      ]
+    },
+    {
+      "name": "核心_红色平行轴线_1",
+      "mesh": "核心_红色平行轴线_1",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_双红轴_由核心向外渐暗.mat"
+      ]
+    },
+    {
+      "name": "核心_红色平行轴线_2",
+      "mesh": "核心_红色平行轴线_2",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_双红轴_由核心向外渐暗.mat"
+      ]
+    },
+    {
+      "name": "红导线外侧节点_右",
+      "mesh": "红导线外侧节点_右",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_完整红导线_外侧青灰节点.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_红蓝交点_金属套环.mat"
+      ]
+    },
+    {
+      "name": "红导线外侧节点_左",
+      "mesh": "红导线外侧节点_左",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_完整红导线_外侧青灰节点.mat",
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_红蓝交点_金属套环.mat"
+      ]
+    },
+    {
+      "name": "红轴接线片_右",
+      "mesh": "红轴接线片_右",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_双红轴_暗红铜接线片.mat"
+      ]
+    },
+    {
+      "name": "红轴接线片_左",
+      "mesh": "红轴接线片_左",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_双红轴_暗红铜接线片.mat"
+      ]
+    },
+    {
+      "name": "青色环绕细线_闭合.001",
+      "mesh": "青色环绕细线_闭合.001",
+      "materials": [
+        "Assets/YC/Presentation/Models/BipolarNanoflake/Materials/BipolarNanoflake_青色环绕导线.mat"
+      ]
+    }
+  ],
+  "alignmentPosition": "(-0.00001636, -0.00000015, -0.00000965)"
+}

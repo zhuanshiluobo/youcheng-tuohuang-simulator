@@ -1,0 +1,20 @@
+{
+  "主模型三轴尺寸": [
+    1.2799999713897705,
+    1.2799999713897705,
+    1.2799999713897705
+  ],
+  "旧源": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\FrontRevision\\OrirockCube_FrontRevision.blend",
+  "网格": [
+    {
+      "名称": "OrirockCube_方体主体",
+      "三角面": 2560,
+      "非流形边": 0
+    },
+    {
+      "名称": "OrirockCube_保留断角",
+      "三角面": 224,
+      "非流形边": 0
+    }
+  ]
+}

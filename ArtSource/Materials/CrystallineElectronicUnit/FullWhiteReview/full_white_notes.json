@@ -1,0 +1,176 @@
+{
+  "source_top": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\CrystallineElectronicUnit\\TopWhiteReview\\CrystallineElectronicUnit_TopWhite.blend",
+  "top_preserved": true,
+  "top_hash": "29f9c74963ef8717dcc8376818620edc8447cc4539f5a200a9ce13287a9a2b95",
+  "top_change": "仅整体上移至 Z=0.820，保持相对台面的嵌入深度；32 层网格、相对位置、角度及比例未改。",
+  "scope": "完整白模：等截面八角箱体、4 根单段短铜柱、单组后部方形核心与两端绕组、水平底板和双侧铁皮支撑、铭牌和散热槽。",
+  "user_confirmed": "整体八角形，背后无立柱；左后是水平底座和两侧铁皮支撑；外箱为上下同尺寸的直八棱柱，侧壁竖直。",
+  "uncertain": "背面与底面采用封闭简单结构，左后绕组内部连接为参考图不可见部分的推定。",
+  "upright_post_count": 4,
+  "new_part_count": 64,
+  "no_unity_changes": true,
+  "bracket_revision": "水平底板底面位于 Z=0.940，贴合加高后的台面；两侧铁皮直立，绕组轴线水平。",
+  "base_revision": {
+    "body_radius_top": 1.66,
+    "body_radius_bottom": 1.66,
+    "lid_radius": 1.675,
+    "bottom_cover_radius": 1.675,
+    "side_wall_taper": 0
+  },
+  "real_parts_revision": {
+    "rear_minimum_outer_clearance": 0.1024982129330918,
+    "post_positions": [
+      [
+        "左侧后柱",
+        -1.2457648515701294,
+        -0.18047115206718445
+      ],
+      [
+        "左侧前柱",
+        -1.0085011720657349,
+        -0.7532764673233032
+      ],
+      [
+        "右侧后柱",
+        1.0085011720657349,
+        0.7532764673233032
+      ],
+      [
+        "右侧前柱",
+        1.2457648515701294,
+        0.18047115206718445
+      ]
+    ],
+    "post_shaft_height": 0.245,
+    "post_shaft_diameter": 0.232,
+    "rear_floor_size": [
+      0.93,
+      0.36,
+      0.055
+    ],
+    "rear_assembly_position": [
+      -0.4840945303440094,
+      1.1687076091766357,
+      0.9674999713897705
+    ],
+    "rear_physical_module_count": 1,
+    "removed_reflections": "四根柱的重复下段解释及后部第二排绕组不再作为实体。",
+    "opening_lip_radius": 1.12
+  },
+  "symmetry_upper_lip_revision": {
+    "symmetry": "沿底座局部前后中轴镜像；局部横轴绕世界Z旋转22.5度",
+    "local_post_positions": [
+      [
+        -1.22,
+        0.31
+      ],
+      [
+        -1.22,
+        -0.31
+      ],
+      [
+        1.22,
+        0.31
+      ],
+      [
+        1.22,
+        -0.31
+      ]
+    ],
+    "world_post_positions": [
+      [
+        "左侧后柱",
+        -1.2457648515701294,
+        -0.18047115206718445
+      ],
+      [
+        "左侧前柱",
+        -1.0085011720657349,
+        -0.7532764673233032
+      ],
+      [
+        "右侧后柱",
+        1.0085011720657349,
+        0.7532764673233032
+      ],
+      [
+        "右侧前柱",
+        1.2457648515701294,
+        0.18047115206718445
+      ]
+    ],
+    "front_back_spacing": 0.62,
+    "mirror_error": 2.6656007498500226e-07,
+    "lid_outer_bottom_z": 0.8,
+    "lid_outer_top_z": 0.94,
+    "lid_side_height_before": 0.065,
+    "lid_side_height_after": 0.14,
+    "height_added": 0.075,
+    "lower_housing_and_panels_unchanged": true
+  },
+  "centered_details_revision": {
+    "axis_angle_degrees": 22.5,
+    "rear_center": [
+      -0.4840945303440094,
+      1.1687076091766357,
+      0.9674999713897705
+    ],
+    "rear_local_center": [
+      0,
+      1.265
+    ],
+    "labels_local_center": [
+      0,
+      -1.29
+    ],
+    "rear_outer_clearance": 0.1024982129330918,
+    "label_center_error": 1.4901161193847656e-08,
+    "details": "完整方框、环形几何标志及三角内芯；两端铜管及套圈、贯穿短轴、中央壳盖沿、带轴孔双侧薄铁皮、折边和浅筋。",
+    "reference_limit": "标签低清参考无法确认文字及内部符号名称，按可见的圆环和中心几何形表达。",
+    "materials": "统一白模；铜色与黑色仅用于识别参考部件。"
+  },
+  "posts_biaxial_center_revision": {
+    "local_positions": [
+      [
+        -1.22,
+        0.31
+      ],
+      [
+        -1.22,
+        -0.31
+      ],
+      [
+        1.22,
+        0.31
+      ],
+      [
+        1.22,
+        -0.31
+      ]
+    ],
+    "axis_rotation_degrees": 22.5,
+    "world_positions": [
+      [
+        "左侧后柱",
+        -1.2457648515701294,
+        -0.18047115206718445
+      ],
+      [
+        "左侧前柱",
+        -1.0085011720657349,
+        -0.7532764673233032
+      ],
+      [
+        "右侧后柱",
+        1.0085011720657349,
+        0.7532764673233032
+      ],
+      [
+        "右侧前柱",
+        1.2457648515701294,
+        0.18047115206718445
+      ]
+    ],
+    "description": "四柱围绕底座中心，在横向和纵向同时镜像居中；同侧间距0.62。"
+  }
+}

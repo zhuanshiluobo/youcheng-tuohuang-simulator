@@ -1,0 +1,24 @@
+{
+  "可编辑源": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\CubeRefinement\\OrirockCube_Refined.blend",
+  "游戏FBX": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCube\\CubeRefinement\\OrirockCube_Refined.fbx",
+  "主体三轴尺寸": [
+    1.2799999713897705,
+    1.2799999713897705,
+    1.2799999713897705
+  ],
+  "贴图尺寸": [
+    2048,
+    2048
+  ],
+  "导出对象": [
+    "OrirockCube_Root",
+    "OrirockCube_Body",
+    "OrirockCube_Chip"
+  ],
+  "预览": [
+    "preview_front.png",
+    "preview_back.png",
+    "preview_side.png"
+  ],
+  "备注": "旧源及旧场景保留；背面为推定；不包含背景和底板。"
+}
