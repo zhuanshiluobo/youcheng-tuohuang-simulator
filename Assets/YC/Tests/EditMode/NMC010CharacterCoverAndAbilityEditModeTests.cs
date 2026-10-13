@@ -357,10 +357,12 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(2).Resources.GoldVoucher, Is.EqualTo(106));
         }
 
-        [Test]
-        public void BothCharacterEffects_UsesPersistedOrderAndCompletesThroughSequence()
+        [TestCase(1)]
+        [TestCase(2)]
+        public void BothCharacterEffects_UsesPersistedOrderAndCompletesThroughSequenceOnlyForStartPlayer(int startPlayerId)
         {
             var state = CreateActionStateWithTemplate(CharacterCardDatabase.TinMan);
+            state.StartPlayerId = startPlayerId;
             var player = state.FindPlayer(1);
             player.Resources.GoldVoucher = 30;
             player.DiscardCardIds.Add("discarded-event-1");
@@ -370,6 +372,13 @@ namespace YC.Tests.EditMode
             command.Parameters[UseCharacterCardCommandHandler.EffectOrderParameter] = CharacterEffectOrders.StrategyFirst;
 
             var use = new UseCharacterCardCommandHandler(new CharacterCardService(), registry).Handle(state, command);
+            if (startPlayerId != 1)
+            {
+                Assert.That(use.Succeeded, Is.False);
+                Assert.That(player.CoveredCharacterCardId, Is.EqualTo(cardId));
+                Assert.That(state.EffectRuntime.EffectNodes, Is.Empty);
+                return;
+            }
             Assert.That(use.Succeeded, Is.True, use.Validation == null ? string.Empty : use.Validation.Reason);
             var firstPurchase = FindOpenInteraction(state, "action.decline_effect");
             Assert.That(firstPurchase, Is.Not.Null);
@@ -385,6 +394,86 @@ namespace YC.Tests.EditMode
             Assert.That(player.UsedCharacterThisRound, Is.True);
             Assert.That(player.CoveredCharacterCardId, Is.Empty);
             Assert.That(player.HandCardIds, Does.Contain("discarded-event-1"));
+            Assert.That(state.PendingCharacterEffect, Is.Null);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void SinglePlayerStrategy_OffersRemainingTacticOrFinishesThroughGameSession(bool continueSecondEffect)
+        {
+            var state = CreateCoverState(1);
+            state.Players.RemoveAt(1);
+            state.MapId = StaticMapDefinitions.FourPlayerMapId;
+            var player = state.FindPlayer(1);
+            player.Resources.GoldVoucher = 30;
+            player.DiscardCardIds.Add("discarded-event-1");
+            var cardId = player.HandCardIds.Find(id =>
+                CharacterCardDatabase.Get(id).TemplateId == CharacterCardDatabase.TinMan);
+            var registry = CreateCharacterAbilityRegistry();
+            var round = new RoundExecutionService(registry);
+            Assert.That(round.CreateRound(state, 1, 1).IsValid, Is.True);
+            var session = new GameSession(state);
+            session.RegisterHandler(new CoverCharacterCardCommandHandler(new CharacterCardService(), registry));
+            session.RegisterHandler(new UseCharacterCardCommandHandler(new CharacterCardService(), registry));
+            session.RegisterHandler(new AnswerInteractionCommandHandler(registry));
+            session.RegisterHandler(new EndActionCommandHandler(new RoundAdvanceService(round)));
+            var presenter = new CharacterCardPanelPresenter();
+            Assert.That(session.Submit(CoverCommand(1, cardId)).Succeeded, Is.True);
+
+            var strategy = UseCommand(1, cardId, CharacterEffectModes.Strategy);
+            strategy.Parameters[CharacterEffectParameterKeys.OfferSecondEffect] = "true";
+            Assert.That(session.Submit(strategy).Succeeded, Is.True);
+            for (var i = 0; i < 2; i++)
+            {
+                var purchase = FindOpenInteraction(state, "action.decline_effect");
+                Assert.That(purchase, Is.Not.Null);
+                var answer = EffectInteractionCommands.Answer(
+                    YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(purchase, 1),
+                    1, new[] { "decline" });
+                Assert.That(session.Submit(answer).Succeeded, Is.True);
+            }
+
+            Assert.That(state.Round, Is.EqualTo(1));
+            Assert.That(state.ActionRound, Is.EqualTo(1));
+            Assert.That(player.CoveredCharacterCardId, Is.EqualTo(cardId));
+            Assert.That(player.UsedCharacterThisRound, Is.False);
+            Assert.That(state.PendingCharacterEffect.ChoiceType,
+                Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectDecision));
+            var view = presenter.BuildView(state, 1);
+            Assert.That(view.IsSecondEffectDecision, Is.True);
+            Assert.That(view.CanUseStrategy, Is.False);
+            Assert.That(view.CanUseTactic, Is.True);
+
+            var decision = presenter.CreateResolvePendingCommand(1, new Dictionary<string, string>
+            {
+                [CharacterEffectParameterKeys.Choice] = continueSecondEffect
+                    ? CharacterEffectChoiceIds.ContinueSecondEffect
+                    : CharacterEffectChoiceIds.FinishCharacterUse
+            });
+            Assert.That(session.Submit(decision).Succeeded, Is.True);
+            if (continueSecondEffect)
+            {
+                Assert.That(state.PendingCharacterEffect.ChoiceType,
+                    Is.EqualTo(CharacterPendingChoiceTypes.SecondEffectExecution));
+                var interrupted = session.Submit(new GameCommand { Kind = GameCommandKind.EndAction, PlayerId = 1 });
+                Assert.That(interrupted.Succeeded, Is.False);
+                Assert.That(interrupted.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.PendingChoiceRequired));
+                var tactic = UseCommand(1, cardId, CharacterEffectModes.Tactic);
+                tactic.Parameters[CharacterEffectParameterKeys.OfferSecondEffect] = "true";
+                Assert.That(session.Submit(tactic).Succeeded, Is.True);
+                var reward = FindOpenInteraction(state, CharacterAbilityEffectExecutor.ChoiceInteractionTypeId);
+                Assert.That(reward, Is.Not.Null);
+                var answer = EffectInteractionCommands.Answer(
+                    YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(reward, 1),
+                    1, new[] { CharacterEffectChoiceIds.GainGold });
+                Assert.That(session.Submit(answer).Succeeded, Is.True);
+                Assert.That(player.HandCardIds, Does.Contain("discarded-event-1"));
+                Assert.That(player.Resources.GoldVoucher, Is.EqualTo(35));
+            }
+
+            Assert.That(player.CoveredCharacterCardId, Is.Empty);
+            Assert.That(player.DiscardCardIds.FindAll(id => id == cardId), Has.Count.EqualTo(1));
+            Assert.That(player.UsedCharacterThisRound, Is.True);
             Assert.That(state.PendingCharacterEffect, Is.Null);
         }
 

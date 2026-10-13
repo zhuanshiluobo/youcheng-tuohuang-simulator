@@ -1247,7 +1247,7 @@ namespace YC.Domain.Cards
                    definition.StrategyEffect != CharacterCardEffectKind.Unsupported;
         }
 
-        private static void CompleteOrOfferSecondEffect(
+        internal static void CompleteOrOfferSecondEffect(
             GameState state,
             PlayerState player,
             string cardId,

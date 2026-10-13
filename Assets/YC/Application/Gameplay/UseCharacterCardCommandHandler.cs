@@ -149,7 +149,7 @@ namespace YC.Application.Gameplay
                 pending.ChoiceType == CharacterPendingChoiceTypes.SecondEffectExecution &&
                 pending.PlayerId == command.PlayerId && pending.CardId == cardId &&
                 pending.RemainingEffectMode == mode;
-            var validation = ValidateUnifiedActivation(state, player, cardId, confirmedSecondEffect);
+            var validation = ValidateUnifiedActivation(state, player, cardId, mode, confirmedSecondEffect);
             if (!validation.IsValid)
             {
                 result = CommandResult.Invalid(validation);
@@ -184,7 +184,11 @@ namespace YC.Application.Gameplay
                     mode,
                     order,
                     command.PlayerId,
-                    stableKey);
+                    stableKey,
+                    !confirmedSecondEffect && string.Equals(
+                        GetParameter(command, CharacterEffectParameterKeys.OfferSecondEffect),
+                        "true",
+                        StringComparison.OrdinalIgnoreCase));
             }
             var executor = new EffectTreeExecutor(state, effectRegistry);
             string effectId;
@@ -223,6 +227,7 @@ namespace YC.Application.Gameplay
             GameState state,
             PlayerState player,
             string cardId,
+            string mode,
             bool confirmedSecondEffect)
         {
             if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
@@ -257,6 +262,11 @@ namespace YC.Application.Gameplay
             if (player.CoveredCharacterCardId != cardId)
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "只能使用本回合盖放的角色牌。");
+            }
+
+            if (mode == CharacterEffectModes.Both && player.PlayerId != state.StartPlayerId)
+            {
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "非起始玩家只能选择策略或计谋其中一个。");
             }
 
             return ValidationResult.Success;

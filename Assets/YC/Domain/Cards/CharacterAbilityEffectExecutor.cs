@@ -155,7 +155,8 @@ namespace YC.Domain.Cards
             string mode,
             string effectOrder,
             int playerId,
-            string stableKey)
+            string stableKey,
+            bool offerSecondEffect = false)
         {
             var spec = EffectSpec.Create(
                 ActivationEffectTypeId,
@@ -180,6 +181,11 @@ namespace YC.Domain.Cards
                     {
                         Name = "effectOrder",
                         Value = NormalizedValue.CreateString(effectOrder ?? string.Empty)
+                    },
+                    new NormalizedValueEntry
+                    {
+                        Name = "offerSecondEffect",
+                        Value = NormalizedValue.CreateBoolean(offerSecondEffect)
                     }
                 }),
                 playerId);
@@ -440,7 +446,17 @@ namespace YC.Domain.Cards
                 return;
             }
 
-            CompleteCharacterUse(player, cardId);
+            // 沿用界面已有的第二效果决策；具体能力仍由 Lua/Effect 结算。
+            // 此标记保存在激活节点中，交互或恢复后也不会提前结束角色牌使用。
+            var offer = Find(context.Node.NormalizedArguments, "offerSecondEffect");
+            CharacterCardService.CompleteOrOfferSecondEffect(
+                context.State,
+                player,
+                cardId,
+                ReadString(context.Node.NormalizedArguments, "mode"),
+                CharacterCardDatabase.Get(cardId),
+                false,
+                offer != null && offer.Kind == NormalizedValueKind.Boolean && offer.BooleanValue);
         }
 
         private static void CompleteCharacterUse(PlayerState player, string cardId)
