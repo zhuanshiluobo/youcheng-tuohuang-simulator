@@ -117,7 +117,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void ProtocolAndRecoveryPreserveOrderAndRejectDriftWhileLegacyInheritsKnownRing()
+        public void ProjectionAndRecoveryPreserveOrderAndRejectDriftWhileLegacyArchiveInheritsKnownRing()
         {
             var state = State(3, 1, 4, 2);
             var chain = new RoundMainChainBuilder().Build(state.GameId, "recovery-round", 1, state.LaunchPlayerOrder, 3, true);
@@ -129,21 +129,8 @@ namespace YC.Tests.EditMode
             state.EffectRuntime.FirstMainNodeId = chain.FirstNodeId;
             state.EffectRuntime.ActiveMainNodeId = chain.FirstNodeId;
             var view = GameStateViewProjector.ProjectForPlayer(state, 2);
-            var dto = new InitialGameStateViewDto { View = view };
-            var json = JsonConvert.SerializeObject(dto);
-            Assert.That(GameStateViewProtocol.TryReadInitial(json, state.RuleConfiguration, state.LaunchPlayerOrder, out var received), Is.True);
-            var session = new GameSession(GameStateCloneService.DeepClone(state));
-            var dispatcher = new AuthoritativeCommandDispatcher(session, true);
-            Assert.That(dispatcher.ApplyInitialStateViewSynchronization(received).Succeeded, Is.True);
-            received.View.LaunchPlayerOrder.Reverse();
-            Assert.That(GameStateViewProtocol.TryReadInitial(JsonConvert.SerializeObject(received), state.RuleConfiguration, state.LaunchPlayerOrder, out _), Is.False);
-            Assert.That(dispatcher.ApplyInitialStateViewSynchronization(received).Succeeded, Is.False);
-            var raw = JObject.Parse(json); raw["View"]["LaunchPlayerOrder"] = new JArray(1, 1, 3, 4);
-            Assert.That(GameStateViewProtocol.TryReadInitial(raw.ToString(), state.RuleConfiguration, out _), Is.False);
-            ((JObject)raw["View"]).Remove("LaunchPlayerOrder");
-            Assert.That(GameStateViewProtocol.TryReadInitial(raw.ToString(), state.RuleConfiguration, out _), Is.False);
-            raw = JObject.Parse(json); raw["ProtocolVersion"] = 2;
-            Assert.That(GameStateViewProtocol.TryReadInitial(raw.ToString(), state.RuleConfiguration, out _), Is.False);
+            Assert.That(view.HasValidPlayerOrderAndSlots(), Is.True);
+            Assert.That(view.LaunchPlayerOrder, Is.EqualTo(state.LaunchPlayerOrder));
             var archive = HostRecoveryService.CreateArchive(state);
             var committed = GameStateCloneService.DeepClone(state); committed.Round = 2;
             RuleCommit.Apply(committed, "round-advance", new RuleJournalEntry { Kind = RuleJournalEntryKind.DomainState, EntityId = "round", ContentHash = state.ContentPackHash });
@@ -186,16 +173,16 @@ namespace YC.Tests.EditMode
                 var view = GameStateViewProjector.Project(state, viewer);
                 Assert.That(view.Players.Find(player => player.PlayerId == 1).CityStyleUsedSlotIndexes, Is.EqualTo(new[] { 0, 3, 7, 11 }));
                 Assert.That(view.Players.Find(player => player.PlayerId == 2).CityStyleUsedSlotIndexes, Is.Empty);
-                var dto = new InitialGameStateViewDto { View = view };
-                Assert.That(GameStateViewProtocol.TryReadInitial(JsonConvert.SerializeObject(dto), state.RuleConfiguration, out var received), Is.True);
-                var copy = GameStateCloneService.DeepClone(received.View);
+                var received = JsonConvert.DeserializeObject<GameStateView>(JsonConvert.SerializeObject(view));
+                Assert.That(received.HasValidPlayerOrderAndSlots(), Is.True);
+                var copy = GameStateCloneService.DeepClone(received);
                 copy.Players[0].CityStyleUsedSlotIndexes.Add(9);
-                Assert.That(received.View.Players[0].CityStyleUsedSlotIndexes, Is.EqualTo(new[] { 0, 3, 7, 11 }));
-                if (!viewer.IsHost) Assert.That(JsonConvert.SerializeObject(dto), Does.Not.Contain("private-card"));
+                Assert.That(received.Players[0].CityStyleUsedSlotIndexes, Is.EqualTo(new[] { 0, 3, 7, 11 }));
+                if (!viewer.IsHost) Assert.That(JsonConvert.SerializeObject(view), Does.Not.Contain("private-card"));
                 foreach (var invalid in new[] { -1, 12 })
                 {
-                    var raw = JObject.FromObject(dto); raw["View"]["Players"][0]["CityStyleUsedSlotIndexes"] = new JArray(invalid);
-                    Assert.That(GameStateViewProtocol.TryReadInitial(raw.ToString(), state.RuleConfiguration, out _), Is.False);
+                    var raw = JObject.FromObject(view); raw["Players"][0]["CityStyleUsedSlotIndexes"] = new JArray(invalid);
+                    Assert.That(raw.ToObject<GameStateView>().HasValidPlayerOrderAndSlots(), Is.False);
                 }
             }
             Assert.That(state.FindPlayer(1).DeclaredCityStyles[0].UsedCityBoardSlotIndexes, Is.EqualTo(new[] { 11, 3, 0 }));

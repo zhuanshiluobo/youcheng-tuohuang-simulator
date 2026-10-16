@@ -402,46 +402,6 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
 
         [Test]
-        public void SnapshotProtocolRejectsOldMissingOrChangedFrozenConfiguration()
-        {
-            var room = Room(); ReadyGuests(room);
-            Assert.That(service.TryFreezeForLaunch(room, Request<StartConfiguredGameRequest>(room), out var frozen, out _), Is.True);
-            var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, room.Seats, frozen, 42);
-            var initial = JObject.FromObject(new InitialGameStateViewDto { View = GameStateViewProjector.ProjectForPlayer(state, 1) });
-            // 生产投影必须在共享状态任务合入后携带同一冻结配置。
-            Assert.That(initial["View"]["RuleConfiguration"], Is.Not.Null);
-            Assert.That(GameStateViewProtocol.TryReadInitial(initial.ToString(), frozen, out _), Is.True);
-            initial.Remove("ProtocolVersion");
-            Assert.That(GameStateViewProtocol.TryReadInitial(initial.ToString(), frozen, out _), Is.False);
-            initial["ProtocolVersion"] = 1;
-            Assert.That(GameStateViewProtocol.TryReadInitial(initial.ToString(), frozen, out _), Is.False);
-            initial["ProtocolVersion"] = GameStateView.CurrentSchemaVersion; initial["View"]["RuleConfiguration"]["PlayerCount"] = 4;
-            Assert.That(GameStateViewProtocol.TryReadInitial(initial.ToString(), frozen, out _), Is.False);
-        }
-
-        [Test]
-        public void DispatcherRejectsOldDtoAndViewVersionsBeforeReplacingClientState()
-        {
-            var room = Room(); ReadyGuests(room);
-            Assert.That(service.TryFreezeForLaunch(room, Request<StartConfiguredGameRequest>(room), out var frozen, out _), Is.True);
-            var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, room.Seats, frozen, 42);
-            var session = new GameSession(state);
-            var dispatcher = new AuthoritativeCommandDispatcher(session, true);
-            var initial = new InitialGameStateViewDto { ProtocolVersion = 1, View = GameStateViewProjector.ProjectForPlayer(state, 1) };
-            Assert.That(dispatcher.ApplyInitialStateViewSynchronization(initial).Succeeded, Is.False);
-            Assert.That(dispatcher.IsInitialStateSynchronized, Is.False);
-            initial.ProtocolVersion = GameStateView.CurrentSchemaVersion; initial.View.SchemaVersion = 1;
-            Assert.That(dispatcher.ApplyInitialStateViewSynchronization(initial).Succeeded, Is.False);
-            initial.View.SchemaVersion = GameStateView.CurrentSchemaVersion;
-            Assert.That(dispatcher.ApplyInitialStateViewSynchronization(initial).Succeeded, Is.True);
-            var confirmed = new ConfirmedGameStateViewDto { ProtocolVersion = 1, Sequence = 1, View = initial.View };
-            Assert.That(dispatcher.ApplyConfirmedStateViewSynchronization(confirmed).Succeeded, Is.False);
-            confirmed.ProtocolVersion = GameStateView.CurrentSchemaVersion;
-            Assert.That(dispatcher.ApplyConfirmedStateViewSynchronization(confirmed).Succeeded, Is.True);
-            Assert.That(session.State.RuleConfiguration.ContentPackHash, Is.EqualTo(frozen.ContentPackHash));
-        }
-
-        [Test]
         public void FrozenLaunchArchiveRejectsConfigurationDriftBeforeEntityRecipeIsInstalled()
         {
             var room = Room(); ReadyGuests(room);

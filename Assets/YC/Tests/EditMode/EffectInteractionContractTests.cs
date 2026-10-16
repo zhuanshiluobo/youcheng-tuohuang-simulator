@@ -39,9 +39,9 @@ namespace YC.Tests.EditMode
             var privateOther = Request(); privateOther.InteractionId = "hidden-request"; privateOther.AnsweringPlayerId = 2;
             host.EffectRuntime.InteractionRequests.Add(privateOther);
             var view = GameStateViewProjector.ProjectForPlayer(host, 1);
-            var session = new YC.Application.Sessions.GameSession(new GameState());
-            session.ReplaceView(view);
-            Assert.That(session.State.EffectRuntime, Is.Null);
+            var session = new YC.Application.Sessions.GameSession(host);
+            view = session.RefreshLocalProjection(GameStateViewer.Player(1));
+            Assert.That(session.State.EffectRuntime, Is.Not.Null);
             var requests = VisibleInteractionRequestSource.Read(session.State, session.View, 1);
             Assert.That(requests, Has.Count.EqualTo(1));
             Assert.That(requests[0].OwnerEffectId, Is.EqualTo("owner-effect"));

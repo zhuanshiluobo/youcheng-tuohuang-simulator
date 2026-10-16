@@ -88,7 +88,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void ApplyView_DoesNotLeaveEffectRuntimeOnClientState()
+        public void LocalProjection_PreservesSimulationAndHidesOtherPrivateEvents()
         {
             var state = new GameState { GameId = "client-view" };
             state.EffectRuntime.RuleEvents.Add(new RuleEvent
@@ -100,43 +100,11 @@ namespace YC.Tests.EditMode
             });
             var session = new GameSession(state);
 
-            session.ReplaceView(GameStateViewProjector.ProjectForPlayer(state, 2));
+            session.RefreshLocalProjection(GameStateViewer.Player(2));
 
-            Assert.That(session.State.EffectRuntime, Is.Null);
+            Assert.That(session.State.EffectRuntime, Is.SameAs(state.EffectRuntime));
+            Assert.That(session.View.Events, Is.Empty);
             Assert.That(session.View, Is.Not.Null);
-        }
-
-        [Test]
-        public void ConfirmedView_DoesNotBroadcastAnotherPlayersCommandPayload()
-        {
-            var session = new GameSession(new GameState { GameId = "command-view" });
-            var dispatcher = new AuthoritativeCommandDispatcher(session);
-            var confirmed = new ConfirmedGameCommandDto
-            {
-                Sequence = 1,
-                Command = new GameCommandDto
-                {
-                    CommandId = "private-command-id",
-                    Kind = GameCommandKind.AnswerInteraction,
-                    PlayerId = 1,
-                    OptionIds = new List<string> { "private-candidate-id" },
-                    Parameters = new List<GameCommandParameterDto>
-                    {
-                        new GameCommandParameterDto { Key = "answer", Value = "private-answer" }
-                    }
-                }
-            };
-
-            ConfirmedGameStateViewDto otherPlayer = dispatcher.CreateConfirmedStateViewSynchronization(
-                confirmed, GameStateViewer.Player(2));
-            ConfirmedGameStateViewDto owner = dispatcher.CreateConfirmedStateViewSynchronization(
-                confirmed, GameStateViewer.Player(1));
-
-            Assert.That(otherPlayer.Command, Is.Null);
-            Assert.That(JsonUtility.ToJson(otherPlayer), Does.Not.Contain("private-command-id"));
-            Assert.That(JsonUtility.ToJson(otherPlayer), Does.Not.Contain("private-candidate-id"));
-            Assert.That(JsonUtility.ToJson(otherPlayer), Does.Not.Contain("private-answer"));
-            Assert.That(owner.Command.CommandId, Is.EqualTo("private-command-id"));
         }
 
         [Test]

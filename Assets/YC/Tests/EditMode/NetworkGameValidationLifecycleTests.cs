@@ -74,14 +74,6 @@ namespace YC.Tests.EditMode
             type.GetField("<Instance>k__BackingField", Statics).SetValue(null, context);
             return context;
         }
-        private static object Diagnostic(string branch, string gameId, string receivedGameId, int? sequence,
-            int? nextSequence, bool? synchronized, bool? matched, CommandResult result)
-        {
-            var type = Target("YC.Infrastructure.Multiplayer.LocalCommandConfirmationDiagnostic");
-            return type.GetConstructors(Members).Single().Invoke(new object[]
-            { branch, gameId, receivedGameId, "真实命令", "真实等待", sequence, nextSequence, synchronized, matched, result });
-        }
-
         [SetUp]
         public void PreserveContext()
         {
@@ -106,10 +98,6 @@ namespace YC.Tests.EditMode
             File.WriteAllText(Path.Combine(output, "authoritative-transactions.jsonl"), "旧局原件\n");
             Assert.That(Call(driver, "StopValidation", "frozen_configuration_changed"), Is.True);
             var view = new GameStateView { GameId = "新局", StateRevision = 14 };
-            Call(driver, "OnInitial", new InitialGameStateViewDto { View = view });
-            Call(driver, "OnConfirmed", new ConfirmedGameStateViewDto { View = view });
-            Call(driver, "OnCoveredCommandAcknowledged", new ConfirmedGameStateViewDto { View = view });
-            Call(driver, "OnRejected", new RejectedGameCommandDto());
             Call(driver, "OnSimulationReady", new object[] { null });
             Call(driver, "OnSimulationApplied", new SimulationCommandAppliedDto());
             Call(driver, "OnSimulationPrefix", new CommandValidationPrefixDto());
@@ -118,7 +106,6 @@ namespace YC.Tests.EditMode
             Call(driver, "OnSimulationFault", new SimulationProtocolFaultDto());
             Call(driver, "OnSimulationRecoveryStarted", new SimulationRecoveryNoticeDto());
             Call(driver, "OnSimulationRecoveryCompleted", new object[] { null });
-            Call(driver, "OnCommandConfirmationObserved", Diagnostic("shutdown_pending_cleared", "旧局", null, null, null, null, null, null));
 #if !NETWORK_VALIDATION_LIFECYCLE_OFFLINE
             Call(driver, "WriteFinalHostArchive", new object[] { null });
 #endif
@@ -238,56 +225,11 @@ namespace YC.Tests.EditMode
             foreach (string eventName in bindings.Keys) Assert.That(Get(transport, eventName), Is.Null, eventName);
         }
 
-        [Test]
-        public void ConfirmationDiagnosticsPreserveAllScalarsWithoutBusinessEffects()
-        {
-            object driver = Driver(); string output = Path.Combine(EvidenceDirectory(), "真实运行", "player-2");
-            Directory.CreateDirectory(output); Set(driver, "output", output); Set(driver, "boundGameId", "旧局");
-            Set(driver, "confirmations", 9); Set(driver, "commands", 3); Set(driver, "initialSnapshots", 2);
-            Set(driver, "lastSignature", "等待签名"); var latest = new GameStateView { GameId = "旧局", StateRevision = 108 };
-            Set(driver, "latest", latest);
-            object policy = ManagedComponent(Target("YC.Presentation.Validation.ProductionGameRoutePolicy"));
-            Set(policy, "pendingCommandId", "真实等待"); Set(policy, "pendingStepId", "真实步骤"); Set(driver, "routePolicy", policy);
-            var diagnostics = new[]
-            {
-                Diagnostic("accepted_received", "旧局", "另一局", 298, 299, null, true, null),
-                Diagnostic("accepted_apply_result", "旧局", "旧局", 298, 299, true, true,
-                    CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand, "受测失败"))),
-                Diagnostic("initial_apply_result", "旧局", "旧局", null, 300, false, null, CommandResult.SuccessResult(null, "")),
-                Diagnostic("connection_pending_cleared", "旧局", null, null, null, null, null, null)
-            };
-            Call(driver, "OnCommandConfirmationObserved", diagnostics[0]);
-            Context(2);
-            foreach (object diagnostic in diagnostics.Skip(1)) Call(driver, "OnCommandConfirmationObserved", diagnostic);
-            var rows = File.ReadAllLines(Path.Combine(output, "command-confirmation-diagnostics.jsonl")).Select(JObject.Parse).ToArray();
-            Assert.That(rows.Length, Is.EqualTo(4));
-            for (int index = 0; index < rows.Length; index++)
-            {
-                Assert.That(rows[index]["diagnostic"].Children<JProperty>().Count(), Is.EqualTo(12));
-                Assert.That(JToken.DeepEquals(rows[index]["diagnostic"], JObject.FromObject(diagnostics[index])), Is.True);
-                Assert.That((string)rows[index]["RunId"], Is.EqualTo("真实运行"));
-                Assert.That(rows[index]["utc"].Type, Is.EqualTo(JTokenType.Date));
-                Assert.That(rows[index]["LocalPlayerId"].Type, Is.EqualTo(index == 0 ? JTokenType.Null : JTokenType.Integer));
-            }
-            Assert.That((int)rows[1]["LocalPlayerId"], Is.EqualTo(2));
-            Assert.That(rows[0]["diagnostic"]["ApplySucceeded"].Type, Is.EqualTo(JTokenType.Null));
-            Assert.That((bool)rows[1]["diagnostic"]["ApplySucceeded"], Is.False);
-            Assert.That((string)rows[1]["diagnostic"]["ErrorCode"], Is.EqualTo("UnknownCommand"));
-            Assert.That((bool)rows[2]["diagnostic"]["ApplySucceeded"], Is.True);
-            Assert.That(Get(driver, "boundGameId"), Is.EqualTo("旧局"));
-            Assert.That(Get(driver, "stopped"), Is.False);
-            Assert.That(Get(driver, "confirmations"), Is.EqualTo(9)); Assert.That(Get(driver, "commands"), Is.EqualTo(3));
-            Assert.That(Get(driver, "initialSnapshots"), Is.EqualTo(2)); Assert.That(Get(driver, "lastSignature"), Is.EqualTo("等待签名"));
-            Assert.That(ReferenceEquals(Get(driver, "latest"), latest), Is.True);
-            Assert.That(Get(policy, "pendingCommandId"), Is.EqualTo("真实等待"));
-            Assert.That(Get(policy, "pendingStepId"), Is.EqualTo("真实步骤"));
-        }
-
 #if !NETWORK_VALIDATION_LIFECYCLE_OFFLINE
         // 复用既有壳装配与真实正式会话夹具，不执行它们的测试，不改场景/Prefab。
         private sealed class SimulationDriverFixture : IDisposable
         {
-            private readonly CommandSubmissionAcknowledgmentTests shell = new CommandSubmissionAcknowledgmentTests();
+            private readonly SimulationUiTestShell shell = new SimulationUiTestShell();
             private readonly object scenario, context, submission;
             private readonly UnityEngine.GameObject contextObject, driverObject;
             private readonly object previousTransport;
@@ -315,7 +257,7 @@ namespace YC.Tests.EditMode
                 context.GetType().GetField("<Instance>k__BackingField", Statics).SetValue(null, context);
                 Set(Mobile, "session", Session); Set(Mobile, "localPlayerId", 1);
                 Target("YC.Infrastructure.Multiplayer.MirrorCommandTransport").GetField("<Instance>k__BackingField", Statics).SetValue(null, Transport);
-                typeof(CommandSubmissionAcknowledgmentTests).GetMethod("BindRealLocalConnection", Statics).Invoke(null, new[] { scenario });
+                typeof(SimulationUiTestShell).GetMethod("BindRealLocalConnection", Statics).Invoke(null, new[] { scenario });
                 var notify = (Action<string>)Delegate.CreateDelegate(typeof(Action<string>), Mobile, Mobile.GetType().GetMethod("NotifyPendingEffectSettled", Members));
                 if (productionResults)
                 {
@@ -331,7 +273,7 @@ namespace YC.Tests.EditMode
                 Set(scenario, "Controller", submission); Set(Mobile, "commandSubmission", submission);
                 if (!productionResults) Call(submission, "Initialize", Registry);
                 Call(Transport, "AttachSimulation", Coordinator, true);
-                var factory = typeof(CommandSubmissionAcknowledgmentTests).GetMethod("ControllerFactory", Statics)
+                var factory = typeof(SimulationUiTestShell).GetMethod("ControllerFactory", Statics)
                     .MakeGenericMethod(submission.GetType()).Invoke(null, new[] { submission });
                 var adapter = Activator.CreateInstance(Target("YC.Presentation.MobileCityGameplayAdapter"), new object[] {
                     new Func<GameState>(() => Session.State), new Func<int>(() => 1), new Func<bool>(() => false), new Action<int>(_ => { }), factory, new Action(() => { }) });
@@ -386,7 +328,6 @@ namespace YC.Tests.EditMode
                 Assert.That(Get(fixture.Driver, "initialSnapshots"), Is.EqualTo(1), "晚订阅从同一已安装Coordinator接续。");
                 Call(fixture.Driver, "OnSimulationReady", fixture.Coordinator);
                 Assert.That(Get(fixture.Driver, "initialSnapshots"), Is.EqualTo(1));
-                Assert.That(Get(fixture.Transport, "InitialStateViewApplied"), Is.Null);
                 var command = fixture.Submit("native-local-receipt");
                 Assert.That(fixture.Coordinator.HasPendingLocalApplication, Is.True);
                 Assert.That(Get(fixture.Mobile, "pendingEffectCommandId"), Is.EqualTo(command.CommandId));

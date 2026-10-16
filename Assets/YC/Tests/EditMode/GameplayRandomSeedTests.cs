@@ -106,7 +106,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void SameFrozenFactProducesIdenticalSetupAndClientWaitsForInitialView()
+        public void SameFrozenFactProducesIdenticalSetupAndClientWaitsForInitialCheckpoint()
         {
             var service = new RoomConfigurationService(new Capabilities(), true, seedSource: () => 42);
             var room = Room(service); Assert.That(service.TryFreezeForLaunch(room, Request(room), out _, out _), Is.True);
@@ -121,12 +121,11 @@ namespace YC.Tests.EditMode
             Assert.That(client.ItemZones.Items.Count, Is.EqualTo(0));
             Reject(() => GameLaunchStateFactory.CreateInitialState(LaunchMode.Client, 1, room.Seats, room.Configuration, 42));
             var session = new GameSession(client);
-            var view = GameStateViewProjector.Project(states[0], GameStateViewer.Player(1));
-            session.ReplaceView(view); session.ReplaceView(view);
+            session.RefreshLocalProjection(GameStateViewer.Player(1)); session.RefreshLocalProjection(GameStateViewer.Player(1));
             Assert.That(session.State.EventDeckSeed, Is.EqualTo(42));
             Assert.That(JsonConvert.SerializeObject(session.State.RandomRuntime), Is.EqualTo(initial));
-            var wrong = GameStateCloneService.DeepClone(view); wrong.GameId = "another-match";
-            Reject(() => session.ReplaceView(wrong));
+            var wrong = GameStateCloneService.DeepClone(client); wrong.GameId = "another-match";
+            Reject(() => session.ReplaceState(wrong));
         }
 
         [Test]

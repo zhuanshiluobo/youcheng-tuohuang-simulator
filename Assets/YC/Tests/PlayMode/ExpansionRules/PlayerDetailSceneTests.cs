@@ -166,7 +166,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
             Assert.That(Entries.Single(entry => entry.DisplayName == "缪尔赛思").CoverSlotIds.Count, Is.EqualTo(1));
             Assert.That(Entries.Single(entry => entry.DisplayName == "缪尔赛思").CanInspectCoverContents, Is.True);
             Assert.That(Entries.Single(entry => entry.DisplayName == "诗怀雅").StorageZoneIds.Count, Is.EqualTo(1));
-            var restored = JsonConvert.DeserializeObject<InitialGameStateViewDto>(JsonConvert.SerializeObject(new InitialGameStateViewDto { View = View })).View;
+            var restored = JsonConvert.DeserializeObject<GameStateView>(JsonConvert.SerializeObject(View));
             Assert.That(PlayerDetailEntryProjector.Project(restored, display).Select(entry => entry.EntryId), Is.EqualTo(Entries.Select(entry => entry.EntryId)));
             yield return Capture(count + "人-明细收起", new Vector2Int(1920, 1080));
             Call(Prop(Hud, "MainModules"), "ToggleLocalDetail");

@@ -801,11 +801,6 @@ namespace YC.Presentation
             transport.SimulationProtocolFaulted -= faultSubscription;
             transport.SimulationRecoveryStarted -= recoveryStartedSubscription;
             transport.SimulationRecoveryCompleted -= recoveryCompletedSubscription;
-            transport.InitialStateViewApplied -= OnInitial;
-            transport.ConfirmedStateViewApplied -= OnConfirmed;
-            transport.CoveredCommandAcknowledged -= OnCoveredCommandAcknowledged;
-            transport.CommandConfirmationObserved -= OnCommandConfirmationObserved;
-            transport.CommandRejected -= OnRejected;
         }
 
         private bool StopValidation(string failure)
@@ -860,99 +855,8 @@ namespace YC.Presentation
                 throw new InvalidOperationException("validation_game_changed");
         }
 
-        private void OnCommandConfirmationObserved(LocalCommandConfirmationDiagnostic diagnostic)
-        {
-            if (stopped || diagnostic == null || string.IsNullOrEmpty(output)) return;
-            // 只观察原接收事实；错局/错ID也原样保留，不能据此确认命令或绑定新局。
-            Append("command-confirmation-diagnostics.jsonl", new { utc = DateTime.UtcNow,
-                LocalPlayerId = GameLaunchContext.Instance?.LocalPlayerId,
-                RunId = Directory.GetParent(output)?.Name, diagnostic });
-        }
+        private bool IsAwaitingClientInitialState => simulationCoordinator == null;
 
-        private void OnInitial(InitialGameStateViewDto state)
-        {
-            if (!TryAcceptRunView(state?.View)) return;
-            initialSnapshots++;
-            Write("initial-view-" + initialSnapshots + ".json", state.View);
-            Append("initial-state-synchronizations.jsonl", new { utc = DateTime.UtcNow, initialSnapshot = initialSnapshots,
-                state.ProtocolVersion, state.NextConfirmedSequence, state.View.GameId, state.View.StateRevision,
-                state.View.Round, state.View.Phase, state.View.ViewerRole, state.View.ViewerPlayerId });
-            if (disconnected && !reconnected && initialSnapshots > snapshotsBeforeDisconnect && NetworkClient.isConnected)
-            {
-                Write("after-reconnect-view.json", state.View);
-                var restored = state.View.Interactions.FirstOrDefault(r => r.InteractionId == interruptedRequest && r.Status == "open");
-                if (restored == null || !restored.CandidateIds.SequenceEqual(interruptedCandidates) || interruptedContract != RequestContract(state.View, interruptedRequest)) Finish("reconnect_lost_pending_request");
-                else { reconnected = true; lastSignature = null; }
-            }
-        }
-        private bool IsAwaitingClientInitialState =>
-            simulationCoordinator == null;
-
-        private void OnConfirmed(ConfirmedGameStateViewDto state)
-        {
-            if (IsAwaitingClientInitialState || !TryAcceptRunView(state?.View)) return;
-            // Host 广播回调提供权威投影；只记录重新投影后的本人可见视图。
-            var view = state.View;
-            if (view?.ViewerRole == GameStateViewerRole.Host)
-            {
-                var controller = FindObjectOfType<MobileCityInteractionController>();
-                view = controller?.ValidationView(GameLaunchContext.Instance.LocalPlayerId);
-                if (view != null && !TryAcceptRunView(view)) return;
-                confirmations++;
-                if (routePlan != null && controller != null)
-                {
-                    try
-                    {
-                        if (WholeGameHealth)
-                        {
-                            RecordCompletedCoverage(recoverySession?.State);
-                        }
-                        else
-                        {
-                        var after = CaptureHostArchiveStage("confirmed", "CreateHostArchive", null, null, controller.ValidationHostArchive)?.Snapshot;
-                        if (after == null) throw new InvalidOperationException("缺少真实Host提交后快照。");
-                        RequireRunSnapshotPair(previousBusinessSnapshot, after);
-                        // 保存实际连续观察，不从Journal.StateAfter反造逐条提交前态。
-                        Append("authoritative-transactions.jsonl", new { utc = DateTime.UtcNow,
-                            GameId = after.State.GameId, ContentPackHash = after.ContentHash,
-                            CommandId = state.Command?.CommandId, Command = state.Command,
-                            Before = previousBusinessSnapshot, After = after,
-                            BeforeSource = "previous_observed_GameSession.CreateHostArchive",
-                            AfterSource = "confirmed_GameSession.CreateHostArchive" });
-                        previousBusinessSnapshot = after;
-                        if (auditArchive == null) auditArchive = CaptureHostArchiveStage("confirmed", "CreateHostArchive", null, null, controller.ValidationHostArchive);
-                        else CaptureHostArchiveStage("confirmed", "AppendJournal", auditArchive, null,
-                            () => { controller.ValidationAppendHostJournal(auditArchive, boundGameId); return true; });
-                        }
-                    }
-                    catch (Exception error) { Finish("host_journal_capture_failed:" + error.Message); return; }
-                }
-            }
-            else confirmations++;
-            Append("confirmed.jsonl", new { utc = DateTime.UtcNow, state.Sequence, command = state.Command, view });
-            try { routePolicy?.Confirm(state.Command?.CommandId); RecordStaleRefresh("真实确认", state.Command?.CommandId); }
-            catch (Exception error) { Finish("route_confirmation_failed:" + error.Message); return; }
-            lastSignature = null;
-        }
-        private void OnCoveredCommandAcknowledged(ConfirmedGameStateViewDto state)
-        {
-            if (stopped || IsAwaitingClientInitialState || state?.View == null || string.IsNullOrEmpty(state.Command?.CommandId)) return;
-            if (!TryAcceptRunView(state.View)) return;
-            var controller = FindObjectOfType<MobileCityInteractionController>();
-            var currentView = GameLaunchContext.Instance == null ? latest :
-                controller?.ValidationView(GameLaunchContext.Instance.LocalPlayerId) ?? latest;
-            if (currentView != null && !TryAcceptRunView(currentView)) return;
-            Append("covered-command-acknowledgments.jsonl", new { utc = DateTime.UtcNow,
-                state.ProtocolVersion, state.Sequence, state.Command.CommandId, state.View.GameId,
-                ConfirmedStateRevision = state.View.StateRevision, CurrentGameId = currentView?.GameId,
-                CurrentStateRevision = currentView?.StateRevision, DriverObservedStateRevision = latest?.StateRevision,
-                state.View.ViewerRole, state.View.ViewerPlayerId,
-                PolicyHadPendingCommand = routePolicy?.HasPendingCommand, PolicyPendingStepId = routePolicy?.PendingStepId });
-            // 运输层已核验真实pending确认被当前同步覆盖；仅消费命令确认，不重放旧投影。
-            try { routePolicy?.Confirm(state.Command.CommandId); RecordStaleRefresh("已覆盖的真实确认", state.Command.CommandId); }
-            catch (Exception error) { Finish("route_confirmation_failed:" + error.Message); return; }
-            lastSignature = null;
-        }
         private static string RequestContract(GameStateView view, string interactionId)
         {
             var request = view.Interactions.FirstOrDefault(r => r.InteractionId == interactionId);
@@ -962,41 +866,6 @@ namespace YC.Presentation
                 options = view.CharacterSettlementOptions.Where(o => o.InteractionId == interactionId).OrderBy(o => o.RegistrationSequence)
                     .Select(o => new { o.OptionId, o.WindowId, o.LocalId, o.EntryKind, o.TargetEffectId, o.TargetUseId, o.RegistrationSequence, o.SettlementState, o.CanDeclineWholeEffect })
             });
-        }
-        private void OnRejected(RejectedGameCommandDto rejected)
-        {
-            if (stopped || IsAwaitingClientInitialState || rejected == null) return;
-            var controller = FindObjectOfType<MobileCityInteractionController>();
-            var rejectedView = controller?.ValidationView(GameLaunchContext.Instance.LocalPlayerId);
-            if (!TryAcceptRunView(rejectedView)) return;
-            if (!WholeGameHealth && routePlan != null && controller != null && GameLaunchContext.Instance.Mode == LaunchMode.Host)
-            {
-                try
-                {
-                    var after = controller.ValidationHostArchive()?.Snapshot;
-                    RequireRunSnapshotPair(previousBusinessSnapshot, after);
-                    Append("authoritative-rejections.jsonl", new { utc = DateTime.UtcNow, CommandId = rejected.Command?.CommandId,
-                        Before = previousBusinessSnapshot, After = after, errorCodeName = rejected.ErrorCode.ToString(),
-                        InputSource = "GameSession.CreateHostArchive" });
-                    previousBusinessSnapshot = after;
-                }
-                catch (Exception error) { Finish("host_rejection_capture_failed:" + error.Message); return; }
-            }
-            Append("rejected.jsonl", new { utc = DateTime.UtcNow, rejected, errorCodeName = rejected.ErrorCode.ToString(), observedRevision = rejectedView?.StateRevision, view = rejectedView });
-            // 外部观察继续记录；是否为计划内拒绝由真实原生轨迹与审计合同核对。
-            if (observationOnly) return;
-            if (!observationOnly && routePolicy?.Reject(rejected.Command?.CommandId, rejected.ErrorCode.ToString()) == true)
-            { lastSignature = null; return; }
-            try
-            {
-                if (routePolicy?.IsRetiredStaleInteractionRejection(rejected, rejectedView) == true)
-                { RecordStaleRefresh("已处理旧命令的迟到拒绝", rejected.Command.CommandId, true); return; }
-                if (routePolicy?.TryBeginStaleInteractionRefresh(rejected, rejectedView, out _) == true)
-                { RecordStaleRefresh("准确过期拒绝，释放旧pending", rejected.Command.CommandId); lastSignature = null; return; }
-            }
-            catch (Exception error)
-            { RecordStaleRefresh("拒绝刷新终止：" + error.Message, rejected.Command?.CommandId, true); Finish("route_refresh_failed:" + error.Message); return; }
-            Finish("command_rejected:" + JsonConvert.SerializeObject(rejected));
         }
         private T CaptureHostArchiveStage<T>(string context, string stage, HostSessionArchiveDto archive, string archivePath, Func<T> operation)
         {

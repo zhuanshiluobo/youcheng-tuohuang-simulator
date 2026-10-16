@@ -280,10 +280,11 @@ namespace YC.Tests.PlayMode.ExpansionRules
             foreach (var player in State.Players)
             {
                 Set(scene, "viewer", player.PlayerId); Refresh(); Route();
-                string json = JsonConvert.SerializeObject(new InitialGameStateViewDto { View = View });
+                string json = JsonConvert.SerializeObject(View);
                 Assert.That(json, Does.Not.Contain(secret.ItemId)); Assert.That(json, Does.Not.Contain(secret.DefinitionId));
-                Assert.That(GameStateViewProtocol.TryReadInitial(json, View.RuleConfiguration, out var restored), Is.True);
-                var wire = restored.View;
+                var restored = JsonConvert.DeserializeObject<GameStateView>(json);
+                Assert.That(restored.HasValidPlayerOrderAndSlots(), Is.True);
+                var wire = restored;
                 Assert.That(wire.ItemZones.Zones.Single(value => value.Zone.LocalZoneId == "secret_retired").ItemCount, Is.EqualTo(1));
                 Assert.That(wire.CharacterSettlementOptions, Is.Empty);
                 Assert.That(Rows.Any(row => (string)Prop(row, "ItemId") == secret.ItemId), Is.False);
@@ -293,9 +294,10 @@ namespace YC.Tests.PlayMode.ExpansionRules
 
         private static GameStateView RoundTrip(GameStateView view)
         {
-            string json = JsonConvert.SerializeObject(new InitialGameStateViewDto { View = view });
-            Assert.That(GameStateViewProtocol.TryReadInitial(json, view.RuleConfiguration, out var restored), Is.True);
-            return restored.View;
+            string json = JsonConvert.SerializeObject(view);
+            var restored = JsonConvert.DeserializeObject<GameStateView>(json);
+            Assert.That(restored.HasValidPlayerOrderAndSlots(), Is.True);
+            return restored;
         }
 
         [UnityTest] public IEnumerator RepeatProgressUsesHostCountAndResumesWithoutAnExtraIteration()

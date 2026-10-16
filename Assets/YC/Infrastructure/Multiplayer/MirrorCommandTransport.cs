@@ -13,32 +13,6 @@ using YC.Domain.State;
 
 namespace YC.Infrastructure.Multiplayer
 {
-    public struct SubmitCommandMessage : NetworkMessage { public string Json; }
-    public struct AcceptedCommandMessage : NetworkMessage { public string Json; public string ConnectionToken; }
-    public struct RejectedCommandMessage : NetworkMessage { public string Json; public string GameId; public string ConnectionToken; public int StateRevision; }
-    public struct InitialStateRequestMessage : NetworkMessage { public string ConnectionToken; public int RequestId; }
-    public struct InitialStateMessage : NetworkMessage { public string Json; public string ProtocolVersion; public string ConnectionToken; }
-    public struct InitialStateAppliedMessage : NetworkMessage { public int PlayerId; public string ConnectionToken; }
-    public struct CommandOutcomeRequestMessage : NetworkMessage
-    { public string GameId; public int PlayerId; public string CommandId; public string ConnectionToken; }
-    public struct CommandOutcomeMessage : NetworkMessage { public string Json; public string ConnectionToken; }
-    public struct GameStateViewPartMessage : NetworkMessage
-    {
-        public long TransferId;
-        public bool IsInitial;
-        public int TotalBytes, Offset;
-        public int RequestId;
-        public string ProtocolVersion;
-        public string ConnectionToken;
-        public byte[] Payload;
-    }
-    public struct GameStateViewAcknowledgmentMessage : NetworkMessage
-    {
-        public long TransferId;
-        public int NextOffset;
-        public string ConnectionToken;
-    }
-
     public struct SimulationCheckpointRequestMessage : NetworkMessage
     { public string EnvelopeJson; public int PlayerId; public string ConnectionToken; }
     public struct SimulationCheckpointPartMessage : NetworkMessage
@@ -57,102 +31,18 @@ namespace YC.Infrastructure.Multiplayer
         public byte[] Payload;
     }
 
-    /// <summary>仅供本地观察确认接收与同步分支，不进入网络协议，不包含状态投影。</summary>
-    public sealed class LocalCommandConfirmationDiagnostic
-    {
-        public string Branch { get; }
-        public string GameId { get; }
-        public string ReceivedGameId { get; }
-        public string CommandId { get; }
-        public string PendingCommandId { get; }
-        public int? Sequence { get; }
-        public int? NextExpectedSequence { get; }
-        public bool? IsInitialStateSynchronized { get; }
-        public bool? ExactPendingMatched { get; }
-        public bool ApplyAttempted { get; }
-        public bool? ApplySucceeded { get; }
-        public string ErrorCode { get; }
-
-        internal LocalCommandConfirmationDiagnostic(string branch, string gameId, string receivedGameId,
-            string commandId, string pendingCommandId, int? sequence, int? nextExpectedSequence,
-            bool? isInitialStateSynchronized, bool? exactPendingMatched, CommandResult applyResult)
-        {
-            Branch = branch;
-            GameId = gameId;
-            ReceivedGameId = receivedGameId;
-            CommandId = commandId;
-            PendingCommandId = pendingCommandId;
-            Sequence = sequence;
-            NextExpectedSequence = nextExpectedSequence;
-            IsInitialStateSynchronized = isInitialStateSynchronized;
-            ExactPendingMatched = exactPendingMatched;
-            ApplyAttempted = applyResult != null;
-            ApplySucceeded = applyResult?.Succeeded;
-            ErrorCode = applyResult?.Validation?.ErrorCode.ToString();
-        }
-    }
-
     [DefaultExecutionOrder(-23000)]
     public sealed class MirrorCommandTransport : MonoBehaviour, INetworkCommandTransport
     {
         private readonly SteamIdentityBindingRegistry bindings = new SteamIdentityBindingRegistry();
-        private AuthoritativeCommandDispatcher dispatcher;
         private GameSession session;
         private LaunchMode mode;
         private bool initialized;
-        private bool awaitingInitialState;
-        private float nextInitialStateRequestTime;
-        private string pendingCommandId;
-        private string pendingGameId;
-        private GameCommandDto pendingCommand;
-        private CommandAuthorityOutcome recoveredOutcome;
         private string clientConnectionToken;
-        private float nextCommandOutcomeRequestTime;
-        private readonly Dictionary<int, string> clientConnectionTokens = new Dictionary<int, string>();
-        private float commandConfirmationDeadline;
-        private const float CommandConfirmationTimeout = 10f;
-        private const float InitialStateRequestInterval = 5f;
+        private const float CheckpointRequestInterval = 5f;
         private int localPlayerId;
         private IList<PlayerSeat> launchSeats;
         private readonly Dictionary<int, float> pendingLocalBindings = new Dictionary<int, float>();
-        private readonly SnapshotChunkBuffer viewAssembler = new SnapshotChunkBuffer();
-        private readonly StateViewHistoryTracker receivedViewHistory = new StateViewHistoryTracker();
-        private readonly Dictionary<int, StateViewHistoryTracker> sentViewHistory = new Dictionary<int, StateViewHistoryTracker>();
-        private readonly Dictionary<int, ViewSendQueue> viewSendQueues = new Dictionary<int, ViewSendQueue>();
-        private readonly Dictionary<int, int> initialViewRequestIds = new Dictionary<int, int>();
-        private int initialViewRequestId = 1;
-        private long latestReceivedViewTransfer, completedViewTransfer;
-        private int completedViewBytes;
-        private float viewReceiveDeadline;
-        private const float ViewProgressTimeout = 10f;
-        private const int MaximumQueuedViewBytes = 2 * GameStateViewTransfer.MaximumBytes;
-        private static readonly UTF8Encoding ViewUtf8 = new UTF8Encoding(false, true);
-        private long nextViewTransfer;
-        [Serializable]
-        private sealed class ViewSnapshotPayload
-        {
-            public int ProtocolVersion = GameStateView.CurrentSchemaVersion;
-            public int NextConfirmedSequence;
-            public int Sequence;
-            public GameCommandDto Command;
-            public GameStateView View;
-            public StateViewHistoryDelta History;
-        }
-        private sealed class PendingViewSnapshot
-        {
-            public long TransferId;
-            public int RequestId;
-            public bool IsInitial;
-            public string ConnectionToken;
-            public byte[] Bytes;
-            public SnapshotSendWindow Window;
-        }
-        private sealed class ViewSendQueue
-        {
-            public NetworkConnectionToClient Connection;
-            public readonly Queue<PendingViewSnapshot> Pending = new Queue<PendingViewSnapshot>();
-            public int Bytes;
-        }
         private SimulationCheckpointChannel checkpointChannel;
         private NetworkConnection checkpointHostConnection;
         private float nextCheckpointRequestTime;
@@ -209,12 +99,6 @@ namespace YC.Infrastructure.Multiplayer
             }
         }
 
-        public event Action<ConfirmedGameStateViewDto> ConfirmedStateViewApplied;
-        /// <summary>真实本地pending已获确认，但对应旧投影已被同步状态覆盖；只通知，不重放视图。</summary>
-        public event Action<ConfirmedGameStateViewDto> CoveredCommandAcknowledged;
-        public event Action<LocalCommandConfirmationDiagnostic> CommandConfirmationObserved;
-        public event Action<InitialGameStateViewDto> InitialStateViewApplied;
-        public event Action<RejectedGameCommandDto> CommandRejected;
         public event Action<SimulationCheckpointChannelResult> InitialSimulationCheckpointReceived;
         public event Action<int, SimulationCheckpointEnvelope> SimulationCheckpointInstalledByPeer;
         public event Action<string> SimulationCheckpointTransportFailed;
@@ -235,9 +119,8 @@ namespace YC.Infrastructure.Multiplayer
         public OperationCommandProposalDto ReadRecoverySourceLocalProposal() => RecoverySource?.ReadPendingLocalProposal();
         public DeterministicSimulationCoordinator SimulationCoordinator => simulationCoordinator;
         public static MirrorCommandTransport Instance { get; private set; }
-        public bool IsSynchronizing => simulationOptions != null ? IsAwaitingLocalSimulationConnectionRecovery || IsRecoveringConfirmedPrefix || simulationCoordinator == null || simulationCoordinator.IsStopped || simulationCoordinator.IsRecoveringConfirmedPrefix || simulationCoordinator.HasPendingLocalApplication :
-            checkpointChannel != null ? !checkpointChannel.IsInstalled || checkpointChannel.IsStopped :
-            awaitingInitialState || !string.IsNullOrEmpty(pendingCommandId);
+        public bool IsSynchronizing => initialized && (IsAwaitingLocalSimulationConnectionRecovery || IsRecoveringConfirmedPrefix ||
+            simulationCoordinator == null || simulationCoordinator.IsStopped || simulationCoordinator.IsRecoveringConfirmedPrefix || simulationCoordinator.HasPendingLocalApplication);
         public bool IsInitialSimulationCheckpointConfigured => checkpointChannel != null;
         public bool HasInstalledInitialSimulationCheckpoint => checkpointChannel != null && checkpointChannel.IsInstalled && !checkpointChannel.IsStopped;
         public bool IsInitialSimulationCheckpointInstalledByPeer(int playerId) => checkpointChannel != null && checkpointChannel.IsPeerInstalled(playerId);
@@ -262,7 +145,7 @@ namespace YC.Infrastructure.Multiplayer
                 !seats.Select(seat => seat.PlayerId).OrderBy(id => id).SequenceEqual(options.FrozenPlayerIds.OrderBy(id => id)) ||
                 launchMode == LaunchMode.Host && (installer != null || createHostArchive == null) || launchMode == LaunchMode.Client && (installer == null || createHostArchive != null))
                 throw new ArgumentException("simulation_transport_configuration_invalid");
-            // 构造仅核配置，不 Begin/Submit/投影；任何旧注册或请求发生前先选定模式。
+            // 构造仅核配置，不 Begin/Submit/投影；通过校验后再注册确定性模拟通道。
             var prepared = savedCoordinator != null && launchMode == LaunchMode.Host ? savedCoordinator() : new DeterministicSimulationCoordinator(session, options);
             var identity = savedIdentity?.Snapshot() ?? new SimulationCheckpointEnvelope { GameId = options.GameId, ContentPackHash = options.ContentPackHash,
                 SimulationEpoch = 1, MembershipVersion = 1, GlobalCommandSequence = 0,
@@ -272,7 +155,7 @@ namespace YC.Infrastructure.Multiplayer
             Shutdown();
             savedCoordinatorFactory = savedCoordinator;
             this.session = session; mode = launchMode; localPlayerId = playerId; launchSeats = seats;
-            simulationOptions = options.Snapshot(); checkpointChannel = channel; initialized = true; awaitingInitialState = false;
+            simulationOptions = options.Snapshot(); checkpointChannel = channel; initialized = true;
             foreach (var seat in seats) seat.GameStateSynchronized = false;
             if (mode == LaunchMode.Host)
             {
@@ -300,36 +183,7 @@ namespace YC.Infrastructure.Multiplayer
             }
         }
 
-        /// <summary>Initialize之后、网络分发前显式调用。只接初始完整检查点，尚不启用新命令入口。</summary>
-        public void ConfigureInitialSimulationCheckpoint(SimulationCheckpointEnvelope identity,
-            InitialSimulationCheckpointInstaller installer, Func<string> createHostArchive)
-        {
-            if (!initialized || session == null || checkpointChannel != null || !string.IsNullOrEmpty(pendingCommandId) ||
-                identity == null || identity.GameId != session.State.GameId || identity.ContentPackHash != session.State.ContentPackHash ||
-                identity.EncodedByteCount != 0 || identity.DecodedByteCount != 0 ||
-                mode == LaunchMode.Host && (installer != null || createHostArchive == null) ||
-                mode == LaunchMode.Client && (installer == null || createHostArchive != null || dispatcher.IsInitialStateSynchronized) ||
-                mode != LaunchMode.Host && mode != LaunchMode.Client)
-                throw new InvalidOperationException("checkpoint_transport_configuration_invalid");
-            checkpointChannel = new SimulationCheckpointChannel(identity, installer, createHostArchive,
-                launchSeats == null ? null : new List<int>(EnumerateLaunchPlayerIds()));
-            viewAssembler.Reset(); awaitingInitialState = false; nextCheckpointRequestTime = 0f;
-            if (mode == LaunchMode.Host)
-            {
-                NetworkServer.RegisterHandler<SimulationCheckpointRequestMessage>(OnCheckpointRequest, false);
-                NetworkServer.RegisterHandler<SimulationCheckpointInstalledMessage>(OnCheckpointInstalled, false);
-                NetworkServer.RegisterHandler<SimulationCheckpointErrorMessage>(OnCheckpointPeerError, false);
-            }
-            else
-            {
-                RegisterCheckpointClientMessages(); BindCheckpointHost(); RequestCheckpoint();
-            }
-        }
-
-        private IEnumerable<int> EnumerateLaunchPlayerIds()
-        { foreach (var seat in launchSeats) if (seat != null) yield return seat.PlayerId; }
-
-        public bool HasCompletedSettlement => initialized && !awaitingInitialState && session != null &&
+        public bool HasCompletedSettlement => initialized && session != null &&
             RoundTrackRule.IsFinalState(session.State) &&
             session.State.FinalScoring != null && session.State.FinalScoring.IsResolved;
 
@@ -373,77 +227,16 @@ namespace YC.Infrastructure.Multiplayer
             Instance = this;
         }
 
-        public void Initialize(GameSession session, LaunchMode launchMode, int playerId, IList<PlayerSeat> seats)
-        {
-            Shutdown();
-            this.session = session;
-            mode = launchMode;
-            localPlayerId = playerId;
-            launchSeats = seats;
-            if (launchSeats != null)
-                for (var i = 0; i < launchSeats.Count; i++) launchSeats[i].GameStateSynchronized = false;
-            dispatcher = new AuthoritativeCommandDispatcher(session, mode == LaunchMode.Client);
-            if (mode == LaunchMode.Host)
-            {
-                var lobbySeats = new List<KeyValuePair<int, ulong>>();
-                if (seats != null) foreach (var seat in seats) lobbySeats.Add(new KeyValuePair<int, ulong>(seat.PlayerId, seat.SteamId));
-                bindings.ReplaceLobbySeats(lobbySeats);
-                dispatcher.CommandAccepted += BroadcastAccepted;
-                dispatcher.CommandRejected += SendRejected;
-                NetworkServer.OnConnectedEvent += OnServerConnected;
-                NetworkServer.OnDisconnectedEvent += OnServerDisconnected;
-                NetworkServer.RegisterHandler<SubmitCommandMessage>(OnSubmit, false);
-                NetworkServer.RegisterHandler<InitialStateRequestMessage>(OnInitialStateRequest, false);
-                NetworkServer.RegisterHandler<InitialStateAppliedMessage>(OnInitialStateApplied, false);
-                NetworkServer.RegisterHandler<CommandOutcomeRequestMessage>(OnCommandOutcomeRequest, false);
-                NetworkServer.RegisterHandler<GameStateViewAcknowledgmentMessage>(OnViewAcknowledgment, false);
-                foreach (var connection in NetworkServer.connections.Values)
-                    OnServerConnected(connection);
-            }
-            else if (mode == LaunchMode.Client)
-            {
-                RegisterClientMessages();
-                if (MirrorNetworkRuntime.Instance != null)
-                    MirrorNetworkRuntime.Instance.LocalClientRestarted += RegisterClientMessages;
-                RequestInitialState();
-            }
-            initialized = true;
-        }
-
         private void Update()
         {
-            if (initialized && mode == LaunchMode.Host)
-            {
-                RefreshPendingLocalBindings();
-                if (checkpointChannel == null) PumpViewSends(Time.unscaledTime);
-            }
-            if (checkpointChannel != null)
-            {
-                if (!IsCheckpointSessionCurrent()) return;
-                if (simulationOptions != null) simulationCoordinator?.Pump(simulationOptions.PumpCommandsPerFrame);
-                PollConfirmedRecovery();
-                if (mode == LaunchMode.Client && NetworkClient.isConnected && IsRecoveringConfirmedPrefix && !recoveryFailed && confirmedRecoveryRequestPending)
-                    RequestConfirmedRecovery();
-                if (mode == LaunchMode.Client && NetworkClient.isConnected && !checkpointInstallationSent && !checkpointChannel.IsStopped)
-                    RequestCheckpoint();
-                return;
-            }
-            if (!initialized || mode != LaunchMode.Client || !NetworkClient.isConnected)
-                return;
-            RequestCommandOutcome();
-            if (viewAssembler.IsReceiving && Time.unscaledTime >= viewReceiveDeadline)
-            {
-                AcknowledgeView(viewAssembler.TransferId, viewAssembler.ReceivedBytes);
-                viewReceiveDeadline = Time.unscaledTime + ViewProgressTimeout;
-            }
-            if (!awaitingInitialState && !string.IsNullOrEmpty(pendingCommandId) &&
-                !viewAssembler.IsReceiving && Time.unscaledTime >= commandConfirmationDeadline)
-            {
-                // 只补同步状态，不重发原命令，避免重复支付或重复结算。
-                BeginViewResynchronization();
-            }
-            if (!awaitingInitialState || viewAssembler.IsReceiving || Time.unscaledTime < nextInitialStateRequestTime) return;
-            RequestInitialState();
+            if (!initialized || checkpointChannel == null || !IsCheckpointSessionCurrent()) return;
+            if (mode == LaunchMode.Host) RefreshPendingLocalBindings();
+            simulationCoordinator?.Pump(simulationOptions.PumpCommandsPerFrame);
+            PollConfirmedRecovery();
+            if (mode == LaunchMode.Client && NetworkClient.isConnected && IsRecoveringConfirmedPrefix && !recoveryFailed && confirmedRecoveryRequestPending)
+                RequestConfirmedRecovery();
+            if (mode == LaunchMode.Client && NetworkClient.isConnected && !checkpointInstallationSent && !checkpointChannel.IsStopped)
+                RequestCheckpoint();
         }
 
         public CommandResult SubmitOrSend(GameCommand command, out bool appliedLocally)
@@ -462,29 +255,7 @@ namespace YC.Infrastructure.Multiplayer
                 else SendSimulationClient("proposal", proposal);
                 return CommandResult.SuccessResult(new List<GameEvent>(), "命令已进入编序队列，等待本地执行。");
             }
-            if (checkpointChannel != null) return Invalid("完整检查点通道已配置，新模拟命令入口尚未接通。");
-            if (!initialized || dispatcher == null) return Invalid("Mirror 命令传输尚未初始化。");
-            var dto = GameCommandDto.FromCommand(command);
-            if (mode == LaunchMode.Host)
-            {
-                var result = dispatcher.SubmitHostCommand(dto);
-                appliedLocally = result.Succeeded;
-                return result;
-            }
-            if (mode != LaunchMode.Client || !NetworkClient.isConnected) return dispatcher.RejectClientLocalSubmit(dto);
-            if (awaitingInitialState || !dispatcher.IsInitialStateSynchronized)
-                return Invalid("正在同步对局状态，请稍候。");
-            if (!string.IsNullOrEmpty(pendingCommandId))
-                return Invalid("上一条命令尚未确认，请等待同步结果。");
-            if (dto.PlayerId != localPlayerId) return Invalid("只能提交本人的命令。");
-            pendingCommandId = dto.CommandId;
-            pendingGameId = session.View?.GameId ?? session.State.GameId;
-            pendingCommand = dto;
-            recoveredOutcome = null;
-            nextCommandOutcomeRequestTime = Time.unscaledTime + InitialStateRequestInterval;
-            commandConfirmationDeadline = Time.unscaledTime + CommandConfirmationTimeout;
-            NetworkClient.Send(new SubmitCommandMessage { Json = JsonUtility.ToJson(dto) });
-            return CommandResult.SuccessResult(new List<GameEvent>(), "命令已发送给房主。");
+            return Invalid("确定性模拟传输尚未初始化。");
         }
 
         public void Shutdown()
@@ -499,33 +270,18 @@ namespace YC.Infrastructure.Multiplayer
             checkpointConnectionTokens.Clear(); nextCheckpointRequestTime = 0f;
             checkpointInstallationSent = false;
             savedCoordinatorFactory = null;
-            ResetViewReception();
-            sentViewHistory.Clear(); viewSendQueues.Clear(); initialViewRequestIds.Clear();
-            initialViewRequestId = 1; nextViewTransfer = 0;
             pendingLocalBindings.Clear();
-            clientConnectionTokens.Clear();
             if (MirrorNetworkRuntime.Instance != null)
             {
                 MirrorNetworkRuntime.Instance.LocalClientRestarted -= RegisterClientMessages;
                 MirrorNetworkRuntime.Instance.LocalClientReconnectFailed -= OnLocalClientReconnectFailed;
             }
-            if (dispatcher != null)
-            {
-                dispatcher.CommandAccepted -= BroadcastAccepted;
-                dispatcher.CommandRejected -= SendRejected;
-            }
             NetworkServer.OnConnectedEvent -= OnServerConnected;
             NetworkServer.OnDisconnectedEvent -= OnServerDisconnected;
             NetworkClient.OnConnectedEvent -= OnLocalClientConnected;
-            NetworkClient.OnDisconnectedEvent -= OnViewClientDisconnected;
             NetworkClient.OnDisconnectedEvent -= OnCheckpointClientDisconnected;
             if (NetworkServer.active)
             {
-                NetworkServer.UnregisterHandler<SubmitCommandMessage>();
-                NetworkServer.UnregisterHandler<InitialStateRequestMessage>();
-                NetworkServer.UnregisterHandler<InitialStateAppliedMessage>();
-                NetworkServer.UnregisterHandler<CommandOutcomeRequestMessage>();
-                NetworkServer.UnregisterHandler<GameStateViewAcknowledgmentMessage>();
                 NetworkServer.UnregisterHandler<SimulationCheckpointRequestMessage>();
                 NetworkServer.UnregisterHandler<SimulationCheckpointInstalledMessage>();
                 NetworkServer.UnregisterHandler<SimulationCheckpointErrorMessage>();
@@ -533,22 +289,12 @@ namespace YC.Infrastructure.Multiplayer
             }
             if (NetworkClient.active)
             {
-                NetworkClient.UnregisterHandler<AcceptedCommandMessage>();
-                NetworkClient.UnregisterHandler<RejectedCommandMessage>();
-                NetworkClient.UnregisterHandler<InitialStateMessage>();
-                NetworkClient.UnregisterHandler<GameStateViewPartMessage>();
-                NetworkClient.UnregisterHandler<CommandOutcomeMessage>();
                 NetworkClient.UnregisterHandler<SimulationCheckpointPartMessage>();
                 NetworkClient.UnregisterHandler<SimulationCheckpointErrorMessage>();
                 NetworkClient.UnregisterHandler<SimulationProtocolPartMessage>();
             }
-            ObserveCommandConfirmation("shutdown_pending_cleared");
-            dispatcher = null;
             session = null;
             initialized = false;
-            awaitingInitialState = false;
-            nextInitialStateRequestTime = 0f;
-            ClearPendingCommand();
             clientConnectionToken = null;
             localPlayerId = -1;
             launchSeats = null;
@@ -614,24 +360,17 @@ namespace YC.Infrastructure.Multiplayer
                 RejectConnection(connection, "拒绝与等待房间身份映射不一致的连接：" + connection.address);
                 return;
             }
-            dispatcher?.RegisterClientPlayer((ulong)connection.connectionId, playerId);
             if (connection is LocalConnectionToClient)
             {
                 MarkGameStateSynchronized(playerId, true);
                 return;
             }
-            SendInitialState(connection);
         }
 
         private void OnServerDisconnected(NetworkConnectionToClient connection)
         {
             if (connection == null) return;
             pendingLocalBindings.Remove(connection.connectionId);
-            clientConnectionTokens.Remove(connection.connectionId);
-            sentViewHistory.Remove(connection.connectionId);
-            viewSendQueues.Remove(connection.connectionId);
-            initialViewRequestIds.Remove(connection.connectionId);
-            dispatcher?.UnregisterClientPlayer((ulong)connection.connectionId);
             if (bindings.TryGetPlayer(connection.connectionId, out var playerId))
             {
                 MarkGameStateSynchronized(playerId, false);
@@ -652,538 +391,38 @@ namespace YC.Infrastructure.Multiplayer
             bindings.UnbindConnection(connection.connectionId);
         }
 
-        private void OnSubmit(NetworkConnectionToClient connection, SubmitCommandMessage message)
-        {
-            if (checkpointChannel != null) return;
-            var dto = JsonUtility.FromJson<GameCommandDto>(message.Json);
-            if (!bindings.IsCommandOwner(connection.connectionId, dto == null ? -1 : dto.PlayerId))
-            {
-                var rejected = RejectedGameCommandDto.FromResult(dto, Invalid("连接身份与命令玩家不一致。"));
-                SendRejected((ulong)connection.connectionId, rejected);
-                return;
-            }
-            dispatcher.ReceiveClientCommand((ulong)connection.connectionId, dto);
-        }
-
-        private void OnInitialStateRequest(NetworkConnectionToClient connection, InitialStateRequestMessage message)
-        {
-            if (checkpointChannel != null) return;
-            if (connection == null || !bindings.TryGetPlayer(connection.connectionId, out _) || string.IsNullOrEmpty(message.ConnectionToken) ||
-                message.ConnectionToken.Length > 64 || message.RequestId <= 0) return;
-            if (IsConnectionTokenCurrent(connection.connectionId, message.ConnectionToken) &&
-                initialViewRequestIds.TryGetValue(connection.connectionId, out var previous) && message.RequestId <= previous) return;
-            clientConnectionTokens[connection.connectionId] = message.ConnectionToken;
-            initialViewRequestIds[connection.connectionId] = message.RequestId;
-            SendInitialState(connection);
-        }
-
-        private void OnInitialStateApplied(NetworkConnectionToClient connection, InitialStateAppliedMessage message)
-        {
-            if (checkpointChannel != null) return;
-            if (!bindings.IsCommandOwner(connection.connectionId, message.PlayerId) ||
-                !IsConnectionTokenCurrent(connection.connectionId, message.ConnectionToken)) return;
-            MarkGameStateSynchronized(message.PlayerId, true);
-        }
-
-        private bool IsConnectionTokenCurrent(int connectionId, string token) => !string.IsNullOrEmpty(token) &&
-            clientConnectionTokens.TryGetValue(connectionId, out var current) && current == token;
-
-        private void OnCommandOutcomeRequest(NetworkConnectionToClient connection, CommandOutcomeRequestMessage message)
-        {
-            if (checkpointChannel != null) return;
-            if (connection == null || !bindings.IsCommandOwner(connection.connectionId, message.PlayerId) ||
-                !IsConnectionTokenCurrent(connection.connectionId, message.ConnectionToken) ||
-                !string.Equals(message.GameId, session.State.GameId, StringComparison.Ordinal) ||
-                string.IsNullOrEmpty(message.CommandId) || message.CommandId.Length > 128) return;
-            if (!dispatcher.TryGetCommandOutcome((ulong)connection.connectionId, message.GameId, message.PlayerId,
-                    message.CommandId, out var outcome))
-                outcome = new CommandAuthorityOutcome { GameId = message.GameId, PlayerId = message.PlayerId,
-                    CommandId = message.CommandId, Outcome = CommandAuthorityOutcomeKind.Unknown };
-            connection.Send(new CommandOutcomeMessage { Json = JsonConvert.SerializeObject(outcome), ConnectionToken = message.ConnectionToken });
-        }
-
-        private void SendInitialState(NetworkConnectionToClient connection)
-        {
-            if (checkpointChannel != null) return;
-            int playerId;
-            if (!bindings.TryGetPlayer(connection.connectionId, out playerId)) return;
-            InitialGameStateViewDto view = dispatcher.CreateInitialStateViewSynchronization(playerId);
-            SendStateView(connection, view, true);
-        }
-
-        private void BroadcastAccepted(ConfirmedGameCommandDto confirmed)
-        {
-            if (checkpointChannel != null) return;
-            foreach (var connection in NetworkServer.connections.Values)
-            {
-                if (connection is LocalConnectionToClient) continue;
-                int playerId;
-                if (!bindings.TryGetPlayer(connection.connectionId, out playerId)) continue;
-                // 每个连接单独投影；绝不先序列化 confirmed.State 再由客户端隐藏。
-                ConfirmedGameStateViewDto view = dispatcher.CreateConfirmedStateViewSynchronization(
-                    confirmed,
-                    GameStateViewer.Player(playerId));
-                SendStateView(connection, view, false);
-            }
-            if (confirmed != null)
-            {
-                ConfirmedStateViewApplied?.Invoke(
-                    dispatcher.CreateConfirmedStateViewSynchronization(confirmed, GameStateViewer.Host));
-            }
-        }
-
-        private void SendRejected(ulong recipient, RejectedGameCommandDto rejected)
-        {
-            if (NetworkServer.connections.TryGetValue((int)recipient, out var connection) &&
-                clientConnectionTokens.TryGetValue((int)recipient, out var token))
-                connection.Send(new RejectedCommandMessage { Json = JsonUtility.ToJson(rejected),
-                    GameId = session.State.GameId, ConnectionToken = token,
-                    StateRevision = session.State.EffectRuntime?.StateRevision ?? 0 });
-        }
-
-        private void SendStateView(NetworkConnectionToClient connection, object view, bool initial)
-        {
-            if (!clientConnectionTokens.TryGetValue(connection.connectionId, out var token) ||
-                !initialViewRequestIds.TryGetValue(connection.connectionId, out var requestId)) return;
-            if (initial)
-            {
-                // 完整基线替换旧队列时必须同时重置历史游标。
-                sentViewHistory.Remove(connection.connectionId);
-                viewSendQueues.Remove(connection.connectionId);
-            }
-            if (!sentViewHistory.TryGetValue(connection.connectionId, out var history))
-                sentViewHistory.Add(connection.connectionId, history = new StateViewHistoryTracker());
-            var first = view as InitialGameStateViewDto;
-            var confirmed = view as ConfirmedGameStateViewDto;
-            var payload = new ViewSnapshotPayload {
-                NextConfirmedSequence = first?.NextConfirmedSequence ?? 0,
-                Sequence = confirmed?.Sequence ?? 0, Command = confirmed?.Command,
-                View = first?.View ?? confirmed?.View
-            };
-            payload.History = history.CreateDelta(payload.View, initial);
-            var bytes = GameStateViewTransfer.Encode(JsonConvert.SerializeObject(payload));
-            if (!viewSendQueues.TryGetValue(connection.connectionId, out var queue))
-                viewSendQueues.Add(connection.connectionId, queue = new ViewSendQueue { Connection = connection });
-            if (!initial && (queue.Pending.Count >= 64 || queue.Bytes > MaximumQueuedViewBytes - bytes.Length))
-            {
-                // 慢连接改送最新基线；本地 pending 仍经原有只读结果查询确认，不重发业务命令。
-                SendInitialState(connection);
-                return;
-            }
-            queue.Pending.Enqueue(new PendingViewSnapshot { TransferId = ++nextViewTransfer,
-                RequestId = requestId, IsInitial = initial, ConnectionToken = token, Bytes = bytes,
-                Window = new SnapshotSendWindow(bytes.Length, GameStateViewTransfer.ChunkBytes) });
-            queue.Bytes += bytes.Length;
-        }
-
-        private void PumpViewSends(float now)
-        {
-            foreach (var queue in viewSendQueues.Values)
-            {
-                if (queue.Pending.Count == 0) continue;
-                var snapshot = queue.Pending.Peek();
-                foreach (var range in snapshot.Window.GetChunks(now))
-                {
-                    var payload = new byte[range.Count];
-                    Buffer.BlockCopy(snapshot.Bytes, range.Offset, payload, 0, range.Count);
-                    queue.Connection.Send(new GameStateViewPartMessage {
-                        TransferId = snapshot.TransferId, RequestId = snapshot.RequestId,
-                        IsInitial = snapshot.IsInitial, ConnectionToken = snapshot.ConnectionToken,
-                        TotalBytes = snapshot.Bytes.Length, Offset = range.Offset,
-                        ProtocolVersion = SteamLobbyPolicy.ProtocolVersion, Payload = payload
-                    }, Channels.Reliable);
-                }
-            }
-        }
-
-        private void OnViewAcknowledgment(NetworkConnectionToClient connection, GameStateViewAcknowledgmentMessage message)
-        {
-            if (checkpointChannel != null || connection == null ||
-                !bindings.TryGetPlayer(connection.connectionId, out var playerId) ||
-                !IsConnectionTokenCurrent(connection.connectionId, message.ConnectionToken) ||
-                !viewSendQueues.TryGetValue(connection.connectionId, out var queue) || queue.Pending.Count == 0) return;
-            var snapshot = queue.Pending.Peek();
-            if (snapshot.TransferId != message.TransferId ||
-                !snapshot.Window.TryAcknowledge(message.NextOffset, Time.unscaledTime) || !snapshot.Window.IsComplete) return;
-            if (snapshot.IsInitial) MarkGameStateSynchronized(playerId, true);
-            queue.Pending.Dequeue();
-            queue.Bytes -= snapshot.Bytes.Length;
-        }
-
-        private void OnStateViewPart(GameStateViewPartMessage message)
-        {
-            if (checkpointChannel != null) return;
-            if (NetworkServer.active) return;
-            if (!IsCurrentClientConnection(message.ConnectionToken)) return;
-            if (message.ProtocolVersion != SteamLobbyPolicy.ProtocolVersion)
-            { Debug.LogError("room_protocol_mismatch"); NetworkClient.Disconnect(); return; }
-            if (message.RequestId != initialViewRequestId || message.TransferId < latestReceivedViewTransfer) return;
-            if (message.TransferId <= 0 || message.Payload == null || message.Payload.Length > GameStateViewTransfer.ChunkBytes)
-            { BeginViewResynchronization(); return; }
-            if (message.TransferId == completedViewTransfer)
-            {
-                if (message.TotalBytes == completedViewBytes) AcknowledgeView(message.TransferId, completedViewBytes);
-                return;
-            }
-            if (awaitingInitialState && !message.IsInitial) return;
-            if (message.TransferId > latestReceivedViewTransfer)
-            {
-                if (viewAssembler.IsReceiving && (!message.IsInitial || message.Offset != 0))
-                { BeginViewResynchronization(); return; }
-                viewAssembler.Reset();
-                latestReceivedViewTransfer = message.TransferId;
-            }
-            if (!viewAssembler.TryAppend(message.TransferId, message.IsInitial, message.TotalBytes,
-                message.Offset, message.Payload, out var completed))
-            { BeginViewResynchronization(); return; }
-            viewReceiveDeadline = Time.unscaledTime + ViewProgressTimeout;
-            if (completed == null)
-            {
-                AcknowledgeView(message.TransferId, viewAssembler.ReceivedBytes);
-                return;
-            }
-            try
-            {
-                if (!TryApplyViewSnapshot(ViewUtf8.GetString(completed), message.IsInitial)) return;
-            }
-            catch (Exception error) when (error is DecoderFallbackException || error is JsonException)
-            { BeginViewResynchronization(); return; }
-            completedViewTransfer = message.TransferId;
-            completedViewBytes = message.TotalBytes;
-            commandConfirmationDeadline = Time.unscaledTime + CommandConfirmationTimeout;
-            AcknowledgeView(message.TransferId, message.TotalBytes);
-        }
-
-        private bool TryApplyViewSnapshot(string json, bool initial)
-        {
-            InitialGameStateViewDto first = null;
-            ConfirmedGameStateViewDto confirmed = null;
-            bool valid = initial
-                ? GameStateViewProtocol.TryReadInitial(json, session.State.RuleConfiguration, session.State.LaunchPlayerOrder, out first)
-                : GameStateViewProtocol.TryReadConfirmed(json, session.State.RuleConfiguration, session.State.LaunchPlayerOrder, out confirmed);
-            if (!valid)
-            { Debug.LogError("room_protocol_mismatch"); NetworkClient.Disconnect(); return false; }
-            var view = first?.View ?? confirmed.View;
-            if (!IsCurrentClientView(view) || confirmed?.Command != null && confirmed.Command.PlayerId != localPlayerId)
-            { BeginViewResynchronization(); return false; }
-            // 旧确认只走原有 pending 确认分支，不能把过期历史重新拼到当前视图。
-            if (!initial && confirmed.Sequence < dispatcher.NextExpectedConfirmedSequence)
-                return ApplyAcceptedState(confirmed);
-            var history = JsonConvert.DeserializeObject<ViewSnapshotPayload>(json)?.History;
-            if (history == null || initial && !history.Reset || !receivedViewHistory.TryRestore(view, history))
-            { BeginViewResynchronization(); return false; }
-            if (!initial) return ApplyAcceptedState(confirmed);
-            bool applied = ApplyInitialState(first);
-            if (!applied) BeginViewResynchronization();
-            return applied;
-        }
-
-        private void AcknowledgeView(long transferId, int nextOffset)
-        {
-            if (NetworkClient.isConnected)
-                NetworkClient.Send(new GameStateViewAcknowledgmentMessage {
-                    TransferId = transferId, NextOffset = nextOffset, ConnectionToken = clientConnectionToken
-                }, Channels.Reliable);
-        }
-
-        private void ResetViewReception()
-        {
-            viewAssembler.Reset(); receivedViewHistory.Reset();
-            latestReceivedViewTransfer = completedViewTransfer = 0;
-            completedViewBytes = 0; viewReceiveDeadline = 0f;
-        }
-
-        private void BeginViewResynchronization()
-        {
-            viewAssembler.Reset(); receivedViewHistory.Reset();
-            awaitingInitialState = true;
-            initialViewRequestId++;
-            MarkGameStateSynchronized(localPlayerId, false);
-            RequestInitialState();
-        }
-
-        private void OnViewClientDisconnected()
-        {
-            if (checkpointChannel != null) return;
-            ResetViewReception();
-            clientConnectionToken = null;
-            awaitingInitialState = !HasCompletedSettlement;
-            MarkGameStateSynchronized(localPlayerId, false);
-        }
-
-        private void OnInitialState(InitialStateMessage message)
-        {
-            if (checkpointChannel != null) return;
-            if (NetworkServer.active) return;
-            if (!IsCurrentClientConnection(message.ConnectionToken)) return;
-            if (message.ProtocolVersion != SteamLobbyPolicy.ProtocolVersion)
-            {
-                Debug.LogError("对局协议版本不兼容，请所有玩家使用同一构建。");
-                NetworkClient.Disconnect();
-                return;
-            }
-            if (!GameStateViewProtocol.TryReadInitial(message.Json, session.State.RuleConfiguration, session.State.LaunchPlayerOrder, out var snapshot))
-            { Debug.LogError("room_protocol_mismatch"); NetworkClient.Disconnect(); return; }
-            ApplyInitialState(snapshot);
-        }
-
-        private bool ApplyInitialState(InitialGameStateViewDto snapshot)
-        {
-            if (snapshot?.View == null || string.IsNullOrEmpty(session.State.GameId) ||
-                snapshot.View.GameId != session.State.GameId || session.State.RandomRuntime == null ||
-                snapshot.View.MapId != session.State.MapId ||
-                snapshot.View.Players.Count != session.State.Players.Count ||
-                snapshot.View.ViewerRole != GameStateViewerRole.Player || snapshot.View.ViewerPlayerId != localPlayerId ||
-                !string.IsNullOrEmpty(pendingGameId) && snapshot.View.GameId != pendingGameId)
-            {
-                Debug.LogError("权威开局地图或人数与当前房间不一致，已拒绝同步。");
-                NetworkClient.Disconnect();
-                return false;
-            }
-            var result = dispatcher.ApplyInitialStateViewSynchronization(snapshot);
-            ObserveCommandConfirmation("initial_apply_result", snapshot.View.GameId, applyResult: result);
-            if (result.Succeeded)
-            {
-                // 快照可能在本地命令发送前已排入可靠队列，不能把它当作该命令的确认。
-                awaitingInitialState = false;
-                MarkGameStateSynchronized(localPlayerId, true);
-                if (NetworkClient.isConnected)
-                    NetworkClient.Send(new InitialStateAppliedMessage { PlayerId = localPlayerId, ConnectionToken = clientConnectionToken });
-                InitialStateViewApplied?.Invoke(snapshot);
-                commandConfirmationDeadline = Time.unscaledTime + CommandConfirmationTimeout;
-                nextCommandOutcomeRequestTime = 0f;
-                TryCompleteRecoveredOutcome();
-                RequestCommandOutcome();
-            }
-            return result.Succeeded;
-        }
-
-        private void OnAccepted(AcceptedCommandMessage message)
-        {
-            if (checkpointChannel != null) return;
-            if (NetworkServer.active) return;
-            if (!IsCurrentClientConnection(message.ConnectionToken)) return;
-            if (!GameStateViewProtocol.TryReadConfirmed(message.Json, session.State.RuleConfiguration, session.State.LaunchPlayerOrder, out var confirmed))
-            { Debug.LogError("room_protocol_mismatch"); NetworkClient.Disconnect(); return; }
-            ApplyAcceptedState(confirmed);
-        }
-
-        private bool ApplyAcceptedState(ConfirmedGameStateViewDto confirmed)
-        {
-            if (!IsCurrentClientView(confirmed.View)) return false;
-            if (confirmed.Command != null && confirmed.Command.PlayerId != localPlayerId) return false;
-            bool acknowledgedPendingCommand = MatchesPending(confirmed.View.GameId,
-                confirmed.Command?.PlayerId ?? -1, confirmed.Command?.CommandId);
-            ObserveCommandConfirmation("accepted_received", confirmed.View.GameId,
-                confirmed.Command?.CommandId, confirmed.Sequence, acknowledgedPendingCommand);
-            // 较新的完整快照可能已经覆盖此确认；重复确认不应再触发补同步。
-            if (confirmed.Sequence < dispatcher.NextExpectedConfirmedSequence)
-            {
-                if (acknowledgedPendingCommand && dispatcher.IsInitialStateSynchronized)
-                {
-                    recoveredOutcome = AcceptedOutcome(confirmed);
-                    TryCompleteRecoveredOutcome();
-                }
-                return true;
-            }
-            var result = dispatcher.ApplyConfirmedStateViewSynchronization(confirmed);
-            ObserveCommandConfirmation("accepted_apply_result", confirmed.View.GameId,
-                confirmed.Command?.CommandId, confirmed.Sequence, acknowledgedPendingCommand, result);
-            if (result.Succeeded)
-            {
-                if (acknowledgedPendingCommand) ClearPendingCommand();
-                awaitingInitialState = false;
-                ConfirmedStateViewApplied?.Invoke(confirmed);
-                TryCompleteRecoveredOutcome();
-            }
-            else
-            {
-                if (acknowledgedPendingCommand) recoveredOutcome = AcceptedOutcome(confirmed);
-                BeginViewResynchronization();
-            }
-            return result.Succeeded;
-        }
-
-        private void OnRejected(RejectedCommandMessage message)
-        {
-            if (checkpointChannel != null) return;
-            if (NetworkServer.active) return;
-            if (!IsCurrentClientConnection(message.ConnectionToken)) return;
-            var rejected = JsonConvert.DeserializeObject<RejectedGameCommandDto>(message.Json);
-            if (rejected?.Command == null || !MatchesPending(message.GameId, rejected.Command.PlayerId, rejected.Command.CommandId)) return;
-            recoveredOutcome = new CommandAuthorityOutcome { GameId = message.GameId, PlayerId = rejected.Command.PlayerId,
-                CommandId = rejected.Command.CommandId, Outcome = CommandAuthorityOutcomeKind.Rejected,
-                StateRevision = message.StateRevision, ErrorCode = rejected.ErrorCode, Reason = rejected.Reason };
-            TryCompleteRecoveredOutcome();
-        }
+        private static float ReadUnscaledTime() => Time.unscaledTime;
 
         private bool IsCurrentClientConnection(string token) => !string.IsNullOrEmpty(clientConnectionToken) &&
             string.Equals(token, clientConnectionToken, StringComparison.Ordinal);
 
-        private bool IsCurrentClientView(GameStateView view) => view != null &&
-            view.GameId == (session.View?.GameId ?? session.State.GameId) &&
-            view.ViewerRole == GameStateViewerRole.Player && view.ViewerPlayerId == localPlayerId;
-
-        private bool MatchesPending(string gameId, int playerId, string commandId) => pendingCommand != null &&
-            !string.IsNullOrEmpty(pendingCommandId) && !string.IsNullOrEmpty(commandId) && playerId == localPlayerId &&
-            pendingCommand.PlayerId == playerId && string.Equals(commandId, pendingCommandId, StringComparison.Ordinal) &&
-            string.Equals(gameId, pendingGameId, StringComparison.Ordinal);
-
-        private static CommandAuthorityOutcome AcceptedOutcome(ConfirmedGameStateViewDto confirmed) =>
-            new CommandAuthorityOutcome { GameId = confirmed.View.GameId, PlayerId = confirmed.Command.PlayerId,
-                CommandId = confirmed.Command.CommandId, Outcome = CommandAuthorityOutcomeKind.Accepted,
-                AcceptedSequence = confirmed.Sequence, StateRevision = confirmed.View.StateRevision };
-
-        private void OnCommandOutcome(CommandOutcomeMessage message)
-        {
-            if (checkpointChannel != null) return;
-            if (NetworkServer.active || !IsCurrentClientConnection(message.ConnectionToken)) return;
-            var outcome = JsonConvert.DeserializeObject<CommandAuthorityOutcome>(message.Json);
-            if (outcome == null || outcome.ProtocolVersion != CommandAuthorityOutcome.CurrentProtocolVersion ||
-                !MatchesPending(outcome.GameId, outcome.PlayerId, outcome.CommandId)) return;
-            if (outcome.Outcome == CommandAuthorityOutcomeKind.Unknown)
-            {
-                ObserveCommandConfirmation("command_result_unknown", outcome.GameId, outcome.CommandId, exactPendingMatched: true);
-                return;
-            }
-            if (outcome.StateRevision < 0 || outcome.Outcome != CommandAuthorityOutcomeKind.Accepted &&
-                outcome.Outcome != CommandAuthorityOutcomeKind.Rejected ||
-                outcome.Outcome == CommandAuthorityOutcomeKind.Accepted && outcome.AcceptedSequence <= 0) return;
-            recoveredOutcome = outcome;
-            TryCompleteRecoveredOutcome();
-        }
-
-        private void TryCompleteRecoveredOutcome()
-        {
-            var outcome = recoveredOutcome;
-            if (outcome == null || awaitingInitialState || !dispatcher.IsInitialStateSynchronized ||
-                !MatchesPending(outcome.GameId, outcome.PlayerId, outcome.CommandId) || !IsCurrentClientView(session.View)) return;
-            if (session.View.StateRevision < outcome.StateRevision ||
-                outcome.Outcome == CommandAuthorityOutcomeKind.Accepted && dispatcher.NextExpectedConfirmedSequence <= outcome.AcceptedSequence)
-            {
-                BeginViewResynchronization();
-                return;
-            }
-            var command = pendingCommand;
-            ObserveCommandConfirmation(outcome.Outcome == CommandAuthorityOutcomeKind.Accepted ? "command_result_accepted" : "command_result_rejected",
-                outcome.GameId, outcome.CommandId, outcome.AcceptedSequence, true);
-            ClearPendingCommand();
-            awaitingInitialState = false;
-            if (outcome.Outcome == CommandAuthorityOutcomeKind.Accepted)
-                CoveredCommandAcknowledged?.Invoke(new ConfirmedGameStateViewDto {
-                    Sequence = outcome.AcceptedSequence, Command = command, View = session.View });
-            else
-                CommandRejected?.Invoke(new RejectedGameCommandDto { Command = command,
-                    ErrorCode = outcome.ErrorCode, Reason = outcome.Reason });
-        }
-
-        private void ClearPendingCommand()
-        {
-            pendingCommandId = null;
-            pendingGameId = null;
-            pendingCommand = null;
-            recoveredOutcome = null;
-            nextCommandOutcomeRequestTime = 0f;
-        }
-
-        private void RequestCommandOutcome()
-        {
-            if (!NetworkClient.isConnected || awaitingInitialState || pendingCommand == null ||
-                !dispatcher.IsInitialStateSynchronized) return;
-            float now = ReadUnscaledTime();
-            if (now < nextCommandOutcomeRequestTime) return;
-            NetworkClient.Send(new CommandOutcomeRequestMessage { GameId = pendingGameId, PlayerId = localPlayerId,
-                CommandId = pendingCommandId, ConnectionToken = clientConnectionToken });
-            nextCommandOutcomeRequestTime = now + InitialStateRequestInterval;
-            ObserveCommandConfirmation("command_result_requested", pendingGameId, pendingCommandId);
-        }
-
-        private void RequestInitialState()
-        {
-            if (checkpointChannel != null) return;
-            if (!NetworkClient.isConnected) return;
-            float now = ReadUnscaledTime();
-            if (now < nextInitialStateRequestTime) return;
-            NetworkClient.Send(new InitialStateRequestMessage { ConnectionToken = clientConnectionToken, RequestId = initialViewRequestId });
-            nextInitialStateRequestTime = now + InitialStateRequestInterval;
-        }
-
-        // 未连接时不进入Unity原生时钟；实际连接的节流继续使用同一unscaledTime。
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
-        private static float ReadUnscaledTime() => Time.unscaledTime;
-
         private void OnLocalClientConnected()
         {
-            if (checkpointChannel != null)
-            {
-                clientConnectionToken = Guid.NewGuid().ToString("N"); nextCheckpointRequestTime = 0f;
-                nextConfirmedRecoveryRequestTime = 0f;
-                confirmedRecoveryRequestPending = simulationOptions != null && simulationCoordinator != null;
-                protocolHost.Reset(); ResetConfirmedRecoveryReceive();
-                if (simulationOptions != null && simulationCoordinator != null)
-                { checkpointHostConnection = NetworkClient.connection; RequestConfirmedRecovery(); }
-                else { BindCheckpointHost(); RequestCheckpoint(); }
-                return;
-            }
-            // 新连接先同步，再按同局本人命令身份只读查回结果；未知业务命令不重发。
-            ObserveCommandConfirmation("connection_pending_retained");
-            clientConnectionToken = Guid.NewGuid().ToString("N");
-            ResetViewReception();
-            initialViewRequestId = 1;
-            awaitingInitialState = true;
-            nextInitialStateRequestTime = 0f;
-            nextCommandOutcomeRequestTime = 0f;
-            RequestInitialState();
-        }
-
-        private void ObserveCommandConfirmation(string branch, string receivedGameId = null,
-            string commandId = null, int? sequence = null, bool? exactPendingMatched = null,
-            CommandResult applyResult = null)
-        {
-            var observers = CommandConfirmationObserved;
-            if (observers == null) return;
-            var diagnostic = new LocalCommandConfirmationDiagnostic(branch,
-                session?.View?.GameId ?? session?.State?.GameId, receivedGameId, commandId, pendingCommandId,
-                sequence, dispatcher?.NextExpectedConfirmedSequence, dispatcher?.IsInitialStateSynchronized,
-                exactPendingMatched, applyResult);
-            foreach (Action<LocalCommandConfirmationDiagnostic> observer in observers.GetInvocationList())
-            {
-                try { observer(diagnostic); }
-                catch (Exception error) { Debug.LogException(error); }
-            }
+            if (checkpointChannel == null) return;
+            clientConnectionToken = Guid.NewGuid().ToString("N"); nextCheckpointRequestTime = 0f;
+            nextConfirmedRecoveryRequestTime = 0f;
+            confirmedRecoveryRequestPending = simulationCoordinator != null;
+            protocolHost.Reset(); ResetConfirmedRecoveryReceive();
+            if (simulationCoordinator != null)
+            { checkpointHostConnection = NetworkClient.connection; RequestConfirmedRecovery(); }
+            else { BindCheckpointHost(); RequestCheckpoint(); }
         }
 
         private void RegisterClientMessages()
         {
-            if (mode != LaunchMode.Client) return;
-            if (checkpointChannel != null)
-            {
-                RegisterCheckpointClientMessages();
-                NetworkClient.OnConnectedEvent -= OnLocalClientConnected;
-                NetworkClient.OnConnectedEvent += OnLocalClientConnected;
-                clientConnectionToken = Guid.NewGuid().ToString("N"); nextCheckpointRequestTime = 0f;
-                nextConfirmedRecoveryRequestTime = 0f;
-                if (simulationOptions != null && simulationCoordinator != null)
-                {
-                    checkpointHostConnection = NetworkClient.connection; checkpointInstallationSent = false;
-                    protocolHost.Reset(); ResetConfirmedRecoveryReceive();
-                    if (NetworkClient.isConnected) OnLocalClientConnected();
-                }
-                else BindCheckpointHost();
-                return;
-            }
-            ResetViewReception();
-            initialViewRequestId = 1;
-            NetworkClient.RegisterHandler<GameStateViewPartMessage>(OnStateViewPart, false);
-            NetworkClient.RegisterHandler<RejectedCommandMessage>(OnRejected, false);
-            NetworkClient.RegisterHandler<CommandOutcomeMessage>(OnCommandOutcome, false);
+            if (mode != LaunchMode.Client || checkpointChannel == null) return;
+            RegisterCheckpointClientMessages();
             NetworkClient.OnConnectedEvent -= OnLocalClientConnected;
             NetworkClient.OnConnectedEvent += OnLocalClientConnected;
-            NetworkClient.OnDisconnectedEvent -= OnViewClientDisconnected;
-            NetworkClient.OnDisconnectedEvent += OnViewClientDisconnected;
-            awaitingInitialState = true;
-            clientConnectionToken = Guid.NewGuid().ToString("N");
-            nextInitialStateRequestTime = 0f;
+            clientConnectionToken = Guid.NewGuid().ToString("N"); nextCheckpointRequestTime = 0f;
+            nextConfirmedRecoveryRequestTime = 0f;
+            if (simulationCoordinator != null)
+            {
+                checkpointHostConnection = NetworkClient.connection; checkpointInstallationSent = false;
+                protocolHost.Reset(); ResetConfirmedRecoveryReceive();
+                if (NetworkClient.isConnected) OnLocalClientConnected();
+            }
+            else BindCheckpointHost();
         }
 
         private void RegisterCheckpointClientMessages()
@@ -1272,7 +511,7 @@ namespace YC.Infrastructure.Multiplayer
             float now = ReadUnscaledTime(); if (now < nextCheckpointRequestTime) return;
             NetworkClient.Send(new SimulationCheckpointRequestMessage { EnvelopeJson = JsonConvert.SerializeObject(checkpointChannel.Identity),
                 PlayerId = localPlayerId, ConnectionToken = clientConnectionToken }, Channels.Reliable);
-            nextCheckpointRequestTime = now + InitialStateRequestInterval;
+            nextCheckpointRequestTime = now + CheckpointRequestInterval;
         }
 
         private bool IsBoundCheckpointClient(NetworkConnectionToClient connection, int playerId) =>
@@ -1584,7 +823,7 @@ namespace YC.Infrastructure.Multiplayer
                 if (checkpointHostConnection == null || !ReferenceEquals(checkpointHostConnection, NetworkClient.connection))
                     checkpointHostConnection = NetworkClient.connection;
                 float now = ReadUnscaledTime(); if (now < nextConfirmedRecoveryRequestTime) return;
-                nextConfirmedRecoveryRequestTime = now + InitialStateRequestInterval;
+                nextConfirmedRecoveryRequestTime = now + CheckpointRequestInterval;
                 var request = new SimulationRecoveryNoticeDto { GameId = simulationOptions.GameId, SimulationEpoch = simulationOptions.SimulationEpoch + 1,
                     SourceSimulationEpoch = simulationOptions.SimulationEpoch, MembershipVersion = simulationOptions.MembershipVersion, Phase = SimulationRecoveryPhase.Request };
                 SendRecoveryClient(request);

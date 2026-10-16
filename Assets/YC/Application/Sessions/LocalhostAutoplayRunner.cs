@@ -68,10 +68,6 @@ namespace YC.Application.DevTools
             var seats = CreateJoinedSeats(playerCount);
             var eventDeckSeed = explicitSeed ?? GameplayRandomSeed.CreateMatchSeed();
             var session = CreateHostSession(map, seats, eventDeckSeed, configureContentRules);
-            var dispatcher = new AuthoritativeCommandDispatcher(session);
-            var acceptedCommands = 0;
-            dispatcher.CommandAccepted += _ => acceptedCommands++;
-            RegisterClientSeats(dispatcher, seats);
 
             var result = new LocalhostAutoplayResult
             {
@@ -82,7 +78,7 @@ namespace YC.Application.DevTools
             };
             CaptureAutoplaySpecialActionFixtures(session.State, result);
 
-            if (SubmitInitialPlacements(dispatcher, session.State, result) && LoopEndActions(dispatcher, session.State, result))
+            if (SubmitInitialPlacements(session, session.State, result) && LoopEndActions(session, session.State, result))
             {
                 var reachedFinalScoring =
                     session.State.Round == 8 && session.State.Phase == GamePhase.FinalScoring;
@@ -108,7 +104,6 @@ namespace YC.Application.DevTools
                 }
             }
 
-            result.AcceptedCommands = acceptedCommands;
             result.Snapshot = BuildSnapshot(result);
             return result;
         }
@@ -433,7 +428,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool SubmitInitialPlacements(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             LocalhostAutoplayResult result)
         {
@@ -441,7 +436,7 @@ namespace YC.Application.DevTools
             for (var i = 0; i < initialLocations.Length; i++)
             {
                 var playerId = i + 1;
-                if (!SubmitCommand(dispatcher, CreateCommand(
+                if (!SubmitCommand(session, CreateCommand(
                     "autoplay-place-" + playerId,
                     GameCommandKind.ChooseInitialLocation,
                     playerId,
@@ -454,7 +449,7 @@ namespace YC.Application.DevTools
                 while (state.Phase == GamePhase.Entrance && state.CurrentPlayerId == playerId &&
                     state.HasOpenActionableInteraction())
                 {
-                    if (result.SubmittedCommands >= 320 || !TrySubmitAutoplayInteraction(dispatcher, state, result))
+                    if (result.SubmittedCommands >= 320 || !TrySubmitAutoplayInteraction(session, state, result))
                     {
                         return false;
                     }
@@ -471,7 +466,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool LoopEndActions(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             LocalhostAutoplayResult result)
         {
@@ -486,7 +481,7 @@ namespace YC.Application.DevTools
 
                 if (state.HasOpenActionableInteraction() && !HasDeferredResourceCollectionCompletion(state))
                 {
-                    if (!TrySubmitAutoplayInteraction(dispatcher, state, result))
+                    if (!TrySubmitAutoplayInteraction(session, state, result))
                     {
                         return false;
                     }
@@ -496,7 +491,7 @@ namespace YC.Application.DevTools
 
                 if (state.HasPendingChoice() && !HasDeferredResourceCollectionCompletion(state))
                 {
-                    if (!TrySubmitAutoplayPendingChoice(dispatcher, state, result))
+                    if (!TrySubmitAutoplayPendingChoice(session, state, result))
                     {
                         return false;
                     }
@@ -506,7 +501,7 @@ namespace YC.Application.DevTools
 
                 if (state.Phase == GamePhase.CharacterCover)
                 {
-                    if (!SubmitCharacterCovers(dispatcher, state, result))
+                    if (!SubmitCharacterCovers(session, state, result))
                     {
                         return false;
                     }
@@ -517,7 +512,7 @@ namespace YC.Application.DevTools
                 if (state.Phase == GamePhase.ResourceCollection)
                 {
                     int submittedBeforeCollection = result.SubmittedCommands;
-                    if (!SubmitResourceCollection(dispatcher, state, result))
+                    if (!SubmitResourceCollection(session, state, result))
                     {
                         return false;
                     }
@@ -535,7 +530,7 @@ namespace YC.Application.DevTools
                     var cleanupPlayerId = state.CurrentPlayerId > 0
                         ? state.CurrentPlayerId
                         : state.StartPlayerId;
-                    if (!SubmitCommand(dispatcher, CreateCommand(
+                    if (!SubmitCommand(session, CreateCommand(
                         "autoplay-cleanup-r" + state.Round + "-p" + cleanupPlayerId,
                         GameCommandKind.EndAction,
                         cleanupPlayerId,
@@ -560,7 +555,7 @@ namespace YC.Application.DevTools
                     return false;
                 }
 
-                if (!TrySubmitAutoplayCharacterCard(dispatcher, state, player, result))
+                if (!TrySubmitAutoplayCharacterCard(session, state, player, result))
                 {
                     return false;
                 }
@@ -572,13 +567,13 @@ namespace YC.Application.DevTools
                     continue;
                 }
 
-                if (!TrySubmitAutoplayCityStyle(dispatcher, state, player, result))
+                if (!TrySubmitAutoplayCityStyle(session, state, player, result))
                 {
                     return false;
                 }
 
                 if (!player.ActedMainActionThisTurn &&
-                    !TrySubmitAutoplayMainAction(dispatcher, state, player, result))
+                    !TrySubmitAutoplayMainAction(session, state, player, result))
                 {
                     if (!string.IsNullOrEmpty(result.FailureReason)) return false;
                     player.ActedMainActionThisTurn = true;
@@ -594,7 +589,7 @@ namespace YC.Application.DevTools
                     continue;
                 }
 
-                if (!SubmitCommand(dispatcher, CreateCommand(
+                if (!SubmitCommand(session, CreateCommand(
                     "autoplay-end-r" + state.Round + "-a" + state.ActionRound + "-p" + state.CurrentPlayerId,
                     GameCommandKind.EndAction,
                     state.CurrentPlayerId,
@@ -656,7 +651,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool SubmitCharacterCovers(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             LocalhostAutoplayResult result)
         {
@@ -689,7 +684,7 @@ namespace YC.Application.DevTools
                     player.PlayerId,
                     cardId);
                 command.Parameters[CoverCharacterCardCommandHandler.CardIdParameter] = cardId;
-                if (!SubmitCommand(dispatcher, command, result))
+                if (!SubmitCommand(session, command, result))
                 {
                     return false;
                 }
@@ -729,7 +724,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool TrySubmitAutoplayPendingChoice(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             LocalhostAutoplayResult result)
         {
@@ -752,7 +747,7 @@ namespace YC.Application.DevTools
                 }
 
                 return SubmitSpecialActionResolution(
-                    dispatcher,
+                    session,
                     state,
                     result,
                     specialActionCommand,
@@ -774,12 +769,12 @@ namespace YC.Application.DevTools
                 command.OptionIds.Add(optionId);
                 return pendingSpecialAction != null && pendingSpecialAction.IsValid()
                     ? SubmitSpecialActionResolution(
-                        dispatcher,
+                        session,
                         state,
                         result,
                         command,
                         pendingSpecialAction)
-                    : SubmitCommand(dispatcher, command, result);
+                    : SubmitCommand(session, command, result);
             }
 
             result.FailureReason = "自动跑局遇到未处理选择：" +
@@ -788,7 +783,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool TrySubmitAutoplayInteraction(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             LocalhostAutoplayResult result,
             string preferredCandidateId = null,
@@ -877,7 +872,7 @@ namespace YC.Application.DevTools
                 command.Parameters[AnswerInteractionCommandHandler.AnswerValueParameter] = bool.TrueString;
             }
 
-            if (!SubmitCommand(dispatcher, command, result)) return false;
+            if (!SubmitCommand(session, command, result)) return false;
 
             RefreshAutoplayCharacterCardCompletionEvidence(state, result);
 
@@ -1060,7 +1055,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool SubmitSpecialActionResolution(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             LocalhostAutoplayResult result,
             GameCommand command,
@@ -1071,7 +1066,7 @@ namespace YC.Application.DevTools
             var declarationMarkerId = pending.DeclarationMarkerId;
             var sourceCommandId = pending.SourceCommandId;
             var previousStep = pending.Step;
-            if (!SubmitCommand(dispatcher, command, result))
+            if (!SubmitCommand(session, command, result))
             {
                 return false;
             }
@@ -1097,7 +1092,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool TrySubmitAutoplayCharacterCard(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             PlayerState player,
             LocalhostAutoplayResult result)
@@ -1133,7 +1128,7 @@ namespace YC.Application.DevTools
             command.Parameters[CharacterEffectParameterKeys.ResourceType] = resourceId;
 
             result.CharacterCardUseAttempts++;
-            if (!SubmitCommand(dispatcher, command, result))
+            if (!SubmitCommand(session, command, result))
             {
                 return false;
             }
@@ -1203,12 +1198,12 @@ namespace YC.Application.DevTools
         }
 
         private static bool TrySubmitAutoplayMainAction(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             PlayerState player,
             LocalhostAutoplayResult result)
         {
-            if (TrySubmitAutoplaySpecialAction(dispatcher, state, player, result))
+            if (TrySubmitAutoplaySpecialAction(session, state, player, result))
             {
                 return true;
             }
@@ -1219,19 +1214,19 @@ namespace YC.Application.DevTools
                  !player.BuiltFacilityIds.Contains(FormalSupplyRedFacilityId));
 
             if (!prioritizeLevelOneBuild && result.ExploreLocationSuccesses < RequiredExploreSuccesses &&
-                TrySubmitAutoplayExplore(dispatcher, state, player, result))
+                TrySubmitAutoplayExplore(session, state, player, result))
             {
                 return true;
             }
 
             if (!prioritizeLevelOneBuild && result.MoveCitySuccesses < RequiredMoveCitySuccesses &&
-                TrySubmitAutoplayMoveCity(dispatcher, state, player, result))
+                TrySubmitAutoplayMoveCity(session, state, player, result))
             {
                 return true;
             }
 
             if (!prioritizeLevelOneBuild && result.DispatchInfluenceSuccesses < RequiredDispatchInfluenceSuccesses &&
-                TrySubmitAutoplayDispatchInfluence(dispatcher, state, player, result))
+                TrySubmitAutoplayDispatchInfluence(session, state, player, result))
             {
                 return true;
             }
@@ -1239,7 +1234,7 @@ namespace YC.Application.DevTools
             var facilityId = FindAffordableFacility(state, player);
             if (string.IsNullOrEmpty(facilityId))
             {
-                return TrySubmitAutoplayDeployInfluence(dispatcher, state, player, result);
+                return TrySubmitAutoplayDeployInfluence(session, state, player, result);
             }
 
             var slotIndex = ResolveAutoplayFacilitySlot(state, player, facilityId);
@@ -1259,7 +1254,7 @@ namespace YC.Application.DevTools
 
             result.BuildFacilityAttempts++;
             var beforeBuiltCount = player.BuiltFacilityIds.Count;
-            if (!SubmitCommand(dispatcher, command, result))
+            if (!SubmitCommand(session, command, result))
             {
                 return false;
             }
@@ -1278,7 +1273,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool TrySubmitAutoplayCityStyle(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             PlayerState player,
             LocalhostAutoplayResult result)
@@ -1321,7 +1316,7 @@ namespace YC.Application.DevTools
 
             result.DeclareCityStyleAttempts++;
             var beforeCount = player.DeclaredCityStyles.Count;
-            if (!SubmitCommand(dispatcher, command, result))
+            if (!SubmitCommand(session, command, result))
             {
                 return false;
             }
@@ -1341,7 +1336,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool TrySubmitAutoplaySpecialAction(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             PlayerState player,
             LocalhostAutoplayResult result)
@@ -1401,7 +1396,7 @@ namespace YC.Application.DevTools
             }
 
             result.SpecialActionAttempts++;
-            if (!SubmitCommand(dispatcher, command, result))
+            if (!SubmitCommand(session, command, result))
             {
                 return false;
             }
@@ -1560,7 +1555,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool TrySubmitAutoplayExplore(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             PlayerState player,
             LocalhostAutoplayResult result)
@@ -1608,7 +1603,7 @@ namespace YC.Application.DevTools
 
                 result.ExploreLocationAttempts++;
                 var beforeResourceTokenCount = state.Map.ResourceTokens.Count;
-                if (!SubmitCommand(dispatcher, command, result))
+                if (!SubmitCommand(session, command, result))
                 {
                     return false;
                 }
@@ -1701,7 +1696,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool TrySubmitAutoplayMoveCity(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             PlayerState player,
             LocalhostAutoplayResult result)
@@ -1747,7 +1742,7 @@ namespace YC.Application.DevTools
 
                 result.MoveCityAttempts++;
                 var sourceLocationId = player.CityLocationId;
-                if (!SubmitCommand(dispatcher, command, result))
+                if (!SubmitCommand(session, command, result))
                 {
                     return false;
                 }
@@ -1807,7 +1802,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool TrySubmitAutoplayDispatchInfluence(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             PlayerState player,
             LocalhostAutoplayResult result)
@@ -1835,7 +1830,7 @@ namespace YC.Application.DevTools
                 string.Empty);
 
             result.DispatchInfluenceAttempts++;
-            if (!SubmitCommand(dispatcher, command, result))
+            if (!SubmitCommand(session, command, result))
             {
                 return false;
             }
@@ -1858,7 +1853,7 @@ namespace YC.Application.DevTools
                 string preferred = dispatchChoice && !skipFollowup
                     ? request.InteractionTypeId == InfluenceDispatchActionEffectExecutor.SourceInteractionTypeId ? sourceItemId : targetSlotId
                     : null;
-                if (!TrySubmitAutoplayInteraction(dispatcher, state, result, preferred, skipFollowup)) return false;
+                if (!TrySubmitAutoplayInteraction(session, state, result, preferred, skipFollowup)) return false;
                 dispatch = state.EffectRuntime.EffectNodes.FindLast(node => node.EffectId == dispatchId);
             }
 
@@ -1971,7 +1966,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool TrySubmitAutoplayDeployInfluence(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             PlayerState player,
             LocalhostAutoplayResult result)
@@ -1990,7 +1985,7 @@ namespace YC.Application.DevTools
 
             result.DeployInfluenceAttempts++;
             var beforeInfluenceCount = state.Map.Influences.Count;
-            if (!SubmitCommand(dispatcher, command, result))
+            if (!SubmitCommand(session, command, result))
             {
                 return false;
             }
@@ -2129,7 +2124,7 @@ namespace YC.Application.DevTools
         }
 
         private static bool SubmitResourceCollection(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameState state,
             LocalhostAutoplayResult result)
         {
@@ -2199,7 +2194,7 @@ namespace YC.Application.DevTools
 
                 var beforeGoldVoucher = player.Resources.GoldVoucher;
                 var beforeRecipientGoldVoucher = CaptureRecipientGoldVouchers(state, paidPlan);
-                if (!SubmitCommand(dispatcher, command, result))
+                if (!SubmitCommand(session, command, result))
                 {
                     return false;
                 }
@@ -2485,18 +2480,16 @@ namespace YC.Application.DevTools
         }
 
         private static bool SubmitCommand(
-            AuthoritativeCommandDispatcher dispatcher,
+            GameSession session,
             GameCommand command,
             LocalhostAutoplayResult result)
         {
             result.SubmittedCommands++;
-            var dto = GameCommandDto.FromCommand(command);
-            var commandResult = command.PlayerId == 1
-                ? dispatcher.SubmitHostCommand(dto)
-                : dispatcher.ReceiveClientCommand((ulong)command.PlayerId, dto);
+            var commandResult = session.Submit(command);
 
             if (commandResult.Succeeded)
             {
+                result.AcceptedCommands++;
                 return true;
             }
 
@@ -2526,17 +2519,6 @@ namespace YC.Application.DevTools
                 optionId);
             command.OptionIds.Add(optionId);
             return command;
-        }
-
-        private static void RegisterClientSeats(AuthoritativeCommandDispatcher dispatcher, IList<PlayerSeat> seats)
-        {
-            for (var i = 0; i < seats.Count; i++)
-            {
-                if (seats[i].PlayerId != 1)
-                {
-                    dispatcher.RegisterClientPlayer((ulong)seats[i].PlayerId, seats[i].PlayerId);
-                }
-            }
         }
 
         private static List<PlayerSeat> CreateJoinedSeats(int playerCount)

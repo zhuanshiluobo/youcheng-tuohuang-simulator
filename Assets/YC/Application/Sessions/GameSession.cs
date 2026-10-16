@@ -94,32 +94,6 @@ namespace YC.Application.Sessions
             InvalidateConfirmedRecovery();
         }
 
-        /// <summary>
-        /// 客户端只接收 view。兼容 Presenter 使用的 State 是由 view 重建的公开状态，
-        /// EffectRuntime 明确为 null，因而不会在客户端保留 Host 节点、receipt 或隐藏候选。
-        /// </summary>
-        public void ReplaceView(GameStateView view)
-        {
-            if (view == null) throw new ArgumentNullException(nameof(view));
-            if (State.RandomRuntime != null && State.GameId != view.GameId) throw new InvalidOperationException("random_game_id_mismatch");
-            GameState sanitized = GameStateViewProjector.ToClientState(view);
-            if (State.RandomRuntime != null)
-            {
-                sanitized.EventDeckSeed = State.EventDeckSeed;
-                sanitized.RandomRuntime = State.RandomRuntime.Clone();
-            }
-            if (State.ContentPackHash == view.ContentPackHash)
-            {
-                sanitized.ContentDefinitions = GameStateCloneService.DeepClone(State.ContentDefinitions);
-                sanitized.SetupRecipe = GameStateCloneService.DeepClone(State.SetupRecipe);
-            }
-            GameStateCloneService.CopyTo(State, sanitized);
-            View = view;
-            pendingActionLog = null;
-            ClearInvalidPendingChoice();
-            InvalidateConfirmedRecovery();
-        }
-
         public HostSessionArchiveDto CreateHostArchive(string contentHash = "")
         {
             return HostRecoveryService.CreateArchive(State, contentHash);

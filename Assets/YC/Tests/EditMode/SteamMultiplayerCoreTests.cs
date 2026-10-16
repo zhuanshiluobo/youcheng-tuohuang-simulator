@@ -544,14 +544,13 @@ namespace YC.Tests.EditMode
         public void CompletedSettlement_HostWaitsForClientsAndBothExitButtonsUseSafeReturn()
         {
             var source = ReadSource("YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs");
-            StringAssert.Contains("!awaitingInitialState", source);
+            StringAssert.Contains("initialized && session != null", source);
             StringAssert.Contains("session.State.FinalScoring.IsResolved", source);
             var detach = ExtractMethod(source, "public bool CanDetachCompletedSession", "public static MirrorCommandTransport Ensure");
             StringAssert.Contains("if (mode != LaunchMode.Host) return true;", detach);
             StringAssert.Contains("NetworkServer.connections.Values", detach);
             StringAssert.Contains("!(connection is LocalConnectionToClient)", detach);
-            var broadcast = ExtractMethod(source, "private void BroadcastAccepted", "private void SendRejected");
-            Assert.Less(broadcast.IndexOf("connection.Send"), broadcast.IndexOf("ConfirmedStateViewApplied?.Invoke"));
+            StringAssert.Contains("simulationCoordinator.ValidatedThroughSequence < simulationCoordinator.LastAppliedSequence", detach);
             StringAssert.Contains("GameLaunchContext.ReturnToStartScene", ReadSource("YC/Presentation/FinalScoreController.cs"));
             StringAssert.Contains("GameLaunchContext.ReturnToStartScene", ReadSource("YC/Presentation/GameSettingsMenuController.cs"));
         }

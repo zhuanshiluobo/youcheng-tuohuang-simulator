@@ -192,7 +192,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var registry = Registry(tacticType: "persistent", settlementSource: true); var state = State(); var cards = Ids(state, "hand", 1); Cover(state, registry, cards[0]); Use(state, registry, cards[0], "tactic"); Cover(state, registry, cards[1]); Use(state, registry, cards[1], "");
             var before = GameStateCloneService.DeepClone(state); var option = CharacterSettlementOptionQuery.GetOptions(state, 1, state.CharacterUses.Last().UseId).Single(); var projected = GameStateViewProjector.ProjectForPlayer(state, 1);
-            Assert.That(GameStateCloneService.AreEquivalent(state, before), Is.True); Assert.That(new InitialGameStateViewDto { View = projected }.SettlementOptions.Single().SourceItemId, Is.EqualTo(cards[0]));
+            Assert.That(GameStateCloneService.AreEquivalent(state, before), Is.True); Assert.That(SettlementOptionView.FromOption(projected.CharacterSettlementOptions.Single()).SourceItemId, Is.EqualTo(cards[0]));
             var session = new GameSession(state); session.RegisterHandler(new InvokeSettlementOptionCommandHandler(registry));
             Assert.That(session.Submit(EffectInteractionCommands.InvokeSettlementOption(2, option.OptionId, option.TargetUseId, option.StateRevision)).Succeeded, Is.False);
             Assert.That(session.Submit(EffectInteractionCommands.InvokeSettlementOption(1, option.OptionId, option.TargetUseId, option.StateRevision - 1)).Succeeded, Is.False); Assert.That(Ids(state, "persistent", 1), Does.Contain(cards[0]));

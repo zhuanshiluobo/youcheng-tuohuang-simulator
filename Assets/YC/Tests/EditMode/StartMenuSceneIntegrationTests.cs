@@ -15,7 +15,7 @@ namespace YC.Tests.EditMode
     public sealed class StartMenuSceneIntegrationTests
     {
         [Test]
-        public void StartScenePreservesRoomConfigurationAndDefersMatchSaves()
+        public void StartScenePreservesRoomConfigurationAndMatchSaveEntry()
         {
             WithScene("Assets/Scenes/StartScene.unity", scene =>
             {
@@ -25,7 +25,6 @@ namespace YC.Tests.EditMode
                     Is.True, arguments[0] as string);
                 var load = (Button)Property(view, "LoadGameButton");
                 Assert.That(load, Is.Not.Null);
-                Assert.That(load.gameObject.activeSelf, Is.False, "存读档暂缓期间不开放入口");
                 var room = Property(view, "RoomPanel");
                 foreach (var group in new[] { "maps", "ruleModes", "expansions", "seats" })
                     Assert.That(((Array)Field(room, group)).Length, Is.GreaterThan(0), group);

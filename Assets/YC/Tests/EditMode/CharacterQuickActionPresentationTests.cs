@@ -91,9 +91,11 @@ namespace YC.Tests.EditMode
             if (client)
             {
                 var session = new GameSession(GameStateCloneService.DeepClone(state));
-                session.ReplaceView(visible);
-                projectedState = session.State;
-                Assert.That(projectedState.EffectRuntime, Is.Null);
+                visible = session.RefreshLocalProjection(GameStateViewer.Player(1));
+                projectedState = SimulationUiTestShell.ReadState(session.State, visible, 1);
+                Assert.That(session.State.EffectRuntime, Is.Not.Null);
+                Assert.That(projectedState.EffectRuntime.EffectNodes, Is.Empty, "UI 读取壳不包含完整效果执行树。");
+                Assert.That(projectedState.EffectRuntime.InteractionRequests.All(request => request.AnsweringPlayerId == 1), Is.True);
             }
             var model = new CharacterCardPanelPresenter().BuildProjectedView(projectedState, 1, visible);
             var covered = model.CoveredCards.Single(card => card.CardId == model.CoveredCardId);

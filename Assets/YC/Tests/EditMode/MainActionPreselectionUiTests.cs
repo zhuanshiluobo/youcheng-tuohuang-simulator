@@ -492,7 +492,7 @@ namespace YC.Tests.EditMode
             private readonly object shell, previousTransport;
             public NativeExploreSimulation(NativeExploreScene native)
             {
-                var shellType = typeof(MainActionPreselectionUiTests).Assembly.GetType("YC.Tests.EditMode.CommandSubmissionAcknowledgmentTests", true);
+                var shellType = typeof(MainActionPreselectionUiTests).Assembly.GetType("YC.Tests.EditMode.SimulationUiTestShell", true);
                 shell = Activator.CreateInstance(shellType); var scenario = Call(shell, "Create");
                 (Read(scenario, "Controller") as IDisposable)?.Dispose();
                 (Read(native.Mobile, "commandSubmission") as IDisposable)?.Dispose();

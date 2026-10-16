@@ -173,8 +173,8 @@ namespace YC.Tests.EditMode
             Assert.That(host.HandCards.Count, Is.EqualTo(expansions == 0 ? 6 : expansions == 1 ? 8 : 9));
             Assert.That(host.HandCards.All(card => card.CanCover), Is.True);
             var client = new GameSession(GameStateCloneService.DeepClone(state));
-            client.ReplaceView(GameStateViewProjector.ProjectForPlayer(state, 1));
-            Assert.That(presenter.BuildView(client.State, 1).HandCards.Select(card => card.CardId), Is.EqualTo(expected));
+            var clientState = SimulationUiTestShell.ReadState(client.State, client.RefreshLocalProjection(GameStateViewer.Player(1)), 1);
+            Assert.That(presenter.BuildView(clientState, 1).HandCards.Select(card => card.CardId), Is.EqualTo(expected));
             Assert.That(JsonConvert.SerializeObject(state.ItemZones), Is.EqualTo(before));
             foreach (var template in new[] { "core.zone.character_discard", "core.zone.character_covered" })
             {
@@ -225,9 +225,11 @@ namespace YC.Tests.EditMode
             string firstCard = state.FindPlayer(1).HandCardIds[0];
             Assert.That(handler.Handle(state, new GameCommand { Kind = GameCommandKind.CoverCharacterCard, PlayerId = 1, TargetId = firstCard }).Succeeded, Is.True);
             var client = new GameSession(GameStateCloneService.DeepClone(state));
-            client.ReplaceView(GameStateViewProjector.ProjectForPlayer(state, 2));
-            Assert.That(client.State.EffectRuntime, Is.Null);
-            var clientView = presenter.BuildView(client.State, 2);
+            var clientState = SimulationUiTestShell.ReadState(client.State, client.RefreshLocalProjection(GameStateViewer.Player(2)), 2);
+            Assert.That(client.State.EffectRuntime, Is.Not.Null);
+            Assert.That(clientState.EffectRuntime.EffectNodes, Is.Empty, "UI 读取壳不包含完整效果执行树。");
+            Assert.That(clientState.EffectRuntime.InteractionRequests.All(request => request.AnsweringPlayerId == 2), Is.True);
+            var clientView = presenter.BuildView(clientState, 2);
             Assert.That(clientView.CanCover, Is.True);
             Assert.That(clientView.HandCards[0].DisplayName, Is.EqualTo("本局角色标题"));
             foreach (var seat in seats)

@@ -135,7 +135,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void NetworkStateDtos_AreDetachedFromAuthoritativeSession()
+        public void HostArchives_AreDetachedFromAuthoritativeSession()
         {
             GameState state = new GameState
             {
@@ -144,24 +144,20 @@ namespace YC.Tests.EditMode
             };
             var session = new GameSession(state);
             session.RegisterHandler(new MutatingHandler(true));
-            var dispatcher = new AuthoritativeCommandDispatcher(session);
-            InitialGameStateDto initial = dispatcher.CreateInitialStateSynchronization();
-
-            initial.State.Players[0].Score = 99;
+            var initial = session.CreateHostArchive(state.ContentPackHash);
+            initial.Snapshot.State.Players[0].Score = 99;
             Assert.That(session.State.Players[0].Score, Is.Zero);
-
-            ConfirmedGameCommandDto accepted = null;
-            dispatcher.CommandAccepted += dto => accepted = dto;
-            CommandResult result = dispatcher.SubmitHostCommand(new GameCommandDto
+            CommandResult result = session.Submit(new GameCommand
             {
-                CommandId = "command-network-boundary",
+                CommandId = "command-archive-boundary",
                 Kind = GameCommandKind.EndAction,
                 PlayerId = 1
             });
+            var accepted = session.CreateHostArchive(state.ContentPackHash);
 
             Assert.That(result.Succeeded, Is.True);
             Assert.That(accepted, Is.Not.Null);
-            accepted.State.Players[0].Score = 101;
+            accepted.Snapshot.State.Players[0].Score = 101;
             Assert.That(session.State.Players[0].Score, Is.EqualTo(5));
         }
 

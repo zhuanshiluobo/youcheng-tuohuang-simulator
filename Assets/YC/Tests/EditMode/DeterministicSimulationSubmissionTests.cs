@@ -20,6 +20,26 @@ namespace YC.Tests.EditMode
     public sealed class DeterministicSimulationSubmissionTests
     {
         [Test]
+        public void NetworkInitializationWithoutRegistryCannotFallBackOrMutateSimulation()
+        {
+            using (var client = new LaunchFixture(LaunchMode.Client))
+            {
+                var type = Type.GetType("YC.Presentation.CommandSubmissionController, Assembly-CSharp", true);
+                var controller = Activator.CreateInstance(type, new object[] { client.Session, client.Context, 1, null,
+                    new Action(() => { }), new Action<string>(_ => { }), new Action<string>(_ => { }), null, null });
+                using ((IDisposable)controller)
+                {
+                    string before = JsonConvert.SerializeObject(client.Session.State);
+                    var error = Assert.Throws<TargetInvocationException>(() => type.GetMethod("Initialize", Type.EmptyTypes).Invoke(controller, null));
+                    Assert.That(error.InnerException, Is.InstanceOf<InvalidOperationException>());
+                    Assert.That(type.GetProperty("CanSubmitForLocalPlayer").GetValue(controller), Is.False);
+                    Assert.That(JsonConvert.SerializeObject(client.Session.State), Is.EqualTo(before));
+                    Assert.That(client.Session.View, Is.Null);
+                }
+            }
+        }
+
+        [Test]
         public void GameplayEntryKeepsFrozenStartAndInstallsDeferredClientWithItsActualRegistry()
         {
             using (var host = new LaunchFixture(LaunchMode.Host))
@@ -93,6 +113,7 @@ namespace YC.Tests.EditMode
             public const string GameId = "simulation-gameplay-entry";
             public readonly string InitialGameId = GameId;
             public readonly string InitialRandomJson;
+            public readonly object Context;
             public readonly GameSession Session;
             public readonly EffectRegistry Registry;
             public LaunchFixture(LaunchMode mode)
@@ -100,7 +121,7 @@ namespace YC.Tests.EditMode
                 var contextType = Type.GetType("YC.Presentation.GameLaunchContext, Assembly-CSharp", true);
                 var bootstrapper = Type.GetType("YC.Presentation.GameSessionBootstrapper, Assembly-CSharp", true);
                 instance = contextType.GetProperty("Instance"); previous = instance.GetValue(null); instance.GetSetMethod(true).Invoke(null, new object[] { null });
-                gameObject = new GameObject("启动消费者检查"); var context = gameObject.AddComponent(contextType);
+                gameObject = new GameObject("启动消费者检查"); var context = Context = gameObject.AddComponent(contextType);
                 var random = GameplayRandomRuntime.Create(GameId); InitialRandomJson = JsonConvert.SerializeObject(random);
                 var config = new GameRuleConfiguration { MapId = StaticMapDefinitions.ThreePlayerMapId, PlayerCount = 2,
                     EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" } };

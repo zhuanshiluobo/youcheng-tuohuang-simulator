@@ -115,28 +115,8 @@ namespace YC.Presentation
         public void Initialize()
         {
             if (disposed || UsesDeterministicSimulation) throw new InvalidOperationException("submission_transport_mode_already_selected");
-            if (launchContext == null || launchContext.Mode == LaunchMode.Local)
-            {
-                return;
-            }
-
-            launchContext.OnlineSessionNotice -= OnOnlineSessionNotice;
-            launchContext.OnlineSessionNotice += OnOnlineSessionNotice;
-            sessionNoticeSubscribed = true;
-            if (launchContext.TryConsumeOnlineSessionNotice(out var notice))
-                setPrompt(notice);
-
-            try
-            {
-                AttachCommandTransport(MirrorCommandTransport.Ensure());
-                commandTransport.Initialize(session, launchContext.Mode, localPlayerId, launchContext.Players);
-            }
-            catch (Exception ex)
-            {
-                Dispose();
-                Debug.LogException(ex, logContext);
-                setPrompt("联网同步初始化失败，请返回房间重试。");
-            }
+            if (GameSessionBootstrapper.IsNetworkLaunch(launchContext))
+                throw new InvalidOperationException("联网必须提供效果注册表并初始化确定性模拟。");
         }
 
         public void Initialize(EffectRegistry effectRegistry)
@@ -381,16 +361,6 @@ namespace YC.Presentation
             refreshFromState(); setPrompt(fault.Diagnostic);
         }
 
-        private void AttachCommandTransport(MirrorCommandTransport transport)
-        {
-            commandTransport = transport;
-            commandTransport.InitialStateViewApplied += OnInitialNetworkStateApplied;
-            commandTransport.ConfirmedStateViewApplied += OnConfirmedNetworkCommandApplied;
-            // 现有接口未声明覆盖通知，消费同一真实运输实例的公开事件。
-            transport.CoveredCommandAcknowledged += OnCoveredNetworkCommandAcknowledged;
-            commandTransport.CommandRejected += OnNetworkCommandRejected;
-        }
-
         public CommandResult Submit(GameCommand command, out bool appliedLocally)
         {
             if (disposed || UsesDeterministicSimulation && !SimulationBindingIsCurrent)
@@ -465,14 +435,6 @@ namespace YC.Presentation
                 return;
             }
 
-            commandTransport.InitialStateViewApplied -= OnInitialNetworkStateApplied;
-            commandTransport.ConfirmedStateViewApplied -= OnConfirmedNetworkCommandApplied;
-            if (commandTransport is MirrorCommandTransport transport)
-                transport.CoveredCommandAcknowledged -= OnCoveredNetworkCommandAcknowledged;
-            commandTransport.CommandRejected -= OnNetworkCommandRejected;
-            if (!(commandTransport is MirrorCommandTransport sharedTransport) ||
-                !SimulationTransportOwners.TryGetValue(sharedTransport, out var owner) || ReferenceEquals(owner, this))
-                commandTransport.Shutdown();
             commandTransport = null;
         }
 
@@ -483,51 +445,6 @@ namespace YC.Presentation
                     launchContext.Mode != simulationLaunchMode || launchContext.LocalPlayerId != localPlayerId)) return;
             launchContext?.TryConsumeOnlineSessionNotice(out _);
             setPrompt(message);
-        }
-
-        private void OnConfirmedNetworkCommandApplied(ConfirmedGameStateViewDto confirmed)
-        {
-            if (!string.IsNullOrEmpty(confirmed?.View?.GameId))
-                ResolveSubmitted(confirmed?.Command?.CommandId, confirmed?.Command?.PlayerId ?? -1,
-                    confirmed.View.GameId, true, CommandErrorCode.None);
-            cityStyleCommandResolved?.Invoke(confirmed?.Command?.CommandId, true);
-            commandSettled?.Invoke(confirmed == null || confirmed.Command == null
-                ? string.Empty
-                : confirmed.Command.CommandId);
-            refreshFromState();
-        }
-
-        private void OnInitialNetworkStateApplied(InitialGameStateViewDto snapshot)
-        {
-            cityStyleCommandResolved?.Invoke(string.Empty, false);
-            commandSettled?.Invoke(string.Empty);
-            refreshFromState();
-        }
-
-        private void OnCoveredNetworkCommandAcknowledged(ConfirmedGameStateViewDto confirmed)
-        {
-            var command = confirmed?.Command;
-            var view = confirmed?.View;
-            if (commandTransport == null || command == null || view == null || command.PlayerId != localPlayerId ||
-                view.ViewerRole != YC.Domain.State.GameStateViewerRole.Player || view.ViewerPlayerId != localPlayerId ||
-                string.IsNullOrEmpty(view.GameId) || view.GameId != (session.View?.GameId ?? session.State.GameId) ||
-                launchContext != null && launchContext.IsLeavingGameplay) return;
-            if (!ResolveSubmitted(command.CommandId, command.PlayerId, view.GameId, true, CommandErrorCode.None)) return;
-            cityStyleCommandResolved?.Invoke(command.CommandId, true);
-            commandSettled?.Invoke(command.CommandId);
-            refreshFromState();
-        }
-
-        private void OnNetworkCommandRejected(RejectedGameCommandDto rejected)
-        {
-            ResolveSubmitted(rejected?.Command?.CommandId, rejected?.Command?.PlayerId ?? -1,
-                null, false, rejected?.ErrorCode ?? CommandErrorCode.UnknownCommand);
-            cityStyleCommandResolved?.Invoke(rejected?.Command?.CommandId, false);
-            commandSettled?.Invoke(rejected == null || rejected.Command == null
-                ? string.Empty
-                : rejected.Command.CommandId);
-            refreshFromState();
-            setPrompt(NetworkCommandPromptFormatter.BuildRejectedCommandPrompt(rejected));
         }
 
         private bool ResolveSubmitted(string commandId, int answeringPlayerId, string receivedGameId,

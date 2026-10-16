@@ -363,6 +363,13 @@ namespace YC.Presentation.Validation
         // 与整局共用原按钮、地图命中与准确回执；此模式只增加存读档路径，不写规则状态。
         private IEnumerator SaveResumeRun()
         {
+            if (State.Phase != GamePhase.Entrance)
+            {
+                Require(State.Phase == GamePhase.ActionRound1 || State.Phase == GamePhase.ActionRound2,
+                    "原存档不是入场或主要行动阶段，不猜测续接路径");
+                yield return SaveResumeCompleteMove();
+                yield break;
+            }
             var pending = State.EffectRuntime.InteractionRequests.SingleOrDefault(value => value.Status == "open" && value.AnsweringPlayerId == LocalPlayer);
             Require(pending?.InteractionTypeId == "entrance.location", "本次验收预期的原入场待选已改变，不操作其他存档");
             var pendingId = pending.InteractionId;
@@ -385,31 +392,99 @@ namespace YC.Presentation.Validation
             Require(State.Phase == GamePhase.ActionRound1 && Request == null && Route?.IsActive != true,
                 "正常入场未结束，尚不能验收稳定行动点");
             yield return SaveResumeRoundTrip("稳定行动点");
-            yield return Press(MarkedButton("action.tab.0"), "存读档后正常主要行动页签");
-            Require(hud.ActionPanelView.MoveCityButton.IsInteractable(), "本次合法移城入口不可用，保留待测缺口");
-            yield return BeginCampaignMove();
-            Require(CurrentPaymentView()?.PreparedActionPayments.Any(value => value.ActionKind == "city_move") == true,
-                "正常移城未形成本人付款准备，不能代造付款现场");
-            yield return SaveResumeRoundTrip("移城付款准备");
-            for (int step = 0; step < 40 && (preparedMainAction != null || pendingMoveCompletion != null || Request != null); step++)
-                yield return SaveResumeAdvance();
-            ObserveMoveCompletion();
-            Require(preparedMainAction == null && pendingMoveCompletion == null && Request == null && mobile.CanEndCurrentAction(),
-                "读取后移城原控件没有自然完成，不能补点掩盖");
-            var moves = commands.Select(record => Read(record, "Command") as GameCommand).Where(command => command?.Kind == GameCommandKind.MoveCity).ToArray();
-            Require(moves.Length == 1 && moves.Select(command => command.CommandId).Distinct().Count() == 1,
-                "读取付款准备后的最终移城命令不是唯一一次");
-            yield return SaveResumeRoundTrip("移城完成后");
-            int actor = LocalPlayer;
-            before = commands.Count;
-            yield return Press(hud.Frame.EndActionButton, "续局移城后首次结束行动");
-            Require(commands.Count == before + 1 && LocalPlayer != actor, "续局结束行动没有一次交接给下一玩家");
-            yield return Capture("存读档后合法继续与交接");
-            Write("存读档未覆盖.json", new { Items = new[] {
-                "未使用外部键盘，物理Esc键及同帧关闭传播未覆盖；仅验证原关闭控件和设置Esc处理器的模态守卫",
-                "本轮未自然发生写盘失败，保存失败文案与重试未覆盖",
-                "联机原身份回席、陌生替补、配置冻结与Host确认前缀需正常多实例另测" },
-                ProductionWrites = false, StateInjection = false });
+            yield return SaveResumeCompleteMove();
+        }
+
+        private IEnumerator SaveResumeCompleteMove()
+        {
+            var savedPayments = new HashSet<string>();
+            var triedMoves = new HashSet<string>();
+            var triedExplorations = new HashSet<string>();
+            for (int step = 0; step < 100; step++)
+            {
+                ObserveMoveCompletion();
+                var moves = commands.Select(record => Read(record, "Command") as GameCommand)
+                    .Where(command => command?.Kind == GameCommandKind.MoveCity).ToArray();
+                Require(moves.Length <= 1, "续局发出多条最终MoveCity；保留现场，不过滤额外命令");
+                if (moves.Length == 1 && Request == null && Route?.IsActive != true &&
+                    preparedMainAction == null && pendingMoveCompletion == null && mobile.CanEndCurrentAction())
+                {
+                    int actor = LocalPlayer;
+                    Require(AcceptedFinalCommands(0, GameCommandKind.MoveCity, actor).Length == 1,
+                        "唯一最终MoveCity没有成功Applied回执");
+                    yield return SaveResumeRoundTrip("移城完成后");
+                    int before = commands.Count;
+                    yield return Press(hud.Frame.EndActionButton, "续局移城后首次结束行动");
+                    Require(commands.Count == before + 1 && LocalPlayer != actor,
+                        "续局结束行动没有一次交接给下一玩家");
+                    yield return Capture("存读档后合法继续与交接");
+                    Write("存读档未覆盖.json", new { Items = new[] {
+                        "物理Esc及同帧传播未覆盖，仅原关闭控件和设置处理器守卫",
+                        "写盘失败未自然发生", "联机续局房间及席位需正常多实例另测" } });
+                    yield break;
+                }
+                var visible = CurrentPaymentView();
+                Require(visible != null, "续局本人可见投影尚未就绪，不猜余额或准备身份");
+                var preparation = visible.PreparedActionPayments.SingleOrDefault(value => value.ActionKind == "city_move");
+                string actionWindow = State.Round + ":" + State.ActionRound + ":" + LocalPlayer;
+                if (preparation != null)
+                {
+                    triedMoves.Add(actionWindow);
+                    if (preparedMainAction == null)
+                    {
+                        var mapTarget = FindObjectsOfType<MapButtonView>().SingleOrDefault(value =>
+                            value.TargetKind == WorkflowHighlightTargetKind.Location && value.TargetId == preparation.TargetId && value.IsSelected);
+                        Require(string.IsNullOrEmpty(preparation.TargetId) || mapTarget != null,
+                            "恢复的付款目标未在原地图选中，不重做预选掩盖草稿丢失");
+                        preparedMainAction = new PreparedMainActionContinuation { GameId = State.GameId, Kind = "city_move",
+                            PlayerId = LocalPlayer, Round = State.Round, ActionRound = State.ActionRound,
+                            StartCity = visible.Players.Single(player => player.PlayerId == LocalPlayer).CityLocationId,
+                            TargetId = preparation.TargetId, TargetPreselected = mapTarget != null };
+                        Append("决策变化.jsonl", new { State.GameId, Action = "原存档付款准备接续", preparation.PaymentId,
+                            preparation.PaymentGeneration, preparation.TargetId, NewPrepareSubmitted = false });
+                    }
+                    if (savedPayments.Add(preparation.PaymentId))
+                    {
+                        yield return SaveResumeRoundTrip("玩家" + LocalPlayer + "-移城付款准备");
+                        continue;
+                    }
+                    var balance = visible.Players.Single(player => player.PlayerId == LocalPlayer).Resources;
+                    var cost = preparation.RemainingCost;
+                    bool payable = balance.Originium >= cost.Originium && balance.OriginiumShard >= cost.OriginiumShard &&
+                        balance.Iron >= cost.Iron && balance.PureOriginium >= cost.PureOriginium && balance.GoldVoucher >= cost.GoldVoucher;
+                    if (!payable)
+                    {
+                        Append("决策变化.jsonl", new { State.GameId, PlayerId = LocalPlayer, Action = "原支付方案不足，正常推进同局",
+                            preparation.PaymentId, preparation.PaymentGeneration, Balance = balance, Cost = cost,
+                            Reason = "先原控件取消本笔准备，再优先最近且可付探索；不强行确认、不注入资源、不重开" });
+                        Require(preparation.CanCancel, "不足额准备当前不可取消，保留必须处理的实际响应");
+                        yield return CancelPreparedMainAction(hud.ActionPanelView.MoveCityButton, preparation, "续局原方案不足，原移动按钮正常取消");
+                        continue;
+                    }
+                }
+                if (Request != null || Route?.IsActive == true || preparedMainAction != null)
+                { yield return SaveResumeAdvance(); continue; }
+                Require(State.Phase == GamePhase.ActionRound1 || State.Phase == GamePhase.ActionRound2,
+                    "付款短链路尚未适配新的阶段，不自动跳过");
+                if (mobile.CanEndCurrentAction())
+                { yield return Press(hud.Frame.EndActionButton, "不足额玩家正常主要行动完成后交接"); continue; }
+                yield return Press(MarkedButton("action.tab.0"), "续局正常主要行动页签");
+                if (hud.ActionPanelView.MoveCityButton.IsInteractable() && triedMoves.Add(actionWindow))
+                {
+                    yield return BeginCampaignMove();
+                    Require(CurrentPaymentView()?.PreparedActionPayments.Any(value => value.ActionKind == "city_move") == true,
+                        "原移城入口未保留付款准备，不重复点击或忽略自动取消");
+                    continue;
+                }
+                if (hud.ActionPanelView.ExploreButton.IsInteractable() && triedExplorations.Add(actionWindow))
+                {
+                    yield return Press(hud.ActionPanelView.ExploreButton, "缺少移城资源，正常探索最近可支付资源点");
+                    Require(Route?.IsActive == true, "原探索按钮没有进入实际路线选择");
+                    continue;
+                }
+                yield return NormalAction();
+            }
+            throw new DriverContinuationPendingException("同局合法推进尚未完成一次移城验收，保留真实进度，不重开");
         }
 
         private IEnumerator SaveResumeAdvance()
@@ -471,6 +546,10 @@ namespace YC.Presentation.Validation
             var requestBefore = Request == null ? null : JToken.FromObject(Request);
             string gameId = State.GameId;
             int countBefore = commands.Count;
+            var paymentBefore = CurrentPaymentView()?.PreparedActionPayments.Select(value => new {
+                value.PaymentId, value.PaymentGeneration, value.PreparationOwnerEffectId, value.OperationWindowId,
+                value.WindowGeneration, value.ActionKind, value.TargetId, value.RemainingCost }).ToArray();
+            var expectedPayments = paymentBefore == null ? null : JToken.FromObject(paymentBefore);
             var settings = FindObjectOfType<GameSettingsMenuView>();
             Require(settings != null, "实际游戏设置引用缺失");
             yield return Press(hud.Frame.SettingsButton, label + "点击当前HUD顶栏原设置按钮");
@@ -543,13 +622,18 @@ namespace YC.Presentation.Validation
             var actual = JToken.FromObject(State);
             var requestAfter = Request == null ? null : JToken.FromObject(Request);
             bool equal = JToken.DeepEquals(expected, actual);
+            var paymentAfter = CurrentPaymentView()?.PreparedActionPayments.Select(value => new {
+                value.PaymentId, value.PaymentGeneration, value.PreparationOwnerEffectId, value.OperationWindowId,
+                value.WindowGeneration, value.ActionKind, value.TargetId, value.RemainingCost }).ToArray();
+            var actualPayments = paymentAfter == null ? null : JToken.FromObject(paymentAfter);
             Write(label + "-恢复比较.json", new { State.GameId, State.ContentPackHash, FullStateEqual = equal,
                 PendingRequestEqual = JToken.DeepEquals(requestBefore, requestAfter), CommandCountUnchanged = commands.Count == countBefore,
+                PaymentIdentityEqual = JToken.DeepEquals(expectedPayments, actualPayments), ExpectedPayments = expectedPayments, ActualPayments = actualPayments,
                 DifferentTopLevelFields = ((JObject)expected).Properties().Where(p => !JToken.DeepEquals(p.Value, actual[p.Name])).Select(p => p.Name).ToArray(),
                 ExpectedRequest = requestBefore, ActualRequest = requestAfter, Actual = Observe() });
             yield return Capture(label + "-读取恢复现场");
-            Require(equal && commands.Count == countBefore,
-                "存读档往返后权威状态或命令数不一致");
+            Require(equal && commands.Count == countBefore && JToken.DeepEquals(expectedPayments, actualPayments),
+                "存读档往返后权威状态、命令数或本人付款身份不一致");
             checks.Add(new { Item = label + "原控件存读档闭环", Passed = true, State.GameId,
                 State.ContentPackHash, Revision = State.EffectRuntime.StateRevision, ManualSlot = saveResumeManualSlot,
                 FullStateEqual = true, AuthorityPendingPreserved = true,
@@ -767,7 +851,7 @@ namespace YC.Presentation.Validation
             {
                 var candidates = FindObjectsOfType<MapButtonView>().Where(value =>
                     value.TargetKind == WorkflowHighlightTargetKind.Location && value.IsInteractive);
-                var target = CampaignMode ? ChooseCampaignMoveTarget(candidates) : PreferVisibleMapTarget(candidates);
+                var target = CampaignMode || SaveResumeMode ? ChooseCampaignMoveTarget(candidates) : PreferVisibleMapTarget(candidates);
                 if (target == null)
                     throw new DriverContinuationPendingException("正常移城入口准备后没有恢复实际合法地图高亮；不直接查询目标后提交");
                 action.TargetId = target.TargetId;
@@ -2462,7 +2546,7 @@ namespace YC.Presentation.Validation
             var request = Request;
             bool localPreview = presenter.RequestBinding == null;
             bool exploration = presenter.Session.Purpose == RouteSelectionPurpose.Exploration;
-            bool planSelection = CampaignMode && exploration;
+            bool planSelection = (CampaignMode || SaveResumeMode) && exploration;
             int actor = LocalPlayer;
             if (planSelection)
                 explorationPlayPlan = PlanExploration(presenter.Session, presenter.Projection, State.Round >= 4 && !PlayProgress(actor).RedZoneReached);
