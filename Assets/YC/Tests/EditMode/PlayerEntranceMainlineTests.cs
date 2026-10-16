@@ -190,10 +190,15 @@ namespace YC.Tests.EditMode
             Assert.That(Round(handler).Advance(state).IsValid, Is.False);
         }
 
-        [Test]
-        public void CityMoveEvent_DoesNotTriggerEntranceReward()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CityMoveEvent_RevealsOnlyAtUnmarkedLocationWithoutEntranceReward(bool hasMarker)
         {
             var state = State(); var handler = Handler();
+            // 隔离事件链回归：有效行动轮次，分别检查空地点与已有资源标记的地点。
+            state.Round = 2; state.ActionRound = 1; state.Phase = GamePhase.ActionRound1;
+            if (!hasMarker) state.Map.ResourceTokens.RemoveAll(token => token.LocationId == "B-01");
+            state.Decks.EventDeckGreen.Add("event_green_01");
             handler.EffectRegistry.Register(new EffectRegistration("test.move", context => EffectStepResult.Completed().AddEvent(
                 new EffectEventRequest { EventType = CityMoveEventTypeIds.CityMoveCompleted, PlayerId = 1,
                     OwnerNodeId = context.Node.EffectId, SourceEffectId = context.Node.EffectId,
@@ -206,6 +211,10 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.Zero);
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero);
             Assert.That(state.EffectRuntime.RuleEvents.Exists(e => e.EventType == PlayerEntranceEffectExecutor.EventType), Is.False);
+            Assert.That(state.EffectRuntime.EffectNodes.Count(node => node.EffectTypeId == EventCardEffectTypeIds.Resolve),
+                Is.EqualTo(hasMarker ? 0 : 1));
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(request => request.Status == "open" &&
+                request.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId), Is.EqualTo(!hasMarker));
         }
     }
 }

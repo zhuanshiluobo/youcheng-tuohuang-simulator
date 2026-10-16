@@ -62,7 +62,7 @@ namespace YC.Infrastructure.Lua
             const string source = @"
 return function(ctx)
     local payload = ctx.payload
-    local point = Global.Map.GetResourcePoint(payload.targetLocationId)
+    local point = Global.Map.GetLocation(payload.targetLocationId)
     if point == nil or point.hasResourcePointIndicator then
         return {}
     end

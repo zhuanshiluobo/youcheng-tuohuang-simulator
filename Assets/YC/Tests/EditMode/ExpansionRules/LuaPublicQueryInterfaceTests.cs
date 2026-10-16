@@ -37,6 +37,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var slot = f.Influence.GetLegalPlacementSlotIds(f.State, 1).First();
             string influence = Place(f, slot);
             var token = f.State.Map.ResourceTokens.First();
+            var unmarked = map.Locations.First(point => f.State.Map.ResourceTokens.All(marker => marker.LocationId != point.LocationId));
             var instance = new ItemZoneQuery().Project(f.State, GameStateViewer.Player(1)).Items.First(i => i.PhysicalKind == ItemPhysicalKind.Card);
             string region = map.Regions.First().RegionId;
             string body = "local m=Global.Map.GetMap(); assert(m.mapId==" + Q(map.MapId) + " and m.stateRevision==ctx.stateRevision); " +
@@ -48,6 +49,8 @@ namespace YC.Tests.EditMode.ExpansionRules
                 "assert(Global.Map.IsRoad(" + Q(route.RouteId) + ")); " +
                 "assert(Global.Map.GetInfluenceSlot(" + Q(slot) + ").influenceId==" + Q(influence) + "); " +
                 "assert(Global.Map.GetResourcePoint(" + Q(token.LocationId) + ").amount==" + token.Amount + "); " +
+                "assert(Global.Map.GetLocation(" + Q(token.LocationId) + ").hasResourcePointIndicator); " +
+                "assert(not Global.Map.GetLocation(" + Q(unmarked.LocationId) + ").hasResourcePointIndicator and Global.Map.GetResourcePoint(" + Q(unmarked.LocationId) + ")==nil); " +
                 "assert(Global.Map.GetCitiesAt(" + Q(location.LocationId) + ")[1].playerId=='p1'); " +
                 "assert(Global.Content.GetInstance(" + Q(instance.ItemId) + ").id==" + Q(instance.ItemId) + "); " +
                 "assert(Global.Content.GetDefinition(" + Q(instance.DefinitionId) + ").definitionId==" + Q(instance.DefinitionId) + "); " +
@@ -229,6 +232,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             var catalog = ActiveContentCatalogBuilder.Build(pack, config); config.ContentPackHash = catalog.ContentPackHash;
             var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, Enumerable.Range(1, 3).Select(i => new PlayerSeat { PlayerId = i }).ToList(),
                 config, 321, catalog.SetupRecipe, catalog.ContentDefinitions, new[] { 1, 2, 3 }, "lua.public_queries." + string.Join(".", ids), null);
+            // 隔离查询上下文需要有效行动轮次；初始化状态尚未推进主流程。
+            state.Round = 1; state.ActionRound = 1;
             var f = new Fixture { State = state, Map = new MapQueryService(StaticMapDefinitions.Resolve(state.MapId)), Registry = new EffectRegistry() };
             f.Influence = new InfluenceService(f.Map); InfluenceEffectExecutor.Register(f.Registry, f.Influence); ResourceEffectExecutor.Register(f.Registry);
             return f;
@@ -248,7 +253,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         private static LuaInvocationContext Context(GameState state, LuaScriptDefinition script)
         {
             var definition = new LuaHandlerDefinition("query.subscription", "QueryEvent", "*", script);
-            return (LuaInvocationContext)typeof(LuaEffectEventDispatcher).GetMethod("CreateInvocationContext", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null,
+            var dispatcher = new LuaEffectEventDispatcher(new EffectRegistry());
+            return (LuaInvocationContext)typeof(LuaEffectEventDispatcher).GetMethod("CreateInvocationContext", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(dispatcher,
                 new object[] { definition, new EffectEventHandlerContext(state, new RuleEvent { EventId = "query.event", EventType = "QueryEvent", PlayerId = 1 }, new EffectNodeRuntimeState { PlayerId = 1 }, null) });
         }
         private static void Success(GameState state, string statements)

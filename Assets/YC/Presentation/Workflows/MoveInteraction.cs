@@ -267,6 +267,28 @@ namespace YC.Presentation.Workflows
         public void Activate()
         {
             if (IsSubmissionInFlight) return;
+            InitializeDraft();
+            PresentMoveTargets();
+            paymentPreparation.Prepare(string.Empty);
+        }
+
+        public bool TryRestorePreparedDraft()
+        {
+            var state = context.CurrentState;
+            if (IsActive || IsSubmissionInFlight || state == null || state.CurrentPlayerId != context.LocalPlayerId ||
+                (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2) ||
+                string.IsNullOrEmpty(state.FindPlayer(context.LocalPlayerId)?.CityLocationId)) return false;
+            var prepared = paymentPreparation.Current;
+            if (prepared == null) return false;
+            InitializeDraft();
+            // 付款身份来自已恢复的本人投影；重建界面草稿不重新准备、取消或确认付款。
+            observedPreparation = prepared;
+            preselectedTarget = prepared.TargetId;
+            return true;
+        }
+
+        private void InitializeDraft()
+        {
             draftState = context.CurrentState; draftGameId = draftState?.GameId;
             draftCityLocation = draftState?.FindPlayer(context.LocalPlayerId)?.CityLocationId;
             draftContentHash = draftState?.ContentPackHash;
@@ -276,8 +298,6 @@ namespace YC.Presentation.Workflows
             selectionRevision = draftRevision; confirmedTarget = preselectedTarget = null; observedPreparation = null;
             selectionVersion++;
             stage = MoveStage.SelectingTarget;
-            PresentMoveTargets();
-            paymentPreparation.Prepare(string.Empty);
         }
 
         public override void Cancel()

@@ -352,8 +352,10 @@ namespace YC.Presentation
             BuildCharacterCardEffectInteraction();
             BuildInteractionRouting();
             BuildCommandSubmission(GameLaunchContext.Instance);
+            // 完成初始热座视角同步，避免把读档时的玩家切换延迟到第一笔付款准备回执。
+            SynchronizeInteractionFromState();
+            turnActionPresenter.RestorePreparedMove();
             RefreshPendingChoiceOrHighlights();
-            RefreshFinalScoreFromState();
             PrepareRightCardSmokePresentation();
         }
 

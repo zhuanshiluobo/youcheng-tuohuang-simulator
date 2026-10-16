@@ -27,6 +27,7 @@ using YC.Domain.State;
 using YC.Domain.Maps;
 using YC.Domain.Travel;
 using YC.Infrastructure.Lua;
+using YC.Infrastructure.Multiplayer;
 using YC.Presentation;
 using YC.Presentation.Workflows;
 
@@ -111,8 +112,17 @@ namespace YC.Tests.EditMode
                 Observed = new ObservationPort((IGameCommandPort)Read(mobile, "gameplayAdapter"));
                 Write(mobile, "commandGateway", new CommandGateway((IGameCommandPort)Observed));
             }
-            public static IEnumerator CreatePlayScene(object prepared, Action<Native> ready)
+            public static IEnumerator CreatePlayScene(object prepared, Action<Native> ready, int? savedViewer = null)
             {
+                // 原生隔离测试的自动存档只写本次夹具目录，避免占用玩家的六个正式槽位。
+                {
+                    var saveType = Type.GetType("YC.Presentation.MatchSaveController, Assembly-CSharp", true);
+                    var saves = saveType.GetMethod("Ensure", BindingFlags.Public | BindingFlags.Static).Invoke(null, null);
+                    Call(saves, "Unbind");
+                    var storeType = Type.GetType("YC.Infrastructure.Persistence.MatchSaveStore, Assembly-CSharp", true);
+                    Write(saves, "store", Activator.CreateInstance(storeType, Path.Combine(Environment.CurrentDirectory,
+                        "Logs/GitMergeValidation/SaveResume-20261016/EventAndMoveFix/native-save-tests", Guid.NewGuid().ToString("N"))));
+                }
                 var contextType = Type.GetType("YC.Presentation.GameLaunchContext, Assembly-CSharp", true);
                 var previous = contextType.GetProperty("Instance", BindingFlags.Static | BindingFlags.Public).GetValue(null) as Component;
                 if (previous != null) UnityEngine.Object.Destroy(previous.gameObject);
@@ -140,7 +150,23 @@ namespace YC.Tests.EditMode
                 var mobile = UnityEngine.Object.FindObjectOfType(Type.GetType("YC.Presentation.MobileCityInteractionController, Assembly-CSharp", true));
                 var native = new Native(mobile, root);
                 native.Session.ReplaceState(state); Call(mobile, "SynchronizeInteractionFromState");
+                if (savedViewer.HasValue)
+                {
+                    // 隔离存读档入口回归：通过正式恢复重新加载场景，不补调刷新来掩盖首次点击问题。
+                    yield return native.ReloadSavedScene(savedViewer.Value, value => native = value);
+                }
                 ready(native);
+            }
+            public IEnumerator ReloadSavedScene(int savedViewer, Action<Native> ready)
+            {
+                var save = MatchSaveResumeTests.FromSession(Session, LaunchMode.Local, savedViewer);
+                var contextType = Type.GetType("YC.Presentation.GameLaunchContext, Assembly-CSharp", true);
+                Call(contextRoot.GetComponent(contextType), "ConfigureSavedLocal", save);
+                var loading = SceneManager.LoadSceneAsync("SampleScene");
+                while (!loading.isDone) yield return null;
+                yield return null;
+                var mobile = UnityEngine.Object.FindObjectOfType(Type.GetType("YC.Presentation.MobileCityInteractionController, Assembly-CSharp", true));
+                ready(new Native(mobile, contextRoot));
             }
             public void ObserveGateway(object target) => Write(target, "commandGateway", new CommandGateway((IGameCommandPort)Observed));
             public void ObserveActionPayment(object interaction)
@@ -1592,6 +1618,49 @@ namespace YC.Tests.EditMode
                 BuildPaymentButton(substitutedNative, 0).onClick.Invoke(); yield return null; substitutedNative.Applied();
                 Assert.That(substitutedNative.Commands.Count(command => command.Kind == GameCommandKind.BuildFacility), Is.EqualTo(1));
                 Assert.That(Markers(substitutedNative.State), Is.EqualTo(2));
+            }
+        }
+
+        [UnityTest, Category("原生Unity")]
+        public IEnumerator RestoredHotseatFirstMoveClickKeepsPreparedPayment()
+        {
+            PrepareRuntime(); yield return new EnterPlayMode();
+            var prepared = Production(false);
+            State(prepared).RuleConfiguration.PlayerStageSchedulingMode = PlayerStageSchedulingMode.Sequential;
+            foreach (var player in State(prepared).Players)
+                player.Color = RoomConfigurationService.GetSeatColor(player.PlayerId - 1);
+            Native native = null; yield return Native.CreatePlayScene(prepared, value => native = value, savedViewer: 2);
+            using (native)
+            {
+                Assert.That(Read(native.Mobile, "localPlayerId"), Is.EqualTo(native.State.CurrentPlayerId));
+                Assert.That(native.State.CurrentPlayerId, Is.Not.EqualTo(2), "覆盖读档时需要切换热座视角的场景");
+                var move = Read(Read(native.Mobile, "turnActionPresenter"), "MoveInteraction");
+                native.ObserveActionPayment(move);
+                var button = (Button)Read(Read(native.Hud, "ActionPanelView"), "MoveCityButton");
+                Assert.That(button.IsInteractable(), Is.True);
+                button.onClick.Invoke(); yield return null; native.Applied();
+                Assert.That(native.Commands.Select(command => command.Parameters["operation"]), Is.EqualTo(new[] { "prepare_action" }),
+                    "读档后第一次移城点击不得自行提交取消");
+                Assert.That(Visible(native).PreparedActionPayments.Single().ActionKind, Is.EqualTo("city_move"));
+                Assert.That(Read(move, "CanResumePreparedDraft"), Is.EqualTo(true));
+                var payment = Visible(native).PreparedActionPayments.Single();
+                var digest = RuleStateDigestService.Compute(native.State);
+                Native resumed = null; yield return native.ReloadSavedScene(2, value => resumed = value);
+                using (resumed)
+                {
+                    Assert.That(RuleStateDigestService.Compute(resumed.State), Is.EqualTo(digest), "恢复付款准备不得重建或取消权威状态");
+                    Assert.That(ActionPaymentPreparation.SameIdentity(payment, Visible(resumed).PreparedActionPayments.Single()), Is.True);
+                    var restoredMove = Read(Read(resumed.Mobile, "turnActionPresenter"), "MoveInteraction");
+                    Assert.That(Read(restoredMove, "CanResumePreparedDraft"), Is.EqualTo(true), "同笔付款准备恢复后必须接回地图工作流");
+                    Assert.That(resumed.Commands, Is.Empty);
+                    resumed.ObserveActionPayment(restoredMove);
+                    var target = ((InteractionPresentation)Call(restoredMove, "BuildPresentation")).Highlights.First().TargetId;
+                    Call(resumed.Mobile, "OnMapButtonClicked", WorkflowHighlightTargetKind.Location, target); yield return null;
+                    Assert.That(resumed.Commands.Any(command => command.Kind == GameCommandKind.MoveCity), Is.False);
+                    Call(resumed.Mobile, "OnMapButtonClicked", WorkflowHighlightTargetKind.Location, target); yield return null; resumed.Applied();
+                    Assert.That(resumed.Commands.Count(command => command.Kind == GameCommandKind.MoveCity), Is.EqualTo(1));
+                    Assert.That(resumed.State.FindPlayer(resumed.State.StartPlayerId).CityLocationId, Is.EqualTo(target));
+                }
             }
         }
 

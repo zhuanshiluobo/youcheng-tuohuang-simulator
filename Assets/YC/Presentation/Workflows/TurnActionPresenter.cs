@@ -113,6 +113,12 @@ namespace YC.Presentation.Workflows
 
         public void Cancel() { MoveInteraction.Cancel(); }
 
+        public void RestorePreparedMove()
+        {
+            if (MoveInteraction.TryRestorePreparedDraft())
+                flowCoordinator.Activate(this, MoveInteraction.RestorePresentation);
+        }
+
         public void SynchronizeFromState()
         {
             localPlayerResolver.ResolveAndApply(context);
