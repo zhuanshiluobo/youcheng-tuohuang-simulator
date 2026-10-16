@@ -128,7 +128,7 @@ namespace YC.Tests.EditMode
             Assert.That(scenario.Dispatcher.ApplyInitialStateViewSynchronization(scenario.Host.CreateInitialStateViewSynchronization(4)).Succeeded, Is.True);
             scenario.Transport = Component(Production("YC.Infrastructure.Multiplayer.MirrorCommandTransport"));
 #if COMMAND_SUBMISSION_OFFLINE
-            foreach (string field in new[] { "bindings", "pendingLocalBindings", "clientConnectionTokens", "viewAssembler" })
+            foreach (string field in new[] { "bindings", "pendingLocalBindings", "clientConnectionTokens", "viewAssembler", "receivedViewHistory" })
                 Set(scenario.Transport, field, Activator.CreateInstance(scenario.Transport.GetType().GetField(field, Members).FieldType));
 #endif
             Set(scenario.Transport, "session", scenario.Client); Set(scenario.Transport, "dispatcher", scenario.Dispatcher);
@@ -206,6 +206,10 @@ namespace YC.Tests.EditMode
                 .MakeGenericMethod(ControllerType()).Invoke(null, new[] { scenario.Controller });
             var adapter = Activator.CreateInstance(AdapterType(), new object[] { new Func<GameState>(() => scenario.Client.State),
                 new Func<int>(() => 4), new Func<bool>(() => false), new Action<int>(_ => { }), factory, new Action(() => { }) });
+#if !COMMAND_SUBMISSION_OFFLINE
+            Set(scenario.Mobile, "gameplayAdapter", adapter);
+            Set(scenario.Mobile, "commandSubmission", scenario.Controller);
+#endif
             Set(scenario.Mobile, "commandGateway", new CommandGateway((IGameCommandPort)adapter));
         }
         private static Func<T> ControllerFactory<T>(object controller) => () => (T)controller;

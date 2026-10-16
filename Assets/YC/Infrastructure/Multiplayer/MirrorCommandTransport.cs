@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Mirror;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -15,7 +16,7 @@ namespace YC.Infrastructure.Multiplayer
     public struct SubmitCommandMessage : NetworkMessage { public string Json; }
     public struct AcceptedCommandMessage : NetworkMessage { public string Json; public string ConnectionToken; }
     public struct RejectedCommandMessage : NetworkMessage { public string Json; public string GameId; public string ConnectionToken; public int StateRevision; }
-    public struct InitialStateRequestMessage : NetworkMessage { public string ConnectionToken; }
+    public struct InitialStateRequestMessage : NetworkMessage { public string ConnectionToken; public int RequestId; }
     public struct InitialStateMessage : NetworkMessage { public string Json; public string ProtocolVersion; public string ConnectionToken; }
     public struct InitialStateAppliedMessage : NetworkMessage { public int PlayerId; public string ConnectionToken; }
     public struct CommandOutcomeRequestMessage : NetworkMessage
@@ -26,9 +27,16 @@ namespace YC.Infrastructure.Multiplayer
         public long TransferId;
         public bool IsInitial;
         public int TotalBytes, Offset;
+        public int RequestId;
         public string ProtocolVersion;
         public string ConnectionToken;
         public byte[] Payload;
+    }
+    public struct GameStateViewAcknowledgmentMessage : NetworkMessage
+    {
+        public long TransferId;
+        public int NextOffset;
+        public string ConnectionToken;
     }
 
     public struct SimulationCheckpointRequestMessage : NetworkMessage
@@ -107,8 +115,44 @@ namespace YC.Infrastructure.Multiplayer
         private int localPlayerId;
         private IList<PlayerSeat> launchSeats;
         private readonly Dictionary<int, float> pendingLocalBindings = new Dictionary<int, float>();
-        private readonly GameStateViewTransfer.Assembler viewAssembler = new GameStateViewTransfer.Assembler();
+        private readonly SnapshotChunkBuffer viewAssembler = new SnapshotChunkBuffer();
+        private readonly StateViewHistoryTracker receivedViewHistory = new StateViewHistoryTracker();
+        private readonly Dictionary<int, StateViewHistoryTracker> sentViewHistory = new Dictionary<int, StateViewHistoryTracker>();
+        private readonly Dictionary<int, ViewSendQueue> viewSendQueues = new Dictionary<int, ViewSendQueue>();
+        private readonly Dictionary<int, int> initialViewRequestIds = new Dictionary<int, int>();
+        private int initialViewRequestId = 1;
+        private long latestReceivedViewTransfer, completedViewTransfer;
+        private int completedViewBytes;
+        private float viewReceiveDeadline;
+        private const float ViewProgressTimeout = 10f;
+        private const int MaximumQueuedViewBytes = 2 * GameStateViewTransfer.MaximumBytes;
+        private static readonly UTF8Encoding ViewUtf8 = new UTF8Encoding(false, true);
         private long nextViewTransfer;
+        [Serializable]
+        private sealed class ViewSnapshotPayload
+        {
+            public int ProtocolVersion = GameStateView.CurrentSchemaVersion;
+            public int NextConfirmedSequence;
+            public int Sequence;
+            public GameCommandDto Command;
+            public GameStateView View;
+            public StateViewHistoryDelta History;
+        }
+        private sealed class PendingViewSnapshot
+        {
+            public long TransferId;
+            public int RequestId;
+            public bool IsInitial;
+            public string ConnectionToken;
+            public byte[] Bytes;
+            public SnapshotSendWindow Window;
+        }
+        private sealed class ViewSendQueue
+        {
+            public NetworkConnectionToClient Connection;
+            public readonly Queue<PendingViewSnapshot> Pending = new Queue<PendingViewSnapshot>();
+            public int Bytes;
+        }
         private SimulationCheckpointChannel checkpointChannel;
         private NetworkConnection checkpointHostConnection;
         private float nextCheckpointRequestTime;
@@ -339,6 +383,7 @@ namespace YC.Infrastructure.Multiplayer
                 NetworkServer.RegisterHandler<InitialStateRequestMessage>(OnInitialStateRequest, false);
                 NetworkServer.RegisterHandler<InitialStateAppliedMessage>(OnInitialStateApplied, false);
                 NetworkServer.RegisterHandler<CommandOutcomeRequestMessage>(OnCommandOutcomeRequest, false);
+                NetworkServer.RegisterHandler<GameStateViewAcknowledgmentMessage>(OnViewAcknowledgment, false);
                 foreach (var connection in NetworkServer.connections.Values)
                     OnServerConnected(connection);
             }
@@ -354,7 +399,11 @@ namespace YC.Infrastructure.Multiplayer
 
         private void Update()
         {
-            if (initialized && mode == LaunchMode.Host) RefreshPendingLocalBindings();
+            if (initialized && mode == LaunchMode.Host)
+            {
+                RefreshPendingLocalBindings();
+                if (checkpointChannel == null) PumpViewSends(Time.unscaledTime);
+            }
             if (checkpointChannel != null)
             {
                 if (!IsCheckpointSessionCurrent()) return;
@@ -369,13 +418,18 @@ namespace YC.Infrastructure.Multiplayer
             if (!initialized || mode != LaunchMode.Client || !NetworkClient.isConnected)
                 return;
             RequestCommandOutcome();
+            if (viewAssembler.IsReceiving && Time.unscaledTime >= viewReceiveDeadline)
+            {
+                AcknowledgeView(viewAssembler.TransferId, viewAssembler.ReceivedBytes);
+                viewReceiveDeadline = Time.unscaledTime + ViewProgressTimeout;
+            }
             if (!awaitingInitialState && !string.IsNullOrEmpty(pendingCommandId) &&
-                Time.unscaledTime >= commandConfirmationDeadline)
+                !viewAssembler.IsReceiving && Time.unscaledTime >= commandConfirmationDeadline)
             {
                 // 只补同步状态，不重发原命令，避免重复支付或重复结算。
-                awaitingInitialState = true;
+                BeginViewResynchronization();
             }
-            if (!awaitingInitialState || Time.unscaledTime < nextInitialStateRequestTime) return;
+            if (!awaitingInitialState || viewAssembler.IsReceiving || Time.unscaledTime < nextInitialStateRequestTime) return;
             RequestInitialState();
         }
 
@@ -431,7 +485,9 @@ namespace YC.Infrastructure.Multiplayer
             checkpointChannel?.Stop(); checkpointChannel = null; checkpointHostConnection = null;
             checkpointConnectionTokens.Clear(); nextCheckpointRequestTime = 0f;
             checkpointInstallationSent = false;
-            viewAssembler.Reset();
+            ResetViewReception();
+            sentViewHistory.Clear(); viewSendQueues.Clear(); initialViewRequestIds.Clear();
+            initialViewRequestId = 1; nextViewTransfer = 0;
             pendingLocalBindings.Clear();
             clientConnectionTokens.Clear();
             if (MirrorNetworkRuntime.Instance != null)
@@ -447,6 +503,7 @@ namespace YC.Infrastructure.Multiplayer
             NetworkServer.OnConnectedEvent -= OnServerConnected;
             NetworkServer.OnDisconnectedEvent -= OnServerDisconnected;
             NetworkClient.OnConnectedEvent -= OnLocalClientConnected;
+            NetworkClient.OnDisconnectedEvent -= OnViewClientDisconnected;
             NetworkClient.OnDisconnectedEvent -= OnCheckpointClientDisconnected;
             if (NetworkServer.active)
             {
@@ -454,6 +511,7 @@ namespace YC.Infrastructure.Multiplayer
                 NetworkServer.UnregisterHandler<InitialStateRequestMessage>();
                 NetworkServer.UnregisterHandler<InitialStateAppliedMessage>();
                 NetworkServer.UnregisterHandler<CommandOutcomeRequestMessage>();
+                NetworkServer.UnregisterHandler<GameStateViewAcknowledgmentMessage>();
                 NetworkServer.UnregisterHandler<SimulationCheckpointRequestMessage>();
                 NetworkServer.UnregisterHandler<SimulationCheckpointInstalledMessage>();
                 NetworkServer.UnregisterHandler<SimulationCheckpointErrorMessage>();
@@ -556,6 +614,9 @@ namespace YC.Infrastructure.Multiplayer
             if (connection == null) return;
             pendingLocalBindings.Remove(connection.connectionId);
             clientConnectionTokens.Remove(connection.connectionId);
+            sentViewHistory.Remove(connection.connectionId);
+            viewSendQueues.Remove(connection.connectionId);
+            initialViewRequestIds.Remove(connection.connectionId);
             dispatcher?.UnregisterClientPlayer((ulong)connection.connectionId);
             if (bindings.TryGetPlayer(connection.connectionId, out var playerId))
             {
@@ -593,9 +654,12 @@ namespace YC.Infrastructure.Multiplayer
         private void OnInitialStateRequest(NetworkConnectionToClient connection, InitialStateRequestMessage message)
         {
             if (checkpointChannel != null) return;
-            if (!bindings.TryGetPlayer(connection.connectionId, out _) || string.IsNullOrEmpty(message.ConnectionToken) ||
-                message.ConnectionToken.Length > 64) return;
+            if (connection == null || !bindings.TryGetPlayer(connection.connectionId, out _) || string.IsNullOrEmpty(message.ConnectionToken) ||
+                message.ConnectionToken.Length > 64 || message.RequestId <= 0) return;
+            if (IsConnectionTokenCurrent(connection.connectionId, message.ConnectionToken) &&
+                initialViewRequestIds.TryGetValue(connection.connectionId, out var previous) && message.RequestId <= previous) return;
             clientConnectionTokens[connection.connectionId] = message.ConnectionToken;
+            initialViewRequestIds[connection.connectionId] = message.RequestId;
             SendInitialState(connection);
         }
 
@@ -665,18 +729,71 @@ namespace YC.Infrastructure.Multiplayer
 
         private void SendStateView(NetworkConnectionToClient connection, object view, bool initial)
         {
-            if (!clientConnectionTokens.TryGetValue(connection.connectionId, out var token)) return;
-            var bytes = GameStateViewTransfer.Encode(JsonConvert.SerializeObject(view));
-            long transfer = ++nextViewTransfer;
-            foreach (var part in GameStateViewTransfer.Split(bytes))
+            if (!clientConnectionTokens.TryGetValue(connection.connectionId, out var token) ||
+                !initialViewRequestIds.TryGetValue(connection.connectionId, out var requestId)) return;
+            if (initial)
             {
-                var payload = new byte[part.Count];
-                Buffer.BlockCopy(part.Array, part.Offset, payload, 0, part.Count);
-                connection.Send(new GameStateViewPartMessage { TransferId = transfer, IsInitial = initial,
-                    ConnectionToken = token,
-                    TotalBytes = bytes.Length, Offset = part.Offset, ProtocolVersion = SteamLobbyPolicy.ProtocolVersion,
-                    Payload = payload }, Channels.Reliable);
+                // 完整基线替换旧队列时必须同时重置历史游标。
+                sentViewHistory.Remove(connection.connectionId);
+                viewSendQueues.Remove(connection.connectionId);
             }
+            if (!sentViewHistory.TryGetValue(connection.connectionId, out var history))
+                sentViewHistory.Add(connection.connectionId, history = new StateViewHistoryTracker());
+            var first = view as InitialGameStateViewDto;
+            var confirmed = view as ConfirmedGameStateViewDto;
+            var payload = new ViewSnapshotPayload {
+                NextConfirmedSequence = first?.NextConfirmedSequence ?? 0,
+                Sequence = confirmed?.Sequence ?? 0, Command = confirmed?.Command,
+                View = first?.View ?? confirmed?.View
+            };
+            payload.History = history.CreateDelta(payload.View, initial);
+            var bytes = GameStateViewTransfer.Encode(JsonConvert.SerializeObject(payload));
+            if (!viewSendQueues.TryGetValue(connection.connectionId, out var queue))
+                viewSendQueues.Add(connection.connectionId, queue = new ViewSendQueue { Connection = connection });
+            if (!initial && (queue.Pending.Count >= 64 || queue.Bytes > MaximumQueuedViewBytes - bytes.Length))
+            {
+                // 慢连接改送最新基线；本地 pending 仍经原有只读结果查询确认，不重发业务命令。
+                SendInitialState(connection);
+                return;
+            }
+            queue.Pending.Enqueue(new PendingViewSnapshot { TransferId = ++nextViewTransfer,
+                RequestId = requestId, IsInitial = initial, ConnectionToken = token, Bytes = bytes,
+                Window = new SnapshotSendWindow(bytes.Length, GameStateViewTransfer.ChunkBytes) });
+            queue.Bytes += bytes.Length;
+        }
+
+        private void PumpViewSends(float now)
+        {
+            foreach (var queue in viewSendQueues.Values)
+            {
+                if (queue.Pending.Count == 0) continue;
+                var snapshot = queue.Pending.Peek();
+                foreach (var range in snapshot.Window.GetChunks(now))
+                {
+                    var payload = new byte[range.Count];
+                    Buffer.BlockCopy(snapshot.Bytes, range.Offset, payload, 0, range.Count);
+                    queue.Connection.Send(new GameStateViewPartMessage {
+                        TransferId = snapshot.TransferId, RequestId = snapshot.RequestId,
+                        IsInitial = snapshot.IsInitial, ConnectionToken = snapshot.ConnectionToken,
+                        TotalBytes = snapshot.Bytes.Length, Offset = range.Offset,
+                        ProtocolVersion = SteamLobbyPolicy.ProtocolVersion, Payload = payload
+                    }, Channels.Reliable);
+                }
+            }
+        }
+
+        private void OnViewAcknowledgment(NetworkConnectionToClient connection, GameStateViewAcknowledgmentMessage message)
+        {
+            if (checkpointChannel != null || connection == null ||
+                !bindings.TryGetPlayer(connection.connectionId, out var playerId) ||
+                !IsConnectionTokenCurrent(connection.connectionId, message.ConnectionToken) ||
+                !viewSendQueues.TryGetValue(connection.connectionId, out var queue) || queue.Pending.Count == 0) return;
+            var snapshot = queue.Pending.Peek();
+            if (snapshot.TransferId != message.TransferId ||
+                !snapshot.Window.TryAcknowledge(message.NextOffset, Time.unscaledTime) || !snapshot.Window.IsComplete) return;
+            if (snapshot.IsInitial) MarkGameStateSynchronized(playerId, true);
+            queue.Pending.Dequeue();
+            queue.Bytes -= snapshot.Bytes.Length;
         }
 
         private void OnStateViewPart(GameStateViewPartMessage message)
@@ -684,13 +801,100 @@ namespace YC.Infrastructure.Multiplayer
             if (checkpointChannel != null) return;
             if (NetworkServer.active) return;
             if (!IsCurrentClientConnection(message.ConnectionToken)) return;
-            if (message.ProtocolVersion != SteamLobbyPolicy.ProtocolVersion ||
-                !viewAssembler.TryAppend(message.TransferId, message.IsInitial, message.TotalBytes,
-                    message.Offset, message.Payload, out var json))
-            { Debug.LogError("state_view_transfer_invalid"); NetworkClient.Disconnect(); return; }
-            if (json == null) return;
-            if (message.IsInitial) OnInitialState(new InitialStateMessage { Json = json, ProtocolVersion = message.ProtocolVersion, ConnectionToken = message.ConnectionToken });
-            else OnAccepted(new AcceptedCommandMessage { Json = json, ConnectionToken = message.ConnectionToken });
+            if (message.ProtocolVersion != SteamLobbyPolicy.ProtocolVersion)
+            { Debug.LogError("room_protocol_mismatch"); NetworkClient.Disconnect(); return; }
+            if (message.RequestId != initialViewRequestId || message.TransferId < latestReceivedViewTransfer) return;
+            if (message.TransferId <= 0 || message.Payload == null || message.Payload.Length > GameStateViewTransfer.ChunkBytes)
+            { BeginViewResynchronization(); return; }
+            if (message.TransferId == completedViewTransfer)
+            {
+                if (message.TotalBytes == completedViewBytes) AcknowledgeView(message.TransferId, completedViewBytes);
+                return;
+            }
+            if (awaitingInitialState && !message.IsInitial) return;
+            if (message.TransferId > latestReceivedViewTransfer)
+            {
+                if (viewAssembler.IsReceiving && (!message.IsInitial || message.Offset != 0))
+                { BeginViewResynchronization(); return; }
+                viewAssembler.Reset();
+                latestReceivedViewTransfer = message.TransferId;
+            }
+            if (!viewAssembler.TryAppend(message.TransferId, message.IsInitial, message.TotalBytes,
+                message.Offset, message.Payload, out var completed))
+            { BeginViewResynchronization(); return; }
+            viewReceiveDeadline = Time.unscaledTime + ViewProgressTimeout;
+            if (completed == null)
+            {
+                AcknowledgeView(message.TransferId, viewAssembler.ReceivedBytes);
+                return;
+            }
+            try
+            {
+                if (!TryApplyViewSnapshot(ViewUtf8.GetString(completed), message.IsInitial)) return;
+            }
+            catch (Exception error) when (error is DecoderFallbackException || error is JsonException)
+            { BeginViewResynchronization(); return; }
+            completedViewTransfer = message.TransferId;
+            completedViewBytes = message.TotalBytes;
+            commandConfirmationDeadline = Time.unscaledTime + CommandConfirmationTimeout;
+            AcknowledgeView(message.TransferId, message.TotalBytes);
+        }
+
+        private bool TryApplyViewSnapshot(string json, bool initial)
+        {
+            InitialGameStateViewDto first = null;
+            ConfirmedGameStateViewDto confirmed = null;
+            bool valid = initial
+                ? GameStateViewProtocol.TryReadInitial(json, session.State.RuleConfiguration, session.State.LaunchPlayerOrder, out first)
+                : GameStateViewProtocol.TryReadConfirmed(json, session.State.RuleConfiguration, session.State.LaunchPlayerOrder, out confirmed);
+            if (!valid)
+            { Debug.LogError("room_protocol_mismatch"); NetworkClient.Disconnect(); return false; }
+            var view = first?.View ?? confirmed.View;
+            if (!IsCurrentClientView(view) || confirmed?.Command != null && confirmed.Command.PlayerId != localPlayerId)
+            { BeginViewResynchronization(); return false; }
+            // 旧确认只走原有 pending 确认分支，不能把过期历史重新拼到当前视图。
+            if (!initial && confirmed.Sequence < dispatcher.NextExpectedConfirmedSequence)
+                return ApplyAcceptedState(confirmed);
+            var history = JsonConvert.DeserializeObject<ViewSnapshotPayload>(json)?.History;
+            if (history == null || initial && !history.Reset || !receivedViewHistory.TryRestore(view, history))
+            { BeginViewResynchronization(); return false; }
+            if (!initial) return ApplyAcceptedState(confirmed);
+            bool applied = ApplyInitialState(first);
+            if (!applied) BeginViewResynchronization();
+            return applied;
+        }
+
+        private void AcknowledgeView(long transferId, int nextOffset)
+        {
+            if (NetworkClient.isConnected)
+                NetworkClient.Send(new GameStateViewAcknowledgmentMessage {
+                    TransferId = transferId, NextOffset = nextOffset, ConnectionToken = clientConnectionToken
+                }, Channels.Reliable);
+        }
+
+        private void ResetViewReception()
+        {
+            viewAssembler.Reset(); receivedViewHistory.Reset();
+            latestReceivedViewTransfer = completedViewTransfer = 0;
+            completedViewBytes = 0; viewReceiveDeadline = 0f;
+        }
+
+        private void BeginViewResynchronization()
+        {
+            viewAssembler.Reset(); receivedViewHistory.Reset();
+            awaitingInitialState = true;
+            initialViewRequestId++;
+            MarkGameStateSynchronized(localPlayerId, false);
+            RequestInitialState();
+        }
+
+        private void OnViewClientDisconnected()
+        {
+            if (checkpointChannel != null) return;
+            ResetViewReception();
+            clientConnectionToken = null;
+            awaitingInitialState = !HasCompletedSettlement;
+            MarkGameStateSynchronized(localPlayerId, false);
         }
 
         private void OnInitialState(InitialStateMessage message)
@@ -706,6 +910,11 @@ namespace YC.Infrastructure.Multiplayer
             }
             if (!GameStateViewProtocol.TryReadInitial(message.Json, session.State.RuleConfiguration, session.State.LaunchPlayerOrder, out var snapshot))
             { Debug.LogError("room_protocol_mismatch"); NetworkClient.Disconnect(); return; }
+            ApplyInitialState(snapshot);
+        }
+
+        private bool ApplyInitialState(InitialGameStateViewDto snapshot)
+        {
             if (snapshot?.View == null || string.IsNullOrEmpty(session.State.GameId) ||
                 snapshot.View.GameId != session.State.GameId || session.State.RandomRuntime == null ||
                 snapshot.View.MapId != session.State.MapId ||
@@ -715,7 +924,7 @@ namespace YC.Infrastructure.Multiplayer
             {
                 Debug.LogError("权威开局地图或人数与当前房间不一致，已拒绝同步。");
                 NetworkClient.Disconnect();
-                return;
+                return false;
             }
             var result = dispatcher.ApplyInitialStateViewSynchronization(snapshot);
             ObserveCommandConfirmation("initial_apply_result", snapshot.View.GameId, applyResult: result);
@@ -732,6 +941,7 @@ namespace YC.Infrastructure.Multiplayer
                 TryCompleteRecoveredOutcome();
                 RequestCommandOutcome();
             }
+            return result.Succeeded;
         }
 
         private void OnAccepted(AcceptedCommandMessage message)
@@ -741,8 +951,13 @@ namespace YC.Infrastructure.Multiplayer
             if (!IsCurrentClientConnection(message.ConnectionToken)) return;
             if (!GameStateViewProtocol.TryReadConfirmed(message.Json, session.State.RuleConfiguration, session.State.LaunchPlayerOrder, out var confirmed))
             { Debug.LogError("room_protocol_mismatch"); NetworkClient.Disconnect(); return; }
-            if (!IsCurrentClientView(confirmed.View)) return;
-            if (confirmed.Command != null && confirmed.Command.PlayerId != localPlayerId) return;
+            ApplyAcceptedState(confirmed);
+        }
+
+        private bool ApplyAcceptedState(ConfirmedGameStateViewDto confirmed)
+        {
+            if (!IsCurrentClientView(confirmed.View)) return false;
+            if (confirmed.Command != null && confirmed.Command.PlayerId != localPlayerId) return false;
             bool acknowledgedPendingCommand = MatchesPending(confirmed.View.GameId,
                 confirmed.Command?.PlayerId ?? -1, confirmed.Command?.CommandId);
             ObserveCommandConfirmation("accepted_received", confirmed.View.GameId,
@@ -755,7 +970,7 @@ namespace YC.Infrastructure.Multiplayer
                     recoveredOutcome = AcceptedOutcome(confirmed);
                     TryCompleteRecoveredOutcome();
                 }
-                return;
+                return true;
             }
             var result = dispatcher.ApplyConfirmedStateViewSynchronization(confirmed);
             ObserveCommandConfirmation("accepted_apply_result", confirmed.View.GameId,
@@ -770,9 +985,9 @@ namespace YC.Infrastructure.Multiplayer
             else
             {
                 if (acknowledgedPendingCommand) recoveredOutcome = AcceptedOutcome(confirmed);
-                awaitingInitialState = true;
-                RequestInitialState();
+                BeginViewResynchronization();
             }
+            return result.Succeeded;
         }
 
         private void OnRejected(RejectedCommandMessage message)
@@ -832,8 +1047,7 @@ namespace YC.Infrastructure.Multiplayer
             if (session.View.StateRevision < outcome.StateRevision ||
                 outcome.Outcome == CommandAuthorityOutcomeKind.Accepted && dispatcher.NextExpectedConfirmedSequence <= outcome.AcceptedSequence)
             {
-                awaitingInitialState = true;
-                RequestInitialState();
+                BeginViewResynchronization();
                 return;
             }
             var command = pendingCommand;
@@ -876,7 +1090,7 @@ namespace YC.Infrastructure.Multiplayer
             if (!NetworkClient.isConnected) return;
             float now = ReadUnscaledTime();
             if (now < nextInitialStateRequestTime) return;
-            NetworkClient.Send(new InitialStateRequestMessage { ConnectionToken = clientConnectionToken });
+            NetworkClient.Send(new InitialStateRequestMessage { ConnectionToken = clientConnectionToken, RequestId = initialViewRequestId });
             nextInitialStateRequestTime = now + InitialStateRequestInterval;
         }
 
@@ -900,7 +1114,8 @@ namespace YC.Infrastructure.Multiplayer
             // 新连接先同步，再按同局本人命令身份只读查回结果；未知业务命令不重发。
             ObserveCommandConfirmation("connection_pending_retained");
             clientConnectionToken = Guid.NewGuid().ToString("N");
-            viewAssembler.Reset();
+            ResetViewReception();
+            initialViewRequestId = 1;
             awaitingInitialState = true;
             nextInitialStateRequestTime = 0f;
             nextCommandOutcomeRequestTime = 0f;
@@ -943,14 +1158,15 @@ namespace YC.Infrastructure.Multiplayer
                 else BindCheckpointHost();
                 return;
             }
-            viewAssembler.Reset();
+            ResetViewReception();
+            initialViewRequestId = 1;
             NetworkClient.RegisterHandler<GameStateViewPartMessage>(OnStateViewPart, false);
-            NetworkClient.RegisterHandler<AcceptedCommandMessage>(OnAccepted, false);
             NetworkClient.RegisterHandler<RejectedCommandMessage>(OnRejected, false);
-            NetworkClient.RegisterHandler<InitialStateMessage>(OnInitialState, false);
             NetworkClient.RegisterHandler<CommandOutcomeMessage>(OnCommandOutcome, false);
             NetworkClient.OnConnectedEvent -= OnLocalClientConnected;
             NetworkClient.OnConnectedEvent += OnLocalClientConnected;
+            NetworkClient.OnDisconnectedEvent -= OnViewClientDisconnected;
+            NetworkClient.OnDisconnectedEvent += OnViewClientDisconnected;
             awaitingInitialState = true;
             clientConnectionToken = Guid.NewGuid().ToString("N");
             nextInitialStateRequestTime = 0f;

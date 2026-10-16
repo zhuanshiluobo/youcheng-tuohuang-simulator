@@ -87,7 +87,8 @@ namespace YC.Tests.EditMode
             Set(client.Transport, "bindings", new SteamIdentityBindingRegistry());
             Set(client.Transport, "pendingLocalBindings", new Dictionary<int, float>());
             Set(client.Transport, "clientConnectionTokens", new Dictionary<int, string>());
-            Set(client.Transport, "viewAssembler", new GameStateViewTransfer.Assembler());
+            Set(client.Transport, "viewAssembler", new SnapshotChunkBuffer());
+            Set(client.Transport, "receivedViewHistory", new StateViewHistoryTracker());
 #else
             var gameObject = new GameObject("命令确认恢复检查");
             objects.Add(gameObject);

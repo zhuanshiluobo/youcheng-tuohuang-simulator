@@ -84,7 +84,8 @@ namespace YC.Tests.EditMode.ExpansionRules
                 GameBoxCardKind.Character, GameBoxCardKind.Character, GameBoxCardKind.Event,
                 GameBoxCardKind.Event, GameBoxCardKind.EnterpriseCooperation }));
             Assert.That(view.GameBox.Cards.Single(card => card.InstanceId == "character-a").FaceUp, Is.False);
-            Assert.That(view.GameBox.Cards.Single(card => card.InstanceId == "character-a").BackVisualKey, Is.EqualTo("character_back_2"));
+            Assert.That(view.GameBox.Cards.Single(card => card.InstanceId == "character-a").BackColor, Is.EqualTo(PlayerColor.Red),
+                "基础角色牌背随原归属玩家，旧的 backColor 配置不能覆盖归属语义。");
             Assert.That(view.GameBox.Cards.Single(card => card.InstanceId == "character-z").BackVisualKey, Is.EqualTo("operator_back"));
             Assert.That(view.GameBox.Cards.Single(card => card.InstanceId == "carried-character").BackVisualKey, Is.EqualTo("character_back_3"));
             Assert.That(view.GameBox.Cards.Single(card => card.InstanceId == "board").BackVisualKey, Is.EqualTo("enterprise_back"));

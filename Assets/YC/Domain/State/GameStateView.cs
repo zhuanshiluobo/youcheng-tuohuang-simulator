@@ -419,6 +419,7 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class RuleEventView
     {
+        public int Sequence;
         public string EventId = string.Empty;
         public string EventType = string.Empty;
         public string TargetEntityId = string.Empty;
@@ -552,6 +553,8 @@ namespace YC.Domain.State
             }
             ProjectGameplayPresentation(state, viewer, view);
             if (!viewer.IsHost) RedactSecretHistory(state, view);
+            // 包含秘密回盒的二次过滤完成后再编号，不能暴露隐藏事件的位置或数量。
+            for (int i = 0; i < view.Events.Count; i++) view.Events[i].Sequence = i + 1;
             return view;
         }
 

@@ -62,7 +62,8 @@ namespace YC.Tests.EditMode
         private Scenario Create(string pending = "pending-action", bool synchronized = true)
         {
             var session = new GameSession(new GameState
-            { RuleConfiguration = Configuration(), MapId = Configuration().MapId, ContentPackHash = Configuration().ContentPackHash,
+            { GameId = "covered-confirmation-contract", RandomRuntime = GameplayRandomRuntime.Create("covered-confirmation-contract"),
+                RuleConfiguration = Configuration(), MapId = Configuration().MapId, ContentPackHash = Configuration().ContentPackHash,
                 Players = { new PlayerState { PlayerId = 1 }, new PlayerState { PlayerId = 2 } } });
             var dispatcher = new AuthoritativeCommandDispatcher(session, true);
             var initial = new InitialGameStateViewDto { NextConfirmedSequence = 6, View = View(12) };
@@ -72,7 +73,7 @@ namespace YC.Tests.EditMode
 #if COVERED_ACKNOWLEDGMENT_OFFLINE
             // 仅分配真实类型的托管部分，避免离线CLR调用Unity组件构造；不替换受测方法。
             transport = System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(TransportType());
-            foreach (string field in new[] { "bindings", "pendingLocalBindings", "clientConnectionTokens", "viewAssembler" })
+            foreach (string field in new[] { "bindings", "pendingLocalBindings", "clientConnectionTokens", "viewAssembler", "receivedViewHistory" })
                 Set(transport, field, Activator.CreateInstance(TransportType().GetField(field, Members).FieldType));
 #else
             var gameObject = new GameObject("已覆盖确认专属检查");
