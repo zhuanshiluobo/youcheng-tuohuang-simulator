@@ -155,6 +155,15 @@ namespace YC.Application.Sessions
 
         public bool TryPrepareConfirmedRecoveryState(GameState restored, GameSessionLogContinuationDto continuation,
             GameStateViewer viewer, out PreparedGameSessionRecovery prepared, out string fault)
+            => TryPrepareRecoveryState(restored, continuation, viewer, out prepared, out fault);
+
+        /// <summary>本地热座按当前操作者即时投影，恢复时不固定某一玩家的展示快照。</summary>
+        public bool TryPrepareLocalRecoveryState(GameState restored, GameSessionLogContinuationDto continuation,
+            out PreparedGameSessionRecovery prepared, out string fault)
+            => TryPrepareRecoveryState(restored, continuation, null, out prepared, out fault);
+
+        private bool TryPrepareRecoveryState(GameState restored, GameSessionLogContinuationDto continuation,
+            GameStateViewer? viewer, out PreparedGameSessionRecovery prepared, out string fault)
         {
             prepared = null; fault = string.Empty;
             try
@@ -169,7 +178,8 @@ namespace YC.Application.Sessions
                     detached.GameId, detached.EventDeckSeed, out string reason)) throw new InvalidOperationException(reason);
                 if (detached.EffectRuntime != null && !detached.EffectRuntime.TryValidate(out string runtimeReason))
                     throw new InvalidOperationException(runtimeReason);
-                var view = GameStateViewProjector.Project(detached, viewer, settlementProjectionProvider?.GetSettlementOptions(detached, viewer));
+                var view = viewer.HasValue ? GameStateViewProjector.Project(detached, viewer.Value,
+                    settlementProjectionProvider?.GetSettlementOptions(detached, viewer.Value)) : null;
                 prepared = new PreparedGameSessionRecovery(this, mutationGeneration, detached, view, detachedContinuation);
                 return true;
             }

@@ -27,6 +27,7 @@ using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Domain.Travel;
 using YC.Infrastructure.Lua;
+using YC.Infrastructure.Persistence;
 using YC.PlayerJourney;
 using YC.Presentation.Workflows;
 
@@ -107,6 +108,7 @@ namespace YC.Presentation.Validation
         private RouteResourceSelectionPresenter Route => (RouteResourceSelectionPresenter)Read(Read(mobile, "routeResourceSelection"), "Presenter");
         private bool SalesMode => selectedCase == "resource-sales";
         private bool CampaignMode => selectedCase == "full-game";
+        private bool SaveResumeMode => selectedCase == "save-resume" || selectedCase == "save-resume-continue";
         private bool CoverageMode => SalesMode || CampaignMode;
         private string Argument(string prefix) => Environment.GetCommandLineArgs()
             .FirstOrDefault(a => a.StartsWith(prefix, StringComparison.Ordinal))?.Substring(prefix.Length);
@@ -171,7 +173,7 @@ namespace YC.Presentation.Validation
         private InteractionRequestProjection Request => (InteractionRequestProjection)Read(Read(mobile, "interactionRequestRouter"), "CurrentRequest");
         private IEnumerator Run()
         {
-            Require(selectedCase == "normal-flow" || CoverageMode, "验证入口必须是正常菜单流程");
+            Require(selectedCase == "normal-flow" || CoverageMode || SaveResumeMode, "验证入口必须是正常菜单流程");
             Write("运行身份.json", new { Case = selectedCase, ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
                 UnityVersion = UnityEngine.Application.unityVersion, Assembly = typeof(HotseatUiValidationDriver).Assembly.ManifestModule.ModuleVersionId,
                 DataPath = UnityEngine.Application.dataPath, PersistentDataPath = UnityEngine.Application.persistentDataPath,
@@ -184,6 +186,12 @@ namespace YC.Presentation.Validation
             Require(menu != null, "正常启动没有显示开始菜单");
             yield return Capture("正常开始菜单");
             yield return new WaitForSecondsRealtime(3);
+            if (selectedCase == "save-resume-continue")
+            {
+                yield return SaveResumeLoadExisting(menu);
+                yield return SaveResumeRun();
+                yield break;
+            }
             yield return Press(menu.StartGameButton, "主菜单创建本地房间");
             var room = menu.RoomPanel;
             for (int wait = 0; wait < 30 && !room.gameObject.activeInHierarchy; wait++) yield return Settle();
@@ -192,6 +200,7 @@ namespace YC.Presentation.Validation
             var expansions = (StartMenuRoomPanelView.ContentOption[])Read(room, "expansions");
             foreach (var id in new[] { "enterprise", "infected" })
             {
+                if (SaveResumeMode) continue;
                 if (SalesMode || CampaignMode && !(Argument("--yc-campaign-expansions=") ?? "enterprise,infected").Split(',').Contains(id)) continue;
                 var option = expansions.Single(v => v.Id == id);
                 if (!option.Selection.gameObject.activeSelf) yield return Press(option.Button, "房间启用扩展" + id);
@@ -223,6 +232,7 @@ namespace YC.Presentation.Validation
             if (SalesMode) LoadCoverage();
             if (CampaignMode) LoadCampaign();
             yield return Capture("正常开局首个请求");
+            if (SaveResumeMode) { yield return SaveResumeRun(); yield break; }
             for (int step = 0; CampaignMode || step < (SalesMode ? 900 : 150); step++)
             {
                 if (CampaignMode)
@@ -348,6 +358,203 @@ namespace YC.Presentation.Validation
                 Reason = amiyaCovered ? "通过正常候选获得并使用" : "截至正常第三回合，未自然形成阿米娅来源与后继角色组合；未注入牌或状态" });
             stage = "正常流程本轮结束";
             yield return Capture("正常流程结束现场");
+        }
+
+        // 与整局共用原按钮、地图命中与准确回执；此模式只增加存读档路径，不写规则状态。
+        private IEnumerator SaveResumeRun()
+        {
+            var pending = State.EffectRuntime.InteractionRequests.SingleOrDefault(value => value.Status == "open" && value.AnsweringPlayerId == LocalPlayer);
+            Require(pending?.InteractionTypeId == "entrance.location", "本次验收预期的原入场待选已改变，不操作其他存档");
+            var pendingId = pending.InteractionId;
+            yield return SaveResumeRoundTrip("入场待选");
+            int before = commands.Count;
+            // 读取后路由器可延迟建立；以实际可见地图控件完成原选择，不用路由器快照代替操作结果。
+            var target = PreferVisibleMapTarget(FindObjectsOfType<MapButtonView>().Where(button =>
+                button.TargetKind == WorkflowHighlightTargetKind.Location && button.IsInteractive));
+            Require(target != null, "读取后原入场没有实际可交互地图候选");
+            string targetId = target.TargetId;
+            yield return MapPress(WorkflowHighlightTargetKind.Location, targetId, "读取后原入场地图首击");
+            Require(commands.Count == before && target.IsSelected, "入场首击应仅预选原可见候选");
+            yield return MapPress(WorkflowHighlightTargetKind.Location, targetId, "读取后原入场地图同点二击确认");
+            Require(commands.Skip(before).Count(record => (Read(record, "Command") as GameCommand)?.Kind == GameCommandKind.AnswerInteraction &&
+                (Read(record, "Command") as GameCommand).Parameters.TryGetValue("interactionId", out var id) && id == pendingId) == 1,
+                "读取后原待选没有恰好作答一次");
+            checks.Add(new { Item = "读取后原待选仅作答一次", InteractionId = pendingId, Passed = true });
+            for (int step = 0; step < 100 && !(State.Phase == GamePhase.ActionRound1 && Request == null && Route?.IsActive != true); step++)
+                yield return SaveResumeAdvance();
+            Require(State.Phase == GamePhase.ActionRound1 && Request == null && Route?.IsActive != true,
+                "正常入场未结束，尚不能验收稳定行动点");
+            yield return SaveResumeRoundTrip("稳定行动点");
+            yield return Press(MarkedButton("action.tab.0"), "存读档后正常主要行动页签");
+            Require(hud.ActionPanelView.MoveCityButton.IsInteractable(), "本次合法移城入口不可用，保留待测缺口");
+            yield return BeginCampaignMove();
+            Require(CurrentPaymentView()?.PreparedActionPayments.Any(value => value.ActionKind == "city_move") == true,
+                "正常移城未形成本人付款准备，不能代造付款现场");
+            yield return SaveResumeRoundTrip("移城付款准备");
+            for (int step = 0; step < 40 && (preparedMainAction != null || pendingMoveCompletion != null || Request != null); step++)
+                yield return SaveResumeAdvance();
+            ObserveMoveCompletion();
+            Require(preparedMainAction == null && pendingMoveCompletion == null && Request == null && mobile.CanEndCurrentAction(),
+                "读取后移城原控件没有自然完成，不能补点掩盖");
+            var moves = commands.Select(record => Read(record, "Command") as GameCommand).Where(command => command?.Kind == GameCommandKind.MoveCity).ToArray();
+            Require(moves.Length == 1 && moves.Select(command => command.CommandId).Distinct().Count() == 1,
+                "读取付款准备后的最终移城命令不是唯一一次");
+            yield return SaveResumeRoundTrip("移城完成后");
+            int actor = LocalPlayer;
+            before = commands.Count;
+            yield return Press(hud.Frame.EndActionButton, "续局移城后首次结束行动");
+            Require(commands.Count == before + 1 && LocalPlayer != actor, "续局结束行动没有一次交接给下一玩家");
+            yield return Capture("存读档后合法继续与交接");
+            Write("存读档未覆盖.json", new { Items = new[] {
+                "未使用外部键盘，物理Esc键及同帧关闭传播未覆盖；仅验证原关闭控件和设置Esc处理器的模态守卫",
+                "本轮未自然发生写盘失败，保存失败文案与重试未覆盖",
+                "联机原身份回席、陌生替补、配置冻结与Host确认前缀需正常多实例另测" },
+                ProductionWrites = false, StateInjection = false });
+        }
+
+        private IEnumerator SaveResumeAdvance()
+        {
+            stage = "存读档正常推进-" + State.Phase + "-" + (Request?.InteractionTypeId ?? "无请求");
+            Append("正常流程轨迹.jsonl", Observe());
+            ObserveMoveCompletion();
+            var condition = FindConditionPaymentView();
+            if (condition != null) { yield return ConditionPaymentChoice(condition); yield break; }
+            if (preparedMainAction != null && (Request == null || ActionPaymentPreparation.IsPreparedActionRequest(Request)))
+            { yield return ContinuePreparedMainAction(); yield break; }
+            if (Route?.IsActive == true)
+            {
+                if (State.Phase == GamePhase.ResourceCollection) yield return HarvestOne(harvestOrder.Count < 4);
+                else yield return GrantedRouteSelection();
+                yield break;
+            }
+            Require(Request != null || State.Phase == GamePhase.CharacterCover || State.Phase == GamePhase.Entrance,
+                "本轮短链路正常推进遇到尚未适配的阶段：" + State.Phase);
+            yield return NormalChoice();
+        }
+
+        private IEnumerator SaveResumeAwait(Func<bool> ready, string description)
+        {
+            float start = Time.realtimeSinceStartup;
+            while (!ready() && Time.realtimeSinceStartup - start < 75f) yield return null;
+            Require(ready(), description + "超时；不直接调用保存/恢复API代替控件");
+            yield return Settle();
+        }
+
+        private MatchSaveWindowView SaveResumeWindow => FindObjectOfType<MatchSaveWindowView>();
+        private List<MatchSaveSlot> SaveResumeSlots => Read(SaveResumeWindow, "slots") as List<MatchSaveSlot>;
+        private int saveResumeManualSlot = -1;
+        private IEnumerator SaveResumeLoadExisting(StartMenuView menu)
+        {
+            stage = "从正常主页读取原失败测量的同一档";
+            string expectedGameId = Argument("--yc-save-resume-game-id=");
+            Require(!string.IsNullOrEmpty(expectedGameId), "必须声明本次本人已保存的GameId，防止操作其他存档");
+            yield return Press(menu.LoadGameButton, "正常主页读取之前同一存档");
+            yield return SaveResumeAwait(() => SaveResumeWindow != null && !(bool)Read(SaveResumeWindow, "busy") && SaveResumeSlots != null,
+                "原存档读取列表");
+            saveResumeManualSlot = SaveResumeSlots.FindIndex(slot => slot.Index < MatchSaveStore.ManualCount && slot.Data?.GameId == expectedGameId && slot.Error == null);
+            Require(saveResumeManualSlot >= 0, "原本人手动档不在正式列表中，不改文件或选其他局");
+            yield return Capture("主页原同局存档");
+            yield return Press(((Button[])Read(SaveResumeWindow, "rows"))[saveResumeManualSlot], "原列表选择本人同局档");
+            yield return Press(((GenericWindowView)Read(SaveResumeWindow, "window")).ConfirmButton, "原读取按钮进入同一对局");
+            yield return SaveResumeAwait(() => FindObjectOfType<MobileCityInteractionController>() != null && !SceneTransitionContext.IsTransitionInProgress,
+                "原同局正常场景读取");
+            mobile = FindObjectOfType<MobileCityInteractionController>(); session = (GameSession)Read(mobile, "session");
+            registry = (EffectRegistry)Read(mobile, "sessionEffectRegistry"); hud = (GameplayInteractionHudView)Read(mobile, "gameplayInteractionHud");
+            Require(session != null && State.GameId == expectedGameId, "正常读取不是原本人对局");
+            ObserveGateway(mobile); ObserveGateway(Read(mobile, "turnActionPresenter")); ObserveGateway(Read(mobile, "influenceActionPresenter"));
+            yield return Capture("同局原档恢复后未操作");
+        }
+        private IEnumerator SaveResumeRoundTrip(string label)
+        {
+            stage = "存读档-" + label;
+            var expected = JToken.FromObject(State);
+            var requestBefore = Request == null ? null : JToken.FromObject(Request);
+            string gameId = State.GameId;
+            int countBefore = commands.Count;
+            var settings = FindObjectOfType<GameSettingsMenuView>();
+            Require(settings != null, "实际游戏设置引用缺失");
+            yield return Press(hud.Frame.SettingsButton, label + "点击当前HUD顶栏原设置按钮");
+            yield return Press(settings.SaveGameButton, label + "打开原手动存档入口");
+            yield return SaveResumeAwait(() => SaveResumeWindow != null && !(bool)Read(SaveResumeWindow, "busy") && SaveResumeSlots != null,
+                "手动存档列表加载");
+            var saveView = SaveResumeWindow;
+            var rows = (Button[])Read(saveView, "rows");
+            var window = (GenericWindowView)Read(saveView, "window");
+            Require(rows.Length == MatchSaveStore.SlotCount && rows.Count(row => row.gameObject.activeInHierarchy) == MatchSaveStore.ManualCount,
+                "手动存档模式未显示三个手动槽");
+            if (saveResumeManualSlot < 0)
+            {
+                saveResumeManualSlot = SaveResumeSlots.FindIndex(slot => slot.Index < MatchSaveStore.ManualCount && !slot.Exists);
+                Require(saveResumeManualSlot >= 0, "手动槽已满；不覆盖用户已有手动档");
+                Require(!window.ConfirmButton.IsInteractable(), "未选择空槽前保存确认应禁用");
+            }
+            else Require(SaveResumeSlots[saveResumeManualSlot].Data?.GameId == gameId &&
+                rows.Take(MatchSaveStore.ManualCount).Where((row, index) => index != saveResumeManualSlot).All(row => !row.IsInteractable()),
+                "本局已有手动档时没有限定更新原槽");
+            yield return Capture(label + "-手动存档三槽");
+            // 只调用设置自身的Esc路由守卫，明确不计作物理键盘Esc测试。
+            FindObjectOfType<GameSettingsMenuController>().HandleEscapePressed();
+            Require(SaveResumeWindow == saveView && settings.OverlayObject.activeInHierarchy,
+                "存档窗打开时设置的Esc处理器穿透了模态层");
+            yield return Press(window.CancelButton != null ? window.CancelButton : (Button)Read(window, "closeButton"), label + "原关闭控件返回设置");
+            Require(!MatchSaveWindowView.IsAnyOpen && settings.OverlayObject.activeInHierarchy && JToken.DeepEquals(expected, JToken.FromObject(State)),
+                "原关闭控件误关设置或改变规则状态");
+            yield return Press(settings.SaveGameButton, label + "再次经原按钮打开保存");
+            yield return SaveResumeAwait(() => SaveResumeWindow != null && !(bool)Read(SaveResumeWindow, "busy") && SaveResumeSlots != null,
+                "重新加载手动列表");
+            rows = (Button[])Read(SaveResumeWindow, "rows");
+            window = (GenericWindowView)Read(SaveResumeWindow, "window");
+            yield return Press(rows[saveResumeManualSlot], label + "选择空槽或本局原槽");
+            yield return Press(window.ConfirmButton, label + "原按钮确认手动保存");
+            yield return SaveResumeAwait(() => !MatchSaveWindowView.IsAnyOpen, "保存成功并关闭");
+            Require(string.IsNullOrEmpty(MatchSaveController.Instance.LastFailure), "手动保存失败：" + MatchSaveController.Instance.LastFailure);
+            Require(JToken.DeepEquals(expected, JToken.FromObject(State)), "手动保存改变了规则状态");
+            yield return Capture(label + "-保存成功回设置");
+            yield return Press(settings.ReturnButton, label + "正常返回主页入口");
+            yield return Press(settings.ConfirmReturnButton, label + "正常确认返回主页");
+            mobile = null; session = null; registry = null; hud = null;
+            yield return SaveResumeAwait(() => FindObjectOfType<StartMenuView>() != null && !SceneTransitionContext.IsTransitionInProgress,
+                "返回正常主菜单");
+            var menu = FindObjectOfType<StartMenuView>();
+            yield return Press(menu.LoadGameButton, label + "主页读取存档原按钮");
+            yield return SaveResumeAwait(() => SaveResumeWindow != null && !(bool)Read(SaveResumeWindow, "busy") && SaveResumeSlots != null,
+                "读取列表加载");
+            rows = (Button[])Read(SaveResumeWindow, "rows");
+            window = (GenericWindowView)Read(SaveResumeWindow, "window");
+            Require(rows.Length == MatchSaveStore.SlotCount && rows.All(row => row.gameObject.activeInHierarchy), "读取模式没有显示全部六槽");
+            Require(!window.ConfirmButton.IsInteractable(), "读取未选槽时确认未禁用");
+            var saved = SaveResumeSlots[saveResumeManualSlot].Data;
+            Require(saved != null && saved.GameId == gameId && SaveResumeSlots[saveResumeManualSlot].Error == null,
+                "本局手动槽摘要或校验失败");
+            Write(label + "-读取原槽摘要.json", new { saved.GameId, saved.MapId, saved.Round, saved.ContentHash, saved.Mode,
+                saved.LocalPlayerId, saved.SavedUtcTicks, saved.Seats, ManualSlot = saveResumeManualSlot,
+                Slots = SaveResumeSlots.Select(slot => new { slot.Index, slot.Exists, slot.Error, GameId = slot.Data?.GameId }).ToArray() });
+            File.WriteAllText(Path.Combine(output, label + "-保存点权威状态.json"), saved.ReadArchiveState().ToString());
+            yield return Capture(label + "-主页读取六槽");
+            yield return Press(rows[saveResumeManualSlot], label + "选择本次手动档");
+            yield return Press(window.ConfirmButton, label + "原按钮确认读取");
+            yield return SaveResumeAwait(() => FindObjectOfType<MobileCityInteractionController>() != null && !SceneTransitionContext.IsTransitionInProgress,
+                "正常读取进入原游戏场景");
+            mobile = FindObjectOfType<MobileCityInteractionController>();
+            session = (GameSession)Read(mobile, "session"); registry = (EffectRegistry)Read(mobile, "sessionEffectRegistry");
+            hud = (GameplayInteractionHudView)Read(mobile, "gameplayInteractionHud");
+            Require(session != null && registry != null && hud != null, "读取后的原游戏引用缺失");
+            ObserveGateway(mobile); ObserveGateway(Read(mobile, "turnActionPresenter")); ObserveGateway(Read(mobile, "influenceActionPresenter"));
+            var actual = JToken.FromObject(State);
+            var requestAfter = Request == null ? null : JToken.FromObject(Request);
+            bool equal = JToken.DeepEquals(expected, actual);
+            Write(label + "-恢复比较.json", new { State.GameId, State.ContentPackHash, FullStateEqual = equal,
+                PendingRequestEqual = JToken.DeepEquals(requestBefore, requestAfter), CommandCountUnchanged = commands.Count == countBefore,
+                DifferentTopLevelFields = ((JObject)expected).Properties().Where(p => !JToken.DeepEquals(p.Value, actual[p.Name])).Select(p => p.Name).ToArray(),
+                ExpectedRequest = requestBefore, ActualRequest = requestAfter, Actual = Observe() });
+            yield return Capture(label + "-读取恢复现场");
+            Require(equal && commands.Count == countBefore,
+                "存读档往返后权威状态或命令数不一致");
+            checks.Add(new { Item = label + "原控件存读档闭环", Passed = true, State.GameId,
+                State.ContentPackHash, Revision = State.EffectRuntime.StateRevision, ManualSlot = saveResumeManualSlot,
+                FullStateEqual = true, AuthorityPendingPreserved = true,
+                RouterSnapshotEqual = JToken.DeepEquals(requestBefore, requestAfter),
+                PendingUiCompletionClaimed = false, CommandsAdded = commands.Count - countBefore });
         }
 
         private GameStateView CurrentPaymentView()
@@ -2843,10 +3050,12 @@ namespace YC.Presentation.Validation
                     failure is PaymentCannotContinueException ? "付款不可继续" : null,
                 ExitCode = failure == null ? 0 : 2, NaturalExitRequested = true, CommandCount = commands.Count, Checks = checks,
                 FullGameCompleted = CampaignMode && campaignGame?.Terminal == true, Campaign = CampaignMode ? campaignGame : null,
+                SaveResumeCompleted = SaveResumeMode && failure == null,
                 TargetPagesCovered = SalesMode && TargetPagesCovered, SettlementStripObserved = stripObserved, Coverage = SalesMode ? coverage : null,
                 AmiyaCovered = amiyaCovered, AmiyaSourcesByPlayer = activatedAmiyaByPlayer, NormalActionEndChecks = actionChecks,
                 ActualHarvestOrder = harvestOrder, Screenshots = screenshots, RuntimeErrors = errors,
-                Boundary = "可见独立Player从正常主菜单创建四人房间，经完整开局、行动进入采集；正式控件内部指针事件，无状态注入、无固定随机种子。非外部鼠标命中。",
+                Boundary = SaveResumeMode ? "可见独立Player正常菜单建房、入场、原设置保存、原主页读取、合法移城继续；原控件内部指针事件，非外部鼠标，非物理Esc。无直接保存或恢复API、无状态注入、无随机覆盖。" :
+                    "可见独立Player从正常主菜单创建四人房间，经完整开局、行动进入采集；正式控件内部指针事件，无状态注入、无固定随机种子。非外部鼠标命中。",
                 SourceWrites = false, AssetsRebuilt = false, ForcedRefresh = false, StateReplacementCount = 0 });
             UnityEngine.Application.logMessageReceived -= OnLog;
             UnityEngine.Application.Quit(failure == null ? 0 : 2);

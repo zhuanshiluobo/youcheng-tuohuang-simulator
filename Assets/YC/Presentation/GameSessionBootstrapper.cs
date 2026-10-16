@@ -274,7 +274,12 @@ namespace YC.Presentation
                     OperationCommandCanonicalizer.ValidateRecoveryBaseline(MatchSaveData.OptionsFor(baseline, true, localPlayerId), baseline, recovered.State);
                 }
                 var continuation = SimulationConfirmedRecoveryInstaller.ReadContinuation(restore.ContinuationJson);
-                if (!session.TryPrepareConfirmedRecoveryState(recovered.State, continuation, GameStateViewer.Player(localPlayerId), out var prepared, out var fault) ||
+                PreparedGameSessionRecovery prepared;
+                string fault;
+                bool ready = launchMode == LaunchMode.Local
+                    ? session.TryPrepareLocalRecoveryState(recovered.State, continuation, out prepared, out fault)
+                    : session.TryPrepareConfirmedRecoveryState(recovered.State, continuation, GameStateViewer.Player(localPlayerId), out prepared, out fault);
+                if (!ready ||
                     !session.TryCommitPreparedRecovery(prepared, out fault)) throw new System.InvalidOperationException(fault);
             }
             else if (!deferRuleInitialization && session.State.Phase == GamePhase.Entrance)

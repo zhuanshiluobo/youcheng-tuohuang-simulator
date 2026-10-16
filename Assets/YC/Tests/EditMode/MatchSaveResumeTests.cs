@@ -66,6 +66,62 @@ namespace YC.Tests.EditMode
             var result = type.GetMethod("Restore", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { null, data });
             return (GameSession)result.GetType().GetField("Session").GetValue(result);
         }
+
+        [TestCase(1)]
+        [TestCase(2)]
+        public void LocalRestoreKeepsCurrentHotseatRequestVisibleAcrossAnswers(int firstPlayer)
+        {
+            // 隔离回归：使用正式开局和恢复入口，检查实际界面读端口；不计作可见程序验收。
+            var contextType = Type.GetType("YC.Presentation.GameLaunchContext, Assembly-CSharp", true);
+            var bootstrapper = Type.GetType("YC.Presentation.GameSessionBootstrapper, Assembly-CSharp", true);
+            var mobileType = Type.GetType("YC.Presentation.MobileCityInteractionController, Assembly-CSharp", true);
+            var instance = contextType.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static);
+            var previous = instance.GetValue(null);
+            var setter = instance.GetSetMethod(true);
+            UnityEngine.GameObject contextObject = null, mobileObject = null;
+            try
+            {
+                setter.Invoke(null, new object[] { null });
+                contextObject = new UnityEngine.GameObject("本地读档视角回归");
+                var context = contextObject.AddComponent(contextType);
+                var seats = Enumerable.Range(1, 3).Select(id => new PlayerSeat { PlayerId = id,
+                    PlayerName = "玩家" + id, Color = RoomConfigurationService.GetSeatColor(id - 1) }).ToList();
+                var order = new[] { firstPlayer }.Concat(Enumerable.Range(1, 3).Where(id => id != firstPlayer)).ToList();
+                var configuration = new GameRuleConfiguration { MapId = YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId,
+                    PlayerCount = 3, EnabledExpansionIds = new List<string> { "core" } };
+                contextType.GetMethod("ConfigureNewLocal").Invoke(context,
+                    new object[] { 1, "local-save-regression", seats, configuration, 42, order });
+                var built = bootstrapper.GetMethod("Build", BindingFlags.Public | BindingFlags.Static)
+                    .Invoke(null, new object[] { context, false, false });
+                var original = (GameSession)built.GetType().GetField("Session").GetValue(built);
+                var restored = Restore(FromSession(original, LaunchMode.Local, 1));
+                Assert.That(RuleStateDigestService.Compute(restored.State), Is.EqualTo(RuleStateDigestService.Compute(original.State)));
+
+                mobileObject = new UnityEngine.GameObject("本地读档界面读端口");
+                mobileObject.SetActive(false);
+                var mobile = mobileObject.AddComponent(mobileType);
+                mobileType.GetField("session", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(mobile, restored);
+                for (int step = 0; step < 3; step++)
+                {
+                    int player = restored.State.CurrentPlayerId;
+                    mobileType.GetMethod("SetLocalViewer", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(mobile, new object[] { player });
+                    var visible = (GameStateView)mobileType.GetMethod("VisibleSaleState", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(mobile, null);
+                    Assert.That(visible, Is.Not.Null, "读档后的热座当前玩家必须取得最新可见状态，步骤 " + step);
+                    Assert.That(visible.ViewerPlayerId, Is.EqualTo(player));
+                    var request = restored.State.EffectRuntime.InteractionRequests.First(r => r.Status == "open" && r.AnsweringPlayerId == player);
+                    Assert.That(visible.Interactions.Any(r => r.InteractionId == request.GetStableInteractionId()), Is.True);
+                    var answer = DeterministicSimulationCoordinatorTests.CreateCurrentAnswer(restored, player, "local-resume-answer-" + step);
+                    var result = restored.Submit(answer);
+                    Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+                }
+            }
+            finally
+            {
+                if (mobileObject != null) UnityEngine.Object.DestroyImmediate(mobileObject);
+                if (contextObject != null) UnityEngine.Object.DestroyImmediate(contextObject);
+                setter.Invoke(null, new[] { previous });
+            }
+        }
         private static MatchSaveData Save(int localPlayer = 3)
         {
             var sessions = DeterministicSimulationCoordinatorTests.CreateFormalSessions(out _, true);
