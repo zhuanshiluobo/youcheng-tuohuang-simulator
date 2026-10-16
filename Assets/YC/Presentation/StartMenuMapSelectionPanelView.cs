@@ -22,6 +22,11 @@ namespace YC.Presentation
         public Button StartButton => startButton;
         [SerializeField] private Button backButton;
         public Button BackButton => backButton;
+
+        [Header("状态文案")]
+        [SerializeField] private string onlineModeTitle = "联机模式";
+        public string OnlineModeTitle => onlineModeTitle;
+
         public bool TryValidateConfiguration(out string reason)
         {
             var valid = titleText != null && countText != null && mapText != null && previousCountButton != null && nextCountButton != null && previousMapButton != null && nextMapButton != null && startButton != null && backButton != null;

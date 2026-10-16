@@ -11,6 +11,10 @@ namespace YC.Presentation
         [SerializeField] private Text actionButtonText;
         [SerializeField] private string operationErrorActionLabel;
         [SerializeField] private string roomDisbandedActionLabel;
+        [Header("状态文案")]
+        [SerializeField] private string roomDisbandedTitle = "房间已解散";
+        [SerializeField] private string roomDisbandedMessage = "关闭提示后返回主页";
+        [SerializeField] private string unknownErrorMessage = "发生未知错误，请重试。";
 
         public Text TitleText => titleText;
         public Text MessageText => messageText;
@@ -18,6 +22,9 @@ namespace YC.Presentation
         public Text ActionButtonText => actionButtonText;
         public string OperationErrorActionLabel => operationErrorActionLabel;
         public string RoomDisbandedActionLabel => roomDisbandedActionLabel;
+        public string RoomDisbandedTitle => roomDisbandedTitle;
+        public string RoomDisbandedMessage => roomDisbandedMessage;
+        public string UnknownErrorMessage => unknownErrorMessage;
 
         public bool TryValidateConfiguration(out string reason)
         {

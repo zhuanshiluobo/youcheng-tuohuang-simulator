@@ -27,16 +27,17 @@ namespace YC.Presentation
         [SerializeField] private Texture2D coverTexture;
         [SerializeField] private StartMenuView view;
 
-        private IOnlineRoomService roomService;
-        private LobbyJoinRequestFlow lobbyJoinRequestFlow;
+        [NonSerialized] private IOnlineRoomService roomService;
+        [NonSerialized] private LobbyJoinRequestFlow lobbyJoinRequestFlow;
+        [NonSerialized] private bool roomEventsSubscribed;
         private readonly object networkEventLock = new object();
         private bool roomRequestPending;
         private int roomNetworkingRequestVersion;
         private GameObject roomPanel;
         private InputField joinRoomInput;
         private Text roomStatusText;
-        private RoomState pendingRoomUpdate;
-        private RoomState pendingGameStart;
+        [NonSerialized] private RoomState pendingRoomUpdate;
+        [NonSerialized] private RoomState pendingGameStart;
         private string pendingNetworkError;
         private bool pendingRoomDisbanded;
         private bool pendingLobbyJoinRequested;
@@ -90,9 +91,10 @@ namespace YC.Presentation
 
         private void Awake()
         {
+            pendingRoomUpdate = null;
+            pendingGameStart = null;
             UnityEngine.Application.runInBackground = true;
-            roomService = OnlineRoomServiceProvider.GetOrCreate();
-            lobbyJoinRequestFlow = new LobbyJoinRequestFlow(roomService);
+            BindRoomService();
             if (TryRunDevCommandLineTask())
             {
                 return;
@@ -104,11 +106,6 @@ namespace YC.Presentation
                 return;
             }
 
-            roomService.RoomUpdated += QueueRoomUpdate;
-            roomService.GameStarted += QueueGameStart;
-            roomService.RoomDisbanded += QueueRoomDisbanded;
-            roomService.ErrorOccurred += QueueNetworkError;
-            roomService.LobbyJoinRequested += QueueLobbyJoinRequested;
             roomService.Shutdown();
             if (!BuildMenu())
             {
@@ -120,6 +117,37 @@ namespace YC.Presentation
             }
 
             ProcessPendingLobbyJoinRequest();
+        }
+
+        private void OnEnable() => BindRoomService();
+
+        private void OnDisable() => UnbindRoomServiceEvents();
+
+        private void BindRoomService()
+        {
+            // 热重载只恢复服务和订阅，不重建菜单或关闭现有房间。
+            if (roomService == null) roomService = OnlineRoomServiceProvider.GetOrCreate();
+            if (lobbyJoinRequestFlow == null) lobbyJoinRequestFlow = new LobbyJoinRequestFlow(roomService);
+            if (roomEventsSubscribed) return;
+            roomService.RoomUpdated += QueueRoomUpdate;
+            roomService.GameStarted += QueueGameStart;
+            roomService.RoomDisbanded += QueueRoomDisbanded;
+            roomService.ErrorOccurred += QueueNetworkError;
+            roomService.LobbyJoinRequested += QueueLobbyJoinRequested;
+            roomEventsSubscribed = true;
+        }
+
+        private void UnbindRoomServiceEvents()
+        {
+            if (roomService != null && roomEventsSubscribed)
+            {
+                roomService.RoomUpdated -= QueueRoomUpdate;
+                roomService.GameStarted -= QueueGameStart;
+                roomService.RoomDisbanded -= QueueRoomDisbanded;
+                roomService.ErrorOccurred -= QueueNetworkError;
+                roomService.LobbyJoinRequested -= QueueLobbyJoinRequested;
+            }
+            roomEventsSubscribed = false;
         }
 
         private static bool ShouldStartLocalhostFromCommandLine()
@@ -268,6 +296,7 @@ namespace YC.Presentation
 
         private void Update()
         {
+            if (roomService == null) return;
             RoomState roomUpdate = null;
             RoomState gameStart = null;
             string networkError = null;
@@ -334,12 +363,8 @@ namespace YC.Presentation
 
         private void OnDestroy()
         {
+            UnbindRoomServiceEvents();
             if (roomService == null) return;
-            roomService.RoomUpdated -= QueueRoomUpdate;
-            roomService.GameStarted -= QueueGameStart;
-            roomService.RoomDisbanded -= QueueRoomDisbanded;
-            roomService.ErrorOccurred -= QueueNetworkError;
-            roomService.LobbyJoinRequested -= QueueLobbyJoinRequested;
 
             if (!loadingGame)
             {
@@ -477,6 +502,8 @@ namespace YC.Presentation
             view.CoverImage.texture = coverTexture;
             BindStaticUi();
             view.HideRoomPanels();
+            // 存读档另项适配，当前构建不开放尚未接线的入口。
+            view.SetMatchSaveAvailable(false);
             return true;
         }
 
@@ -576,7 +603,7 @@ namespace YC.Presentation
             view.HideRoomPanels();
             var panel = view.MapSelectionPanel;
             panel.gameObject.SetActive(true);
-            panel.TitleText.text = createsOnlineRoom ? "联机模式" : configuredLocalMapSelectionTitle;
+            panel.TitleText.text = createsOnlineRoom ? panel.OnlineModeTitle : configuredLocalMapSelectionTitle;
             mapSelectionCreatesOnlineRoom = createsOnlineRoom;
             RefreshMapSelection();
             roomPanel = panel.gameObject;
@@ -1002,7 +1029,7 @@ namespace YC.Presentation
             joinRoomInput = null;
             roomStatusText = panel.MessageText;
             panel.TitleText.text = title;
-            panel.MessageText.text = string.IsNullOrEmpty(message) ? "发生未知错误，请重试。" : ResolveRoomReasonCaption(message);
+            panel.MessageText.text = string.IsNullOrEmpty(message) ? panel.UnknownErrorMessage : ResolveRoomReasonCaption(message);
             panel.ActionButton.gameObject.SetActive(true);
             panel.ActionButtonText.text = panel.OperationErrorActionLabel;
             BindButton(panel.ActionButton, HideRoomPanel);
@@ -1016,8 +1043,8 @@ namespace YC.Presentation
             roomPanel = panel.gameObject;
             roomStatusText = null;
             joinRoomInput = null;
-            panel.TitleText.text = "房间已解散";
-            panel.MessageText.text = "点击确认后返回主页";
+            panel.TitleText.text = panel.RoomDisbandedTitle;
+            panel.MessageText.text = panel.RoomDisbandedMessage;
             panel.ActionButton.gameObject.SetActive(true);
             panel.ActionButtonText.text = panel.RoomDisbandedActionLabel;
             BindButton(panel.ActionButton, ConfirmRoomDisbanded);

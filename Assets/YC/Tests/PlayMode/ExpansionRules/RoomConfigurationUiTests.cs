@@ -94,6 +94,8 @@ namespace YC.Tests.PlayMode.ExpansionRules
         }
         private void Attach(TestRoomAdapter service)
         {
+            // 替换服务前释放生产服务订阅，避免场景销毁后仍向旧控制器发送通知。
+            Call(controller, "UnbindRoomServiceEvents");
             controller.GetType().GetField("roomService", Private).SetValue(controller, service);
             service.RoomUpdated += room => Call(controller, "QueueRoomUpdate", room);
         }
