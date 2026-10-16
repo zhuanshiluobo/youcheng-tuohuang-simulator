@@ -7,7 +7,7 @@ using YC.Domain.Rules;
 using UnityEngine;
 namespace YC.Infrastructure.Multiplayer
 {
-    public sealed class SteamRoomService : IOnlineRoomService, IPreconfiguredRoomHost
+    public sealed class SteamRoomService : IResumableOnlineRoomService, IPreconfiguredRoomHost
     {
         public bool SupportsFriendInvites => true;
         private IRoomContentCapabilityProvider content;
@@ -36,6 +36,8 @@ namespace YC.Infrastructure.Multiplayer
         private MirrorNetworkRuntime subscribedRuntime;
         private RoomState currentRoom;
         private RoomState pendingHostSnapshot;
+        private ResumeRoomOptions pendingResume;
+        private bool resumeClientStarted;
         private readonly Dictionary<int, MirrorServerConnectionInfo> pendingSteamConnections = new Dictionary<int, MirrorServerConnectionInfo>();
         // 仅Steam SDK边界可在检查中注入；房间、认证和重连方法仍是实际生产对象。
         private Func<bool> steamReadyProbe;
@@ -68,6 +70,30 @@ namespace YC.Infrastructure.Multiplayer
         public Task<RoomState> CreateRoomAsync(string hostPlayerName, int playerCount)
             => BeginCreateRoom(hostPlayerName, playerCount, null);
 
+        public Task<RoomState> CreateResumeRoomAsync(ResumeRoomOptions options)
+        {
+            Initialize(); options.Validate();
+            var host = options.Seats.Find(s => s.PlayerId == options.HostPlayerId);
+            if (host.SteamId != SteamUser.GetSteamID().m_SteamID) throw new InvalidOperationException("只有存档的原房主可以创建续局房间。");
+            return BeginCreateRoom(host.PlayerName, options.Seats.Count, null, options);
+        }
+        public void AssignResumeSeat(string memberId, int playerId)
+        {
+            if (!isHost || currentRoom?.Resume == null || currentRoom.HasStarted || !ulong.TryParse(memberId, out var steamId) ||
+                ReadLobbyMembership(steamId) <= 0 || !currentRoom.WaitingMembers.Exists(m => m.MemberId == memberId))
+                throw new InvalidOperationException("等待成员已经离开或房间不可分配。");
+            var slot = RoomConfigurationService.FindSlot(currentRoom, playerId);
+            if (slot == null || playerId == currentRoom.HostPlayerId || slot.Occupant.LobbyMemberPresent || currentRoom.Seats.Exists(s => s.SteamId == steamId))
+                throw new InvalidOperationException("此席位不可替补。");
+            var seat = slot.Occupant;
+            seat.SteamId = steamId; seat.PlayerName = SteamFriends.GetFriendPersonaName(new CSteamID(steamId));
+            seat.LobbyMemberPresent = true; seat.TransportConnected = seat.IdentityVerified = seat.IsReady = seat.GameStateSynchronized = false;
+            seat.ContentPackHash = string.Empty; seat.RuleContractVersion = string.Empty;
+            slot.IsUserReady = false; slot.ReadyConfigurationRevision = -1;
+            playerIdsBySteamId[steamId] = playerId; currentRoom.WaitingMembers.RemoveAll(m => m.MemberId == memberId);
+            currentRoom.StateRevision++; RefreshRoom();
+        }
+
         public Task<RoomState> CreateRoomFromSnapshotAsync(RoomState localRoom)
         {
             if (!RoomStateSerializer.TryValidate(localRoom, out var reason)) throw new InvalidOperationException(reason);
@@ -77,7 +103,7 @@ namespace YC.Infrastructure.Multiplayer
                 localRoom.Configuration.MapId == "map-four-players" ? 4 : 3, localRoom);
         }
 
-        private Task<RoomState> BeginCreateRoom(string hostPlayerName, int playerCount, RoomState initialRoom)
+        private Task<RoomState> BeginCreateRoom(string hostPlayerName, int playerCount, RoomState initialRoom, ResumeRoomOptions resume = null)
         {
             ThrowIfDisposed();
             Initialize();
@@ -87,6 +113,7 @@ namespace YC.Infrastructure.Multiplayer
                     "Steam 房间仅支持 3 人、4 人，或明确标记的 2 人联机验证房。");
             ShutdownNetworkAndLobby();
             pendingHostSnapshot = initialRoom?.Clone();
+            pendingResume = resume?.Clone(); resumeClientStarted = false;
             requestedPlayerCount = playerCount;
             isHost = true;
             pendingCreate = new TaskCompletionSource<RoomState>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -270,6 +297,12 @@ namespace YC.Infrastructure.Multiplayer
                     pendingHostSnapshot = null;
                 }
                 playerIdsBySteamId[originalHostSteamId] = 1;
+                if (pendingResume != null)
+                {
+                    pendingResume.ApplyTo(currentRoom, currentRoom.Seats[0], content);
+                    foreach (var saved in pendingResume.Seats) playerIdsBySteamId[saved.SteamId] = saved.PlayerId;
+                    pendingResume = null;
+                }
                 SetData("roomState", RoomStateSerializer.Serialize(currentRoom));
                 SteamMatchmaking.SetLobbyJoinable(lobbyId, true);
                 waitingRoomAuthority.Begin(currentRoom.Seats);
@@ -330,7 +363,7 @@ namespace YC.Infrastructure.Multiplayer
                 {
                     acceptNetworkEvents = true;
                     SubscribeToRuntime(MirrorNetworkRuntime.Ensure());
-                    subscribedRuntime.StartClient(originalHostSteamId);
+                    resumeClientStarted = false;
                 }
                 RefreshRoom();
                 var snapshot = GetCurrentRoom();
@@ -393,6 +426,10 @@ namespace YC.Infrastructure.Multiplayer
         private void PublishRoom(RoomState room)
         {
             currentRoom = room;
+            if (!isHost && !room.HasStarted && room.LocalPlayerId > 0 && subscribedRuntime != null && !resumeClientStarted)
+            { resumeClientStarted = true; subscribedRuntime.StartClient(originalHostSteamId); }
+            if (!isHost && room.Resume != null && room.LocalPlayerId == 0 && pendingJoin != null)
+            { pendingJoin.TrySetResult(room.Clone()); pendingJoin = null; pendingJoinLobbyId = CSteamID.Nil; }
             ConfigureStartedClientReconnect(room);
             if (room.HasStarted && !gameStartedRaised)
             {
@@ -408,7 +445,22 @@ namespace YC.Infrastructure.Multiplayer
             var count = SteamMatchmaking.GetNumLobbyMembers(lobbyId);
             for (var i = 0; i < count; i++) members.Add(SteamMatchmaking.GetLobbyMemberByIndex(lobbyId, i).m_SteamID);
             foreach (var player in currentRoom.Seats)
-                if (!members.Contains(player.SteamId)) configurationService.VacateSeat(currentRoom, player.PlayerId);
+                if (player.LobbyMemberPresent && !members.Contains(player.SteamId)) configurationService.VacateSeat(currentRoom, player.PlayerId);
+            if (currentRoom.Resume != null)
+            {
+                if (currentRoom.WaitingMembers.RemoveAll(m => !ulong.TryParse(m.MemberId, out var id) || !members.Contains(id)) > 0) currentRoom.StateRevision++;
+                foreach (var steamId in members)
+                {
+                    var saved = currentRoom.Seats.Find(s => s.SteamId == steamId);
+                    if (saved != null)
+                    {
+                        if (!saved.LobbyMemberPresent) { saved.LobbyMemberPresent = true; saved.PlayerName = SteamFriends.GetFriendPersonaName(new CSteamID(steamId)); currentRoom.StateRevision++; }
+                    }
+                    else if (!currentRoom.WaitingMembers.Exists(m => m.MemberId == steamId.ToString()))
+                    { currentRoom.WaitingMembers.Add(new RoomMember { MemberId = steamId.ToString(), PlayerName = SteamFriends.GetFriendPersonaName(new CSteamID(steamId)) }); currentRoom.StateRevision++; }
+                }
+                return;
+            }
             var sorted = new List<ulong>(members); sorted.Sort();
             foreach (var steamId in sorted)
             {
@@ -534,6 +586,7 @@ namespace YC.Infrastructure.Multiplayer
         {
             CancelPending();
             acceptNetworkEvents = false;
+            pendingResume = null; resumeClientStarted = false;
             pendingSteamConnections.Clear();
             waitingRoomAuthority.Shutdown();
             if (subscribedRuntime != null)

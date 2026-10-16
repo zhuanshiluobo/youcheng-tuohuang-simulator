@@ -135,6 +135,16 @@ namespace YC.Infrastructure.Multiplayer
             var result = Execute(room, request, true, () =>
             {
                 if (!TryValidateLaunch(room, out var reason)) return reason;
+                if (room.Resume != null)
+                {
+                    var resume = room.Resume;
+                    room.GameId = resume.GameId; room.EventDeckSeed = resume.EventDeckSeed;
+                    room.RandomRuntime = resume.RandomRuntime.Clone();
+                    room.RandomAlgorithmVersion = GameplayRandomRuntime.AlgorithmVersion;
+                    room.LaunchPlayerOrder = new List<int>(resume.LaunchPlayerOrder);
+                    room.RandomReady = room.HasStarted = true; room.StateRevision++;
+                    return string.Empty;
+                }
                 var gameId = Guid.NewGuid().ToString("N");
                 var seed = seedSource();
                 var runtime = GameplayRandomRuntime.Create(gameId);
@@ -253,6 +263,7 @@ namespace YC.Infrastructure.Multiplayer
             {
                 var slot = FindSlot(room, playerId);
                 if (slot == null) return false;
+                if (room.Resume != null) { ResumeRoomOptions.SetAbsent(room, playerId); return true; }
                 slot.Occupant = null; slot.Status = "open";
                 InvalidatePreparation(room);
                 return true;
@@ -308,6 +319,7 @@ namespace YC.Infrastructure.Multiplayer
                 string reason;
                 if (room.ProtocolVersion != RoomState.CurrentProtocolVersion || room.Configuration == null) reason = "room_protocol_mismatch";
                 else if (room.HasStarted || request.ExpectedConfigurationRevision != room.Configuration.ConfigurationRevision) reason = "configuration_stale";
+                else if (room.Resume != null && !(request is SetRoomReadyRequest) && !(request is StartConfiguredGameRequest)) reason = "resume_configuration_locked";
                 else reason = action();
                 if (recordReceipt)
                 {

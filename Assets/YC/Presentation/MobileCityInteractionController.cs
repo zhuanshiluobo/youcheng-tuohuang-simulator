@@ -721,6 +721,7 @@ namespace YC.Presentation
                     interactionRouter?.NotifyInteractionCommandResolved(gameId, commandId, accepted, errorCode);
                 });
             commandSubmission.Initialize(sessionEffectRegistry);
+            MatchSaveController.Ensure().Bind(session, launchContext);
         }
 
         private void ReleaseRejectedSubmissionWait(string gameId, string commandId, bool accepted)

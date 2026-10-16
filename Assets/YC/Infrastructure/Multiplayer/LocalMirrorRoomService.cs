@@ -4,7 +4,7 @@ using YC.Application.Sessions;
 
 namespace YC.Infrastructure.Multiplayer
 {
-    public sealed class LocalMirrorRoomService : IOnlineRoomService
+    public sealed class LocalMirrorRoomService : IResumableOnlineRoomService
     {
         private readonly NetworkRoomService roomService;
         private readonly WaitingRoomConnectionAuthority waitingRoomAuthority = new WaitingRoomConnectionAuthority();
@@ -14,6 +14,25 @@ namespace YC.Infrastructure.Multiplayer
         private bool isHost;
         private bool acceptNetworkEvents;
         private bool disposed;
+        private string joinedRoomId;
+        private bool clientStarted;
+        private int eventGeneration;
+        private readonly System.Threading.SynchronizationContext mainContext = System.Threading.SynchronizationContext.Current;
+        private static string OperatorIdentity(string name)
+        {
+            var key = "YC.LocalTestIdentity." + name;
+            var value = UnityEngine.PlayerPrefs.GetString(key, "");
+            if (string.IsNullOrEmpty(value)) { value = Guid.NewGuid().ToString("N"); UnityEngine.PlayerPrefs.SetString(key, value); UnityEngine.PlayerPrefs.Save(); }
+            return value;
+        }
+        public Task<RoomState> CreateResumeRoomAsync(ResumeRoomOptions options)
+        {
+            options.Validate();
+            var host = options.Seats.Find(s => s.PlayerId == options.HostPlayerId);
+            if (host.OperatorId != OperatorIdentity(host.PlayerName)) throw new InvalidOperationException("本地联机续局需使用原房主配置。");
+            return CreateLocalRoom(host.PlayerName, options.Seats.Count, options);
+        }
+        public void AssignResumeSeat(string memberId, int playerId) => roomService.AssignResumeSeat(memberId, playerId);
 
         public LocalMirrorRoomService()
         {
@@ -39,12 +58,14 @@ namespace YC.Infrastructure.Multiplayer
         public void Initialize() => ThrowIfDisposed();
 
         public Task<RoomState> CreateRoomAsync(string hostPlayerName, int playerCount)
+            => CreateLocalRoom(hostPlayerName, playerCount, null);
+        private Task<RoomState> CreateLocalRoom(string hostPlayerName, int playerCount, ResumeRoomOptions resume)
         {
             ThrowIfDisposed();
             Shutdown();
             isHost = true;
             acceptNetworkEvents = true;
-            var room = roomService.CreateRoom(hostPlayerName, playerCount);
+            var room = roomService.CreateRoom(hostPlayerName, playerCount, resume, OperatorIdentity(hostPlayerName));
             SynchronizeAuthorityRoster(room);
             SubscribeToRuntime(MirrorNetworkRuntime.Ensure());
             subscribedRuntime.StartLocalHost();
@@ -61,19 +82,18 @@ namespace YC.Infrastructure.Multiplayer
             pendingJoin = joinCompletion;
             pendingJoinHandler = room =>
             {
-                if (room == null || room.LocalPlayerId <= 0 || room.PlayerCount <= 0) return;
+                if (room == null || room.LocalPlayerId < 0 || room.LocalPlayerId == 0 && room.Resume == null || room.PlayerCount <= 0) return;
                 CompletePendingJoin(room);
             };
             roomService.RoomUpdated += pendingJoinHandler;
 
             try
             {
-                roomService.JoinRoom(roomId, playerName);
+                joinedRoomId = roomId;
+                roomService.JoinRoom(roomId, playerName, OperatorIdentity(playerName));
                 SubscribeToRuntime(MirrorNetworkRuntime.Ensure());
                 var joinedRoom = roomService.GetCurrentRoom();
-                if (joinedRoom != null && joinedRoom.LocalPlayerId > 0)
-                    subscribedRuntime.SetLocalClientIdentityTicket(roomService.LocalIdentityTicket);
-                subscribedRuntime.StartLocalClient(LocalMirrorTestMode.GetMirrorHost(roomId));
+                TryStartAssignedClient(joinedRoom);
                 // TCP 接收线程可能已完成加入并清空字段；始终返回本次操作的任务。
                 return joinCompletion.Task;
             }
@@ -118,8 +138,10 @@ namespace YC.Infrastructure.Multiplayer
         {
             if (disposed) return;
             CancelPendingJoin();
+            eventGeneration++;
             acceptNetworkEvents = false;
             isHost = false;
+            clientStarted = false; joinedRoomId = null;
             waitingRoomAuthority.Shutdown();
             if (subscribedRuntime != null)
             {
@@ -144,11 +166,18 @@ namespace YC.Infrastructure.Multiplayer
 
         private void OnRoomUpdated(RoomState room)
         {
+            if (mainContext != null && System.Threading.SynchronizationContext.Current != mainContext)
+            { var captured = eventGeneration; mainContext.Post(_ => { if (captured == eventGeneration) OnRoomUpdated(room); }, null); return; }
             if (!acceptNetworkEvents || room == null) return;
             if (isHost) SynchronizeAuthorityRoster(room);
-            else if (room.LocalPlayerId > 0)
-                subscribedRuntime?.SetLocalClientIdentityTicket(roomService.LocalIdentityTicket);
+            else TryStartAssignedClient(room);
             RoomUpdated?.Invoke(room);
+        }
+        private void TryStartAssignedClient(RoomState room)
+        {
+            if (isHost || room == null || room.LocalPlayerId <= 0 || subscribedRuntime == null || string.IsNullOrEmpty(joinedRoomId)) return;
+            subscribedRuntime.SetLocalClientIdentityTicket(roomService.LocalIdentityTicket);
+            if (!clientStarted) { clientStarted = true; subscribedRuntime.StartLocalClient(LocalMirrorTestMode.GetMirrorHost(joinedRoomId)); }
         }
         private void OnGameStarted(RoomState room) => GameStarted?.Invoke(room);
         private void OnRoomDisbanded() => RoomDisbanded?.Invoke();

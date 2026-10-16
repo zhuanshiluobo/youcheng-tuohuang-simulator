@@ -6,7 +6,7 @@ using YC.Domain.Maps;
 namespace YC.Infrastructure.Multiplayer
 {
     /// <summary>先创建本地房间；显式打开联机后才创建网络服务，关闭时保留房主配置。</summary>
-    public sealed class RoomSessionService : IOnlineRoomService, IRoomNetworkingControl, ILocalRoomPlayerControl
+    public sealed class RoomSessionService : IOnlineRoomService, IRoomNetworkingControl, ILocalRoomPlayerControl, IResumableOnlineRoomService
     {
         private readonly IRoomContentCapabilityProvider content;
         private readonly RoomConfigurationService authority;
@@ -35,6 +35,27 @@ namespace YC.Infrastructure.Multiplayer
 
         public void Initialize() => ThrowIfDisposed();
 
+        public async Task<RoomState> CreateResumeRoomAsync(ResumeRoomOptions options)
+        {
+            ThrowIfDisposed(); options.Validate(); Shutdown();
+            var epoch = generation; IsChangingNetworking = true;
+            try
+            {
+                network = CreateNetwork();
+                if (!(network is IResumableOnlineRoomService resumable)) throw new InvalidOperationException("当前后端不支持续局。");
+                var room = await resumable.CreateResumeRoomAsync(options);
+                if (disposed || epoch != generation) throw new InvalidOperationException("续局建房已取消。");
+                IsOnline = true; IsChangingNetworking = false; RoomUpdated?.Invoke(room.Clone()); return room;
+            }
+            catch { if (epoch == generation) { ReleaseNetwork(); IsOnline = false; } throw; }
+            finally { if (epoch == generation) IsChangingNetworking = false; }
+        }
+        public void AssignResumeSeat(string memberId, int playerId)
+        {
+            if (!(network is IResumableOnlineRoomService resumable) || !IsOnline) throw new InvalidOperationException("续局房间已关闭。");
+            resumable.AssignResumeSeat(memberId, playerId);
+        }
+
         public Task<RoomState> CreateRoomAsync(string hostPlayerName, int playerCount)
         {
             ThrowIfDisposed();
@@ -57,6 +78,7 @@ namespace YC.Infrastructure.Multiplayer
             if (source.LocalPlayerId != source.HostPlayerId) throw new InvalidOperationException("not_room_host");
             if (source.HasStarted) throw new InvalidOperationException("configuration_stale");
             if (enabled == IsOnline) return source;
+            if (source.Resume != null) throw new InvalidOperationException("resume_configuration_locked");
             if (enabled && source.PlayerCount > 1) throw new InvalidOperationException("hotseat_requires_offline");
             if (!enabled)
             {

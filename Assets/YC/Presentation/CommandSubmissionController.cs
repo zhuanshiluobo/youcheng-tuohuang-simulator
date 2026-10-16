@@ -150,6 +150,7 @@ namespace YC.Presentation
             {
                 var options = DeterministicSimulationSessionOptions.CreateInitial(launchContext.Mode == LaunchMode.Host,
                     localPlayerId, session, launchContext.Players.Select(seat => seat.PlayerId));
+                if (launchContext.ResumeInfo != null) options = launchContext.ResumeInfo.Options(launchContext.Mode == LaunchMode.Host, localPlayerId);
                 simulationGameId = options.GameId; simulationEpoch = options.SimulationEpoch;
                 simulationMembershipVersion = options.MembershipVersion;
                 simulationLaunchMode = launchContext.Mode;
@@ -160,12 +161,36 @@ namespace YC.Presentation
                 SimulationTransportOwners[transport] = this;
                 simulationRegistry = effectRegistry;
                 BindSimulationSubscriptions();
-                var installer = launchContext.Mode == LaunchMode.Client
+                ISimulationCheckpointInstaller installer = launchContext.Mode == LaunchMode.Client
                     ? new InitialSimulationCheckpointInstaller(session, effectRegistry, GameStateViewer.Player(localPlayerId)) : null;
                 Func<string> archive = launchContext.Mode == LaunchMode.Host
                     ? (Func<string>)(() => HostRecoveryService.SerializeArchive(session.CreateHostArchive(session.State.ContentPackHash))) : null;
+                SimulationCheckpointEnvelope savedIdentity = null;
+                Func<DeterministicSimulationCoordinator> savedCoordinator = null;
+                if (launchContext.ResumeInfo != null)
+                {
+                    var resume = launchContext.ResumeInfo;
+                    savedIdentity = new SimulationCheckpointEnvelope { ProtocolVersion = SimulationCheckpointEnvelope.SavedProtocolVersion,
+                        Purpose = SimulationCheckpointEnvelope.SavedSimulation, GameId = resume.GameId, ContentPackHash = resume.ContentHash,
+                        SimulationEpoch = resume.SimulationEpoch, SourceSimulationEpoch = resume.SimulationEpoch - 1,
+                        MembershipVersion = resume.MembershipVersion, GlobalCommandSequence = resume.ConfirmedGlobalSequence,
+                        CheckpointId = resume.CheckpointId };
+                    if (launchContext.Mode == LaunchMode.Host)
+                    {
+                        var data = launchContext.RestoreData ?? throw new InvalidOperationException("续局规则存档已丢失。");
+                        var baseline = SimulationConfirmedRecoveryInstaller.ReadBaseline(data.SimulationCheckpointJson);
+                        archive = () => data.SimulationCheckpointJson;
+                        savedCoordinator = () => DeterministicSimulationCoordinator.FromConfirmedRecovery(session, options, baseline, session.State);
+                    }
+                    else
+                    {
+                        var savedInstaller = new SavedSimulationCheckpointInstaller(session, effectRegistry, GameStateViewer.Player(localPlayerId),
+                            options, resume.CheckpointId, resume.MetadataDigest);
+                        installer = savedInstaller; savedCoordinator = () => savedInstaller.Coordinator;
+                    }
+                }
                 transport.InitializeDeterministicSimulation(session, launchContext.Mode, localPlayerId, launchContext.Players,
-                    options, installer, archive);
+                    options, installer, archive, savedIdentity, savedCoordinator);
             }
             catch (Exception ex)
             {

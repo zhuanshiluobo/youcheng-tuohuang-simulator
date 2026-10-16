@@ -81,6 +81,33 @@ namespace YC.Presentation
         private string roomHostStartCaption;
         private int selectedLocalCityCount = 1;
         private bool loadingGame;
+        [System.NonSerialized] private MatchSaveData resumeArchive;
+        public bool CanOpenMatchSave => !loadingGame && !joiningRoom && roomPanel == null;
+        public void RefreshMatchSaveAvailability()
+        { if (view != null) view.SetMatchSaveAvailable(MatchSaveController.Ensure().HasSaves); }
+        public async System.Threading.Tasks.Task RestoreMatch(MatchSaveData data)
+        {
+            if (!CanOpenMatchSave) throw new InvalidOperationException("已有房间或启动流程正在进行。");
+            data.Validate();
+            GameLaunchContext.Ensure().ClearRestore(); resumeArchive = null;
+            if (data.Mode == LaunchMode.Local)
+            {
+                roomService.Shutdown(); GameLaunchContext.Ensure().ConfigureSavedLocal(data); BeginMapSceneLoad();
+                if (!loadingGame) throw new InvalidOperationException("无法启动存档地图。");
+                return;
+            }
+            if (data.LocalTestNetwork != LocalMirrorTestMode.IsEnabled) throw new InvalidOperationException("此存档的联机后端与当前模式不一致。");
+            joiningRoom = true;
+            try
+            {
+                if (!(roomService is IResumableOnlineRoomService resumable)) throw new InvalidOperationException("当前房间服务不支持续局。");
+                var room = await resumable.CreateResumeRoomAsync(ResumeRoomOptions.FromSave(data));
+                if (this == null) { roomService.Shutdown(); return; }
+                resumeArchive = data; ShowRoomPanel(room, true);
+            }
+            catch { resumeArchive = null; roomService.Shutdown(); throw; }
+            finally { joiningRoom = false; }
+        }
         private bool joiningRoom;
         private bool autoStartLocalMirrorGame;
         private bool autoStartLocalMirrorRequestPending;
@@ -503,12 +530,13 @@ namespace YC.Presentation
             BindStaticUi();
             view.HideRoomPanels();
             // 存读档另项适配，当前构建不开放尚未接线的入口。
-            view.SetMatchSaveAvailable(false);
+            RefreshMatchSaveAvailability();
             return true;
         }
 
         private void BindStaticUi()
         {
+            if (view.LoadGameButton != null) BindButton(view.LoadGameButton, () => MatchSaveWindowView.OpenLoad(this));
             BindButton(view.StartGameButton, CreateStandardRoom);
             YC.PlayerJourney.PlayerAutomationId.Attach(view.StartGameButton.gameObject, "start.local_game");
             // 地图选择已改为人数与地图轮换面板，确认按钮承担原四人地图按钮的自动化入口。
@@ -948,8 +976,11 @@ namespace YC.Presentation
                 SetRoomStatus(view.RoomPanel.ResolveReason("room_protocol_mismatch"));
                 return;
             }
-            GameLaunchContext.Ensure().Configure(mode, localPlayerId, room.RoomId, room.Seats, room.Configuration.Clone(), room.LaunchPlayerOrder,
+            if (room.Resume != null)
+                GameLaunchContext.Ensure().ConfigureSavedRoom(mode, localPlayerId, room, mode == LaunchMode.Host ? resumeArchive : null);
+            else GameLaunchContext.Ensure().Configure(mode, localPlayerId, room.RoomId, room.Seats, room.Configuration.Clone(), room.LaunchPlayerOrder,
                 room.GameId, room.EventDeckSeed, room.RandomRuntime);
+            resumeArchive = null;
             BeginMapSceneLoad();
         }
 
@@ -1008,6 +1039,7 @@ namespace YC.Presentation
 
         private void HideRoomPanel()
         {
+            resumeArchive = null;
             roomNetworkingRequestVersion++;
             roomRequestPending = false;
             view.RoomPanel.SetRequestPending(false);

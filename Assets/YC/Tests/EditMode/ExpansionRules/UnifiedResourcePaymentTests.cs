@@ -250,6 +250,37 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
 
         [Test]
+        public void MatchSaveRestoresPreparedPaymentAndFinalActionWithoutDoubleCharge()
+        {
+            state.RuleConfiguration.PlayerStageSchedulingMode = PlayerStageSchedulingMode.Sequential;
+            foreach (var player in state.Players) player.Color = YC.Infrastructure.Multiplayer.RoomConfigurationService.GetSeatColor(player.PlayerId - 1);
+            OpenMainWindow();
+            string empty = Prepare("city_move", "", Object());
+            string target = new CityMoveCandidateQueryService(map, movement, new TravelCostService(map)).Query(state, 1).First(value => value.IsLegal).TargetLocationId;
+            string prepared = Prepare("city_move", target, Object()); Assert.That(prepared, Is.EqualTo(empty));
+            var payment = Engine().GetNode(prepared).Payment; int shards = state.FindPlayer(1).Resources.OriginiumShard;
+            Assert.That(payment.Preparation.BusinessBeforeReady, Is.True);
+            Assert.That(state.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == CityMoveEffectTypeIds.Move), Is.False);
+            var before = state.EffectRuntime.RuleEvents.Where(value => value.SourceEffectId == prepared).ToList();
+            Assert.That(before.FindIndex(value => value.EventType == CityMoveEventTypeIds.BeforeCityMove), Is.LessThan(before.FindIndex(value => value.EventType == ResourcePaymentPreparationService.BeforeResourcePayment)));
+            var save = MatchSaveResumeTests.FromSession(new GameSession(state), LaunchMode.Local, 1);
+            save.Validate();
+            var restored = MatchSaveResumeTests.Restore(save);
+            Assert.That(RuleStateDigestService.Compute(restored.State), Is.EqualTo(RuleStateDigestService.Compute(state)));
+            state = restored.State;
+            var command = new GameCommand { CommandId = "move.final", PlayerId = 1, Kind = GameCommandKind.MoveCity, TargetId = target };
+            command.Parameters["paymentPreparationOwnerEffectId"] = prepared;
+            var result = new MoveCityCommandHandler(movement, new RoundAdvanceService(), registry).Handle(state, command);
+            Assert.That(result.Succeeded, Is.True, result.LogMessage + ":" + result.Validation.Reason);
+            Assert.That(state.FindPlayer(1).CityLocationId, Is.EqualTo(target));
+            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(shards - payment.PaymentCost.OriginiumShard));
+            Assert.That(state.EffectRuntime.RuleEvents.Count(value => value.EventType == CityMoveEventTypeIds.BeforeCityMove), Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.RuleEvents.Count(value => value.SourceEffectId == prepared && value.EventType == ResourcePaymentPreparationService.BeforeResourcePayment), Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.RuleEvents.Any(value => value.EventType == CityMoveEventTypeIds.CityMoveCompleted), Is.True);
+            Assert.That(Engine().TryCreatePreparedPlayerActionEffect(1, prepared, CityMoveEffectSpecFactory.Move(1, target), "", "move.retry", out _, out _), Is.False);
+        }
+
+        [Test]
         public void BuildPreparationCanSwitchAndFinalBuildKeepsSamePayment()
         {
             LoadPassenger();

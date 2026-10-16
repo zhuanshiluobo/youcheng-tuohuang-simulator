@@ -49,7 +49,8 @@ namespace YC.Tests.EditMode
             Assert.That(useResult.Succeeded, Is.True, useResult.Validation?.Reason);
             Assert.That(session.TryReadCommittedRecoveryPoint("original-use", out var point), Is.True);
             var exported = session.ExportConfirmedRecoveryPoint(point);
-            var continuation = exported.Continuation;
+            var continuation = SimulationConfirmedRecoveryInstaller.ReadContinuation(
+                SimulationConfirmedRecoveryInstaller.SerializeContinuation(exported.Continuation));
             Assert.That(continuation.HasPendingActionLog, Is.True);
             Assert.That(continuation.Command.CommandId, Is.EqualTo("original-use"));
             Assert.That(continuation.Before.Players.Single(p => p.PlayerId == 1).DiscardCardIds, Does.Contain("old-discard"));

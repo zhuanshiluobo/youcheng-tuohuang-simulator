@@ -9,6 +9,10 @@ using YC.Domain.State;
 
 namespace YC.Application.Sessions
 {
+    public interface ISimulationCheckpointInstaller
+    {
+        bool TryInstall(string checkpointId, string archiveJson, out InitialSimulationCheckpointInstallResult result);
+    }
     public sealed class InitialSimulationCheckpointInstallResult
     {
         internal InitialSimulationCheckpointInstallResult(bool succeeded, bool alreadyInstalled, string checkpointId,
@@ -27,7 +31,7 @@ namespace YC.Application.Sessions
     }
 
     /// <summary>只为已接受START、未执行入口的客户端安装一次完整检查点；不是运行中恢复入口。</summary>
-    public sealed class InitialSimulationCheckpointInstaller
+    public sealed class InitialSimulationCheckpointInstaller : ISimulationCheckpointInstaller
     {
         public const string ArchiveDigestVersion = "yc.initial-checkpoint.sha256-utf8.v1";
         private readonly GameSession session;
@@ -110,7 +114,7 @@ namespace YC.Application.Sessions
             }
         }
 
-        private static bool IsInitialSkeleton(GameState state)
+        internal static bool IsInitialSkeleton(GameState state)
         {
             var runtime = state?.EffectRuntime;
             return state != null && state.UseSeatTurnOrder && state.Phase == GamePhase.Entrance && state.Round == 0 &&

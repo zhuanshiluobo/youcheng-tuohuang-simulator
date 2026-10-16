@@ -99,8 +99,9 @@ namespace YC.Infrastructure.Multiplayer
             }
         }
 
-        public RoomState CreateRoom(string hostPlayerName, int playerCount)
+        public RoomState CreateRoom(string hostPlayerName, int playerCount, ResumeRoomOptions resume = null, string operatorId = "")
         {
+            resume?.Validate();
             ThrowIfDisposed();
             Shutdown();
 
@@ -121,6 +122,8 @@ namespace YC.Infrastructure.Multiplayer
                 currentRoom.Configuration.ContentPackHash = content?.GetContentPackHash(currentRoom.Configuration) ?? string.Empty;
                 currentRoom.Seats[0].ContentPackHash = currentRoom.Configuration.ContentPackHash;
                 currentRoom.Seats[0].RuleContractVersion = currentRoom.Configuration.RuleContractVersion;
+                currentRoom.Seats[0].OperatorId = operatorId;
+                if (resume != null) resume.ApplyTo(currentRoom, currentRoom.Seats[0], content);
                 activeListener = listener;
             }
 
@@ -134,7 +137,7 @@ namespace YC.Infrastructure.Multiplayer
             return GetCurrentRoom();
         }
 
-        public RoomState JoinRoom(string roomId, string playerName)
+        public RoomState JoinRoom(string roomId, string playerName, string operatorId = "")
         {
             ThrowIfDisposed();
             if (!enableNetworking) throw new InvalidOperationException("Networking is disabled for this room service instance.");
@@ -147,8 +150,8 @@ namespace YC.Infrastructure.Multiplayer
             var stream = activeClient.GetStream();
             var activeWriter = new StreamWriter(stream) { AutoFlush = true };
             var localConfiguration = new GameRuleConfiguration();
-            activeWriter.WriteLine("JOIN|2|" + Escape(playerName) + "|" +
-                (content?.GetContentPackHash(localConfiguration) ?? string.Empty) + "|" + localConfiguration.RuleContractVersion);
+            activeWriter.WriteLine("JOIN|3|" + Escape(playerName) + "|" +
+                (content?.GetContentPackHash(localConfiguration) ?? string.Empty) + "|" + localConfiguration.RuleContractVersion + "|" + Escape(operatorId));
 
             lock (syncRoot)
             {
@@ -500,9 +503,12 @@ namespace YC.Infrastructure.Multiplayer
                 }
 
                 var joinParts = line.Split('|');
-                if (joinParts.Length != 5 || joinParts[1] != "2" || joinParts[4] != GameRuleConfiguration.CurrentRuleContractVersion)
+                if (!(joinParts.Length == 6 && joinParts[1] == "3" || joinParts.Length == 5 && joinParts[1] == "2" && GetCurrentRoom()?.Resume == null) ||
+                    joinParts[4] != GameRuleConfiguration.CurrentRuleContractVersion)
                 { connection.WriteLine("ERROR|room_protocol_mismatch"); return; }
                 var playerName = Unescape(joinParts[2]);
+                connection.OperatorId = joinParts.Length == 6 ? Unescape(joinParts[5]) : string.Empty;
+                connection.PlayerName = playerName; connection.ContentPackHash = joinParts[3]; connection.RuleContractVersion = joinParts[4];
                 var assignedPlayerId = AssignSeat(playerName, connection);
                 if (assignedPlayerId < 0)
                 {
@@ -513,12 +519,12 @@ namespace YC.Infrastructure.Multiplayer
                 connection.WriteLine("WELCOME|" + assignedPlayerId + "|" + connection.IdentityTicket);
                 lock (syncRoot)
                 {
-                    var player = RoomConfigurationService.FindSlot(currentRoom, assignedPlayerId).Occupant;
-                    player.ContentPackHash = joinParts[3]; player.RuleContractVersion = joinParts[4];
+                    var player = RoomConfigurationService.FindSlot(currentRoom, assignedPlayerId)?.Occupant;
+                    if (player != null) { player.ContentPackHash = joinParts[3]; player.RuleContractVersion = joinParts[4]; }
                 }
                 connection.WriteLine("ROOM|" + SerializeRoom(GetCurrentRoom()));
                 Broadcast("ROOM|" + SerializeRoom(GetCurrentRoom()));
-                if (IsSeatOwner(connection)) RaiseRoomUpdated();
+                if (assignedPlayerId == 0 || IsSeatOwner(connection)) RaiseRoomUpdated();
 
                 while (true)
                 {
@@ -556,6 +562,9 @@ namespace YC.Infrastructure.Multiplayer
             lock (syncRoot)
             {
                 hostClients.Remove(connection);
+                if (currentRoom?.Resume != null && !hostClients.Exists(c => !c.IsDisposed && c.OperatorId == connection.OperatorId) &&
+                    currentRoom.WaitingMembers.RemoveAll(m => m.MemberId == connection.OperatorId) > 0)
+                { currentRoom.StateRevision++; roomChanged = true; }
                 ClientConnection owner;
                 if (connection.PlayerId > 0 &&
                     seatOwners.TryGetValue(connection.PlayerId, out owner) &&
@@ -590,6 +599,20 @@ namespace YC.Infrastructure.Multiplayer
                 }
 
                 if (!hostClients.Contains(connection)) hostClients.Add(connection);
+                if (currentRoom.Resume != null)
+                {
+                    if (string.IsNullOrEmpty(connection.OperatorId) || hostClients.Exists(c => c != connection && !c.IsDisposed && c.OperatorId == connection.OperatorId)) return -1;
+                    var original = currentRoom.Seats.Find(s => s.OperatorId == connection.OperatorId);
+                    if (original != null)
+                    {
+                        if (original.LobbyMemberPresent || original.PlayerId == currentRoom.HostPlayerId) return -1;
+                        BindResumeConnection(connection, original, playerName); return original.PlayerId;
+                    }
+                    if (currentRoom.WaitingMembers.Count >= 4) return -1;
+                    connection.PlayerId = 0; connection.IdentityTicket = Guid.NewGuid().ToString("N");
+                    currentRoom.WaitingMembers.Add(new RoomMember { MemberId = connection.OperatorId, PlayerName = playerName });
+                    currentRoom.StateRevision++; return 0;
+                }
                 ClientConnection existingOwner;
                 if (connection.PlayerId > 0 &&
                     seatOwners.TryGetValue(connection.PlayerId, out existingOwner) &&
@@ -603,7 +626,7 @@ namespace YC.Infrastructure.Multiplayer
                 {
                     PlayerId = playerId, SteamId = LocalMirrorIdentity.ForPlayer(playerId),
                     PlayerName = string.IsNullOrEmpty(playerName) ? "玩家 " + playerId : playerName,
-                    LobbyMemberPresent = true
+                    LobbyMemberPresent = true, OperatorId = connection.OperatorId
                 };
                 if (!configurationService.TryOccupySeat(currentRoom, player, out _)) return -1;
                 nextPlayerId++;
@@ -614,6 +637,33 @@ namespace YC.Infrastructure.Multiplayer
                 return playerId;
             }
 
+        }
+
+        private void BindResumeConnection(ClientConnection connection, PlayerSeat seat, string playerName)
+        {
+            seat.OperatorId = connection.OperatorId; seat.PlayerName = playerName; seat.LobbyMemberPresent = true;
+            seat.ContentPackHash = connection.ContentPackHash; seat.RuleContractVersion = connection.RuleContractVersion;
+            seat.TransportConnected = seat.IdentityVerified = seat.GameStateSynchronized = seat.IsReady = false;
+            connection.PlayerId = seat.PlayerId; connection.IdentityTicket = Guid.NewGuid().ToString("N");
+            seatOwners[seat.PlayerId] = connection; playerByIdentityTicket[connection.IdentityTicket] = seat.PlayerId;
+            var slot = RoomConfigurationService.FindSlot(currentRoom, seat.PlayerId);
+            slot.IsUserReady = false; slot.ReadyConfigurationRevision = -1; currentRoom.StateRevision++;
+        }
+
+        public void AssignResumeSeat(string memberId, int playerId)
+        {
+            ClientConnection connection;
+            lock (syncRoot)
+            {
+                connection = hostClients.Find(c => c.PlayerId == 0 && c.OperatorId == memberId && !c.IsDisposed);
+                var seat = currentRoom?.Seats.Find(s => s.PlayerId == playerId);
+                if (!isHost || currentRoom?.Resume == null || currentRoom.HasStarted || connection == null || seat == null ||
+                    seat.LobbyMemberPresent || playerId == currentRoom.HostPlayerId) throw new InvalidOperationException("席位或等待成员已经变化。");
+                BindResumeConnection(connection, seat, connection.PlayerName);
+                currentRoom.WaitingMembers.RemoveAll(m => m.MemberId == memberId);
+            }
+            connection.WriteLine("WELCOME|" + playerId + "|" + connection.IdentityTicket);
+            Broadcast("ROOM|" + SerializeRoom(GetCurrentRoom())); RaiseRoomUpdated();
         }
 
         private void ClientReadLoop(TcpClient tcpClient)
@@ -771,7 +821,7 @@ namespace YC.Infrastructure.Multiplayer
                 {
                     var connection = hostClients[i];
                     ClientConnection owner;
-                    if (connection.PlayerId > 0 &&
+                    if (currentRoom?.Resume != null && connection.PlayerId == 0 && !connection.IsDisposed || connection.PlayerId > 0 &&
                         seatOwners.TryGetValue(connection.PlayerId, out owner) &&
                         ReferenceEquals(owner, connection))
                     {
@@ -993,6 +1043,7 @@ namespace YC.Infrastructure.Multiplayer
 
             internal int PlayerId = -1;
             internal string IdentityTicket = string.Empty;
+            internal string OperatorId = string.Empty, PlayerName = string.Empty, ContentPackHash = string.Empty, RuleContractVersion = string.Empty;
             internal Thread ReadThread;
             internal bool IsDisposed => Volatile.Read(ref disposeState) != 0;
 

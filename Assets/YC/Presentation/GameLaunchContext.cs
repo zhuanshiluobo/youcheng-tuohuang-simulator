@@ -23,6 +23,28 @@ namespace YC.Presentation
         public List<PlayerSeat> Players = new List<PlayerSeat>();
         public List<int> LaunchPlayerOrder = new List<int>();
         public YC.Domain.Rules.GameRuleConfiguration RuleConfiguration;
+        [NonSerialized] public MatchSaveData RestoreData;
+        [NonSerialized] public ResumeRoomOptions ResumeInfo;
+        public void ClearRestore() { RestoreData = null; ResumeInfo = null; }
+        public void ConfigureSavedLocal(MatchSaveData data)
+        {
+            data.Validate();
+            if (data.Mode != LaunchMode.Local) throw new InvalidOperationException("请选择本地对局存档。");
+            GameId = string.Empty;
+            Configure(LaunchMode.Local, data.LocalPlayerId, data.GameId, data.Seats.ConvertAll(s => s.ToSeat()),
+                data.Configuration, data.LaunchPlayerOrder, data.GameId, data.EventDeckSeed, data.RandomState);
+            RestoreData = data;
+        }
+        public void ConfigureSavedRoom(LaunchMode mode, int playerId, RoomState room, MatchSaveData data)
+        {
+            room.Resume.Validate();
+            if (!room.HasStarted || mode == LaunchMode.Host && (data == null || data.GameId != room.Resume.GameId) ||
+                mode != LaunchMode.Host && mode != LaunchMode.Client) throw new InvalidOperationException("续局启动上下文无效。");
+            GameId = string.Empty;
+            Configure(mode, playerId, room.RoomId, room.Seats, room.Configuration, room.LaunchPlayerOrder,
+                room.GameId, room.EventDeckSeed, room.RandomRuntime);
+            RestoreData = data; ResumeInfo = room.Resume.Clone();
+        }
         private bool returningToStart;
         public bool IsLeavingGameplay => returningToStart;
         private bool completedSessionDetached;
@@ -116,6 +138,7 @@ namespace YC.Presentation
                 throw new InvalidOperationException("launch_player_order_invalid");
             if (launchPlayerOrder == null) throw new InvalidOperationException("launch_player_order_invalid");
             GameId = gameId;
+            ClearRestore();
             EventDeckSeed = seed;
             InitialRandomState = initialRandomState.Clone();
             LaunchPlayerOrder = new List<int>(launchPlayerOrder);
@@ -193,8 +216,11 @@ namespace YC.Presentation
                 Instance.pendingReturnScene = sceneName;
                 return;
             }
-            ShutdownOnlineSession();
-            SceneTransitionContext.TryBeginBlackTransition(sceneName);
+            MatchSaveController.Ensure().RequestLeave(() =>
+            {
+                ShutdownOnlineSession();
+                SceneTransitionContext.TryBeginBlackTransition(sceneName);
+            });
         }
 
         private void OnNetworkDisconnected()
@@ -233,6 +259,8 @@ namespace YC.Presentation
 
         public static void ShutdownOnlineSession()
         {
+            MatchSaveController.Instance?.Unbind();
+            Instance?.ClearRestore();
             if (Instance != null)
             {
                 Instance.UnsubscribeDisconnect();

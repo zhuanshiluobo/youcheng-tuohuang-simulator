@@ -157,6 +157,7 @@ namespace YC.Infrastructure.Multiplayer
         private NetworkConnection checkpointHostConnection;
         private float nextCheckpointRequestTime;
         private bool checkpointInstallationSent;
+        private Func<DeterministicSimulationCoordinator> savedCoordinatorFactory;
         private readonly Dictionary<int, string> checkpointConnectionTokens = new Dictionary<int, string>();
         private const int MaximumCheckpointEnvelopeCharacters = 4096;
         private DeterministicSimulationSessionOptions simulationOptions;
@@ -243,22 +244,33 @@ namespace YC.Infrastructure.Multiplayer
 
         public void InitializeDeterministicSimulation(GameSession session, LaunchMode launchMode, int playerId, IList<PlayerSeat> seats,
             DeterministicSimulationSessionOptions options, InitialSimulationCheckpointInstaller installer, Func<string> createHostArchive)
+            => InitializeDeterministicSimulation(session, launchMode, playerId, seats, options, installer, createHostArchive, null, null);
+
+        public void InitializeDeterministicSimulation(GameSession session, LaunchMode launchMode, int playerId, IList<PlayerSeat> seats,
+            DeterministicSimulationSessionOptions options, ISimulationCheckpointInstaller installer, Func<string> createHostArchive,
+            SimulationCheckpointEnvelope savedIdentity, Func<DeterministicSimulationCoordinator> savedCoordinator)
         {
             if (session == null || options == null || seats == null || seats.Any(seat => seat == null) ||
                 launchMode != LaunchMode.Host && launchMode != LaunchMode.Client || options.IsHost != (launchMode == LaunchMode.Host) || options.LocalPlayerId != playerId ||
-                options.GameId != session.State.GameId || options.ContentPackHash != session.State.ContentPackHash || options.SimulationEpoch != 1 || options.MembershipVersion != 1 ||
-                options.CheckpointGlobalSequence != 0 || options.CheckpointPrefixDigest != OperationCommandCanonicalizer.EmptyPrefixDigest || options.FrozenPlayerIds == null ||
+                options.GameId != session.State.GameId || options.ContentPackHash != session.State.ContentPackHash ||
+                (savedIdentity == null ? options.SimulationEpoch != 1 || options.MembershipVersion != 1 || options.CheckpointGlobalSequence != 0 ||
+                    options.CheckpointPrefixDigest != OperationCommandCanonicalizer.EmptyPrefixDigest || savedCoordinator != null :
+                    !savedIdentity.HasValidIdentity() || savedIdentity.Purpose != SimulationCheckpointEnvelope.SavedSimulation || savedCoordinator == null ||
+                    savedIdentity.GameId != options.GameId || savedIdentity.ContentPackHash != options.ContentPackHash ||
+                    savedIdentity.SimulationEpoch != options.SimulationEpoch || savedIdentity.MembershipVersion != options.MembershipVersion ||
+                    savedIdentity.GlobalCommandSequence != options.CheckpointGlobalSequence) || options.FrozenPlayerIds == null ||
                 !seats.Select(seat => seat.PlayerId).OrderBy(id => id).SequenceEqual(options.FrozenPlayerIds.OrderBy(id => id)) ||
                 launchMode == LaunchMode.Host && (installer != null || createHostArchive == null) || launchMode == LaunchMode.Client && (installer == null || createHostArchive != null))
                 throw new ArgumentException("simulation_transport_configuration_invalid");
             // 构造仅核配置，不 Begin/Submit/投影；任何旧注册或请求发生前先选定模式。
-            var prepared = new DeterministicSimulationCoordinator(session, options);
-            var identity = new SimulationCheckpointEnvelope { GameId = options.GameId, ContentPackHash = options.ContentPackHash,
+            var prepared = savedCoordinator != null && launchMode == LaunchMode.Host ? savedCoordinator() : new DeterministicSimulationCoordinator(session, options);
+            var identity = savedIdentity?.Snapshot() ?? new SimulationCheckpointEnvelope { GameId = options.GameId, ContentPackHash = options.ContentPackHash,
                 SimulationEpoch = 1, MembershipVersion = 1, GlobalCommandSequence = 0,
                 CheckpointId = "initial." + SimulationIdentityHash(JsonConvert.SerializeObject(new {
                     options.GameId, options.ContentPackHash, options.SimulationEpoch, options.MembershipVersion, Players = options.FrozenPlayerIds.OrderBy(id => id).ToArray() })) };
             var channel = new SimulationCheckpointChannel(identity, installer, createHostArchive, options.FrozenPlayerIds);
             Shutdown();
+            savedCoordinatorFactory = savedCoordinator;
             this.session = session; mode = launchMode; localPlayerId = playerId; launchSeats = seats;
             simulationOptions = options.Snapshot(); checkpointChannel = channel; initialized = true; awaitingInitialState = false;
             foreach (var seat in seats) seat.GameStateSynchronized = false;
@@ -274,6 +286,7 @@ namespace YC.Infrastructure.Multiplayer
                 AttachSimulation(prepared);
                 if (!channel.TryPrepareHostArchive(out var fault)) { PublishCheckpointFault(fault); return; }
                 prepared.Begin();
+                if (savedIdentity != null) prepared.CompleteConfirmedRecovery(true);
             }
             else
             {
@@ -485,6 +498,7 @@ namespace YC.Infrastructure.Multiplayer
             checkpointChannel?.Stop(); checkpointChannel = null; checkpointHostConnection = null;
             checkpointConnectionTokens.Clear(); nextCheckpointRequestTime = 0f;
             checkpointInstallationSent = false;
+            savedCoordinatorFactory = null;
             ResetViewReception();
             sentViewHistory.Clear(); viewSendQueues.Clear(); initialViewRequestIds.Clear();
             initialViewRequestId = 1; nextViewTransfer = 0;
@@ -1278,7 +1292,8 @@ namespace YC.Infrastructure.Multiplayer
 
         private void OnCheckpointRequest(NetworkConnectionToClient connection, SimulationCheckpointRequestMessage message)
         {
-            if (simulationOptions != null && (simulationOptions.SimulationEpoch != 1 || recoveryRequested || simulationCoordinator?.ValidatedThroughSequence > 0)) return;
+            if (simulationOptions != null && (checkpointChannel == null || simulationOptions.SimulationEpoch != checkpointChannel.Identity.SimulationEpoch || recoveryRequested ||
+                simulationCoordinator?.ValidatedThroughSequence > simulationOptions.CheckpointGlobalSequence)) return;
             if (!IsCheckpointSessionCurrent() || !IsBoundCheckpointClient(connection, message.PlayerId) ||
                 string.IsNullOrEmpty(message.ConnectionToken) || message.ConnectionToken.Length > 64 ||
                 !TryReadCheckpointEnvelope(message.EnvelopeJson, out var request)) return;
@@ -1314,8 +1329,9 @@ namespace YC.Infrastructure.Multiplayer
                 checkpointInstallationSent = true;
                 if (simulationOptions != null && simulationCoordinator == null)
                 {
-                    var coordinator = new DeterministicSimulationCoordinator(session, simulationOptions);
+                    var coordinator = savedCoordinatorFactory != null ? savedCoordinatorFactory() : new DeterministicSimulationCoordinator(session, simulationOptions);
                     AttachSimulation(coordinator); coordinator.Begin();
+                    if (savedCoordinatorFactory != null) coordinator.CompleteConfirmedRecovery(true);
                 }
                 if (result.Status == SimulationCheckpointReceiveStatus.Installed)
                 {

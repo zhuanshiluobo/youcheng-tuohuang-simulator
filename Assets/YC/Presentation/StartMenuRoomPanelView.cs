@@ -56,6 +56,10 @@ namespace YC.Presentation
         [SerializeField] private Image primaryIcon;
         [SerializeField] private Sprite hostStartIcon, memberReadyIcon, memberCancelIcon;
         [SerializeField] private Button swapCloseButton;
+        [SerializeField] private Button resumeSeatsButton;
+        [SerializeField] private string resumePermissionCaption = "续局沿用存档配置与席位。房主可指定替补，全部成员到场并准备后开始。";
+        [SerializeField] private string resumeWaitingCaption = "等待房主分配续局席位。";
+        [SerializeField] private string resumeAbsentCaption = "保留席位，等待原玩家或替补到场";
         [SerializeField] private string roomCodeFormat = "房间号 {0}";
         [SerializeField] private string summaryFormat = "{0}\n{1}\n{2}\n{3} 位玩家";
         [SerializeField] private string expansionNameSeparator = "·";
@@ -133,6 +137,7 @@ namespace YC.Presentation
                 GUIUtility.systemCopyBuffer = renderedRoom.RoomId;
             });
             inviteButton.onClick.AddListener(() => { if (CanConfigure && canToggleNetworking) NetworkingRequested?.Invoke(!online); });
+            if (resumeSeatsButton != null) resumeSeatsButton.onClick.AddListener(MatchSaveWindowView.OpenSeats);
             helpButton.onClick.AddListener(() => helpPanel.SetActive(true));
             helpCloseButton.onClick.AddListener(() => helpPanel.SetActive(false));
             swapCloseButton.onClick.AddListener(() => swapPanel.SetActive(false));
@@ -167,7 +172,7 @@ namespace YC.Presentation
             swapDeclineButton.onClick.AddListener(() => ConfirmSwap(false));
         }
 
-        private bool CanConfigure => renderedRoom != null && viewerId == renderedRoom.HostPlayerId && !requestPending && !renderedRoom.HasStarted;
+        private bool CanConfigure => renderedRoom != null && renderedRoom.Resume == null && viewerId == renderedRoom.HostPlayerId && !requestPending && !renderedRoom.HasStarted;
         private bool CanUseLocalPlayers => supportsLocalPlayers && !online;
 
         public void Render(RoomState room, int viewerPlayerId)
@@ -185,7 +190,7 @@ namespace YC.Presentation
             validationText.text = string.Format(summaryFormat, FindName(maps, room.Configuration.MapId),
                 FindName(ruleModes, room.Configuration.RuleModeId), ExpansionNames(room.Configuration.EnabledExpansionIds),
                 room.PlayerCount);
-            permissionsText.text = host ? CanUseLocalPlayers ? localPermissionCaption : hostPermissionCaption : memberPermissionCaption;
+            permissionsText.text = room.Resume != null ? resumePermissionCaption : host ? CanUseLocalPlayers ? localPermissionCaption : hostPermissionCaption : memberPermissionCaption;
             mapHintText.text = room.PlayerCount == 4 ? fourPlayerHint : mapSelectionHint;
             foreach (var option in maps)
             {
@@ -211,7 +216,12 @@ namespace YC.Presentation
             }
             passwordButton.gameObject.SetActive(host);
             passwordButton.interactable = false;
-            inviteButton.gameObject.SetActive(host && canToggleNetworking);
+            inviteButton.gameObject.SetActive(host && canToggleNetworking && room.Resume == null);
+            if (resumeSeatsButton != null)
+            {
+                resumeSeatsButton.gameObject.SetActive(host && room.Resume != null);
+                resumeSeatsButton.interactable = !requestPending && !room.HasStarted;
+            }
             inviteButton.interactable = CanConfigure && canToggleNetworking && (online || room.PlayerCount == 1);
             for (var i = 0; i < seats.Length; i++)
             {
@@ -225,14 +235,15 @@ namespace YC.Presentation
                 seats[i].StateText.text = occupant == null ? (invitedSeats.Contains(i) && slot.Status == "open" ? invitingCaption : label) :
                     (!online ? occupant.PlayerId == room.HostPlayerId ? localHostCaption : localPlayerCaption : occupant.TransportConnected && occupant.IdentityVerified ? connectedCaption : connectingCaption) + "\n" +
                     (occupant.PlayerId == room.HostPlayerId ? hostCaption : CanUseLocalPlayers ? localReadyCaption : slot.IsUserReady && slot.ReadyConfigurationRevision == room.Configuration.ConfigurationRevision ? readyCaption : unreadyCaption);
-                ShowButton(seats[i].SwapButton, self, !requestPending);
+                if (room.Resume != null && occupant != null && !occupant.LobbyMemberPresent) seats[i].StateText.text = resumeAbsentCaption;
+                ShowButton(seats[i].SwapButton, self && room.Resume == null, !requestPending);
                 ShowButton(seats[i].RemoveButton, host && occupant != null && !self, CanUseLocalPlayers && CanConfigure);
                 ShowButton(seats[i].InviteButton, host && occupant == null && slot.Status == "open", supportsInvites && !requestPending);
                 ShowButton(seats[i].HotSeatButton, host && occupant == null && slot.Status == "open", CanUseLocalPlayers && CanConfigure);
                 ShowButton(seats[i].BotButton, host && occupant == null && slot.Status == "open", false);
-                ShowButton(seats[i].CloseButton, host && occupant == null && slot.Status == "open", !requestPending);
-                ShowButton(seats[i].OpenButton, host && slot.Status == "closed", !requestPending);
-                swapTargets[i].interactable = !requestPending && slot.Status != "closed" && !self;
+                ShowButton(seats[i].CloseButton, host && occupant == null && slot.Status == "open", CanConfigure);
+                ShowButton(seats[i].OpenButton, host && slot.Status == "closed", CanConfigure);
+                swapTargets[i].interactable = room.Resume == null && !requestPending && slot.Status != "closed" && !self;
                 swapTargets[i].GetComponentInChildren<Text>().text = seats[i].NameText.text;
                 swapHostBadges[i].SetActive(occupant != null && occupant.PlayerId == room.HostPlayerId);
                 swapEmptyBadges[i].SetActive(slot.Status == "open" && occupant == null);
@@ -244,6 +255,7 @@ namespace YC.Presentation
             primaryIcon.sprite = host ? hostStartIcon : local?.IsUserReady == true ? memberCancelIcon : memberReadyIcon;
             startButton.interactable = !requestPending && !room.HasStarted && (host ? canStart : CanPrepare(room, local));
             statusText.text = canStart ? (host ? CanUseLocalPlayers ? localCanStartCaption : canStartCaption : waitingHostCaption) : ResolveReason(reasonCode);
+            if (room.Resume != null && local == null) statusText.text = resumeWaitingCaption;
             var incoming = room.PendingSeatSwaps.Find(s => s.TargetPlayerId == viewerId);
             swapAcceptButton.gameObject.SetActive(incoming != null);
             swapDeclineButton.gameObject.SetActive(incoming != null);
@@ -272,7 +284,7 @@ namespace YC.Presentation
             foreach (var id in ids) labels.Add(FindName(expansions, id));
             return string.Join(expansionNameSeparator, labels);
         }
-        public string ResolveReason(string code) => code == "hotseat_requires_offline" ? hotseatRequiresOfflineCaption : Array.Find(reasons, r => r.Code == code)?.Caption ?? code;
+        public string ResolveReason(string code) => code == "resume_configuration_locked" ? resumePermissionCaption : code == "hotseat_requires_offline" ? hotseatRequiresOfflineCaption : Array.Find(reasons, r => r.Code == code)?.Caption ?? code;
         public void ShowInvitationEntryOpened(int seatIndex)
         {
             if (seatIndex < 0 || seatIndex >= seats.Length || renderedRoom.SeatSlots[seatIndex].Status != "open") return;

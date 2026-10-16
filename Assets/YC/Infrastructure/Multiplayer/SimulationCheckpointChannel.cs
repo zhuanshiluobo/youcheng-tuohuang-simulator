@@ -18,7 +18,7 @@ namespace YC.Infrastructure.Multiplayer
     public sealed class SimulationCheckpointChannel
     {
         private readonly SimulationCheckpointEnvelope identity;
-        private readonly InitialSimulationCheckpointInstaller installer;
+        private readonly ISimulationCheckpointInstaller installer;
         private readonly Func<string> createHostArchive;
         private readonly HashSet<int> players;
         private readonly SimulationCheckpointTransfer.Assembler assembler;
@@ -29,7 +29,7 @@ namespace YC.Infrastructure.Multiplayer
         private string hostFault, clientToken;
         private SimulationCheckpointEnvelope installedEnvelope;
         private InitialSimulationCheckpointInstallResult installResult;
-        public SimulationCheckpointChannel(SimulationCheckpointEnvelope identity, InitialSimulationCheckpointInstaller installer,
+        public SimulationCheckpointChannel(SimulationCheckpointEnvelope identity, ISimulationCheckpointInstaller installer,
             Func<string> createHostArchive, IEnumerable<int> authorizedPlayerIds)
         {
             if (identity == null || !identity.HasValidIdentity() || (installer == null) == (createHostArchive == null))

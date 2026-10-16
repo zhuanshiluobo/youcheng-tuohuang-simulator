@@ -18,6 +18,65 @@ namespace YC.Tests.EditMode
     public sealed class ConfirmedSimulationRecoveryTests
     {
         [Test]
+        public void SaveCaptureDoesNotFreezeLiveSessionAndColdResumeContinuesOriginalSequence()
+        {
+            var group = CreateGroupWithColors(false, true); var host = group.Coordinators[0];
+            string original = RuleStateDigestService.Compute(group.Sessions[0].State);
+            var permissions = host.ReadWindowPermissions().Select(w => w.CanSubmitForLocalPlayer).ToArray();
+            Assert.That(host.TryCreateSaveCheckpoint(out _, out var capture), Is.True, capture.Reason);
+            Assert.That(host.IsRecoveringConfirmedPrefix, Is.False);
+            Assert.That(host.ReadWindowPermissions().Select(w => w.CanSubmitForLocalPlayer), Is.EqualTo(permissions));
+            Assert.That(RuleStateDigestService.Compute(group.Sessions[0].State), Is.EqualTo(original));
+            var first = AdmitCurrent(group, "saved-first-choice");
+            Assert.That(host.TryCreateSaveCheckpoint(out _, out capture), Is.False);
+            Assert.That(host.Pump(1), Is.EqualTo(1));
+            Assert.That(host.TryCreateSaveCheckpoint(out var checkpoint, out capture), Is.True, capture.Reason);
+            Assert.That(checkpoint.Baseline.ConfirmedGlobalSequence, Is.EqualTo(1));
+            var save = MatchSaveResumeTests.FromCheckpoint(checkpoint, 3);
+            var restored = MatchSaveResumeTests.Restore(save);
+            Assert.That(RuleStateDigestService.Compute(restored.State), Is.EqualTo(RuleStateDigestService.Compute(group.Sessions[0].State)));
+            var cold = DeterministicSimulationCoordinatorTests.CreateFormalSessions(out var registries, true);
+            group.Sessions[0] = restored;
+            group.Coordinators[0] = DeterministicSimulationCoordinator.FromConfirmedRecovery(restored,
+                MatchSaveData.OptionsFor(checkpoint.Baseline, true, 3), checkpoint.Baseline, restored.State);
+            group.Coordinators[0].CompleteConfirmedRecovery(true);
+            for (int i = 1; i < 3; i++)
+            {
+                var installer = new SavedSimulationCheckpointInstaller(cold[i], registries[i], GameStateViewer.Player(i),
+                    MatchSaveData.OptionsFor(checkpoint.Baseline, false, i), checkpoint.Baseline.CheckpointId, checkpoint.Baseline.MetadataDigest);
+                var identity = new SimulationCheckpointEnvelope { ProtocolVersion = SimulationCheckpointEnvelope.SavedProtocolVersion,
+                    Purpose = SimulationCheckpointEnvelope.SavedSimulation, GameId = save.GameId, ContentPackHash = save.ContentHash,
+                    SimulationEpoch = 2, SourceSimulationEpoch = 1, MembershipVersion = 1,
+                    GlobalCommandSequence = 1, CheckpointId = checkpoint.Baseline.CheckpointId };
+                var channelType = Type.GetType("YC.Infrastructure.Multiplayer.SimulationCheckpointChannel, Assembly-CSharp", true);
+                var channel = Activator.CreateInstance(channelType, identity, installer, null, new[] { 1, 2, 3 });
+                channelType.GetMethod("BindClientConnection").Invoke(channel, new object[] { "saved-peer" });
+                object receipt = null;
+                foreach (var part in SimulationCheckpointTransfer.Encode(identity, save.SimulationCheckpointJson).Split())
+                    receipt = channelType.GetMethod("ReceivePart").Invoke(channel, new object[] { "saved-peer", part.Envelope, part.Offset, part.Payload });
+                Assert.That(receipt.GetType().GetProperty("Status").GetValue(receipt).ToString(), Is.EqualTo("Installed"));
+                var state = cold[i].State;
+                Assert.That(installer.TryInstall(checkpoint.Baseline.CheckpointId, save.SimulationCheckpointJson, out var result), Is.True);
+                Assert.That(result.AlreadyInstalled, Is.True);
+                Assert.That(ReferenceEquals(state, cold[i].State), Is.True);
+                group.Sessions[i] = cold[i]; group.Coordinators[i] = installer.Coordinator;
+                installer.Coordinator.CompleteConfirmedRecovery(true);
+            }
+            Seal(group, 1);
+            var next = AdmitCurrent(group, "saved-next-choice");
+            Assert.That(next.GlobalCommandSequence, Is.EqualTo(2));
+            Assert.That(next.SimulationEpoch, Is.EqualTo(2));
+            foreach (var replica in group.Coordinators)
+            {
+                replica.ReceiveOrdered(next); Assert.That(replica.Pump(1), Is.EqualTo(1));
+                Assert.That(replica.ReceiveOrdered(first).Status, Is.EqualTo(OperationReplicaStatus.Rejected));
+                Assert.That(replica.ReceiveOrdered(next).Status, Is.EqualTo(OperationReplicaStatus.Duplicate));
+                Assert.That(replica.Pump(1), Is.EqualTo(0));
+            }
+            Assert.That(group.Sessions.Select(s => RuleStateDigestService.Compute(s.State)).Distinct().Count(), Is.EqualTo(1));
+        }
+
+        [Test]
         public void ProtocolFactFailureExportsOnlyOriginalConfirmedPrefixAndKeepsTail()
         {
             var group = CreateGroup(true); var host = group.Coordinators[0];
@@ -123,9 +182,11 @@ namespace YC.Tests.EditMode
         private sealed class Group
         { internal GameSession[] Sessions; internal EffectRegistry[] Registries; internal DeterministicSimulationCoordinator[] Coordinators; }
 
-        private static Group CreateGroup(bool failNextBoundary)
+        private static Group CreateGroup(bool failNextBoundary) => CreateGroupWithColors(failNextBoundary, false);
+
+        private static Group CreateGroupWithColors(bool failNextBoundary, bool uniqueSeatColors)
         {
-            var sessions = DeterministicSimulationCoordinatorTests.CreateFormalSessions(out var registries);
+            var sessions = DeterministicSimulationCoordinatorTests.CreateFormalSessions(out var registries, uniqueSeatColors);
             string archive = HostRecoveryService.SerializeArchive(sessions[0].CreateHostArchive());
             for (int i = 1; i < 3; i++)
             {

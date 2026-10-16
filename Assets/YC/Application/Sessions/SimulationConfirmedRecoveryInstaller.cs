@@ -74,6 +74,25 @@ namespace YC.Application.Sessions
                 ["Continuation"] = JToken.FromObject(checkpoint.Continuation, serializer) }.ToString(Formatting.None);
         }
 
+        public static string SerializeContinuation(GameSessionLogContinuationDto continuation)
+            => JsonConvert.SerializeObject(continuation, Settings);
+
+        public static GameSessionLogContinuationDto ReadContinuation(string json)
+        {
+            var raw = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+            if ((int?)raw["SchemaVersion"] != 1 || raw["HasPendingActionLog"]?.Type != JTokenType.Boolean)
+                throw new ArgumentException("recovery_continuation_fields_missing");
+            return raw.ToObject<GameSessionLogContinuationDto>(JsonSerializer.Create(Settings));
+        }
+
+        public static SimulationRecoveryBaselineDto ReadBaseline(string json)
+        {
+            var root = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+            if (root.Count != 3 || !(root["Baseline"] is JObject) || root["Archive"] == null || root["Continuation"] == null)
+                throw new ArgumentException("recovery_package_incomplete");
+            return root["Baseline"].ToObject<SimulationRecoveryBaselineDto>(JsonSerializer.Create(Settings));
+        }
+
         public bool TryPrepare(SimulationRecoveryNoticeDto expected, string bundleJson,
             out PreparedSimulationRecovery candidate, out SimulationRecoveryResultDto result)
         {

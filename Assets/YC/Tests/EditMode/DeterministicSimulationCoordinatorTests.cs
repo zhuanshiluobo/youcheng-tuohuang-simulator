@@ -24,9 +24,9 @@ namespace YC.Tests.EditMode
 {
     public sealed class DeterministicSimulationCoordinatorTests
     {
-        public static GameSession[] CreateFormalSessions(out EffectRegistry[] registries)
+        public static GameSession[] CreateFormalSessions(out EffectRegistry[] registries, bool uniqueSeatColors = false)
         {
-            var fixture = new FormalFixture(false); var first = fixture.Build(LaunchMode.Client, 1, true); var second = fixture.Build(LaunchMode.Client, 2, true);
+            var fixture = new FormalFixture(false, uniqueSeatColors); var first = fixture.Build(LaunchMode.Client, 1, true); var second = fixture.Build(LaunchMode.Client, 2, true);
             registries = new[] { fixture.Host.Registry, first.Registry, second.Registry };
             return new[] { fixture.Host.Session, first.Session, second.Session };
         }
@@ -260,8 +260,9 @@ namespace YC.Tests.EditMode
             private readonly GameplayRandomState random;
             internal readonly Built Host;
             internal int Installations;
-            internal FormalFixture(bool enterprise)
+            internal FormalFixture(bool enterprise, bool uniqueSeatColors = false)
             {
+                if (uniqueSeatColors) foreach (var seat in seats) seat.Color = RoomConfigurationService.GetSeatColor(seat.PlayerId - 1);
                 configuration = new GameRuleConfiguration { MapId = StaticMapDefinitions.ThreePlayerMapId, PlayerCount = 3,
                     EnabledExpansionIds = enterprise ? new List<string> { "core", "enterprise" } : new List<string> { "core" } };
                 random = GameplayRandomRuntime.Create(gameId);

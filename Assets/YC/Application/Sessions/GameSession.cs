@@ -31,6 +31,8 @@ namespace YC.Application.Sessions
         }
 
         public GameState State { get; private set; }
+        public event Action StateCommitted;
+        public bool CommandsSuspended { get; set; }
         public GameStateView View { get; private set; }
         public ExecutionTimingCounters ExecutionTimings { get; } = new ExecutionTimingCounters();
 
@@ -158,6 +160,7 @@ namespace YC.Application.Sessions
 
         public CommandResult Submit(GameCommand command)
         {
+            if (CommandsSuspended) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand, "正在保存对局，请稍候。"));
             using var submitSample = new ExecutionSample(ExecutionTimings, "submit.total");
             if (command == null)
             {
@@ -287,6 +290,8 @@ namespace YC.Application.Sessions
                 pendingActionLog = nextPendingActionLog;
                 mutationGeneration++;
                 if (pendingRecoveryCapture != null) RetainRecoveryCapture(pendingRecoveryCapture);
+                foreach (Action listener in StateCommitted?.GetInvocationList() ?? Array.Empty<Delegate>())
+                    try { listener(); } catch (Exception) { /* 存档观察者不得撤销已发布的规则提交。 */ }
                 return result;
             }
 

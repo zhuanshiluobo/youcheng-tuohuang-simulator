@@ -518,11 +518,28 @@ namespace YC.Application.Sessions
 
         public bool TryCreateConfirmedRecoveryCheckpoint(long expectedConfirmedSequence, long targetEpoch,
             out SimulationRecoveryCheckpointDto checkpoint, out SimulationRecoveryResultDto result)
+            => TryExportCheckpoint(expectedConfirmedSequence, targetEpoch, true, out checkpoint, out result);
+
+        /// <summary>只在所有已接收命令均确认且没有执行中的提交时捕获；存档不会冻结或改动在线模拟。</summary>
+        public bool TryCreateSaveCheckpoint(out SimulationRecoveryCheckpointDto checkpoint, out SimulationRecoveryResultDto result)
+        {
+            if (stopped || requiresRecovery || recoveryFrozen || pendingLocal != null || queue.Count != 0 ||
+                LastAppliedSequence != validatedThrough || LastSequencedSequence != validatedThrough)
+            {
+                checkpoint = null;
+                result = new SimulationRecoveryResultDto { ErrorCode = "save_confirmation_pending", Reason = "请等待当前命令完成规则确认后保存。" };
+                return false;
+            }
+            return TryExportCheckpoint(validatedThrough, options.SimulationEpoch + 1, false, out checkpoint, out result);
+        }
+
+        private bool TryExportCheckpoint(long expectedConfirmedSequence, long targetEpoch, bool requireFrozen,
+            out SimulationRecoveryCheckpointDto checkpoint, out SimulationRecoveryResultDto result)
         {
             checkpoint = null; result = new SimulationRecoveryResultDto();
             try
             {
-                if (!options.IsHost || !recoveryFrozen || pumping || !begun) throw new InvalidOperationException("recovery_not_frozen_host");
+                if (!options.IsHost || requireFrozen && !recoveryFrozen || pumping || !begun) throw new InvalidOperationException("recovery_not_frozen_host");
                 if (!stopped && queue.Count != 0) throw new InvalidOperationException("recovery_original_queue_pending");
                 if (expectedConfirmedSequence != validatedThrough || confirmedPoint == null || confirmedWindows == null) throw new InvalidOperationException("checkpoint_not_retained");
                 if (options.SimulationEpoch >= long.MaxValue || targetEpoch != options.SimulationEpoch + 1) throw new ArgumentException("recovery_epoch_invalid");

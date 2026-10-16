@@ -70,12 +70,22 @@ namespace YC.Presentation
             bool useRightCardSmokeState,
             bool prepareSharedCityStyleSmokeState,
             bool deferRuleInitialization = false)
+            => BuildCore(launchContext, useRightCardSmokeState, prepareSharedCityStyleSmokeState, deferRuleInitialization, launchContext?.RestoreData);
+
+        public static Result Restore(GameLaunchContext context, MatchSaveData data)
+        {
+            data.Validate();
+            return BuildCore(context, false, false, false, data);
+        }
+
+        private static Result BuildCore(GameLaunchContext launchContext, bool useRightCardSmokeState,
+            bool prepareSharedCityStyleSmokeState, bool deferRuleInitialization, MatchSaveData restore)
         {
             if (deferRuleInitialization && (launchContext == null || launchContext.Mode != LaunchMode.Client ||
                 !launchContext.RandomReady || useRightCardSmokeState || prepareSharedCityStyleSmokeState))
                 throw new System.InvalidOperationException("deferred_initialization_requires_frozen_client_start");
-            if (launchContext == null) launchContext = GameLaunchContext.Ensure();
-            if (!launchContext.RandomReady)
+            if (launchContext == null && restore == null) launchContext = GameLaunchContext.Ensure();
+            if (restore == null && !launchContext.RandomReady)
             {
                 if (launchContext.Mode != LaunchMode.Local) throw new System.InvalidOperationException("random_initialization_required");
                 var initialConfiguration = launchContext.RuleConfiguration ?? new GameRuleConfiguration
@@ -83,18 +93,20 @@ namespace YC.Presentation
                 launchContext.ConfigureNewLocal(launchContext.LocalPlayerId, launchContext.RoomId, launchContext.Players, initialConfiguration);
             }
             var mapQuery = new MapQueryService(StaticMapDefinitions.Resolve(
-                launchContext == null ? StaticMapDefinitions.FourPlayerMapId : launchContext.RuleConfiguration?.MapId ?? launchContext.MapId));
-            var launchMode = launchContext == null ? LaunchMode.Local : launchContext.Mode;
-            var eventDeckSeed = GetEventDeckSeed(launchContext);
+                restore != null ? restore.MapId : launchContext == null ? StaticMapDefinitions.FourPlayerMapId : launchContext.RuleConfiguration?.MapId ?? launchContext.MapId));
+            var launchMode = restore?.Mode ?? (launchContext == null ? LaunchMode.Local : launchContext.Mode);
+            var eventDeckSeed = restore?.EventDeckSeed ?? GetEventDeckSeed(launchContext);
             var eventDeckService = new EventDeckService(eventDeckSeed);
-            var localPlayerId = ResolveLocalPlayerId(launchContext);
+            var localPlayerId = restore?.LocalPlayerId ?? ResolveLocalPlayerId(launchContext);
 
-            var players = launchContext == null ? null : launchContext.Players;
-            var configuration = launchContext?.RuleConfiguration?.Clone() ?? new GameRuleConfiguration
+            var players = restore != null ? restore.Seats.ConvertAll(s => s.ToSeat()) : launchContext == null ? null : launchContext.Players;
+            var configuration = restore?.Configuration ?? launchContext?.RuleConfiguration?.Clone() ?? new GameRuleConfiguration
             { MapId = mapQuery.Map.MapId, PlayerCount = players == null || players.Count == 0 ? 1 : players.Count };
             configuration.PlayerStageSchedulingMode = launchMode == LaunchMode.Local
                 ? PlayerStageSchedulingMode.Sequential : PlayerStageSchedulingMode.Concurrent;
             var activeCatalog = ActiveContentCatalogBuilder.Build(ExternalContentRuntime.Pack, configuration);
+            if (restore != null && activeCatalog.ContentPackHash != restore.ContentHash)
+                throw new System.InvalidOperationException("存档的内容版本与当前配置不一致，请使用保存时的内容包。");
             var textResolver = new GameplayTextResolver(activeCatalog.TextCatalog, cacheScopeId: "catalog:" + activeCatalog.ContentPackHash);
             try { textResolver.Precompile(); }
             catch (GameplayTextFormatException error)
@@ -109,11 +121,12 @@ namespace YC.Presentation
                     eventDeckSeed,
                     prepareSharedCityStyleSmokeState)
                 : GameLaunchStateFactory.CreateInitialState(
-                    launchMode,
+                    restore != null ? LaunchMode.Client : launchMode,
                     localPlayerId,
                     players,
                     configuration, eventDeckSeed, activeCatalog.SetupRecipe, activeCatalog.ContentDefinitions,
-                    launchContext.LaunchPlayerOrder, launchContext.GameId, launchContext.InitialRandomState);
+                    restore?.LaunchPlayerOrder ?? launchContext.LaunchPlayerOrder, restore?.GameId ?? launchContext.GameId,
+                    restore?.RandomState ?? launchContext.InitialRandomState);
             if (useRightCardSmokeState)
             {
                 state.GameId = launchContext.GameId;
@@ -122,7 +135,7 @@ namespace YC.Presentation
                 localPlayerId = state.CurrentPlayerId;
             }
 
-            if (launchMode != LaunchMode.Client && !YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state)) eventDeckService.InitializeDecks(
+            if (restore == null && launchMode != LaunchMode.Client && !YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state)) eventDeckService.InitializeDecks(
                 state,
                 EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Green),
                 EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Yellow),
@@ -247,7 +260,24 @@ namespace YC.Presentation
             var resourceCollectionService = new ResourceCollectionService(mapQuery);
             session.RegisterHandler(new CollectResourceCommandHandler(resourceCollectionService, roundAdvanceService));
 
-            if (!deferRuleInitialization && session.State.Phase == GamePhase.Entrance)
+            if (restore != null)
+            {
+                var recovered = HostRecoveryService.RecoverJson(restore.ArchiveJson, effectRegistry);
+                if (!recovered.Succeeded) throw new System.InvalidOperationException(recovered.FaultCode + ":" + recovered.Diagnostic);
+                if (recovered.State.GameId != restore.GameId || recovered.State.ContentPackHash != activeCatalog.ContentPackHash ||
+                    recovered.State.MapId != restore.MapId || recovered.State.EventDeckSeed != restore.EventDeckSeed ||
+                    Newtonsoft.Json.JsonConvert.SerializeObject(recovered.State.RuleConfiguration) != Newtonsoft.Json.JsonConvert.SerializeObject(configuration))
+                    throw new System.InvalidOperationException("存档恢复身份不一致。");
+                if (restore.Mode == LaunchMode.Host)
+                {
+                    var baseline = SimulationConfirmedRecoveryInstaller.ReadBaseline(restore.SimulationCheckpointJson);
+                    OperationCommandCanonicalizer.ValidateRecoveryBaseline(MatchSaveData.OptionsFor(baseline, true, localPlayerId), baseline, recovered.State);
+                }
+                var continuation = SimulationConfirmedRecoveryInstaller.ReadContinuation(restore.ContinuationJson);
+                if (!session.TryPrepareConfirmedRecoveryState(recovered.State, continuation, GameStateViewer.Player(localPlayerId), out var prepared, out var fault) ||
+                    !session.TryCommitPreparedRecovery(prepared, out fault)) throw new System.InvalidOperationException(fault);
+            }
+            else if (!deferRuleInitialization && session.State.Phase == GamePhase.Entrance)
             {
                 if (session.State.RuleConfiguration != null && !string.IsNullOrEmpty(session.State.RuleConfiguration.ContentPackHash))
                     effectRegistry.ContentPackHash = session.State.RuleConfiguration.ContentPackHash;
@@ -256,7 +286,7 @@ namespace YC.Presentation
             }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (launchMode == LaunchMode.Host)
+            if (launchContext != null && launchMode == LaunchMode.Host)
                 NetworkGameValidationDriver.BindHostRecoverySession(session, effectRegistry);
 #endif
 

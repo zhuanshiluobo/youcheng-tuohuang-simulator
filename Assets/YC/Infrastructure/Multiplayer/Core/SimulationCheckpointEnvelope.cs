@@ -8,6 +8,8 @@ namespace YC.Infrastructure.Multiplayer
     {
         public const int CurrentProtocolVersion = 1;
         public const string InitialSimulation = "InitialSimulation";
+        public const string SavedSimulation = "SavedSimulation";
+        public const int SavedProtocolVersion = 3;
         public const string ConfirmedSimulationRecovery = "ConfirmedSimulationRecovery";
         public const int RecoveryProtocolVersion = 2;
         public const string RecoveryDigestVersion = "yc.confirmed-checkpoint.sha256-utf8.v1";
@@ -48,6 +50,8 @@ namespace YC.Infrastructure.Multiplayer
 
         public bool HasValidIdentity() =>
             (ProtocolVersion == CurrentProtocolVersion && Purpose == InitialSimulation && SourceSimulationEpoch == 0 && ArchiveDigestVersion == Utf8ArchiveDigestVersion ||
+             ProtocolVersion == SavedProtocolVersion && Purpose == SavedSimulation && SourceSimulationEpoch > 0 &&
+             SourceSimulationEpoch < long.MaxValue && SimulationEpoch == SourceSimulationEpoch + 1 && ArchiveDigestVersion == Utf8ArchiveDigestVersion ||
              ProtocolVersion == RecoveryProtocolVersion && Purpose == ConfirmedSimulationRecovery && SourceSimulationEpoch > 0 &&
              SourceSimulationEpoch < long.MaxValue && SimulationEpoch == SourceSimulationEpoch + 1 && ArchiveDigestVersion == RecoveryDigestVersion) &&
             ValidText(GameId, 128) && SimulationEpoch > 0 && MembershipVersion > 0 && ValidText(CheckpointId, 128) &&

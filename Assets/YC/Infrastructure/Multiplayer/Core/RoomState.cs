@@ -10,7 +10,7 @@ namespace YC.Infrastructure.Multiplayer
     public sealed class RoomState
     {
         public string RoomId = string.Empty;
-        public const int CurrentProtocolVersion = 4;
+        public const int CurrentProtocolVersion = 5;
         public int ProtocolVersion = CurrentProtocolVersion;
         public int StateRevision;
         public int HostPlayerId = -1;
@@ -23,6 +23,8 @@ namespace YC.Infrastructure.Multiplayer
         public GameplayRandomState RandomRuntime;
         public List<int> LaunchPlayerOrder = new List<int>();
         public GameRuleConfiguration Configuration = new GameRuleConfiguration();
+        public ResumeRoomOptions Resume;
+        public List<RoomMember> WaitingMembers = new List<RoomMember>();
         [JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
         public List<RoomSeatSlotState> SeatSlots = CreateSeatSlots();
         public List<RoomSeatSwapState> PendingSeatSwaps = new List<RoomSeatSwapState>();
@@ -60,6 +62,8 @@ namespace YC.Infrastructure.Multiplayer
                 LocalPlayerId = LocalPlayerId,
                 ProtocolVersion = ProtocolVersion, StateRevision = StateRevision,
                 Configuration = Configuration?.Clone(),
+                Resume = Resume?.Clone(),
+                WaitingMembers = WaitingMembers.ConvertAll(m => new RoomMember { MemberId = m.MemberId, PlayerName = m.PlayerName }),
                 HasStarted = HasStarted,
                 GameId = GameId, EventDeckSeed = EventDeckSeed, RandomReady = RandomReady,
                 RandomAlgorithmVersion = RandomAlgorithmVersion, RandomRuntime = RandomRuntime?.Clone(),
@@ -120,7 +124,8 @@ namespace YC.Infrastructure.Multiplayer
 
             if (localPlayerId <= 0)
             {
-                return false;
+                if (snapshot.Resume == null || !snapshot.WaitingMembers.Exists(m => m.MemberId == localSteamId.ToString())) return false;
+                localPlayerId = 0;
             }
 
             localized = snapshot.Clone();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YC.Domain.Rules;
@@ -28,6 +29,16 @@ namespace YC.Infrastructure.Multiplayer
                     root["HostPlayerId"]?.Type != JTokenType.Integer || root["LocalPlayerId"]?.Type != JTokenType.Integer ||
                     root["HasStarted"]?.Type != JTokenType.Boolean || !(root["PendingSeatSwaps"] is JArray swaps) ||
                     !(root["SeatSlots"] is JArray slots) || slots.Count != 4) return false;
+                if (root["Resume"] == null || !(root["WaitingMembers"] is JArray waiting)) return false;
+                foreach (var member in waiting)
+                    if (!(member is JObject) || member["MemberId"]?.Type != JTokenType.String || member["PlayerName"]?.Type != JTokenType.String) return false;
+                if (root["Resume"].Type != JTokenType.Null)
+                {
+                    if (!(root["Resume"] is JObject resume)) return false;
+                    foreach (var field in new[] { "MapId", "GameId", "ContentHash", "Round", "HostPlayerId", "EventDeckSeed", "Configuration", "RandomRuntime", "LaunchPlayerOrder", "Seats", "SimulationEpoch", "ConfirmedGlobalSequence", "MembershipVersion", "CommandPrefixDigest", "CheckpointId", "MetadataDigest" })
+                        if (resume[field] == null || resume[field].Type == JTokenType.Null) return false;
+                    if (!HasRandomShape(resume["RandomRuntime"])) return false;
+                }
                 if (root["GameId"]?.Type != JTokenType.String || root["EventDeckSeed"]?.Type != JTokenType.Integer ||
                     root["RandomReady"]?.Type != JTokenType.Boolean || root["RandomAlgorithmVersion"]?.Type != JTokenType.String ||
                     root["RandomRuntime"] == null) return false;
@@ -93,6 +104,19 @@ namespace YC.Infrastructure.Multiplayer
                     (!slot.IsUserReady && slot.ReadyConfigurationRevision != -1)) return false;
             }
             if (!players.Contains(room.HostPlayerId) || room.Configuration.PlayerCount != room.PlayerCount) return false;
+            if (room.WaitingMembers == null || room.WaitingMembers.Exists(m => m == null || string.IsNullOrEmpty(m.MemberId)) ||
+                room.WaitingMembers.Select(m => m.MemberId).Distinct().Count() != room.WaitingMembers.Count ||
+                room.Resume == null && room.WaitingMembers.Count != 0) return false;
+            if (room.Resume != null)
+            {
+                try { room.Resume.Validate(); } catch (Exception) { return false; }
+                if (JsonConvert.SerializeObject(room.Configuration) != JsonConvert.SerializeObject(room.Resume.Configuration) ||
+                    room.HostPlayerId != room.Resume.HostPlayerId || room.PendingSeatSwaps.Count != 0 ||
+                    room.Resume.Seats.Exists(s => !players.Contains(s.PlayerId) || RoomConfigurationService.FindSlot(room, s.PlayerId).Occupant.Color != s.Color)) return false;
+                if (room.HasStarted && (room.GameId != room.Resume.GameId || room.EventDeckSeed != room.Resume.EventDeckSeed ||
+                    !room.LaunchPlayerOrder.SequenceEqual(room.Resume.LaunchPlayerOrder) ||
+                    JsonConvert.SerializeObject(room.RandomRuntime) != JsonConvert.SerializeObject(room.Resume.RandomRuntime))) return false;
+            }
             if (room.LaunchPlayerOrder == null || (room.HasStarted
                 ? !TurnOrderService.IsValidPlayerOrder(room.LaunchPlayerOrder, players) : room.LaunchPlayerOrder.Count != 0)) return false;
             if (room.HasStarted != room.RandomReady) return false;

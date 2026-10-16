@@ -16,6 +16,7 @@ namespace YC.Application.Sessions
         public int PlayerId;
         public ulong SteamId;
         public ulong NetworkClientId;
+        public string OperatorId = string.Empty;
         public string PlayerName = string.Empty;
         public PlayerColor Color;
         public bool LobbyMemberPresent;
