@@ -7,6 +7,8 @@ namespace YC.Presentation
     /// <summary>保持内容自然布局高度；可用高度不足时整体等比缩小，避免底部溢出。</summary>
     public sealed class UiFitContentHeight : UIBehaviour, ILayoutSelfController
     {
+        [SerializeField, Min(0f)] private float referenceWidth;
+        [SerializeField] private bool centerVertically;
         private Vector2 lastParentSize;
         private RectTransform Rect => (RectTransform)transform;
         private RectTransform Parent => transform.parent as RectTransform;
@@ -31,7 +33,7 @@ namespace YC.Presentation
         public void SetLayoutHorizontal()
         {
             if (Parent != null)
-                Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Max(0f, Parent.rect.width));
+                Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, referenceWidth > 0f ? referenceWidth : Mathf.Max(0f, Parent.rect.width));
         }
 
         public void SetLayoutVertical()
@@ -39,9 +41,11 @@ namespace YC.Presentation
             if (Parent == null) return;
             var height = Mathf.Max(0f, LayoutUtility.GetPreferredHeight(Rect));
             var scale = height > 0f ? Mathf.Min(1f, Mathf.Max(0f, Parent.rect.height) / height) : 1f;
+            if (referenceWidth > 0f) scale = Mathf.Min(scale, Mathf.Max(0f, Parent.rect.width) / referenceWidth);
             Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
             Rect.localScale = new Vector3(scale, scale, 1f);
-            Rect.anchoredPosition = new Vector2((Parent.rect.width - Rect.rect.width * scale) * .5f, 0f);
+            Rect.anchoredPosition = new Vector2((Parent.rect.width - Rect.rect.width * scale) * .5f,
+                centerVertically ? -(Parent.rect.height - height * scale) * .5f : 0f);
         }
     }
 }

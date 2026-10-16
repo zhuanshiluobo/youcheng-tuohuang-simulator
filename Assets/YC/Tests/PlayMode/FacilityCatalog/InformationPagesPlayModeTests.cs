@@ -34,8 +34,11 @@ namespace YC.Tests.PlayMode
                 var controller=Find("MobileCityInteractionController");var state=(GameState)P(controller,"CurrentState");
                 var pages=Find("GameplayInformationPages");var map=(IMapQueryService)F(controller,"mapQuery");
                 var count=scene=="ThreePlayerScene"?3:4;
-                state.Players.Clear();var colors=new[]{PlayerColor.Green,PlayerColor.Yellow,PlayerColor.Blue,PlayerColor.Red};
-                for(var i=0;i<count;i++)state.Players.Add(new PlayerState{PlayerId=i+1,Name="玩家 "+(i+1),Color=colors[i],CityLocationId=map.Map.Regions[0].LocationIds[0]});
+                ((Behaviour)controller).enabled=false;
+                Assert.That(state.Players.Count,Is.EqualTo(count));
+                var location=state.ItemZones.Zones.Single(zone=>zone.TemplateId=="core.zone.map_location" && zone.LocalZoneId==map.Map.Regions[0].LocationIds[0]);
+                var cities=state.ItemZones.Zones.Single(zone=>zone.ParentId==location.ZoneId && zone.TemplateId=="core.zone.city_dock");
+                foreach(var city in state.ItemZones.Items.Where(item=>item.PhysicalKind==YC.Domain.Items.ItemPhysicalKind.MobileCity)) city.ZoneId=cities.ZoneId;
                 var before=GameStateCloneService.DeepClone(state);
                 ((Button)P(pages,"RegionButton")).onClick.Invoke();yield return null;yield return null;
                 var page=(Component)P(pages,"RegionPage");Assert.That(page.gameObject.activeInHierarchy,Is.True);
@@ -116,6 +119,19 @@ namespace YC.Tests.PlayMode
         private static IEnumerator Load(string scene)
         {
             var launch=Find("GameLaunchContext");if(launch!=null){UnityEngine.Object.Destroy(launch.gameObject);yield return null;}
+            var launchContext=T("GameLaunchContext").GetMethod("Ensure").Invoke(null,null);
+            var count=scene=="ThreePlayerScene"?3:4;
+            var seatType=AppDomain.CurrentDomain.GetAssemblies().Select(assembly=>assembly.GetType("YC.Application.Sessions.PlayerSeat")).First(type=>type!=null);
+            var launchMode=AppDomain.CurrentDomain.GetAssemblies().Select(assembly=>assembly.GetType("YC.Application.Sessions.LaunchMode")).First(type=>type!=null);
+            var seats=(IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(seatType));
+            for(var id=1;id<=count;id++)
+            {
+                var seat=Activator.CreateInstance(seatType);
+                seatType.GetField("PlayerId").SetValue(seat,id);seatType.GetField("PlayerName").SetValue(seat,"玩家 "+id);seats.Add(seat);
+            }
+            var config=new GameRuleConfiguration{PlayerCount=count,MapId=scene=="ThreePlayerScene"?StaticMapDefinitions.ThreePlayerMapId:StaticMapDefinitions.FourPlayerMapId};
+            T("GameLaunchContext").GetMethod("Configure",new[]{launchMode,typeof(int),typeof(string),typeof(IList<>).MakeGenericType(seatType),typeof(GameRuleConfiguration)})
+                .Invoke(launchContext,new object[]{Enum.Parse(launchMode,"Local"),1,"",seats,config});
             yield return SceneManager.LoadSceneAsync(scene,LoadSceneMode.Single);yield return null;yield return null;
 #if UNITY_EDITOR
             SetSize(new Vector2Int(1920,1080));

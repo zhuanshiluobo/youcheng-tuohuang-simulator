@@ -71,6 +71,9 @@ namespace YC.Application.Interactions
                 var request = state.EffectRuntime.InteractionRequests.Find(candidate =>
                     candidate != null && candidate.Status == "open" &&
                     (candidate.RequestId == interactionId || candidate.GetStableInteractionId() == interactionId));
+                if (request != null && request.InteractionTypeId == ExpansionSetupFlow.LegacyBasicCharacterKeepInteraction)
+                    return Invalid(CommandErrorCode.InvalidTarget,
+                        "legacy_basic_character_keep_request_unsupported：此存档仍使用旧版保留牌选择，请重新开局后选择要弃掉的角色牌。");
                 isCollectionTask = request != null && request.InteractionTypeId == "collection.task";
                 if (request != null && request.InteractionTypeId == FacilityBuildEffectExecutor.PlacementInteractionType &&
                     request.PromptParameters?.Properties != null)
@@ -85,9 +88,10 @@ namespace YC.Application.Interactions
                     command.PlayerId,
                     expectedRevision,
                     answer,
-                    out diagnostic))
+                    out diagnostic,
+                    out var errorCode))
             {
-                return Invalid(CommandErrorCode.InvalidTarget, diagnostic);
+                return Invalid(errorCode, diagnostic);
             }
 
             EffectRunReport report = executor.RunUntilQuiescent();
@@ -121,7 +125,7 @@ namespace YC.Application.Interactions
             if (!string.IsNullOrEmpty(paidFacilityId))
             {
                 var placement = state.Map.Facilities.Find(item => item.PlayerId == command.PlayerId && item.FacilityCardId == paidFacilityId);
-                var facility = YC.Domain.Facilities.FacilityCardDatabase.Get(paidFacilityId);
+                var facility = YC.Domain.Facilities.FacilityCardDatabase.Get(state, paidFacilityId);
                 if (placement != null && facility != null)
                 {
                     events.Add(new YC.Domain.Events.GameEvent

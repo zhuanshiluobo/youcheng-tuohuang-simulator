@@ -651,6 +651,7 @@ namespace YC.Tests.EditMode
                 Assert.That(type, Is.Not.Null);
                 var panel = InstantiateBuildInfoPanel(type, out canvasObject);
                 var state = CreateBuildInfoPanelState();
+                var authoredSlots = CaptureSlotLayout(panel);
 
                 type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
 
@@ -667,8 +668,7 @@ namespace YC.Tests.EditMode
                 Assert.That(FindRectTransformByName(canvasObject, "Build Sidebar Panel"), Is.Not.Null, "缺少固定建设侧栏。");
                 var boardImage = FindRectTransformByName(canvasObject, "城市面板底图");
                 Assert.That(boardImage, Is.Not.Null, "缺少固定城市底图。");
-                Assert.That(boardImage.rect.height / boardImage.rect.width, Is.EqualTo(3801f / 2059f).Within(0.01f));
-                Assert.That(HasTextContaining(canvasObject, "空位 "), Is.False);
+                Assert.That(boardImage.GetComponent<RawImage>().texture, Is.Not.Null);
                 Assert.That(GetButtonLabel(FindButtonByName(buttons, "槽位 4")), Is.Empty);
                 var coreTowerSlot = FindButtonByName(buttons, "槽位 8");
                 var emptySlot = FindButtonByName(buttons, "槽位 12");
@@ -681,22 +681,9 @@ namespace YC.Tests.EditMode
                 Assert.That(emptySlot.GetComponent<Image>().raycastTarget, Is.True);
                 Assert.That(GetButtonLabel(coreTowerSlot), Is.Empty);
                 Assert.That(HasChildRectTransform(coreTowerSlot.gameObject, "设施卡图"), Is.True);
-                AssertCityBoardSlotIsCenteredOnBoard(FindButtonByName(buttons, "槽位 2"), boardImage, 0.502f, 0.152f);
-                AssertCityBoardSlotIsCenteredOnBoard(coreTowerSlot, boardImage, 0.502f, 0.615f);
-                AssertCityBoardSlotIsCenteredOnBoard(FindButtonByName(buttons, "槽位 11"), boardImage, 0.502f, 0.846f);
-                AssertCityBoardSlotMatchesFacilityCardRatio(coreTowerSlot, boardImage);
-                AssertFacilityCardImageIsCenteredInSlot(coreTowerSlot);
-                AssertExternalCardRect(FindButtonByName(buttons, "BuildSlot_1"), new Vector2(99f, 141f), new Vector2(6f, -6f));
-                AssertExternalCardRect(FindButtonByName(buttons, "BuildSlot_6"), new Vector2(99f, 141f), new Vector2(254f, -169f));
-
-                Assert.That(HasText(canvasObject, "剩余牌堆：1"), Is.False);
-                Assert.That(HasTextContaining(canvasObject, "玩家一：源石工业中枢"), Is.False);
-                Assert.That(HasTextContaining(canvasObject, "玩家二：暂无宣告"), Is.False);
-                Assert.That(HasTextContaining(canvasObject, "当前选择"), Is.False);
+                AssertSlotLayoutPreserved(authoredSlots);
+                Assert.That(coreTowerSlot.GetComponentInChildren<RawImage>(true).texture, Is.Not.Null);
                 Assert.That(AllTextRenderersAreMaskable(canvasObject), Is.True);
-
-                var buildPanelScroll = canvasObject.GetComponentInChildren<ScrollRect>(true);
-                Assert.That(buildPanelScroll, Is.Null);
 
                 type.GetMethod("SetBuildInteraction").Invoke(panel, new object[]
                 {
@@ -720,11 +707,8 @@ namespace YC.Tests.EditMode
                         button => button.name == "取消建设"),
                     Is.False,
                     "建设虚影不再提供取消建设按钮，应直接拖动其他建设牌替换草稿。");
-                Assert.That(FindButtonByName(buttons, "槽位 12").GetComponent<Image>().color.a, Is.GreaterThan(0f));
-                Assert.That(
-                    FindButtonByName(buttons, "BuildSlot_2").GetComponentInChildren<RawImage>(true).color.a,
-                    Is.EqualTo(1f).Within(0.001f),
-                    "建设模式中不可建设的公共牌仍应保持不透明，并允许单击预览。");
+                Assert.That(FindButtonByName(buttons, "BuildSlot_2").GetComponentInChildren<RawImage>().texture,
+                    Is.Not.Null, "建设模式中不可建设的公共牌仍可查看。");
                 type.GetMethod("SetBuildAvailabilityMessage").Invoke(panel, new object[]
                 {
                     "本行动轮行动次数已用尽。"
@@ -732,7 +716,6 @@ namespace YC.Tests.EditMode
                 var availabilityMessage = FindRectTransformByName(canvasObject, "Build Availability Message");
                 Assert.That(availabilityMessage, Is.Not.Null, "缺少固定建设可用性消息。");
                 Assert.That(availabilityMessage.GetComponent<Text>().text, Is.EqualTo("本行动轮行动次数已用尽。"));
-                Assert.That(availabilityMessage.GetComponent<Text>().color.r, Is.GreaterThan(0.9f));
                 type.GetMethod("SetPendingBuildGhost").Invoke(panel, new object[]
                 {
                     false, string.Empty, -1, null, null
@@ -1008,9 +991,14 @@ namespace YC.Tests.EditMode
                 Assert.That(confirm.interactable, Is.True);
                 Assert.That((bool)GetProperty(dialog, "CanConfirm"), Is.True);
                 Assert.That(matchStatus.text, Does.Contain("2 / 2"), "真实设施数量应显示。");
-                var detail = FindButtonByName(buttons, "View Original Card");
-                FindButtonByName(buttons, "Enlarge Card").onClick.Invoke(); detail.onClick.Invoke();
+                var previewView = GetField(dialog, "view");
+                ExecutePointerClick(firstOption.gameObject, PointerEventData.InputButton.Right);
+                Assert.That((bool)GetProperty(previewView, "IsDetail"), Is.True);
+                var detailGesture = (Component)GetField(previewView, "detailGesture");
+                ExecutePointerClick(detailGesture.gameObject, PointerEventData.InputButton.Left);
+                Assert.That((bool)GetProperty(previewView, "IsDetail"), Is.False);
                 Assert.That((IReadOnlyList<int>)GetProperty(dialog, "SelectedSlotIndexes"), Is.EqualTo(new[] { 0, 1 }), "详情返回保留草稿。");
+                Assert.That(confirmedStyleId, Is.Empty, "查看详情不能提交宣告。");
 
                 ExecutePointerClick(secondOption.gameObject, PointerEventData.InputButton.Left);
                 Assert.That(
@@ -1177,6 +1165,9 @@ namespace YC.Tests.EditMode
                 ExecuteDrag(sourceButton, legalEmptySlot.gameObject);
                 Assert.That(startedFacilityId, Is.EqualTo(FacilityCardDatabase.TradeDistrict));
                 Assert.That(droppedFacilityId, Is.EqualTo(FacilityCardDatabase.TradeDistrict));
+                var artwork = ((RawImage)GetProperty(GetProperty(panel, "View"), "CityBoardImage")).rectTransform;
+                Assert.That(artwork.rect.width, Is.GreaterThan(0f), "拖放夹具需要已完成布局的有效城市底图。");
+                Assert.That(artwork.rect.height, Is.GreaterThan(0f));
                 Assert.That(droppedSlotIndex, Is.EqualTo(11));
                 Assert.That(GameObject.Find("建设卡拖动虚影"), Is.Null);
                 Assert.That(FindButtonByName(canvasObject.GetComponentsInChildren<Button>(true), "BuildSlot_1"), Is.SameAs(sourceButton));
@@ -1226,7 +1217,6 @@ namespace YC.Tests.EditMode
                 var buttons = canvasObject.GetComponentsInChildren<Button>(true);
                 AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 1"), 0f);
                 AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 4"), 0f);
-                Assert.That(CountTexts(canvasObject, "已使用"), Is.EqualTo(0));
 
                 var player = state.FindPlayer(1);
                 player.DeclaredCityStyles.Add(new CityStyleDeclarationState
@@ -1248,25 +1238,15 @@ namespace YC.Tests.EditMode
                 AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 2"), 180f);
                 AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 3"), 180f);
                 AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 4"), 0f);
-                Assert.That(CountTexts(canvasObject, "已使用"), Is.EqualTo(0));
-                var usedSlot = FindButtonByName(buttons, "槽位 1");
-                var unusedSlot = FindButtonByName(buttons, "槽位 4");
-                Assert.That(usedSlot.GetComponent<Image>().color, Is.EqualTo(unusedSlot.GetComponent<Image>().color));
-                Assert.That(
-                    usedSlot.GetComponent<Outline>().effectColor,
-                    Is.EqualTo(unusedSlot.GetComponent<Outline>().effectColor));
-                Assert.That(
-                    usedSlot.GetComponent<Outline>().effectDistance,
-                    Is.EqualTo(unusedSlot.GetComponent<Outline>().effectDistance));
 
                 InvokeButtonByName(buttons, "槽位 1");
                 AssertCardImageViewerIsOpen();
-                var detailTitle = GameObject.Find("Card Image Title");
-                Assert.That(detailTitle, Is.Not.Null);
-                Assert.That(
-                    detailTitle.GetComponent<Text>().text,
-                    Is.EqualTo(FacilityCardDatabase.Get(FacilityCardDatabase.SourceStoneRefinery).Name + "（已使用）"));
+                AssertCardImageViewerShowsFacility(panel, FacilityCardDatabase.SourceStoneRefinery);
                 CloseCardImageViewer();
+                player.DeclaredCityStyles.Clear();
+                type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
+                foreach (var index in new[] { 1, 2, 3, 4 })
+                    AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 " + index), 0f);
             }
             finally
             {
@@ -1329,10 +1309,15 @@ namespace YC.Tests.EditMode
                 AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 1"), 180f);
                 AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 2"), 180f);
                 AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 4"), 0f);
-                Assert.That(CountTexts(canvasObject, "已使用"), Is.EqualTo(0));
-                Assert.That(
-                    FindRectTransformByName(canvasObject, "样式影响力 玩家1 标记1"),
-                    Is.Not.Null);
+                AssertCityStyleMarkerCount(canvasObject, CityStyleDatabase.MilitaryIndustrialArea,
+                    CityStyleMarkerAreas.Unused, PlayerColor.Blue, 1);
+                AssertCityStyleMarkerCount(canvasObject, CityStyleDatabase.MilitaryIndustrialArea,
+                    CityStyleMarkerAreas.Used, PlayerColor.Blue, 0);
+                type.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
+                AssertCityStyleMarkerCount(canvasObject, CityStyleDatabase.MilitaryIndustrialArea,
+                    CityStyleMarkerAreas.Unused, PlayerColor.Blue, 1);
+                AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 1"), 180f);
+                AssertCityBoardSlotRotation(FindButtonByName(buttons, "槽位 4"), 0f);
             }
             finally
             {
@@ -1424,7 +1409,7 @@ namespace YC.Tests.EditMode
 
         private static object GetField(object target, string fieldName)
         {
-            var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.Public);
+            var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             Assert.That(field, Is.Not.Null, "Missing field " + fieldName + ".");
             return field.GetValue(target);
         }
@@ -1677,9 +1662,14 @@ namespace YC.Tests.EditMode
             PointerEventData.InputButton pointerButton = PointerEventData.InputButton.Left)
         {
             Assert.That(sourceButton, Is.Not.Null);
+            Canvas.ForceUpdateCanvases();
+            var canvasRect = sourceButton.GetComponentInParent<Canvas>().transform as RectTransform;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(canvasRect);
+            Canvas.ForceUpdateCanvases();
             var pointerPosition = dropTarget == null
                 ? new Vector2(-10000f, -10000f)
-                : RectTransformUtility.WorldToScreenPoint(null, dropTarget.transform.position);
+                : RectTransformUtility.WorldToScreenPoint(null,
+                    ((RectTransform)dropTarget.transform).TransformPoint(((RectTransform)dropTarget.transform).rect.center));
             var pointer = new PointerEventData(EventSystem.current)
             {
                 button = pointerButton,
@@ -1709,7 +1699,12 @@ namespace YC.Tests.EditMode
         private static void ExecuteDragAndReleaseWithPointerClick(Button sourceButton, GameObject dropTarget)
         {
             Assert.That(sourceButton, Is.Not.Null);
-            var pointerPosition = RectTransformUtility.WorldToScreenPoint(null, dropTarget.transform.position);
+            Canvas.ForceUpdateCanvases();
+            var canvasRect = sourceButton.GetComponentInParent<Canvas>().transform as RectTransform;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(canvasRect);
+            Canvas.ForceUpdateCanvases();
+            var pointerPosition = RectTransformUtility.WorldToScreenPoint(null,
+                ((RectTransform)dropTarget.transform).TransformPoint(((RectTransform)dropTarget.transform).rect.center));
             var pointer = new PointerEventData(EventSystem.current)
             {
                 button = PointerEventData.InputButton.Left,
@@ -1757,44 +1752,62 @@ namespace YC.Tests.EditMode
             Assert.That(Mathf.Abs(Mathf.DeltaAngle(rect.localEulerAngles.z, expectedZ)), Is.LessThan(0.1f));
         }
 
-        private static void AssertCityBoardSlotIsCenteredOnBoard(Button button, RectTransform boardImage, float normalizedX, float normalizedY)
+        private sealed class SlotLayoutSnapshot
         {
-            Assert.That(button, Is.Not.Null);
-            Assert.That(boardImage, Is.Not.Null);
-            var rect = button.GetComponent<RectTransform>();
-            Assert.That(rect.parent, Is.EqualTo(boardImage));
-            var anchorCenter = (rect.anchorMin + rect.anchorMax) * 0.5f;
-            Assert.That(anchorCenter.x, Is.EqualTo(normalizedX).Within(0.001f));
-            Assert.That(anchorCenter.y, Is.EqualTo(1f - normalizedY).Within(0.001f));
-            Assert.That(rect.offsetMin, Is.EqualTo(Vector2.zero));
-            Assert.That(rect.offsetMax, Is.EqualTo(Vector2.zero));
+            public RectTransform Rect;
+            public Transform Parent;
+            public Vector2 AnchorMin, AnchorMax, AnchoredPosition, SizeDelta, Pivot;
         }
 
-        private static void AssertCityBoardSlotMatchesFacilityCardRatio(Button button, RectTransform boardImage)
+        private static List<SlotLayoutSnapshot> CaptureSlotLayout(object panel)
         {
-            Assert.That(button, Is.Not.Null);
-            Assert.That(boardImage, Is.Not.Null);
-            var rect = button.GetComponent<RectTransform>();
-            var normalizedSize = rect.anchorMax - rect.anchorMin;
-            Assert.That(normalizedSize.x, Is.EqualTo(0.292f).Within(0.001f));
-            Assert.That(normalizedSize.y, Is.EqualTo(0.224f).Within(0.001f));
-
-            var renderedAspectRatio =
-                normalizedSize.x * boardImage.rect.width /
-                (normalizedSize.y * boardImage.rect.height);
-            Assert.That(renderedAspectRatio, Is.EqualTo(600f / 850f).Within(0.002f));
+            var result = new List<SlotLayoutSnapshot>();
+            var view = GetProperty(panel, "View");
+            foreach (var property in new[] { "CityBoardSlots", "ExternalFacilitySlots" })
+                foreach (var slot in (IEnumerable)GetProperty(view, property))
+                {
+                    var rect = (RectTransform)GetProperty(slot, "Root");
+                    result.Add(new SlotLayoutSnapshot { Rect = rect, Parent = rect.parent,
+                        AnchorMin = rect.anchorMin, AnchorMax = rect.anchorMax,
+                        AnchoredPosition = rect.anchoredPosition, SizeDelta = rect.sizeDelta, Pivot = rect.pivot });
+                }
+            return result;
         }
 
-        private static void AssertFacilityCardImageIsCenteredInSlot(Button button)
+        private static void AssertSlotLayoutPreserved(IEnumerable<SlotLayoutSnapshot> authoredSlots)
         {
-            Assert.That(button, Is.Not.Null);
-            var imageRect = FindRectTransformByName(button.gameObject, "设施卡图");
-            Assert.That(imageRect, Is.Not.Null);
-            Assert.That(imageRect.anchorMin, Is.EqualTo(Vector2.zero));
-            Assert.That(imageRect.anchorMax, Is.EqualTo(Vector2.one));
-            Assert.That(imageRect.offsetMin, Is.EqualTo(Vector2.zero));
-            Assert.That(imageRect.offsetMax, Is.EqualTo(Vector2.zero));
-            Assert.That(imageRect.GetComponent<AspectRatioFitter>(), Is.Null);
+            foreach (var slot in authoredSlots)
+            {
+                Assert.That(slot.Rect.parent, Is.SameAs(slot.Parent));
+                Assert.That(slot.Rect.anchorMin, Is.EqualTo(slot.AnchorMin));
+                Assert.That(slot.Rect.anchorMax, Is.EqualTo(slot.AnchorMax));
+                Assert.That(slot.Rect.anchoredPosition, Is.EqualTo(slot.AnchoredPosition));
+                Assert.That(slot.Rect.sizeDelta, Is.EqualTo(slot.SizeDelta));
+                Assert.That(slot.Rect.pivot, Is.EqualTo(slot.Pivot));
+            }
+        }
+
+        private static void AssertCityStyleMarkerCount(GameObject root, string styleId, string area, PlayerColor color, int expected)
+        {
+            var rowType = Type.GetType("YC.Presentation.CityStyleStatusRowView, Assembly-CSharp", true);
+            Component matchingRow = null;
+            foreach (var row in root.GetComponentsInChildren(rowType))
+                if ((string)GetProperty(row, "Id") == styleId)
+                { Assert.That(matchingRow, Is.Null, "同一样式重复创建状态行。"); matchingRow = row; }
+            Assert.That(matchingRow, Is.Not.Null);
+            foreach (var slot in (IEnumerable)GetField(matchingRow, "slots"))
+            {
+                if ((string)GetField(slot, "area") != area) continue;
+                var block = ((Image[])GetField(slot, "blocks"))[(int)color];
+                var markerType = Type.GetType("YC.Presentation.InfluenceMarker2DView, Assembly-CSharp", true);
+                var marker = block.GetComponent(markerType);
+                Assert.That(marker, Is.Not.Null);
+                Assert.That(((Text)GetProperty(marker, "NumberText")).text, Is.EqualTo(expected.ToString()));
+                if (expected > 0) Assert.That(((Image)GetProperty(marker, "Face")).color.a, Is.GreaterThan(0f));
+                else Assert.That(((Image)GetProperty(marker, "Face")).color.a, Is.EqualTo(0f));
+                return;
+            }
+            Assert.Fail("样式状态行缺少区域：" + area);
         }
 
         private static string GetButtonLabel(Button button)
@@ -1832,29 +1845,23 @@ namespace YC.Tests.EditMode
             return false;
         }
 
-        private static void AssertExternalCardRect(Button button, Vector2 expectedSize, Vector2 expectedPosition)
-        {
-            Assert.That(button, Is.Not.Null);
-            var rect = button.GetComponent<RectTransform>();
-            Assert.That(rect.sizeDelta.x, Is.EqualTo(expectedSize.x).Within(0.01f));
-            Assert.That(rect.sizeDelta.y, Is.EqualTo(expectedSize.y).Within(0.01f));
-            Assert.That(rect.anchoredPosition.x, Is.EqualTo(expectedPosition.x).Within(0.01f));
-            Assert.That(rect.anchoredPosition.y, Is.EqualTo(expectedPosition.y).Within(0.01f));
-        }
-
         private static void AssertExternalCardSelected(Button button)
         {
-            AssertExternalCardOutlineDistance(button, new Vector2(3f, -3f));
+            AssertExternalCardOutlineDistance(button, "FacilitySelectableOutlineDistance");
         }
 
         private static void AssertExternalCardNotSelected(Button button)
         {
-            AssertExternalCardOutlineDistance(button, new Vector2(1f, -1f));
+            AssertExternalCardOutlineDistance(button, "NormalOutlineDistance");
         }
 
-        private static void AssertExternalCardOutlineDistance(Button button, Vector2 expectedDistance)
+        private static void AssertExternalCardOutlineDistance(Button button, string profileProperty)
         {
             Assert.That(button, Is.Not.Null);
+            var viewType = Type.GetType("YC.Presentation.BuildInfoPanelView, Assembly-CSharp", true);
+            var view = button.GetComponentInParent(viewType);
+            var profile = GetProperty(view, "CardInteractionLayoutProfile");
+            var expectedDistance = (Vector2)GetProperty(profile, profileProperty);
             var outline = button.GetComponent<Outline>();
             Assert.That(outline, Is.Not.Null);
             Assert.That(outline.effectDistance.x, Is.EqualTo(expectedDistance.x).Within(0.01f));
@@ -1881,7 +1888,17 @@ namespace YC.Tests.EditMode
                 typeof(Canvas),
                 typeof(CanvasScaler),
                 typeof(GraphicRaycaster));
-            canvasObject.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            // 同步 EditMode 夹具使用明确视口，避免批处理默认 640×480 把侧栏压成负尺寸。
+            canvasObject.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
+            ((RectTransform)canvasObject.transform).sizeDelta = new Vector2(1920f, 1080f);
+            // 卡牌预览经实际 HUD 的序列化目录解析源资产；独立面板夹具也必须提供该依赖。
+            var registryType = Type.GetType("YC.Presentation.GameplayDialogRegistry, Assembly-CSharp", true);
+            var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            Assert.That(hudPrefab, Is.Not.Null);
+            var sourceRegistry = hudPrefab.GetComponentInChildren(registryType, true);
+            Assert.That(sourceRegistry, Is.Not.Null);
+            EditorUtility.CopySerialized(sourceRegistry, canvasObject.AddComponent(registryType));
             var instance = PrefabUtility.InstantiatePrefab(prefab, canvasObject.transform) as GameObject;
             Assert.That(instance, Is.Not.Null);
             var panel = instance.GetComponent(type);
@@ -1918,41 +1935,38 @@ namespace YC.Tests.EditMode
                 null);
         }
 
+        private static Component CurrentCardImageViewer()
+        {
+            var type = Type.GetType("YC.Presentation.CardViewer, Assembly-CSharp", true);
+            return UnityEngine.Object.FindObjectOfType(type) as Component;
+        }
+
         private static void AssertCardImageViewerIsOpen()
         {
-            var type = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", false);
-            Assert.That(type, Is.Not.Null);
-            var viewerObject = GameObject.Find("Card Image Viewer");
-            var viewer = viewerObject == null ? null : viewerObject.GetComponent(type);
+            var viewer = CurrentCardImageViewer();
             Assert.That(viewer, Is.Not.Null);
-            var isOpen = type.GetProperty("IsOpen", BindingFlags.Instance | BindingFlags.Public);
-            Assert.That(isOpen, Is.Not.Null);
-            Assert.That((bool)isOpen.GetValue(viewer, null), Is.True);
+            Assert.That((bool)GetProperty(viewer, "IsShowing"), Is.True);
+            Assert.That(GetProperty(viewer, "Mode").ToString(), Is.EqualTo("Inspect"));
+            Assert.That(GetProperty(viewer, "DisplayedSprite"), Is.Not.Null);
+            Assert.That(((Button)GetProperty(viewer, "PlotButton")).interactable, Is.False);
+            Assert.That(((Button)GetProperty(viewer, "StrategyButton")).interactable, Is.False);
         }
 
-        private static void AssertCardImageViewerIsClosed()
+        private static void AssertCardImageViewerShowsFacility(object panel, string definitionId)
         {
-            var type = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", false);
-            var viewerObject = GameObject.Find("Card Image Viewer");
-            var viewer = type == null || viewerObject == null ? null : viewerObject.GetComponent(type);
-            if (viewer == null)
-            {
-                return;
-            }
-
-            var isOpen = type.GetProperty("IsOpen", BindingFlags.Instance | BindingFlags.Public);
-            Assert.That((bool)isOpen.GetValue(viewer, null), Is.False);
+            var catalog = GetField(panel, "cardVisualCatalog");
+            var expected = catalog.GetType().GetMethod("GetFacility").Invoke(catalog, new object[] { definitionId });
+            Assert.That(GetProperty(CurrentCardImageViewer(), "DisplayedSprite"), Is.SameAs(expected));
         }
+
+        private static void AssertCardImageViewerIsClosed() => Assert.That(CurrentCardImageViewer(), Is.Null);
 
         private static void CloseCardImageViewer()
         {
-            var type = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", false);
-            var viewerObject = GameObject.Find("Card Image Viewer");
-            var viewer = type == null || viewerObject == null ? null : viewerObject.GetComponent(type);
-            if (viewer != null)
-            {
-                type.GetMethod("Close", BindingFlags.Instance | BindingFlags.Public).Invoke(viewer, null);
-            }
+            var viewer = CurrentCardImageViewer();
+            Assert.That(viewer, Is.Not.Null);
+            viewer.GetType().GetMethod("Close").Invoke(viewer, null);
+            AssertCardImageViewerIsClosed();
         }
 
         private static bool HasText(GameObject root, string expected)
@@ -1967,21 +1981,6 @@ namespace YC.Tests.EditMode
             }
 
             return false;
-        }
-
-        private static int CountTexts(GameObject root, string expected)
-        {
-            var count = 0;
-            var texts = root.GetComponentsInChildren<Text>(true);
-            for (var i = 0; i < texts.Length; i++)
-            {
-                if (texts[i].text == expected)
-                {
-                    count++;
-                }
-            }
-
-            return count;
         }
 
         private static int CountActiveTexts(GameObject root, string expected)

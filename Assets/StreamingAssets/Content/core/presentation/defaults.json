@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "effectTypes": {
+    "effect.facility.choose_build": {
+      "presentationScript": "lua/presentation/interaction.choose_build.lua"
+    },
+    "effect.resource.choose_amounts": {
+      "presentationScript": "lua/presentation/interaction.choose_resources.lua"
+    },
+    "effect.card.load_markers": {
+      "presentationScript": "lua/presentation/interaction.store_markers.lua"
+    },
+    "effect.flow.repeat": {
+      "presentationScript": "lua/presentation/interaction.repeat.lua"
+    }
+  },
+  "interactions": {},
+  "outcomes": {
+    "succeeded": {
+      "key": "core:effect.succeeded",
+      "arguments": []
+    },
+    "failed": {
+      "key": "core:effect.failed",
+      "arguments": []
+    },
+    "stopped": {
+      "key": "core:effect.stopped",
+      "arguments": []
+    }
+  }
+}

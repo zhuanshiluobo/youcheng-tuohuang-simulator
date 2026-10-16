@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-10-08T01:07:54.571744+08:00",
+  "project": "G:\\NoMadCity",
+  "inputs": [
+    "Assets",
+    "ProjectSettings/EditorBuildSettings.asset",
+    "游城拓荒/可用UI素材/清单/可用素材索引.json",
+    "游城拓荒/可用UI素材/清单/来源成员与去向.json"
+  ],
+  "historical_archive_accessed": false,
+  "serialized_files": 97,
+  "textures": 434,
+  "texture_references": 1946,
+  "sprite_texture_overrides": 83,
+  "classification_counts": {
+    "匹配可用库，仍须核对用途": 355,
+    "未匹配本库，不能据此判错": 63,
+    "仅匹配未选来源，须按用途复核": 16
+  },
+  "limitations": [
+    "引用包括模板、目录和状态数组，不等于实际可见实例。",
+    "未引用不等于缺项；备用尺寸、备用状态和动态加载须单独判断。",
+    "嵌套实例覆盖单独输出；可达链不自动代表当前屏幕可见。",
+    "不运行Unity、不读取历史素材、不更改界面资产、不覆盖人工审计结论。"
+  ]
+}

@@ -1,0 +1,719 @@
+{
+  "version": "1.0",
+  "alpha": "straight",
+  "colorSpace": "sRGB",
+  "assets": {
+    "region-A": {
+      "svg": "assets/framed/region-A-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/framed/region-A-64@0.5x.png",
+          "width": 32,
+          "height": 32,
+          "scale": 0.5,
+          "sha256": "99701930539008a76ca37c80991b5eb98ae05d97749c3e888f3e5f7934990ab1"
+        },
+        {
+          "path": "assets/framed/region-A-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "fcc8274cfbb0602f0da9651c14b9a231a4d9fd68969ef31f5f9fdb2de3e4bb7c"
+        },
+        {
+          "path": "assets/framed/region-A-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "bfe2adea3fc78bf411138822d520491c5a6bba64f0ef10dd55fd67233404d339"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "region-square",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        50,
+        78,
+        125
+      ],
+      "exactFaceBoundsXYWH": [
+        8,
+        8,
+        48,
+        48
+      ],
+      "region": "A",
+      "svgSHA256": "2fdf81fa37c7c627780ba2545639740117ee4d2161e0e0de9bba7a009695a3be"
+    },
+    "region-A-flat": {
+      "svg": "assets/flat/region-A-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/flat/region-A-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "3e44ccd4dd1dc22bdbb0ef5da730bcc0ccbfe2bfc438d1cf7c1c35c1bb278837"
+        },
+        {
+          "path": "assets/flat/region-A-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "fc9de9c0e59f89d5a222d5c4fbf55fc5dfe6b3ec1250266097957102303e8689"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "flat-region-color",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        50,
+        78,
+        125
+      ],
+      "region": "A",
+      "svgSHA256": "0da28a1c04ec411675097bfe47d5e00a71fe6e42a0df76df7bbd9d0e3775f0af"
+    },
+    "region-B": {
+      "svg": "assets/framed/region-B-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/framed/region-B-64@0.5x.png",
+          "width": 32,
+          "height": 32,
+          "scale": 0.5,
+          "sha256": "1bf513b8cadc2e3c10d7b5c5ca08e6cc007b8b9716351938c6a0a14ad76249cb"
+        },
+        {
+          "path": "assets/framed/region-B-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "550a922cbe28fe19c731e91ba817ef1057aa5839ee34076470787fc161ce3d42"
+        },
+        {
+          "path": "assets/framed/region-B-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "37bb5b7cf9ebf52844d2c891f0ea73e832f1eab113b689033270eec577f641f0"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "region-square",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        236,
+        122,
+        72
+      ],
+      "exactFaceBoundsXYWH": [
+        8,
+        8,
+        48,
+        48
+      ],
+      "region": "B",
+      "svgSHA256": "3b30ad893b66e232bb99aa929309df7016998e4afb6eca7478f5145e0d4c6ad5"
+    },
+    "region-B-flat": {
+      "svg": "assets/flat/region-B-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/flat/region-B-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "5bd2c312e3e9114b1d2395b8ff61e8801ec497ddb86aee48c9a3c17c4e36871f"
+        },
+        {
+          "path": "assets/flat/region-B-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "46b579bcdfcf442a0e23453cbcf1f04af9e2362e0e0512eebaf29b493a0413aa"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "flat-region-color",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        236,
+        122,
+        72
+      ],
+      "region": "B",
+      "svgSHA256": "3bd560e6b3157a36528301dfc948d7989eea50e724f757835f51cf514e2e15c8"
+    },
+    "region-C": {
+      "svg": "assets/framed/region-C-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/framed/region-C-64@0.5x.png",
+          "width": 32,
+          "height": 32,
+          "scale": 0.5,
+          "sha256": "d1a97cab0d3997fb7aa923d356b5f884fe27be7ed7bbb5f23851042cfef1bca6"
+        },
+        {
+          "path": "assets/framed/region-C-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "ee3108622d982aa308226bd680ee9d3935c6f2939c37cf50aea37658642adbcf"
+        },
+        {
+          "path": "assets/framed/region-C-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "901bf0a2a3506ed46b629ed1ae89696784bedbca72c954b17e7bd41fff5b0fac"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "region-square",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        135,
+        194,
+        176
+      ],
+      "exactFaceBoundsXYWH": [
+        8,
+        8,
+        48,
+        48
+      ],
+      "region": "C",
+      "svgSHA256": "2f4deba5b58c116f1279bd333279c318da2b32d8c0ac4cb7f995c2b3a63e3a96"
+    },
+    "region-C-flat": {
+      "svg": "assets/flat/region-C-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/flat/region-C-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "5d7d452f4c761b016658a105823b04540d9eec5976478d0c769433f3df649e09"
+        },
+        {
+          "path": "assets/flat/region-C-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "73c998e729e3c3b3bf4fb0c8b01dec0282f4d59595b46eb98504d155f35a6fdc"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "flat-region-color",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        135,
+        194,
+        176
+      ],
+      "region": "C",
+      "svgSHA256": "5560af81f915af2f74c0b19a8594f459dd8cbbe95cf712ed36dd69125bcb63ea"
+    },
+    "region-D": {
+      "svg": "assets/framed/region-D-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/framed/region-D-64@0.5x.png",
+          "width": 32,
+          "height": 32,
+          "scale": 0.5,
+          "sha256": "9d713882e0f0e8729e3723d65deb2308d7403ea9bd0ba78bc40c55e7321a537d"
+        },
+        {
+          "path": "assets/framed/region-D-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "594d2462d6ae5208389b90b6cc37c9f2870fb3d8950f13e52566723cec272535"
+        },
+        {
+          "path": "assets/framed/region-D-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "23df39ac8d3d838ce043fd33b8f106c23e1ebeaa796153de1bc6d16d261fac7a"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "region-square",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        172,
+        147,
+        213
+      ],
+      "exactFaceBoundsXYWH": [
+        8,
+        8,
+        48,
+        48
+      ],
+      "region": "D",
+      "svgSHA256": "7dbf65885673e7cee8064cc6b498a4ef86683bacec605d87ecf3468e4d58558d"
+    },
+    "region-D-flat": {
+      "svg": "assets/flat/region-D-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/flat/region-D-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "630fa6bd9425986847653863fcd8860d3e06e80d5b213853e36a3476154e1381"
+        },
+        {
+          "path": "assets/flat/region-D-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "a758e26ba12e33ed714ea0624f9bebdf4d4138bcd6cfe849ed061d7a152bcb8d"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "flat-region-color",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        172,
+        147,
+        213
+      ],
+      "region": "D",
+      "svgSHA256": "51b21bc996e17803c5c0c85eebf528292714e5175d09c7bff2717535134f5d0a"
+    },
+    "region-E": {
+      "svg": "assets/framed/region-E-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/framed/region-E-64@0.5x.png",
+          "width": 32,
+          "height": 32,
+          "scale": 0.5,
+          "sha256": "7287cdbf7bf4d8fa308958c337f13ed1152b351f28b771b433c08b0fbbe44cd1"
+        },
+        {
+          "path": "assets/framed/region-E-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "d460f17513a2363ef24c6f99049fdef1c8f089e5534bf3185d31ec080418451b"
+        },
+        {
+          "path": "assets/framed/region-E-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "3b890a084a9eabf1ffd572cf84ebfab12866ec2f9ad73651478039b8c5383fed"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "region-square",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        235,
+        169,
+        59
+      ],
+      "exactFaceBoundsXYWH": [
+        8,
+        8,
+        48,
+        48
+      ],
+      "region": "E",
+      "svgSHA256": "32f5c95d91e4e40cccbfc0c45f648b6787195b2a156f97a592a3717ce1496c46"
+    },
+    "region-E-flat": {
+      "svg": "assets/flat/region-E-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/flat/region-E-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "7ab202254db2e3f8889a271dbf3c5f4601f2868872458cfc2e9c8effbf0187be"
+        },
+        {
+          "path": "assets/flat/region-E-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "7a08c04438b63a2e0230ad4028994c44ce5223e276d7f43716e63c04d7a8aaef"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "flat-region-color",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        235,
+        169,
+        59
+      ],
+      "region": "E",
+      "svgSHA256": "fef2cdce82d348892de0c27e6684d6ab1fbf211947556c7526d1e1cc8281c259"
+    },
+    "region-F": {
+      "svg": "assets/framed/region-F-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/framed/region-F-64@0.5x.png",
+          "width": 32,
+          "height": 32,
+          "scale": 0.5,
+          "sha256": "4aac21972f37a91a38e68a2ed278eebacfb67e7ca76ab525bc09f6981bba2ef8"
+        },
+        {
+          "path": "assets/framed/region-F-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "bd0503207716b7f380d8c2003ba4e16daad8c2498e5827938b6f8410340fe734"
+        },
+        {
+          "path": "assets/framed/region-F-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "465c2c4261ff90c4113f649b38c975c35d705f5eadd1d240179896c9c74a4289"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "region-square",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        154,
+        45,
+        40
+      ],
+      "exactFaceBoundsXYWH": [
+        8,
+        8,
+        48,
+        48
+      ],
+      "region": "F",
+      "svgSHA256": "099fe7b9d6638fc1599a09741202b63c143697b9161d4e5e255582bf39c4c1c4"
+    },
+    "region-F-flat": {
+      "svg": "assets/flat/region-F-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/flat/region-F-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "19540e4430ff69ad2fa3878939832ca15797f10bddc222974f65e349269d942e"
+        },
+        {
+          "path": "assets/flat/region-F-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "554db36bab040a6c4524b5389b4e3940113af1233cf260c836e103ecea0fd94b"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "flat-region-color",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        154,
+        45,
+        40
+      ],
+      "region": "F",
+      "svgSHA256": "524efc79dad729526e9aaf703aff81660630ae8e75ded087bb0a14dc7906b7ac"
+    },
+    "region-G": {
+      "svg": "assets/framed/region-G-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/framed/region-G-64@0.5x.png",
+          "width": 32,
+          "height": 32,
+          "scale": 0.5,
+          "sha256": "41ffb140b2682f2425e9e4067168106a743171e594862d44ebbe622b74295a9d"
+        },
+        {
+          "path": "assets/framed/region-G-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "e2f436a7ae415ce10db98d5165bbb7f8deeb2e1508fdefed5060f3226129b25d"
+        },
+        {
+          "path": "assets/framed/region-G-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "dad191d99e34244f8fff50fa868b60d04f3822854439d98d9019e3566bccfc1a"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "region-square",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        67,
+        158,
+        114
+      ],
+      "exactFaceBoundsXYWH": [
+        8,
+        8,
+        48,
+        48
+      ],
+      "region": "G",
+      "svgSHA256": "39a7bc9a6f16d6eda2ee70f9bc704f9a3d70c1beb8baedd6a9fa6a394a756edc"
+    },
+    "region-G-flat": {
+      "svg": "assets/flat/region-G-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/flat/region-G-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "61383229314713bb6481ec2b91d8f083e98a29917b989dab8b2a36df2283da48"
+        },
+        {
+          "path": "assets/flat/region-G-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "04d9d6d7c4e8b7f8355b52ab9ffeb2f6a0413445b3819ceb2de5769745373776"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "flat-region-color",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        67,
+        158,
+        114
+      ],
+      "region": "G",
+      "svgSHA256": "7049aeae9dc0f6144fa6f276c2d0dba80e9c2e9b31264adc3646b798b4b22b99"
+    },
+    "region-R": {
+      "svg": "assets/framed/region-R-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/framed/region-R-64@0.5x.png",
+          "width": 32,
+          "height": 32,
+          "scale": 0.5,
+          "sha256": "e041fdc876b6ce02a6ff878450a9e49c7a06db722e0b8a1de7da03015be3ebc7"
+        },
+        {
+          "path": "assets/framed/region-R-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "e93e71bac7b7f5e73aa43cecaa962990c5abfb09b0709865ec663d5dedb681a5"
+        },
+        {
+          "path": "assets/framed/region-R-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "4c5a70bf9cec068e8749d0ba538ee63d51f8f1837e13e56db6f68da7f9b74cd6"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "region-square",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        209,
+        224,
+        231
+      ],
+      "exactFaceBoundsXYWH": [
+        8,
+        8,
+        48,
+        48
+      ],
+      "region": "R",
+      "svgSHA256": "57d6e052147afd117694a64c86dd42f9b1b8d23609c0ae6792d85020e9ce4dc7"
+    },
+    "region-R-flat": {
+      "svg": "assets/flat/region-R-64.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/flat/region-R-64.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "60568f6d95311f5ed61a2d4e4e3b5543618c99e8ba739d941d57951ca48e22ba"
+        },
+        {
+          "path": "assets/flat/region-R-64@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "f2ef5c1157d871e13aa8656607b5799e4dd5e5529ad95789038a90bc300de8dd"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "flat-region-color",
+      "textBakedIn": false,
+      "exactFaceRGB": [
+        209,
+        224,
+        231
+      ],
+      "region": "R",
+      "svgSHA256": "30cddd467c3d6d65b3a423e854ee35a19fa41b47c574e6254f60f5382e70429b"
+    }
+  }
+}

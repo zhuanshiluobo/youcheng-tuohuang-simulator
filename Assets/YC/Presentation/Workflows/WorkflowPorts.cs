@@ -6,6 +6,7 @@ using YC.Domain.Commands;
 using YC.Domain.Facilities;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Travel;
 
 namespace YC.Presentation.Workflows
 {
@@ -153,6 +154,7 @@ namespace YC.Presentation.Workflows
         }
 
         public bool IsSupplySource { get; private set; }
+        public PreparedActionPaymentView PaymentPreparation { get; internal set; }
         public BuildFacilityDraftPhase Phase { get; private set; }
         public IReadOnlyList<BuildFacilityOptionQueryResult> Options { get; private set; }
         public BuildFacilityOptionQueryResult SelectedOption { get; private set; }
@@ -472,6 +474,18 @@ namespace YC.Presentation.Workflows
         CollectionBankPaymentGhost,
         InitialPlacement,
         CollectionPaymentSelected
+    }
+
+    public sealed class RoutePaymentOptionsViewModel
+    {
+        public string RouteId { get; set; }
+        public int GoldVoucherAmount { get; set; }
+        public IReadOnlyList<RouteRecipient> Recipients { get; set; }
+        public string SelectedSubjectKey { get; set; }
+        public Func<bool> IsCurrent { get; set; }
+        public Action<string> SelectRecipient { get; set; }
+        public Action Cancel { get; set; }
+        public Action Remove { get; set; }
     }
 
     public enum WorkflowHighlightState { Available, Selected, PendingConfirmation }

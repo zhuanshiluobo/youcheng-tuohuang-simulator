@@ -24,18 +24,26 @@ namespace YC.Domain.Influence
         public InfluenceOperationResult Validate(GameState state, int playerId, string slotId, bool requireAvailableSupply)
         {
             if (state == null) throw new ArgumentNullException(nameof(state));
-            return ValidateCore(state, playerId, slotId, requireAvailableSupply);
+            return ValidateCore(state, playerId, slotId, requireAvailableSupply, null);
         }
+
+        internal InfluencePlacementQuerySnapshot CreateQuerySnapshot(GameState state, int playerId) =>
+            new InfluencePlacementQuerySnapshot(state, playerId, mapQuery, roadQuery);
+
+        internal InfluenceOperationResult Validate(GameState state, int playerId, string slotId,
+            bool requireAvailableSupply, InfluencePlacementQuerySnapshot snapshot) =>
+            ValidateCore(state, playerId, slotId, requireAvailableSupply, snapshot);
 
         public bool CanPlace(GameState state, int playerId, string slotId)
         {
             return Validate(state, playerId, slotId, true).Succeeded;
         }
 
-        private InfluenceOperationResult ValidateCore(GameState state, int playerId, string slotId, bool requireAvailableSupply)
+        private InfluenceOperationResult ValidateCore(GameState state, int playerId, string slotId,
+            bool requireAvailableSupply, InfluencePlacementQuerySnapshot snapshot)
         {
-            var player = state.FindPlayer(playerId);
-            if (player == null)
+            var player = snapshot == null ? state.FindPlayer(playerId) : null;
+            if (snapshot == null ? player == null : !snapshot.PlayerExists)
             {
                 return InfluenceOperationResult.Failure(
                     InfluenceFailureCode.InvalidPlayer,
@@ -53,7 +61,7 @@ namespace YC.Domain.Influence
                     playerId, slotId, false);
             }
 
-            if (FindInfluenceAtSlot(state, slot.SlotId) != null)
+            if (snapshot == null ? FindInfluenceAtSlot(state, slot.SlotId) != null : snapshot.IsOccupied(slot.SlotId))
             {
                 return InfluenceOperationResult.Failure(
                     InfluenceFailureCode.OccupiedSlot,
@@ -61,7 +69,7 @@ namespace YC.Domain.Influence
                     playerId, slot.SlotId, false);
             }
 
-            if (requireAvailableSupply && player.InfluenceSupply <= 0)
+            if (requireAvailableSupply && (snapshot == null ? player.InfluenceSupply : snapshot.InfluenceSupply) <= 0)
             {
                 return InfluenceOperationResult.Failure(
                     InfluenceFailureCode.InsufficientSupply,
@@ -71,7 +79,7 @@ namespace YC.Domain.Influence
 
             if (slot.Kind == InfluenceSlotKind.Location)
             {
-                if (!HasResourceToken(state, slot.LocationId))
+                if (!(snapshot == null ? HasResourceToken(state, slot.LocationId) : snapshot.HasResourceToken(slot.LocationId)))
                 {
                     return InfluenceOperationResult.Failure(
                         InfluenceFailureCode.ResourceTokenRequired,
@@ -79,7 +87,7 @@ namespace YC.Domain.Influence
                         playerId, slot.SlotId, false);
                 }
 
-                if (HasOpponentCity(state, playerId, slot.LocationId))
+                if (snapshot == null ? HasOpponentCity(state, playerId, slot.LocationId) : snapshot.HasOpponentCity(slot.LocationId))
                 {
                     return InfluenceOperationResult.Failure(
                         InfluenceFailureCode.OpponentCityPresent,
@@ -87,7 +95,7 @@ namespace YC.Domain.Influence
                         playerId, slot.SlotId, false);
                 }
             }
-            else if (roadQuery.IsRouteCoveredByRoad(state, slot.RouteId))
+            else if (snapshot == null ? roadQuery.IsRouteCoveredByRoad(state, slot.RouteId) : snapshot.IsRouteCovered(slot.RouteId))
             {
                 return InfluenceOperationResult.Failure(
                     InfluenceFailureCode.RouteCoveredByRoad,
@@ -100,11 +108,12 @@ namespace YC.Domain.Influence
 
         private static InfluencePlacement FindInfluenceAtSlot(GameState state, string slotId)
         {
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            var influences = state.Map.Influences.ToArray();
+            for (var i = 0; i < influences.Length; i++)
             {
-                if (state.Map.Influences[i].SlotId == slotId)
+                if (influences[i].SlotId == slotId)
                 {
-                    return state.Map.Influences[i];
+                    return influences[i];
                 }
             }
 
@@ -113,9 +122,10 @@ namespace YC.Domain.Influence
 
         private static bool HasResourceToken(GameState state, string locationId)
         {
-            for (var i = 0; i < state.Map.ResourceTokens.Count; i++)
+            var tokens = state.Map.ResourceTokens.ToArray();
+            for (var i = 0; i < tokens.Length; i++)
             {
-                if (state.Map.ResourceTokens[i].LocationId == locationId)
+                if (tokens[i].LocationId == locationId)
                 {
                     return true;
                 }

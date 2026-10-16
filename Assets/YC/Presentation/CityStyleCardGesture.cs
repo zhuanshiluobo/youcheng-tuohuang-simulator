@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 
 namespace YC.Presentation
 {
-    /// <summary>总览长按、右键或双击查看；放大卡面点按返回，拖动不触发点击。</summary>
+    /// <summary>总览长按或右键查看；放大卡面点按返回，拖动不触发点击。</summary>
     public sealed class CityStyleCardGesture : MonoBehaviour,
         IPointerDownHandler, IPointerUpHandler, IPointerClickHandler,
         IPointerExitHandler, IBeginDragHandler
@@ -62,7 +62,6 @@ namespace YC.Presentation
             else if (data.button == PointerEventData.InputButton.Left)
             {
                 if (back != null) back();
-                else if (data.clickCount >= 2) open?.Invoke();
             }
         }
 

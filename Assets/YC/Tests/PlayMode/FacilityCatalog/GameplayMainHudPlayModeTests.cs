@@ -573,6 +573,10 @@ namespace YC.Tests.PlayMode
                     Assert.That(File.Exists(screenshot) && File.GetLastWriteTimeUtc(screenshot) >= requestedAt &&
                         new FileInfo(screenshot).Length > 0, Is.True, "本轮正式盖牌截图未完成：" + screenshot);
                 }
+                // 完成跨帧刷新后重新取实际候选，不能继续点击已回收的旧实例。
+                candidate = Child(page.transform, "Character Cover Card 0");
+                card = candidate.GetComponent(Type.GetType("YC.Presentation.FacilityEffectCardView, Assembly-CSharp", true));
+                previewCard = (Button)Property(card, "Button");
                 Assert.That(FirstHit((RectTransform)previewCard.transform), Is.SameAs(previewCard.gameObject),
                     scene + " 卡面查看手势必须命中实际卡牌。");
                 OpenCardPreview(previewCard);
@@ -842,7 +846,7 @@ namespace YC.Tests.PlayMode
                 Transform last = original;
                 // 只扩充运行中的 UI 内容验证溢出，不伪造业务候选或写回资产。
                 for (var i = 0; i < 12; i++)
-                    last = UnityEngine.Object.Instantiate(original, group, false);
+                { last = UnityEngine.Object.Instantiate(original, group, false); last.gameObject.SetActive(true); }
                 yield return null;
                 yield return null;
                 Canvas.ForceUpdateCanvases();

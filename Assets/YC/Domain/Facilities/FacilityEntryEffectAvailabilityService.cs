@@ -217,40 +217,8 @@ namespace YC.Domain.Facilities
         public bool HasLegalFacilityExplore(GameState state, int playerId)
         {
             ValidateState(state);
-            var paymentRecipients = new Dictionary<string, int>();
-            for (var locationIndex = 0; locationIndex < mapQuery.Map.Locations.Count; locationIndex++)
-            {
-                var targetLocationId = mapQuery.Map.Locations[locationIndex].LocationId;
-                IReadOnlyList<MapPath> paths;
-                try
-                {
-                    paths = explorationService.FindDefaultPathChoices(state, playerId, targetLocationId);
-                }
-                catch (ArgumentException)
-                {
-                    continue;
-                }
-
-                for (var pathIndex = 0; pathIndex < paths.Count; pathIndex++)
-                {
-                    if (explorationService.CanExplore(
-                            state,
-                            playerId,
-                            targetLocationId,
-                            paths[pathIndex],
-                            -1,
-                            string.Empty,
-                            paymentRecipients,
-                            null,
-                            false,
-                            true).IsValid)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            // 只询问是否存在合资格目标；玩家随后手选航道，不预枚举默认路径。
+            return explorationService.GetSelectableLocationIds(state, playerId, true).Count > 0;
         }
 
         private List<string> EnumerateInfluenceSlots()

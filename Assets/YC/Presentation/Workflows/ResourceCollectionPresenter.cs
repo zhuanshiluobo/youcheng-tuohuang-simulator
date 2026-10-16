@@ -25,6 +25,7 @@ namespace YC.Presentation.Workflows
         private bool allLocationsCovered;
         private string editingRouteId = string.Empty;
         private string draftScope = string.Empty;
+        public Func<bool> HasRouteSelectionRequest { private get; set; }
         private string CurrentDraftScope => context.CurrentState == null ? string.Empty :
             context.CurrentState.Round + ":" + context.LocalPlayerId + ":" + context.CurrentState.FindPlayer(context.LocalPlayerId)?.CityLocationId;
         public bool CanResumeDraft => IsActive && draftScope == CurrentDraftScope;
@@ -91,6 +92,7 @@ namespace YC.Presentation.Workflows
                 var state = context.CurrentState;
                 var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
                 return state != null &&
+                       !(HasRouteSelectionRequest?.Invoke() ?? false) &&
                        state.Phase == GamePhase.ResourceCollection &&
                        player != null &&
                        !player.HasCollectedResourcesThisRound;
@@ -119,6 +121,14 @@ namespace YC.Presentation.Workflows
 
         public void Begin()
         {
+            if (HasRouteSelectionRequest?.Invoke() == true)
+            {
+                selection.Clear();
+                paymentOptionsByRouteId.Clear();
+                selectionQuery = null;
+                draftScope = string.Empty;
+                return;
+            }
             draftScope = CurrentDraftScope;
             allLocationsCovered = false;
             editingRouteId = string.Empty;
@@ -327,13 +337,14 @@ namespace YC.Presentation.Workflows
                         CommandGateway.BuildMissingResultPrompt("\u91c7\u96c6\u547d\u4ee4"),
                     OnAppliedLocally = result =>
                     {
+                        if (inFlightCommandId == command.CommandId) inFlightCommandId = string.Empty;
                         view.RefreshFromState();
                         view.ShowPrompt(BuildResultPrompt(result));
                     }
                 });
             if (outcome.Kind != SubmitOutcomeKind.WaitingForHost)
             {
-                inFlightCommandId = string.Empty;
+                if (inFlightCommandId == command.CommandId) inFlightCommandId = string.Empty;
                 if (outcome.Kind != SubmitOutcomeKind.AppliedLocally) RefreshPresentation();
             }
         }

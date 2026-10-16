@@ -6,6 +6,7 @@ namespace YC.Application.Sessions
     [Serializable]
     public sealed class InitialGameStateDto
     {
+        public int ProtocolVersion = 2;
         public int NextConfirmedSequence = 1;
         public GameState State = new GameState();
     }

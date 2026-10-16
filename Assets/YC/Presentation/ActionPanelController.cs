@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using YC.Presentation.Workflows;
@@ -8,10 +9,15 @@ namespace YC.Presentation
     internal sealed class ActionPanelController
     {
         private readonly ActionPanelView view;
+        private readonly Action<string> useCharacter;
+        private readonly Dictionary<string, UiQuickActionRow> characterRows = new Dictionary<string, UiQuickActionRow>(StringComparer.Ordinal);
+        private readonly Dictionary<string, bool> characterAvailability = new Dictionary<string, bool>(StringComparer.Ordinal);
+        public Func<bool> CanSubmitCharacter { private get; set; }
+        public Func<bool> CanBeginAction { private get; set; }
         private ActionPanelController(
             ActionPanelView view,
             CardVisualCatalog configuredCardVisualCatalog,
-            Action onUseCharacter,
+            Action<string> onUseCharacter,
             Action onDeclareCityStyle,
             Action onDeploy,
             Action onDispatch,
@@ -22,6 +28,7 @@ namespace YC.Presentation
             Action onSpecial)
         {
             this.view = view;
+            useCharacter = onUseCharacter;
             YC.PlayerJourney.PlayerAutomationId.Attach(view.PanelObject, "character.cover_slot");
             YC.PlayerJourney.PlayerAutomationId.Attach(view.DeployButton.gameObject, "action.deploy");
             YC.PlayerJourney.PlayerAutomationId.Attach(view.DispatchButton.gameObject, "action.dispatch");
@@ -32,17 +39,17 @@ namespace YC.Presentation
             YC.PlayerJourney.PlayerAutomationId.Attach(view.EndRoundButton.gameObject, "action.end");
             YC.PlayerJourney.PlayerAutomationId.Attach(view.UseCharacterButton.gameObject, "action.character");
             YC.PlayerJourney.PlayerAutomationId.Attach(view.PhaseText.gameObject, "round.current");
-            BindButton(view.UseCharacterButton, onUseCharacter);
+            view.UseCharacterButton.onClick.RemoveAllListeners();
             BindButton(view.DeclareCityStyleButton, onDeclareCityStyle);
-            BindButton(view.DeployButton, onDeploy);
-            BindButton(view.DispatchButton, onDispatch);
-            BindButton(view.ExploreButton, onExplore);
-            BindButton(view.MoveCityButton, onMoveCity);
+            BindButton(view.DeployButton, GuardAction(onDeploy));
+            BindButton(view.DispatchButton, GuardAction(onDispatch));
+            BindButton(view.ExploreButton, GuardAction(onExplore));
+            BindButton(view.MoveCityButton, GuardAction(onMoveCity));
             if (view.BuildButton != null) BindButton(view.BuildButton, onBuild);
             BindButton(view.EndRoundButton, onEndRound);
             if (view.SpecialButton != null)
             {
-                BindButton(view.SpecialButton, onSpecial);
+                BindButton(view.SpecialButton, GuardAction(onSpecial));
                 YC.PlayerJourney.PlayerAutomationId.Attach(view.SpecialButton.gameObject, "action.special");
             }
             YC.PlayerJourney.PlayerAutomationId.Attach(view.DeclareCityStyleButton.gameObject, "action.declare");
@@ -53,7 +60,7 @@ namespace YC.Presentation
         public static ActionPanelController Bind(
             ActionPanelView view,
             CardVisualCatalog cardVisualCatalog,
-            Action onUseCharacter,
+            Action<string> onUseCharacter,
             Action onDeclareCityStyle,
             Action onDeploy,
             Action onDispatch,
@@ -113,7 +120,12 @@ namespace YC.Presentation
             bool canEndRound,
             bool canSpecial = false)
         {
+            bool canBegin = CanBeginAction?.Invoke() != false;
+            canUseCharacter &= canBegin;
+            canDeploy &= canBegin; canDispatch &= canBegin; canExplore &= canBegin;
+            canMoveCity &= canBegin; canSpecial &= canBegin;
             SetButtonInteractable(view.UseCharacterButton, canUseCharacter);
+            RefreshCharacterRowsPermission();
             // 宣告入口是覆盖行动区的透明点击层，不能套用有色按钮底板。
             view.DeclareCityStyleButton.interactable = canDeclareCityStyle;
             SetButtonInteractable(view.DeployButton, canDeploy);
@@ -144,7 +156,7 @@ namespace YC.Presentation
             SetRemainingInfluence(viewModel.RemainingInfluence);
             SetButtonStates(
                 viewModel.CanUseCharacter,
-                viewModel.CanDeclareCityStyle,
+                viewModel.CanInspectCityStyles,
                 viewModel.CanDeploy,
                 viewModel.CanDispatch,
                 viewModel.CanExplore,
@@ -158,14 +170,45 @@ namespace YC.Presentation
 
         public void RenderCharacterQuickAction(CharacterCardPanelViewModel model)
         {
-            var name = model == null || string.IsNullOrEmpty(model.CoveredCardId) ? string.Empty :
-                CharacterCardPanelPresenter.ResolveCardDisplayName(model.CoveredCardId);
-            if (model != null && model.HasPendingCharacterChoice && !string.IsNullOrEmpty(model.PendingCardDisplayName))
-                name = model.PendingCardDisplayName;
-            view.UseCharacterButton.GetComponent<UiQuickActionRow>()?.SetCharacterName(name);
+            var template = view.UseCharacterButton.GetComponent<UiQuickActionRow>();
+            if (template == null) throw new InvalidOperationException("既有角色快捷行缺少UiQuickActionRow。");
+            template.gameObject.SetActive(false);
+            var present = new HashSet<string>(StringComparer.Ordinal);
+            if (model?.CoveredCards != null)
+            {
+                foreach (var card in model.CoveredCards)
+                {
+                    var id = card.CardId;
+                    if (string.IsNullOrEmpty(id) || !present.Add(id)) continue;
+                    if (!characterRows.TryGetValue(id, out var row))
+                    {
+                        row = UnityEngine.Object.Instantiate(template, template.transform.parent, false);
+                        characterRows.Add(id, row);
+                        row.Bind(string.Empty, false, () => { if (CanBeginAction?.Invoke() != false && CanSubmitCharacter?.Invoke() != false) useCharacter?.Invoke(id); });
+                        YC.PlayerJourney.PlayerAutomationId.Attach(row.gameObject, "action.character." + id);
+                    }
+                    row.SetCharacterName(card.DisplayName);
+                    characterAvailability[id] = card.CanUse;
+                    row.gameObject.SetActive(true);
+                    row.transform.SetSiblingIndex(template.transform.GetSiblingIndex() + present.Count);
+                }
+            }
+            foreach (var id in new List<string>(characterRows.Keys))
+                if (!present.Contains(id))
+                { EnterpriseBoardItemView.Retire(characterRows[id].gameObject); characterRows.Remove(id); characterAvailability.Remove(id); }
+            RefreshCharacterRowsPermission();
+        }
+
+        private void RefreshCharacterRowsPermission()
+        {
+            bool allowed = CanBeginAction?.Invoke() != false && CanSubmitCharacter?.Invoke() != false;
+            foreach (var row in characterRows) row.Value.SetAvailable(allowed && characterAvailability[row.Key]);
         }
 
         public void ShowMainFace() => view.MainFaceObject.SetActive(true);
+
+        private Action GuardAction(Action action) => action == null ? null : (Action)(() =>
+        { if (CanBeginAction?.Invoke() != false) action(); });
 
         private static void BindButton(Button button, Action action)
         {

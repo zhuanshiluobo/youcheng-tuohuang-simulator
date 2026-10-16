@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Globalization;
+using YC.Application.Interactions;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
@@ -47,7 +49,7 @@ namespace YC.Application.Gameplay
                 cardId = command.TargetId;
             }
 
-            if (TryHandleUnifiedCover(state, command.PlayerId, cardId, out var unifiedResult))
+            if (TryHandleUnifiedCover(state, command, cardId, out var unifiedResult))
             {
                 return unifiedResult;
             }
@@ -68,16 +70,33 @@ namespace YC.Application.Gameplay
 
         private bool TryHandleUnifiedCover(
             GameState state,
-            int playerId,
+            GameCommand command,
             string cardId,
             out CommandResult result)
         {
             result = null;
-            if (effectRegistry == null || state == null || state.EffectRuntime == null ||
+            int playerId = command.PlayerId;
+            if (state == null || state.EffectRuntime == null ||
                 state.EffectRuntime.MainNodes == null ||
                 (string.IsNullOrEmpty(state.EffectRuntime.ActiveMainNodeId) &&
                  state.Phase != GamePhase.CharacterCover))
             {
+                return false;
+            }
+
+            if (effectRegistry == null)
+            {
+                var active = state.EffectRuntime.MainNodes.Find(node =>
+                    node != null && node.NodeId == state.EffectRuntime.ActiveMainNodeId);
+                var activeExecution = active == null ? null : state.EffectRuntime.EffectNodes.Find(node =>
+                    node != null && node.EffectId == active.ExecutionEffectId);
+                if (ItemTransferEffectExecutor.Number(activeExecution?.NormalizedArguments,
+                    "coverTaskSchedulingVersion") == 1)
+                {
+                    result = CommandResult.Invalid(ValidationResult.Failure(
+                        CommandErrorCode.PendingChoiceRequired, "请通过当前本人盖放请求提交。"));
+                    return true;
+                }
                 return false;
             }
 
@@ -105,13 +124,45 @@ namespace YC.Application.Gameplay
                 return false;
             }
 
+            var execution = state.EffectRuntime.EffectNodes.Find(node =>
+                node != null && node.EffectId == mainNode.ExecutionEffectId);
+            bool parallelCover = ItemTransferEffectExecutor.Number(
+                execution?.NormalizedArguments, "coverTaskSchedulingVersion") == 1;
             var request = state.EffectRuntime.InteractionRequests.Find(candidate =>
                 candidate != null && candidate.Status == "open" &&
                 candidate.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId &&
-                candidate.AnsweringPlayerId == playerId);
+                candidate.AnsweringPlayerId == playerId &&
+                (!parallelCover || state.EffectRuntime.EffectNodes.Exists(owner =>
+                    owner != null && owner.EffectId == candidate.OwnerEffectId &&
+                    owner.ParentEffectId == mainNode.ExecutionEffectId &&
+                    owner.EffectTypeId == CharacterCoverEffectExecutor.EffectTypeId)));
             if (request == null)
             {
+                if (parallelCover)
+                {
+                    result = CommandResult.Invalid(ValidationResult.Failure(
+                        CommandErrorCode.PendingChoiceRequired, "没有本人可回答的正常盖放请求。"));
+                    return true;
+                }
                 return false;
+            }
+
+            int expectedRevision = request.StateRevision;
+            string revision = GetParameter(command, AnswerInteractionCommandHandler.ExpectedRevisionParameter);
+            string interactionId = GetParameter(command, AnswerInteractionCommandHandler.InteractionIdParameter);
+            if (parallelCover && interactionId != request.GetStableInteractionId())
+            {
+                result = CommandResult.Invalid(ValidationResult.Failure(
+                    CommandErrorCode.InvalidTarget, "盖放命令缺少当前本人请求身份。"));
+                return true;
+            }
+            if ((parallelCover || !string.IsNullOrEmpty(revision)) &&
+                (!int.TryParse(revision, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                    out expectedRevision) || expectedRevision < 0))
+            {
+                result = CommandResult.Invalid(ValidationResult.Failure(
+                    CommandErrorCode.InvalidTarget, "盖放命令缺少有效的 expectedRevision。"));
+                return true;
             }
 
             if (string.IsNullOrEmpty(cardId))
@@ -127,12 +178,13 @@ namespace YC.Application.Gameplay
             if (!executor.TrySubmitInteraction(
                     request.InteractionId,
                     playerId,
-                    request.StateRevision,
+                    expectedRevision,
                     NormalizedValue.CreateStableReference("candidate", cardId),
-                    out diagnostic))
+                    out diagnostic,
+                    out var errorCode))
             {
                 result = CommandResult.Invalid(ValidationResult.Failure(
-                    CommandErrorCode.InvalidTarget,
+                    errorCode,
                     diagnostic));
                 return true;
             }

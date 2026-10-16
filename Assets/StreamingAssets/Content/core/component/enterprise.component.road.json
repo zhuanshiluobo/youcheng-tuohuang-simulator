@@ -1,0 +1,19 @@
+{
+  "definitionId": "enterprise.component.road",
+  "contentType": "component",
+  "version": "1.0.0",
+  "displayName": "公路",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/enterprise_road.jpg",
+  "artworkSpriteId": "enterprise.component.road.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.road_token",
+  "cardZones": [],
+  "abilities": [],
+  "data": {
+    "instanceTypeId": "core.road_token",
+    "quantityPolicy": "infinite"
+  }
+}

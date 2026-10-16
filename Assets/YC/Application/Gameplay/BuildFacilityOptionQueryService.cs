@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.Commands;
+using YC.Domain.Items;
 using YC.Domain.Facilities;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -59,9 +60,11 @@ namespace YC.Application.Gameplay
             List<BuildFacilitySlotOptionResult> slotOptions,
             BuildFacilityPaymentOptionResult resourcesPayment,
             BuildFacilityPaymentOptionResult goldPayment,
-            ResourceSet effectiveResourceCost)
+            ResourceSet effectiveResourceCost, string definitionId = "", string sourceZoneId = "", string carrierItemId = "")
         {
             FacilityId = facilityId ?? string.Empty;
+            DefinitionId = definitionId.Length == 0 ? FacilityId : definitionId;
+            SourceZoneId = sourceZoneId; CarrierItemId = carrierItemId;
             Validation = validation ?? throw new ArgumentNullException(nameof(validation));
             SlotOptions = (slotOptions ?? new List<BuildFacilitySlotOptionResult>()).AsReadOnly();
             ResourcesPayment = resourcesPayment ?? throw new ArgumentNullException(nameof(resourcesPayment));
@@ -75,6 +78,9 @@ namespace YC.Application.Gameplay
         }
 
         public string FacilityId { get; private set; }
+        public string DefinitionId { get; }
+        public string SourceZoneId { get; }
+        public string CarrierItemId { get; }
         public ValidationResult Validation { get; private set; }
         public IReadOnlyList<BuildFacilitySlotOptionResult> SlotOptions { get; private set; }
         public BuildFacilityPaymentOptionResult ResourcesPayment { get; private set; }
@@ -96,6 +102,7 @@ namespace YC.Application.Gameplay
     public sealed class BuildFacilityOptionQueryService
     {
         private readonly BuildFacilityService buildFacilityService;
+        private readonly FacilityBuildCandidateQuery candidates;
 
         public BuildFacilityOptionQueryService()
             : this(new BuildFacilityService())
@@ -103,7 +110,11 @@ namespace YC.Application.Gameplay
         }
 
         public BuildFacilityOptionQueryService(BuildFacilityService buildFacilityService)
+            : this(buildFacilityService, new FacilityBuildCandidateQuery()) { }
+
+        public BuildFacilityOptionQueryService(BuildFacilityService buildFacilityService, FacilityBuildCandidateQuery candidates)
         {
+            this.candidates = candidates ?? throw new ArgumentNullException(nameof(candidates));
             this.buildFacilityService = buildFacilityService ?? throw new ArgumentNullException(nameof(buildFacilityService));
         }
 
@@ -139,15 +150,23 @@ namespace YC.Application.Gameplay
                 throw new ArgumentNullException(nameof(state));
             }
 
-            var facilityValidation = buildFacilityService.ValidateFacility(state, playerId, facilityId);
+            return buildFacilityService.WithReadOnlyQuery(state, playerId, null,
+                query => Query(state, playerId, facilityId, requireMainAction, query));
+        }
+
+        private BuildFacilityOptionQueryResult Query(
+            GameState state, int playerId, string facilityId, bool requireMainAction, BuildFacilityService.ReadOnlyQuery query, FacilityBuildCandidate source = null)
+        {
+            var facilityValidation = query.ValidateFacility(facilityId);
+            if (source != null)
+            {
+                var item = state.ItemZones.Items.Find(value => value.ItemId == source.ItemId);
+                if (item?.ZoneId != source.SourceZoneId || item.DefinitionId != source.DefinitionId)
+                    facilityValidation = ValidationResult.Failure(CommandErrorCode.InvalidTarget, "设施来源已变化，请重新选择。");
+            }
             if (requireMainAction)
             {
-                var actionValidation = MainActionCommandGuard.Validate(state, new GameCommand
-                {
-                    Kind = GameCommandKind.BuildFacility,
-                    PlayerId = playerId,
-                    TargetId = facilityId ?? string.Empty
-                });
+                var actionValidation = MainActionCommandGuard.ValidateBuildQuote(state, playerId, facilityId ?? string.Empty);
                 if (!actionValidation.IsValid)
                 {
                     facilityValidation = actionValidation;
@@ -159,30 +178,25 @@ namespace YC.Application.Gameplay
             for (var slotIndex = 0; slotIndex < BuildFacilityService.CityBoardSlotCount; slotIndex++)
             {
                 var validation = facilityValidation.IsValid
-                    ? buildFacilityService.ValidateCityBoardSlot(state, playerId, facilityId, slotIndex)
+                    ? query.ValidateCityBoardSlot(facilityId, slotIndex)
                     : facilityValidation;
                 slotOptions.Add(new BuildFacilitySlotOptionResult(slotIndex, validation));
                 hasLegalSlot |= validation.IsValid;
             }
 
             var resourcesValidation = facilityValidation.IsValid
-                ? buildFacilityService.ValidatePaymentMode(
-                    state,
-                    playerId,
+                ? query.ValidatePaymentMode(
                     facilityId,
                     BuildFacilityService.PaymentModeResources)
                 : facilityValidation;
             var goldValidation = facilityValidation.IsValid
-                ? buildFacilityService.ValidatePaymentMode(
-                    state,
-                    playerId,
+                ? query.ValidatePaymentMode(
                     facilityId,
                     BuildFacilityService.PaymentModeGold)
                 : facilityValidation;
 
             var overallValidation = ResolveOverallValidation(
-                state,
-                playerId,
+                query,
                 facilityId,
                 facilityValidation,
                 hasLegalSlot,
@@ -194,7 +208,10 @@ namespace YC.Application.Gameplay
                 slotOptions,
                 new BuildFacilityPaymentOptionResult(BuildFacilityService.PaymentModeResources, resourcesValidation),
                 new BuildFacilityPaymentOptionResult(BuildFacilityService.PaymentModeGold, goldValidation),
-                buildFacilityService.GetEffectiveResourceCost(state, playerId, facilityId));
+                query.GetEffectiveResourceCost(facilityId),
+                source?.DefinitionId ?? FacilityCardDatabase.Get(state, facilityId)?.FacilityId ?? facilityId,
+                source?.SourceZoneId ?? state.ItemZones.Items.Find(item => item.ItemId == facilityId)?.ZoneId ?? "",
+                source?.CarrierItemId ?? state.ItemZones.Zones.Find(zone => zone.ZoneId == state.ItemZones.Items.Find(item => item.ItemId == facilityId)?.ZoneId && zone.ParentKind == ZoneParentKind.Item)?.ParentId ?? "");
         }
 
         public IReadOnlyList<BuildFacilityOptionQueryResult> Query(GameState state, int playerId)
@@ -204,18 +221,36 @@ namespace YC.Application.Gameplay
                 throw new ArgumentNullException(nameof(state));
             }
 
-            var options = new List<BuildFacilityOptionQueryResult>(state.Decks.FacilitySupply.Count);
-            for (var i = 0; i < state.Decks.FacilitySupply.Count; i++)
+            if (ItemZoneLegacyProjection.IsActive(state)) return Query(state, playerId, QueryCandidates(state, playerId));
+            var supply = state.Decks.FacilitySupply.ToArray();
+            return buildFacilityService.WithReadOnlyQuery<IReadOnlyList<BuildFacilityOptionQueryResult>>(state, playerId, supply, query =>
             {
-                options.Add(Query(state, playerId, state.Decks.FacilitySupply[i]));
-            }
+                var options = new List<BuildFacilityOptionQueryResult>(supply.Length);
+                for (var i = 0; i < supply.Length; i++)
+                {
+                    options.Add(Query(state, playerId, supply[i], true, query));
+                }
+                return options.AsReadOnly();
+            });
+        }
 
-            return options.AsReadOnly();
+        public FacilityBuildCandidateSnapshot QueryCandidates(GameState state, int playerId, int stateRevision = 0)
+            => candidates.Resolve(state, playerId, stateRevision: state.EffectRuntime?.StateRevision ?? stateRevision);
+
+        // 来源快照由打开/实际来源变化刷新；费用与槽位可反复查询，不重复调用候选 Lua。
+        public IReadOnlyList<BuildFacilityOptionQueryResult> Query(GameState state, int playerId, FacilityBuildCandidateSnapshot snapshot)
+        {
+            if (state == null || snapshot == null) throw new ArgumentNullException();
+            return buildFacilityService.WithReadOnlyQuery<IReadOnlyList<BuildFacilityOptionQueryResult>>(state, playerId, null, query => {
+                var result = new List<BuildFacilityOptionQueryResult>(snapshot.Candidates.Count);
+                foreach (var candidate in snapshot.Candidates)
+                    result.Add(Query(state, playerId, candidate.ItemId, true, query, candidate));
+                return result.AsReadOnly();
+            });
         }
 
         private ValidationResult ResolveOverallValidation(
-            GameState state,
-            int playerId,
+            BuildFacilityService.ReadOnlyQuery query,
             string facilityId,
             ValidationResult facilityValidation,
             bool hasLegalSlot,
@@ -234,9 +269,7 @@ namespace YC.Application.Gameplay
 
             if (!resourcesValidation.IsValid && !goldValidation.IsValid)
             {
-                return buildFacilityService.ValidatePaymentMode(
-                    state,
-                    playerId,
+                return query.ValidatePaymentMode(
                     facilityId,
                     BuildFacilityService.PaymentModeAuto);
             }

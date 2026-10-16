@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Mirror;
 using Mirror.FizzySteam;
 using UnityEngine;
@@ -29,6 +31,8 @@ namespace YC.Infrastructure.Multiplayer
     {
         public string Json;
     }
+    public struct WaitingRoomCommandMessage : NetworkMessage { public string Json; }
+    public struct WaitingRoomCommandReplyMessage : NetworkMessage { public string Json; }
 
     [DefaultExecutionOrder(-24000)]
     public sealed class MirrorNetworkRuntime : MonoBehaviour
@@ -47,6 +51,34 @@ namespace YC.Infrastructure.Multiplayer
         private bool localClientDisconnectedPublished;
         private string localClientIdentityTicket = string.Empty;
         private bool localIdentitySendPending;
+        private bool reconnectLocalClient;
+        private float nextLocalReconnectTime;
+        private float localReconnectDeadline;
+        private int localReconnectAttempts;
+        private bool networkShutdownRequested;
+        private bool serverIdentityRetryPending;
+        private float nextServerIdentityRetryTime;
+        public event Action ServerIdentityRetryRequested;
+        private bool steamReconnectCancelled;
+        private ulong steamReconnectLobbyId, steamReconnectHostId, steamReconnectLocalId;
+        private string steamReconnectGameId;
+        // 默认直接读取SDK；隔离检查只替换平台读取，不替换运行时或重试逻辑。
+        private Func<bool> steamReadyProbe;
+        private Func<ulong> steamAccountProbe;
+        private Func<ulong, ulong> steamOwnerProbe;
+        private Func<ulong, int> steamMemberCountProbe;
+        private Func<ulong, int, ulong> steamMemberProbe;
+        public bool IsReconnectingClient => reconnectLocalClient;
+        public bool IsReconnectingLocalClient => IsReconnectingClient;
+        public bool HasLocalClientIdentityTicket { get { lock (localIdentityLock) return !string.IsNullOrEmpty(localClientIdentityTicket); } }
+        public bool HasClientReconnectIdentity => !networkShutdownRequested && (IsLocalTestMode ? HasLocalClientIdentityTicket :
+            steamReconnectLobbyId != 0 && steamReconnectHostId != 0 && steamReconnectLocalId != 0 && !string.IsNullOrEmpty(steamReconnectGameId) &&
+            SteamReady() && ReadSteamAccount() == steamReconnectLocalId);
+        public string ClientReconnectGameId => IsLocalTestMode ? string.Empty : steamReconnectGameId ?? string.Empty;
+        public event Action LocalClientRestarted;
+        public event Action<string> LocalClientReconnectFailed;
+        private readonly Dictionary<string, TaskCompletionSource<RoomConfigurationResult>> pendingRoomCommands =
+            new Dictionary<string, TaskCompletionSource<RoomConfigurationResult>>(StringComparer.Ordinal);
 
         public event Action ClientDisconnected;
         public event Action<MirrorServerConnectionInfo> ServerClientConnected;
@@ -55,6 +87,7 @@ namespace YC.Infrastructure.Multiplayer
         public event Action LocalClientDisconnected;
         public event Action<int, string> ServerLocalIdentityPresented;
         public event Action<RoomState> WaitingRoomStateReceived;
+        public event Action<int, RoomConfigurationMessage> WaitingRoomCommandReceived;
         public static MirrorNetworkRuntime Instance { get; private set; }
         public NetworkManager Manager => networkManager;
         public FizzySteamworks Transport => steamTransport;
@@ -167,6 +200,105 @@ namespace YC.Infrastructure.Multiplayer
                 DisconnectServerClientNow(connectionId);
             }
             SendWaitingRoomLocalIdentity();
+            if (serverIdentityRetryPending && NetworkServer.active && Time.unscaledTime >= nextServerIdentityRetryTime)
+            {
+                serverIdentityRetryPending = false;
+                ServerIdentityRetryRequested?.Invoke();
+            }
+            // Mirror 回调可能晚于这一帧；已恢复传输时不能再按旧期限关闭房间。
+            if (reconnectLocalClient && NetworkClient.isConnected)
+            {
+                if (TryValidateReconnectIdentity(out var connectedFailure)) OnLocalNetworkConnected();
+                else FailClientReconnect(connectedFailure);
+            }
+            if (reconnectLocalClient && Time.unscaledTime >= nextLocalReconnectTime)
+            {
+                if (Time.unscaledTime >= localReconnectDeadline)
+                {
+                    FailClientReconnect(IsLocalTestMode ? "simulation_local_reconnect_timeout" : "simulation_steam_reconnect_timeout");
+                }
+                else if (!NetworkClient.isConnected && !NetworkClient.isConnecting)
+                {
+                    if (!TryValidateReconnectIdentity(out var failure)) { FailClientReconnect(failure); return; }
+                    nextLocalReconnectTime = Time.unscaledTime + 3f;
+                    localReconnectAttempts++;
+                    Debug.Log("[LocalMirrorLifecycle] 本地回连尝试=" + localReconnectAttempts + "，地址=" + Manager.networkAddress);
+                    UnsubscribeMirrorCallbacks();
+                    if (NetworkClient.active) Manager.StopClient();
+                    if (IsLocalTestMode) StartLocalClient(Manager.networkAddress);
+                    else StartClient(steamReconnectHostId);
+                    LocalClientRestarted?.Invoke();
+                }
+            }
+        }
+
+        public bool TryBeginLocalClientReconnect() => IsLocalTestMode && TryBeginClientReconnect();
+
+        public bool TryBeginClientReconnect()
+        {
+            if (networkShutdownRequested || NetworkServer.active || !HasClientReconnectIdentity || !TryValidateReconnectIdentity(out _)) return false;
+            if (reconnectLocalClient) return true;
+            reconnectLocalClient = true;
+            localReconnectAttempts = 0;
+            localReconnectDeadline = Time.unscaledTime + 60f;
+            nextLocalReconnectTime = Time.unscaledTime + 1f;
+            Debug.Log("[ClientReconnectLifecycle] 已接纳原身份回连，模式=" + (IsLocalTestMode ? "Local" : "Steam") + "，期限秒=60。");
+            return true;
+        }
+
+        public void ConfigureSteamClientReconnect(ulong lobbyId, ulong hostSteamId, ulong localSteamId, string gameId)
+        {
+            if (networkShutdownRequested || IsLocalTestMode || NetworkServer.active || lobbyId == 0 || hostSteamId == 0 || localSteamId == 0 ||
+                hostSteamId == localSteamId || string.IsNullOrWhiteSpace(gameId) || !SteamReady() || ReadSteamAccount() != localSteamId)
+                throw new InvalidOperationException("steam_reconnect_identity_invalid");
+            if (steamReconnectLobbyId != 0 && (steamReconnectLobbyId != lobbyId || steamReconnectHostId != hostSteamId ||
+                steamReconnectLocalId != localSteamId || steamReconnectGameId != gameId)) throw new InvalidOperationException("steam_reconnect_identity_conflict");
+            steamReconnectLobbyId = lobbyId; steamReconnectHostId = hostSteamId; steamReconnectLocalId = localSteamId; steamReconnectGameId = gameId;
+            steamReconnectCancelled = false;
+        }
+
+        public void ClearSteamClientReconnect()
+        {
+            if (!IsLocalTestMode) { reconnectLocalClient = false; steamReconnectCancelled = true; }
+            steamReconnectLobbyId = steamReconnectHostId = steamReconnectLocalId = 0; steamReconnectGameId = null;
+        }
+
+        public void RequestServerIdentityRetry()
+        {
+            if (networkShutdownRequested || !NetworkServer.active || serverIdentityRetryPending) return;
+            serverIdentityRetryPending = true; nextServerIdentityRetryTime = Time.unscaledTime + 3f;
+        }
+
+        private bool SteamReady() => steamReadyProbe?.Invoke() ?? SteamBootstrap.IsInitialized;
+        private ulong ReadSteamAccount() => steamAccountProbe?.Invoke() ?? Steamworks.SteamUser.GetSteamID().m_SteamID;
+        private bool TryValidateReconnectIdentity(out string failure)
+        {
+            failure = IsLocalTestMode ? "simulation_local_reconnect_identity_lost" : "simulation_steam_reconnect_identity_lost";
+            if (!HasClientReconnectIdentity) return false;
+            if (IsLocalTestMode) return true;
+            var lobby = new Steamworks.CSteamID(steamReconnectLobbyId);
+            ulong owner = steamOwnerProbe?.Invoke(steamReconnectLobbyId) ?? Steamworks.SteamMatchmaking.GetLobbyOwner(lobby).m_SteamID;
+            if (owner != 0 && owner != steamReconnectHostId) { failure = "simulation_steam_host_changed"; return false; }
+            int count = steamMemberCountProbe?.Invoke(steamReconnectLobbyId) ?? Steamworks.SteamMatchmaking.GetNumLobbyMembers(lobby);
+            // 0表示平台此刻没有可验证读数；不能以此猜换主或踢掉原成员。
+            if (count <= 0) return true;
+            bool local = false, host = false;
+            for (int i = 0; i < count; i++)
+            {
+                ulong member = steamMemberProbe?.Invoke(steamReconnectLobbyId, i) ?? Steamworks.SteamMatchmaking.GetLobbyMemberByIndex(lobby, i).m_SteamID;
+                local |= member == steamReconnectLocalId; host |= member == steamReconnectHostId;
+            }
+            if (!local || !host) { failure = !host ? "simulation_steam_host_left" : "simulation_steam_lobby_left"; return false; }
+            return true;
+        }
+
+        private void FailClientReconnect(string code)
+        {
+            if (!reconnectLocalClient) return;
+            reconnectLocalClient = false;
+            if (!IsLocalTestMode) ClearSteamClientReconnect();
+            Debug.LogWarning("[ClientReconnectLifecycle] 原身份回连终止，原因=" + code);
+            LocalClientReconnectFailed?.Invoke(code); ClientDisconnected?.Invoke();
         }
 
         public void StartHost()
@@ -200,7 +332,7 @@ namespace YC.Infrastructure.Multiplayer
         public void StartClient(ulong hostSteamId)
         {
             if (IsLocalTestMode) throw new InvalidOperationException("本地测试模式必须使用 StartLocalClient。");
-            if (!SteamBootstrap.IsInitialized) throw new InvalidOperationException("Steam 尚未初始化。");
+            if (!SteamReady()) throw new InvalidOperationException("Steam 尚未初始化。");
             if (hostSteamId == 0) throw new ArgumentOutOfRangeException(nameof(hostSteamId));
             Manager.networkAddress = hostSteamId.ToString();
             if (!NetworkClient.active && !NetworkServer.active)
@@ -253,7 +385,7 @@ namespace YC.Infrastructure.Multiplayer
         public void BroadcastWaitingRoomState(RoomState room)
         {
             if (!NetworkServer.active || room == null) return;
-            var message = new WaitingRoomStateMessage { Json = JsonUtility.ToJson(room) };
+            var message = new WaitingRoomStateMessage { Json = RoomStateSerializer.Serialize(room) };
             foreach (var connection in NetworkServer.connections.Values)
             {
                 if (connection == null || connection is LocalConnectionToClient) continue;
@@ -263,6 +395,16 @@ namespace YC.Infrastructure.Multiplayer
 
         public void ShutdownNetwork()
         {
+            networkShutdownRequested = true;
+            serverIdentityRetryPending = false;
+            ClearSteamClientReconnect();
+            reconnectLocalClient = false;
+            localReconnectAttempts = 0;
+            NetworkServer.UnregisterHandler<WaitingRoomCommandMessage>();
+            NetworkClient.UnregisterHandler<WaitingRoomCommandReplyMessage>();
+            foreach (var completion in pendingRoomCommands.Values)
+                completion.TrySetResult(RoomConfigurationService.Result(null, "service_unavailable"));
+            pendingRoomCommands.Clear();
             if (NetworkServer.active && IsLocalTestMode)
                 NetworkServer.UnregisterHandler<WaitingRoomLocalIdentityMessage>();
             NetworkClient.UnregisterHandler<WaitingRoomStateMessage>();
@@ -297,6 +439,11 @@ namespace YC.Infrastructure.Multiplayer
             NetworkClient.OnConnectedEvent += OnLocalNetworkConnected;
             NetworkClient.OnDisconnectedEvent -= OnLocalNetworkDisconnected;
             NetworkClient.OnDisconnectedEvent += OnLocalNetworkDisconnected;
+            if (ActiveTransport != null)
+            {
+                ActiveTransport.OnClientError += OnTransportClientError;
+                ActiveTransport.OnServerError += OnTransportServerError;
+            }
             mirrorCallbacksSubscribed = true;
         }
 
@@ -307,6 +454,11 @@ namespace YC.Infrastructure.Multiplayer
             NetworkServer.OnDisconnectedEvent -= OnServerDisconnected;
             NetworkClient.OnConnectedEvent -= OnLocalNetworkConnected;
             NetworkClient.OnDisconnectedEvent -= OnLocalNetworkDisconnected;
+            if (ActiveTransport != null)
+            {
+                ActiveTransport.OnClientError -= OnTransportClientError;
+                ActiveTransport.OnServerError -= OnTransportServerError;
+            }
             mirrorCallbacksSubscribed = false;
         }
 
@@ -341,9 +493,13 @@ namespace YC.Infrastructure.Multiplayer
 
         private void OnLocalNetworkConnected()
         {
-            if (localClientConnectedPublished) return;
+            if (networkShutdownRequested || !IsLocalTestMode && steamReconnectCancelled || localClientConnectedPublished) return;
+            if (reconnectLocalClient && !TryValidateReconnectIdentity(out var failure)) { FailClientReconnect(failure); return; }
             localClientConnectedPublished = true;
             localClientDisconnectedPublished = false;
+            bool wasReconnecting = reconnectLocalClient;
+            reconnectLocalClient = false;
+            if (wasReconnecting) Debug.Log("[LocalMirrorLifecycle] 本地传输已回连，等待原身份认证与会话接续。");
             LocalClientConnected?.Invoke();
             lock (localIdentityLock)
                 localIdentitySendPending = !string.IsNullOrEmpty(localClientIdentityTicket);
@@ -352,20 +508,33 @@ namespace YC.Infrastructure.Multiplayer
 
         private void OnLocalNetworkDisconnected()
         {
-            if (localClientDisconnectedPublished) return;
+            if (networkShutdownRequested || localClientDisconnectedPublished) return;
             localClientDisconnectedPublished = true;
             localClientConnectedPublished = false;
             LocalClientDisconnected?.Invoke();
-            ClientDisconnected?.Invoke();
+            if (networkShutdownRequested) return;
+            Debug.LogWarning("[LocalMirrorLifecycle] 本地连接断开，模式=" + IsLocalTestMode + "，回连接纳=" + reconnectLocalClient + "，原票据存在=" + HasLocalClientIdentityTicket);
+            // 已接纳的物理断线不是房间终结；保留原断线事件，期限耗尽才发终结。
+            if (!reconnectLocalClient) ClientDisconnected?.Invoke();
         }
+
+        private void OnTransportClientError(TransportError error, string reason)
+            => Debug.LogWarning("[LocalMirrorLifecycle] 传输客户端错误；utc=" + DateTime.UtcNow.ToString("O") + "，错误=" + error + "，原因=" + reason);
+
+        private void OnTransportServerError(int connectionId, TransportError error, string reason)
+            => Debug.LogWarning("[LocalMirrorLifecycle] 传输服务端错误；utc=" + DateTime.UtcNow.ToString("O") + "，连接=" + connectionId + "，错误=" + error + "，原因=" + reason);
 
         private void PrepareForNetworkStart()
         {
+            networkShutdownRequested = false;
+            steamReconnectCancelled = false;
             publishedServerConnections.Clear();
             disconnectingServerConnections.Clear();
             localClientConnectedPublished = false;
             localClientDisconnectedPublished = false;
             NetworkClient.RegisterHandler<WaitingRoomStateMessage>(OnWaitingRoomState, false);
+            NetworkClient.RegisterHandler<WaitingRoomCommandReplyMessage>(OnWaitingRoomCommandReply, false);
+            NetworkServer.RegisterHandler<WaitingRoomCommandMessage>(OnWaitingRoomCommand, false);
             lock (disconnectQueueLock) pendingServerDisconnects.Clear();
         }
 
@@ -393,8 +562,56 @@ namespace YC.Infrastructure.Multiplayer
         private void OnWaitingRoomState(WaitingRoomStateMessage message)
         {
             if (NetworkServer.active || string.IsNullOrEmpty(message.Json)) return;
-            var room = JsonUtility.FromJson<RoomState>(message.Json);
-            if (room != null) WaitingRoomStateReceived?.Invoke(room);
+            if (!RoomStateSerializer.TryDeserialize(message.Json, out var room, out var reason))
+            { Debug.LogError(reason); NetworkClient.Disconnect(); return; }
+            WaitingRoomStateReceived?.Invoke(room);
+        }
+
+        public async Task<RoomConfigurationResult> SendWaitingRoomCommandAsync(RoomConfigurationMessage message)
+        {
+            if (!NetworkClient.isConnected || pendingRoomCommands.Count >= 32)
+                return RoomConfigurationService.Result(null, "service_unavailable");
+            var commandId = message.ReadRequest().CommandId;
+            if (!pendingRoomCommands.TryGetValue(commandId, out var completion))
+            {
+                completion = new TaskCompletionSource<RoomConfigurationResult>();
+                pendingRoomCommands.Add(commandId, completion);
+                NetworkClient.Send(new WaitingRoomCommandMessage { Json = JsonConvert.SerializeObject(message) }, Channels.Reliable);
+            }
+            if (await Task.WhenAny(completion.Task, Task.Delay(10000)) != completion.Task)
+            { pendingRoomCommands.Remove(commandId); return RoomConfigurationService.Result(null, "service_unavailable"); }
+            return await completion.Task;
+        }
+
+        public void SendWaitingRoomCommandReply(int connectionId, RoomConfigurationReply reply)
+        {
+            if (NetworkServer.connections.TryGetValue(connectionId, out var connection))
+                connection.Send(new WaitingRoomCommandReplyMessage { Json = JsonConvert.SerializeObject(reply) }, Channels.Reliable);
+        }
+
+        private void OnWaitingRoomCommand(NetworkConnectionToClient connection, WaitingRoomCommandMessage message)
+        {
+            if (connection == null) return;
+            try
+            {
+                if (!RoomConfigurationMessage.TryDeserialize(message.Json, out var command)) { connection.Disconnect(); return; }
+                WaitingRoomCommandReceived?.Invoke(connection.connectionId, command);
+            }
+            catch (JsonException) { connection.Disconnect(); }
+        }
+
+        private void OnWaitingRoomCommandReply(WaitingRoomCommandReplyMessage message)
+        {
+            if (NetworkServer.active) return;
+            try
+            {
+                if (!RoomConfigurationReply.TryDeserialize(message.Json, out var reply))
+                { Debug.LogError("room_protocol_mismatch"); NetworkClient.Disconnect(); return; }
+                if (!pendingRoomCommands.TryGetValue(reply.CommandId, out var completion)) return;
+                pendingRoomCommands.Remove(reply.CommandId);
+                completion.TrySetResult(reply.Result);
+            }
+            catch (JsonException) { Debug.LogError("room_protocol_mismatch"); NetworkClient.Disconnect(); }
         }
 
         private void SendWaitingRoomLocalIdentity()

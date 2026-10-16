@@ -10,16 +10,49 @@ using YC.Domain.Facilities;
 using YC.Domain.SpecialActions;
 using YC.Domain.State;
 using YC.Domain.Rules;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace YC.Application.Sessions
 {
-    public sealed class GameSession
+    public sealed partial class GameSession
     {
         private readonly List<IGameCommandHandler> commandHandlers = new List<IGameCommandHandler>();
         private PendingActionLog pendingActionLog;
+        private Action<string, long> handlerTimingRecorder;
+        private ISettlementProjectionProvider settlementProjectionProvider;
+        public GameStateView ProjectFor(GameStateViewer viewer) => GameStateViewProjector.Project(State, viewer, settlementProjectionProvider?.GetSettlementOptions(State, viewer));
+
+        /// <summary>完整模拟状态的展示入口；只更新观察者投影，不提交规则或裁剪 State。</summary>
+        public GameStateView RefreshLocalProjection(GameStateViewer viewer)
+        {
+            var view = ProjectFor(viewer);
+            View = view;
+            return view;
+        }
 
         public GameState State { get; private set; }
         public GameStateView View { get; private set; }
+        public ExecutionTimingCounters ExecutionTimings { get; } = new ExecutionTimingCounters();
+
+        private readonly struct ExecutionSample : IDisposable
+        {
+            private readonly ExecutionTimingCounters counters;
+            private readonly string phase;
+            private readonly long started;
+
+            public ExecutionSample(ExecutionTimingCounters counters, string phase)
+            {
+                this.counters = counters.Enabled ? counters : null;
+                this.phase = this.counters == null ? null : phase;
+                started = this.counters == null ? 0 : Stopwatch.GetTimestamp();
+            }
+
+            public void Dispose()
+            {
+                if (counters != null && counters.Enabled)
+                    counters.AddSample(phase, Stopwatch.GetTimestamp() - started);
+            }
+        }
 
         public GameSession(GameState initialState)
         {
@@ -35,6 +68,7 @@ namespace YC.Application.Sessions
             }
 
             commandHandlers.Add(handler);
+            if (handler is ISettlementProjectionProvider provider) settlementProjectionProvider = provider;
         }
 
         public void ReplaceState(GameState state)
@@ -46,10 +80,16 @@ namespace YC.Application.Sessions
 
             // 网络同步也必须经过状态所有权边界，不能把外部 DTO 的可写对象图
             // 直接挂到权威会话上。就地同步同时保留旧调用方持有的根/嵌套引用。
+            if (state.RandomRuntime != null && !YC.Domain.Rules.GameplayRandomRuntime.TryValidate(
+                state.RandomRuntime, state.GameId, state.EventDeckSeed, out var reason)) throw new InvalidOperationException(reason);
+            if (State.GameId == state.GameId && State.RandomRuntime != null &&
+                (state.RandomRuntime == null || State.EventDeckSeed != state.EventDeckSeed))
+                throw new InvalidOperationException("random_initialization_conflict");
             GameStateCloneService.CopyTo(State, state);
             View = null;
             pendingActionLog = null;
             ClearInvalidPendingChoice();
+            InvalidateConfirmedRecovery();
         }
 
         /// <summary>
@@ -59,11 +99,23 @@ namespace YC.Application.Sessions
         public void ReplaceView(GameStateView view)
         {
             if (view == null) throw new ArgumentNullException(nameof(view));
+            if (State.RandomRuntime != null && State.GameId != view.GameId) throw new InvalidOperationException("random_game_id_mismatch");
             GameState sanitized = GameStateViewProjector.ToClientState(view);
+            if (State.RandomRuntime != null)
+            {
+                sanitized.EventDeckSeed = State.EventDeckSeed;
+                sanitized.RandomRuntime = State.RandomRuntime.Clone();
+            }
+            if (State.ContentPackHash == view.ContentPackHash)
+            {
+                sanitized.ContentDefinitions = GameStateCloneService.DeepClone(State.ContentDefinitions);
+                sanitized.SetupRecipe = GameStateCloneService.DeepClone(State.SetupRecipe);
+            }
             GameStateCloneService.CopyTo(State, sanitized);
             View = view;
             pendingActionLog = null;
             ClearInvalidPendingChoice();
+            InvalidateConfirmedRecovery();
         }
 
         public HostSessionArchiveDto CreateHostArchive(string contentHash = "")
@@ -82,6 +134,7 @@ namespace YC.Application.Sessions
                 View = null;
                 pendingActionLog = null;
                 ClearInvalidPendingChoice();
+                InvalidateConfirmedRecovery();
             }
             return result;
         }
@@ -105,16 +158,22 @@ namespace YC.Application.Sessions
 
         public CommandResult Submit(GameCommand command)
         {
+            using var submitSample = new ExecutionSample(ExecutionTimings, "submit.total");
             if (command == null)
             {
                 throw new ArgumentNullException(nameof(command));
             }
 
-            if (State.HasPendingChoice() &&
+            if (HasBlockingPendingChoice(command) &&
                 !IsPendingChoiceResolutionCommand(command) &&
                 !IsEntranceLocationAnswer(State, command) &&
                 !IsConfirmedSecondCharacterEffectCommand(State, command) &&
-                !IsLocalCharacterCoverCommand(State, command))
+                !IsCharacterModeStopCommand(State, command) &&
+                !IsLocalCharacterCoverCommand(State, command) &&
+                !IsLegalSettlementInvocation(State, command) &&
+                !MainActionCommandGuard.IsPreparedActionConfirmation(State, command) &&
+                command.Kind != GameCommandKind.PreparePaymentDraft &&
+                !(command.Kind == GameCommandKind.EndAction && !string.IsNullOrEmpty(State.EffectRuntime?.ActiveSettlementWindowId)))
             {
                 return CommandResult.Invalid(ValidationResult.Failure(
                     Domain.Rules.CommandErrorCode.PendingChoiceRequired,
@@ -133,7 +192,8 @@ namespace YC.Application.Sessions
                 GameState workState;
                 try
                 {
-                    workState = GameStateCloneService.DeepClone(State);
+                    using (new ExecutionSample(ExecutionTimings, "submit.clone"))
+                        workState = GameStateCloneService.DeepClone(State);
                 }
                 catch (Exception ex)
                 {
@@ -142,9 +202,24 @@ namespace YC.Application.Sessions
 
                 var before = PublicActionStateSnapshot.Capture(workState);
                 CommandResult result;
+                OperationCommandContext resolvedCommandContext = null;
                 try
                 {
-                    result = commandHandlers[i].Handle(workState, command);
+                    if (workState.EffectRuntime != null && (workState.EffectRuntime.MainNodes.Count > 0 ||
+                        workState.EffectRuntime.InteractionRequests.Exists(r => r.Status == "open")))
+                    {
+                        OperationWindowService.Synchronize(workState);
+                        if (!OperationWindowService.TryResolveCommandContext(workState, command, out var operationContext, out var operationValidation))
+                            return CommandResult.Invalid(operationValidation);
+                        workState.EffectRuntime.CurrentOperationContext = operationContext;
+                        resolvedCommandContext = operationContext;
+                        var operationSource = workState.EffectRuntime.EffectNodes.Find(n => n.EffectId == operationContext.SourceEffectId);
+                        if (operationSource != null) operationSource.ContinuationOperationContext = operationContext.Clone();
+                    }
+                    using (new ExecutionSample(ExecutionTimings, "submit.handler"))
+                    using (ExecutionTimings.Enabled ? GameStateCloneService.BeginTimingScope(
+                        handlerTimingRecorder ?? (handlerTimingRecorder = ExecutionTimings.AddSample)) : null)
+                        result = commandHandlers[i].Handle(workState, command);
                 }
                 catch (Exception ex)
                 {
@@ -177,22 +252,32 @@ namespace YC.Application.Sessions
                 PendingActionLog nextPendingActionLog;
                 List<RuleEvent> recordedEvents;
                 List<RuleJournalEntry> eventEntries;
+                RecoveryCapture pendingRecoveryCapture = null;
                 try
                 {
                     eventEntries = RecordLegacyEvents(workState, command, result, out recordedEvents);
+                    if (workState.EffectRuntime != null)
+                    {
+                        workState.EffectRuntime.CurrentOperationContext = null;
+                        OperationWindowService.Synchronize(workState);
+                    }
                     nextPendingActionLog = AppendLog(
                         workState,
                         command,
                         result,
                         before,
-                        pendingActionLog);
-                    PublishWorkState(
-                        State,
-                        workState,
-                        command,
-                        beforeRevision,
-                        eventEntries,
-                        recordedEvents);
+                        pendingActionLog,
+                        resolvedCommandContext);
+                    using (new ExecutionSample(ExecutionTimings, "submit.publish"))
+                        PublishWorkState(
+                            State,
+                            workState,
+                            command,
+                            beforeRevision,
+                            eventEntries,
+                            recordedEvents,
+                            confirmedRecoveryCaptureEnabled ? (Action<GameState>)(finalState =>
+                                pendingRecoveryCapture = PrepareRecoveryCapture(finalState, nextPendingActionLog, command.CommandId)) : null);
                 }
                 catch (Exception ex)
                 {
@@ -200,6 +285,8 @@ namespace YC.Application.Sessions
                 }
 
                 pendingActionLog = nextPendingActionLog;
+                mutationGeneration++;
+                if (pendingRecoveryCapture != null) RetainRecoveryCapture(pendingRecoveryCapture);
                 return result;
             }
 
@@ -210,6 +297,32 @@ namespace YC.Application.Sessions
             }
 
             return CommandResult.Invalid(invalid);
+        }
+
+        private bool IsLegalSettlementInvocation(GameState state, GameCommand command)
+        {
+            if (command.Kind != GameCommandKind.InvokeSettlementOption || !CommandPhasePolicy.IsCommandAllowed(state.Phase, command.Kind)) return false;
+            string useId = YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "useId");
+            string optionId = YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "optionId");
+            if (!int.TryParse(YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "expectedRevision"), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int revision)) return false;
+            foreach (var owner in state.EffectRuntime.EffectNodes)
+            {
+                var window = owner.SettlementWindow; var entry = window?.Entries?.Find(e => e.OptionId == optionId);
+                if (entry == null) continue;
+                return window.Context.PlayerId == command.PlayerId && window.Context.Id == state.EffectRuntime.ActiveSettlementWindowId &&
+                    (useId ?? string.Empty) == window.Context.TargetUseId && (entry.AcceptedUseCount > 0 || !window.IsClosed && revision == state.EffectRuntime.StateRevision);
+            }
+            foreach (var option in CharacterSettlementOptionQuery.GetOptions(state, command.PlayerId, useId))
+                if (option.OptionId == optionId && option.VisibleToViewer &&
+                    (option.IsEnabled && option.StateRevision == revision || CharacterSettlementOptionQuery.IsInvoked(state.EffectRuntime.EffectNodes.Find(node => node.EffectId == option.OwnerEffectId), optionId))) return true;
+            return false;
+        }
+
+        private bool HasBlockingPendingChoice(GameCommand command)
+        {
+            if (!State.HasPendingChoice()) return false;
+            if (!OperationWindowService.TryResolveCommandContext(State, command, out var context, out _)) return true;
+            return State.HasPendingChoiceForCommand(context);
         }
 
         private static CommandResult CreateTransactionFailure(string reason)
@@ -232,7 +345,8 @@ namespace YC.Application.Sessions
             GameCommand command,
             int beforeRevision,
             IList<RuleJournalEntry> eventEntries,
-            IList<RuleEvent> recordedEvents)
+            IList<RuleEvent> recordedEvents,
+            Action<GameState> beforePublish = null)
         {
             bool changed = !GameStateCloneService.AreEquivalent(currentState, workState);
             bool revisionAdvanced = GetStateRevision(workState) > beforeRevision;
@@ -288,6 +402,10 @@ namespace YC.Application.Sessions
                 }
             }
 
+            // 仅在成功命令的最终 journal 已提交后刷新实际并发任务的请求绑定；
+            // 候选、scope、费用事实和预算由对应业务继续持有。
+            RoundExecutionService.RefreshConcurrentInteractionRevisions(workState);
+
             string validationReason;
             if (workState.EffectRuntime != null &&
                 !workState.EffectRuntime.TryValidate(out validationReason))
@@ -297,6 +415,7 @@ namespace YC.Application.Sessions
 
             // 保持旧代码持有的 GameState 根引用仍然有效；字段图由 detached
             // 工作副本一次性替换，失败路径从未触碰 currentState。
+            beforePublish?.Invoke(workState);
             GameStateCloneService.CopyTo(currentState, workState);
         }
 
@@ -364,6 +483,7 @@ namespace YC.Application.Sessions
 
                 var ruleEvent = new RuleEvent
                 {
+                    OperationContext = state.EffectRuntime.CurrentOperationContext?.Clone(),
                     EventId = StableIdFactory.Create(
                         "event",
                         state.GameId ?? string.Empty,
@@ -425,6 +545,15 @@ namespace YC.Application.Sessions
                 request.AnsweringPlayerId == command.PlayerId);
         }
 
+        private static bool IsCharacterModeStopCommand(GameState state, GameCommand command)
+        {
+            return command?.Kind == GameCommandKind.UseCharacterCard && command.Parameters != null &&
+                command.Parameters.TryGetValue("intent", out string intent) && intent == UseCharacterCardCommandHandler.StopRemainingModeIntent &&
+                command.Parameters.TryGetValue("useId", out string useId) && command.Parameters.TryGetValue("interactionId", out string interactionId) &&
+                command.Parameters.TryGetValue("expectedRevision", out string revisionText) && int.TryParse(revisionText, out int revision) &&
+                CharacterLifecycleService.TryGetModeStopScope(state, command.PlayerId, useId, interactionId, revision, out _, out _);
+        }
+
         private static bool IsConfirmedSecondCharacterEffectCommand(GameState state, GameCommand command)
         {
             if (state == null || command == null ||
@@ -464,7 +593,8 @@ namespace YC.Application.Sessions
             GameCommand command,
             CommandResult result,
             PublicActionStateSnapshot before,
-            PendingActionLog currentPendingActionLog)
+            PendingActionLog currentPendingActionLog,
+            OperationCommandContext commandContext)
         {
             if (!result.Succeeded)
             {
@@ -477,7 +607,7 @@ namespace YC.Application.Sessions
                 var updatedPendingActionLog = ClonePendingActionLog(currentPendingActionLog);
                 updatedPendingActionLog.Commands.Add(command);
                 updatedPendingActionLog.SettlementResult = result;
-                if (targetState.HasPendingChoice())
+                if (targetState.HasPendingChoiceForCommand(commandContext))
                 {
                     return updatedPendingActionLog;
                 }
@@ -533,7 +663,7 @@ namespace YC.Application.Sessions
 
             if (handledAsPublicAction &&
                 PublicActionLogFormatter.ShouldWaitForSettlement(command.Kind) &&
-                targetState.HasPendingChoice())
+                targetState.HasPendingChoiceForCommand(commandContext))
             {
                 return new PendingActionLog
                 {
@@ -671,7 +801,8 @@ namespace YC.Application.Sessions
                     return true;
 
                 case GameCommandKind.DispatchInfluence:
-                    message = "\u8c03\u5ea6\u4e86 " + GetDispatchCount(command) + " \u6b21\u5f71\u54cd\u529b\u3002";
+                    // 入口接受仅表示调度已启动，完成描述由实际执行结果提供。
+                    message = result.LogMessage;
                     return true;
 
                 case GameCommandKind.ExploreLocation:
@@ -688,7 +819,7 @@ namespace YC.Application.Sessions
                     return true;
 
                 case GameCommandKind.BuildFacility:
-                    message = FormatBuild(command, result);
+                    message = FormatBuild(command, result, after?.ContentState);
                     return true;
 
                 case GameCommandKind.UseCharacterCard:
@@ -701,11 +832,11 @@ namespace YC.Application.Sessions
                     return true;
 
                 case GameCommandKind.DeclareCityStyle:
-                    message = FormatCityStyle(command, result);
+                    message = FormatCityStyle(command, result, after?.ContentState);
                     return true;
 
                 case GameCommandKind.UseSpecialAction:
-                    message = FormatSpecialAction(command, result);
+                    message = FormatSpecialAction(command, result, after?.ContentState);
                     return true;
 
                 case GameCommandKind.CollectResource:
@@ -733,7 +864,7 @@ namespace YC.Application.Sessions
             }
         }
 
-        private static string FormatBuild(GameCommand command, CommandResult result)
+        private static string FormatBuild(GameCommand command, CommandResult result, GameState contentState)
         {
             var buildEvent = FindEvent(result, GameEventKind.FacilityBuilt);
             var facilityName = GetData(buildEvent, "facilityName");
@@ -745,7 +876,7 @@ namespace YC.Application.Sessions
                     facilityId = command.TargetId;
                 }
 
-                var definition = FacilityCardDatabase.Get(facilityId);
+                var definition = FacilityCardDatabase.Get(contentState, facilityId);
                 facilityName = definition == null ? facilityId : definition.Name;
             }
 
@@ -778,7 +909,7 @@ namespace YC.Application.Sessions
                 cardId = cardEvent == null ? string.Empty : cardEvent.SubjectId;
             }
 
-            var definition = CharacterCardDatabase.Get(cardId);
+            var definition = CharacterCardDatabase.Get(after?.ContentState, cardId);
             var cardName = definition == null ? cardId : definition.Name;
             var modes = CollectCharacterEffectModes(command, settlementCommands);
             if (definition != null && definition.TemplateId == CharacterCardDatabase.Liskarm)
@@ -805,7 +936,7 @@ namespace YC.Application.Sessions
                    "\u201d\u7684" + FormatCharacterModeLabel(modes) + "\uff1a" + detail + "\u3002";
         }
 
-        private static string FormatCityStyle(GameCommand command, CommandResult result)
+        private static string FormatCityStyle(GameCommand command, CommandResult result, GameState contentState)
         {
             var scoreEvent = FindEvent(result, GameEventKind.ScoreChanged);
             var styleName = GetData(scoreEvent, "cityStyleName");
@@ -817,7 +948,7 @@ namespace YC.Application.Sessions
                     styleId = command.TargetId;
                 }
 
-                var definition = CityStyleDatabase.Get(styleId);
+                var definition = CityStyleDatabase.Get(contentState, styleId);
                 styleName = definition == null ? styleId : definition.Name;
             }
 
@@ -826,7 +957,7 @@ namespace YC.Application.Sessions
             return "\u5ba3\u544a\u4e86\u201c" + ValueOrFallback(styleName, "\u672a\u77e5\u57ce\u5efa") + "\u201d" + scoreText + "\u3002";
         }
 
-        private static string FormatSpecialAction(GameCommand command, CommandResult result)
+        private static string FormatSpecialAction(GameCommand command, CommandResult result, GameState contentState)
         {
             var specialActionId = GetParameter(command, "specialActionId");
             if (string.IsNullOrEmpty(specialActionId))
@@ -834,7 +965,7 @@ namespace YC.Application.Sessions
                 specialActionId = command.TargetId;
             }
 
-            var definition = SpecialActionDatabase.Get(specialActionId);
+            var definition = SpecialActionDatabase.Get(contentState, specialActionId);
             var actionName = definition == null ? specialActionId : definition.Name;
             var baseMessage = "发动了特殊行动“" + ValueOrFallback(actionName, "未知特殊行动") + "”";
             return FindEvent(result, GameEventKind.ChoiceOpened) != null
@@ -936,7 +1067,7 @@ namespace YC.Application.Sessions
             var cardEvent = FindEvent(result, GameEventKind.CardMoved);
             if (cardEvent != null)
             {
-                var character = CharacterCardDatabase.Get(cardEvent.SubjectId);
+                var character = CharacterCardDatabase.Get(after?.ContentState, cardEvent.SubjectId);
                 if (character != null)
                 {
                     var changes = DescribePublicChanges(
@@ -958,7 +1089,7 @@ namespace YC.Application.Sessions
             var choiceEvent = FindEvent(result, GameEventKind.ChoiceResolved);
             if (choiceEvent != null)
             {
-                var facility = FacilityCardDatabase.Get(choiceEvent.SubjectId);
+                var facility = FacilityCardDatabase.Get(after?.ContentState, choiceEvent.SubjectId);
                 if (facility != null)
                 {
                     message = "\u7ed3\u7b97\u4e86\u5efa\u7b51\u201c" + facility.Name + "\u201d\u7684\u6548\u679c\u3002";
@@ -1513,7 +1644,7 @@ namespace YC.Application.Sessions
                     continue;
                 }
 
-                var definition = CharacterCardDatabase.Get(cardId);
+                var definition = CharacterCardDatabase.Get(after?.ContentState ?? before?.ContentState, cardId);
                 recalledNames.Add("\u201c" + (definition == null ? cardId : definition.Name) + "\u201d");
             }
 
@@ -1543,7 +1674,7 @@ namespace YC.Application.Sessions
                     continue;
                 }
 
-                var definition = FacilityCardDatabase.Get(facilityId);
+                var definition = FacilityCardDatabase.Get(after?.ContentState ?? before?.ContentState, facilityId);
                 removed.Add("\u201c" + (definition == null ? facilityId : definition.Name) + "\u201d");
             }
 
@@ -1554,11 +1685,6 @@ namespace YC.Application.Sessions
                             string.Join("\u3001", removed.ToArray()) +
                             "\u9001\u56de\u724c\u5806");
             }
-        }
-
-        private static int GetDispatchCount(GameCommand command)
-        {
-            return string.IsNullOrEmpty(GetParameter(command, "source2")) ? 1 : 2;
         }
 
         private static string DescribeInfluenceSlot(string slotId)

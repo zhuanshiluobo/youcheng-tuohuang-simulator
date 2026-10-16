@@ -1,0 +1,58 @@
+{
+  "definitionId": "facility_enterprise_office_red",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "企业办事处",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/facility_faces.jpg",
+  "artworkSpriteId": "facility_049",
+  "tags": [
+    "enterprise"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "facility_enterprise_office_red.entry",
+      "mode": "entry",
+      "skillType": "normal",
+      "subscriptionId": "content.facility_enterprise_office_red.entry",
+      "script": "lua/facilities/facility_enterprise_office_red.entry.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "data": {
+    "facilityId": "facility_enterprise_office_red",
+    "name": "企业办事处",
+    "color": "red",
+    "score": 1,
+    "resourceCost": {
+      "originium": 3,
+      "originiumShard": 1,
+      "iron": 3,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 23,
+    "unique": false,
+    "hasEntryEffect": true,
+    "keywords": [
+      "entry"
+    ],
+    "effectId": "facility_enterprise_office_red.entry",
+    "effectType": "enterprise",
+    "description": "触发一项你已解锁的企业特效。",
+    "effectText": "触发一项你已解锁的企业特效。",
+    "reserveOnly": false,
+    "defaultSupply": 1,
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "effectScript": "lua/facilities/facility_enterprise_office_red.entry.lua"
+  }
+}

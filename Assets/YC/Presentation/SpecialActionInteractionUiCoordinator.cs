@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using YC.Application.Gameplay;
 using YC.Application.Interactions;
+using YC.Application.Sessions;
 using YC.Domain.Interactions;
 using YC.Domain.Commands;
 using YC.Domain.Effects;
 using YC.Domain.Rules;
 using YC.Domain.SpecialActions;
 using YC.Domain.State;
+using YC.Domain.Presentation;
 using YC.Presentation.Workflows;
 
 namespace YC.Presentation
@@ -35,13 +37,20 @@ namespace YC.Presentation
         private string inFlightSessionId = string.Empty;
         private string genericInteractionId = string.Empty;
         private int genericInteractionRevision = -1;
+        private readonly PaymentPageDraftBinding paymentDraft = new PaymentPageDraftBinding();
+        private readonly List<int> paymentValues = new List<int>();
+        private bool buildingPaymentPage;
+        public GameplayExpansionUi ExpansionUi { private get; set; }
+        public Action PaymentDraftStateChanged { private get; set; }
+        public Func<bool> CanSubmitCommand { private get; set; }
+        private string PaymentScope => (getState()?.GameId ?? string.Empty) + ":" + (getState()?.ContentPackHash ?? string.Empty) + ":" + getLocalPlayerId();
         public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
         public string Id => "effect.city-style.special-action";
         public int Priority => 300;
         public bool CanRender(InteractionRequestProjection request) => request != null &&
             request.VisibleToViewer && request.Status == "open" && request.AnsweringPlayerId == getLocalPlayerId() &&
             (request.InteractionTypeId.StartsWith("city_style.special_action", StringComparison.Ordinal) ||
-             request.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId);
+             (request.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId && request.AnswerSchema == "candidate_id"));
         public void Render(InteractionRequestProjection request)
         {
             if (CanRender(request)) Synchronize();
@@ -145,18 +154,56 @@ namespace YC.Presentation
                 if (generic.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId)
                 {
                     if (!string.IsNullOrEmpty(inFlightCommandId)) return true;
-                    if (genericInteractionId == generic.GetStableInteractionId() && genericInteractionRevision == generic.StateRevision && dialog.IsShowing) return true;
+                    var paymentIdentityChanged = paymentDraft.Bind(PaymentScope, generic);
+                    if (generic.StateRevision != paymentDraft.Revision) return true;
+                    if (paymentIdentityChanged)
+                    {
+                        paymentValues.Clear();
+                        paymentValues.AddRange(paymentDraft.InitialCost);
+                    }
+                    else if (!paymentDraft.CanChange && paymentDraft.AuthoritativeCost != null)
+                    { paymentValues.Clear(); paymentValues.AddRange(paymentDraft.AuthoritativeCost); }
+                    if (genericInteractionId == generic.GetStableInteractionId() && genericInteractionRevision == generic.StateRevision && dialog.IsShowing)
+                    { TrySubmitPaymentDraft(generic); return true; }
                     genericInteractionId = generic.GetStableInteractionId();
                     genericInteractionRevision = generic.StateRevision;
                     clearHighlights();
-                    var resources = getState().FindPlayer(getLocalPlayerId()).Resources;
-                    dialog.ShowCompositePayment(resources.Originium, resources.Iron, values =>
+                    var prompt = ExpansionUi?.ResolveGameplayText(generic.Presentation?.Prompt);
+                    if (prompt == null) throw new InvalidOperationException("付款选择请求缺少正式提示引用。");
+                    var labels = new List<string>();
+                    foreach (var key in PaymentPageDraftBinding.ResourceLabelKeys)
                     {
-                        string prefix = "pay|" + values[0] + "|" + values[1] + "|";
-                        string candidate = generic.CandidateIds.Find(id => id.StartsWith(prefix, StringComparison.Ordinal));
-                        SubmitGenericCandidate(generic, candidate);
-                    }, () => SubmitGenericAnswer(generic, null, true));
-                    setPrompt("先选择并支付材料，支付成功后再选择城市移动目标。");
+                        var label = ExpansionUi?.ResolveGameplayText(new GameplayTextRef(key));
+                        if (label == null) throw new InvalidOperationException("付款资源行缺少正式文案引用：" + key);
+                        labels.Add(label.ToPlainText());
+                    }
+                    buildingPaymentPage = true;
+                    try
+                    {
+                        dialog.ShowPaymentDraft(prompt.ToPlainText(), labels, paymentDraft.Maximums, paymentValues,
+                            values =>
+                            {
+                                if (!PaymentRequestCurrent(generic)) return;
+                                paymentValues.Clear(); paymentValues.AddRange(values);
+                                paymentDraft.SetDesired(values);
+                                PaymentDraftStateChanged?.Invoke();
+                                if (!buildingPaymentPage) TrySubmitPaymentDraft(generic);
+                            }, valid =>
+                            {
+                                if (!PaymentRequestCurrent(generic)) return;
+                                if (paymentDraft.SetInputValid(valid)) PaymentDraftStateChanged?.Invoke();
+                            }, () => PaymentRequestCurrent(generic), () => paymentDraft.CanConfirm, () => paymentDraft.CanChange,
+                            values => paymentDraft.Match(values) != null, values =>
+                            {
+                                if (!PaymentRequestCurrent(generic) || !paymentDraft.CanConfirm) return;
+                                var candidate = paymentDraft.Match(values);
+                                if (candidate == paymentDraft.PreparedCandidate) SubmitGenericCandidate(generic, candidate);
+                            }, generic.AllowDecline ? (Action)(() => SubmitGenericAnswer(generic, null, true)) : null);
+                    }
+                    finally { buildingPaymentPage = false; }
+                    setPrompt(prompt.ToPlainText());
+                    PaymentDraftStateChanged?.Invoke();
+                    TrySubmitPaymentDraft(generic);
                     return true;
                 }
                 genericInteractionId = generic.GetStableInteractionId();
@@ -345,6 +392,33 @@ namespace YC.Presentation
             }
 
             ClearSubmissionInFlight();
+        }
+
+        public void NotifyPaymentDraftSettled(string commandId, bool applied)
+        {
+            if (paymentDraft.Settle(commandId, applied))
+            {
+                genericInteractionRevision = -1;
+                PaymentDraftStateChanged?.Invoke();
+            }
+        }
+
+        public bool CanInvokeSettlement(SettlementOptionView option) =>
+            option == null || option.OwnerEffectId != paymentDraft.OwnerEffectId || paymentDraft.CanConfirm;
+
+        private bool PaymentRequestCurrent(InteractionRequest request) =>
+            !GameplayHudFrame.EffectInputSuspended && paymentDraft.IsScopeCurrent(PaymentScope) && TryGetGenericInteraction(out var current) &&
+            current.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId &&
+            paymentDraft.IsIdentityCurrent(current) && current.StateRevision == paymentDraft.Revision && current.StateRevision == request.StateRevision;
+
+        private void TrySubmitPaymentDraft(InteractionRequest request)
+        {
+            if (!PaymentRequestCurrent(request) || CanSubmitCommand?.Invoke() == false) return;
+            var command = paymentDraft.PrepareCommand(request, getLocalPlayerId());
+            if (command == null) return;
+            PaymentDraftStateChanged?.Invoke();
+            try { submit(command); }
+            catch { NotifyPaymentDraftSettled(command.CommandId, false); throw; }
         }
 
         public void Dispose()
@@ -632,7 +706,8 @@ namespace YC.Presentation
             {
                 InteractionRequest candidate = requests[i];
                 if (candidate != null && candidate.Status == "open" && candidate.AnsweringPlayerId == getLocalPlayerId() &&
-                    (candidate.InteractionTypeId.StartsWith("city_style.special_action", StringComparison.Ordinal) || candidate.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId))
+                    (candidate.InteractionTypeId.StartsWith("city_style.special_action", StringComparison.Ordinal) ||
+                     (candidate.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId && candidate.AnswerSchema == "candidate_id")))
                 {
                     if (!InteractionRequestProjector.ProjectForPlayer(candidate, getLocalPlayerId()).VisibleToViewer) continue;
                     request = candidate;
@@ -661,9 +736,147 @@ namespace YC.Presentation
             renderedRouteId = string.Empty;
             genericInteractionId = string.Empty;
             genericInteractionRevision = -1;
+            paymentDraft.Clear();
+            paymentValues.Clear();
+            PaymentDraftStateChanged?.Invoke();
             selectedMilitarySlotIds.Clear();
             dialog.Hide();
             if (hadPresentation) clearHighlights();
+        }
+    }
+
+    // 只绑定授权请求和主机回执；费用只用于本地完整候选匹配，不作为命令参数。
+    internal sealed class PaymentPageDraftBinding
+    {
+        internal static readonly string[] CostFields = { "originium", "originiumShard", "iron", "pureOriginium", "goldVoucher" };
+        internal static readonly string[] ResourceLabelKeys = { "core:resource.orirock.alt", "core:resource.originium_shard.alt",
+            "core:resource.iron.alt", "core:resource.pure_originium.alt", "core:resource.gold_voucher.alt" };
+        private readonly Dictionary<string, int[]> options = new Dictionary<string, int[]>(StringComparer.Ordinal);
+        private string scope, interaction, candidateSet;
+        private string paymentId, windowId;
+        private int candidateVersion, revision = -1, submittedRevision;
+        private string desired, attempted, pendingCommand, pendingCandidate, observedCandidate;
+        private bool inputValid = true, receiptApplied, canChange;
+        public string OwnerEffectId { get; private set; }
+        public string PreparedCandidate { get; private set; }
+        public int[] InitialCost { get; private set; } = new int[5];
+        public int[] Maximums { get; private set; } = new int[5];
+        public bool CanConfirm => inputValid && pendingCommand == null && desired != null &&
+            desired == PreparedCandidate && desired == observedCandidate;
+        public bool CanChange => canChange;
+        public int Revision => revision;
+        public bool IsScopeCurrent(string currentScope) => scope == currentScope;
+        public IReadOnlyList<int> AuthoritativeCost => observedCandidate != null && options.TryGetValue(observedCandidate, out var cost) ? cost : null;
+
+        internal static NormalizedValue Read(NormalizedValue value, string name) => value?.Kind == NormalizedValueKind.Object
+            ? value.Properties.Find(entry => entry.Name == name)?.Value : null;
+        private static string Text(NormalizedValue value) => value?.Kind == NormalizedValueKind.String ? value.StringValue : null;
+
+        public bool IsIdentityCurrent(InteractionRequest request) => request != null &&
+            request.GetStableInteractionId() == interaction && request.OwnerEffectId == OwnerEffectId &&
+            request.CandidateSetId == candidateSet && request.CandidateSetVersion == candidateVersion;
+
+        public bool Bind(string nextScope, InteractionRequest request)
+        {
+            var sameRequest = nextScope == scope && IsIdentityCurrent(request);
+            if (sameRequest && request.StateRevision <= revision) return false;
+            var host = Read(request.PromptParameters, "paymentDraft");
+            var nextPaymentId = Text(Read(host, "paymentId")); var nextWindowId = Text(Read(host, "windowId"));
+            var changed = !sameRequest || (!string.IsNullOrEmpty(paymentId) &&
+                (paymentId != nextPaymentId || windowId != nextWindowId));
+            if (changed)
+            {
+                Clear(); scope = nextScope; interaction = request.GetStableInteractionId();
+                OwnerEffectId = request.OwnerEffectId; candidateSet = request.CandidateSetId; candidateVersion = request.CandidateSetVersion;
+            }
+            var projected = Read(request.PromptParameters, "paymentOptions");
+            if (projected?.Kind != NormalizedValueKind.Array || projected.Items.Count == 0)
+                throw new InvalidOperationException("付款选择投影缺少结构化费用选项。");
+            options.Clear(); Maximums = new int[5];
+            foreach (var value in projected.Items)
+            {
+                var id = Text(Read(value, "candidateId")); var cost = Read(value, "cost");
+                if (string.IsNullOrEmpty(id) || request.CandidateIds == null || !request.CandidateIds.Contains(id) || options.ContainsKey(id))
+                    throw new InvalidOperationException("付款选择投影包含非授权或重复候选。");
+                var amounts = new int[5];
+                for (var i = 0; i < amounts.Length; i++)
+                {
+                    var amount = Read(cost, CostFields[i]);
+                    if (amount?.Kind != NormalizedValueKind.Integer || amount.IntegerValue < 0 || amount.IntegerValue > int.MaxValue)
+                        throw new InvalidOperationException("付款选择投影包含无效完整费用。");
+                    amounts[i] = (int)amount.IntegerValue; Maximums[i] = Math.Max(Maximums[i], amounts[i]);
+                }
+                options.Add(id, amounts);
+            }
+            if (options.Count != request.CandidateIds.Count) throw new InvalidOperationException("付款候选缺少完整结构化费用。");
+            var change = Read(host, "canChange"); observedCandidate = Text(Read(host, "candidateId"));
+            if (change?.Kind != NormalizedValueKind.Boolean || observedCandidate == null ||
+                (observedCandidate.Length > 0 && (!options.ContainsKey(observedCandidate) ||
+                 string.IsNullOrEmpty(Text(Read(host, "paymentId"))) || string.IsNullOrEmpty(Text(Read(host, "windowId"))))))
+                throw new InvalidOperationException("付款草稿缺少主机身份或可改状态。");
+            canChange = change.BooleanValue;
+            paymentId = nextPaymentId; windowId = nextWindowId;
+            revision = request.StateRevision;
+            if (pendingCommand == null) PreparedCandidate = observedCandidate.Length == 0 ? null : observedCandidate;
+            if (changed)
+            {
+                InitialCost = (int[])options[PreparedCandidate ?? Text(Read(projected.Items[0], "candidateId"))].Clone();
+            }
+            CompleteAcceptedDraft();
+            return changed;
+        }
+
+        public string Match(IReadOnlyList<int> values)
+        {
+            if (values == null || values.Count != 5) return null;
+            string result = null;
+            foreach (var option in options)
+            {
+                var equal = true;
+                for (var i = 0; i < 5; i++) if (values[i] != option.Value[i]) { equal = false; break; }
+                if (!equal) continue;
+                if (result != null) return null;
+                result = option.Key;
+            }
+            return result;
+        }
+
+        public void SetDesired(IReadOnlyList<int> values)
+        {
+            var next = Match(values);
+            if (next == desired) return;
+            desired = next; attempted = null;
+        }
+        public bool SetInputValid(bool value) { if (inputValid == value) return false; inputValid = value; return true; }
+
+        public GameCommand PrepareCommand(InteractionRequest request, int playerId)
+        {
+            if (!IsIdentityCurrent(request) || request.StateRevision != revision || !canChange || !inputValid ||
+                pendingCommand != null || desired == null || (desired == PreparedCandidate && desired == observedCandidate) || desired == attempted) return null;
+            var command = new GameCommand { Kind = GameCommandKind.PreparePaymentDraft, PlayerId = playerId };
+            command.Parameters["ownerEffectId"] = OwnerEffectId; command.Parameters["interactionId"] = interaction;
+            command.Parameters["candidateId"] = desired; command.Parameters["expectedRevision"] = revision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            pendingCommand = command.CommandId; pendingCandidate = desired; attempted = desired; submittedRevision = revision; receiptApplied = false;
+            return command;
+        }
+
+        public bool Settle(string commandId, bool applied)
+        {
+            if (pendingCommand == null || string.IsNullOrEmpty(commandId) || pendingCommand != commandId) return false;
+            if (!applied) { pendingCommand = null; pendingCandidate = null; receiptApplied = false; }
+            else { receiptApplied = true; CompleteAcceptedDraft(); }
+            return true;
+        }
+        private void CompleteAcceptedDraft()
+        {
+            if (!receiptApplied || pendingCommand == null || revision <= submittedRevision || observedCandidate != pendingCandidate) return;
+            PreparedCandidate = observedCandidate; pendingCommand = null; pendingCandidate = null; receiptApplied = false;
+        }
+        public void Clear()
+        {
+            scope = interaction = candidateSet = paymentId = windowId = OwnerEffectId = null; candidateVersion = 0; revision = -1;
+            desired = attempted = pendingCommand = pendingCandidate = observedCandidate = PreparedCandidate = null;
+            inputValid = true; canChange = receiptApplied = false; options.Clear(); InitialCost = new int[5]; Maximums = new int[5];
         }
     }
 }

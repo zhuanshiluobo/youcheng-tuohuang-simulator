@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-08",
+  "linksChecked": 1423,
+  "brokenLinks": [],
+  "assetFilesChangedDuringTask": [
+    "Assets/YC/Tests/PlayMode/ExpansionRules/EnterpriseDepartmentOverlayUiTests.cs"
+  ],
+  "assetFilesChangedDuringTaskNote": "此项仅记录前后指纹变化；该测试文件由并行工作修改，本任务未写入 Assets。",
+  "archiveAccessed": false,
+  "adoptedStandardIds": [
+    "A01",
+    "A02",
+    "U02",
+    "U03"
+  ],
+  "pendingCorrection": "U01",
+  "notImplemented": "M03",
+  "removedObsoleteCandidates": 13,
+  "addedCurrentCandidates": 3
+}

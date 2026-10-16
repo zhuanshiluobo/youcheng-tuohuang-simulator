@@ -1,20 +1,39 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using YC.Domain.Effects;
+using YC.Domain.Items;
 using YC.Domain.Rules;
 using YC.Domain.State;
 
 namespace YC.Domain.Cards
 {
     /// <summary>
-    /// 统一盖放节点中的单人顺序子任务。它只负责一个玩家的牌区迁移、交互和生命周期事件；
-    /// 父主节点负责按固定顺序挂载这些任务并等待全部任务进入终态。
+    /// 统一盖放节点中的本人子任务；父阶段选择新独立组或旧顺序组，并等待必要子树。
     /// </summary>
     public static class CharacterCoverEffectExecutor
     {
         public const string EffectTypeId = "character.cover.task";
         public const string InteractionTypeId = "character.cover.card";
+
+        public static string ValidateArguments(NormalizedValue args)
+        {
+            int version = ItemTransferEffectExecutor.Number(args, "apiVersion");
+            if ((version != 2 && version != 3) ||
+                CharacterLifecycleService.ParsePlayer(ItemTransferEffectExecutor.Text(args, "player")) < 1 || ItemTransferEffectExecutor.Text(args, "cardInstanceId").Length == 0 ||
+                ItemTransferEffectExecutor.Text(args, "coverMode") != "additional" || ItemTransferEffectExecutor.Value(args, "blockedActionRoundSequence")?.Kind != NormalizedValueKind.Integer ||
+                ItemTransferEffectExecutor.Number(args, "blockedActionRoundSequence") < (version == 2 ? 1 : 0)) return "character_cover_arguments_invalid";
+            var allowed = new[] { "kind", "effectTypeId", "apiVersion", "player", "cardInstanceId", "coverMode", "blockedActionRoundSequence" };
+            if (version == 3)
+            {
+                allowed = allowed.Concat(new[] { "acceptedTypeId", "reusable" }).ToArray();
+                if (!new[] { "core.character_card", "core.generated_character_card" }.Contains(ItemTransferEffectExecutor.Text(args, "acceptedTypeId")) ||
+                    ItemTransferEffectExecutor.Value(args, "reusable")?.Kind != NormalizedValueKind.Boolean) return "character_cover_arguments_invalid";
+            }
+            if (args.Properties.Any(entry => !allowed.Contains(entry.Name))) return "character_cover_arguments_invalid";
+            return "";
+        }
 
         public static void Register(EffectRegistry registry)
         {
@@ -35,6 +54,80 @@ namespace YC.Domain.Cards
             if (player == null)
             {
                 return EffectStepResult.Failed("cover_player_missing");
+            }
+            var parentExecution = context.State.EffectRuntime.EffectNodes.Find(node => node.EffectId == context.Node.ParentEffectId);
+            if (RoundExecutionService.IsParallelCoverExecution(parentExecution))
+            {
+                var main = context.State.EffectRuntime.MainNodes.Find(node => node.ExecutionEffectId == parentExecution.EffectId &&
+                    node.NodeId == ReadString(context.Node.NormalizedArguments, "mainNodeId"));
+                var group = parentExecution.ChildSchedulingGroups.Find(candidate => candidate.StableGroupKey == "character_cover_players");
+                if (context.State.Phase != GamePhase.CharacterCover || main == null ||
+                    main.NodeId != context.State.EffectRuntime.ActiveMainNodeId || playerId != context.Node.PlayerId ||
+                    ReadString(parentExecution.NormalizedArguments, "mainNodeId") != main.NodeId ||
+                    !parentExecution.ChildEffectIds.Contains(context.Node.EffectId) ||
+                    group == null || !group.ChildEffectIds.Contains(context.Node.EffectId) ||
+                    group.OwnerEffectId != parentExecution.EffectId || group.ProtocolVersion != 1 || group.Mode != EffectChildSchedulingMode.Independent ||
+                    ItemTransferEffectExecutor.Number(context.Node.NormalizedArguments, "apiVersion") == 2)
+                    return EffectStepResult.Failed("normal_cover_outside_mainline");
+            }
+
+            if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(context.State))
+            {
+                context.Node.Visibility = GameStateVisibilityPolicy.Owner;
+                var args = context.Node.NormalizedArguments;
+                bool additional = ItemTransferEffectExecutor.Number(args, "apiVersion") >= 2;
+                if (additional)
+                {
+                    if (ValidateArguments(args).Length > 0 || CharacterLifecycleService.ParsePlayer(ItemTransferEffectExecutor.Text(args, "player")) != context.Node.PlayerId)
+                        return EffectStepResult.Failed("character_cover_arguments_invalid");
+                    int blocked = ItemTransferEffectExecutor.Number(args, "blockedActionRoundSequence");
+                    if (ItemTransferEffectExecutor.Number(args, "apiVersion") == 3)
+                    {
+                        string source = ContentTransactionEffectExecutor.BoundSource(context);
+                        bool reusable = ItemTransferEffectExecutor.Flag(args, "reusable");
+                        string accepted = ItemTransferEffectExecutor.Text(args, "acceptedTypeId");
+                        if (blocked != (reusable ? 0 : CharacterLifecycleService.GetActionRoundSequence(context.State))) return EffectStepResult.Failed("character_cover_block_sequence_invalid");
+                        string card = ItemTransferEffectExecutor.Text(args, "cardInstanceId");
+                        if (reusable && !context.State.ItemZones.Items.Any(i => i.ItemId == card && context.State.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.LocalZoneId == "hand" && z.OwnerPlayerId == context.Node.PlayerId)))
+                            return EffectStepResult.Failed("character_cover_source_invalid");
+                        context.Node.SourceId = "character-card:" + source;
+                        var committed = CharacterLifecycleService.Cover(context, card, true, blocked, accepted, reusable);
+                        if (committed.PendingOutcome == EffectPendingOutcome.Failed || committed.PendingOutcome == EffectPendingOutcome.None) return committed;
+                        return EffectStepResult.Completed(ItemTransferEffectExecutor.Object("coveredItemId", NormalizedValue.CreateString(card),
+                            "coverSlotId", NormalizedValue.CreateString(context.State.CharacterCoverSlots.Single(slot => slot.CardInstanceId == card).SlotId)));
+                    }
+
+                    if (blocked != CharacterLifecycleService.GetActionRoundSequence(context.State)) return EffectStepResult.Failed("character_cover_block_sequence_invalid");
+                    return CharacterLifecycleService.Cover(context, ItemTransferEffectExecutor.Text(args, "cardInstanceId"), true, blocked);
+                }
+                var state = context.State;
+                var types = ItemTypeRegistry.CreateBuiltIn();
+                var hand = ItemTransferEffectExecutor.FindZone(state, "hand", playerId);
+                var covered = ItemTransferEffectExecutor.FindZone(state, "covered", playerId);
+                if (state.ItemZones.Items.Exists(item => item.ZoneId == covered.ZoneId)) { MarkCompletedPlayer(context, playerId); return EffectStepResult.Completed(CreateResult(playerId, "", false)); }
+                if (context.Node.FlowStage == "awaiting_card")
+                {
+                    string id = ItemTransferEffectExecutor.Answer(context);
+                    var result = CharacterLifecycleService.Cover(context, id, false);
+                    if (result.PendingOutcome == EffectPendingOutcome.Failed) return result;
+                    MarkCompletedPlayer(context, playerId);
+                    bool allCovered = AreAllPlayersCovered(state);
+                    result.AddEvent(new EffectEventRequest { EventId = StableIdFactory.Create("event", context.Node.EffectId, "CharacterCardCovered", playerId.ToString(CultureInfo.InvariantCulture)),
+                        EventType = "CharacterCardCovered", SourceEffectId = context.Node.EffectId, OwnerNodeId = context.Node.EffectId, PlayerId = playerId,
+                        Visibility = GameStateVisibilityPolicy.Public, ResponseKind = RuleEventResponseKind.Effects, SemanticKey = playerId.ToString(CultureInfo.InvariantCulture),
+                        Payload = CreatePublicPayload(state, playerId, id, allCovered), HostOnlyPayload = CreatePrivatePayload(state, playerId, id) });
+                    return result;
+                }
+                if (context.Node.FlowStage.Length != 0) throw new InvalidOperationException("character_cover_stage_invalid");
+                if (!state.ItemZones.Items.Exists(item => item.ZoneId == hand.ZoneId && types.IsAssignableTo(item.TypeId, "core.character_card")))
+                {
+                    var recycled = CharacterLifecycleService.Recycle(context, playerId, true, Array.Empty<string>());
+                    if (recycled.PendingOutcome == EffectPendingOutcome.Failed) return recycled;
+                }
+                var request = new EffectInteractionSpec { InteractionTypeId = InteractionTypeId, AnsweringPlayerId = playerId, Visibility = "owner", PromptKey = "character.cover.choose", MinSelections = 1, MaxSelections = 1, AnswerSchema = "candidate_id" };
+                request.CandidateIds.AddRange(state.ItemZones.Items.FindAll(item => item.ZoneId == hand.ZoneId && types.IsAssignableTo(item.TypeId, "core.character_card")).ConvertAll(item => item.ItemId));
+                if (request.CandidateIds.Count == 0) return EffectStepResult.Failed("cover_no_character_card");
+                return EffectStepResult.Continue("awaiting_card").AddInteraction(ItemTransferEffectExecutor.PrepareInteraction(context, request));
             }
 
             if (!string.IsNullOrEmpty(player.CoveredCharacterCardId))
@@ -155,6 +248,11 @@ namespace YC.Domain.Cards
             if (!mainNode.CompletedPlayerIds.Contains(playerId))
             {
                 mainNode.CompletedPlayerIds.Add(playerId);
+            }
+            if (RoundExecutionService.IsParallelCoverExecution(parent))
+            {
+                mainNode.ActiveTaskPlayerId = -1;
+                return;
             }
 
             IList<int> order = context.State.EffectRuntime.PlayerOrderSnapshot;

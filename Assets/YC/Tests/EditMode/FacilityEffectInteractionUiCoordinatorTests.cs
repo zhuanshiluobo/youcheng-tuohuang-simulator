@@ -145,7 +145,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void Synchronize_ChangedSession_RebuildsOverlayAndResetsTradeInput()
+        public void Synchronize_ChangedSession_RefreshesOverlayAndResetsTradeInput()
         {
             var state = CreateState("facility-session-1", FacilityPendingChoiceTypes.ScenarioId);
             var fixture = CreateCoordinator(state);
@@ -160,7 +160,7 @@ namespace YC.Tests.EditMode
 
             var rebuiltOverlay = GetOverlay(fixture.Dialog);
             Assert.That(rebuiltOverlay, Is.Not.Null);
-            Assert.That(rebuiltOverlay, Is.Not.SameAs(firstOverlay));
+            Assert.That(rebuiltOverlay.activeInHierarchy, Is.True);
             Assert.That(GetText(rebuiltOverlay, "Value 0"), Is.EqualTo("0"));
         }
 
@@ -236,7 +236,7 @@ namespace YC.Tests.EditMode
             state.PendingCardSession = CreatePending("event-session", "explore_event");
 
             Assert.That(Synchronize(fixture.Coordinator), Is.False);
-            Assert.That(GetOverlay(fixture.Dialog), Is.Null);
+            Assert.That(GetOverlay(fixture.Dialog)?.activeInHierarchy ?? false, Is.False);
         }
 
         [Test]
@@ -551,7 +551,7 @@ namespace YC.Tests.EditMode
             state.PendingCardSession = null;
 
             Assert.That(Synchronize(fixture.Coordinator), Is.False);
-            Assert.That(GetOverlay(fixture.Dialog), Is.Null);
+            Assert.That(GetOverlay(fixture.Dialog)?.activeInHierarchy ?? false, Is.False);
         }
 
         [Test]

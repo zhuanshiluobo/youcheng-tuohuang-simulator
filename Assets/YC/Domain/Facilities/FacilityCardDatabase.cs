@@ -7,6 +7,16 @@ namespace YC.Domain.Facilities
 {
     public static class FacilityCardDatabase
     {
+        public static FacilityCardDefinition Get(GameState state, string id)
+        {
+            if (state?.ContentDefinitions == null) return Get(id);
+            return GameStateCloneService.DeepClone(state.ContentDefinitions.Facilities.Find(value => value.FacilityId == YC.Domain.Rules.GameContentDefinitions.ResolveDefinitionId(state, id)));
+        }
+        public static bool TryGet(GameState state, string id, out FacilityCardDefinition definition)
+        {
+            if (state?.ContentDefinitions == null) return TryGet(id, out definition);
+            definition = GameStateCloneService.DeepClone(state.ContentDefinitions.Facilities.Find(value => value.FacilityId == YC.Domain.Rules.GameContentDefinitions.ResolveDefinitionId(state, id))); return definition != null;
+        }
         public const string CoreCommandTower = "reserve_001";
         public const string BoroughAdministrativeDistrict = "building_001";
         public const string AffiliatedEnergyFacility = "building_004";
@@ -109,18 +119,28 @@ namespace YC.Domain.Facilities
         }
 
         public static bool PlayerHasBuiltUniqueFacility(PlayerState player, FacilityCardDefinition facility)
+            => PlayerHasBuiltUniqueFacility(null, player, facility);
+        public static bool PlayerHasBuiltUniqueFacility(GameState state, PlayerState player, FacilityCardDefinition facility)
         {
-            EnsureInitialized();
+            return PlayerHasBuiltUniqueFacility(state, player, facility, null);
+        }
+
+        internal static bool PlayerHasBuiltUniqueFacility(
+            GameState state, PlayerState player, FacilityCardDefinition facility, BuildFacilityService.ReadOnlyQuery query)
+        {
+            if (state?.ContentDefinitions == null) EnsureInitialized();
             if (player == null || facility == null || !facility.Unique)
             {
                 return false;
             }
 
             var uniqueGroupId = GetUniqueGroupId(facility);
-            for (var i = 0; i < player.BuiltFacilityIds.Count; i++)
+            var builtFacilityIds = query == null ? null : query.GetBuiltFacilityIds(player);
+            for (var i = 0; i < (query == null ? player.BuiltFacilityIds.Count : builtFacilityIds.Length); i++)
             {
                 FacilityCardDefinition builtFacility;
-                if (!TryGet(player.BuiltFacilityIds[i], out builtFacility) ||
+                var builtId = query == null ? player.BuiltFacilityIds[i] : builtFacilityIds[i];
+                if (!(query == null ? TryGet(state, builtId, out builtFacility) : query.TryGetFacility(builtId, out builtFacility)) ||
                     !builtFacility.Unique)
                 {
                     continue;

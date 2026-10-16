@@ -216,7 +216,7 @@ namespace YC.Presentation
             var instance = UnityEngine.Object.Instantiate(cityStyleDeclarationPreviewPrefab,
                 frame == null || frame.ContentRect == null ? parent : frame.ContentRect, false);
             instance.transform.SetAsLastSibling();
-            if (frame != null) frame.ShowPage(instance.gameObject, false);
+            if (frame != null) frame.ShowInformationPage(instance.gameObject);
             else instance.gameObject.SetActive(true);
             return instance;
         }

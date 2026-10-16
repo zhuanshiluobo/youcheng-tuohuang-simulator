@@ -1,0 +1,79 @@
+{
+  "definitionId": "operator.w",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "W",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/operator_faces.jpg",
+  "artworkSpriteId": "operator.w.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "operator.w.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.operator.w.strategy",
+      "script": "lua/characters/operator.w.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "lua/characters/operator.w.strategy.lua",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "operator.w.strategy.cleanup_order",
+        "availabilityHandlerId": "operator.w.strategy.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.operator.w.strategy.label"
+          },
+          "description": {
+            "key": "core:settlement.operator.w.strategy.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.operator.w.strategy.label"
+          },
+          "iconKey": "core:settlement.chain_defer",
+          "contentMode": "icon_text"
+        },
+        "wholeEffectPolicy": "required"
+      }
+    },
+    {
+      "abilityId": "operator.w.tactic",
+      "mode": "tactic",
+      "skillType": "one_shot",
+      "subscriptionId": "content.operator.w.tactic",
+      "script": "lua/characters/operator.w.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "operator.w",
+    "cardId": "operator.w",
+    "name": "W",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "operator.w.strategy",
+    "tacticAbilityId": "operator.w.tactic",
+    "playerDetails": [
+      {
+        "abilityId": "operator.w.strategy",
+        "effectText": "策略·伺机出动：放置3个你的影响力；本回合收尾阶段移除自己的2个影响力，可选择任意己方影响力。来源角色离场不取消已经登记的收尾义务。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Delayed",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "W"
+      }
+    ]
+  }
+}

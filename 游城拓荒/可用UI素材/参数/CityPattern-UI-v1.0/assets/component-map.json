@@ -1,0 +1,116 @@
+{
+  "canvas": [
+    1920,
+    1080
+  ],
+  "components": [
+    {
+      "role": "window-frame",
+      "path": "shared/02-modules/module-frame.png",
+      "kind": "transparent-nine-slice",
+      "border": [
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "role": "window-fill",
+      "path": "shared/02-modules/module-fill-dark.png",
+      "kind": "independent-background"
+    },
+    {
+      "role": "section-frame",
+      "path": "shared/02-modules/module-frame.png",
+      "kind": "transparent-nine-slice",
+      "border": [
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "role": "section-fill",
+      "path": "shared/02-modules/module-fill-dark.png",
+      "kind": "independent-background"
+    },
+    {
+      "role": "card-selected-frame",
+      "path": "assets/frame-selected.png",
+      "kind": "transparent-nine-slice",
+      "border": [
+        20,
+        20,
+        20,
+        20
+      ]
+    },
+    {
+      "role": "card-available-frame",
+      "path": "assets/frame-available.png",
+      "kind": "transparent-nine-slice",
+      "border": [
+        20,
+        20,
+        20,
+        20
+      ]
+    },
+    {
+      "role": "unavailable-frame",
+      "path": "assets/frame-unavailable.png",
+      "kind": "transparent-nine-slice",
+      "border": [
+        20,
+        20,
+        20,
+        20
+      ]
+    },
+    {
+      "role": "confirm-art",
+      "path": "shared/card-picker/button-primary.png",
+      "kind": "unchanged-original-button",
+      "visibleRect": [
+        35,
+        102,
+        1916,
+        582
+      ]
+    },
+    {
+      "role": "cancel-art",
+      "path": "shared/card-picker/button-secondary.png",
+      "kind": "unchanged-original-button",
+      "visibleRect": [
+        35,
+        102,
+        1916,
+        582
+      ]
+    }
+  ],
+  "markerColors": {
+    "green": "#5FD200",
+    "yellow": "#FFBF00",
+    "blue": "#006CFF",
+    "red": "#EC0000"
+  },
+  "layering": [
+    "modal-shade",
+    "fill",
+    "frame",
+    "unchanged-original-card-and-city-content",
+    "state-panel-overlay",
+    "player-markers",
+    "runtime-text",
+    "transparent-interaction-hotspots"
+  ],
+  "notes": [
+    "All six original pattern cards remain separate from runtime markers.",
+    "Two type-II used slots and additional declaration markers have independent identities.",
+    "Exact geometry and source overlays are authoritative in preview/data.js and scene.js."
+  ]
+}

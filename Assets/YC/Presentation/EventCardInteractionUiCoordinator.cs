@@ -33,6 +33,8 @@ namespace YC.Presentation
         private int renderedRevision = -1;
         private bool needsRefresh;
         private string inFlightCommandId = string.Empty;
+        private bool ownsPresentation;
+        private bool ownsDialog;
         public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
 
         public EventCardInteractionUiCoordinator(
@@ -96,6 +98,7 @@ namespace YC.Presentation
             renderedInteractionId = projection.InteractionId;
             renderedRevision = projection.StateRevision;
             needsRefresh = false;
+            ownsPresentation = true;
             selectedInfluenceSlots.RemoveAll(id => projection.CandidateIds == null || !projection.CandidateIds.Contains(id));
             clearHighlights();
 
@@ -105,7 +108,7 @@ namespace YC.Presentation
             }
             else
             {
-                dialog.Hide();
+                HideOwnedDialog();
                 setHighlights(BuildInfluenceHighlights(projection.CandidateIds));
                 setPrompt("请选择事件牌要求的影响力目标。" +
                           (projection.MinSelections > 1
@@ -200,22 +203,32 @@ namespace YC.Presentation
             needsRefresh = false;
             inFlightCommandId = string.Empty;
             selectedInfluenceSlots.Clear();
-            dialog.Hide();
+            if (!ownsPresentation) return;
+            ownsPresentation = false;
+            HideOwnedDialog();
             clearHighlights();
+        }
+
+        private void HideOwnedDialog()
+        {
+            if (!ownsDialog) return;
+            ownsDialog = false;
+            dialog.Hide();
         }
 
         private void RenderOptionInteraction(InteractionRequestProjection projection)
         {
             string cardId = ReadString(projection.PromptParameters, "cardId");
-            var card = EventCardDatabase.Get(cardId);
+            var card = EventCardDatabase.Get(getState(), cardId);
             if (card == null)
             {
-                dialog.Hide();
+                HideOwnedDialog();
                 setPrompt("待处理事件牌不存在：" + cardId);
                 return;
             }
 
             dialog.SetChoiceHighlightColor(UiTheme.CyanAccent);
+            ownsDialog = true;
             dialog.ShowEventCardOptions(
                 card,
                 string.Empty,
@@ -291,7 +304,8 @@ namespace YC.Presentation
             var command = EffectInteractionCommands.Answer(projection, getLocalPlayerId(), selected);
 
             inFlightCommandId = command.CommandId;
-            dialog.Hide();
+            ownsPresentation = false;
+            HideOwnedDialog();
             clearHighlights();
             try
             {

@@ -34,6 +34,21 @@ namespace YC.Presentation.Workflows
                 throw new ArgumentNullException(nameof(workflow));
             }
 
+            Activate(workflow, workflow.Activate);
+        }
+
+        public void Activate(IInteractionWorkflow workflow, Action begin)
+        {
+            if (workflow == null)
+            {
+                throw new ArgumentNullException(nameof(workflow));
+            }
+
+            if (begin == null)
+            {
+                throw new ArgumentNullException(nameof(begin));
+            }
+
             if (ReferenceEquals(activeWorkflow, workflow))
             {
                 return;
@@ -43,7 +58,7 @@ namespace YC.Presentation.Workflows
             activeWorkflow = workflow;
             try
             {
-                workflow.Activate();
+                begin();
             }
             catch
             {

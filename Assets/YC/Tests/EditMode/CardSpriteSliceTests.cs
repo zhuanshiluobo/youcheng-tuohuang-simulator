@@ -24,8 +24,7 @@ namespace YC.Tests.EditMode
             foreach (var path in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
             {
                 var relative = path.Substring(source.Length + 1);
-                if (relative.EndsWith(".meta") || relative.Replace('\\', '/').StartsWith("artwork/") &&
-                    !relative.Replace('\\', '/').StartsWith("artwork/sheets/")) continue;
+                if (relative.EndsWith(".meta")) continue;
                 var target = Path.Combine(root, relative);
                 Directory.CreateDirectory(Path.GetDirectoryName(target));
                 File.Copy(path, target);
@@ -51,10 +50,10 @@ namespace YC.Tests.EditMode
         {
             var document = JObject.Parse(originalRegistry);
             var entries = document["slices"].ToList();
-            Assert.That(document["sheets"].Sum(s => (int)s["rows"] * (int)s["columns"]), Is.EqualTo(101));
+            Assert.That(document["sheets"].Sum(s => (int)s["rows"] * (int)s["columns"]), Is.EqualTo(121));
             Assert.That(document["sheets"].Sum(s => s["skippedCells"].Count()), Is.EqualTo(7));
-            Assert.That(entries.Count, Is.EqualTo(94));
-            foreach (var group in new[] { ("city_style", 12), ("character", 7), ("facility", 51), ("event", 24) })
+            Assert.That(entries.Count, Is.EqualTo(114));
+            foreach (var group in new[] { ("city_style", 12), ("character", 15), ("facility", 51), ("event", 24), ("enterprise", 8), ("department", 3), ("component", 1) })
                 Assert.That(entries.Count(e => (string)e["contentType"] == group.Item1), Is.EqualTo(group.Item2));
             var pack = ExternalContentPack.Load(root);
             Assert.That(pack.ActiveDefinitions.Count, Is.EqualTo(78));
@@ -73,20 +72,20 @@ namespace YC.Tests.EditMode
 
         [TestCase(false)]
         [TestCase(true)]
-        public void MissingEnterpriseRules_NeverActivateImagesOrDuplicateBaseEvents(bool enterprise)
+        public void EnabledEnterpriseUsesRegisteredArtworkAndUniqueReplacementEvents(bool enterprise)
         {
             var manifest = JObject.Parse(originalManifest);
             manifest["enabledExpansionIds"] = enterprise ? new JArray("core", "enterprise") : new JArray("core");
             File.WriteAllText(Path.Combine(root, "pack.json"), manifest.ToString());
             var pack = ExternalContentPack.Load(root);
-            Assert.That(pack.ActiveDefinitions.All(d => d.ExpansionId == "core"), Is.True);
+            Assert.That(pack.ActiveDefinitions.Count(d => d.ExpansionId == "enterprise"), Is.EqualTo(enterprise ? 33 : 0));
             Assert.That(pack.CreateEvents().Count, Is.EqualTo(22));
-            Assert.That(pack.FindArtworkSlice("event", "event_yellow_02").Id, Is.EqualTo("event_yellow_002"));
-            Assert.That(pack.FindArtworkSlice("event", "event_red_03").Id, Is.EqualTo("event_red_003"));
+            Assert.That(pack.FindArtworkSlice("event", "event_yellow_02").Id, Is.EqualTo(enterprise ? "event_yellow_012" : "event_yellow_002"));
+            Assert.That(pack.FindArtworkSlice("event", "event_red_03").Id, Is.EqualTo(enterprise ? "event_red_007" : "event_red_003"));
             var entries = JObject.Parse(originalRegistry)["slices"].ToList();
-            var missing = entries.Where(e => (string)e["expansionId"] == "enterprise").ToList();
-            Assert.That(missing.Count, Is.EqualTo(13));
-            Assert.That(missing.All(e => (string)e["ruleStatus"] == "missing"), Is.True);
+            var implemented = entries.Where(e => (string)e["expansionId"] == "enterprise").ToList();
+            Assert.That(implemented.Count, Is.EqualTo(33));
+            Assert.That(implemented.All(e => (string)e["ruleStatus"] == "implemented"), Is.True);
             Assert.That(entries.Single(e => (string)e["id"] == "event_yellow_012")["replaces"]["definitionId"].Value<string>(), Is.EqualTo("event_yellow_02"));
             Assert.That(entries.Single(e => (string)e["id"] == "event_red_007")["replaces"]["definitionId"].Value<string>(), Is.EqualTo("event_red_03"));
         }
@@ -123,13 +122,13 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void SpriteCache_UsesSevenFullResolutionTexturesAndReleasesOwnedObjects()
+        public void SpriteCache_UsesRegisteredFullResolutionTexturesAndReleasesOwnedObjects()
         {
             var method = Runtime.GetMethod("GetRegisteredArtworkSprite");
             var sprites = JObject.Parse(originalRegistry)["slices"].Select(e =>
                 (Sprite)method.Invoke(null, new object[] { (string)e["id"] })).ToList();
-            Assert.That(sprites.Count, Is.EqualTo(94));
-            Assert.That(sprites.Select(s => s.texture).Distinct().Count(), Is.EqualTo(7));
+            Assert.That(sprites.Count, Is.EqualTo(114));
+            Assert.That(sprites.Select(s => s.texture).Distinct().Count(), Is.EqualTo(13));
             Assert.That(method.Invoke(null, new object[] { "facility_022" }), Is.SameAs(sprites.Single(s => s.name == "facility_022")));
             Assert.That(sprites.Single(s => s.name == "facility_051").texture.width, Is.EqualTo(5400));
             Assert.That(sprites.All(s => !s.texture.isReadable && s.texture.mipmapCount == 1), Is.True);

@@ -1,0 +1,49 @@
+{
+  "definitionId": "mountain",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "山",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/character_faces.jpg",
+  "artworkSpriteId": "character_007",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.basic_character_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "mountain.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.mountain.strategy",
+      "script": "lua/characters/mountain.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "mountain.tactic",
+      "mode": "tactic",
+      "skillType": "normal",
+      "subscriptionId": "content.mountain.tactic",
+      "script": "lua/characters/mountain.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "mountain",
+    "cardId": "mountain",
+    "name": "山",
+    "acquisitionRole": "initial",
+    "instanceTypeId": "core.basic_character_card",
+    "strategyAbilityId": "mountain.strategy",
+    "tacticAbilityId": "mountain.tactic"
+  }
+}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using YC.Domain.Effects;
 using YC.Domain.Facilities;
@@ -25,7 +25,7 @@ namespace YC.Infrastructure.Lua
             {
                 if (!registration.HasEntryEffect || registry.HasEventHandler(registration.SubscriptionId)) continue;
                 string source = pack.GetFacilityScript(registration.EffectId);
-                var dispatcher = new LuaEffectEventDispatcher(registry);
+                var dispatcher = new LuaEffectEventDispatcher(registry, compiler: new LuaEffectSpecCompiler(presentationPack: pack));
                 var content = pack.ActiveDefinitions.First(d => d.ContentType == "facility" && (string)d.Data["effectId"] == registration.EffectId);
                 string continuation = (string)content.Data["completionHandlerId"] ?? "";
                 if (continuation.Length > 0)

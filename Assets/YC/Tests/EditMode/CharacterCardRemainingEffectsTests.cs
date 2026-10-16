@@ -1035,49 +1035,56 @@ namespace YC.Tests.EditMode
             int playerCount, bool noInfluence, bool finalRound)
         {
             var state = CreateActionState(CharacterCardDatabase.Liskarm);
-            state.Phase = GamePhase.Cleanup;
             state.MaxRounds = finalRound ? 1 : 8;
-            state.MapId = StaticMapDefinitions.FourPlayerMapId;
-            var map = StaticMapDefinitions.Resolve(state.MapId);
-            for (var id = 2; id <= playerCount; id++)
-                state.Players.Add(new PlayerState { PlayerId = id });
-            // 起始玩家先收尾，随后轮到非当前行动玩家，复现多人连续结算。
-            for (var id = 1; id <= playerCount; id++)
-            {
-                state.DelayedCharacterEffects.Add(new DelayedCharacterEffectState
-                {
-                    PlayerId = id, CardId = CharacterCardDatabase.Liskarm,
-                    EffectType = CharacterPendingChoiceTypes.LiskarmCleanupRemoval
-                });
-                if (!noInfluence)
-                    state.Map.Influences.Add(InfluenceAt(id,
-                        InfluenceService.GetRouteSlotId(map.Routes[id - 1].RouteId, 0), string.Empty, map.Routes[id - 1].RouteId));
-            }
+            for (int id = 2; id <= playerCount; id++)
+                state.Players.Add(new PlayerState { PlayerId = id, Color = (PlayerColor)(id - 1),
+                    CoveredCharacterCardId = "character." + ((PlayerColor)(id - 1)).ToString().ToLowerInvariant() + ".p" + id + ".liskarm" });
+            var registry = new YC.Domain.Effects.EffectRegistry();
+            var round = new RoundExecutionService(registry);
+            YC.Domain.Effects.InfluenceEffectExecutor.Register(registry,
+                new InfluenceService(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap())));
+            YC.Infrastructure.Lua.CharacterCardLuaCatalog.Register(registry);
+            Assert.That(round.PrepareActionWindowForSmoke(state, 1).IsValid, Is.True);
+            var answerHandler = new YC.Application.Interactions.AnswerInteractionCommandHandler(registry, round);
             var resolver = new YC.Presentation.Workflows.LocalPlayerResolver();
-            var end = new EndActionCommandHandler();
-            var resolve = new UseCharacterCardCommandHandler();
-            var localId = 1;
-            for (var id = 1; id <= playerCount && !noInfluence; id++)
+            // 每名玩家真实发动策略，注册本回合收尾义务；不再手写已退休的 DelayedCharacterEffects。
+            for (int id = 1; id <= playerCount; id++)
             {
-                localId = resolver.Resolve(state, localId, true);
-                Assert.That(end.Handle(state, new GameCommand
+                var use = new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = id };
+                use.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = state.FindPlayer(id).CoveredCharacterCardId;
+                use.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] = CharacterEffectModes.Strategy;
+                var result = new UseCharacterCardCommandHandler(new CharacterCardService(), registry).Handle(state, use);
+                Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+                for (int placement = 0; placement < 2; placement++)
                 {
-                    Kind = GameCommandKind.EndAction, PlayerId = localId
-                }).Succeeded, Is.True);
-                localId = resolver.Resolve(state, localId, true);
-                Assert.That(localId, Is.EqualTo(id));
-                var command = new GameCommand { Kind = GameCommandKind.ResolvePendingChoice, PlayerId = localId };
-                command.Parameters[CharacterEffectParameterKeys.TargetInfluenceSlotId] =
-                    state.PendingCharacterEffect.OptionIds[0];
-                Assert.That(resolve.Handle(state, command).Succeeded, Is.True);
-                Assert.That(state.PendingCharacterEffect, Is.Null);
-                Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+                    var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.place.target");
+                    Assert.That(request, Is.Not.Null);
+                    var answer = YC.Application.Interactions.EffectInteractionCommands.Answer(
+                        YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, id), id, new[] { request.CandidateIds[0] });
+                    var accepted = answerHandler.Handle(state, answer);
+                    Assert.That(accepted.Succeeded, Is.True, accepted.Validation?.Reason);
+                }
+                Assert.That(round.CompleteMainAction(state, id).IsValid, Is.True);
             }
-            Assert.That(end.Handle(state, new GameCommand
+            if (noInfluence) state.Map.Influences.Clear();
+            for (int id = 1; id <= playerCount; id++) Assert.That(round.CompleteMainAction(state, id).IsValid, Is.True);
+            RoundLifecycleTestDriver.FinishCollection(state, round);
+            for (int id = 1; id <= playerCount && !noInfluence; id++)
             {
-                Kind = GameCommandKind.EndAction, PlayerId = resolver.Resolve(state, localId, true)
-            }).Succeeded, Is.True);
-            Assert.That(state.HasPendingChoice(), Is.False);
+                Assert.That(state.Phase, Is.EqualTo(GamePhase.Cleanup));
+                int localId = resolver.Resolve(state, 1, true);
+                Assert.That(localId, Is.EqualTo(id));
+                Assert.That(resolver.Resolve(state, 1, false), Is.EqualTo(1), "联机身份不能随收尾玩家改变。");
+                var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.remove.target");
+                Assert.That(request, Is.Not.Null);
+                Assert.That(request.AnsweringPlayerId, Is.EqualTo(id));
+                var answer = YC.Application.Interactions.EffectInteractionCommands.Answer(
+                    YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, id), id, new[] { request.CandidateIds[0] });
+                var accepted = answerHandler.Handle(state, answer);
+                Assert.That(accepted.Succeeded, Is.True, accepted.Validation?.Reason);
+            }
+            Assert.That(state.Map.Influences.Count, Is.EqualTo(noInfluence ? 0 : playerCount));
+            Assert.That(state.PendingCharacterEffect, Is.Null);
             Assert.That(state.DelayedCharacterEffects, Is.Empty);
             Assert.That(state.Phase, Is.EqualTo(finalRound ? GamePhase.FinalScoring : GamePhase.CharacterCover));
         }
@@ -1089,6 +1096,7 @@ namespace YC.Tests.EditMode
             player.CoveredCharacterCardId = cardId;
             return new GameState
             {
+                MapId = StaticMapDefinitions.FourPlayerMapId,
                 Phase = GamePhase.ActionRound1,
                 Round = 1,
                 ActionRound = 1,

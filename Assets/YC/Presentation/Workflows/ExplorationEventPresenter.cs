@@ -47,6 +47,7 @@ namespace YC.Presentation.Workflows
         private string additionalExploreOptionId = string.Empty;
         private int lastInfluenceInputFrame = -1;
         private int syntheticInputFrame = int.MinValue;
+        public Action BeginRouteSelection { private get; set; }
 
         public ExplorationEventPresenter(
             IGameplayContext context,
@@ -195,6 +196,12 @@ namespace YC.Presentation.Workflows
         {
             ClearWorkflowState();
             view.HideEventOptions();
+            if (BeginRouteSelection != null && additionalExplorePending == null)
+            {
+                SetStage(ExplorationStage.Inactive);
+                BeginRouteSelection();
+                return;
+            }
             SetStage(ExplorationStage.SelectingTarget);
 
             var highlights = BuildExplorableLocationHighlights();
@@ -430,8 +437,11 @@ namespace YC.Presentation.Workflows
 
         public void Cancel()
         {
+            var ownedPresentation = IsActive;
             ClearWorkflowState();
             ClearAdditionalExploreSource();
+            // 同步会清理无关的探索页；未活动的探索不能清别的行动高亮或切换其工作流。
+            if (!ownedPresentation) return;
             view.HideEventOptions();
             view.ClearHighlights();
             SetStage(ExplorationStage.Inactive);

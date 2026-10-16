@@ -1,0 +1,551 @@
+{
+  "version": "1.0",
+  "alpha": "straight",
+  "colorSpace": "sRGB",
+  "sliceOrder": [
+    "left",
+    "top",
+    "right",
+    "bottom"
+  ],
+  "assets": {
+    "window-fill": {
+      "svg": "assets/window/window-fill.svg",
+      "size": [
+        1560,
+        920
+      ],
+      "png": [
+        {
+          "path": "assets/window/window-fill.png",
+          "width": 1560,
+          "height": 920,
+          "scale": 1,
+          "sha256": "f328bd1ab007e9759aad4e329a03d6ee1732c7bbc62edcd30bb7a20c7229188c"
+        },
+        {
+          "path": "assets/window/window-fill@2x.png",
+          "width": 3120,
+          "height": 1840,
+          "scale": 2,
+          "sha256": "58063f682bdfde08d843b4fb9e1bea791929537628133384f146a2aec3e60734"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "opaque-window-fill",
+      "textBakedIn": false,
+      "svgSHA256": "a3c48a2e0db858e866d935901c163c862d219cb51531c79c0393dc0c088322fc"
+    },
+    "window-frame": {
+      "svg": "assets/window/window-frame.svg",
+      "size": [
+        512,
+        320
+      ],
+      "png": [
+        {
+          "path": "assets/window/window-frame.png",
+          "width": 512,
+          "height": 320,
+          "scale": 1,
+          "sha256": "54928e03f9abfc0004b1c8386ed49586764dc8c507f7f6aa551469f1ea3856fa"
+        },
+        {
+          "path": "assets/window/window-frame@2x.png",
+          "width": 1024,
+          "height": 640,
+          "scale": 2,
+          "sha256": "8a52810386ca2ad003ab50e267abca1e122d2654d988410dbd1a0f13ee3cffc4"
+        }
+      ],
+      "sliceLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "role": "transparent-window-frame",
+      "textBakedIn": false,
+      "svgSHA256": "8cb476b8cca5665eecf4207a4b2fee5119f0f342c4255760c049a23e27af7f4f"
+    },
+    "header-fill": {
+      "svg": "assets/header/header-fill.svg",
+      "size": [
+        1528,
+        116
+      ],
+      "png": [
+        {
+          "path": "assets/header/header-fill.png",
+          "width": 1528,
+          "height": 116,
+          "scale": 1,
+          "sha256": "bd35bac1bdb1fcc7e6a948e791b1dc6083043a6d9668c275d6da19a39a90270c"
+        },
+        {
+          "path": "assets/header/header-fill@2x.png",
+          "width": 3056,
+          "height": 232,
+          "scale": 2,
+          "sha256": "182e725d905dd711f5f566d449dfd00bdfa0f6e95296e2ab60a77a8a9602c0cf"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "header-fill",
+      "textBakedIn": false,
+      "svgSHA256": "5d7da50f899e0334c294f3245f51387cec5550e459431b48d36a67d3f257f5c8"
+    },
+    "header-accent": {
+      "svg": "assets/header/header-accent.svg",
+      "size": [
+        4,
+        48
+      ],
+      "png": [
+        {
+          "path": "assets/header/header-accent.png",
+          "width": 4,
+          "height": 48,
+          "scale": 1,
+          "sha256": "0d0722daa427da8ceb88726ef99cd0e4310136fb10b2dcc4fbfd6b6460186c27"
+        },
+        {
+          "path": "assets/header/header-accent@2x.png",
+          "width": 8,
+          "height": 96,
+          "scale": 2,
+          "sha256": "151b9d0c66b1e7b63fefe828ae4ee24a8737c5ab9bedf5769dc6b51a3fb312e5"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "accent",
+      "textBakedIn": false,
+      "svgSHA256": "84e99233dad8c8f6f1cc934646450f7c451fe4d5df9a125082c19b3c3046f573"
+    },
+    "header-icon": {
+      "svg": "assets/header/region-icon.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/header/region-icon.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1,
+          "sha256": "4caa2cbb3e8e62c9f9f5e3995029c5a93bf35f40a082c329889cd46c1dbfb262"
+        },
+        {
+          "path": "assets/header/region-icon@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2,
+          "sha256": "c2e30fb22fec9404d0fd17e9ca78b4459279ef8fa4fc87d9d02e94682cf651a2"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "header-icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "svgSHA256": "b31ab8dea2abc98ed1da5df8c5f6be1341dc714c9a601d107b790a31068de964"
+    },
+    "table-head": {
+      "svg": "assets/table/table-head.svg",
+      "size": [
+        512,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/table/table-head.png",
+          "width": 512,
+          "height": 64,
+          "scale": 1,
+          "sha256": "2712671a93069b4973b41908052e511aa1499423f519ebf666e8467836e6c080"
+        },
+        {
+          "path": "assets/table/table-head@2x.png",
+          "width": 1024,
+          "height": 128,
+          "scale": 2,
+          "sha256": "d3dd568266a11a880e9cc5ab97f54b968ea39f49a16a9f3f35fb15c1ebf39c04"
+        }
+      ],
+      "sliceLTRB": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "role": "table-header",
+      "textBakedIn": false,
+      "svgSHA256": "93b884341e25d5b9dbdc9f0c8c859996509fa4f1f93dee8eed5e7a008f6e3109"
+    },
+    "row-even": {
+      "svg": "assets/table/row-even.svg",
+      "size": [
+        512,
+        70
+      ],
+      "png": [
+        {
+          "path": "assets/table/row-even.png",
+          "width": 512,
+          "height": 70,
+          "scale": 1,
+          "sha256": "be3fdc11caee82139809e1e5c9382c5e9f9c7bb1145ee3782107fd22777c8543"
+        },
+        {
+          "path": "assets/table/row-even@2x.png",
+          "width": 1024,
+          "height": 140,
+          "scale": 2,
+          "sha256": "f9b1b0b41d265a367814d73a033b6afe2bcbe652fc9d48a4922669e2770e9a86"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "row-fill",
+      "textBakedIn": false,
+      "svgSHA256": "869f884331a0a5f9b1194dce9f8e7e74403730f259a53cfa84e5ff789478c352"
+    },
+    "row-odd": {
+      "svg": "assets/table/row-odd.svg",
+      "size": [
+        512,
+        70
+      ],
+      "png": [
+        {
+          "path": "assets/table/row-odd.png",
+          "width": 512,
+          "height": 70,
+          "scale": 1,
+          "sha256": "88a28a9d8842ff2dd6f2fa9054cdcf1e805dca2b1d5ea9464ff26a32b566f876"
+        },
+        {
+          "path": "assets/table/row-odd@2x.png",
+          "width": 1024,
+          "height": 140,
+          "scale": 2,
+          "sha256": "f1466e2e1ccdc75e711466bcad65f7fb09d175174c9bfe896f40da05d6081891"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "row-fill",
+      "textBakedIn": false,
+      "svgSHA256": "de0d62f82eb62546d3c430cdfb325b1b9a6548c3c7a5b11211b7b73e23784281"
+    },
+    "horizontal-rule": {
+      "svg": "assets/table/horizontal-rule.svg",
+      "size": [
+        512,
+        2
+      ],
+      "png": [
+        {
+          "path": "assets/table/horizontal-rule.png",
+          "width": 512,
+          "height": 2,
+          "scale": 1,
+          "sha256": "350c14f0cf3f262d0906e5af9a93f29b7f5cd9a107f1b86269d08c4d35894743"
+        },
+        {
+          "path": "assets/table/horizontal-rule@2x.png",
+          "width": 1024,
+          "height": 4,
+          "scale": 2,
+          "sha256": "3c312505454cdcd617b60263865be84b7ca5ba0c866d48017b70dedfdb8592f5"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "horizontal-rule",
+      "textBakedIn": false,
+      "svgSHA256": "0ab5d3ea0999f7db6c2307c8d2f7d4d9cd8ae8fa1f6b7c6596656c25e7b95a43"
+    },
+    "vertical-rule": {
+      "svg": "assets/table/vertical-rule.svg",
+      "size": [
+        2,
+        128
+      ],
+      "png": [
+        {
+          "path": "assets/table/vertical-rule.png",
+          "width": 2,
+          "height": 128,
+          "scale": 1,
+          "sha256": "54c0439ce83dddcee2a071e1ef8aca5fce458a14d80cd589ce729f20a7c1bfda"
+        },
+        {
+          "path": "assets/table/vertical-rule@2x.png",
+          "width": 4,
+          "height": 256,
+          "scale": 2,
+          "sha256": "03f84faffdaa7d6742236f15d486c368c79c08f5b51563fdaf2e23a3358f7666"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "vertical-rule",
+      "textBakedIn": false,
+      "svgSHA256": "5e93dfb9089424fe919064d53781fd72d0ca5a60bad0ea82d5d04147b2f8323a"
+    },
+    "score-badge": {
+      "svg": "assets/table/score-badge.svg",
+      "size": [
+        80,
+        48
+      ],
+      "png": [
+        {
+          "path": "assets/table/score-badge.png",
+          "width": 80,
+          "height": 48,
+          "scale": 1,
+          "sha256": "4d79e293c57c07e9c733af466689837d5ac9bef07a389d45ca1613e10e0564a0"
+        },
+        {
+          "path": "assets/table/score-badge@2x.png",
+          "width": 160,
+          "height": 96,
+          "scale": 2,
+          "sha256": "67032a784be65d98721463c356b5c11bc6db8cf5e5af57d443416d97147e4d1c"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "score-badge",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "svgSHA256": "6a95e61b707c60c774ffeccd83c56a4606d976a6f9f850ee0e432bb88066d55c"
+    },
+    "dim-overlay": {
+      "svg": "assets/window/dim-overlay.svg",
+      "size": [
+        4,
+        4
+      ],
+      "png": [
+        {
+          "path": "assets/window/dim-overlay.png",
+          "width": 4,
+          "height": 4,
+          "scale": 1,
+          "sha256": "e44ba043914dffb4fa75a23670018e72a94eb5cc1f87ccacf0ff1dc3bf1e6333"
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "fullscreen-dim",
+      "textBakedIn": false,
+      "svgSHA256": "d5cd17a204aa0c6ac14e53d2b3f0aa694c815f4fbf1332e2570fcbb3edf850d4"
+    },
+    "player-marker-00": {
+      "path": "assets/player-markers/cooperation-00-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "original-enterprise-cooperation-marker",
+      "sha256": "443de7967143a5f4dd5fd9a68c11916dd7f9866d51c14fe4bc5036f51b5a8e57",
+      "copiedUnchanged": true,
+      "proportionalOnly": true
+    },
+    "player-marker-01": {
+      "path": "assets/player-markers/cooperation-01-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "original-enterprise-cooperation-marker",
+      "sha256": "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef",
+      "copiedUnchanged": true,
+      "proportionalOnly": true
+    },
+    "player-marker-02": {
+      "path": "assets/player-markers/cooperation-02-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "original-enterprise-cooperation-marker",
+      "sha256": "ab6ace1eaff283f15515d152c8a16d198ecd5cdef68a4ba1a791fd9989f01351",
+      "copiedUnchanged": true,
+      "proportionalOnly": true
+    },
+    "player-marker-04": {
+      "path": "assets/player-markers/cooperation-04-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "original-enterprise-cooperation-marker",
+      "sha256": "edcc07d148d018ab557f550f011fc43be0aa005c2b52188d6983596295c21eec",
+      "copiedUnchanged": true,
+      "proportionalOnly": true
+    },
+    "player-marker-08": {
+      "path": "assets/player-markers/cooperation-08-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "original-enterprise-cooperation-marker",
+      "sha256": "afd73d934def1788bfb746251f519ccb6955abd15540f8f7d220a36565d8e64b",
+      "copiedUnchanged": true,
+      "proportionalOnly": true
+    },
+    "region-A": {
+      "path": "assets/region-squares/region-A-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "region-square",
+      "dependency": "Region-Squares-v1.0",
+      "hex": "#324E7D",
+      "copiedUnchanged": true,
+      "proportionalOnly": true,
+      "sha256": "fcc8274cfbb0602f0da9651c14b9a231a4d9fd68969ef31f5f9fdb2de3e4bb7c"
+    },
+    "region-B": {
+      "path": "assets/region-squares/region-B-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "region-square",
+      "dependency": "Region-Squares-v1.0",
+      "hex": "#EC7A48",
+      "copiedUnchanged": true,
+      "proportionalOnly": true,
+      "sha256": "550a922cbe28fe19c731e91ba817ef1057aa5839ee34076470787fc161ce3d42"
+    },
+    "region-C": {
+      "path": "assets/region-squares/region-C-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "region-square",
+      "dependency": "Region-Squares-v1.0",
+      "hex": "#87C2B0",
+      "copiedUnchanged": true,
+      "proportionalOnly": true,
+      "sha256": "ee3108622d982aa308226bd680ee9d3935c6f2939c37cf50aea37658642adbcf"
+    },
+    "region-D": {
+      "path": "assets/region-squares/region-D-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "region-square",
+      "dependency": "Region-Squares-v1.0",
+      "hex": "#AC93D5",
+      "copiedUnchanged": true,
+      "proportionalOnly": true,
+      "sha256": "594d2462d6ae5208389b90b6cc37c9f2870fb3d8950f13e52566723cec272535"
+    },
+    "region-E": {
+      "path": "assets/region-squares/region-E-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "region-square",
+      "dependency": "Region-Squares-v1.0",
+      "hex": "#EBA93B",
+      "copiedUnchanged": true,
+      "proportionalOnly": true,
+      "sha256": "d460f17513a2363ef24c6f99049fdef1c8f089e5534bf3185d31ec080418451b"
+    },
+    "region-F": {
+      "path": "assets/region-squares/region-F-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "region-square",
+      "dependency": "Region-Squares-v1.0",
+      "hex": "#9A2D28",
+      "copiedUnchanged": true,
+      "proportionalOnly": true,
+      "sha256": "bd0503207716b7f380d8c2003ba4e16daad8c2498e5827938b6f8410340fe734"
+    },
+    "region-G": {
+      "path": "assets/region-squares/region-G-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "region-square",
+      "dependency": "Region-Squares-v1.0",
+      "hex": "#439E72",
+      "copiedUnchanged": true,
+      "proportionalOnly": true,
+      "sha256": "e2f436a7ae415ce10db98d5165bbb7f8deeb2e1508fdefed5060f3226129b25d"
+    },
+    "region-R": {
+      "path": "assets/region-squares/region-R-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "region-square",
+      "dependency": "Region-Squares-v1.0",
+      "hex": "#D1E0E7",
+      "copiedUnchanged": true,
+      "proportionalOnly": true,
+      "sha256": "e93e71bac7b7f5e73aa43cecaa962990c5abfb09b0709865ec663d5dedb681a5"
+    }
+  }
+}

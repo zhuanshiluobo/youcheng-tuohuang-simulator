@@ -17,7 +17,7 @@ namespace YC.Presentation
         [SerializeField] private ScrollRect scrollRect;
         [SerializeField] private GameObject scrollbarRoot;
         [SerializeField, Min(1f)] private float maximumFaceWidth = 288f;
-        [SerializeField, Min(1f)] private float overflowFaceWidth = 180f;
+        [SerializeField, Min(1)] private int visibleCardLimit = 5;
         [SerializeField, Min(1f)] private float minimumFaceWidth = 120f;
         [SerializeField, Min(1f)] private float widthStep = 12f;
         [SerializeField, Min(.01f)] private float faceHeightPerWidth = 17f / 12f;
@@ -91,23 +91,21 @@ namespace YC.Presentation
                 if (card != null && card.isActiveAndEnabled && element != null && !element.ignoreLayout)
                     cards.Add(card);
             }
-            // 1～7张由content的viewport最小宽度与HLG居中自然留白；
+            // 阈值以内由content的viewport最小宽度与HLG居中自然留白；
             // 仅长行使用原包两侧各1px，避免分数视口宽度下额外2px造成真实微溢出。
-            SetPadding(row, RowSidePadding(cards.Count), 0);
 
             var size = viewport.rect.size;
             var minimum = Mathf.Ceil(minimumFaceWidth / widthStep) * widthStep;
             var width = 0f;
             if (cards.Count > 0)
             {
-                width = cards.Count > 7 ? overflowFaceWidth : Mathf.Min(maximumFaceWidth,
-                    FloorWidth((size.x - (cards.Count - 1) * spacing) / cards.Count - 2f * horizontalInset));
+                var fittingCount = Mathf.Min(cards.Count, Mathf.Max(1, visibleCardLimit));
+                width = Mathf.Min(maximumFaceWidth,
+                    FloorWidth((size.x - (fittingCount - 1) * spacing) / fittingCount - 2f * horizontalInset));
                 width = Mathf.Max(minimum, FloorWidth(width));
                 var height = Mathf.Min(referenceViewportHeight, Mathf.Max(0f, size.y));
+                // 长行沿用阈值张数的卡宽；整页适配不改变卡牌逻辑尺寸。
                 width = Mathf.Min(width, Mathf.Max(minimum, FloorWidth((height - 2f * verticalInset) / faceHeightPerWidth)));
-                if (RowWidth(cards.Count, width) > size.x + .01f)
-                    width = Mathf.Min(width, Mathf.Max(minimum,
-                        FloorWidth((height - 2f * verticalInset - 2f * scrollbarReservedHeight) / faceHeightPerWidth)));
             }
 
             if (oldCount != cards.Count || !Mathf.Approximately(width, CardFaceWidth) || size != lastViewportSize)
@@ -115,7 +113,8 @@ namespace YC.Presentation
             lastViewportSize = size;
             CardFaceWidth = width;
             measuredContentWidth = RowWidth(cards.Count, width);
-            var requiredHeight = CardFaceHeight + 2f * verticalInset + (IsOverflowing ? 2f * scrollbarReservedHeight : 0f);
+            ApplyRowPadding();
+            var requiredHeight = CardFaceHeight + 2f * verticalInset + (IsOverflowing ? Mathf.CeilToInt(scrollbarReservedHeight) : 0f);
             FitsAvailableHeight = cards.Count == 0 || requiredHeight <= size.y + .01f;
 
             foreach (var card in cards) ApplyCardInputs(card);
@@ -126,7 +125,16 @@ namespace YC.Presentation
         public void CalculateLayoutInputVertical() { }
 
         private float FloorWidth(float value) => Mathf.Floor(Mathf.Max(0f, value) / widthStep) * widthStep;
-        private int RowSidePadding(int count) => count > 7 ? contentSidePadding : 0;
+        private int RowSidePadding(int count) => count > visibleCardLimit ? contentSidePadding : 0;
+
+        private void ApplyRowPadding()
+        {
+            var horizontal = RowSidePadding(cards.Count);
+            var bottom = IsOverflowing ? Mathf.CeilToInt(scrollbarReservedHeight) : 0;
+            var padding = row.padding;
+            if (padding.left != horizontal || padding.right != horizontal || padding.top != 0 || padding.bottom != bottom)
+                row.padding = new RectOffset(horizontal, horizontal, 0, bottom);
+        }
         private float RowWidth(int count, float faceWidth) => 2f * RowSidePadding(count) +
             count * (faceWidth + 2f * horizontalInset) + Mathf.Max(0, count - 1) * spacing;
 
@@ -170,7 +178,7 @@ namespace YC.Presentation
         {
             if (row == null) row = GetComponent<HorizontalLayoutGroup>();
             if (row == null || row.transform != transform) return;
-            SetPadding(row, RowSidePadding(cards.Count), 0);
+            ApplyRowPadding();
             row.spacing = spacing;
             row.childAlignment = TextAnchor.MiddleCenter;
             row.childControlWidth = row.childControlHeight = true;
@@ -197,6 +205,11 @@ namespace YC.Presentation
             if (viewport.rect.size != lastViewportSize) Refresh();
             if (scrollbarRoot != null && scrollbarRoot.activeSelf != IsOverflowing)
                 scrollbarRoot.SetActive(IsOverflowing);
+            if (!IsOverflowing && Mathf.Abs(scrollRect.content.anchoredPosition.x) > .01f)
+            {
+                scrollRect.StopMovement();
+                scrollRect.horizontalNormalizedPosition = 0f;
+            }
             var selected = EventSystem.current == null ? null : EventSystem.current.currentSelectedGameObject;
             if (selected == lastSelection && !revealSelection) return;
             lastSelection = selected;
@@ -236,7 +249,7 @@ namespace YC.Presentation
             reason = string.Empty;
             if (viewport == null || row == null || scrollRect == null || scrollbarRoot == null || row.transform != transform)
                 reason = "卡牌行必须配置同对象HLG、实际Viewport、ScrollRect和滚动条根。";
-            else if (widthStep <= 0f || faceHeightPerWidth <= 0f || maximumFaceWidth < minimumFaceWidth || overflowFaceWidth < minimumFaceWidth)
+            else if (widthStep <= 0f || faceHeightPerWidth <= 0f || maximumFaceWidth < minimumFaceWidth || visibleCardLimit < 1)
                 reason = "卡面尺寸、比例或最小可读宽度配置无效。";
             else
                 for (var i = 0; i < row.transform.childCount; i++)

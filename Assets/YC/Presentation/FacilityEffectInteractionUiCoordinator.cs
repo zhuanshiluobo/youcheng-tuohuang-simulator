@@ -496,7 +496,7 @@ namespace YC.Presentation
 
             dialog.Hide();
             var state = getState();
-            var facility = FacilityCardDatabase.Get(additionalBuildSelection.FacilityId);
+            var facility = FacilityCardDatabase.Get(state, additionalBuildSelection.FacilityId);
             additionalBuildDraftVisible = true;
             showAdditionalBuildDraft(new BuildFacilityDraftViewModel(
                 additionalBuildSelection.Phase,

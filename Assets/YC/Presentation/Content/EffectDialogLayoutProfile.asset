@@ -27,7 +27,7 @@ MonoBehaviour:
   characterSelectionTitle: "\u89D2\u8272\u80FD\u529B"
   characterCoverSelectionTitle: "\u76D6\u653E\u89D2\u8272\u724C"
   characterCoverSelectionDescription: 选择一张手牌并确认。
-  characterCoverSelectionHint: 单击选择或取消；长按、双击或右键查看角色牌
+  characterCoverSelectionHint: "单击选择或取消；长按或右键查看角色牌"
   facilitySelectionTitle: "\u8BBE\u65BD\u6548\u679C"
   buildFacilitySelectionTitle: 建设
   buildFacilitySelectionDescription: 选择设施牌和支付方式，补牌后再放入城市面板。
@@ -170,10 +170,23 @@ MonoBehaviour:
   characterStrategyLabel: "策略"
   characterTacticLabel: "计谋"
   characterFinishLabel: "结束使用"
-  discardListTitleFormat: "弃牌（{0}）"
+  discardListTitleFormat: "弃牌·{0}"
   discardListDescription: "点击空白处关闭"
   readOnlyCloseLabel: "关闭"
   saleDiscardDraftLabel: 放弃并结束
   specialActionTitle: 选择执行特殊行动
   specialActionDescription: 选择已解锁的特殊行动，再确认执行。
   buildSelectionPrompt: 建设：先选牌与支付，补充供应牌后再放入城市面板。
+
+  quantitySelectionTitle: "选择数量"
+  quantitySelectionDescription: "选择数量（{0}—{1}）。"
+  playerMarkerLabel: "玩家标记"
+  resourceTypeSelectionTitle: "选择资源类型"
+  resourceTypeSelectionDescription: "选择一种资源，然后确认。"
+  playerTargetSelectionTitle: "选择玩家"
+  playerTargetSelectionDescription: "选择本次效果的目标玩家。"
+  influenceMoveSourcePrompt: "选择地图上高亮的影响力，再次点击确认来源。"
+  influenceMoveTargetPrompt: "选择地图上高亮的目标槽位，再次点击确认移动。"
+  cleanupSettlementPrompt: "可点击底栏结算项执行；结束将放弃本窗口剩余的可选项。"
+  buildCandidateSupplyTitle: "设施供应区"
+  buildCandidateAlternateTitle: "可选设施牌"

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using YC.Application.Gameplay;
 using YC.Domain.Commands;
@@ -101,24 +102,16 @@ namespace YC.Tests.EditMode
                 }
             };
             var service = new ResourceCollectionService(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
-            var handler = new CollectResourceCommandHandler(service);
-
-            var result = handler.Handle(state, new GameCommand
-            {
-                Kind = GameCommandKind.CollectResource,
-                PlayerId = 1,
-                Parameters =
-                {
-                    { CollectResourceCommandHandler.LocationIdsParameter, "B-01,A-02" },
-                    { CollectResourceCommandHandler.RouteIdsParameter, "C2,B2,R6" }
-                }
-            });
+            // 本例只验证显式网络的收费与奖励；阶段推进由正式采集请求的回合用例验证。
+            var result = service.Collect(state, 1,
+                new[] { "B-01", "A-02" }, new[] { "C2", "B2", "R6" }, null);
 
             Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(0));
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(2));
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(2));
-            Assert.That(result.Events[0].Data["paymentCount"], Is.EqualTo("1"));
+            Assert.That(result.Payments, Has.Count.EqualTo(1));
+            Assert.That(result.Payments[0].RouteId, Is.EqualTo("C2"));
         }
 
         [Test]
@@ -301,6 +294,7 @@ namespace YC.Tests.EditMode
             Assert.That(afterConfirmation.PathsByLocationId["D-03"].RouteIds, Is.EqualTo(new[] { "D2" }));
             Assert.That(afterConfirmation.ConfirmedTollCost, Is.EqualTo(2));
 
+            var stateBeforeInvalidRecipient = JsonConvert.SerializeObject(state);
             var invalidRecipient = service.CanCollect(
                 state,
                 1,
@@ -310,7 +304,7 @@ namespace YC.Tests.EditMode
 
             Assert.That(invalidRecipient.IsValid, Is.False);
             Assert.That(invalidRecipient.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
-            Assert.That(invalidRecipient.Reason, Does.Contain("没有对手影响力"));
+            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(stateBeforeInvalidRecipient));
 
             var result = service.Collect(
                 state,

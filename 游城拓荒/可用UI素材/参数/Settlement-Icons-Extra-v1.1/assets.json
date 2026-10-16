@@ -1,0 +1,4567 @@
+{
+  "alpha": "straight",
+  "colorSpace": "sRGB",
+  "nineSlice": false,
+  "assets": {
+    "ui-card-inspect-dark": {
+      "svg": "assets/icons-extra/ui-card-inspect-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-inspect-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-inspect-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-inspect-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-card-inspect"
+    },
+    "ui-card-inspect-light": {
+      "svg": "assets/icons-extra/ui-card-inspect-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-inspect-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-inspect-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-inspect-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-card-inspect"
+    },
+    "ui-card-inspect-muted": {
+      "svg": "assets/icons-extra/ui-card-inspect-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-inspect-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-inspect-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-inspect-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-card-inspect"
+    },
+    "ui-card-flip-dark": {
+      "svg": "assets/icons-extra/ui-card-flip-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-flip-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-flip-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-flip-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-card-flip"
+    },
+    "ui-card-flip-light": {
+      "svg": "assets/icons-extra/ui-card-flip-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-flip-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-flip-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-flip-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-card-flip"
+    },
+    "ui-card-flip-muted": {
+      "svg": "assets/icons-extra/ui-card-flip-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-flip-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-flip-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-flip-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-card-flip"
+    },
+    "ui-card-retrieve-dark": {
+      "svg": "assets/icons-extra/ui-card-retrieve-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-retrieve-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-retrieve-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-retrieve-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-card-retrieve"
+    },
+    "ui-card-retrieve-light": {
+      "svg": "assets/icons-extra/ui-card-retrieve-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-retrieve-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-retrieve-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-retrieve-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-card-retrieve"
+    },
+    "ui-card-retrieve-muted": {
+      "svg": "assets/icons-extra/ui-card-retrieve-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-retrieve-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-retrieve-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-retrieve-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-card-retrieve"
+    },
+    "ui-card-return-dark": {
+      "svg": "assets/icons-extra/ui-card-return-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-return-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-return-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-return-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-card-return"
+    },
+    "ui-card-return-light": {
+      "svg": "assets/icons-extra/ui-card-return-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-return-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-return-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-return-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-card-return"
+    },
+    "ui-card-return-muted": {
+      "svg": "assets/icons-extra/ui-card-return-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-return-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-return-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-return-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-card-return"
+    },
+    "ui-card-box-dark": {
+      "svg": "assets/icons-extra/ui-card-box-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-box-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-box-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-box-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-card-box"
+    },
+    "ui-card-box-light": {
+      "svg": "assets/icons-extra/ui-card-box-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-box-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-box-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-box-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-card-box"
+    },
+    "ui-card-box-muted": {
+      "svg": "assets/icons-extra/ui-card-box-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-box-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-box-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-box-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-card-box"
+    },
+    "ui-card-swap-dark": {
+      "svg": "assets/icons-extra/ui-card-swap-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-swap-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-swap-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-swap-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-card-swap"
+    },
+    "ui-card-swap-light": {
+      "svg": "assets/icons-extra/ui-card-swap-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-swap-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-swap-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-swap-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-card-swap"
+    },
+    "ui-card-swap-muted": {
+      "svg": "assets/icons-extra/ui-card-swap-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-swap-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-swap-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-swap-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-card-swap"
+    },
+    "ui-card-reorder-dark": {
+      "svg": "assets/icons-extra/ui-card-reorder-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-reorder-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reorder-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reorder-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-card-reorder"
+    },
+    "ui-card-reorder-light": {
+      "svg": "assets/icons-extra/ui-card-reorder-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-reorder-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reorder-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reorder-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-card-reorder"
+    },
+    "ui-card-reorder-muted": {
+      "svg": "assets/icons-extra/ui-card-reorder-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-reorder-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reorder-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reorder-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-card-reorder"
+    },
+    "ui-card-reserve-dark": {
+      "svg": "assets/icons-extra/ui-card-reserve-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-reserve-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reserve-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reserve-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-card-reserve"
+    },
+    "ui-card-reserve-light": {
+      "svg": "assets/icons-extra/ui-card-reserve-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-reserve-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reserve-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reserve-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-card-reserve"
+    },
+    "ui-card-reserve-muted": {
+      "svg": "assets/icons-extra/ui-card-reserve-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-card-reserve-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reserve-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-card-reserve-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-card-reserve"
+    },
+    "ui-insert-before-dark": {
+      "svg": "assets/icons-extra/ui-insert-before-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-insert-before-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-before-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-before-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-insert-before"
+    },
+    "ui-insert-before-light": {
+      "svg": "assets/icons-extra/ui-insert-before-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-insert-before-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-before-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-before-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-insert-before"
+    },
+    "ui-insert-before-muted": {
+      "svg": "assets/icons-extra/ui-insert-before-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-insert-before-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-before-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-before-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-insert-before"
+    },
+    "ui-insert-after-dark": {
+      "svg": "assets/icons-extra/ui-insert-after-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-insert-after-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-after-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-after-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-insert-after"
+    },
+    "ui-insert-after-light": {
+      "svg": "assets/icons-extra/ui-insert-after-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-insert-after-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-after-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-after-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-insert-after"
+    },
+    "ui-insert-after-muted": {
+      "svg": "assets/icons-extra/ui-insert-after-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-insert-after-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-after-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-insert-after-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-insert-after"
+    },
+    "ui-chain-link-dark": {
+      "svg": "assets/icons-extra/ui-chain-link-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-link-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-link-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-link-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-chain-link"
+    },
+    "ui-chain-link-light": {
+      "svg": "assets/icons-extra/ui-chain-link-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-link-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-link-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-link-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-chain-link"
+    },
+    "ui-chain-link-muted": {
+      "svg": "assets/icons-extra/ui-chain-link-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-link-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-link-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-link-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-chain-link"
+    },
+    "ui-chain-branch-dark": {
+      "svg": "assets/icons-extra/ui-chain-branch-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-branch-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-branch-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-branch-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-chain-branch"
+    },
+    "ui-chain-branch-light": {
+      "svg": "assets/icons-extra/ui-chain-branch-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-branch-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-branch-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-branch-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-chain-branch"
+    },
+    "ui-chain-branch-muted": {
+      "svg": "assets/icons-extra/ui-chain-branch-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-branch-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-branch-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-branch-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-chain-branch"
+    },
+    "ui-chain-merge-dark": {
+      "svg": "assets/icons-extra/ui-chain-merge-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-merge-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-merge-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-merge-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-chain-merge"
+    },
+    "ui-chain-merge-light": {
+      "svg": "assets/icons-extra/ui-chain-merge-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-merge-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-merge-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-merge-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-chain-merge"
+    },
+    "ui-chain-merge-muted": {
+      "svg": "assets/icons-extra/ui-chain-merge-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-merge-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-merge-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-merge-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-chain-merge"
+    },
+    "ui-chain-repeat-dark": {
+      "svg": "assets/icons-extra/ui-chain-repeat-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-repeat-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-repeat-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-repeat-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-chain-repeat"
+    },
+    "ui-chain-repeat-light": {
+      "svg": "assets/icons-extra/ui-chain-repeat-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-repeat-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-repeat-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-repeat-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-chain-repeat"
+    },
+    "ui-chain-repeat-muted": {
+      "svg": "assets/icons-extra/ui-chain-repeat-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-repeat-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-repeat-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-repeat-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-chain-repeat"
+    },
+    "ui-chain-defer-dark": {
+      "svg": "assets/icons-extra/ui-chain-defer-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-defer-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-defer-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-defer-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-chain-defer"
+    },
+    "ui-chain-defer-light": {
+      "svg": "assets/icons-extra/ui-chain-defer-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-defer-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-defer-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-defer-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-chain-defer"
+    },
+    "ui-chain-defer-muted": {
+      "svg": "assets/icons-extra/ui-chain-defer-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-defer-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-defer-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-defer-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-chain-defer"
+    },
+    "ui-chain-skip-dark": {
+      "svg": "assets/icons-extra/ui-chain-skip-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-skip-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-skip-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-skip-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-chain-skip"
+    },
+    "ui-chain-skip-light": {
+      "svg": "assets/icons-extra/ui-chain-skip-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-skip-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-skip-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-skip-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-chain-skip"
+    },
+    "ui-chain-skip-muted": {
+      "svg": "assets/icons-extra/ui-chain-skip-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-chain-skip-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-skip-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-chain-skip-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-chain-skip"
+    },
+    "ui-condition-met-dark": {
+      "svg": "assets/icons-extra/ui-condition-met-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-condition-met-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-met-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-met-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-condition-met"
+    },
+    "ui-condition-met-light": {
+      "svg": "assets/icons-extra/ui-condition-met-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-condition-met-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-met-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-met-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-condition-met"
+    },
+    "ui-condition-met-muted": {
+      "svg": "assets/icons-extra/ui-condition-met-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-condition-met-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-met-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-met-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-condition-met"
+    },
+    "ui-condition-wait-dark": {
+      "svg": "assets/icons-extra/ui-condition-wait-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-condition-wait-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-wait-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-wait-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-condition-wait"
+    },
+    "ui-condition-wait-light": {
+      "svg": "assets/icons-extra/ui-condition-wait-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-condition-wait-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-wait-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-wait-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-condition-wait"
+    },
+    "ui-condition-wait-muted": {
+      "svg": "assets/icons-extra/ui-condition-wait-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-condition-wait-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-wait-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-condition-wait-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-condition-wait"
+    },
+    "ui-trigger-notify-dark": {
+      "svg": "assets/icons-extra/ui-trigger-notify-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-notify-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-notify-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-notify-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-trigger-notify"
+    },
+    "ui-trigger-notify-light": {
+      "svg": "assets/icons-extra/ui-trigger-notify-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-notify-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-notify-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-notify-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-trigger-notify"
+    },
+    "ui-trigger-notify-muted": {
+      "svg": "assets/icons-extra/ui-trigger-notify-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-notify-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-notify-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-notify-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-trigger-notify"
+    },
+    "ui-trigger-once-dark": {
+      "svg": "assets/icons-extra/ui-trigger-once-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-once-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-once-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-once-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-trigger-once"
+    },
+    "ui-trigger-once-light": {
+      "svg": "assets/icons-extra/ui-trigger-once-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-once-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-once-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-once-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-trigger-once"
+    },
+    "ui-trigger-once-muted": {
+      "svg": "assets/icons-extra/ui-trigger-once-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-once-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-once-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-once-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-trigger-once"
+    },
+    "ui-trigger-ready-dark": {
+      "svg": "assets/icons-extra/ui-trigger-ready-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-ready-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-ready-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-ready-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-trigger-ready"
+    },
+    "ui-trigger-ready-light": {
+      "svg": "assets/icons-extra/ui-trigger-ready-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-ready-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-ready-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-ready-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-trigger-ready"
+    },
+    "ui-trigger-ready-muted": {
+      "svg": "assets/icons-extra/ui-trigger-ready-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-ready-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-ready-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-ready-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-trigger-ready"
+    },
+    "ui-trigger-blocked-dark": {
+      "svg": "assets/icons-extra/ui-trigger-blocked-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-blocked-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-blocked-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-blocked-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-trigger-blocked"
+    },
+    "ui-trigger-blocked-light": {
+      "svg": "assets/icons-extra/ui-trigger-blocked-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-blocked-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-blocked-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-blocked-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-trigger-blocked"
+    },
+    "ui-trigger-blocked-muted": {
+      "svg": "assets/icons-extra/ui-trigger-blocked-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-trigger-blocked-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-blocked-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-trigger-blocked-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-trigger-blocked"
+    },
+    "ui-effect-suspend-dark": {
+      "svg": "assets/icons-extra/ui-effect-suspend-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-effect-suspend-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-suspend-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-suspend-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-effect-suspend"
+    },
+    "ui-effect-suspend-light": {
+      "svg": "assets/icons-extra/ui-effect-suspend-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-effect-suspend-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-suspend-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-suspend-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-effect-suspend"
+    },
+    "ui-effect-suspend-muted": {
+      "svg": "assets/icons-extra/ui-effect-suspend-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-effect-suspend-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-suspend-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-suspend-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-effect-suspend"
+    },
+    "ui-effect-expire-dark": {
+      "svg": "assets/icons-extra/ui-effect-expire-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-effect-expire-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-expire-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-expire-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-effect-expire"
+    },
+    "ui-effect-expire-light": {
+      "svg": "assets/icons-extra/ui-effect-expire-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-effect-expire-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-expire-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-expire-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-effect-expire"
+    },
+    "ui-effect-expire-muted": {
+      "svg": "assets/icons-extra/ui-effect-expire-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-effect-expire-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-expire-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-effect-expire-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-effect-expire"
+    },
+    "ui-target-self-dark": {
+      "svg": "assets/icons-extra/ui-target-self-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-self-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-self-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-self-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-target-self"
+    },
+    "ui-target-self-light": {
+      "svg": "assets/icons-extra/ui-target-self-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-self-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-self-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-self-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-target-self"
+    },
+    "ui-target-self-muted": {
+      "svg": "assets/icons-extra/ui-target-self-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-self-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-self-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-self-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-target-self"
+    },
+    "ui-target-other-dark": {
+      "svg": "assets/icons-extra/ui-target-other-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-other-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-other-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-other-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-target-other"
+    },
+    "ui-target-other-light": {
+      "svg": "assets/icons-extra/ui-target-other-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-other-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-other-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-other-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-target-other"
+    },
+    "ui-target-other-muted": {
+      "svg": "assets/icons-extra/ui-target-other-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-other-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-other-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-other-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-target-other"
+    },
+    "ui-target-many-dark": {
+      "svg": "assets/icons-extra/ui-target-many-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-many-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-many-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-many-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-target-many"
+    },
+    "ui-target-many-light": {
+      "svg": "assets/icons-extra/ui-target-many-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-many-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-many-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-many-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-target-many"
+    },
+    "ui-target-many-muted": {
+      "svg": "assets/icons-extra/ui-target-many-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-many-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-many-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-many-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-target-many"
+    },
+    "ui-target-all-dark": {
+      "svg": "assets/icons-extra/ui-target-all-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-all-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-all-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-all-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-target-all"
+    },
+    "ui-target-all-light": {
+      "svg": "assets/icons-extra/ui-target-all-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-all-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-all-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-all-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-target-all"
+    },
+    "ui-target-all-muted": {
+      "svg": "assets/icons-extra/ui-target-all-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-all-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-all-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-all-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-target-all"
+    },
+    "ui-target-pick-dark": {
+      "svg": "assets/icons-extra/ui-target-pick-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-pick-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-pick-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-pick-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-target-pick"
+    },
+    "ui-target-pick-light": {
+      "svg": "assets/icons-extra/ui-target-pick-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-pick-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-pick-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-pick-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-target-pick"
+    },
+    "ui-target-pick-muted": {
+      "svg": "assets/icons-extra/ui-target-pick-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-target-pick-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-target-pick-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-target-pick-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-target-pick"
+    },
+    "ui-scope-area-dark": {
+      "svg": "assets/icons-extra/ui-scope-area-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-scope-area-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-area-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-area-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-scope-area"
+    },
+    "ui-scope-area-light": {
+      "svg": "assets/icons-extra/ui-scope-area-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-scope-area-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-area-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-area-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-scope-area"
+    },
+    "ui-scope-area-muted": {
+      "svg": "assets/icons-extra/ui-scope-area-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-scope-area-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-area-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-area-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-scope-area"
+    },
+    "ui-scope-adjacent-dark": {
+      "svg": "assets/icons-extra/ui-scope-adjacent-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-scope-adjacent-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-adjacent-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-adjacent-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-scope-adjacent"
+    },
+    "ui-scope-adjacent-light": {
+      "svg": "assets/icons-extra/ui-scope-adjacent-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-scope-adjacent-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-adjacent-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-adjacent-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-scope-adjacent"
+    },
+    "ui-scope-adjacent-muted": {
+      "svg": "assets/icons-extra/ui-scope-adjacent-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-scope-adjacent-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-adjacent-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-adjacent-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-scope-adjacent"
+    },
+    "ui-scope-path-dark": {
+      "svg": "assets/icons-extra/ui-scope-path-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-scope-path-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-path-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-path-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-scope-path"
+    },
+    "ui-scope-path-light": {
+      "svg": "assets/icons-extra/ui-scope-path-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-scope-path-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-path-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-path-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-scope-path"
+    },
+    "ui-scope-path-muted": {
+      "svg": "assets/icons-extra/ui-scope-path-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-scope-path-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-path-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-scope-path-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-scope-path"
+    },
+    "ui-batch-use-dark": {
+      "svg": "assets/icons-extra/ui-batch-use-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-batch-use-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-batch-use-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-batch-use-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-batch-use"
+    },
+    "ui-batch-use-light": {
+      "svg": "assets/icons-extra/ui-batch-use-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-batch-use-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-batch-use-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-batch-use-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-batch-use"
+    },
+    "ui-batch-use-muted": {
+      "svg": "assets/icons-extra/ui-batch-use-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-batch-use-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-batch-use-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-batch-use-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-batch-use"
+    },
+    "ui-quantity-adjust-dark": {
+      "svg": "assets/icons-extra/ui-quantity-adjust-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-quantity-adjust-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-quantity-adjust-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-quantity-adjust-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-quantity-adjust"
+    },
+    "ui-quantity-adjust-light": {
+      "svg": "assets/icons-extra/ui-quantity-adjust-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-quantity-adjust-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-quantity-adjust-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-quantity-adjust-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-quantity-adjust"
+    },
+    "ui-quantity-adjust-muted": {
+      "svg": "assets/icons-extra/ui-quantity-adjust-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-quantity-adjust-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-quantity-adjust-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-quantity-adjust-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-quantity-adjust"
+    },
+    "ui-substitute-dark": {
+      "svg": "assets/icons-extra/ui-substitute-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-substitute-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-substitute-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-substitute-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-substitute"
+    },
+    "ui-substitute-light": {
+      "svg": "assets/icons-extra/ui-substitute-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-substitute-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-substitute-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-substitute-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-substitute"
+    },
+    "ui-substitute-muted": {
+      "svg": "assets/icons-extra/ui-substitute-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-substitute-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-substitute-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-substitute-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-substitute"
+    },
+    "ui-copy-effect-dark": {
+      "svg": "assets/icons-extra/ui-copy-effect-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-copy-effect-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-copy-effect-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-copy-effect-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-copy-effect"
+    },
+    "ui-copy-effect-light": {
+      "svg": "assets/icons-extra/ui-copy-effect-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-copy-effect-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-copy-effect-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-copy-effect-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-copy-effect"
+    },
+    "ui-copy-effect-muted": {
+      "svg": "assets/icons-extra/ui-copy-effect-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-copy-effect-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-copy-effect-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-copy-effect-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-copy-effect"
+    },
+    "ui-adjust-value-dark": {
+      "svg": "assets/icons-extra/ui-adjust-value-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-adjust-value-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-adjust-value-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-adjust-value-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-adjust-value"
+    },
+    "ui-adjust-value-light": {
+      "svg": "assets/icons-extra/ui-adjust-value-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-adjust-value-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-adjust-value-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-adjust-value-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-adjust-value"
+    },
+    "ui-adjust-value-muted": {
+      "svg": "assets/icons-extra/ui-adjust-value-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-adjust-value-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-adjust-value-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-adjust-value-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-adjust-value"
+    },
+    "ui-choose-order-dark": {
+      "svg": "assets/icons-extra/ui-choose-order-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-choose-order-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-choose-order-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-choose-order-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-choose-order"
+    },
+    "ui-choose-order-light": {
+      "svg": "assets/icons-extra/ui-choose-order-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-choose-order-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-choose-order-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-choose-order-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-choose-order"
+    },
+    "ui-choose-order-muted": {
+      "svg": "assets/icons-extra/ui-choose-order-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-choose-order-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-choose-order-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-choose-order-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-choose-order"
+    },
+    "ui-preview-result-dark": {
+      "svg": "assets/icons-extra/ui-preview-result-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-preview-result-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-preview-result-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-preview-result-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-preview-result"
+    },
+    "ui-preview-result-light": {
+      "svg": "assets/icons-extra/ui-preview-result-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-preview-result-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-preview-result-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-preview-result-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-preview-result"
+    },
+    "ui-preview-result-muted": {
+      "svg": "assets/icons-extra/ui-preview-result-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-preview-result-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-preview-result-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-preview-result-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-preview-result"
+    },
+    "ui-pin-effect-dark": {
+      "svg": "assets/icons-extra/ui-pin-effect-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-pin-effect-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-pin-effect-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-pin-effect-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-pin-effect"
+    },
+    "ui-pin-effect-light": {
+      "svg": "assets/icons-extra/ui-pin-effect-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-pin-effect-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-pin-effect-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-pin-effect-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-pin-effect"
+    },
+    "ui-pin-effect-muted": {
+      "svg": "assets/icons-extra/ui-pin-effect-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-extra/ui-pin-effect-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-extra/ui-pin-effect-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-extra/ui-pin-effect-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "ui-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-pin-effect"
+    }
+  }
+}

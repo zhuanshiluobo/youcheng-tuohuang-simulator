@@ -1,10 +1,12 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using YC.Domain.Effects;
 using YC.Domain.Interactions;
 using YC.Domain.Maps;
 using YC.Domain.State;
+using YC.Domain.Travel;
 
 namespace YC.Infrastructure.Lua
 {
@@ -119,10 +121,18 @@ namespace YC.Infrastructure.Lua
                 definition.Script.HandlerId));
         }
 
+        public IList<CandidatePatch> InvokePersistentCandidatePatches(LuaHandlerDefinition definition, GameState state, CandidateSetDraft draft, string cardInstanceId)
+        {
+            if (string.IsNullOrEmpty(cardInstanceId) || !YC.Domain.Cards.CharacterLifecycleService.IsSubscriptionActive(state, cardInstanceId, definition.AbilityId) ||
+                state.ItemZones.Items.Find(item => item.ItemId == cardInstanceId)?.ControllerSubject.PlayerId != draft.ExecutingPlayerId)
+                throw new InvalidOperationException("facility_candidate_subscription_inactive");
+            return InvokeCandidatePatches(definition, state, draft, cardInstanceId);
+        }
+
         private IList<CandidatePatch> InvokeCandidatePatches(
             LuaHandlerDefinition definition,
             GameState state,
-            CandidateSetDraft draft)
+            CandidateSetDraft draft, string cardInstanceId = "")
         {
             if (state == null) throw new InvalidOperationException("候选 Lua handler 缺少权威 GameState。");
             if (draft == null) throw new InvalidOperationException("候选 Lua handler 缺少 CandidateSetDraft。");
@@ -150,6 +160,8 @@ namespace YC.Infrastructure.Lua
                 ResponseKind = RuleEventResponseKind.CandidatePatches,
                 Payload = CreateCandidatePayload(draft)
             };
+            if (cardInstanceId.Length > 0)
+                ruleEvent.Payload.Properties.Add(Entry("cardInstanceRef", NormalizedValue.CreateStableReference("character_card", cardInstanceId)));
             var owner = new EffectNodeRuntimeState
             {
                 EffectId = string.IsNullOrEmpty(draft.SourceEffectId) ? draft.CandidateSetId : draft.SourceEffectId,
@@ -158,7 +170,8 @@ namespace YC.Infrastructure.Lua
             var handlerContext = new EffectEventHandlerContext(state, ruleEvent, owner, null);
             LuaInvocationResult invocation = host.Invoke(
                 invocationDefinition.Script,
-                CreateInvocationContext(invocationDefinition, handlerContext));
+                cardInstanceId.Length == 0 ? CreateInvocationContext(invocationDefinition, handlerContext) :
+                    CreatePureCandidateContext(invocationDefinition, state, draft, ruleEvent.Payload));
             if (!invocation.IsSuccess)
             {
                 throw new InvalidOperationException(invocation.Diagnostic);
@@ -185,6 +198,26 @@ namespace YC.Infrastructure.Lua
             return result;
         }
 
+        // 纯候选快照只含本次来源池和本人载体，不探测 Host 历史或托管钱包。
+        private static LuaInvocationContext CreatePureCandidateContext(LuaHandlerDefinition definition, GameState state, CandidateSetDraft draft, NormalizedValue payload)
+        {
+            if (ItemTransferEffectExecutor.Number(draft.Context, "stateRevision") != (state.EffectRuntime?.StateRevision ?? 0))
+                throw new InvalidOperationException("nmc_query_revision_mismatch");
+            var snapshot = LuaFacadeSnapshot.FromInvocation(ToPlayerKey(draft.ExecutingPlayerId), state.FindPlayer(draft.ExecutingPlayerId)?.Score ?? 0, 0, state.Players.Count, definition.Script.DefinitionVersion);
+            snapshot.GameId = state.GameId; snapshot.PhaseId = state.Phase.ToString(); snapshot.Round = state.Round;
+            snapshot.MaxRounds = state.MaxRounds; snapshot.ActionRound = state.ActionRound;
+            snapshot.EventPayload = ToLuaSnapshot(payload);
+            LuaQuerySnapshotBuilder.Stamp(state, snapshot, ItemTransferEffectExecutor.Number(draft.Context, "stateRevision"));
+            snapshot.GlobalMap = CreateMapSnapshot(state);
+            snapshot.GlobalContent = ToLuaSnapshot(ItemTransferEffectExecutor.Object(
+                "instances", ItemTransferEffectExecutor.Value(draft.Context, "instances").Clone(),
+                "zones", ItemTransferEffectExecutor.Value(draft.Context, "zones").Clone()));
+            snapshot.GlobalContent = LuaQuerySnapshotBuilder.CandidateContent(state, snapshot.GlobalContent);
+            return new LuaInvocationContext(StableIdFactory.Create("event", draft.CandidateSetId, "CandidateSetBuilding"), "CandidateSetBuilding",
+                ToPlayerKey(draft.ExecutingPlayerId), ItemTransferEffectExecutor.Number(draft.Context, "stateRevision"), definition.Script.DefinitionVersion, state.Players.Count,
+                state.FindPlayer(draft.ExecutingPlayerId)?.Score ?? 0, 0, snapshot) { ResponseKind = "candidatePatches" };
+        }
+
         private static NormalizedValue CreateCandidatePayload(CandidateSetDraft draft)
         {
             return NormalizedValue.CreateObject(new List<NormalizedValueEntry>
@@ -195,7 +228,8 @@ namespace YC.Infrastructure.Lua
                 Entry("executingPlayerId", NormalizedValue.CreateInteger(draft.ExecutingPlayerId)),
                 Entry("candidatePoolIds", StringArray(draft.CandidatePoolIds)),
                 Entry("defaultCandidateIds", StringArray(draft.DefaultCandidateIds)),
-                Entry("currentIds", StringArray(draft.CurrentIds))
+                Entry("currentIds", StringArray(draft.CurrentIds)),
+                Entry("context", draft.Context.Clone())
             });
         }
 
@@ -276,7 +310,7 @@ namespace YC.Infrastructure.Lua
             return specs;
         }
 
-        private static LuaInvocationContext CreateInvocationContext(
+        private LuaInvocationContext CreateInvocationContext(
             LuaHandlerDefinition definition,
             EffectEventHandlerContext handlerContext)
         {
@@ -298,6 +332,7 @@ namespace YC.Infrastructure.Lua
                 EventPayload = ToLuaSnapshot(ResolveLuaPayload(ruleEvent))
             };
 
+            LuaQuerySnapshotBuilder.Stamp(state, snapshot, state.EffectRuntime.StateRevision);
             IList<int> turnOrder = state.EffectRuntime.PlayerOrderSnapshot;
             if (turnOrder != null && turnOrder.Count > 0)
             {
@@ -311,50 +346,79 @@ namespace YC.Infrastructure.Lua
                 }
             }
 
+            var playerSnapshots = new Dictionary<int, LuaPlayerSnapshot>();
             if (state.Players != null)
             {
                 for (int i = 0; i < state.Players.Count; i++)
                 {
                     PlayerState source = state.Players[i];
                     if (source == null) continue;
+                    var goldBalance = source.Resources == null ? new GoldVoucherBalance() : RouteTollEscrowService.QueryBalance(state, source.PlayerId);
                     var playerSnapshot = new LuaPlayerSnapshot(
                         ToPlayerKey(source.PlayerId),
                         source.Score,
-                        source.Resources == null ? 0 : source.Resources.GoldVoucher,
+                        goldBalance.Owned,
+                        goldBalance.Available,
+                        goldBalance.Reserved,
                         source.CityLocationId,
                         source.Resources == null ? 0 : source.Resources.Originium,
                         source.Resources == null ? 0 : source.Resources.OriginiumShard,
                         source.Resources == null ? 0 : source.Resources.Iron,
                         source.Resources == null ? 0 : source.Resources.PureOriginium);
-                    if (source.HandCardIds != null) playerSnapshot.HandCardIds.AddRange(source.HandCardIds);
-                    if (source.DiscardCardIds != null) playerSnapshot.DiscardCardIds.AddRange(source.DiscardCardIds);
+                    if (source.HandCardIds != null) playerSnapshot.HandCardIds.AddRange(source.HandCardIds.ToArray());
+                    if (source.DiscardCardIds != null) playerSnapshot.DiscardCardIds.AddRange(source.DiscardCardIds.ToArray());
+                    LuaQuerySnapshotBuilder.AddContinuationFacts(state, playerSnapshot, source.PlayerId, playerId, registry.EnterpriseDefinitions);
                     snapshot.Players.Add(playerSnapshot);
+                    playerSnapshots.Add(source.PlayerId, playerSnapshot);
                 }
             }
 
             snapshot.GlobalMap = CreateMapSnapshot(state);
             var facilities = new List<LuaSnapshotValue>();
-            if (state.Map?.Facilities != null)
-                foreach (var placement in state.Map.Facilities)
-                {
-                    if (placement == null) continue;
-                    var facilityDefinition = YC.Domain.Facilities.FacilityCardDatabase.Get(placement.FacilityCardId);
-                    int slot = placement.CityBoardSlotIndex;
-                    int core = YC.Domain.Facilities.BuildFacilityService.CoreCommandTowerCityBoardSlotIndex;
-                    int width = YC.Domain.Facilities.BuildFacilityService.CityBoardSlotCountPerRow;
-                    bool adjacent = Math.Abs(slot / width - core / width) + Math.Abs(slot % width - core % width) == 1;
+            // 兼容列表的每次读取都会重新投影。索引仅属于当前调用，不能按 revision 跨调用复用。
+            var placements = state.Map?.Facilities?.ToArray() ?? Array.Empty<FacilityPlacement>();
+            var facilityItemIds = new HashSet<string>(StringComparer.Ordinal);
+            var enterpriseZoneIds = new HashSet<string>(
+                state.ItemZones.Zones.Where(zone => zone.LocalZoneId == "enterprises").Select(zone => zone.ZoneId),
+                StringComparer.Ordinal);
+            foreach (var placement in placements)
+            {
+                if (placement == null) continue;
+                facilityItemIds.Add(placement.ContentInstanceId);
+                var facilityDefinition = YC.Domain.Facilities.FacilityCardDatabase.Get(state, placement.FacilityCardId);
+                int slot = placement.CityBoardSlotIndex;
+                int core = YC.Domain.Facilities.BuildFacilityService.CoreCommandTowerCityBoardSlotIndex;
+                int width = YC.Domain.Facilities.BuildFacilityService.CityBoardSlotCountPerRow;
+                bool adjacent = Math.Abs(slot / width - core / width) + Math.Abs(slot % width - core % width) == 1;
+                var facilitySnapshot = LuaSnapshotValue.Object(new[] {
+                    new LuaSnapshotEntry("id", LuaSnapshotValue.String(placement.ContentInstanceId ?? "")),
+                    new LuaSnapshotEntry("definitionId", LuaSnapshotValue.String(placement.FacilityCardId)),
+                    new LuaSnapshotEntry("owner", LuaSnapshotValue.String(ToPlayerKey(placement.PlayerId))),
+                    new LuaSnapshotEntry("color", LuaSnapshotValue.String(facilityDefinition?.Color ?? "")),
+                    new LuaSnapshotEntry("hasEntryEffect", LuaSnapshotValue.Boolean(facilityDefinition != null && facilityDefinition.HasEntryEffect)),
+                    new LuaSnapshotEntry("slotIndex", LuaSnapshotValue.Integer(slot)),
+                    new LuaSnapshotEntry("adjacentToCore", LuaSnapshotValue.Boolean(adjacent))
+                });
+                facilities.Add(facilitySnapshot);
+                if (playerSnapshots.TryGetValue(placement.PlayerId, out var ownerSnapshot))
+                    ownerSnapshot.BuiltFacilities.Add(facilitySnapshot);
+            }
+            // 只读场上公开企业，不暴露盒内储备或尚未选入的板。
+            foreach (var item in state.ItemZones.Items)
+                if (enterpriseZoneIds.Contains(item.ZoneId))
                     facilities.Add(LuaSnapshotValue.Object(new[] {
-                        new LuaSnapshotEntry("id", LuaSnapshotValue.String(placement.ContentInstanceId ?? "")),
-                        new LuaSnapshotEntry("definitionId", LuaSnapshotValue.String(placement.FacilityCardId)),
-                        new LuaSnapshotEntry("owner", LuaSnapshotValue.String(ToPlayerKey(placement.PlayerId))),
-                        new LuaSnapshotEntry("color", LuaSnapshotValue.String(facilityDefinition?.Color ?? "")),
-                        new LuaSnapshotEntry("hasEntryEffect", LuaSnapshotValue.Boolean(facilityDefinition != null && facilityDefinition.HasEntryEffect)),
-                        new LuaSnapshotEntry("slotIndex", LuaSnapshotValue.Integer(slot)),
-                        new LuaSnapshotEntry("adjacentToCore", LuaSnapshotValue.Boolean(adjacent))
-                    }));
-                }
-            snapshot.GlobalContent = LuaSnapshotValue.Object(new[] { new LuaSnapshotEntry("instances", LuaSnapshotValue.Array(facilities)) });
+                        new LuaSnapshotEntry("id", LuaSnapshotValue.String(item.ItemId)),
+                        new LuaSnapshotEntry("definitionId", LuaSnapshotValue.String(item.DefinitionId)),
+                        new LuaSnapshotEntry("contentType", LuaSnapshotValue.String("enterprise")) }));
+            var visible = new YC.Domain.Items.ItemZoneQuery().Project(state, GameStateViewer.Player(ruleEvent.PlayerId));
+            foreach (var item in visible.Items.Where(item => !facilityItemIds.Contains(item.ItemId) && !enterpriseZoneIds.Contains(item.ZoneId)))
+                facilities.Add(LuaSnapshotValue.Object(new[] {
+                    new LuaSnapshotEntry("id", LuaSnapshotValue.String(item.ItemId)), new LuaSnapshotEntry("definitionId", LuaSnapshotValue.String(item.DefinitionId)),
+                    new LuaSnapshotEntry("zoneId", LuaSnapshotValue.String(item.ZoneId)), new LuaSnapshotEntry("typeId", LuaSnapshotValue.String(item.TypeId)),
+                    new LuaSnapshotEntry("owner", LuaSnapshotValue.String(ToPlayerKey(item.ControllerSubject.PlayerId))) }));
+            snapshot.GlobalContent = LuaQuerySnapshotBuilder.Content(state, visible, facilities);
 
+            var invocationGold = player?.Resources == null ? null : RouteTollEscrowService.QueryBalance(state, player.PlayerId);
             return new LuaInvocationContext(
                 ruleEvent.EventId,
                 ruleEvent.EventType,
@@ -365,7 +429,9 @@ namespace YC.Infrastructure.Lua
                 definition.Script.DefinitionVersion,
                 state.Players == null ? 0 : state.Players.Count,
                 player == null ? 0 : player.Score,
-                player == null || player.Resources == null ? 0 : player.Resources.GoldVoucher,
+                invocationGold == null ? 0 : invocationGold.Owned,
+                invocationGold == null ? 0 : invocationGold.Available,
+                invocationGold == null ? 0 : invocationGold.Reserved,
                 snapshot)
             {
                 AllowOtherPlayerReads = definition.AllowOtherPlayerReads,
@@ -390,95 +456,7 @@ namespace YC.Infrastructure.Lua
             return ruleEvent.Payload;
         }
 
-        private static LuaSnapshotValue CreateMapSnapshot(GameState state)
-        {
-            GameMapDefinition map = state.MapId == StaticMapDefinitions.ThreePlayerMapId
-                ? StaticMapDefinitions.CreateThreePlayerMap()
-                : StaticMapDefinitions.CreateFourPlayerMap();
-            var locations = new List<LuaSnapshotValue>();
-            var resourcePoints = new List<LuaSnapshotValue>();
-            var redZoneLocationIds = new List<LuaSnapshotValue>();
-            var openLocationIds = new HashSet<string>(StringComparer.Ordinal);
-            if (state.Map != null && state.Map.OpenLocationIds != null)
-            {
-                for (int i = 0; i < state.Map.OpenLocationIds.Count; i++)
-                {
-                    if (!string.IsNullOrEmpty(state.Map.OpenLocationIds[i]))
-                    {
-                        openLocationIds.Add(state.Map.OpenLocationIds[i]);
-                    }
-                }
-            }
-
-            var definitions = new List<MapLocationDefinition>(map.Locations ?? new List<MapLocationDefinition>());
-            definitions.Sort((left, right) => StringComparer.Ordinal.Compare(
-                left == null ? string.Empty : left.LocationId,
-                right == null ? string.Empty : right.LocationId));
-            for (int i = 0; i < definitions.Count; i++)
-            {
-                MapLocationDefinition location = definitions[i];
-                if (location == null) continue;
-                var locationSnapshot = LuaSnapshotValue.Object(new[]
-                {
-                new LuaSnapshotEntry("isOpen", LuaSnapshotValue.Boolean(openLocationIds.Contains(location.LocationId))),
-                new LuaSnapshotEntry("isRedZone", LuaSnapshotValue.Boolean(location.IsRedZone)),
-                new LuaSnapshotEntry("locationId", LuaSnapshotValue.String(location.LocationId)),
-                new LuaSnapshotEntry("regionId", LuaSnapshotValue.String(location.RegionId)),
-                new LuaSnapshotEntry("resourceType", LuaSnapshotValue.String(location.ResourceType.ToString())),
-                new LuaSnapshotEntry("eventColor", LuaSnapshotValue.String(location.EventColor.ToString())),
-                new LuaSnapshotEntry("hasResourcePointIndicator", LuaSnapshotValue.Boolean(
-                    HasResourcePointIndicator(state, location.LocationId)))
-                });
-                locations.Add(locationSnapshot);
-                resourcePoints.Add(locationSnapshot);
-                if (location.IsRedZone)
-                {
-                    redZoneLocationIds.Add(LuaSnapshotValue.String(location.LocationId));
-                }
-            }
-
-            var openIds = new List<string>(openLocationIds);
-            openIds.Sort(StringComparer.Ordinal);
-            var openSnapshots = new List<LuaSnapshotValue>();
-            for (int i = 0; i < openIds.Count; i++) openSnapshots.Add(LuaSnapshotValue.String(openIds[i]));
-
-            var influences = new List<LuaSnapshotValue>();
-            if (state.Map != null && state.Map.Influences != null)
-            {
-                var ordered = new List<InfluencePlacement>(state.Map.Influences);
-                ordered.Sort((a, b) => string.CompareOrdinal(a.InfluenceId, b.InfluenceId));
-                foreach (var influence in ordered)
-                    influences.Add(LuaSnapshotValue.Object(new[]
-                    {
-                        new LuaSnapshotEntry("influenceId", LuaSnapshotValue.String(influence.InfluenceId)),
-                        new LuaSnapshotEntry("ownerPlayerId", LuaSnapshotValue.String(ToPlayerKey(influence.PlayerId))),
-                        new LuaSnapshotEntry("slotId", LuaSnapshotValue.String(influence.SlotId))
-                    }));
-            }
-
-            return LuaSnapshotValue.Object(new[]
-            {
-                new LuaSnapshotEntry("influences", LuaSnapshotValue.Array(influences)),
-                new LuaSnapshotEntry("locations", LuaSnapshotValue.Array(locations)),
-                new LuaSnapshotEntry("mapId", LuaSnapshotValue.String(
-                    string.IsNullOrEmpty(state.MapId) ? map.MapId : state.MapId)),
-                new LuaSnapshotEntry("openLocationIds", LuaSnapshotValue.Array(openSnapshots)),
-                new LuaSnapshotEntry("redZoneLocationIds", LuaSnapshotValue.Array(redZoneLocationIds)),
-                new LuaSnapshotEntry("resourcePoints", LuaSnapshotValue.Array(resourcePoints))
-            });
-        }
-
-        private static bool HasResourcePointIndicator(GameState state, string locationId)
-        {
-            if (state == null || state.Map == null || state.Map.ResourceTokens == null) return false;
-            for (int i = 0; i < state.Map.ResourceTokens.Count; i++)
-            {
-                var token = state.Map.ResourceTokens[i];
-                if (token != null && token.LocationId == locationId) return true;
-            }
-
-            return false;
-        }
+        private static LuaSnapshotValue CreateMapSnapshot(GameState state) => LuaQuerySnapshotBuilder.Map(state);
 
         private static LuaSnapshotValue ToLuaSnapshot(NormalizedValue value)
         {

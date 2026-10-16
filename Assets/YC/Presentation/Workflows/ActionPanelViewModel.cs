@@ -50,6 +50,7 @@ namespace YC.Presentation.Workflows
         public int RemainingInfluence { get; private set; }
         public bool CanUseCharacter { get; private set; }
         public bool CanDeclareCityStyle { get; private set; }
+        public bool CanInspectCityStyles { get; internal set; }
         public bool CanDeploy { get; private set; }
         public bool CanDispatch { get; private set; }
         public bool CanExplore { get; private set; }

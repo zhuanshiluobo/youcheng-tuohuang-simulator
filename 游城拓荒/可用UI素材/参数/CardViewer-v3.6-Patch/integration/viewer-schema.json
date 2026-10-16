@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CardViewer v3.6 input",
+  "description": "独立卡牌查看窗口的输入；布局和图像素材清单由补丁的布局文件提供。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mode", "source", "card"],
+  "properties": {
+    "mode": {
+      "enum": ["inspect", "use-character"],
+      "description": "inspect 隐藏计谋、策略、取消三个按钮；use-character 显示这三个按钮。"
+    },
+    "source": {
+      "enum": ["quick-action", "facility", "covered-area", "hand", "discard-area", "other"],
+      "description": "调用入口。source 本身不赋予使用卡牌的权限。"
+    },
+    "card": { "$ref": "#/$defs/card" },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plot", "strategy"],
+      "properties": {
+        "plot": {
+          "$ref": "#/$defs/effectState",
+          "description": "计谋按钮的规则状态。"
+        },
+        "strategy": {
+          "$ref": "#/$defs/effectState",
+          "description": "策略按钮的规则状态。"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "mode": { "const": "use-character" } } },
+      "then": {
+        "required": ["effects"],
+        "properties": {
+          "source": { "const": "quick-action" },
+          "card": { "properties": { "type": { "const": "character" } } }
+        }
+      },
+      "else": { "not": { "required": ["effects"] } }
+    }
+  ],
+  "$defs": {
+    "card": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "displayImage"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "当前可见卡牌或卡槽的稳定引用；不可向无权限玩家泄露盖放牌身份。"
+        },
+        "type": { "enum": ["character", "facility", "other"] },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "可选，仅传入当前玩家有权限看到的名称。"
+        },
+        "displayImage": {
+          "type": "string",
+          "minLength": 1,
+          "description": "调用方已授权显示的图片路径或 URI；可能是正面或背面。始终按原图比例 contain。"
+        },
+        "altText": {
+          "type": "string",
+          "description": "可选的无障碍替代文本，不得泄露未公开内容。"
+        }
+      }
+    },
+    "effectState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "disabledReason": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "enabled": { "const": false } } },
+          "then": { "required": ["disabledReason"] },
+          "else": { "not": { "required": ["disabledReason"] } }
+        }
+      ]
+    }
+  }
+}

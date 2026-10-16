@@ -1,0 +1,76 @@
+{
+  "definitionId": "enterprise.rhine_lab",
+  "contentType": "enterprise",
+  "version": "1.0.0",
+  "displayName": "莱茵生命",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/enterprise_boards.jpg",
+  "artworkSpriteId": "enterprise.rhine_lab.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.board_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "enterprise.rhine_lab.level_1.special",
+      "mode": "level_1.special",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.rhine_lab.level_1.special",
+      "script": "lua/enterprises/enterprise.rhine_lab.level_1.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.rhine_lab.level_1.description",
+          "arguments": []
+        }
+      }
+    }
+  ],
+  "data": {
+    "levels": [
+      {
+        "level": 0,
+        "kind": "empty",
+        "abilityId": ""
+      },
+      {
+        "level": 1,
+        "kind": "special",
+        "abilityId": "enterprise.rhine_lab.level_1.special",
+        "description": {
+          "key": "core:enterprise.rhine_lab.level_1.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 2,
+        "kind": "department_reward",
+        "abilityId": ""
+      },
+      {
+        "level": 3,
+        "kind": "department_reward",
+        "abilityId": ""
+      },
+      {
+        "level": 4,
+        "kind": "department_reward",
+        "abilityId": ""
+      },
+      {
+        "level": 5,
+        "kind": "department_reward",
+        "abilityId": ""
+      }
+    ],
+    "departmentRewardPolicy": "active_department"
+  },
+  "presentation": {
+    "detailScript": "lua/presentation/enterprise.rhine_lab.details.lua"
+  }
+}

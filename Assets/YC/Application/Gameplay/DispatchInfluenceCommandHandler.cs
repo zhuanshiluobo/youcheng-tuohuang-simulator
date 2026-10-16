@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using YC.Application.Sessions;
 using YC.Domain.Commands;
 using YC.Domain.Events;
@@ -11,9 +12,8 @@ namespace YC.Application.Gameplay
 {
     public sealed class DispatchInfluenceCommandHandler : IGameCommandHandler
     {
-        private readonly InfluenceService influenceService;
-        private readonly RoundAdvanceService roundAdvanceService;
         private readonly EffectRegistry effectRegistry;
+        private readonly InfluenceService influenceService;
 
         public DispatchInfluenceCommandHandler(InfluenceService influenceService)
             : this(influenceService, new RoundAdvanceService(), new EffectRegistry())
@@ -30,8 +30,7 @@ namespace YC.Application.Gameplay
             RoundAdvanceService roundAdvanceService,
             EffectRegistry effectRegistry)
         {
-            this.influenceService = influenceService;
-            this.roundAdvanceService = roundAdvanceService;
+            this.influenceService = influenceService ?? throw new System.ArgumentNullException(nameof(influenceService));
             this.effectRegistry = effectRegistry ?? throw new System.ArgumentNullException(nameof(effectRegistry));
             InfluenceEffectExecutor.Register(this.effectRegistry, influenceService);
         }
@@ -49,54 +48,21 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(guard);
             }
 
-            if (command.Parameters == null)
+            if (string.IsNullOrEmpty(command.SourceId) || string.IsNullOrEmpty(command.TargetId) ||
+                command.OptionIds?.Count > 0 || command.Parameters?.Count > 0)
             {
                 return CommandResult.Invalid(ValidationResult.Failure(
                     CommandErrorCode.InvalidTarget,
-                    "调度参数不能为空。"));
+                    "dispatch_preselection_arguments_invalid"));
             }
-
-            var hasSecondSource = command.Parameters.TryGetValue("source2", out var source2);
-            var hasSecondTarget = command.Parameters.TryGetValue("target2", out var target2);
-            if (hasSecondSource != hasSecondTarget ||
-                (hasSecondSource && (string.IsNullOrEmpty(source2) || string.IsNullOrEmpty(target2))))
-            {
-                return CommandResult.Invalid(ValidationResult.Failure(
-                    CommandErrorCode.InvalidTarget,
-                    "第二次调度必须同时提供 source2 和 target2。"));
-            }
-
-            var moves = new List<InfluenceMoveRequest>
-            {
-                new InfluenceMoveRequest(command.SourceId, command.TargetId)
-            };
-            if (hasSecondSource)
-            {
-                moves.Add(new InfluenceMoveRequest(source2, target2));
-            }
-
-            var moveValidation = influenceService.CanMoveAtomically(state, command.PlayerId, moves);
-            if (!moveValidation.IsValid)
-            {
-                return CommandResult.Invalid(moveValidation);
-            }
-
-            var moveIds = new List<KeyValuePair<string, string>>();
-            for (var i = 0; i < moves.Count; i++)
-            {
-                var source = influenceService.FindInfluence(state, moves[i].SourceSlotId);
-                if (source == null)
-                {
-                    return CommandResult.Invalid(ValidationResult.Failure(
-                        CommandErrorCode.InvalidSource,
-                        "要移动的影响力不存在。"));
-                }
-
-                var stableInfluenceId = InfluenceIdentity.GetStableId(state, source);
-                moveIds.Add(new KeyValuePair<string, string>(stableInfluenceId, moves[i].TargetSlotId));
-            }
-
-            var effect = InfluenceEffectSpecFactory.MoveInfluences(command.PlayerId, moveIds, InfluenceCauseKinds.MoveCity);
+            var source = state.Map.Influences.FirstOrDefault(value =>
+                value != null && InfluenceIdentity.GetStableId(state, value) == command.SourceId);
+            if (source == null || source.PlayerId != command.PlayerId)
+                return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget,
+                    "dispatch_preselection_source_invalid"));
+            var moveValidation = influenceService.CanMove(state, command.PlayerId, command.SourceId, command.TargetId);
+            if (!moveValidation.IsValid) return CommandResult.Invalid(moveValidation);
+            var effect = InfluenceDispatchActionEffectExecutor.Create(command.PlayerId, command.SourceId, command.TargetId);
             var executor = new EffectTreeExecutor(state, effectRegistry);
             string effectId;
             if (!executor.TryCreatePlayerActionEffect(
@@ -109,17 +75,17 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(ValidationResult.Failure(
                     CommandErrorCode.WrongPhase, executor.LastDiagnostic));
             }
-            executor.RunUntilQuiescent();
+            var report = executor.RunUntilQuiescent();
+            if (report.Faulted)
+                return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget,
+                    "调度效果无法继续：" + state.EffectRuntime.LastFaultMessage));
             EffectNodeRuntimeState node = executor.GetNode(effectId);
-            if (node == null || node.Status != EffectNodeStatus.Completed)
+            if (node == null || node.Status == EffectNodeStatus.Failed || node.PendingOutcome == EffectPendingOutcome.Failed)
             {
                 return CommandResult.Invalid(InfluenceEffectFailureMapper.ToValidation(node));
             }
 
-            roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
-
-            var movedCount = moves.Count;
-            var message = "玩家 " + command.PlayerId + " 已调度影响力 " + movedCount + " 次。";
+            var message = node.Status == EffectNodeStatus.Completed ? "调度已完成。" : "调度已开始，请选择要移动的影响力。";
             return CommandResult.SuccessResult(new List<GameEvent>(), message);
         }
     }

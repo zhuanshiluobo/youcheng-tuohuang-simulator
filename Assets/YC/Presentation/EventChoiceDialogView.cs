@@ -13,7 +13,8 @@ namespace YC.Presentation
         ResourceCollectionPayment,
         BuildFacilityFocus,
         BuildFacilityConfirmation,
-        CharacterSecondEffectDecision
+        CharacterSecondEffectDecision,
+        ConditionPayment
     }
 
     /// <summary>编辑器资产化的事件选择窗口固定引用，只负责视图切换和模板实例化。</summary>
@@ -90,7 +91,7 @@ namespace YC.Presentation
         [SerializeField] private GameObject eventTextScroll;
         [SerializeField] private string[] modeTitles =
         {
-            "", "选择探索路线", "选择过路费接收者", "是否支付路费", "", "最终确认建设", "是否发动第二个效果？"
+            "", "选择探索路线", "选择过路费接收者", "选择路费方案", "", "最终确认建设", "是否发动第二个效果？"
         };
 
         [Header("互斥模式块")]
@@ -101,6 +102,14 @@ namespace YC.Presentation
         [SerializeField] private GameObject buildFacilityFocusMode;
         [SerializeField] private GameObject buildFacilityConfirmationMode;
         [SerializeField] private GameObject characterSecondEffectDecisionMode;
+        [SerializeField] private GameObject conditionPaymentMode;
+        [SerializeField] private Button conditionPaymentExecuteButton;
+        [SerializeField] private Button conditionPaymentDeclineButton;
+        [SerializeField] private Vector2 conditionPaymentPanelSize;
+        [SerializeField] private Vector2 conditionPaymentPanelPosition;
+        [SerializeField] private string conditionPaymentTitle;
+        [SerializeField] private string paymentConfirmationTitle;
+        [SerializeField] private GameplayTextView conditionPaymentDescriptionDocument;
 
         [Header("模式内容")]
         [SerializeField] private RawImage eventCardArtworkImage;
@@ -118,12 +127,21 @@ namespace YC.Presentation
         [SerializeField] private Button resourcePaymentBankButton;
         [SerializeField] private Text resourcePaymentBankLabel;
         [SerializeField] private Button resourcePaymentCancelButton;
-        [SerializeField] private string resourcePaymentBankPrompt = "支付给银行";
+        [SerializeField] private string resourcePaymentBankPrompt = "选择银行接收路费";
         [SerializeField] private string resourcePaymentPlayerPrompt = "选择路费接收玩家";
-        [SerializeField] private string resourcePaymentSelectedFormat = "已选择支付给{0} {1}金券";
+        [SerializeField] private string resourcePaymentSelectedFormat = "已选收款方：{0}；路费：{1}金券";
         [SerializeField] private string resourcePaymentBankName = "银行";
-        [SerializeField] private string resourcePaymentBankFormat = "支付 {0}";
-        [SerializeField] private string resourcePaymentPlayerFormat = "向 {0} 支付 {1}";
+        [SerializeField] private string resourcePaymentBankFormat = "选择银行 · {0}金券";
+        [SerializeField] private string resourcePaymentPlayerFormat = "选择{0} · {1}金券";
+        [SerializeField] private string routeHarvestPrompt = "采集：点击航道选择路费，点击资源点切换选择；使用结束操作结算。";
+        [SerializeField] private string routeExplorePrompt = "探索：先选航道及路费，再选一个资源点；再次点击所选资源点确认开始。";
+        [SerializeField] private string routeDraftCostFormat = "暂估路费：{0}金券（尚未确定目标）";
+        [SerializeField] private string routeFinalCostFormat = "已选{0}处；最终路费：{1}金券";
+        [SerializeField] private string routePrunedFormat = "已剔除与所选资源点无关的支路；最终路费：{0}金券";
+        [SerializeField] private string routeInvalidPrompt = "选路状态已变化或方案尚未有效，请重新选择后确认。";
+        [SerializeField] private string routeSubmittingPrompt = "等待主机确认选路方案。";
+        [SerializeField] private string routeCannotCancelPrompt = "请先完成当前资源点选择。";
+        [SerializeField] private string routeReservationFormat = "已预留{0}金券，探索完成后交付。";
         [SerializeField] private RawImage facilityPreviewImage;
         [SerializeField] private AspectRatioFitter facilityPreviewAspect;
         [SerializeField] private Text facilityPreviewFallback;
@@ -172,6 +190,13 @@ namespace YC.Presentation
         public EventChoiceDialogLayoutProfile LayoutProfile => layoutProfile;
         public RectTransform ArtworkChoiceHost => artworkChoiceHost;
         public GameObject[] ModeBlocks => GetModeBlocks();
+        public Button ConditionPaymentExecuteButton => conditionPaymentExecuteButton;
+        public Button ConditionPaymentDeclineButton => conditionPaymentDeclineButton;
+        public Vector2 ConditionPaymentPanelSize => conditionPaymentPanelSize;
+        public Vector2 ConditionPaymentPanelPosition => conditionPaymentPanelPosition;
+        public GameplayTextView ConditionPaymentDescriptionDocument => conditionPaymentDescriptionDocument;
+        public void SetConditionPaymentTitle(bool isCondition) =>
+            titleText.text = isCondition ? conditionPaymentTitle : paymentConfirmationTitle;
         public RawImage EventCardArtworkImage => eventCardArtworkImage;
         public GameObject EventCardMetadataRibbon => eventCardMetadataRibbon;
         public Image EventCardMetadataRibbonImage => eventCardMetadataRibbonImage;
@@ -193,6 +218,15 @@ namespace YC.Presentation
         public string ResourcePaymentBankName => resourcePaymentBankName;
         public string ResourcePaymentBankFormat => resourcePaymentBankFormat;
         public string ResourcePaymentPlayerFormat => resourcePaymentPlayerFormat;
+        public string RouteHarvestPrompt => routeHarvestPrompt;
+        public string RouteExplorePrompt => routeExplorePrompt;
+        public string RouteDraftCostFormat => routeDraftCostFormat;
+        public string RouteFinalCostFormat => routeFinalCostFormat;
+        public string RoutePrunedFormat => routePrunedFormat;
+        public string RouteInvalidPrompt => routeInvalidPrompt;
+        public string RouteSubmittingPrompt => routeSubmittingPrompt;
+        public string RouteCannotCancelPrompt => routeCannotCancelPrompt;
+        public string RouteReservationFormat => routeReservationFormat;
         public RawImage FacilityPreviewImage => facilityPreviewImage;
         public AspectRatioFitter FacilityPreviewAspect => facilityPreviewAspect;
         public Text FacilityPreviewFallback => facilityPreviewFallback;
@@ -240,6 +274,14 @@ namespace YC.Presentation
                     reason = "事件选择窗口存在缺失的模式块。";
                     return false;
                 }
+            }
+
+            if (conditionPaymentExecuteButton == null || conditionPaymentDeclineButton == null ||
+                conditionPaymentDescriptionDocument == null || conditionPaymentDescriptionDocument.GetComponent<Text>() != descriptionText ||
+                conditionPaymentPanelSize.x <= 0 || conditionPaymentPanelSize.y <= 0)
+            {
+                reason = "条件付款窗口引用或尺寸配置不完整。";
+                return false;
             }
 
             if (eventCardArtworkImage == null || eventCardMetadataRibbon == null ||
@@ -302,6 +344,7 @@ namespace YC.Presentation
 
         public void SetMode(EventChoiceDialogMode mode)
         {
+            closeInputHandler.enabled = mode != EventChoiceDialogMode.ConditionPayment;
             closeButtonLabel.gameObject.SetActive(mode != EventChoiceDialogMode.ResourceCollectionPayment);
             resourcePaymentCloseLabel.gameObject.SetActive(mode == EventChoiceDialogMode.ResourceCollectionPayment);
             if (pageLayout != null) pageLayout.Configure(mode);
@@ -349,6 +392,8 @@ namespace YC.Presentation
 
         public void ClearForReuse()
         {
+            conditionPaymentDescriptionDocument.ClearBinding();
+            conditionPaymentDescriptionDocument.enabled = false;
             ClearCallbacks();
             for (var i = dynamicInstances.Count - 1; i >= 0; i--)
             {
@@ -406,6 +451,8 @@ namespace YC.Presentation
             exploreConfirmButton.onClick.RemoveAllListeners();
             resourcePaymentBankButton.onClick.RemoveAllListeners();
             resourcePaymentCancelButton.onClick.RemoveAllListeners();
+            conditionPaymentExecuteButton.onClick.RemoveAllListeners();
+            conditionPaymentDeclineButton.onClick.RemoveAllListeners();
             buildResourceButton.onClick.RemoveAllListeners();
             buildGoldButton.onClick.RemoveAllListeners();
             buildBackButton.onClick.RemoveAllListeners();
@@ -494,6 +541,10 @@ namespace YC.Presentation
                     titleText.gameObject.name = "Character Second Effect Title";
                     descriptionText.gameObject.name = "Character Second Effect Description";
                     break;
+                case EventChoiceDialogMode.ConditionPayment:
+                    titleLayout = layoutProfile.ResourcePaymentTitleLayout;
+                    titleStyle = layoutProfile.ResourcePaymentTitleTextStyle;
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
             }
@@ -519,6 +570,8 @@ namespace YC.Presentation
                     return layoutProfile.BuildConfirmationOverlayRaycastTarget;
                 case EventChoiceDialogMode.CharacterSecondEffectDecision:
                     return layoutProfile.CharacterOverlayRaycastTarget;
+                case EventChoiceDialogMode.ConditionPayment:
+                    return false;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
             }
@@ -595,7 +648,8 @@ namespace YC.Presentation
                 resourceCollectionPaymentMode,
                 buildFacilityFocusMode,
                 buildFacilityConfirmationMode,
-                characterSecondEffectDecisionMode
+                characterSecondEffectDecisionMode,
+                conditionPaymentMode
             };
         }
     }

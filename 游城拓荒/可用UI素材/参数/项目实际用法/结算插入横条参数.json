@@ -1,0 +1,1182 @@
+{
+  "schemaVersion": 1,
+  "standardId": "M03",
+  "date": "2026-10-16",
+  "description": "结算插入横条当前指定素材和参数；直接取代本用途的旧56项集合及不含M03的通用参数入口，不构成界面资产覆盖授权。",
+  "selectionSource": {
+    "path": "prompt/企业扩与感染者基础实装/结算插入按钮-素材映射.json",
+    "sha256": "266ac0bda44c9db98bdf8a46bfac5246b2dea6ab60c6c16f84cda05d09e10bb5"
+  },
+  "exactAssetIndex": "清单/可用素材索引.json",
+  "baseVersion": "Settlement-Effects-v1.0",
+  "iconVersion": "Settlement-Icons-Extra-v1.1",
+  "assetCount": 26,
+  "baseCount": 5,
+  "iconVariantCount": 21,
+  "iconSemanticCount": 7,
+  "buttonSourceCount": 13,
+  "mode": "完整整底；禁止与fill/frame重复叠加",
+  "usage": "settlement_action",
+  "stateIconTone": {
+    "default": "dark",
+    "hover": "dark",
+    "pressed": "dark",
+    "pending": "light",
+    "disabled": "muted"
+  },
+  "states": {
+    "default": {
+      "baseResourceKey": "settlement.chip-default",
+      "iconTone": "dark"
+    },
+    "hover": {
+      "baseResourceKey": "settlement.chip-hover",
+      "iconTone": "dark"
+    },
+    "pressed": {
+      "baseResourceKey": "settlement.chip-pressed",
+      "iconTone": "dark"
+    },
+    "pending": {
+      "baseResourceKey": "settlement.chip-pending",
+      "iconTone": "light"
+    },
+    "disabled": {
+      "baseResourceKey": "settlement.chip-disabled",
+      "iconTone": "muted"
+    }
+  },
+  "icons": [
+    {
+      "id": "core:settlement.chain_link",
+      "assetId": "ui-chain-link",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assignedAbilityIds": [
+        "infected.character.amiya.tactic"
+      ],
+      "dark": "core:settlement.chain_link.dark",
+      "light": "core:settlement.chain_link.light",
+      "muted": "core:settlement.chain_link.muted"
+    },
+    {
+      "id": "core:settlement.substitute",
+      "assetId": "ui-substitute",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assignedAbilityIds": [
+        "operator.passenger.tactic"
+      ],
+      "dark": "core:settlement.substitute.dark",
+      "light": "core:settlement.substitute.light",
+      "muted": "core:settlement.substitute.muted"
+    },
+    {
+      "id": "core:settlement.trigger_ready",
+      "assetId": "ui-trigger-ready",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assignedAbilityIds": [
+        "operator.dorothy.tactic",
+        "operator.mudrock.tactic",
+        "infected.character.jessica_the_liberated.tactic"
+      ],
+      "dark": "core:settlement.trigger_ready.dark",
+      "light": "core:settlement.trigger_ready.light",
+      "muted": "core:settlement.trigger_ready.muted"
+    },
+    {
+      "id": "core:settlement.target_other",
+      "assetId": "ui-target-other",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assignedAbilityIds": [
+        "infected.character.swire.tactic",
+        "infected.character.lin.tactic"
+      ],
+      "dark": "core:settlement.target_other.dark",
+      "light": "core:settlement.target_other.light",
+      "muted": "core:settlement.target_other.muted"
+    },
+    {
+      "id": "core:settlement.scope_adjacent",
+      "assetId": "ui-scope-adjacent",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assignedAbilityIds": [
+        "infected.character.gavial_the_invincible.tactic"
+      ],
+      "dark": "core:settlement.scope_adjacent.dark",
+      "light": "core:settlement.scope_adjacent.light",
+      "muted": "core:settlement.scope_adjacent.muted"
+    },
+    {
+      "id": "core:settlement.choose_order",
+      "assetId": "ui-choose-order",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assignedAbilityIds": [
+        "infected.award.permanent_support.cleanup"
+      ],
+      "dark": "core:settlement.choose_order.dark",
+      "light": "core:settlement.choose_order.light",
+      "muted": "core:settlement.choose_order.muted"
+    },
+    {
+      "id": "core:settlement.chain_defer",
+      "assetId": "ui-chain-defer",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assignedAbilityIds": [
+        "infected.character.muelsyse.strategy",
+        "operator.w.strategy",
+        "character.liskarm.strategy",
+        "infected.character.hellagur.strategy"
+      ],
+      "dark": "core:settlement.chain_defer.dark",
+      "light": "core:settlement.chain_defer.light",
+      "muted": "core:settlement.chain_defer.muted"
+    }
+  ],
+  "buttons": [
+    {
+      "abilityId": "infected.character.amiya.tactic",
+      "definitionId": "infected.character.amiya",
+      "sourceDisplayName": "阿米娅",
+      "entryKind": "optional_insertion",
+      "iconKey": "core:settlement.chain_link",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "operator.passenger.tactic",
+      "definitionId": "operator.passenger",
+      "sourceDisplayName": "异客",
+      "entryKind": "optional_insertion",
+      "iconKey": "core:settlement.substitute",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "operator.dorothy.tactic",
+      "definitionId": "operator.dorothy",
+      "sourceDisplayName": "多萝西",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.trigger_ready",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "operator.mudrock.tactic",
+      "definitionId": "operator.mudrock",
+      "sourceDisplayName": "泥岩",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.trigger_ready",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "infected.character.jessica_the_liberated.tactic",
+      "definitionId": "infected.character.jessica_the_liberated",
+      "sourceDisplayName": "涤火杰西卡",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.trigger_ready",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "infected.character.swire.tactic",
+      "definitionId": "infected.character.swire",
+      "sourceDisplayName": "诗怀雅",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.target_other",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "infected.character.lin.tactic",
+      "definitionId": "infected.character.lin",
+      "sourceDisplayName": "林",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.target_other",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "infected.character.gavial_the_invincible.tactic",
+      "definitionId": "infected.character.gavial_the_invincible",
+      "sourceDisplayName": "百炼嘉维尔",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.scope_adjacent",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "infected.award.permanent_support.cleanup",
+      "definitionId": "infected.award.permanent_support",
+      "sourceDisplayName": "梅兰德基金会—授勋卡",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.choose_order",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "infected.character.muelsyse.strategy",
+      "definitionId": "infected.character.muelsyse",
+      "sourceDisplayName": "缪尔赛思",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.chain_defer",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "operator.w.strategy",
+      "definitionId": "operator.w",
+      "sourceDisplayName": "W",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.chain_defer",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "character.liskarm.strategy",
+      "definitionId": "liskarm",
+      "sourceDisplayName": "雷蛇",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.chain_defer",
+      "contentMode": "icon_text"
+    },
+    {
+      "abilityId": "infected.character.hellagur.strategy",
+      "definitionId": "infected.character.hellagur",
+      "sourceDisplayName": "赫拉格",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.chain_defer",
+      "contentMode": "icon_text"
+    }
+  ],
+  "assets": [
+    {
+      "resourceKey": "settlement.chip-default",
+      "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-default@2x.png",
+      "sha256": "02035b57f6a0d01a88a8786c443330bf8fc5d23297ff15960670910a7264c3bd",
+      "image": {
+        "width": 384,
+        "height": 88
+      },
+      "purpose": "结算插入按钮整底",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        44,
+        42,
+        44,
+        42
+      ],
+      "imageType": "Sliced",
+      "pixelsPerUnitMultiplier": 1,
+      "requiredCanvasReferencePixelsPerUnit": 100,
+      "sources": [
+        {
+          "package": "Settlement-Effects-v1.0.zip",
+          "member": "assets/bases/chip-default@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Effects-v1.0/README.md"
+      ]
+    },
+    {
+      "resourceKey": "settlement.chip-disabled",
+      "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-disabled@2x.png",
+      "sha256": "009f3f9f325eb53f33df19347b4b2fb9d5b4b357f59936f58a2579afd0f90a17",
+      "image": {
+        "width": 384,
+        "height": 88
+      },
+      "purpose": "结算插入按钮整底",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        44,
+        42,
+        44,
+        42
+      ],
+      "imageType": "Sliced",
+      "pixelsPerUnitMultiplier": 1,
+      "requiredCanvasReferencePixelsPerUnit": 100,
+      "sources": [
+        {
+          "package": "Settlement-Effects-v1.0.zip",
+          "member": "assets/bases/chip-disabled@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Effects-v1.0/README.md"
+      ]
+    },
+    {
+      "resourceKey": "settlement.chip-hover",
+      "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-hover@2x.png",
+      "sha256": "97b8af12648574ffeda0ab84d67855de9fc8dd8a75cd18589935cdfccac2ff0e",
+      "image": {
+        "width": 384,
+        "height": 88
+      },
+      "purpose": "结算插入按钮整底",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        44,
+        42,
+        44,
+        42
+      ],
+      "imageType": "Sliced",
+      "pixelsPerUnitMultiplier": 1,
+      "requiredCanvasReferencePixelsPerUnit": 100,
+      "sources": [
+        {
+          "package": "Settlement-Effects-v1.0.zip",
+          "member": "assets/bases/chip-hover@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Effects-v1.0/README.md"
+      ]
+    },
+    {
+      "resourceKey": "settlement.chip-pending",
+      "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-pending@2x.png",
+      "sha256": "e1f10929409fb48e76dd49c925e3ffff1e7750f0635d8cf78d5c889f9f772521",
+      "image": {
+        "width": 384,
+        "height": 88
+      },
+      "purpose": "结算插入按钮整底",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        44,
+        42,
+        44,
+        42
+      ],
+      "imageType": "Sliced",
+      "pixelsPerUnitMultiplier": 1,
+      "requiredCanvasReferencePixelsPerUnit": 100,
+      "sources": [
+        {
+          "package": "Settlement-Effects-v1.0.zip",
+          "member": "assets/bases/chip-pending@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Effects-v1.0/README.md"
+      ]
+    },
+    {
+      "resourceKey": "settlement.chip-pressed",
+      "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-pressed@2x.png",
+      "sha256": "6bf6aeadb9329fb5080d237945b34967a1f274cc496c610f9a46ce9a5024ff4d",
+      "image": {
+        "width": 384,
+        "height": 88
+      },
+      "purpose": "结算插入按钮整底",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        44,
+        42,
+        44,
+        42
+      ],
+      "imageType": "Sliced",
+      "pixelsPerUnitMultiplier": 1,
+      "requiredCanvasReferencePixelsPerUnit": 100,
+      "sources": [
+        {
+          "package": "Settlement-Effects-v1.0.zip",
+          "member": "assets/bases/chip-pressed@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Effects-v1.0/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.chain_link.dark",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-link-dark@2x.png",
+      "sha256": "6c5336886d840a3fabf2eb86bce8cb29ddeea4e7fcf701f40357e322d713df60",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.amiya.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-chain-link-dark@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.chain_link.light",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-link-light@2x.png",
+      "sha256": "845d8883e27752e940fe00ea0c06d5e633380ba69382fcbe6dff2f7776c73d31",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.amiya.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-chain-link-light@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.chain_link.muted",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-link-muted@2x.png",
+      "sha256": "db484c3c06a46da0c613f6940039749e7f2ed54ed64c587d9ba29411efc201c7",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.amiya.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-chain-link-muted@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.substitute.dark",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-substitute-dark@2x.png",
+      "sha256": "1b3a586c08827afe0002d0c22f98170fdcefdf1430f934f88903ebc338f1d1e7",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "operator.passenger.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-substitute-dark@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.substitute.light",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-substitute-light@2x.png",
+      "sha256": "a1b7b84a92f7be2f5a8ac549f5455a390541b3b74f04ffa25d974a5050c1af92",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "operator.passenger.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-substitute-light@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.substitute.muted",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-substitute-muted@2x.png",
+      "sha256": "0daeecd54aca51081576104f2604650bed2b432d717f21322829a3fa9613211a",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "operator.passenger.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-substitute-muted@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.trigger_ready.dark",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-trigger-ready-dark@2x.png",
+      "sha256": "5e962957f7ea2908c33c6d93aa4cdcb7553e3b21f40f89cc5e408e2259311a8d",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "operator.dorothy.tactic",
+        "operator.mudrock.tactic",
+        "infected.character.jessica_the_liberated.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-trigger-ready-dark@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.trigger_ready.light",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-trigger-ready-light@2x.png",
+      "sha256": "0017f7f69babe91e2f85181d345665dcf9a20b7e7761c05be15a1deb14ec46f2",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "operator.dorothy.tactic",
+        "operator.mudrock.tactic",
+        "infected.character.jessica_the_liberated.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-trigger-ready-light@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.trigger_ready.muted",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-trigger-ready-muted@2x.png",
+      "sha256": "048f8a9828b8d988d578e716e4897c3e5105dbcd30196d2488679f31b8d391da",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "operator.dorothy.tactic",
+        "operator.mudrock.tactic",
+        "infected.character.jessica_the_liberated.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-trigger-ready-muted@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.scope_adjacent.dark",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-scope-adjacent-dark@2x.png",
+      "sha256": "e01b9a28dc4434ed04d360df526bea3288d3612736fff925ab818b058e77c0ca",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.gavial_the_invincible.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-scope-adjacent-dark@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.scope_adjacent.light",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-scope-adjacent-light@2x.png",
+      "sha256": "13c5e81f705b99d35d640cd65c7c934366a95b53659bfabf6070346d14ec2d27",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.gavial_the_invincible.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-scope-adjacent-light@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.scope_adjacent.muted",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-scope-adjacent-muted@2x.png",
+      "sha256": "b7241ccbb2e6f0c3615b1e1b2b064f998d2ce588a8d2354db35bdfb440326dcb",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.gavial_the_invincible.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-scope-adjacent-muted@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.choose_order.dark",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-choose-order-dark@2x.png",
+      "sha256": "c6944cca050ab2e1e4f3b92d2b4b095b9c3df43f34cdef3ee599236c6faa87e2",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.award.permanent_support.cleanup"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-choose-order-dark@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.choose_order.light",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-choose-order-light@2x.png",
+      "sha256": "fb1dc1ac3c832dfc96ee48bc44b6249730ef3dd5f041b477ddbca18ff8f3b6db",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.award.permanent_support.cleanup"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-choose-order-light@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.choose_order.muted",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-choose-order-muted@2x.png",
+      "sha256": "561bc32377f7e8a75efa7b71e28f5432a5072cbe661809f0792940d06889e0c8",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.award.permanent_support.cleanup"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-choose-order-muted@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.chain_defer.dark",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-defer-dark@2x.png",
+      "sha256": "fceca884eb979bf156ae56e54435cac7d2a8bfd244c438940eaa055360608062",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.muelsyse.strategy",
+        "operator.w.strategy",
+        "character.liskarm.strategy",
+        "infected.character.hellagur.strategy"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-chain-defer-dark@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.chain_defer.light",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-defer-light@2x.png",
+      "sha256": "f12d0f9f2d0b8f47f5ba6910a634e457d9b334ee1ced9de29534bb1e5647c157",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.muelsyse.strategy",
+        "operator.w.strategy",
+        "character.liskarm.strategy",
+        "infected.character.hellagur.strategy"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-chain-defer-light@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.chain_defer.muted",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-defer-muted@2x.png",
+      "sha256": "5c0dfc98c78d5ef0a5981a2a90433c60389105f00a3872c8c383648404694add",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.muelsyse.strategy",
+        "operator.w.strategy",
+        "character.liskarm.strategy",
+        "infected.character.hellagur.strategy"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-chain-defer-muted@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.target_other.dark",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-target-other-dark@2x.png",
+      "sha256": "94bf220f18330e7c991794fbc648f55ac7f681bb2d629dc700bf8f127cc75756",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.swire.tactic",
+        "infected.character.lin.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-target-other-dark@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.target_other.light",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-target-other-light@2x.png",
+      "sha256": "e1d6a28ad587b6c052bad4751d0014d3baf1807906597d4e81392de482fa71e2",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.swire.tactic",
+        "infected.character.lin.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-target-other-light@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    },
+    {
+      "resourceKey": "core:settlement.target_other.muted",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-target-other-muted@2x.png",
+      "sha256": "8fc8597235549e1c9e6053ca5379c32d92526e55729c09c81323894186151b86",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "assignedAbilityIds": [
+        "infected.character.swire.tactic",
+        "infected.character.lin.tactic"
+      ],
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "sources": [
+        {
+          "package": "Settlement-Icons-Extra-v1.1.zip",
+          "member": "assets/icons-extra/ui-target-other-muted@2x.png"
+        }
+      ],
+      "sourceDocuments": [
+        "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+      ]
+    }
+  ],
+  "importParametersMeaning": "底图源像素384×88、PPU200、Unity左下右上切片44/42/44/42，Sliced倍率1、Canvas参考PPU100；图标48×48、PPU200、不切片，Simple等比显示22×22。参数来自批准映射与精确索引，本次不读取或修改Unity资产。",
+  "layoutReference": "参数/Settlement-Effects-v1.0/layout.json",
+  "currentLayoutContract": "prompt/企业扩与感染者基础实装/结算按钮布局与入场表现-修补合同.md",
+  "currentLayoutDecisions": {
+    "useExistingStaticTitle": true,
+    "decorativeVerticalLinesIncluded": false,
+    "subtitleIncluded": false,
+    "keyboardNavigationIncluded": false,
+    "focusRingIncluded": false,
+    "layeredFillAndFrameIncluded": false
+  },
+  "referenceBoundary": "原包layout.json及索引packageNotes保留来源历史；其中旧标题默认、副标题、键盘和示例选图不覆盖本参数或当前场景/Prefab。布局与静态文字继续由实际场景/Prefab负责，不据文档自动重建。",
+  "supersededSelection": "M03旧56项默认集合撤销；仅此26图为本用途当前期望。未选分辨率、分层底图、焦点层和旧4种示例图标均不再由旧M03标记获得许可；其他已登记用途保持，不删除任何文件。",
+  "validationBoundary": "本次为库内字节/尺寸/用途互指校验及文档收口，不新增Unity、正常对局或视觉通过结论；历史有限验证及未覆盖项承接2026-10-14专项合同。"
+}

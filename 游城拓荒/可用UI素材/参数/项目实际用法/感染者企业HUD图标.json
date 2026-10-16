@@ -1,0 +1,106 @@
+{
+  "standardId": "E01",
+  "confirmedDate": "2026-10-12",
+  "implementedDate": "2026-10-12",
+  "basis": "用户明确使用三家正式原板顶部Logo，保留原底色和比例；热座顺序与企业显示-四项修补合同.md企业节",
+  "consumer": "GameplayExpansionUi.RenderCooperation→EnterpriseBoardCatalog.Logo→Find原板Sprite",
+  "unityAsset": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Enterprise\\EnterpriseBoardCatalog.asset",
+  "assetChangeKind": "仅追加三条externalLogoCrops；原boards及旧logoUv保持",
+  "origin": "原板左上像素；Unity UV为左下原点；三图均不转换/重画/新增Unity贴图",
+  "logos": [
+    {
+      "definitionId": "infected.enterprise.rhodes_island",
+      "displayName": "罗德岛",
+      "source": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\enterprises\\infected_rhodes_island.jpg",
+      "libraryPath": "资产/企业合作图标/感染者企业/infected_rhodes_island.jpg",
+      "sha256": "cce8fd0218536e993ef86d25187729cff072f46326a43f642938aa7cc6468ff8",
+      "bytes": 369771,
+      "sourceSize": {
+        "width": 650,
+        "height": 1850
+      },
+      "mode": "RGB",
+      "cropTopLeftPixels": {
+        "x": 70,
+        "y": 55,
+        "width": 303,
+        "height": 268
+      },
+      "uvBottomLeft": {
+        "x": 0.1076923076923077,
+        "y": 0.8254054054054054,
+        "width": 0.46615384615384614,
+        "height": 0.14486486486486486
+      },
+      "clipTopLeft": 0,
+      "purpose": "主HUD企业合作区该企业Logo",
+      "scope": "只用于对应infected.enterprise企业；不用于正文干员特派、牌背、按钮或其他页面",
+      "preserveOriginalBackgroundAndAspect": true,
+      "bitmapChanged": false,
+      "clipNote": null
+    },
+    {
+      "definitionId": "infected.enterprise.maylander_foundation",
+      "displayName": "梅兰德基金会",
+      "source": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\enterprises\\infected_maylander_foundation.jpg",
+      "libraryPath": "资产/企业合作图标/感染者企业/infected_maylander_foundation.jpg",
+      "sha256": "fcc493e9a49a37c31bae37dbb30e63a6b91997f10e043714cce30a4ddc19dffb",
+      "bytes": 287593,
+      "sourceSize": {
+        "width": 650,
+        "height": 1850
+      },
+      "mode": "RGB",
+      "cropTopLeftPixels": {
+        "x": 43,
+        "y": 80,
+        "width": 245,
+        "height": 249
+      },
+      "uvBottomLeft": {
+        "x": 0.06615384615384616,
+        "y": 0.8221621621621622,
+        "width": 0.3769230769230769,
+        "height": 0.1345945945945946
+      },
+      "clipTopLeft": 0.2,
+      "purpose": "主HUD企业合作区该企业Logo",
+      "scope": "只用于对应infected.enterprise企业；不用于正文干员特派、牌背、按钮或其他页面",
+      "preserveOriginalBackgroundAndAspect": true,
+      "bitmapChanged": false,
+      "clipNote": "只剔除矩形左上角原0级徽记所在背景三角；完整圆章不裁掉，原像素不修改"
+    },
+    {
+      "definitionId": "infected.enterprise.stonehoove_security",
+      "displayName": "岩蹄安保",
+      "source": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\enterprises\\infected_stonehoove_security.jpg",
+      "libraryPath": "资产/企业合作图标/感染者企业/infected_stonehoove_security.jpg",
+      "sha256": "6f1921ac61014b68564211897ecea705b31bd6e969e8e6a82578a299178799bb",
+      "bytes": 287165,
+      "sourceSize": {
+        "width": 650,
+        "height": 1850
+      },
+      "mode": "RGB",
+      "cropTopLeftPixels": {
+        "x": 38,
+        "y": 120,
+        "width": 131,
+        "height": 160
+      },
+      "uvBottomLeft": {
+        "x": 0.05846153846153846,
+        "y": 0.8486486486486486,
+        "width": 0.20153846153846153,
+        "height": 0.08648648648648649
+      },
+      "clipTopLeft": 0,
+      "purpose": "主HUD企业合作区该企业Logo",
+      "scope": "只用于对应infected.enterprise企业；不用于正文干员特派、牌背、按钮或其他页面",
+      "preserveOriginalBackgroundAndAspect": true,
+      "bitmapChanged": false,
+      "clipNote": null
+    }
+  ],
+  "visualAcceptance": "尚待用户实际Unity画面验收"
+}

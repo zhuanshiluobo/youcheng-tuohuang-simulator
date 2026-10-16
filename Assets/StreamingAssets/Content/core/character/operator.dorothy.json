@@ -1,0 +1,114 @@
+{
+  "definitionId": "operator.dorothy",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "多萝西",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/operator_faces.jpg",
+  "artworkSpriteId": "operator.dorothy.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [
+    {
+      "localZoneId": "markers",
+      "zoneTemplateId": "core.zone.card_cube_storage",
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.cube"
+      ],
+      "entryPolicyId": "core.removed_owned_influence",
+      "exitPolicyId": "core.card_payment",
+      "capacityPolicy": "unbounded",
+      "orderingKind": "Unordered",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.return_contents_before_exit",
+      "displayAnchorId": "markers",
+      "emptyExitPolicyId": "",
+      "paymentPolicyId": "",
+      "maxMarkersPerPayment": 0
+    }
+  ],
+  "abilities": [
+    {
+      "abilityId": "operator.dorothy.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.operator.dorothy.strategy",
+      "script": "lua/characters/operator.dorothy.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "operator.dorothy.tactic",
+      "mode": "tactic",
+      "skillType": "persistent",
+      "subscriptionId": "content.operator.dorothy.tactic",
+      "script": "lua/characters/operator.dorothy.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "lua/characters/operator.dorothy.tactic.lua",
+      "settlementActionId": "character.execute_cleanup",
+      "titleKey": "为了大家",
+      "descriptionKey": "移除此牌上2个标记，放置1个你的影响力。",
+      "hasSpecialZone": true,
+      "specialZoneId": "markers",
+      "observedEvents": [
+        "InfluenceRemoved",
+        "InfluenceReplaced"
+      ],
+      "eventResponseAttachments": {
+        "InfluenceRemoved": "DeferredPlayerResponse",
+        "InfluenceReplaced": "DeferredPlayerResponse"
+      },
+      "observerSubjectPolicy": "departed_owner",
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "operator.dorothy.tactic.cleanup_order",
+        "availabilityHandlerId": "operator.dorothy.tactic.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.operator.dorothy.tactic.label"
+          },
+          "description": {
+            "key": "core:settlement.operator.dorothy.tactic.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.operator.dorothy.tactic.label"
+          },
+          "iconKey": "core:settlement.trigger_ready",
+          "contentMode": "icon_text"
+        },
+        "wholeEffectPolicy": "optional"
+      }
+    }
+  ],
+  "data": {
+    "templateId": "operator.dorothy",
+    "cardId": "operator.dorothy",
+    "name": "多萝西",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "operator.dorothy.strategy",
+    "tacticAbilityId": "operator.dorothy.tactic",
+    "playerDetails": [
+      {
+        "abilityId": "operator.dorothy.tactic",
+        "effectText": "计谋·为了大家（持续性）：激活时从你的供应在本牌上放置至多4个玩家标记。你的影响力被移除或替换时，可将该离场立方体放在本牌上，保留其类型与所有者；此后的容纳数量没有上限。每个收尾阶段一次，移除此牌上2个标记，放置1个你的影响力。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Subscription",
+        "storageLocalZoneIds": [
+          "markers"
+        ],
+        "includeCoverSlots": false,
+        "displayName": "多萝西"
+      }
+    ]
+  }
+}

@@ -30,6 +30,42 @@ MonoBehaviour:
     version: formal-1.0.0-original
     artworkSpriteId: city_style_2_001
     trackLayout: limited
+  - id: city_style_city_construction_frontier
+    version: formal-1.0.0-enterprise
+    artworkSpriteId: city_style_1_005
+    trackLayout: active
+  - id: city_style_pioneer_outpost
+    version: formal-1.0.0-enterprise
+    artworkSpriteId: city_style_1_006
+    trackLayout: active
+  - id: city_style_core_commercial_area
+    version: formal-1.0.0-enterprise
+    artworkSpriteId: city_style_1_007
+    trackLayout: active
+  - id: city_style_large_enterprise_park
+    version: formal-1.0.0-enterprise
+    artworkSpriteId: city_style_1_008
+    trackLayout: active
+  - id: city_style_security_district
+    version: formal-1.0.0-enterprise
+    artworkSpriteId: city_style_2_003
+    trackLayout: limited
+  - id: city_style_pioneer_command_hub
+    version: formal-1.0.0-enterprise
+    artworkSpriteId: city_style_2_004
+    trackLayout: limited
+  - id: infected.city_style.district_management
+    version: formal-1.0.0-infected-display
+    artworkSpriteId: infected_city_style_district_management
+    trackLayout: reward
+  - id: infected.city_style.emerging_buildings
+    version: formal-1.0.0-infected-display
+    artworkSpriteId: infected_city_style_emerging_buildings
+    trackLayout: reward
+  - id: infected.city_style.enterprise_offices
+    version: formal-1.0.0-infected-display
+    artworkSpriteId: infected_city_style_enterprise_offices
+    trackLayout: limited
   tracks:
   - layout: active
     area: "unused"

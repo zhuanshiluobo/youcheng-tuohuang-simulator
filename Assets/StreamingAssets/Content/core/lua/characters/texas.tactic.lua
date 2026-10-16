@@ -1,5 +1,5 @@
 return function(ctx)
-    return { Effect.Condition({
+    return { Effect.WithPresentation(Effect.Condition({
         leftEffects = { Effect.PayResource({ payer = ctx.playerId, resourceType = 'gold_voucher', amount = 3 }) },
         rightEffects = {
             Effect.SelectInfluence({ player = ctx.playerId, operation = 'remove', ownerFilter = 'any',
@@ -7,5 +7,5 @@ return function(ctx)
             Effect.SelectInfluence({ player = ctx.playerId, operation = 'move', ownerFilter = 'self', count = 2, distinctPolicy = 'instance',
                 interactionType = 'character.ability.choice.move', promptKey = 'character.texas.tactic.choose_first_move', nextPromptKey = 'character.texas.tactic.choose_second_move' })
         }
-    }) }
+    }), { interaction = { prompt = Text.Ref('core:condition.texas.tactic') } }) }
 end

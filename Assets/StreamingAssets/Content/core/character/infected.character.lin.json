@@ -1,0 +1,105 @@
+{
+  "definitionId": "infected.character.lin",
+  "contentType": "character",
+  "version": "2.0.0",
+  "displayName": "林",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.lin.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [
+    {
+      "localZoneId": "markers",
+      "zoneTemplateId": "core.zone.card_cube_storage",
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.card_payment",
+      "capacityPolicy": "unbounded",
+      "orderingKind": "Unordered",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.return_contents_before_exit",
+      "displayAnchorId": "markers",
+      "emptyExitPolicyId": "core.discard_carrier_when_empty",
+      "paymentPolicyId": "",
+      "maxMarkersPerPayment": 0
+    }
+  ],
+  "abilities": [
+    {
+      "abilityId": "infected.character.lin.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.lin.strategy",
+      "script": "lua/characters/infected.character.lin.strategy.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.lin.strategy.completed",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "infected.character.lin.tactic",
+      "mode": "tactic",
+      "skillType": "persistent",
+      "subscriptionId": "content.infected.character.lin.tactic",
+      "script": "lua/characters/infected.character.lin.tactic.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.lin.tactic.completed",
+      "cleanupScript": "lua/characters/infected.character.lin.tactic.lua",
+      "hasSpecialZone": true,
+      "specialZoneId": "markers",
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "infected.character.lin.tactic.cleanup_order",
+        "availabilityHandlerId": "infected.character.lin.tactic.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.infected.character.lin.tactic.label"
+          },
+          "description": {
+            "key": "core:settlement.infected.character.lin.tactic.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.infected.character.lin.tactic.label"
+          },
+          "iconKey": "core:settlement.target_other",
+          "contentMode": "icon_text"
+        },
+        "wholeEffectPolicy": "optional"
+      }
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.lin",
+    "cardId": "infected.character.lin",
+    "name": "林",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "infected.character.lin.strategy",
+    "tacticAbilityId": "infected.character.lin.tactic",
+    "strategyName": "特殊渠道",
+    "tacticName": "劫富济贫",
+    "sourceReference": "I29",
+    "playerDetails": [
+      {
+        "abilityId": "infected.character.lin.tactic",
+        "effectText": "计谋·劫富济贫（持续性）：从你的供应在本牌上放置至多2个玩家标记。每个收尾阶段一次，移除本牌上1个标记，选择当前至少拥有20金券的对手，从其处获取10金券。没有合格对手时仍可移除标记，随后不获取金券。牌上无标记时，将本角色移至角色弃牌区。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Subscription",
+        "storageLocalZoneIds": [
+          "markers"
+        ],
+        "includeCoverSlots": false,
+        "displayName": "林"
+      }
+    ]
+  }
+}

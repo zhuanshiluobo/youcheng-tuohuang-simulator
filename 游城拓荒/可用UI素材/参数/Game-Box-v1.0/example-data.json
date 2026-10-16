@@ -1,0 +1,222 @@
+{
+  "currentPlayerId": "red",
+  "markerCounts": [
+    {
+      "id": "green",
+      "count": 3,
+      "sprite": "assets/markers/cooperation-01-64.png",
+      "ink": "#26301A"
+    },
+    {
+      "id": "yellow",
+      "count": 2,
+      "sprite": "assets/markers/cooperation-02-64.png",
+      "ink": "#302F22"
+    },
+    {
+      "id": "blue",
+      "count": 5,
+      "sprite": "assets/markers/cooperation-04-64.png",
+      "ink": "#F5F1E5"
+    },
+    {
+      "id": "red",
+      "count": 1,
+      "sprite": "assets/markers/cooperation-08-64.png",
+      "ink": "#F5F1E5"
+    }
+  ],
+  "characters": [
+    {
+      "id": "character-1",
+      "displayImage": "preview/originals/character-second.png",
+      "sourceWidth": 600,
+      "sourceHeight": 850,
+      "face": "front"
+    },
+    {
+      "id": "character-2",
+      "displayImage": "preview/originals/character-back.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 850,
+      "face": "back"
+    },
+    {
+      "id": "character-3",
+      "displayImage": "preview/originals/character-second.png",
+      "sourceWidth": 600,
+      "sourceHeight": 850,
+      "face": "front"
+    },
+    {
+      "id": "character-4",
+      "displayImage": "preview/originals/character-second.png",
+      "sourceWidth": 600,
+      "sourceHeight": 850,
+      "face": "front"
+    },
+    {
+      "id": "character-5",
+      "displayImage": "preview/originals/character-back.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 850,
+      "face": "back"
+    },
+    {
+      "id": "character-6",
+      "displayImage": "preview/originals/character-second.png",
+      "sourceWidth": 600,
+      "sourceHeight": 850,
+      "face": "front"
+    },
+    {
+      "id": "character-7",
+      "displayImage": "preview/originals/character-back.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 850,
+      "face": "back"
+    },
+    {
+      "id": "character-8",
+      "displayImage": "preview/originals/character-front.png",
+      "sourceWidth": 600,
+      "sourceHeight": 850,
+      "face": "front"
+    }
+  ],
+  "events": [
+    {
+      "id": "event-demo-1",
+      "displayImage": "preview/placeholders/event-demo.png",
+      "sourceWidth": 300,
+      "sourceHeight": 450,
+      "face": "front",
+      "previewPlaceholder": true,
+      "dimensionsAreIllustrative": true
+    },
+    {
+      "id": "event-demo-2",
+      "displayImage": "preview/placeholders/event-demo.png",
+      "sourceWidth": 300,
+      "sourceHeight": 450,
+      "face": "front",
+      "previewPlaceholder": true,
+      "dimensionsAreIllustrative": true
+    },
+    {
+      "id": "event-demo-3",
+      "displayImage": "preview/placeholders/event-demo.png",
+      "sourceWidth": 300,
+      "sourceHeight": 450,
+      "face": "front",
+      "previewPlaceholder": true,
+      "dimensionsAreIllustrative": true
+    }
+  ],
+  "ownEnterprise": {
+    "id": "enterprise-rhodes",
+    "ownerPlayerId": "red",
+    "displayImage": "preview/originals/own-enterprise.png",
+    "sourceWidth": 650,
+    "sourceHeight": 1850
+  },
+  "tokens": [
+    {
+      "id": "token-1",
+      "displayImage": "preview/placeholders/token-disc.png",
+      "sourceWidth": 100,
+      "sourceHeight": 100,
+      "count": 2,
+      "previewExample": true
+    },
+    {
+      "id": "token-2",
+      "displayImage": "preview/placeholders/token-strip.png",
+      "sourceWidth": 240,
+      "sourceHeight": 62,
+      "count": 1,
+      "previewExample": true
+    },
+    {
+      "id": "token-3",
+      "displayImage": "preview/placeholders/token-triangle.png",
+      "sourceWidth": 100,
+      "sourceHeight": 96,
+      "count": 3,
+      "previewExample": true
+    },
+    {
+      "id": "token-4",
+      "displayImage": "preview/placeholders/token-hex.png",
+      "sourceWidth": 102,
+      "sourceHeight": 100,
+      "count": 1,
+      "previewExample": true
+    },
+    {
+      "id": "token-5",
+      "displayImage": "preview/originals/resource-pure.png",
+      "sourceWidth": 200,
+      "sourceHeight": 200,
+      "count": 3,
+      "previewExample": true
+    },
+    {
+      "id": "token-6",
+      "displayImage": "preview/originals/resource-rock.png",
+      "sourceWidth": 200,
+      "sourceHeight": 200,
+      "count": 2,
+      "previewExample": true
+    },
+    {
+      "id": "token-7",
+      "displayImage": "preview/placeholders/token-tag.png",
+      "sourceWidth": 72,
+      "sourceHeight": 192,
+      "count": 1,
+      "previewExample": true
+    },
+    {
+      "id": "token-8",
+      "displayImage": "preview/placeholders/token-ticket.png",
+      "sourceWidth": 162,
+      "sourceHeight": 96,
+      "count": 2,
+      "previewExample": true
+    },
+    {
+      "id": "token-9",
+      "displayImage": "preview/placeholders/token-irregular.png",
+      "sourceWidth": 106,
+      "sourceHeight": 104,
+      "count": 1,
+      "previewExample": true
+    },
+    {
+      "id": "token-10",
+      "displayImage": "preview/originals/resource-iron.png",
+      "sourceWidth": 200,
+      "sourceHeight": 200,
+      "count": 2,
+      "previewExample": true
+    },
+    {
+      "id": "token-11",
+      "displayImage": "preview/originals/resource-originium.png",
+      "sourceWidth": 200,
+      "sourceHeight": 200,
+      "count": 1,
+      "previewExample": true
+    },
+    {
+      "id": "token-12",
+      "displayImage": "preview/placeholders/token-disc.png",
+      "sourceWidth": 100,
+      "sourceHeight": 100,
+      "count": 1,
+      "previewExample": true
+    }
+  ],
+  "isPreviewExample": true
+}

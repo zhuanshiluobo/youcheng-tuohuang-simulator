@@ -176,14 +176,13 @@ function Get-UnityProcessesForProject {
         $unityProcesses = Get-CimInstance Win32_Process -Filter "Name = 'Unity.exe'" -ErrorAction Stop
     }
     catch {
-        Write-Host "WARNING: Could not inspect Unity processes before launching tests: $($_.Exception.Message)" -ForegroundColor Yellow
-        return $matches
+        throw "无法查询 Unity 进程，不能确认项目空闲，已停止启动测试。查询错误：$($_.Exception.Message)"
     }
 
     foreach ($process in $unityProcesses) {
         $commandLine = [string]$process.CommandLine
         if ([string]::IsNullOrWhiteSpace($commandLine)) {
-            continue
+            throw "无法读取 Unity 进程 PID $($process.ProcessId) 的命令行，不能核验其项目归属，已停止启动测试。"
         }
 
         $comparableCommandLine = ConvertTo-ComparablePathText $commandLine
@@ -216,13 +215,10 @@ function Assert-UnityProjectIsAvailable {
     $lockFile = Join-Path $Path "Temp\UnityLockfile"
     if (Test-Path -LiteralPath $lockFile -PathType Leaf) {
         $lockItem = Get-Item -LiteralPath $lockFile
-        Write-Host "ERROR: Detected Unity project lock file before launching tests." -ForegroundColor Red
-        Write-Host "Project Path: $Path"
-        Write-Host "Lock File: $($lockItem.FullName)"
-        Write-Host "Last Write Time: $($lockItem.LastWriteTime)"
-        Write-Host "Close the existing Unity Editor for this project and run this script again." -ForegroundColor Yellow
-        Write-Host "If no Unity Editor is running, this may be a stale lock file. Inspect that exact file manually or rerun with -SkipProjectLockCheck to let Unity decide." -ForegroundColor Yellow
-        exit 1
+        Write-Host "已完成 Unity 进程检查，未发现命令行匹配当前项目的进程；锁文件仍存在，交由 Unity 启动时的原生锁判定。" -ForegroundColor Yellow
+        Write-Host "锁文件绝对路径：$($lockItem.FullName)"
+        Write-Host "锁文件最后写入时间（UTC）：$($lockItem.LastWriteTimeUtc.ToString('O'))"
+        Write-Host "本次检查时间（UTC）：$([DateTime]::UtcNow.ToString('O'))；未删除或移动锁文件。"
     }
 }
 

@@ -1,0 +1,1032 @@
+{
+  "schemaVersion": 2,
+  "revision": "art-backed-industrial-chrome",
+  "units": "source pixels",
+  "artworkSources": {
+    "window": {
+      "file": "05-textures/art/window-frame-art.png",
+      "originalSize": [
+        1448,
+        1086
+      ],
+      "visibleCrop": [
+        8,
+        8,
+        1442,
+        1076
+      ],
+      "sourceSliceBorder": [
+        160,
+        160,
+        160,
+        160
+      ]
+    },
+    "gray": {
+      "file": "05-textures/art/button-gray-art.png",
+      "originalSize": [
+        2172,
+        724
+      ],
+      "visibleCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "sourceSliceBorder": [
+        180,
+        180,
+        180,
+        180
+      ]
+    },
+    "gold": {
+      "file": "05-textures/art/button-yellow-art.png",
+      "originalSize": [
+        2172,
+        724
+      ],
+      "visibleCrop": [
+        10,
+        124,
+        2162,
+        566
+      ],
+      "sourceSliceBorder": [
+        180,
+        190,
+        180,
+        190
+      ]
+    }
+  },
+  "compositing": {
+    "order": [
+      "independent fill or artwork",
+      "transparent frame",
+      "runtime text and icons"
+    ],
+    "scaling": "Nine-slice each output using its border values; contentInset is separate from the corner slice size.",
+    "frameCenter": "Every pixel inside the center rectangle bounded by border L/T/R/B is transparent.",
+    "text": "No baked button labels, card numbers or state counts.",
+    "sourceType": "Frames and button fills are raster-backed SVG image/clip assemblies with relative references to packaged PNG textures; icons remain native vector."
+  },
+  "assets": [
+    {
+      "id": "module-frame",
+      "svg": "02-modules/module-frame.svg",
+      "png": "02-modules/module-frame.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 320
+      },
+      "border": {
+        "left": 24,
+        "top": 24,
+        "right": 24,
+        "bottom": 24
+      },
+      "centerAlpha": 0,
+      "role": "transparent-frame",
+      "recommendedMinimum": {
+        "width": 112,
+        "height": 96
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/window-frame-art.png",
+      "artworkCrop": [
+        8,
+        8,
+        1442,
+        1076
+      ],
+      "artworkBorder": [
+        160,
+        160,
+        160,
+        160
+      ],
+      "overlayOrder": 20,
+      "contentInset": 12,
+      "visibleRimApproxPx": 10
+    },
+    {
+      "id": "submodule-frame",
+      "svg": "02-modules/submodule-frame.svg",
+      "png": "02-modules/submodule-frame.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 180
+      },
+      "border": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      },
+      "centerAlpha": 0,
+      "role": "transparent-frame",
+      "recommendedMinimum": {
+        "width": 80,
+        "height": 72
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/window-frame-art.png",
+      "artworkCrop": [
+        8,
+        8,
+        1442,
+        1076
+      ],
+      "artworkBorder": [
+        160,
+        160,
+        160,
+        160
+      ],
+      "overlayOrder": 20,
+      "contentInset": 9,
+      "visibleRimApproxPx": 7
+    },
+    {
+      "id": "module-header-frame",
+      "svg": "02-modules/module-header-frame.svg",
+      "png": "02-modules/module-header-frame.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 44
+      },
+      "border": {
+        "left": 12,
+        "top": 0,
+        "right": 0,
+        "bottom": 4
+      },
+      "centerAlpha": 0,
+      "role": "transparent-frame",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 28
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/window-frame-art.png",
+      "structure": "bottom metal seam with left amber accent",
+      "contentInset": {
+        "left": 16,
+        "top": 3,
+        "right": 4,
+        "bottom": 4
+      },
+      "overlayOrder": 20
+    },
+    {
+      "id": "card-slot-frame",
+      "svg": "02-modules/card-slot-frame.svg",
+      "png": "02-modules/card-slot-frame.png",
+      "sourceSize": {
+        "width": 160,
+        "height": 224
+      },
+      "border": {
+        "left": 14,
+        "top": 14,
+        "right": 14,
+        "bottom": 14
+      },
+      "centerAlpha": 0,
+      "role": "transparent-frame",
+      "recommendedMinimum": {
+        "width": 80,
+        "height": 112
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/window-frame-art.png",
+      "artworkCrop": [
+        8,
+        8,
+        1442,
+        1076
+      ],
+      "artworkBorder": [
+        160,
+        160,
+        160,
+        160
+      ],
+      "overlayOrder": 20,
+      "contentInset": 8,
+      "visibleRimApproxPx": 6
+    },
+    {
+      "id": "thin-row-frame",
+      "svg": "02-modules/thin-row-frame.svg",
+      "png": "02-modules/thin-row-frame.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 56
+      },
+      "border": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 4
+      },
+      "centerAlpha": 0,
+      "role": "transparent-frame",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 20
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/window-frame-art.png",
+      "structure": "bottom metal seam only",
+      "contentInset": {
+        "left": 4,
+        "top": 3,
+        "right": 4,
+        "bottom": 4
+      },
+      "overlayOrder": 20
+    },
+    {
+      "id": "button-frame",
+      "svg": "03-controls/button-frame.svg",
+      "png": "03-controls/button-frame.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "border": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      },
+      "centerAlpha": 0,
+      "role": "transparent-frame",
+      "recommendedMinimum": {
+        "width": 112,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "innerPolygon": "M23,6 H233 L249,19 V53 L233,66 H23 L7,53 V19 Z",
+      "contentInset": {
+        "left": 24,
+        "top": 9,
+        "right": 24,
+        "bottom": 9
+      },
+      "visibleRimApproxPx": 6,
+      "overlayOrder": 20
+    },
+    {
+      "id": "tab-frame",
+      "svg": "03-controls/tab-frame.svg",
+      "png": "03-controls/tab-frame.png",
+      "sourceSize": {
+        "width": 240,
+        "height": 60
+      },
+      "border": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      },
+      "centerAlpha": 0,
+      "role": "transparent-frame",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 52
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "innerPolygon": "M19,6 H221 L233,15 V45 L221,54 H19 L7,45 V15 Z",
+      "contentInset": {
+        "left": 20,
+        "top": 9,
+        "right": 20,
+        "bottom": 9
+      },
+      "visibleRimApproxPx": 6,
+      "overlayOrder": 20
+    },
+    {
+      "id": "stepper-frame",
+      "svg": "03-controls/stepper-frame.svg",
+      "png": "03-controls/stepper-frame.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "border": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      },
+      "centerAlpha": 0,
+      "role": "transparent-frame",
+      "recommendedMinimum": {
+        "width": 40,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "innerPolygon": "M17,6 H47 L57,13 V51 L47,58 H17 L7,51 V13 Z",
+      "contentInset": {
+        "left": 18,
+        "top": 9,
+        "right": 18,
+        "bottom": 9
+      },
+      "visibleRimApproxPx": 6,
+      "overlayOrder": 20
+    },
+    {
+      "id": "button-fill-default",
+      "svg": "03-controls/button-fill-default.svg",
+      "png": "03-controls/button-fill-default.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "border": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "state": "default",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M22,5 H234 L250,19 V53 L234,67 H22 L6,53 V19 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#30312e"
+    },
+    {
+      "id": "button-fill-hover",
+      "svg": "03-controls/button-fill-hover.svg",
+      "png": "03-controls/button-fill-hover.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "border": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "state": "hover",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M22,5 H234 L250,19 V53 L234,67 H22 L6,53 V19 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#30312e"
+    },
+    {
+      "id": "button-fill-pressed",
+      "svg": "03-controls/button-fill-pressed.svg",
+      "png": "03-controls/button-fill-pressed.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "border": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "state": "pressed",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M22,5 H234 L250,19 V53 L234,67 H22 L6,53 V19 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#30312e"
+    },
+    {
+      "id": "button-fill-disabled",
+      "svg": "03-controls/button-fill-disabled.svg",
+      "png": "03-controls/button-fill-disabled.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "border": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "state": "disabled",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M22,5 H234 L250,19 V53 L234,67 H22 L6,53 V19 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#30312e"
+    },
+    {
+      "id": "button-fill-primary-active",
+      "svg": "03-controls/button-fill-primary-active.svg",
+      "png": "03-controls/button-fill-primary-active.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "border": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-yellow-art.png",
+      "artworkCrop": [
+        10,
+        124,
+        2162,
+        566
+      ],
+      "artworkBorder": [
+        180,
+        190,
+        180,
+        190
+      ],
+      "state": "primary-active",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M22,5 H234 L250,19 V53 L234,67 H22 L6,53 V19 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#c49a35"
+    },
+    {
+      "id": "button-fill-primary-pressed",
+      "svg": "03-controls/button-fill-primary-pressed.svg",
+      "png": "03-controls/button-fill-primary-pressed.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "border": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-yellow-art.png",
+      "artworkCrop": [
+        10,
+        124,
+        2162,
+        566
+      ],
+      "artworkBorder": [
+        180,
+        190,
+        180,
+        190
+      ],
+      "state": "primary-pressed",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M22,5 H234 L250,19 V53 L234,67 H22 L6,53 V19 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#c49a35"
+    },
+    {
+      "id": "tab-fill-default",
+      "svg": "03-controls/tab-fill-default.svg",
+      "png": "03-controls/tab-fill-default.png",
+      "sourceSize": {
+        "width": 240,
+        "height": 60
+      },
+      "border": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 88,
+        "height": 52
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "state": "default",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M18,5 H222 L234,15 V45 L222,55 H18 L6,45 V15 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#30312e"
+    },
+    {
+      "id": "tab-fill-active",
+      "svg": "03-controls/tab-fill-active.svg",
+      "png": "03-controls/tab-fill-active.png",
+      "sourceSize": {
+        "width": 240,
+        "height": 60
+      },
+      "border": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 88,
+        "height": 52
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-yellow-art.png",
+      "artworkCrop": [
+        10,
+        124,
+        2162,
+        566
+      ],
+      "artworkBorder": [
+        180,
+        190,
+        180,
+        190
+      ],
+      "state": "active",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M18,5 H222 L234,15 V45 L222,55 H18 L6,45 V15 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#c49a35"
+    },
+    {
+      "id": "tab-fill-disabled",
+      "svg": "03-controls/tab-fill-disabled.svg",
+      "png": "03-controls/tab-fill-disabled.png",
+      "sourceSize": {
+        "width": 240,
+        "height": 60
+      },
+      "border": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 88,
+        "height": 52
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "state": "disabled",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M18,5 H222 L234,15 V45 L222,55 H18 L6,45 V15 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#30312e"
+    },
+    {
+      "id": "scrollbar-track-v",
+      "svg": "03-controls/scrollbar-track-v.svg",
+      "png": "03-controls/scrollbar-track-v.png",
+      "sourceSize": {
+        "width": 20,
+        "height": 240
+      },
+      "border": {
+        "left": 0,
+        "top": 8,
+        "right": 0,
+        "bottom": 8
+      },
+      "centerAlpha": "mixed",
+      "role": "scrollbar-track",
+      "recommendedMinimum": {
+        "width": 20,
+        "height": 32
+      },
+      "stretch": "axis-nine-slice",
+      "axis": "v"
+    },
+    {
+      "id": "scrollbar-thumb-v",
+      "svg": "03-controls/scrollbar-thumb-v.svg",
+      "png": "03-controls/scrollbar-thumb-v.png",
+      "sourceSize": {
+        "width": 16,
+        "height": 64
+      },
+      "border": {
+        "left": 0,
+        "top": 8,
+        "right": 0,
+        "bottom": 8
+      },
+      "centerAlpha": "mixed",
+      "role": "scrollbar-thumb",
+      "recommendedMinimum": {
+        "width": 16,
+        "height": 32
+      },
+      "stretch": "axis-nine-slice",
+      "axis": "v"
+    },
+    {
+      "id": "scrollbar-track-h",
+      "svg": "03-controls/scrollbar-track-h.svg",
+      "png": "03-controls/scrollbar-track-h.png",
+      "sourceSize": {
+        "width": 240,
+        "height": 20
+      },
+      "border": {
+        "left": 8,
+        "top": 0,
+        "right": 8,
+        "bottom": 0
+      },
+      "centerAlpha": "mixed",
+      "role": "scrollbar-track",
+      "recommendedMinimum": {
+        "width": 32,
+        "height": 20
+      },
+      "stretch": "axis-nine-slice",
+      "axis": "h"
+    },
+    {
+      "id": "scrollbar-thumb-h",
+      "svg": "03-controls/scrollbar-thumb-h.svg",
+      "png": "03-controls/scrollbar-thumb-h.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 16
+      },
+      "border": {
+        "left": 8,
+        "top": 0,
+        "right": 8,
+        "bottom": 0
+      },
+      "centerAlpha": "mixed",
+      "role": "scrollbar-thumb",
+      "recommendedMinimum": {
+        "width": 32,
+        "height": 16
+      },
+      "stretch": "axis-nine-slice",
+      "axis": "h"
+    },
+    {
+      "id": "stepper-fill-default",
+      "svg": "03-controls/stepper-fill-default.svg",
+      "png": "03-controls/stepper-fill-default.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "border": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 40,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "state": "default",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M16,5 H48 L58,13 V51 L48,59 H16 L6,51 V13 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#30312e"
+    },
+    {
+      "id": "stepper-fill-hover",
+      "svg": "03-controls/stepper-fill-hover.svg",
+      "png": "03-controls/stepper-fill-hover.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "border": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 40,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "state": "hover",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M16,5 H48 L58,13 V51 L48,59 H16 L6,51 V13 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#30312e"
+    },
+    {
+      "id": "stepper-fill-pressed",
+      "svg": "03-controls/stepper-fill-pressed.svg",
+      "png": "03-controls/stepper-fill-pressed.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "border": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 40,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "state": "pressed",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M16,5 H48 L58,13 V51 L48,59 H16 L6,51 V13 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#30312e"
+    },
+    {
+      "id": "stepper-fill-disabled",
+      "svg": "03-controls/stepper-fill-disabled.svg",
+      "png": "03-controls/stepper-fill-disabled.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "border": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      },
+      "centerAlpha": 255,
+      "role": "independent-control-fill",
+      "recommendedMinimum": {
+        "width": 40,
+        "height": 38
+      },
+      "stretch": "nine-slice",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "state": "disabled",
+      "overlayOrder": 10,
+      "fillUnderlapPx": 1,
+      "innerPolygon": "M16,5 H48 L58,13 V51 L48,59 H16 L6,51 V13 Z",
+      "sourceArtAlphaPreserved": true,
+      "opaqueUnderpaint": "#30312e"
+    }
+  ],
+  "version": "2.2.0"
+}

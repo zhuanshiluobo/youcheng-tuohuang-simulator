@@ -62,12 +62,12 @@ namespace YC.Domain.SpecialActions
             for (var i = 0; i < player.DeclaredCityStyles.Count; i++)
             {
                 var declaration = player.DeclaredCityStyles[i];
-                if (declaration == null || string.IsNullOrEmpty(declaration.UnlockedSpecialActionId))
+                if (declaration == null || declaration.MarkerArea.Length == 0 || string.IsNullOrEmpty(declaration.UnlockedSpecialActionId))
                 {
                     continue;
                 }
 
-                var definition = SpecialActionDatabase.Get(declaration.UnlockedSpecialActionId);
+                var definition = SpecialActionDatabase.Get(state, declaration.UnlockedSpecialActionId);
                 if (definition == null)
                 {
                     continue;
@@ -294,7 +294,7 @@ namespace YC.Domain.SpecialActions
                 return "请先完成当前待处理选择。";
             }
 
-            var budgetValidation = mainActionBudgetService.ValidateCanSpend(state, player.PlayerId);
+            var budgetValidation = mainActionBudgetService.ValidateCanSpendSpecial(state, player.PlayerId);
             if (!budgetValidation.IsValid)
             {
                 return budgetValidation.Reason;
@@ -357,7 +357,7 @@ namespace YC.Domain.SpecialActions
                 for (var i = 0; i < player.DeclaredCityStyles.Count; i++)
                 {
                     var declaration = player.DeclaredCityStyles[i];
-                    if (declaration != null && declaration.CityStyleId == cityStyleId)
+                    if (declaration != null && declaration.CityStyleId == cityStyleId && declaration.MarkerArea.Length > 0)
                     {
                         count += 1;
                     }

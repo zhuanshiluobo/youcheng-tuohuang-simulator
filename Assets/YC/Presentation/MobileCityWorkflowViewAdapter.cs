@@ -36,6 +36,8 @@ namespace YC.Presentation
         private InfluenceActionPresenter influenceActionPresenter;
         private ExplorationEventPresenter explorationEventPresenter;
         private TurnActionPresenter turnActionPresenter;
+        private bool shuttingDown;
+        public void BeginShutdown() => shuttingDown = true;
 
         public MobileCityWorkflowViewAdapter(
             Func<GameState> getState,
@@ -64,13 +66,13 @@ namespace YC.Presentation
             this.mapQuery = mapQuery;
             this.eventChoiceDialog = eventChoiceDialog;
             dispatchDecisionView = new DispatchDecisionView(dialogRegistry, getCanvas);
-            this.showPrompt = showPrompt;
-            this.refreshAll = refreshAll;
-            this.refreshInformation = refreshInformation;
-            this.refreshActionPanel = refreshActionPanel;
-            this.refreshResource = refreshResource;
-            this.refreshInfluence = refreshInfluence;
-            this.completeActionPresentation = completeActionPresentation;
+            this.showPrompt = message => { if (!shuttingDown) showPrompt(message); };
+            this.refreshAll = () => { if (!shuttingDown) refreshAll(); };
+            this.refreshInformation = () => { if (!shuttingDown) refreshInformation(); };
+            this.refreshActionPanel = () => { if (!shuttingDown) refreshActionPanel(); };
+            this.refreshResource = () => { if (!shuttingDown) refreshResource(); };
+            this.refreshInfluence = () => { if (!shuttingDown) refreshInfluence(); };
+            this.completeActionPresentation = action => { if (!shuttingDown) completeActionPresentation(action); };
             this.getPlayerDisplayName = getPlayerDisplayName;
         }
 
@@ -92,6 +94,7 @@ namespace YC.Presentation
 
         public void SetHighlights(IReadOnlyList<WorkflowHighlight> highlights)
         {
+            if (shuttingDown) return;
             ClearHighlights();
             var mapView = getMapView();
             if (highlights == null || mapView == null) return;
@@ -107,6 +110,7 @@ namespace YC.Presentation
 
         public void ClearHighlights()
         {
+            if (shuttingDown) return;
             var mapView = getMapView();
             if (mapView != null) mapView.ClearHighlights();
         }
@@ -123,12 +127,14 @@ namespace YC.Presentation
         }
 
         public string GetPlayerDisplayName(int playerId) => getPlayerDisplayName(playerId);
+        public void ShowRoutePaymentOptions(RoutePaymentOptionsViewModel model)
+        { if (!shuttingDown) eventChoiceDialog.ShowRoutePaymentOptions(model, getPlayerDisplayName); }
         public void RefreshSelectionView() { refreshInfluence(); refreshActionPanel(); }
         public void RefreshFromState() => refreshAll();
 
         public void SetInteractionMode(InteractionMode mode)
         {
-            if (flowCoordinator == null) return;
+            if (shuttingDown || flowCoordinator == null) return;
             var active = flowCoordinator.IsActive(influenceActionPresenter) ||
                          flowCoordinator.IsActive(explorationEventPresenter);
             if (!active) flowCoordinator.SetMode(mode);
@@ -147,16 +153,16 @@ namespace YC.Presentation
 
         public void ShowExplorePathOptions(ExplorePathOptionsViewModel model)
         {
-            if (model != null) eventChoiceDialog.ShowExplorePathOptions(model.Choices, model.SelectPath);
+            if (!shuttingDown && model != null) eventChoiceDialog.ShowExplorePathOptions(model.Choices, model.SelectPath);
         }
         public void ShowExplorePaymentOptions(ExplorePaymentOptionsViewModel model)
         {
-            if (model != null) eventChoiceDialog.ShowExplorePaymentOptions(
+            if (!shuttingDown && model != null) eventChoiceDialog.ShowExplorePaymentOptions(
                 model.Choices, model.RecipientsByRouteId, getPlayerDisplayName, model.SelectRecipient, model.Confirm);
         }
         public void ShowEventCardOptions(EventCardOptionsViewModel model)
         {
-            if (model == null)
+            if (shuttingDown || model == null)
             {
                 return;
             }
@@ -196,10 +202,11 @@ namespace YC.Presentation
         public void RefreshResourceAndInfluence() { refreshResource(); refreshInfluence(); }
 
         void ITurnActionView.RefreshInformation() => refreshInformation();
-        void ITurnActionView.ShowPendingChoice() => explorationEventPresenter.ShowPendingChoice();
+        void ITurnActionView.ShowPendingChoice() { if (!shuttingDown) explorationEventPresenter.ShowPendingChoice(); }
         void ITurnActionView.CompleteMainActionPresentation(string actionName) => completeActionPresentation(actionName);
         public void ShowBuildFacilityDraft(BuildFacilityDraftViewModel model)
         {
+            if (shuttingDown) return;
             if (model == null)
             {
                 eventChoiceDialog.Hide();
@@ -224,6 +231,7 @@ namespace YC.Presentation
 
         public void ShowCityStyleOptions(CityStyleOptionsViewModel model)
         {
+            if (shuttingDown) return;
             if (model == null)
             {
                 cityStyleDeclarationDialog.Hide();

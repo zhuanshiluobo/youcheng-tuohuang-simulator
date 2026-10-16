@@ -16,6 +16,7 @@ namespace YC.Domain.Effects
         public const string TypeId = "effect.exploration.choose";
         public static void Register(EffectRegistry registry)
         {
+            RouteResourceSelectionEffectExecutor.Register(registry);
             if (!registry.TryGet(TypeId, out _)) registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.IntrinsicFlow, "1.0.0"));
         }
         private static string Encode(IEnumerable<string> ids) => string.Join(",", ids.Select(Uri.EscapeDataString));
@@ -34,6 +35,22 @@ namespace YC.Domain.Effects
             return EffectStepResult.Continue(stage).AddInteraction(request);
         }
         private static EffectStepResult Execute(EffectExecutionContext c)
+        {
+            if (c.Node.FlowStage == "")
+                return EffectStepResult.Continue("common_selection").AddChild(RouteResourceSelectionEffectExecutor.CreateExploration(c.Node.PlayerId, c.Node.SourceId));
+            if (c.Node.FlowStage == "common_selection")
+            {
+                foreach (var child in c.ChildNodes)
+                {
+                    if (child.Status == EffectNodeStatus.Failed || child.Status == EffectNodeStatus.Faulted) return EffectStepResult.Failed(child.FailureReason);
+                    if (child.Status != EffectNodeStatus.Completed) return EffectStepResult.NoProgress("等待共用选路及探索完成。");
+                }
+                return EffectStepResult.Completed();
+            }
+            // 只恢复已有path/toll/applied历史节点，新创建节点永远走共同选择入口。
+            return ExecuteLegacy(c);
+        }
+        private static EffectStepResult ExecuteLegacy(EffectExecutionContext c)
         {
             if (c.Node.FlowStage == "applied")
             {

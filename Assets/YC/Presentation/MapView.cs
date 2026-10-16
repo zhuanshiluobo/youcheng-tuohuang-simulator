@@ -14,6 +14,8 @@ namespace YC.Presentation
         [SerializeField] private MapCoordinateSpace coordinateSpace;
         [SerializeField] private MapVisualSpriteLibrary spriteLibrary;
         [SerializeField] private MapHighlightCatalog buttonCatalog;
+        [SerializeField] private SpriteRenderer roadTokenTemplate;
+        [SerializeField, Min(0.01f)] private float roadTokenHeightMultiplier = 1f;
         [SerializeField] private List<MapButtonView> buttons = new List<MapButtonView>();
         [SerializeField] private List<MapLocationViewBinding> locations = new List<MapLocationViewBinding>();
         [SerializeField] private List<MapResourceTokenViewBinding> resourceTokens =
@@ -28,6 +30,8 @@ namespace YC.Presentation
         public MapVisualSpriteLibrary SpriteLibrary => spriteLibrary;
         public IReadOnlyList<MapButtonView> Buttons => buttons;
         public MapHighlightCatalog ButtonCatalog => buttonCatalog;
+        public SpriteRenderer RoadTokenTemplate => roadTokenTemplate;
+        public float RoadTokenHeightMultiplier => roadTokenHeightMultiplier;
         public SpriteRenderer MapRenderer => coordinateSpace == null ? null : coordinateSpace.MapRenderer;
         public IReadOnlyList<MapLocationViewBinding> Locations => locations;
         public IReadOnlyList<MapResourceTokenViewBinding> ResourceTokens => resourceTokens;
@@ -127,6 +131,15 @@ namespace YC.Presentation
 
             if (!spriteLibrary.TryValidateConfiguration(out reason))
             {
+                return false;
+            }
+
+            if (roadTokenTemplate == null || roadTokenTemplate.transform.parent == null ||
+                roadTokenTemplate.gameObject.activeSelf || roadTokenHeightMultiplier <= 0f ||
+                roadTokenTemplate.GetComponentInChildren<Collider2D>(true) != null ||
+                roadTokenTemplate.GetComponentInChildren<Collider>(true) != null)
+            {
+                reason = "地图需要禁用且不拦截点击的公路模板及有效高度倍率。";
                 return false;
             }
 

@@ -1,0 +1,44 @@
+{
+  "definitionId": "infected.award.enterprise_special",
+  "contentType": "award",
+  "version": "1.0.0",
+  "displayName": "梅兰德基金会—授勋卡",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/awards/infected.award.enterprise_special.jpg",
+  "artworkSpriteId": "infected_award_enterprise_special",
+  "tags": [
+    "infected"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.award.enterprise_special.quick",
+      "mode": "quick",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.award.enterprise_special.quick",
+      "script": "lua/awards/infected.award.enterprise_special.quick.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "data": {
+    "instanceTypeId": "core.award_card",
+    "acquisitionRole": "reward_pool",
+    "lifecycle": "held_quick_action",
+    "titleKey": "授勋：企业特效",
+    "descriptionKey": "执行一项已解锁企业特效后将本授勋回盒。",
+    "playerDetails": [
+      {
+        "abilityId": "infected.award.enterprise_special.quick",
+        "effectText": "快速行动：在主要行动前或后，直接选择并触发1个你已解锁的企业特效，然后将本授勋卡回盒。不占角色使用次数。",
+        "displayCategory": "QuickAction",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "梅兰德基金会—授勋卡"
+      }
+    ]
+  },
+  "itemTypeId": "core.award_card"
+}

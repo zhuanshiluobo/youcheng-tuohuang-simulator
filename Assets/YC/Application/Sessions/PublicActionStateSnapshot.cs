@@ -16,6 +16,7 @@ namespace YC.Application.Sessions
         public string PendingCharacterChoiceType = string.Empty;
         public string PendingCharacterCardId = string.Empty;
         public string PendingCharacterRemainingEffectMode = string.Empty;
+        public GameState ContentState;
 
         public static PublicActionStateSnapshot Capture(GameState state)
         {
@@ -24,6 +25,10 @@ namespace YC.Application.Sessions
             {
                 return snapshot;
             }
+            // 只供日志读取冻结定义及实例身份，不保留可变位置或私有续段。
+            snapshot.ContentState = new GameState { ContentDefinitions = state.ContentDefinitions };
+            foreach (var item in state.ItemZones.Items)
+                snapshot.ContentState.ItemZones.Items.Add(new YC.Domain.Items.ItemInstanceState { ItemId = item.ItemId, DefinitionId = item.DefinitionId });
 
             if (state.Players != null)
             {

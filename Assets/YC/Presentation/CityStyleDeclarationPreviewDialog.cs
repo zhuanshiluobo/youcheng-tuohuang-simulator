@@ -116,7 +116,7 @@ namespace YC.Presentation
 
         public void Show(CityStyleOptionsViewModel viewModel)
         {
-            HideInternal(false);
+            HideInternal(false, model != null && viewModel != null && model.ContextKey == viewModel.ContextKey);
             var canvasTransform = getCanvas();
             if (canvasTransform == null || viewModel == null)
             {
@@ -1271,7 +1271,7 @@ namespace YC.Presentation
             return null;
         }
 
-        private void HideInternal(bool invokeCancel)
+        private void HideInternal(bool invokeCancel, bool preserveInformation = false)
         {
             var cancel = invokeCancel && model != null ? model.Cancel : null;
             CancelSpecialActionDrag();
@@ -1280,7 +1280,10 @@ namespace YC.Presentation
             var oldView = view;
             if (oldView != null)
             {
-                GameplayHudFrame.Active?.ReleasePage(oldView.gameObject);
+                if (invokeCancel && model != null)
+                    GameplayHudFrame.Active?.CloseInformationPage(oldView.gameObject);
+                else if (preserveInformation) GameplayHudFrame.Active?.ReleasePage(oldView.gameObject);
+                else GameplayHudFrame.Active?.AbandonInformationPage(oldView.gameObject);
                 oldView.ClearCallbacks();
                 oldView.DestroyDynamicInstances();
                 oldView.gameObject.SetActive(false);

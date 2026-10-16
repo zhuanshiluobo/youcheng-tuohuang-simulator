@@ -1,0 +1,45 @@
+{
+  "mode": "multiple",
+  "min": 1,
+  "max": 2,
+  "allowCancel": true,
+  "title": "选择玩家",
+  "players": [
+    {
+      "id": "p1",
+      "name": "玩家 1",
+      "color": "green",
+      "avatar": "preview/avatars/green.png",
+      "eligible": true,
+      "isSelf": false
+    },
+    {
+      "id": "p2",
+      "name": "玩家 2",
+      "color": "yellow",
+      "avatar": "preview/avatars/yellow.png",
+      "eligible": true,
+      "isSelf": false
+    },
+    {
+      "id": "p3",
+      "name": "玩家 3",
+      "color": "blue",
+      "avatar": "preview/avatars/blue.png",
+      "eligible": true,
+      "isSelf": false
+    },
+    {
+      "id": "p4",
+      "name": "玩家 4",
+      "color": "red",
+      "avatar": "preview/avatars/red.png",
+      "eligible": true,
+      "isSelf": true
+    }
+  ],
+  "selectedIds": [
+    "p1",
+    "p3"
+  ]
+}

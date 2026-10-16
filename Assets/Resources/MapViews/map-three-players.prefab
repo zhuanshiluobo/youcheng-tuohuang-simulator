@@ -37778,6 +37778,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 5554968388202320628}
   - {fileID: 900100000000000001}
   - {fileID: 105198186698591687}
   - {fileID: 7558073372862842365}
@@ -38646,6 +38647,8 @@ MonoBehaviour:
   - {fileID: 900100000000001012}
   - {fileID: 900100000000001022}
   - {fileID: 900100000000001032}
+  roadTokenTemplate: {fileID: 44299169477704254}
+  roadTokenHeightMultiplier: 1
 --- !u!1 &9218282663714679886
 GameObject:
   m_ObjectHideFlags: 0
@@ -57635,3 +57638,30 @@ Transform:
   - {fileID: 900100000000001031}
   m_Father: {fileID: 855885628429037968}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &5368300923599890883
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855885628429037968}
+    m_Modifications:
+    - target: {fileID: 5804999700028712394, guid: c1fba8aa8e1246a49fc67cd4b6dc51a5, type: 3}
+      propertyPath: m_Name
+      value: RoadToken Template
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c1fba8aa8e1246a49fc67cd4b6dc51a5, type: 3}
+--- !u!4 &5554968388202320628 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3030582074947114244, guid: c1fba8aa8e1246a49fc67cd4b6dc51a5, type: 3}
+  m_PrefabInstance: {fileID: 5368300923599890883}
+  m_PrefabAsset: {fileID: 0}
+--- !u!212 &44299169477704254 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 3921717631760470725, guid: c1fba8aa8e1246a49fc67cd4b6dc51a5, type: 3}
+  m_PrefabInstance: {fileID: 5368300923599890883}
+  m_PrefabAsset: {fileID: 0}

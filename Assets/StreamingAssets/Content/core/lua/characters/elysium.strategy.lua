@@ -18,6 +18,6 @@ return function(ctx)
     end
     local candidates = {}
     for i = 1, #ids do if values[i] == minimum then table.insert(candidates, ids[i]) end end
-    return { Effect.Choice({ player = ctx.playerId, options = candidates,
-        promptKey = 'character.elysium.strategy.choose_resource' }) }
+    return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, options = candidates,
+        promptKey = 'character.elysium.strategy.choose_resource' }), { interaction = { prompt = Text.Ref('core:interaction.elysium.least_resource'), options = { { candidateId = 'originium', label = Text.Ref('core:interaction.resource.originium') }, { candidateId = 'originium-shard', label = Text.Ref('core:interaction.resource.originium_shard') }, { candidateId = 'iron', label = Text.Ref('core:interaction.resource.iron') } } } }) }
 end

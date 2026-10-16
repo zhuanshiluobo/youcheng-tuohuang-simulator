@@ -10,6 +10,8 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
+using YC.Domain.Rules;
+using YC.Domain.State;
 using YC.Presentation.Maps;
 
 namespace YC.Tests.EditMode
@@ -145,6 +147,91 @@ namespace YC.Tests.EditMode
                 }
                 var points = shape.GetLocalPolygon(new Vector2(50, 50), catalog.SourceMapSize);
                 Assert.That(points.Max(p => p.x) - points.Min(p => p.x), Is.EqualTo(shape.OutlineSize.x / catalog.SourceMapSize.x * 50).Within(.0001f));
+            }
+        }
+
+        [TestCase("location:A-01:0")]
+        [TestCase("A-01#0")]
+        [TestCase("influence.source")]
+        public void DispatchPreview_UsesSnapshotAndPreservesSourceTargetResolution(string sourceId)
+        {
+            var mapQuery = new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap());
+            var presenter = Activator.CreateInstance(RuntimeType("MapViewPresenter"), null, null, mapQuery, new InfluenceService(mapQuery));
+            var resolve = presenter.GetType().GetMethod("FindDisplayedInfluence", BindingFlags.Instance | BindingFlags.NonPublic);
+            var source = new InfluencePlacement { InfluenceId = "influence.source", PlayerId = 1, SlotId = "location:A-01:0" };
+            var target = new InfluencePlacement { InfluenceId = "influence.target", PlayerId = 2, SlotId = "route:A1:0" };
+            var state = new GameState();
+            var projectionReads = 0;
+            state.Map.Influences.Bind(() => { projectionReads++; return new List<InfluencePlacement> { source, target }; });
+            var snapshot = state.Map.Influences.ToArray();
+            InfluencePlacement Resolve(string slot, bool pending, string from, string to) =>
+                (InfluencePlacement)resolve.Invoke(presenter, new object[] { state, snapshot, slot, pending, from, to });
+
+            Assert.That(Resolve(sourceId, true, sourceId, target.SlotId), Is.Null);
+            Assert.That(Resolve(target.SlotId, true, sourceId, target.SlotId), Is.SameAs(source));
+            Assert.That(Resolve(target.SlotId, false, sourceId, target.SlotId), Is.SameAs(target));
+            Assert.That(Resolve(target.SlotId, true, "missing", target.SlotId), Is.Null);
+            Assert.That(Resolve(sourceId, true, sourceId, sourceId), Is.Null, "源槽隐藏优先于目标槽预览");
+            Assert.That(Resolve(source.SlotId, true, target.SlotId, "location:A-02:0"), Is.SameAs(source));
+            Assert.That(source.SlotId, Is.EqualTo("location:A-01:0"), "预览不能移动状态中的势力");
+            Assert.That(projectionReads, Is.EqualTo(1));
+        }
+
+        [TestCase("Assets/Scenes/SampleScene.unity")]
+        [TestCase("Assets/Scenes/ThreePlayerScene.unity")]
+        public void ActualScene_MapRefreshProjectsEachListOnceIncludingEmptyAndNextRefresh(string scenePath)
+        {
+            var previous = EditorSceneManager.GetSceneManagerSetup();
+            try
+            {
+                EditorSceneManager.OpenScene(scenePath);
+                var view = UnityEngine.Object.FindObjectOfType(RuntimeType("MapView"));
+                Assert.That(view, Is.Not.Null);
+                var mapId = Get<MapCoordinateSpace>(view, "CoordinateSpace").Layout.MapId;
+                var mapQuery = new MapQueryService(StaticMapDefinitions.Resolve(mapId));
+                var controller = UnityEngine.Object.FindObjectOfType(RuntimeType("MobileCityInteractionController"));
+                var presenter = Activator.CreateInstance(RuntimeType("MapViewPresenter"), controller, view, mapQuery, new InfluenceService(mapQuery));
+                var buildArguments = new object[] { null };
+                Assert.That(presenter.GetType().GetMethod("BuildViews").Invoke(presenter, buildArguments), Is.True, buildArguments[0] as string);
+                var influenceBindings = Get<IEnumerable>(view, "InfluenceSlots").Cast<object>().ToArray();
+                var resourceBindings = Get<IEnumerable>(view, "ResourceTokens").Cast<object>().ToArray();
+                Assert.That(influenceBindings, Is.Not.Empty);
+                Assert.That(resourceBindings, Is.Not.Empty);
+                var state = new GameState();
+                state.Players.Add(new PlayerState { PlayerId = 1, Color = PlayerColor.Red });
+                var influences = new List<InfluencePlacement>();
+                var tokens = new List<ResourceTokenState>();
+                var influenceReads = 0;
+                var tokenReads = 0;
+                state.Map.Influences.Bind(() => { influenceReads++; return influences; });
+                state.Map.ResourceTokens.Bind(() => { tokenReads++; return tokens; });
+                var refreshInfluences = presenter.GetType().GetMethod("RefreshInfluenceDisplay");
+                var refreshTokens = presenter.GetType().GetMethod("RefreshResourceTokenDisplay");
+
+                for (var refresh = 1; refresh <= 3; refresh++)
+                {
+                    if (refresh == 2)
+                    {
+                        influences.Add(new InfluencePlacement { InfluenceId = "influence.refresh", PlayerId = 1, SlotId = Get<string>(influenceBindings[0], "SlotId") });
+                        tokens.Add(new ResourceTokenState { LocationId = Get<string>(resourceBindings[0], "LocationId"), ResourceType = ResourceType.Originium, Amount = 1 });
+                    }
+                    else if (refresh == 3)
+                    {
+                        influences.Clear();
+                        tokens.Clear();
+                    }
+                    refreshInfluences.Invoke(presenter, new object[] { state, false, null, null });
+                    refreshTokens.Invoke(presenter, new object[] { state });
+                    Assert.That(influenceReads, Is.EqualTo(refresh), "每轮刷新只投影一次势力列表");
+                    Assert.That(tokenReads, Is.EqualTo(refresh), "每轮刷新只投影一次资源列表");
+                }
+                foreach (var binding in resourceBindings)
+                    Assert.That(Get<SpriteRenderer>(binding, "Renderer").enabled, Is.False, "移除标记后不能继续显示上轮缓存");
+            }
+            finally
+            {
+                if (previous.Any(scene => scene.isLoaded && scene.isActive)) EditorSceneManager.RestoreSceneManagerSetup(previous);
+                else EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
             }
         }
 

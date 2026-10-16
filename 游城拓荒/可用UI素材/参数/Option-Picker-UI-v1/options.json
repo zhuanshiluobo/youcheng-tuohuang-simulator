@@ -1,0 +1,563 @@
+{
+  "schemaVersion": 2,
+  "description": "通用选项窗口的布局与示例配置，库存和玩家均为演示数据喵",
+  "screen": {
+    "width": 1920,
+    "height": 1080
+  },
+  "window": {
+    "asset": "assets/window.png",
+    "rect": [
+      73,
+      96.5,
+      1774,
+      887
+    ],
+    "sourceSize": [
+      1774,
+      887
+    ]
+  },
+  "coordinateSpace": "以下坐标均相对窗口左上角，单位为参考像素喵",
+  "layout": {
+    "title": {
+      "rect": [
+        96,
+        56,
+        1582,
+        56
+      ],
+      "fontSize": 40,
+      "align": "center"
+    },
+    "description": {
+      "rect": [
+        96,
+        124,
+        1582,
+        34
+      ],
+      "fontSize": 24,
+      "align": "center"
+    },
+    "wallet": {
+      "rect": [
+        96,
+        176,
+        1548,
+        36
+      ],
+      "fontSize": 22
+    },
+    "viewport": {
+      "rect": [
+        96,
+        228,
+        1582,
+        438
+      ],
+      "overflow": "vertical",
+      "nativeScrollbar": false,
+      "reservedScrollbarWidth": 34,
+      "paddingRight": 34
+    },
+    "repeatRow": {
+      "width": 1548,
+      "height": 88,
+      "gap": 12,
+      "iconRect": [
+        16,
+        12,
+        64,
+        64
+      ],
+      "contentRect": [
+        104,
+        10,
+        420,
+        68
+      ],
+      "inventoryRect": [
+        620,
+        14,
+        220,
+        60
+      ],
+      "inventoryFontSize": 22,
+      "inventoryLineHeight": 28,
+      "subtotalRect": [
+        870,
+        28,
+        250,
+        32
+      ],
+      "subtotalFontSize": 24,
+      "decrementRect": [
+        1184,
+        14,
+        60,
+        60
+      ],
+      "quantityRect": [
+        1256,
+        14,
+        176,
+        60
+      ],
+      "incrementRect": [
+        1444,
+        14,
+        60,
+        60
+      ],
+      "quantityFontSize": 29,
+      "stepperSymbols": "程序渲染 − 与 + 喵"
+    },
+    "singleRow": {
+      "width": 1548,
+      "minHeight": 124,
+      "gap": 16,
+      "iconRect": [
+        20,
+        30,
+        64,
+        64
+      ],
+      "contentRect": [
+        108,
+        18,
+        1310,
+        88
+      ],
+      "variableHeight": true,
+      "selectionRect": [
+        1470,
+        42,
+        36,
+        36
+      ]
+    },
+    "footer": {
+      "rect": [
+        96,
+        744,
+        920,
+        40
+      ],
+      "fontSize": 28
+    },
+    "hint": {
+      "rect": [
+        96,
+        794,
+        920,
+        30
+      ],
+      "fontSize": 22
+    },
+    "primaryButton": {
+      "rect": [
+        1392,
+        744,
+        280,
+        84
+      ],
+      "labelPadding": [
+        28,
+        24
+      ],
+      "fontSize": 28,
+      "lineHeight": 36
+    },
+    "secondaryButton": {
+      "rect": [
+        1088,
+        744,
+        280,
+        84
+      ],
+      "labelPadding": [
+        28,
+        24
+      ],
+      "fontSize": 28,
+      "lineHeight": 36
+    },
+    "verticalScrollbar": {
+      "trackRect": [
+        1656,
+        228,
+        22,
+        438
+      ],
+      "hitRect": [
+        1650,
+        228,
+        34,
+        438
+      ],
+      "rowRightEdge": 1644,
+      "gapFromRow": 12,
+      "minThumbHeight": 48,
+      "thumbHeightFormula": "min(438, max(48, 438 * 438 / contentHeight))",
+      "thumbTopFormula": "228 + (438 - thumbHeight) * scrollTop / (contentHeight - 438)",
+      "visibility": "contentHeight > 438",
+      "hiddenNativeScrollbar": true,
+      "supports": [
+        "wheel",
+        "track-click-centers-thumb",
+        "pointer-drag",
+        "ArrowUp",
+        "ArrowDown",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End"
+      ],
+      "pointerCoordinates": "以实际hit区域getBoundingClientRect高度换算到438px逻辑高度，处理舞台缩放喵",
+      "focusScrollSync": true,
+      "testToggle": "只增加原有行间距，不添加游戏选项喵"
+    }
+  },
+  "textures": {
+    "optionRow": {
+      "asset": "assets/option-row.png",
+      "sourceSize": [
+        2172,
+        724
+      ],
+      "visibleRect": [
+        30,
+        242,
+        2114,
+        238
+      ],
+      "mapping": "将可见源框映射至每行目标矩形，并在该矩形裁切，文字与图标独立绘制喵"
+    },
+    "primaryButton": {
+      "asset": "assets/button-primary.png",
+      "sourceSize": [
+        1983,
+        793
+      ],
+      "visibleRect": [
+        35,
+        102,
+        1916,
+        582
+      ]
+    },
+    "secondaryButton": {
+      "asset": "assets/button-secondary.png",
+      "sourceSize": [
+        1983,
+        793
+      ],
+      "visibleRect": [
+        35,
+        102,
+        1916,
+        582
+      ]
+    },
+    "resources": {
+      "rock": "assets/resource-rock.png",
+      "originium": "assets/resource-originium.png",
+      "iron": "assets/resource-iron.png",
+      "pure": "assets/resource-pure.png"
+    },
+    "selection": {
+      "type": "programmatic",
+      "outlineColor": "#c18c29",
+      "outlineWidth": 4,
+      "checkmark": true
+    },
+    "scrollbar": {
+      "preview": "custom-vertical",
+      "sourceSize": [
+        2172,
+        724
+      ],
+      "trackAsset": "assets/scrollbar-track.png",
+      "trackVisibleRect": [
+        82,
+        333,
+        2008,
+        50
+      ],
+      "thumbAsset": "assets/scrollbar-thumb.png",
+      "thumbVisibleRect": [
+        92,
+        326,
+        1988,
+        71
+      ],
+      "mapping": "先按水平可见框映射到长度×22，再旋转90度置于22×长度裁切容器喵",
+      "layoutRef": "layout.verticalScrollbar"
+    },
+    "stepperButton": {
+      "asset": "assets/button-stepper.png",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "visibleRect": [
+        104,
+        122,
+        1046,
+        1007
+      ],
+      "targetSize": [
+        60,
+        60
+      ],
+      "background": "transparent",
+      "symbols": "由程序渲染，无内置文字喵"
+    }
+  },
+  "optionModel": {
+    "id": "stable-option-id",
+    "title": "程序渲染的选项标题",
+    "body": "程序渲染的效果说明",
+    "icon": "optional-asset-path",
+    "costs": [],
+    "rewards": [],
+    "mayNeedTarget": false,
+    "targetPhase": "rules-layer",
+    "disabledReason": null
+  },
+  "modes": {
+    "repeat": {
+      "commit": "atomic-batch-on-primary",
+      "stateField": "draftQuantities",
+      "initialQuantities": {
+        "rock": 0,
+        "originium": 0,
+        "iron": 0,
+        "pure": 0
+      },
+      "adjustMutatesInventory": false,
+      "adjustMutatesGold": false,
+      "primaryLabel": "确认售卖",
+      "primaryEnabledWhen": "all draft quantities are integers in [0, current inventory] and total > 0 and not done",
+      "secondaryLabelWithNoDraft": "结束出售",
+      "secondaryLabelWithDraft": "放弃并结束",
+      "secondaryWithDraft": "明确丢弃未提交草稿，不出售其中任何资源喵",
+      "finishAllowedAtZero": true,
+      "showTargetCount": false,
+      "undo": false,
+      "commitValidation": "提交前以当前库存校验所有数量，任一非法时整批失败，不部分扣减或静默缩减喵",
+      "onSuccess": "一次扣除各资源库存并增加汇总金券，累计售卖摘要递增，草稿清零且窗口保持开启喵",
+      "onDone": "禁用数量输入、加减按钮和提交按钮喵",
+      "quantityInput": {
+        "type": "text",
+        "inputMode": "numeric",
+        "emptyOrNonNumeric": 0,
+        "decimals": "truncate toward zero",
+        "negative": 0,
+        "aboveInventory": "clamp to inventory while editing only",
+        "displayNormalization": "on blur or Enter",
+        "draftNormalization": "on input",
+        "retainInputNodeAndFocus": true,
+        "decrementDisabledAt": 0,
+        "incrementDisabledAt": "current inventory",
+        "accessibleLabels": true
+      },
+      "summary": "待售数量与预计收入",
+      "hint": "累计已售数量与金券，以及结束会放弃草稿的提示喵"
+    },
+    "single": {
+      "selectionLimit": 1,
+      "commit": "confirm",
+      "changeSelectionBeforeConfirm": true,
+      "legalitySource": "rules-layer"
+    }
+  },
+  "examples": {
+    "trade": {
+      "mode": "repeat",
+      "prices": {
+        "rock": 3,
+        "originium": 3,
+        "iron": 4,
+        "pure": 15
+      },
+      "initialInventory": {
+        "rock": 6,
+        "originium": 2,
+        "iron": 4,
+        "pure": 1
+      },
+      "initialGold": 20,
+      "initialDraftQuantities": {
+        "rock": 0,
+        "originium": 0,
+        "iron": 0,
+        "pure": 0
+      },
+      "illustratedBatch": {
+        "draftQuantities": {
+          "rock": 3,
+          "originium": 1,
+          "iron": 2,
+          "pure": 0
+        },
+        "total": 6,
+        "revenue": 20,
+        "resultInventory": {
+          "rock": 3,
+          "originium": 1,
+          "iron": 2,
+          "pure": 1
+        },
+        "resultGold": 40,
+        "note": "仅效果图使用该草稿，交互预览初始仍全部为0喵"
+      }
+    },
+    "cannotStrategy": {
+      "mode": "repeat",
+      "sameConfigurationAs": "trade"
+    },
+    "cannotTactic": {
+      "mode": "single",
+      "allowedResources": [
+        "rock",
+        "originium",
+        "iron"
+      ],
+      "unitPrice": 2,
+      "sellAllPlayersAllInventoryOfChosenResource": true,
+      "userVictoryPoints": 1,
+      "players": [
+        {
+          "name": "玩家A（使用者）",
+          "inventory": {
+            "rock": 6,
+            "originium": 2,
+            "iron": 4,
+            "pure": 1
+          },
+          "gold": 20,
+          "victoryPoints": 0
+        },
+        {
+          "name": "玩家B",
+          "inventory": {
+            "rock": 3,
+            "originium": 5,
+            "iron": 1,
+            "pure": 0
+          },
+          "gold": 8,
+          "victoryPoints": 0
+        }
+      ]
+    },
+    "elysium": {
+      "mode": "single",
+      "leastAmong": [
+        "rock",
+        "originium",
+        "iron"
+      ],
+      "rewardCount": 4,
+      "automaticallyResolveUniqueMinimum": true,
+      "tiedInventory": {
+        "rock": 2,
+        "originium": 2,
+        "iron": 2,
+        "pure": 0
+      },
+      "uniqueInventory": {
+        "rock": 1,
+        "originium": 3,
+        "iron": 4,
+        "pure": 0
+      }
+    },
+    "guardDistrict": {
+      "mode": "single",
+      "version": "6VP",
+      "sequentialChoices": 2,
+      "allowRepeatOption": true,
+      "recheckLegalityAfterEachResolution": true,
+      "versionCosts": {
+        "6VP": [
+          {
+            "resource": "rock",
+            "amount": 2
+          },
+          {
+            "resource": "iron",
+            "amount": 1
+          }
+        ],
+        "7VP": [
+          {
+            "resource": "rock",
+            "amount": 1
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "replace",
+          "title": "替换影响力",
+          "body": "支付2源岩和1异铁 → 替换1影响力",
+          "costs": [
+            {
+              "resource": "rock",
+              "amount": 2
+            },
+            {
+              "resource": "iron",
+              "amount": 1
+            }
+          ],
+          "rewards": [],
+          "mayNeedTarget": true,
+          "targetPhase": "rules-layer-required",
+          "disabledReason": null
+        },
+        {
+          "id": "place",
+          "title": "放置影响力",
+          "body": "放置1影响力，并获得1源石",
+          "costs": [],
+          "rewards": [
+            {
+              "resource": "originium",
+              "amount": 1
+            }
+          ],
+          "mayNeedTarget": true,
+          "targetPhase": "rules-layer-conditional",
+          "disabledReason": null
+        },
+        {
+          "id": "remove",
+          "title": "移除影响力",
+          "body": "移除1影响力，并获得2异铁",
+          "costs": [],
+          "rewards": [
+            {
+              "resource": "iron",
+              "amount": 2
+            }
+          ],
+          "mayNeedTarget": true,
+          "targetPhase": "rules-layer-conditional",
+          "disabledReason": null
+        }
+      ],
+      "previewTargetHandling": "确认后等待外部规则层回执，在模拟地图步骤完成时统一应用费用与奖励；放置和移除可模拟无目标并继续执行奖励，预览不生成或判断真实地图目标喵"
+    }
+  },
+  "verification": {
+    "javascriptSyntax": "passed-node-check",
+    "batchAndSingleLogic": "passed-focused-state-tests",
+    "scrollbarGeometry": "passed-proportion-minimum-scale-tests",
+    "assetPaths": "passed",
+    "browserInteraction": "not-run"
+  }
+}

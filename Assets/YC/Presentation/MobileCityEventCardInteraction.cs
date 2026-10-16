@@ -7,11 +7,12 @@ namespace YC.Presentation
         private FacilityBuildPlacementUiCoordinator facilityBuildPlacement;
         private EventCardInteractionUiCoordinator eventCardInteraction;
         private MapEffectInteractionUiCoordinator influenceEffectInteraction;
+        private EnterpriseInteractionUiCoordinator enterpriseInteraction;
 
         private void BuildEventCardInteraction()
         {
             eventCardInteraction = new EventCardInteractionUiCoordinator(
-                () => session == null ? null : session.State,
+                () => UiReadState(),
                 () => localPlayerId,
                 GetPlayerDisplayName,
                 eventChoiceDialog,
@@ -27,8 +28,13 @@ namespace YC.Presentation
             characterAbilityInteraction.GetVisibleRequests = GetVisibleInteractionRequests;
             facilityInteraction.GetVisibleRequests = GetVisibleInteractionRequests;
             interactionRequestRouter = new InteractionRequestRouter();
+            enterpriseInteraction = new EnterpriseInteractionUiCoordinator(gameplayInteractionHud.ExpansionUi,
+                gameplayInteractionHud, GetVisibleInteractionRequests, () => localPlayerId, SubmitPendingEffectCommand);
+            interactionRequestRouter.Register(enterpriseInteraction);
+            interactionRouter.Register(enterpriseInteraction);
+            characterAbilityInteraction.ExpansionUi = gameplayInteractionHud.ExpansionUi;
             facilityBuildPlacement = new FacilityBuildPlacementUiCoordinator(
-                () => session?.State, () => localPlayerId, gameplayInteractionHud.DialogRegistry,
+                () => UiReadState(), () => localPlayerId, gameplayInteractionHud.DialogRegistry,
                 uiCanvas.transform as UnityEngine.RectTransform, SubmitPendingEffectCommand);
             facilityBuildPlacement.GetVisibleRequests = GetVisibleInteractionRequests;
             turnActionPresenter.BuildInteraction.GetVisibleRequests = GetVisibleInteractionRequests;
@@ -40,10 +46,12 @@ namespace YC.Presentation
             specialActionInteraction.GetVisibleRequests = GetVisibleInteractionRequests;
             interactionRequestRouter.Register(specialActionInteraction);
             influenceEffectInteraction = new MapEffectInteractionUiCoordinator(
-                () => session == null ? null : session.State, () => localPlayerId,
+                () => UiReadState(), () => localPlayerId,
                 characterCardEffectChoiceDialog, highlights => workflowView.SetHighlights(highlights),
                 () => workflowView.ClearHighlights(), SubmitPendingEffectCommand, SetPrompt);
             influenceEffectInteraction.GetVisibleRequests = GetVisibleInteractionRequests;
+            influenceEffectInteraction.Copy = gameplayInteractionHud.ExpansionUi.Copy;
+            influenceEffectInteraction.ExpansionUi = gameplayInteractionHud.ExpansionUi;
             interactionRequestRouter.Register(influenceEffectInteraction);
             interactionRouter.Register(influenceEffectInteraction);
             interactionRouter.Register(eventCardInteraction);
@@ -66,6 +74,6 @@ namespace YC.Presentation
         }
 
         private System.Collections.Generic.IReadOnlyList<YC.Domain.State.InteractionRequest> GetVisibleInteractionRequests() =>
-            VisibleInteractionRequestSource.Read(session?.State, session?.View, localPlayerId);
+            VisibleInteractionRequestSource.Read(null, VisibleSaleState(), localPlayerId);
     }
 }

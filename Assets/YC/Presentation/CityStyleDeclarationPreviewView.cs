@@ -154,7 +154,7 @@ namespace YC.Presentation
                 item.FallbackText.gameObject.SetActive(sprite == null);
                 int index = i;
                 item.Button.onClick.RemoveAllListeners();
-                item.PointerInteraction.ConfigureClick(item.Button, () => choose(index), null);
+                item.PointerInteraction.ConfigureClick(item.Button, () => choose(index));
                 item.GetComponent<CityStyleCardStateView>().Bind(option.CanDeclare);
                 item.GetComponent<CityStyleCardGesture>().Configure(() => { choose(index); ShowDetail(true); });
                 var scroll = optionsContent.GetComponentInParent<ScrollRect>();
@@ -191,7 +191,7 @@ namespace YC.Presentation
             {
                 if (item == null) continue;
                 item.Button.onClick.RemoveAllListeners();
-                item.PointerInteraction.ConfigureClick(null, null, null);
+                item.PointerInteraction.ConfigureClick(null, null);
                 item.gameObject.SetActive(false);
                 if (UnityEngine.Application.isPlaying) Destroy(item.gameObject); else DestroyImmediate(item.gameObject);
             }
@@ -434,7 +434,7 @@ namespace YC.Presentation
                 var interactions = instance.GetComponentsInChildren<CardPointerInteraction>(true);
                 for (var interactionIndex = 0; interactionIndex < interactions.Length; interactionIndex++)
                 {
-                    interactions[interactionIndex].ConfigureClick(null, null, null);
+                    interactions[interactionIndex].ConfigureClick(null, null);
                     interactions[interactionIndex].ConfigureDrag(null, null, null, null, null);
                 }
 

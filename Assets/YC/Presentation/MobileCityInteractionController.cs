@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Application.Gameplay;
 using YC.Application.Sessions;
 using YC.Domain.CardFlows;
@@ -10,6 +11,7 @@ using YC.Domain.Facilities;
 using YC.Domain.Harvest;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
+using YC.Domain.Presentation;
 using YC.Domain.Rules;
 using YC.Domain.SpecialActions;
 using YC.Domain.State;
@@ -21,6 +23,10 @@ namespace YC.Presentation
 {
     public sealed partial class MobileCityInteractionController : MonoBehaviour
     {
+        private static readonly Unity.Profiling.ProfilerMarker LocalPlayerUiRefreshMarker = new Unity.Profiling.ProfilerMarker("YC.LocalPlayerUiRefresh");
+        private static readonly Unity.Profiling.ProfilerMarker ActionPanelRefreshMarker = new Unity.Profiling.ProfilerMarker("YC.ActionPanelRefresh");
+        private static readonly Unity.Profiling.ProfilerMarker BuildInfoRefreshMarker = new Unity.Profiling.ProfilerMarker("YC.BuildInfoRefresh");
+        private static readonly Unity.Profiling.ProfilerMarker ActionPanelViewModelMarker = new Unity.Profiling.ProfilerMarker("YC.ActionPanelViewModel");
         [SerializeField] private SpriteRenderer mapRenderer;
         [SerializeField] private MapView mapViewBinding;
         [SerializeField] private Camera targetCamera;
@@ -30,6 +36,7 @@ namespace YC.Presentation
         [SerializeField] private BuildInfoPanel buildInfoPanel;
 
         private GameSession session;
+        private YC.Domain.Effects.EffectRegistry sessionEffectRegistry;
         private MapQueryService mapQuery;
         private InfluenceService influenceService;
         private YC.Domain.Movement.CityMovementService movementService;
@@ -68,13 +75,74 @@ namespace YC.Presentation
         private bool buildDialogActive;
         private string selectedBuildFacilityId = string.Empty;
 
-        public GameState CurrentState => session == null ? null : session.State;
+        public GameState CurrentState => UiReadState();
+        // 由共享装配提供活动目录，禁止在此构造平行目录或读取 Host 实例来补显示名。
+        public void ConfigureGameplayPresentation(YC.Domain.Presentation.IGameplayTextCatalogSnapshot catalog,
+            IReadOnlyDictionary<string, string> definitionNames)
+            => gameplayInteractionHud.ConfigureGameplayPresentation(catalog, definitionNames);
         private PendingCardChoiceView CurrentPendingChoice =>
-            session == null ? null : CardFlowStateAdapter.GetPendingChoiceView(session.State);
-        public bool CanEndCurrentAction() =>
-            turnActionPresenter != null && turnActionPresenter.CanEndCurrentAction();
+            session == null ? null : CardFlowStateAdapter.GetPendingChoiceView(UiReadState());
+        private RouteResourceSelectionInteractionUiCoordinator routeResourceSelection;
+        private BuildFacilityOptionQueryService buildFacilityOptions;
+        private FacilityBuildCandidateCache supplyInspectionCandidates;
+        private bool routeCanStopPendingCharacterMode;
+        private Func<bool> routeStopSnapshotIsCurrent;
 
-        public void EndCurrentAction() => turnActionPresenter?.EndCurrentAction();
+        private string pendingEffectCommandId = string.Empty;
+        private bool CanStopCurrentEffect => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId) &&
+            !GameplayHudFrame.EffectInputSuspended && interactionRequestRouter?.CurrentRequest?.AllowDecline == true &&
+            interactionRequestRouter.CurrentRequest.AnsweringPlayerId == localPlayerId;
+        private bool CanUseSecondModeStop => (interactionRequestRouter?.CurrentRequest == null ||
+            interactionRequestRouter.CurrentRequest.InteractionTypeId == YC.Domain.Cards.CharacterLifecycleService.SecondModeInteractionTypeId) &&
+            CanStopPendingCharacterMode;
+
+        public bool CanEndCurrentAction()
+        {
+            if (!CanSubmitGameplayCommand || !string.IsNullOrEmpty(pendingEffectCommandId) || GameplayHudFrame.EffectInputSuspended) return false;
+            var view = VisibleSaleState();
+            if (!string.IsNullOrEmpty(view?.ActiveSettlementWindowId))
+            {
+                var end = view.SettlementEndAction;
+                return end != null && end.WindowId == view.ActiveSettlementWindowId && end.StateRevision == view.StateRevision &&
+                    (string.IsNullOrEmpty(end.CurrentNodeEffectId) ? end.CanCloseCleanupWindow : end.CanStopCurrentNode);
+            }
+            if (CanStopCurrentEffect || CanUseSecondModeStop) return true;
+            if (routeResourceSelection?.IsActive == true) return routeResourceSelection.CanConfirm;
+            return interactionRequestRouter?.CurrentRequest == null && turnActionPresenter != null &&
+                turnActionPresenter.CanEndCurrentAction();
+        }
+
+        public void EndCurrentAction()
+        {
+            if (!CanSubmitGameplayCommand || !string.IsNullOrEmpty(pendingEffectCommandId) || GameplayHudFrame.EffectInputSuspended) return;
+            var view = VisibleSaleState();
+            if (!string.IsNullOrEmpty(view?.ActiveSettlementWindowId))
+            {
+                var end = view.SettlementEndAction;
+                if (end == null || end.WindowId != view.ActiveSettlementWindowId || end.StateRevision != view.StateRevision ||
+                    !(string.IsNullOrEmpty(end.CurrentNodeEffectId) ? end.CanCloseCleanupWindow : end.CanStopCurrentNode)) return;
+                var command = new GameCommand { Kind = GameCommandKind.EndAction, PlayerId = localPlayerId };
+                command.Parameters["windowId"] = end.WindowId;
+                command.Parameters["currentNodeEffectId"] = end.CurrentNodeEffectId;
+                command.Parameters["interactionId"] = end.InteractionId;
+                command.Parameters["expectedRevision"] = end.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                SubmitPendingEffectCommand(command); return;
+            }
+            var request = interactionRequestRouter?.CurrentRequest;
+            if (CanStopCurrentEffect)
+            {
+                var current = GetVisibleInteractionRequests()?.FirstOrDefault(value =>
+                    value.InteractionId == request.InteractionId && value.StateRevision == request.StateRevision &&
+                    value.CandidateSetId == request.CandidateSetId && value.CandidateSetVersion == request.CandidateSetVersion &&
+                    value.Status == "open" && value.AnsweringPlayerId == localPlayerId && value.AllowDecline);
+                if (current != null)
+                    SubmitPendingEffectCommand(YC.Application.Interactions.EffectInteractionCommands.Answer(request, localPlayerId, null, true));
+                return;
+            }
+            if (CanUseSecondModeStop && TryStopPendingCharacterMode()) return;
+            if (routeResourceSelection?.IsActive == true) routeResourceSelection.Confirm();
+            else if (request == null) turnActionPresenter?.EndCurrentAction();
+        }
         private void Awake()
         {
             if (!GameplayInteractionHudView.TryValidateSceneBinding(
@@ -137,14 +205,14 @@ namespace YC.Presentation
             if (!TabletopRuntimeBootstrap.TryConfigure(gameplayInteractionHud.TabletopCanvas, targetCamera, mapRenderer, this)) return;
             flowCoordinator = new InteractionFlowCoordinator();
             gameplayAdapter = new MobileCityGameplayAdapter(
-                () => session == null ? null : session.State,
+                () => UiReadState(),
                 () => localPlayerId,
                 ShouldControlCurrentPlayerLocally,
-                value => localPlayerId = value,
-                () => commandSubmission, () => mapView?.RefreshScoreTrackDisplay(session == null ? null : session.State));
+                SetLocalViewer,
+                () => commandSubmission, () => mapView?.RefreshScoreTrackDisplay(UiReadState()));
             commandGateway = new CommandGateway(gameplayAdapter);
             workflowView = new MobileCityWorkflowViewAdapter(
-                () => session == null ? null : session.State,
+                () => UiReadState(),
                 () => localPlayerId,
                 GetUiCanvasTransform,
                 gameplayInteractionHud.DialogRegistry,
@@ -186,7 +254,8 @@ namespace YC.Presentation
                 mapQuery,
                 resourceCollectionPresenter,
                 influenceActionPresenter,
-                explorationEventPresenter);
+                explorationEventPresenter,
+                () => CanStopCurrentEffect || CanUseSecondModeStop, buildFacilityOptions);
             turnActionPresenter.ActionPanelPresenter.CharacterCoverPrompt =
                 gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile.CharacterCoverSelectionDescription;
             characterCardPresenter = new CharacterCardPanelPresenter(
@@ -194,6 +263,7 @@ namespace YC.Presentation
                     mapQuery,
                     influenceService,
                     movementService));
+            characterCardPresenter.ResolveGameplayText = gameplayInteractionHud.ExpansionUi.ResolveGameplayText;
             workflowView.Bind(
                 flowCoordinator,
                 resourceCollectionPresenter,
@@ -218,7 +288,7 @@ namespace YC.Presentation
                 influenceActionPresenter,
                 explorationEventPresenter,
                 workflowView,
-                () => session.State.CurrentPlayerId,
+                () => ShouldControlCurrentPlayerLocally() ? UiReadState()?.CurrentPlayerId ?? localPlayerId : localPlayerId,
                 IsShiftDebugClick,
                 LogPointerMapCoordinate,
                 RefreshActionPanel,
@@ -234,11 +304,11 @@ namespace YC.Presentation
             var informationPages = gameplayInteractionHud.GetComponent<GameplayInformationPages>();
             if (informationPages != null)
                 informationPages.Configure(() => CurrentState, () => localPlayerId, mapQuery,
-                    gameplayInteractionHud.DialogRegistry);
+                    gameplayInteractionHud.DialogRegistry, VisibleSaleState);
             EnsureSettingsMenu();
             ShowInitialPlacementChoices();
             facilityInteraction = new FacilityInteractionUiCoordinator(
-                () => session == null ? null : session.State,
+                () => UiReadState(),
                 () => localPlayerId,
                 GetUiCanvasTransform,
                 gameplayInteractionHud.DialogRegistry,
@@ -246,8 +316,10 @@ namespace YC.Presentation
                 () => workflowView.ClearHighlights(),
                 SubmitPendingEffectCommand,
                 SetPrompt);
+            facilityInteraction.GetVisibleState = VisibleSaleState;
+            facilityInteraction.ExpansionUi = gameplayInteractionHud.ExpansionUi;
             specialActionInteraction = new SpecialActionInteractionUiCoordinator(
-                () => session == null ? null : session.State,
+                () => UiReadState(),
                 () => localPlayerId,
                 GetUiCanvasTransform,
                 gameplayInteractionHud.DialogRegistry,
@@ -258,12 +330,16 @@ namespace YC.Presentation
                 SubmitPendingEffectCommand,
                 SetPrompt);
             BuildEventCardInteraction();
+            specialActionInteraction.ExpansionUi = gameplayInteractionHud.ExpansionUi;
+            specialActionInteraction.CanSubmitCommand = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId);
+            specialActionInteraction.PaymentDraftStateChanged = gameplayInteractionHud.ExpansionUi.InvalidateSettlementAvailability;
+            gameplayInteractionHud.ExpansionUi.CanInvokeSettlement = option => specialActionInteraction?.CanInvokeSettlement(option) != false;
             buildFacilityInteraction?.Dispose();
             buildFacilityInteraction = new BuildFacilityInteractionUiCoordinator(
                 buildInfoPanel, turnActionPresenter);
-            buildFacilityInteraction.Refresh(session.State, localPlayerId);
+            buildFacilityInteraction.Refresh(UiReadState(), localPlayerId);
             characterMapInteraction = new CharacterMapInteractionCoordinator(
-                () => session == null ? null : session.State,
+                () => UiReadState(),
                 () => localPlayerId,
                 characterCardPresenter,
                 highlights => workflowView.SetHighlights(highlights),
@@ -271,6 +347,8 @@ namespace YC.Presentation
                 (mode, parameters) => SubmitUseCharacterCard(mode, string.Empty, parameters),
                 SubmitResolvePendingCharacterChoice,
                 SetPrompt);
+            characterMapInteraction.ResolveGameplayText = gameplayInteractionHud.ExpansionUi.ResolveGameplayText;
+            characterMapInteraction.ShowGameplayPrompt = SetPrompt;
             BuildCharacterCardEffectInteraction();
             BuildInteractionRouting();
             BuildCommandSubmission(GameLaunchContext.Instance);
@@ -307,6 +385,9 @@ namespace YC.Presentation
 
         private void OnDestroy()
         {
+            uiShuttingDown = true;
+            workflowView?.BeginShutdown();
+            gameplayInteractionHud?.ExpansionUi?.BeginShutdown();
             characterUsePage?.Hide();
             specialActionUsePage?.Hide();
             if (facilityBuildPage != null) facilityBuildPage.Hide();
@@ -354,6 +435,7 @@ namespace YC.Presentation
 
         public void OnHotspotClicked(string locationId)
         {
+            using var visibleRead = BeginVisibleRead();
             interactionRouter.OnLocationClicked(locationId);
         }
 
@@ -361,6 +443,7 @@ namespace YC.Presentation
 
         public void OnMapButtonClicked(WorkflowHighlightTargetKind kind, string targetId)
         {
+            using var visibleRead = BeginVisibleRead();
             if (lastMapButtonInputFrame == Time.frameCount || interactionRouter == null ||
                 mapView == null || !mapView.IsButtonInteractive(kind, targetId)) return;
             lastMapButtonInputFrame = Time.frameCount;
@@ -398,16 +481,19 @@ namespace YC.Presentation
 
         public void OnMobileCityClicked()
         {
+            using var visibleRead = BeginVisibleRead();
             interactionRouter.OnMobileCityClicked();
         }
 
         public void OnInfluenceSlotClicked(string slotId)
         {
+            using var visibleRead = BeginVisibleRead();
             interactionRouter.OnInfluenceSlotClicked(slotId);
         }
 
         private void CompleteActionCommandUi(string actionName)
         {
+            using var visibleRead = BeginVisibleRead();
             mapInteractionRouter.ClearConfirmation(false);
             ClearPendingDispatch();
             workflowView.ClearHighlights();
@@ -449,40 +535,77 @@ namespace YC.Presentation
 
         private void RefreshLocalPlayerUi(bool animate)
         {
-            var player = session.State.FindPlayer(localPlayerId);
+            using var refreshSample = LocalPlayerUiRefreshMarker.Auto();
+            using var visibleRead = BeginVisibleRead();
+            var player = UiReadState()?.FindPlayer(localPlayerId);
             if (player == null) return;
             gameplayInteractionHud?.MainModules?.RenderResources(player.Resources);
             gameplayInteractionHud?.MainModules?.RenderScore(player.Score);
             var characterView = characterCardPresenter == null
                 ? CharacterCardPanelViewModel.Empty("角色牌信息尚未初始化。")
-                : characterCardPresenter.BuildView(session.State, localPlayerId);
+                : characterCardPresenter.BuildProjectedView(UiReadState(), localPlayerId, VisibleSaleState());
             if (!characterView.CanUse)
             {
                 showCharacterUseOptions = false;
             }
-            gameplayInteractionHud?.MainModules?.RenderDiscardCount(
-                characterView.DiscardCards == null ? 0 : characterView.DiscardCards.Count);
-            characterHandPanel?.Render(localPlayerId, characterView);
             RefreshCharacterCoverSelection(characterView);
-            RefreshBuildInfoPanel();
+            RefreshBuildInfoPanel(characterView);
             RefreshBuildFacilityDialog();
         }
 
-        private void RefreshBuildInfoPanel()
+        private void RefreshBuildInfoPanel(CharacterCardPanelViewModel characterView = null)
         {
-            if (buildInfoPanel == null || session == null || session.State == null)
+            using var refreshSample = BuildInfoRefreshMarker.Auto();
+            if (buildInfoPanel == null || session == null || UiReadState() == null)
             {
                 return;
             }
 
             if (buildFacilityInteraction != null)
             {
-                buildFacilityInteraction.Refresh(session.State, localPlayerId);
+                buildFacilityInteraction.Refresh(UiReadState(), localPlayerId);
             }
             else
             {
-                buildInfoPanel.Refresh(session.State, localPlayerId);
+                buildInfoPanel.Refresh(UiReadState(), localPlayerId);
             }
+            RefreshViewedCityPanel(characterView);
+        }
+
+        private int displayedCityPlayerId = -1, cityInspectionViewer = -1;
+        private string cityInspectionGame;
+        private void InspectCity(int playerId)
+        {
+            displayedCityPlayerId = playerId < 0 ? localPlayerId : playerId;
+            RefreshViewedCityPanel();
+        }
+        private void RefreshViewedCityPanel(CharacterCardPanelViewModel characterView = null)
+        {
+            using var visibleRead = BeginVisibleRead();
+            var visible = VisibleSaleState();
+            if (visible == null || visible.ViewerPlayerId != localPlayerId)
+            {
+                displayedCityPlayerId = localPlayerId;
+                cityInspectionViewer = -1;
+                cityInspectionGame = null;
+                buildInfoPanel?.RefreshViewedCity(null, localPlayerId);
+                gameplayInteractionHud.MainModules.RenderCityInspection(null, localPlayerId);
+                characterHandPanel?.RenderInspection(null);
+                return;
+            }
+            if (cityInspectionGame != visible.GameId || cityInspectionViewer != localPlayerId ||
+                !visible.Players.Exists(p => p.PlayerId == displayedCityPlayerId)) displayedCityPlayerId = localPlayerId;
+            cityInspectionGame = visible.GameId;
+            cityInspectionViewer = localPlayerId;
+            buildInfoPanel?.RefreshViewedCity(visible, displayedCityPlayerId);
+            gameplayInteractionHud.MainModules.RenderCityInspection(visible, displayedCityPlayerId);
+            var piles = ViewedCharacterPilesViewModel.BuildInspectionView(visible, displayedCityPlayerId);
+            if (displayedCityPlayerId == localPlayerId)
+            {
+                characterView = characterView ?? characterCardPresenter?.BuildProjectedView(UiReadState(), localPlayerId, visible);
+                characterHandPanel?.Render(localPlayerId, characterView, piles);
+            }
+            else characterHandPanel?.RenderInspection(piles);
         }
 
         public bool TryHandleInteractionEscape()
@@ -542,17 +665,32 @@ namespace YC.Presentation
 
         private void BuildSession()
         {
-            var result = GameSessionBootstrapper.Build(
+            var result = GameSessionBootstrapper.BuildForGameplay(
                 GameLaunchContext.Instance,
                 useRightCardSmokeState,
                 prepareSharedCityStyleSmokeState);
             session = result.Session;
+            sessionEffectRegistry = result.EffectRegistry;
+            var visibleController = new System.WeakReference<MobileCityInteractionController>(this);
+            gameplayInteractionHud.DialogRegistry.CardVisualCatalog.BindRuntimeDefinitions(
+                id => visibleController.TryGetTarget(out var activeController)
+                    ? YC.Domain.Rules.GameContentDefinitions.ResolveDefinitionId(activeController.UiReadState(), id) : id);
             mapQuery = result.MapQuery;
             influenceService = result.InfluenceService;
             movementService = result.MovementService;
             explorationService = result.ExplorationService;
             resourceCollectionService = result.ResourceCollectionService;
             localPlayerId = result.LocalPlayerId;
+            if (!ShouldControlCurrentPlayerLocally()) session.RefreshLocalProjection(GameStateViewer.Player(localPlayerId));
+            gameplayInteractionHud.ConfigureGameplayPresentation(result.GameplayTextCatalog, result.GameplayDefinitionNames);
+            buildFacilityOptions = new BuildFacilityOptionQueryService(
+                new BuildFacilityService(), result.FacilityBuildCandidates);
+            supplyInspectionCandidates = new FacilityBuildCandidateCache(buildFacilityOptions);
+            gameplayInteractionHud.ExpansionUi.Configure(VisibleSaleState, () => localPlayerId,
+                result.EnterpriseDefinitions, result.CharacterModes, SubmitPendingEffectCommand);
+            gameplayInteractionHud.ExpansionUi.CreateSnapshotGuard = CreateVisibleSnapshotGuard;
+            gameplayInteractionHud.ExpansionUi.CharacterDefinition = id => CharacterCardDatabase.Get(UiReadState(), id);
+            gameplayInteractionHud.ExpansionUi.DetailDefinitions = result.PlayerDetailDefinitions;
         }
 
         private void BuildCommandSubmission(GameLaunchContext launchContext)
@@ -567,15 +705,75 @@ namespace YC.Presentation
                 {
                     NotifyCoverCommandSettled(commandId);
                     NotifyCharacterUseSettled(commandId);
+                    NotifyPendingEffectSettled(commandId);
+                    gameplayInteractionHud.ExpansionUi.NotifyCommandSettled(commandId);
                     interactionRouter?.NotifyCommandSettled(commandId);
-                }, (commandId, applied) => turnActionPresenter?.CityStyleInteraction.ResolveSubmission(commandId, applied));
-            commandSubmission.Initialize();
+                }, (commandId, applied) =>
+                {
+                    turnActionPresenter?.CityStyleInteraction.ResolveSubmission(commandId, applied);
+                    specialActionInteraction?.NotifyPaymentDraftSettled(commandId, applied);
+                }, (gameId, commandId, accepted, errorCode) =>
+                {
+                    // 准确拒绝可能保持同一revision，仍须让原路由重新呈现已解除等待的请求。
+                    simulationUiResultRequiresSynchronization = commandSubmission?.UsesDeterministicSimulation == true;
+                    ReleaseRejectedSubmissionWait(gameId, commandId, accepted);
+                    NotifyCoverCommandResolved(gameId, commandId, accepted, errorCode);
+                    interactionRouter?.NotifyInteractionCommandResolved(gameId, commandId, accepted, errorCode);
+                });
+            commandSubmission.Initialize(sessionEffectRegistry);
+        }
+
+        private void ReleaseRejectedSubmissionWait(string gameId, string commandId, bool accepted)
+        {
+            // 共享提交账本已核验提交身份；本层只释放当前局准确失败命令的本地等待。
+            if (accepted || string.IsNullOrEmpty(gameId) || gameId != session?.State?.GameId ||
+                string.IsNullOrEmpty(commandId)) return;
+            NotifyPendingEffectSettled(commandId);
+            if (commandId == characterUseCommandId) characterSettlementInProgress = false;
+            NotifyCharacterUseSettled(commandId);
         }
 
         private void BuildInteractionRouting()
         {
+            turnActionPresenter.ActionPanelPresenter.HasCommittedSettlement = HasCommittedSettlement;
+            turnActionPresenter.HasExplorationDraft = () => routeResourceSelection?.HasUnsubmittedMainActionDraft == true;
+            turnActionPresenter.HasExplorationSubmission = () => routeResourceSelection?.IsMainActionSubmissionInFlight == true;
+            influenceActionPresenter.ObservedStateRevision = () => VisibleSaleState()?.StateRevision ?? UiReadState()?.EffectRuntime?.StateRevision ?? 0;
+            turnActionPresenter.MoveInteraction.ObservedStateRevision = () => VisibleSaleState()?.StateRevision ?? UiReadState()?.EffectRuntime?.StateRevision ?? 0;
+            turnActionPresenter.MoveInteraction.GetVisibleState = VisibleSaleState;
+            turnActionPresenter.BuildInteraction.GetVisibleState = VisibleSaleState;
+            turnActionPresenter.MainActionDraftCleared = () => {
+                interactionRouter?.ClearMapConfirmation(); mapInteractionRouter?.ClearConfirmation(false);
+                routeResourceSelection?.CancelLocalPreview();
+                if (!turnActionPresenter.BuildInteraction.IsActive)
+                {
+                    buildDialogActive = false; buildDialogStep = BuildDialogStep.None;
+                    selectedBuildFacilityId = string.Empty; buildDialogGeneration++;
+                    if (facilityBuildPage != null) facilityBuildPage.Hide();
+                }
+            };
             interactionRouter = new InteractionRouter(SetPrompt);
             RegisterEventCardInteraction();
+            characterCardEffectChoiceDialog.BindGameplayText(gameplayInteractionHud.ExpansionUi.ResolveGameplayText,
+                gameplayInteractionHud.ExpansionUi.RenderEnterpriseDetails);
+            influenceEffectInteraction.GetVisibleState = VisibleSaleState;
+            influenceEffectInteraction.BindGameplayText(gameplayInteractionHud.ExpansionUi.ResolveGameplayText,
+                gameplayInteractionHud.Frame.SetInteractionDocument);
+            routeResourceSelection = new RouteResourceSelectionInteractionUiCoordinator(
+                () => UiReadState(), VisibleSaleState, () => localPlayerId, GetVisibleInteractionRequests,
+                new YC.Domain.Travel.RouteSelectionSessionAuthority(mapQuery),
+                new YC.Domain.Travel.RouteResourceSelectionService(mapQuery),
+                eventChoiceDialog, workflowView, SubmitPendingEffectCommand, RefreshRouteSelectionDraft);
+            routeResourceSelection.CanSubmit = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId);
+            characterAbilityInteraction.CanSubmit = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId);
+            enterpriseInteraction.CanSubmit = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId);
+            routeResourceSelection.RequiresExplicitRefresh = () => commandSubmission?.RequiresExplicitRefreshForCurrentResult == true;
+            characterAbilityInteraction.RequiresExplicitRefresh = () => commandSubmission?.RequiresExplicitRefreshForCurrentResult == true;
+            enterpriseInteraction.RequiresExplicitRefresh = () => commandSubmission?.RequiresExplicitRefreshForCurrentResult == true;
+            interactionRequestRouter.Register(routeResourceSelection);
+            interactionRouter.Register(routeResourceSelection);
+            explorationEventPresenter.BeginRouteSelection = () => routeResourceSelection.BeginLocalExploration();
+            resourceCollectionPresenter.HasRouteSelectionRequest = () => routeResourceSelection.IsActive;
             interactionRouter.Register(new SpecialActionInteractionAdapter(specialActionInteraction));
             characterCardInteraction = new CharacterCardInteraction(
                 characterCardEffectInteraction,
@@ -595,7 +793,7 @@ namespace YC.Presentation
         }
         private bool HasLocalPendingCharacterResolution()
         {
-            var state = session == null ? null : session.State;
+            var state = UiReadState();
             var pending = state == null ? null : state.PendingCharacterEffect;
             return pending != null &&
                    pending.IsValid() &&
@@ -604,10 +802,14 @@ namespace YC.Presentation
 
         private void RefreshAllFromState()
         {
+            if (uiShuttingDown) return;
+            using var fullTiming = new UiExecutionTimingScope(session?.ExecutionTimings, "ui.full");
+            using var uiSample = GameplayUiRefreshMarker.Auto();
+            using var visibleRead = BeginVisibleRead();
             RefreshCityViewsFromState();
             RefreshResourceDisplay();
             RefreshInfluenceDisplay();
-            mapView?.RefreshScoreTrackDisplay(session == null ? null : session.State);
+            mapView?.RefreshScoreTrackDisplay(UiReadState());
             RefreshActionPanel();
             RefreshFinalScoreFromState();
             gameplayInteractionHud.GetComponent<GameplayInformationPages>()?.Refresh();
@@ -615,35 +817,59 @@ namespace YC.Presentation
 
         private void SynchronizeInteractionFromState()
         {
+            if (uiShuttingDown) return;
+            using var syncTiming = new UiExecutionTimingScope(session?.ExecutionTimings, "ui.sync");
+            using var synchronizeSample = GameplaySynchronizeMarker.Auto();
+            using var visibleRead = BeginVisibleRead();
+            InvalidateVisibleRead();
+            if (RefreshSimulationPermissionOnly()) return;
             turnActionPresenter.SynchronizeFromState();
-            interactionRouter?.ClearMapConfirmation();
+            var preserveMove = !viewerChanged && turnActionPresenter.MoveInteraction.CanResumePreparedDraft;
+            var preserveBuild = !viewerChanged && turnActionPresenter.BuildInteraction.CanResumePreparedDraft;
+            if (viewerChanged)
+            {
+                viewerChanged = false;
+                ClearEventCardInteraction();
+                characterHandPanel?.CloseCharacterCardViewer();
+                characterHandPanel?.CloseDiscardPreview();
+                characterUsePage?.Hide();
+                showCharacterUseOptions = false;
+                gameplayInteractionHud?.ExpansionUi?.Clear();
+            }
+            if (!preserveMove) interactionRouter?.ClearMapConfirmation();
             mapInteractionRouter?.ClearConfirmation(false);
             var preserveCollection = flowCoordinator.IsActive(resourceCollectionPresenter) && resourceCollectionPresenter.CanResumeDraft;
-            if (!preserveCollection) flowCoordinator.ResetToChooseAction();
-            if (!preserveCollection) ClearPendingDispatch();
+            var preserveDeploy = flowCoordinator.IsActive(influenceActionPresenter) && influenceActionPresenter.CanResumeDeployDraft;
+            var preserveDispatch = flowCoordinator.IsActive(influenceActionPresenter) && influenceActionPresenter.CanResumeDispatchDraft;
+            if (!preserveCollection && !preserveDeploy && !preserveDispatch && !preserveMove && !preserveBuild) flowCoordinator.ResetToChooseAction();
+            if (!preserveCollection && !preserveDeploy && !preserveDispatch) ClearPendingDispatch();
+            routeResourceSelection?.RefreshLocalPreview();
             // 同一城市样式支付请求由路由器按 ID/版本刷新，保留收起状态与尚未支付的选择。
             if (preserveCollection) eventChoiceDialog.Hide();
             else if (specialActionInteraction == null || !specialActionInteraction.HasAuthoritativeRequest)
                 HideEventCardOptions();
             RefreshAllFromState();
             if (preserveCollection) resourceCollectionPresenter.RefreshFromState();
+            if (preserveDeploy) influenceActionPresenter.RefreshDeployDraft();
+            if (preserveDispatch) influenceActionPresenter.RestorePresentation();
+            if (preserveMove) turnActionPresenter.RestoreMovePresentation();
             RefreshPendingChoiceOrHighlights();
             SynchronizeCharacterSettlementPresentation();
-            PresentLatestCharacterSettlementBroadcast();
             TryBeginAutomaticSecondEffect();
             ObserveSharedCityStyleMirrorState();
             PresentLatestResourceSaleReceipt();
+            RefreshStoppedCharacterMode();
         }
 
         private void SynchronizeCharacterSettlementPresentation()
         {
-            if (!characterSettlementInProgress || session == null || session.State == null)
+            if (!characterSettlementInProgress || session == null || UiReadState() == null)
             {
                 return;
             }
 
-            var player = session.State.FindPlayer(localPlayerId);
-            if (player == null || session.State.PendingCharacterEffect != null ||
+            var player = UiReadState().FindPlayer(localPlayerId);
+            if (player == null || UiReadState().PendingCharacterEffect != null ||
                 (!string.IsNullOrEmpty(player.CoveredCharacterCardId) && !player.UsedCharacterThisRound))
             {
                 return;
@@ -656,15 +882,15 @@ namespace YC.Presentation
 
         private void PresentLatestCharacterSettlementBroadcast()
         {
-            if (session == null || session.State == null || session.State.Logs == null || session.State.Logs.Count == 0)
+            if (session == null || UiReadState() == null || UiReadState().Logs == null || UiReadState().Logs.Count == 0)
             {
                 return;
             }
 
             string settlementMessage = null;
-            for (var i = 0; i < session.State.Logs.Count; i++)
+            for (var i = 0; i < UiReadState().Logs.Count; i++)
             {
-                var entry = session.State.Logs[i];
+                var entry = UiReadState().Logs[i];
                 if (entry == null || entry.Sequence <= lastPresentedGameLogSequence)
                 {
                     continue;
@@ -687,12 +913,16 @@ namespace YC.Presentation
 
         private void RefreshPendingChoiceOrHighlights()
         {
+            using var visibleRead = BeginVisibleRead();
+            if (UiReadState() == null) return;
             if (SynchronizeEventCardInteraction())
             {
+                RefreshCurrentRequestEndButton();
+                RefreshRouteSelectionConfirmation();
                 return;
             }
 
-            if (session.State.Phase != GamePhase.ResourceCollection)
+            if (UiReadState().Phase != GamePhase.ResourceCollection)
             {
                 ClearCollectionSelection();
             }
@@ -711,7 +941,13 @@ namespace YC.Presentation
                 workflowView.SetHighlights(interactionPresentation.Highlights);
             }
 
-            if (!string.IsNullOrEmpty(interactionPresentation.PromptText))
+            if (interactionPresentation.PromptDocument != null)
+            {
+                if (characterMapInteraction?.OwnsPromptDocument(interactionPresentation.PromptDocument) == true)
+                    SetPrompt(interactionPresentation.PromptDocument, characterMapInteraction.CapturePendingPromptCurrentness());
+                else gameplayInteractionHud.Frame.SetInteractionDocument(influenceEffectInteraction.PresentationRequest,
+                    interactionPresentation.PromptDocument);            }
+            else if (!string.IsNullOrEmpty(interactionPresentation.PromptText))
             {
                 SetPrompt(interactionPresentation.PromptText);
             }
@@ -748,7 +984,7 @@ namespace YC.Presentation
             }
 
             mapView.RefreshInfluenceDisplay(
-                session.State,
+                UiReadState(),
                 HasPendingDispatchFirstMove(),
                 influenceActionPresenter == null ? string.Empty : influenceActionPresenter.FirstSourceSlotId,
                 influenceActionPresenter == null ? string.Empty : influenceActionPresenter.FirstTargetSlotId);
@@ -765,6 +1001,10 @@ namespace YC.Presentation
                 BeginDeployAction, BeginDispatchAction, BeginExploreAction, BeginMoveAction,
                 EndCurrentAction, OnBuildActionClicked, OnSpecialActionClicked);
             if (actionPanel == null) { Debug.LogError("[MobileCityInteractionController] 交互 HUD 行为绑定失败。", this); return false; }
+            actionPanel.CanBeginAction = () => CanBeginGameplayAction;
+            actionPanel.CanSubmitCharacter = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(characterUseCommandId) &&
+                turnActionPresenter?.IsMainActionSubmissionInFlight != true &&
+                string.IsNullOrEmpty(pendingEffectCommandId);
             characterHandPanel = gameplayInteractionHud.CharacterHandPanel;
             if (characterHandPanel == null ||
                 !characterHandPanel.Configure(
@@ -777,12 +1017,16 @@ namespace YC.Presentation
                 () => characterHandPanel?.OpenDiscardPreview());
             gameplayInteractionHud.MainModules.ConfigureCoveredPreview(
                 () => characterHandPanel?.OpenCoveredCharacterCardViewer());
+            gameplayInteractionHud.MainModules.ConfigureCityInspection(InspectCity);
             RefreshActionPanel();
             return true;
         }
 
         private void RefreshActionPanel()
         {
+            if (uiShuttingDown) return;
+            using var refreshSample = ActionPanelRefreshMarker.Auto();
+            using var visibleRead = BeginVisibleRead();
             if (specialActionUsePage != null && specialActionUsePage.IsShowing && specialActionPageIsCurrent != null && !specialActionPageIsCurrent())
                 specialActionUsePage.Hide();
             if (actionPanel == null || !actionPanel.IsReady || turnActionPresenter == null)
@@ -792,25 +1036,32 @@ namespace YC.Presentation
 
             var characterView = characterCardPresenter == null
                 ? null
-                : characterCardPresenter.BuildView(session.State, localPlayerId);
+                : characterCardPresenter.BuildProjectedView(UiReadState(), localPlayerId, VisibleSaleState());
             if (characterUsePage != null && characterUsePage.IsShowing &&
                 characterUsePageKey != CharacterUseKey(characterView))
             {
                 characterUsePage.Hide();
                 characterUsePageKey = string.Empty;
             }
-            var actionViewModel = turnActionPresenter.BuildActionPanelViewModel();
+            ActionPanelViewModel actionViewModel;
+            using (ActionPanelViewModelMarker.Auto())
+            {
+                actionViewModel = turnActionPresenter.BuildActionPanelViewModel();
+            }
+            lastActionPanelPermissionModel = actionViewModel;
             actionPanel.Render(actionViewModel);
             actionPanel.RenderCharacterQuickAction(characterView);
-            gameplayInteractionHud.Frame.Refresh(session.State, actionViewModel,
+            var visibleState = VisibleSaleState();
+            gameplayInteractionHud.Frame.Refresh(UiReadState(), actionViewModel,
                 turnActionPresenter.ActionPanelPresenter.GetUnavailableEndActionPrompt(),
                 actionViewModel.AllCollectionLocationsSelected
-                    ? gameplayInteractionHud.ActionPanelView.AllCollectionLocationsSelectedText : string.Empty);
-            gameplayInteractionHud.MainModules.Render(session.State, session.View, localPlayerId,
+                    ? gameplayInteractionHud.ActionPanelView.AllCollectionLocationsSelectedText : string.Empty,
+                visibleState);
+            gameplayInteractionHud.MainModules.Render(UiReadState(), visibleState, localPlayerId,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog);
-            gameplayInteractionHud.MainModules.RenderDiscardCount(
-                characterView == null || characterView.DiscardCards == null
-                    ? 0 : characterView.DiscardCards.Count);
+            RefreshViewedCityPanel(characterView);
+            gameplayInteractionHud.ExpansionUi.Refresh();
+            ApplySubmissionPermission(actionViewModel);
             if (characterView != null && characterView.IsSecondEffectDecision)
             {
                 workflowView.ClearHighlights();
@@ -824,6 +1075,7 @@ namespace YC.Presentation
 
             if (SynchronizeEventCardInteraction())
             {
+                RefreshRouteSelectionConfirmation();
                 return;
             }
 
@@ -833,7 +1085,7 @@ namespace YC.Presentation
             {
                 ShowCharacterUsePage(characterView);
             }
-            var state = session == null ? null : session.State;
+            var state = UiReadState();
             if (state != null && state.HasPendingChoice())
             {
                 var pendingChoice = CardFlowStateAdapter.GetPendingChoiceView(state);
@@ -846,15 +1098,65 @@ namespace YC.Presentation
                 }
             }
         }
-        private void BeginMoveAction() => turnActionPresenter.BeginMoveAction();
-        private void BeginExploreAction() => turnActionPresenter.BeginExploreAction();
+        private void BeginMoveAction() { if (CanBeginGameplayAction) turnActionPresenter.BeginMoveAction(); }
 
-        private void BeginDeployAction() => turnActionPresenter.BeginDeployAction();
+        private bool CanBeginGameplayAction => CanSubmitGameplayCommand &&
+            string.IsNullOrEmpty(characterUseCommandId) && string.IsNullOrEmpty(pendingEffectCommandId) &&
+            turnActionPresenter?.IsMainActionSubmissionInFlight != true && !HasCommittedSettlement();
 
-        private void BeginDispatchAction() => turnActionPresenter.BeginDispatchAction();
+        private bool HasCommittedSettlement()
+        {
+            var state = UiReadState();
+            var visible = VisibleSaleState();
+            return TurnActionPanelPresenter.HasCommittedSettlementContext(state, visible, localPlayerId);
+        }
+        private void RefreshCurrentRequestEndButton()
+        {
+            if (uiShuttingDown) return;
+            var enabled = CanEndCurrentAction();
+            gameplayInteractionHud.Frame.EndActionButton.interactable = enabled;
+            gameplayInteractionHud.ActionPanelView.EndRoundButton.interactable = enabled;
+            gameplayInteractionHud.Frame.EndActionButton.GetComponent<UiMainButtonState>()?.SetAvailable(enabled);
+            gameplayInteractionHud.ActionPanelView.EndRoundButton.GetComponent<UiMainButtonState>()?.SetAvailable(enabled);
+        }
+
+        private void RefreshRouteSelectionConfirmation()
+        {
+            if (routeResourceSelection?.IsActive != true) return;
+            routeCanStopPendingCharacterMode = CanStopCurrentEffect || CanUseSecondModeStop;
+            routeStopSnapshotIsCurrent = CreateVisibleSnapshotGuard(VisibleSaleState());
+            RefreshRouteSelectionDraft();
+        }
+
+        private void RefreshRouteSelectionDraft()
+        {
+            if (routeResourceSelection?.IsActive != true) return;
+            if (!string.IsNullOrEmpty(VisibleSaleState()?.ActiveSettlementWindowId))
+            { RefreshCurrentRequestEndButton(); return; }
+            var enabled = string.IsNullOrEmpty(pendingEffectCommandId) &&
+                (routeCanStopPendingCharacterMode && routeStopSnapshotIsCurrent?.Invoke() == true ||
+                routeResourceSelection.CanConfirm);
+            gameplayInteractionHud.Frame.EndActionButton.interactable = enabled;
+            gameplayInteractionHud.ActionPanelView.EndRoundButton.interactable = enabled;
+            gameplayInteractionHud.Frame.EndActionButton.GetComponent<UiMainButtonState>()?.SetAvailable(enabled);
+            gameplayInteractionHud.ActionPanelView.EndRoundButton.GetComponent<UiMainButtonState>()?.SetAvailable(enabled);
+        }
+
+        private void BeginExploreAction() { if (CanBeginGameplayAction) turnActionPresenter.BeginExploreAction(); }
+
+        private void BeginDeployAction() { if (CanBeginGameplayAction) turnActionPresenter.BeginDeployAction(); }
+
+        private void BeginDispatchAction() { if (CanBeginGameplayAction) turnActionPresenter.BeginDispatchAction(); }
         private void SubmitCoverCharacterCard(string cardId)
         {
-            var command = characterCardPresenter.CreateCoverCommand(localPlayerId, cardId);
+            var current = characterCardPresenter.BuildProjectedView(UiReadState(), localPlayerId, VisibleSaleState());
+            var request = current.CurrentCoverSelection;
+            var command = current.UsesEntityLifecycle && request != null
+                ? YC.Application.Interactions.EffectInteractionCommands.Answer(request, localPlayerId, new[] { cardId })
+                : characterCardPresenter.CreateCoverCommand(localPlayerId, cardId);
+            if (current.UsesEntityLifecycle && (request == null || !coverIntent.Begin(UiReadState().GameId, request, command, ShouldControlCurrentPlayerLocally())))
+            { coverSubmissionInFlight = false; return; }
+            submittedCoverGameId = UiReadState().GameId;
             submittedCoverCommandId = command.CommandId;
             SubmitCharacterCardCommand(command, "角色牌已盖放。", "盖放角色牌命令已发送给主机，等待确认。");
         }
@@ -864,7 +1166,8 @@ namespace YC.Presentation
             string effectOrder,
             IReadOnlyDictionary<string, string> effectParameters)
         {
-            var player = session.State.FindPlayer(localPlayerId);
+            if (!CanSubmitGameplayCommand || UiReadState() == null) return;
+            var player = UiReadState().FindPlayer(localPlayerId);
             if (player == null || string.IsNullOrEmpty(player.CoveredCharacterCardId))
             {
                 SetPrompt("当前没有可使用的盖放角色牌。");
@@ -889,35 +1192,94 @@ namespace YC.Presentation
 
         private void SubmitPendingEffectCommand(GameCommand command)
         {
+            if (command == null) return;
+            var visible = VisibleSaleState();
+            var standaloneOption = command.Kind == GameCommandKind.InvokeSettlementOption &&
+                command.Parameters.TryGetValue("optionId", out var optionId)
+                ? visible?.CharacterSettlementOptions.Find(option => option.OptionId == optionId && string.IsNullOrEmpty(option.EntryKind)) : null;
+            if (command.Kind == GameCommandKind.UseCharacterCard || standaloneOption != null)
+            {
+                if (!CanBeginGameplayAction) { gameplayInteractionHud.ExpansionUi.NotifyCommandSettled(command.CommandId); return; }
+                if (turnActionPresenter?.RunAfterClearingMainActionDraft(() =>
+                {
+                    if (standaloneOption != null)
+                    {
+                        var fresh = VisibleSaleState()?.CharacterSettlementOptions.Find(option =>
+                            option.OptionId == standaloneOption.OptionId && option.SourceItemId == standaloneOption.SourceItemId &&
+                            string.IsNullOrEmpty(option.EntryKind) && option.IsEnabled && option.AnsweringPlayerId == localPlayerId);
+                        if (fresh == null) { gameplayInteractionHud.ExpansionUi.NotifyCommandSettled(command.CommandId); return; }
+                        command.Parameters["expectedRevision"] = fresh.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    }
+                    SubmitPendingEffectCommandCore(command);
+                }) != true) gameplayInteractionHud.ExpansionUi.NotifyCommandSettled(command.CommandId);
+                return;
+            }
+            SubmitPendingEffectCommandCore(command);
+        }
+        private void SubmitPendingEffectCommandCore(GameCommand command)
+        {
+            if (!CanSubmitGameplayCommand || !string.IsNullOrEmpty(pendingEffectCommandId))
+            {
+                // 交叉点击底栏与页面时，解除未送出的本地锁；不产生第二条命令。
+                routeResourceSelection?.NotifyMainActionCommandNotDispatched(command);
+                interactionRouter?.NotifyCommandSettled(command.CommandId);
+                specialActionInteraction?.NotifyPaymentDraftSettled(command.CommandId, false);
+                gameplayInteractionHud.ExpansionUi.NotifyCommandSettled(command.CommandId);
+                return;
+            }
             var commandId = command == null ? string.Empty : command.CommandId;
+            var commandGameId = UiReadState()?.GameId;
+            pendingEffectCommandId = commandId;
+            RefreshCurrentRequestEndButton();
+            try
+            {
             var outcome = commandGateway.Submit(
                 command,
                 new SubmitCallbacks(
                     SetPrompt,
                     "你的选择已提交，正在同步结算结果，无需主机代选。")
                 {
-                    BeforeRejectedPrompt = _ => interactionRouter?.NotifyCommandSettled(commandId),
+                    BeforeRejectedPrompt = result =>
+                    { routeResourceSelection?.NotifyInteractionCommandResolved(commandGameId, commandId, false, result.Validation.ErrorCode); NotifyPendingEffectSettled(commandId); specialActionInteraction?.NotifyPaymentDraftSettled(commandId, false); gameplayInteractionHud.ExpansionUi.NotifyCommandSettled(commandId); interactionRouter?.NotifyCommandSettled(commandId); },
                     AfterRejectedPrompt = _ =>
                     {
                         specialActionInteraction?.Synchronize();
                         facilityInteraction?.Synchronize();
                         SynchronizeEventCardInteraction();
+                        RefreshCurrentRequestEndButton();
                     },
                     OnAppliedLocally = _ =>
                     {
+                        routeResourceSelection?.NotifyInteractionCommandResolved(commandGameId, commandId, true, default);
+                        NotifyPendingEffectSettled(commandId);
+                        specialActionInteraction?.NotifyPaymentDraftSettled(commandId, true);
+                        gameplayInteractionHud.ExpansionUi.NotifyCommandSettled(commandId);
                         interactionRouter?.NotifyCommandSettled(commandId);
                         SynchronizeInteractionFromState();
                     }
                 });
             if (outcome.Kind == SubmitOutcomeKind.NoResult)
             {
+                NotifyPendingEffectSettled(commandId);
+                specialActionInteraction?.NotifyPaymentDraftSettled(commandId, false);
+                gameplayInteractionHud.ExpansionUi.NotifyCommandSettled(commandId);
                 interactionRouter?.NotifyCommandSettled(commandId);
                 SynchronizeEventCardInteraction();
+                RefreshCurrentRequestEndButton();
             }
+            }
+            catch { NotifyPendingEffectSettled(commandId); specialActionInteraction?.NotifyPaymentDraftSettled(commandId, false); gameplayInteractionHud.ExpansionUi.NotifyCommandSettled(commandId); RefreshCurrentRequestEndButton(); throw; }
+        }
+
+        private void NotifyPendingEffectSettled(string commandId)
+        {
+            if (!string.IsNullOrEmpty(commandId) && pendingEffectCommandId == commandId)
+                pendingEffectCommandId = string.Empty;
         }
 
         private void SubmitCharacterCardCommand(GameCommand command, string localSuccessPrompt, string remotePrompt)
         {
+            if (!CanSubmitGameplayCommand) return;
             if (command != null && command.Kind == GameCommandKind.UseCharacterCard)
             {
                 if (!string.IsNullOrEmpty(characterUseCommandId)) return;
@@ -957,7 +1319,7 @@ namespace YC.Presentation
                 return;
             }
 
-            var pending = session.State.PendingCharacterEffect;
+            var pending = UiReadState().PendingCharacterEffect;
             if (pending == null || !pending.IsValid())
             {
                 return;
@@ -979,20 +1341,34 @@ namespace YC.Presentation
             }
         }
 
-        private void OnDeclareCityStyleClicked() => turnActionPresenter.BeginDeclareCityStyle();
+        private void OnDeclareCityStyleClicked()
+        {
+            var panel = turnActionPresenter.BuildActionPanelViewModel();
+            if (!panel.CanInspectCityStyles) return;
+            if (CanBeginGameplayAction && panel.CanDeclareCityStyle) turnActionPresenter.BeginDeclareCityStyle();
+            else turnActionPresenter.CityStyleInteraction.OpenPreview(string.Empty);
+        }
 
         private CharacterCardEffectChoiceDialog specialActionUsePage;
         private Func<bool> specialActionPageIsCurrent;
 
         private void OnSpecialActionClicked()
         {
+            if (!CanBeginGameplayAction) return;
+            if (!CanSubmitGameplayCommand || turnActionPresenter.IsMainActionSubmissionInFlight) return;
             var interaction = turnActionPresenter.CityStyleInteraction;
             if (!interaction.CanUseSpecialAction) return;
+            turnActionPresenter.RunAfterClearingMainActionDraft(OpenSpecialActionPage);
+        }
+        private void OpenSpecialActionPage()
+        {
+            var interaction = turnActionPresenter.CityStyleInteraction;
+            if (!CanBeginGameplayAction || !interaction.CanUseSpecialAction) return;
             var owner = session;
             var player = localPlayerId;
-            var revision = session.State.EffectRuntime?.StateRevision ?? 0;
-            bool Current() => session == owner && localPlayerId == player &&
-                (session.State.EffectRuntime?.StateRevision ?? 0) == revision &&
+            var revision = UiReadState().EffectRuntime?.StateRevision ?? 0;
+            bool Current() => CanSubmitGameplayCommand && session == owner && localPlayerId == player &&
+                UiReadState() != null && (UiReadState().EffectRuntime?.StateRevision ?? 0) == revision &&
                 interaction.CanUseSpecialAction;
             var options = new System.Collections.Generic.List<EffectDialogOption>();
             foreach (var option in interaction.QuerySpecialActions().Options)
@@ -1015,19 +1391,27 @@ namespace YC.Presentation
 
         private void OnBuildActionClicked()
         {
-            if (turnActionPresenter.BuildActionPanelViewModel().CanViewFacilitySupply)
+            var canBegin = CanBeginGameplayAction;
+            var panel = turnActionPresenter.BuildActionPanelViewModel();
+            if (panel.CanViewFacilitySupply && (!canBegin || !panel.CanBuild))
             {
                 supplyInspectionActive = true;
-                selectedBuildFacilityId = string.Empty;
+                if (canBegin) selectedBuildFacilityId = string.Empty;
                 PresentFacilitySupplyInspection();
                 return;
             }
+            if (!canBegin) return;
             if (buildDialogActive && turnActionPresenter?.BuildBuildFacilityDraftViewModel() != null)
                 return;
+            turnActionPresenter.RunAfterClearingMainActionDraft(OpenBuildActionPage);
+        }
+        private void OpenBuildActionPage()
+        {
             buildDialogActive = true;
+            buildDialogGeneration++;
             buildDialogStep = BuildDialogStep.Facilities;
             selectedBuildFacilityId = string.Empty;
-            turnActionPresenter.BeginBuildAction();
+            turnActionPresenter.BuildInteraction.Begin();
             buildFacilityInteraction?.Synchronize();
             buildInfoPanel?.SetExternalFacilitySupplyVisible(false);
             PresentBuildFacilityDialog();
@@ -1045,8 +1429,8 @@ namespace YC.Presentation
             if (!buildDialogActive || turnActionPresenter == null) return;
             buildInfoPanel?.SetExternalFacilitySupplyVisible(false);
             if (turnActionPresenter.BuildInteraction.IsSubmissionInFlight) return;
-            var state = session == null ? null : session.State;
-            if (state == null || state.CurrentPlayerId != localPlayerId ||
+            var state = UiReadState();
+            if (state == null || !HasLocalOperationPermission(state) ||
                 (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2))
             {
                 turnActionPresenter.CancelBuildFacility();
@@ -1084,22 +1468,23 @@ namespace YC.Presentation
         }
 
         private FacilityBuildDialogView facilityBuildPage;
+        private int buildDialogGeneration;
         private bool supplyInspectionActive;
 
         private void PresentFacilitySupplyInspection()
         {
-            if (!supplyInspectionActive || session?.State == null) return;
+            if (!supplyInspectionActive || UiReadState() == null) return;
             var owner = session;
             var player = localPlayerId;
             bool Current() => supplyInspectionActive && session == owner && localPlayerId == player &&
                 turnActionPresenter.BuildActionPanelViewModel().CanViewFacilitySupply;
             var model = new BuildFacilityDraftViewModel(BuildFacilityDraftPhase.Selecting,
-                new BuildFacilityOptionQueryService().Query(session.State, player), null, null, -1,
-                string.Empty, string.Empty, null, _ => { });
+                supplyInspectionCandidates.Query(UiReadState(), player), null, null, -1,
+                string.Empty, string.Empty, null, _ => { }, supplyInspectionCandidates.IsDefaultSupplySet);
             if (facilityBuildPage == null)
                 facilityBuildPage = gameplayInteractionHud.DialogRegistry.InstantiateFacilityBuild(uiCanvas.transform as RectTransform);
-            facilityBuildPage.RefreshSupplyStatus(session.State, localPlayerId);
-            facilityBuildPage.Show(model, session.State.Map.Facilities, player,
+            facilityBuildPage.RefreshSupplyStatus(UiReadState(), localPlayerId);
+            facilityBuildPage.Show(model, UiReadState().Map.Facilities.ToArray(), player,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
                 gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile,
                 selectedBuildFacilityId, string.Empty, Current,
@@ -1110,6 +1495,7 @@ namespace YC.Presentation
 
         private void CloseFacilitySupplyInspection()
         {
+            supplyInspectionCandidates?.Invalidate();
             supplyInspectionActive = false;
             selectedBuildFacilityId = string.Empty;
             if (facilityBuildPage != null) facilityBuildPage.Hide();
@@ -1120,12 +1506,20 @@ namespace YC.Presentation
             if (!buildDialogActive || turnActionPresenter == null) return;
             var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
             if (model == null) return;
+            // 必要响应/异客分配暂用正式效果页；建设草稿留在原宿主，返回才刷新费用和按钮。
+            if (ActionPaymentPreparation.HasBlockingChoice(UiReadState(), localPlayerId)) return;
             characterCardEffectChoiceDialog?.Hide();
             eventChoiceDialog.Hide();
             if (facilityBuildPage == null)
                 facilityBuildPage = gameplayInteractionHud.DialogRegistry.InstantiateFacilityBuild(uiCanvas.transform as RectTransform);
-            facilityBuildPage.RefreshSupplyStatus(session.State, localPlayerId);
-            facilityBuildPage.Show(model, session.State.Map.Facilities, localPlayerId,
+            var owner = session;
+            var player = localPlayerId;
+            var generation = buildDialogGeneration;
+            gameplayInteractionHud.Frame.RegisterActionPage(facilityBuildPage.gameObject, generation.ToString(),
+                () => session == owner && localPlayerId == player && generation == buildDialogGeneration && IsCurrentBuildDialog(),
+                PresentBuildFacilityDialog);
+            facilityBuildPage.RefreshSupplyStatus(UiReadState(), localPlayerId);
+            facilityBuildPage.Show(model, UiReadState().Map.Facilities.ToArray(), localPlayerId,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
                 gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile,
                 selectedBuildFacilityId, BuildQuoteSummary(model), IsCurrentBuildDialog,
@@ -1167,13 +1561,13 @@ namespace YC.Presentation
 
         private bool IsCurrentBuildDialog()
         {
-            var state = session == null ? null : session.State;
+            var state = UiReadState();
             return buildDialogActive && state != null &&
-                   state.CurrentPlayerId == localPlayerId &&
+                   HasLocalOperationPermission(state) &&
                    (state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2) &&
                    turnActionPresenter != null &&
                    !turnActionPresenter.BuildInteraction.IsSubmissionInFlight &&
-                   turnActionPresenter.BuildBuildFacilityDraftViewModel() != null;
+                   turnActionPresenter.BuildInteraction.IsActive;
         }
 
         private void SelectBuildFacility(string facilityId)
@@ -1251,11 +1645,12 @@ namespace YC.Presentation
             if (!IsCurrentBuildDialog()) return;
             var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
             if (model == null || model.Phase != BuildFacilityDraftPhase.Confirming ||
-                model.SelectedOption == null || !model.SelectedOption.CanBuild ||
-                (model.PaymentMode == BuildFacilityService.PaymentModeResources &&
+                model.SelectedOption == null ||
+                (model.PaymentPreparation != null ? !model.PaymentPreparation.CanConfirm :
+                !model.SelectedOption.CanBuild || (model.PaymentMode == BuildFacilityService.PaymentModeResources &&
                  !model.SelectedOption.ResourcesPayment.IsAvailable) ||
                 (model.PaymentMode == BuildFacilityService.PaymentModeGold &&
-                 !model.SelectedOption.GoldPayment.IsAvailable))
+                 !model.SelectedOption.GoldPayment.IsAvailable)))
             {
                 RefreshBuildFacilityDialog();
                 return;
@@ -1331,7 +1726,7 @@ namespace YC.Presentation
 
         private string GetPlayerDisplayName(int playerId)
         {
-            var player = session.State.FindPlayer(playerId);
+            var player = UiReadState()?.FindPlayer(playerId);
             if (player == null)
             {
                 return playerId.ToString();
@@ -1344,10 +1739,11 @@ namespace YC.Presentation
         {
             RefreshLocalPlayerUi();
             RefreshResourceTokenDisplay();
+            mapView?.RefreshRoadDisplay(VisibleSaleState()?.ItemZones);
         }
 
         private void RefreshResourceTokenDisplay() =>
-            mapView?.RefreshResourceTokenDisplay(session == null ? null : session.State);
+            mapView?.RefreshResourceTokenDisplay(UiReadState());
 
         private void ShowInitialPlacementChoices()
         {
@@ -1367,6 +1763,15 @@ namespace YC.Presentation
 
         private static bool ShouldControlCurrentPlayerLocally() =>
             GameLaunchContext.Instance == null || GameLaunchContext.Instance.Mode == LaunchMode.Local;
+
+        private bool viewerChanged;
+        private void SetLocalViewer(int playerId)
+        {
+            if (playerId <= 0 || playerId == localPlayerId || !ShouldControlCurrentPlayerLocally()) return;
+            localPlayerId = playerId;
+            viewerChanged = true;
+            InvalidateVisibleRead();
+        }
 
         private void UpdateEntranceOrActionPrompt() => UpdateEntranceOrActionPrompt(string.Empty);
 
@@ -1402,7 +1807,7 @@ namespace YC.Presentation
 
         private void RefreshCityViewsFromState()
         {
-            mapView.RefreshCityViewsFromState(session == null ? null : session.State, localPlayerId);
+            mapView.RefreshCityViewsFromState(UiReadState(), localPlayerId);
         }
 
         private void RefreshFinalScoreFromState()
@@ -1410,7 +1815,7 @@ namespace YC.Presentation
             var finalScore = FindObjectOfType<FinalScoreController>();
             if (finalScore != null)
             {
-                finalScore.RefreshFromState(session.State);
+                finalScore.RefreshFromState(UiReadState());
             }
         }
 
@@ -1444,8 +1849,33 @@ namespace YC.Presentation
         private void ApplyDebugHotspotHighlights() =>
             mapView.ApplyDebugHotspotHighlights(debugClicks);
 
-        private void SetPrompt(string message) => gameplayInteractionHud?.Frame?.SetInteractionMessage(
-            message, interactionRouter?.GetPendingPrompt());
+        private void SetPrompt(GameplayTextRef reference) => SetPrompt(reference, null);
+
+        private void SetPrompt(GameplayTextRef reference, Func<bool> current)
+        {
+            if (uiShuttingDown) return;
+            var document = gameplayInteractionHud?.ExpansionUi?.ResolveGameplayText(reference);
+            if (document != null) SetPrompt(document, current);
+        }
+
+        private void SetPrompt(GameplayTextDocument document, Func<bool> current)
+        {
+            if (uiShuttingDown) return;
+            var state = UiReadState(); var frame = gameplayInteractionHud?.Frame;
+            if (state == null || frame == null || document == null) return;
+            frame.BindGameplaySnapshot(VisibleSaleState());
+            var game = state.GameId; var viewer = localPlayerId; var revision = state.EffectRuntime?.StateRevision ?? 0;
+            var ownerSession = session; var content = state.ContentPackHash;
+            frame.SetScopedInteractionMessageDocument(game, viewer, revision, document, () =>
+                session == ownerSession && UiReadState()?.GameId == game && localPlayerId == viewer &&
+                UiReadState().ContentPackHash == content && (UiReadState().EffectRuntime?.StateRevision ?? 0) == revision && current?.Invoke() != false);
+        }
+
+        private bool uiShuttingDown;
+        private void SetPrompt(string message)
+        {
+            if (!uiShuttingDown) gameplayInteractionHud?.Frame?.SetInteractionMessage(message, interactionRouter?.GetPendingPrompt());
+        }
 
     }
 

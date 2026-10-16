@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using YC.Application.Interactions;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
@@ -54,7 +55,11 @@ namespace YC.Application.Setup
             if (state.Phase != GamePhase.Entrance) return Invalid(CommandErrorCode.WrongPhase, "当前不是入场阶段。");
             var player = state.FindPlayer(command.PlayerId);
             if (player == null) return Invalid(CommandErrorCode.InvalidPlayer, "入场玩家不存在。");
-            if (state.CurrentPlayerId > 0 && state.CurrentPlayerId != command.PlayerId)
+            var mainNode = state.EffectRuntime?.MainNodes?.Find(node =>
+                node != null && node.NodeId == state.EffectRuntime.ActiveMainNodeId);
+            bool entranceSetup = mainNode?.NodeTypeId == RoundMainlineNodeTypeIds.PlayerEntranceSetup;
+            if ((!entranceSetup || command.Kind == GameCommandKind.ChooseInitialLocation) &&
+                state.CurrentPlayerId > 0 && state.CurrentPlayerId != command.PlayerId)
                 return Invalid(CommandErrorCode.NotCurrentPlayer, "必须按入场主链顺序操作。");
             if (command.Kind == GameCommandKind.ChooseInitialLocation)
             {
@@ -74,10 +79,29 @@ namespace YC.Application.Setup
                     if (!start.IsValid) return CommandResult.Invalid(start);
                 }
             }
+            // 旧入口可能刚创建新开局主链，协议身份须以此刻实际使用的节点为准。
+            mainNode = state.EffectRuntime?.MainNodes?.Find(node =>
+                node != null && node.NodeId == state.EffectRuntime.ActiveMainNodeId);
+            entranceSetup = mainNode?.NodeTypeId == RoundMainlineNodeTypeIds.PlayerEntranceSetup;
             string type = command.Kind == GameCommandKind.ChooseInitialLocation ? PlayerEntranceEffectExecutor.InteractionTypeId : EventCardEffectExecutor.OptionInteractionTypeId;
             var request = state.EffectRuntime.InteractionRequests.Find(item => item.Status == "open" &&
                 item.AnsweringPlayerId == command.PlayerId && item.InteractionTypeId == type);
             if (request == null) return Invalid(CommandErrorCode.PendingChoiceRequired, "没有可回答的入场交互，请先完成当前效果。");
+            string revision = command.Parameters != null && command.Parameters.TryGetValue(
+                AnswerInteractionCommandHandler.ExpectedRevisionParameter, out var observedRevision)
+                ? observedRevision : string.Empty;
+            int expectedRevision = request.StateRevision;
+            if (entranceSetup)
+            {
+                if (command.Parameters == null || !command.Parameters.TryGetValue(
+                    AnswerInteractionCommandHandler.InteractionIdParameter, out var interactionId) ||
+                    interactionId != request.GetStableInteractionId())
+                    return Invalid(CommandErrorCode.InvalidTarget, "入场命令缺少当前本人请求身份。");
+            }
+            if ((entranceSetup || !string.IsNullOrEmpty(revision)) &&
+                (!int.TryParse(revision, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                    out expectedRevision) || expectedRevision < 0))
+                return Invalid(CommandErrorCode.InvalidTarget, "入场命令缺少有效的 expectedRevision。");
             string candidate = command.OptionIds.Count > 0 ? command.OptionIds[0] : command.TargetId;
             if (command.Kind == GameCommandKind.ResolveEntranceEvent && int.TryParse(candidate, out int index))
             {
@@ -86,7 +110,7 @@ namespace YC.Application.Setup
             }
             var answer = new GameCommand { Kind = GameCommandKind.AnswerInteraction, PlayerId = command.PlayerId, CommandId = command.CommandId };
             answer.Parameters[AnswerInteractionCommandHandler.InteractionIdParameter] = request.InteractionId;
-            answer.Parameters[AnswerInteractionCommandHandler.ExpectedRevisionParameter] = request.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            answer.Parameters[AnswerInteractionCommandHandler.ExpectedRevisionParameter] = expectedRevision.ToString(CultureInfo.InvariantCulture);
             answer.OptionIds.Add(candidate);
             return new AnswerInteractionCommandHandler(EffectRegistry, round).Handle(state, answer);
         }

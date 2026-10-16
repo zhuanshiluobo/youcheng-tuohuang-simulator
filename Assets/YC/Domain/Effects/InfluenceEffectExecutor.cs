@@ -1,9 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using YC.Domain.Commands;
 using YC.Domain.Influence;
 using YC.Domain.State;
+using YC.Domain.Presentation;
+using System.Linq;
+using YC.Domain.Items;
+using YC.Domain.Cards;
 
 namespace YC.Domain.Effects
 {
@@ -47,7 +51,7 @@ namespace YC.Domain.Effects
             string replaceEffectId = "")
         {
             var owner = ownerSubject ?? InfluenceIdentity.CreatePlayerOwner(executingPlayerId);
-            var source = InfluenceIdentity.CreatePlayerSupplySource(executingPlayerId, sourceId);
+            var source = SupplySource(owner, sourceId);
             var entries = new List<NormalizedValueEntry>
             {
                 Entry("executingPlayer", PlayerReference(executingPlayerId)),
@@ -98,14 +102,10 @@ namespace YC.Domain.Effects
             string targetSlotId,
             string causeKind = InfluenceCauseKinds.Direct)
         {
-            return Create(
-                InfluenceEffectTypeIds.MoveInfluence,
-                executingPlayerId,
-                Object(
-                    Entry("executingPlayer", PlayerReference(executingPlayerId)),
-                    Entry("targetInfluence", InfluenceReference(targetInfluenceId)),
-                    Entry("targetSlotId", SlotReference(targetSlotId)),
-                    Entry("causeKind", String(causeKind))));
+            var entries = new List<NormalizedValueEntry> { Entry("executingPlayer", PlayerReference(executingPlayerId)),
+                Entry("targetInfluence", InfluenceReference(targetInfluenceId)), Entry("causeKind", String(causeKind)) };
+            if (!string.IsNullOrEmpty(targetSlotId)) entries.Add(Entry("targetSlotId", SlotReference(targetSlotId)));
+            return Create(InfluenceEffectTypeIds.MoveInfluence, executingPlayerId, Object(entries));
         }
 
         public static EffectSpec MoveInfluences(
@@ -133,6 +133,13 @@ namespace YC.Domain.Effects
                     Entry("causeKind", String(causeKind))));
         }
 
+        internal static EffectSpec ChooseDispatchInfluence(int executingPlayerId)
+        {
+            return Create(InfluenceEffectTypeIds.MoveInfluence, executingPlayerId,
+                Object(Entry("executingPlayer", PlayerReference(executingPlayerId)),
+                    Entry("subjectFilter", String("self")), Entry("causeKind", String(InfluenceCauseKinds.MoveCity))));
+        }
+
         public static EffectSpec ReplaceInfluence(
             int executingPlayerId,
             string targetInfluenceId,
@@ -141,7 +148,7 @@ namespace YC.Domain.Effects
             string causeKind = InfluenceCauseKinds.Replace)
         {
             var owner = replacementOwner ?? InfluenceIdentity.CreatePlayerOwner(executingPlayerId);
-            var source = InfluenceIdentity.CreatePlayerSupplySource(executingPlayerId, replacementSourceId);
+            var source = SupplySource(owner, replacementSourceId);
             return Create(
                 InfluenceEffectTypeIds.ReplaceInfluence,
                 executingPlayerId,
@@ -224,7 +231,7 @@ namespace YC.Domain.Effects
             return new NormalizedValueEntry { Name = name, Value = value };
         }
 
-        internal static NormalizedValue SubjectValue(RuleSubjectReference subject)
+        public static NormalizedValue SubjectValue(RuleSubjectReference subject)
         {
             return Object(
                 Entry("subjectType", String(subject == null ? "" : subject.SubjectType)),
@@ -240,15 +247,24 @@ namespace YC.Domain.Effects
                 Entry("sourceId", String(source == null ? "" : source.SourceId)),
                 Entry("subject", SubjectValue(source == null ? null : source.Subject)));
         }
+
+        private static InfluenceSourceReference SupplySource(RuleSubjectReference owner, string sourceId) =>
+            new InfluenceSourceReference { Kind = owner.SubjectType == "company" ? "company_supply" : InfluenceIdentity.PlayerSupplySourceKind,
+                SourceId = sourceId ?? "", Subject = InfluenceIdentity.CloneSubject(owner) };
     }
 
     public sealed class InfluenceEffectExecutor
     {
-        public const string DefinitionVersion = "1.0.0";
+        public const string DefinitionVersion = "v1";
         public const string PlaceEffectTypeId = InfluenceEffectTypeIds.PlaceInfluence;
         public const string RemoveEffectTypeId = InfluenceEffectTypeIds.RemoveInfluence;
         public const string MoveEffectTypeId = InfluenceEffectTypeIds.MoveInfluence;
         public const string ReplaceEffectTypeId = InfluenceEffectTypeIds.ReplaceInfluence;
+
+        public static bool CanRestoreLegacy(GameState state, EffectNodeRuntimeState node) =>
+            node.DefinitionVersion == "1.0.0" && !ItemZoneLegacyProjection.IsActive(state) &&
+            new[] { PlaceEffectTypeId, RemoveEffectTypeId, MoveEffectTypeId, ReplaceEffectTypeId }.Contains(node.EffectTypeId) &&
+            new[] { "", "awaiting_target", "remove_started", "place_started" }.Contains(node.FlowStage ?? "");
 
         private readonly InfluenceService influenceService;
 
@@ -261,6 +277,10 @@ namespace YC.Domain.Effects
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
             if (influenceService == null) throw new ArgumentNullException(nameof(influenceService));
+            registry.InfluenceService = influenceService;
+            foreach (string abilityId in registry.CharacterAbilityContracts.Keys.OrderBy(id => id, StringComparer.Ordinal))
+                RegisterDeferredDestination(registry, abilityId);
+            InfluenceDispatchActionEffectExecutor.Register(registry);
             var executor = new InfluenceEffectExecutor(influenceService);
             RegisterIfMissing(registry, executor, PlaceEffectTypeId, executor.ExecutePlace, ValidatePlace, EffectExecutorKind.IntrinsicFlow);
             RegisterIfMissing(registry, executor, RemoveEffectTypeId, executor.ExecuteRemove, ValidateRemove, EffectExecutorKind.IntrinsicFlow);
@@ -273,6 +293,14 @@ namespace YC.Domain.Effects
             Register(registry, new InfluenceService(state, mapQuery));
         }
 
+        public static void RegisterDeferredDestination(EffectRegistry registry, string abilityId)
+        {
+            var resolver = new InfluenceDestinationResolver();
+            registry.RegisterDeferredResponseDestination(new DeferredResponseDestinationRegistration(
+                InfluenceDestinationResolver.DestinationHandlerId(abilityId), abilityId, resolver.DescribeDeferredResponse,
+                resolver.AdoptPendingDestination, resolver.CompleteDeferredDestination, resolver.TryValidateDeferredDestination));
+        }
+
         private static void RegisterIfMissing(
             EffectRegistry registry,
             InfluenceEffectExecutor executor,
@@ -283,7 +311,7 @@ namespace YC.Domain.Effects
         {
             EffectRegistration ignored;
             if (registry.TryGet(typeId, out ignored)) return;
-            registry.Register(new EffectRegistration(typeId, handler, executorKind, DefinitionVersion)
+            registry.Register(new EffectRegistration(typeId, context => { CharacterLifecycleService.ResumeDeferredDependencies(context); return handler(context); }, executorKind, DefinitionVersion)
             {
                 Validator = validator
             });
@@ -307,6 +335,29 @@ namespace YC.Domain.Effects
             {
                 return Failed(context, "invalid_arguments", diagnostic, null);
             }
+            if (playerId != context.Node.PlayerId || context.State.FindPlayer(playerId) == null) return EffectStepResult.Failed("invalid_player");
+            if (ItemZoneLegacyProjection.IsActive(context.State) && !MatchesSubjectArguments(context, ItemOwner(owner))) return EffectStepResult.Failed("invalid_influence_subject");
+
+            if (ItemZoneLegacyProjection.IsActive(context.State))
+            {
+                var subject = ItemOwner(owner);
+                var supply = context.State.ItemZones.Zones.Find(zone => subject.Kind == ItemSubjectKind.Player
+                    ? zone.TemplateId == "core.zone.player_marker_supply" && zone.OwnerPlayerId == subject.PlayerId
+                    : zone.TemplateId == "core.zone.reward_pool" && zone.LocalZoneId == "company_markers");
+                if (supply != null)
+                {
+                    string subjectKey = InfluenceSubjectQuery.GetSubjectKey(subject);
+                    var first = context.State.ItemZones.Items.Where(item => item.ZoneId == supply.ZoneId && InfluenceSubjectQuery.GetSubjectKey(item.OwnerSubject) == subjectKey)
+                        .OrderBy(item => item.ItemId, StringComparer.Ordinal).FirstOrDefault();
+                    var pendingIds = context.State.EffectRuntime.DeferredResponses.Where(response => response.Status == DeferredResponseStatus.Pending && response.OriginalSupplyZoneId == supply.ZoneId)
+                        .Select(response => context.State.ItemZones.Items.Find(item => item.ItemId == response.ReservedItemId))
+                        .Where(item => item != null && InfluenceSubjectQuery.GetSubjectKey(item.OwnerSubject) == subjectKey && (first == null || StringComparer.Ordinal.Compare(item.ItemId, first.ItemId) < 0))
+                        .Select(item => item.ItemId).ToList();
+                    if (pendingIds.Count > 0 && CharacterLifecycleService.TryAwaitDeferredDependencies(context, new DeferredDependencyQuery {
+                        DependencyKind = DeferredDependencyKind.SupplyRequirement, OriginalSupplyZoneId = supply.ZoneId, ItemIds = pendingIds, RequiredCount = 1 }))
+                        return CharacterLifecycleService.DeferredDependencyWait();
+                }
+            }
 
             if (string.IsNullOrEmpty(slotId))
             {
@@ -315,7 +366,7 @@ namespace YC.Domain.Effects
                     var candidates = GetPlacementCandidates(context, playerId);
                     if (candidates.Count == 0)
                     {
-                        return Failed(context, "no_legal_placement", "当前没有合法的影响力放置位置。", null);
+                        return EmptyResult();
                     }
 
                     return EffectStepResult.Continue("awaiting_target").AddInteraction(
@@ -345,8 +396,9 @@ namespace YC.Domain.Effects
                 return Failed(context, "invalid_placement_target", "目标不在当前影响力候选范围内。", null);
 
             string influenceId = StableIdFactory.Create("influence", context.Node.EffectId, "place", slotId, source.SourceId);
-            InfluenceOperationResult result = influenceService.Place(
-                context.State, playerId, slotId, influenceId, owner, source);
+            InfluenceOperationResult result = ItemZoneLegacyProjection.IsActive(context.State)
+                ? influenceService.Place(context, ItemOwner(owner), slotId)
+                : influenceService.Place(context.State, playerId, slotId, influenceId, owner, source);
             if (!result.Succeeded)
             {
                 return Failed(context, result.StableFailureCode, result.Reason, Result(result, "failed", result.Reason));
@@ -365,6 +417,9 @@ namespace YC.Domain.Effects
         private IReadOnlyList<string> GetPlacementCandidates(EffectExecutionContext context, int playerId)
         {
             var legal = influenceService.GetLegalPlacementSlotIds(context.State, playerId);
+            if (ItemZoneLegacyProjection.IsActive(context.State) && TryGet(context.Node.NormalizedArguments, "ownerSubject", out var rawOwner) && TrySubject(rawOwner, out var owner) && owner.SubjectType == "company")
+                legal = context.State.ItemZones.Zones.Where(zone => zone.TemplateId == "core.zone.influence_slots").SelectMany(zone => zone.LegalSlotIds)
+                    .Where(slot => influenceService.ValidateItemPlacement(context.State, ItemOwner(owner), slot).Succeeded).ToList();
             NormalizedValue scope;
             if (!TryGet(context.Node.NormalizedArguments, "candidateScope", out scope)) return legal;
             var result = new List<string>();
@@ -388,12 +443,13 @@ namespace YC.Domain.Effects
             EffectExecutionContext context,
             IReadOnlyList<string> candidates)
         {
+            bool moving = context.Node.EffectTypeId == InfluenceEffectTypeIds.MoveInfluence;
             var interaction = new EffectInteractionSpec
             {
                 SourceNodeId = context.Node.EffectId,
-                InteractionTypeId = "effect.influence.place.target",
+                InteractionTypeId = moving ? "effect.influence.move.target" : "effect.influence.place.target",
                 Visibility = GameStateVisibilityPolicy.Owner,
-                PromptKey = "effect.influence.place.choose_target",
+                PromptKey = moving ? "effect.influence.move.choose_target" : "effect.influence.place.choose_target",
                 AnsweringPlayerId = context.Node.PlayerId,
                 CandidateSetId = StableIdFactory.Create(
                     "influence-placement-candidate-set",
@@ -405,6 +461,8 @@ namespace YC.Domain.Effects
                 AnswerSchema = "candidate_id"
             };
             interaction.AllowDecline = CanCancelPlacement(context);
+            interaction.Presentation = new GameplayInteractionPresentation {
+                Prompt = new GameplayTextRef(moving ? "core:interaction.map.influence.move.destination" : interaction.AllowDecline ? "core:interaction.map.influence.place.optional" : "core:interaction.map.influence.place") };
             if (candidates != null)
             {
                 for (var i = 0; i < candidates.Count; i++)
@@ -436,6 +494,8 @@ namespace YC.Domain.Effects
                 MaxSelections = 1,
                 AnswerSchema = "candidate_id"
             };
+            interaction.Presentation = new GameplayInteractionPresentation {
+                Prompt = new GameplayTextRef(interaction.AllowDecline ? "core:interaction.map.influence.remove.optional" : "core:interaction.map.influence.remove") };
             if (candidates != null)
             {
                 for (var i = 0; i < candidates.Count; i++)
@@ -460,6 +520,7 @@ namespace YC.Domain.Effects
 
         private EffectStepResult ExecuteRemove(EffectExecutionContext context)
         {
+            if (ItemZoneLegacyProjection.IsActive(context.State)) return ExecuteItemDeparture(context, false);
             if (context.Node.PendingOutcome != EffectPendingOutcome.None)
             {
                 return EffectStepResult.Completed(context.Node.NormalizedResult.Clone());
@@ -521,6 +582,9 @@ namespace YC.Domain.Effects
 
         private EffectStepResult ExecuteMove(EffectExecutionContext context)
         {
+            if (ReadStableId(context.Node.NormalizedArguments, "targetInfluence", "influence").Length == 0 &&
+                !TryGet(context.Node.NormalizedArguments, "moves", out _)) return ExecuteDispatchMove(context);
+            if (ItemZoneLegacyProjection.IsActive(context.State)) return ExecuteItemMove(context);
             if (context.Node.PendingOutcome != EffectPendingOutcome.None)
             {
                 return EffectStepResult.Completed(context.Node.NormalizedResult.Clone());
@@ -581,6 +645,7 @@ namespace YC.Domain.Effects
 
         private EffectStepResult ExecuteReplace(EffectExecutionContext context)
         {
+            if (ItemZoneLegacyProjection.IsActive(context.State)) return ExecuteItemDeparture(context, true);
             EffectNodeRuntimeState node = context.Node;
             if (node.PendingOutcome != EffectPendingOutcome.None)
             {
@@ -702,6 +767,268 @@ namespace YC.Domain.Effects
                 });
         }
 
+        private static ItemSubjectRef ItemOwner(RuleSubjectReference owner) => owner.SubjectType == "player"
+            ? ItemSubjectRef.Player(owner.PlayerId) : owner.SubjectType == "company"
+                ? ItemSubjectRef.Company(string.IsNullOrEmpty(owner.DefinitionId) ? owner.InstanceId : owner.DefinitionId)
+                : throw new InvalidOperationException("unknown_subject");
+
+        internal static List<string> SubjectCandidates(EffectExecutionContext context)
+        {
+            var args = context.Node.NormalizedArguments;
+            string filter = ItemTransferEffectExecutor.Text(args, "subjectFilter", ItemTransferEffectExecutor.Text(args, "ownerFilter", "any"));
+            var excluded = ItemTransferEffectExecutor.Value(args, "excludedSubjectKeys")?.Items?.Select(value => value.StringValue).ToList();
+            var candidates = new InfluenceSubjectQuery().GetCandidateItemIds(context.State, context.Node.PlayerId, filter, excluded).ToList();
+            var scope = ItemTransferEffectExecutor.Value(args, "candidateScope");
+            if (scope != null) candidates.RemoveAll(id => !scope.Items.Any(value => (value.Kind == NormalizedValueKind.StableReference ? value.ReferenceId : value.StringValue) == id));
+            return candidates;
+        }
+
+        private EffectStepResult ExecuteItemDeparture(EffectExecutionContext context, bool replace)
+        {
+            var node = context.Node;
+            var args = node.NormalizedArguments;
+            if (node.FlowStage == "awaiting_destination")
+            {
+                string id = ItemTransferEffectExecutor.Text(node.ContinuationData, "pendingItemId");
+                string handoff = ItemTransferEffectExecutor.Text(node.ContinuationData, "destinationHandoffResponseId");
+                if (handoff.Length > 0)
+                {
+                    var response = context.State.EffectRuntime.DeferredResponses.SingleOrDefault(value => value.DeferredResponseId == handoff);
+                    if (response == null || response.SourceDepartureEffectId != node.EffectId || response.ReservedItemId != id ||
+                        !new InfluenceDestinationResolver().TryValidateDeferredDestination(context.State, response, out _))
+                        return EffectStepResult.Failed("deferred_destination_handoff_invalid");
+                    InfluenceDestinationResolver.Set(node.NormalizedResult, "deferredResponseId", NormalizedValue.CreateString(handoff));
+                    InfluenceDestinationResolver.Set(node.NormalizedResult, "destination", ItemTransferEffectExecutor.Object(
+                        "zoneId", NormalizedValue.CreateString(response.Status == DeferredResponseStatus.Pending ? response.ReservationZoneId : response.ResolvedDestinationZoneId),
+                        "slotId", NormalizedValue.CreateString(string.Empty)));
+                    return EffectStepResult.Completed(node.NormalizedResult.Clone());
+                }
+                new InfluenceDestinationResolver().ReturnToSupply(context, id);
+                var item = new ItemZoneQuery().FindItem(context.State, id);
+                InfluenceDestinationResolver.Set(node.NormalizedResult, "destination", ItemTransferEffectExecutor.Object("zoneId", NormalizedValue.CreateString(item.ZoneId), "slotId", NormalizedValue.CreateString(item.SlotId)));
+                return EffectStepResult.Completed(node.NormalizedResult.Clone());
+            }
+            if (node.FlowStage == "placing_replacement")
+            {
+                var placed = context.ChildNodes.Single(child => child.EffectTypeId == PlaceEffectTypeId);
+                bool success = placed.Status == EffectNodeStatus.Completed && ItemTransferEffectExecutor.Value(placed.NormalizedResult, "changed")?.BooleanValue == true;
+                InfluenceDestinationResolver.Set(node.NormalizedResult, "outcome", NormalizedValue.CreateString(success ? "replaced" : "removed_only"));
+                InfluenceDestinationResolver.Set(node.NormalizedResult, "placed", placed.NormalizedResult.Clone());
+                var step = EffectStepResult.Continue("awaiting_destination");
+                // 替换离场只有 Replaced；失败仅移除时才成为真正 Removed。
+                if (!success)
+                {
+                    InfluenceDestinationResolver.Set(node.ContinuationData, "pendingDepartureKind", NormalizedValue.CreateString("remove"));
+                    InfluenceDestinationResolver.Set(node.NormalizedResult, "removedItemIds", ItemTransferEffectExecutor.Value(node.NormalizedResult, "affectedItemIds").Clone());
+                    InfluenceDestinationResolver.Set(node.NormalizedResult, "replacedItemIds", ItemTransferEffectExecutor.Strings(Array.Empty<string>()));
+                }
+                string eventType = success ? InfluenceEventTypeIds.InfluenceReplaced : InfluenceEventTypeIds.InfluenceRemoved;
+                InfluenceDestinationResolver.Set(node.NormalizedResult, "actualEventTypes", ItemTransferEffectExecutor.Strings(success ? new[] { InfluenceEventTypeIds.InfluencePlaced, eventType } : new[] { eventType }));
+                return step.AddEvent(Event(node, eventType, ItemTransferEffectExecutor.Text(node.ContinuationData, "pendingItemId"), "departure", DeparturePayload(context, eventType)));
+            }
+            if (node.FlowStage != "" && node.FlowStage != "awaiting_target") return EffectStepResult.Failed("invalid_flow_stage");
+            if (!TryPlayer(args, "executingPlayer", out var playerId) || playerId != node.PlayerId || context.State.FindPlayer(playerId) == null) return EffectStepResult.Failed("invalid_player");
+            string exactTarget = ReadStableId(args, "targetInfluence", "influence");
+            if (exactTarget.Length > 0 && CharacterLifecycleService.TryAwaitDeferredDependencies(context, new DeferredDependencyQuery {
+                DependencyKind = DeferredDependencyKind.ExactItemUse, ItemIds = new List<string> { exactTarget } })) return CharacterLifecycleService.DeferredDependencyWait();
+            var candidates = SubjectCandidates(context);
+            string target = ReadStableId(args, "targetInfluence", "influence");
+            if (target.Length == 0)
+            {
+                if (candidates.Count == 0) return EmptyResult();
+                if (node.FlowStage == "awaiting_target") target = ReadAnswer(context.GetLatestInteractionAnswer());
+                if (target.Length == 0 || !candidates.Contains(target))
+                    return EffectStepResult.Continue("awaiting_target").AddInteraction(ItemTransferEffectExecutor.PrepareInteraction(context, CreateRemovalInteraction(context, candidates)));
+            }
+            if (!candidates.Contains(target)) return EffectStepResult.Failed("invalid_influence_target");
+            if (replace && !TryReadReplace(args, out _, out _, out _, out _, out _, out var diagnostic)) return Failed(context, "invalid_arguments", diagnostic, null);
+            var fact = influenceService.Depart(context, target, replace ? "replace" : "remove");
+            if (!fact.Succeeded) return EffectStepResult.Failed(fact.StableFailureCode);
+            node.NormalizedResult = Result(fact, replace ? "replacement_pending" : "removed", "");
+            if (replace)
+            {
+                TryReadReplace(args, out _, out _, out var source, out var owner, out var cause, out _);
+                return EffectStepResult.Continue("placing_replacement").AddChild(InfluenceEffectSpecFactory.PlaceInfluence(playerId, fact.SlotId, source.SourceId, owner, cause, node.EffectId));
+            }
+            return EffectStepResult.Continue("awaiting_destination").AddEvent(Event(node, InfluenceEventTypeIds.InfluenceRemoved, target, "removed", DeparturePayload(context, InfluenceEventTypeIds.InfluenceRemoved)));
+        }
+
+        private EffectStepResult ExecuteItemMove(EffectExecutionContext context)
+        {
+            if (!TryPlayer(context.Node.NormalizedArguments, "executingPlayer", out var executingPlayer) || executingPlayer != context.Node.PlayerId || context.State.FindPlayer(executingPlayer) == null) return EffectStepResult.Failed("invalid_player");
+            if (context.Node.FlowStage != "" && context.Node.FlowStage != "awaiting_destination_slot") return EffectStepResult.Failed("invalid_flow_stage");
+            var candidates = SubjectCandidates(context);
+            string directId = ReadStableId(context.Node.NormalizedArguments, "targetInfluence", "influence");
+            if (directId.Length > 0 && CharacterLifecycleService.TryAwaitDeferredDependencies(context, new DeferredDependencyQuery {
+                DependencyKind = DeferredDependencyKind.ExactItemUse, ItemIds = new List<string> { directId } })) return CharacterLifecycleService.DeferredDependencyWait();
+            if (directId.Length > 0 && !candidates.Contains(directId)) return EffectStepResult.Failed("invalid_influence_target");
+            if (directId.Length > 0 && ReadStableId(context.Node.NormalizedArguments, "targetSlotId", "slot").Length == 0)
+            {
+                if (context.Node.FlowStage != "" && context.Node.FlowStage != "awaiting_destination_slot") return EffectStepResult.Failed("invalid_flow_stage");
+                var destinations = influenceService.GetLegalMovementSlotIds(context.State, directId);
+                if (destinations.Count == 0) return EffectStepResult.Failed("no_legal_movement_destination");
+                string chosen = context.Node.FlowStage == "awaiting_destination_slot" ? ReadAnswer(context.GetLatestInteractionAnswer()) : "";
+                if (!destinations.Contains(chosen)) return EffectStepResult.Continue("awaiting_destination_slot").AddInteraction(ItemTransferEffectExecutor.PrepareInteraction(context, CreatePlacementInteraction(context, destinations)));
+                var fact = influenceService.Move(context, directId, chosen);
+                if (!fact.Succeeded) return EffectStepResult.Failed(fact.StableFailureCode);
+                return EffectStepResult.Completed(Result(fact, "moved", "")).AddEvent(Event(context.Node, InfluenceEventTypeIds.InfluenceMoved, directId, "moved", MovementPayload(context.Node, Result(fact, "moved", ""), new[] { new MoveItem { InfluenceId = directId, FromSlotId = fact.FromSlotId, TargetSlotId = chosen } })));
+            }
+            if (!TryReadMoves(context.Node.NormalizedArguments, out var player, out var moves, out var cause, out var diagnostic) || player != context.Node.PlayerId)
+                return Failed(context, "invalid_arguments", diagnostic, null);
+            if (moves.Select(move => move.InfluenceId).Distinct().Count() != moves.Count) return EffectStepResult.Failed("duplicate_item_id");
+            if (CharacterLifecycleService.TryAwaitDeferredDependencies(context, new DeferredDependencyQuery {
+                DependencyKind = DeferredDependencyKind.ExactItemUse, ItemIds = moves.Select(move => move.InfluenceId).ToList() })) return CharacterLifecycleService.DeferredDependencyWait();
+            if (moves.Any(move => !candidates.Contains(move.InfluenceId))) return EffectStepResult.Failed("invalid_influence_target");
+            // 先在隔离预览中按同一业务校验整组；任何失败不提交前半组。
+            var preview = GameStateCloneService.DeepClone(context.State);
+            var previewContext = new EffectExecutionContext(preview, preview.EffectRuntime.EffectNodes.Single(node => node.EffectId == context.Node.EffectId), context.Registry);
+            foreach (var move in moves)
+            {
+                var result = influenceService.Move(previewContext, move.InfluenceId, move.TargetSlotId);
+                if (!result.Succeeded) return EffectStepResult.Failed(result.StableFailureCode);
+            }
+            var subjects = new List<string>();
+            foreach (var move in moves)
+            {
+                var item = new ItemZoneQuery().FindItem(context.State, move.InfluenceId);
+                move.FromSlotId = item.SlotId;
+                var result = influenceService.Move(context, move.InfluenceId, move.TargetSlotId);
+                if (moves.Count == 1) return EffectStepResult.Completed(Result(result, "moved", "")).AddEvent(Event(context.Node, InfluenceEventTypeIds.InfluenceMoved, move.InfluenceId, "moved", MovementPayload(context.Node, Result(result, "moved", ""), moves)));
+                subjects.AddRange(result.OriginalSubjectKeys);
+            }
+            var batchResult = ItemTransferEffectExecutor.Object("changed", NormalizedValue.CreateBoolean(true), "operationKind", NormalizedValue.CreateString("move"),
+                "moves", CreateMoveArray(moves), "affectedItemIds", ItemTransferEffectExecutor.Strings(moves.Select(move => move.InfluenceId)),
+                "originalSubjectKeys", ItemTransferEffectExecutor.Strings(subjects), "removedItemIds", ItemTransferEffectExecutor.Strings(Array.Empty<string>()),
+                "replacedItemIds", ItemTransferEffectExecutor.Strings(Array.Empty<string>()), "actualEventTypes", ItemTransferEffectExecutor.Strings(new[] { InfluenceEventTypeIds.InfluenceMoved }));
+            return EffectStepResult.Completed(batchResult).AddEvent(Event(context.Node, InfluenceEventTypeIds.InfluenceMoved, "", "moved", MovementPayload(context.Node, batchResult, moves)));
+        }
+
+        private EffectStepResult ExecuteDispatchMove(EffectExecutionContext context)
+        {
+            var node = context.Node;
+            var owner = context.State.EffectRuntime.EffectNodes.FindLast(candidate => candidate.EffectId == node.ParentEffectId);
+            if (owner == null || owner.EffectTypeId != InfluenceDispatchActionEffectExecutor.TypeId ||
+                owner.PlayerId != node.PlayerId || owner.ChildEffectIds.Count != 2 ||
+                !TryPlayer(node.NormalizedArguments, "executingPlayer", out var playerId) || playerId != node.PlayerId ||
+                ItemTransferEffectExecutor.Text(node.NormalizedArguments, "subjectFilter") != "self" ||
+                !ItemZoneLegacyProjection.IsActive(context.State))
+                return EffectStepResult.Failed("dispatch_owner_required");
+            int index = owner.ChildEffectIds.IndexOf(node.EffectId);
+            if (index < 0) return EffectStepResult.Failed("invalid_dispatch_children");
+            if (index > 0)
+            {
+                var preceding = context.State.EffectRuntime.EffectNodes.FindLast(candidate => candidate.EffectId == owner.ChildEffectIds[index - 1]);
+                if (preceding == null) return EffectStepResult.Failed("invalid_dispatch_children");
+                if (preceding.Status == EffectNodeStatus.Failed)
+                    return EffectStepResult.Failed(preceding.FailureReason,
+                        ItemTransferEffectExecutor.Object("changed", NormalizedValue.CreateBoolean(false),
+                            "blockedByEffectId", NormalizedValue.CreateStableReference("effect", preceding.EffectId)));
+                if (preceding.Status != EffectNodeStatus.Completed) return EffectStepResult.Failed("dispatch_order_invalid");
+            }
+            if (node.PendingOutcome != EffectPendingOutcome.None) return EffectStepResult.Completed(node.NormalizedResult.Clone());
+            if (node.FlowStage != string.Empty && node.FlowStage != "awaiting_source" && node.FlowStage != "awaiting_destination_slot")
+                return EffectStepResult.Failed("invalid_flow_stage");
+            var answer = node.FlowStage == string.Empty ? null : context.GetLatestInteractionAnswer();
+            if (answer?.Kind == NormalizedValueKind.Boolean && !answer.BooleanValue)
+                return EffectStepResult.Completed(ItemTransferEffectExecutor.Object("changed", NormalizedValue.CreateBoolean(false),
+                    "outcome", NormalizedValue.CreateString("skipped"), "reasonCode", NormalizedValue.CreateString("player_skipped"),
+                    "affectedItemIds", ItemTransferEffectExecutor.Strings(Array.Empty<string>()),
+                    "actualEventTypes", ItemTransferEffectExecutor.Strings(Array.Empty<string>())));
+
+            string sourceId;
+            if (node.FlowStage == "awaiting_destination_slot")
+            {
+                sourceId = ReadStableId(node.ContinuationData, "selectedInfluenceId", "influence");
+                var item = new ItemZoneQuery().FindItem(context.State, sourceId);
+                if (item?.OwnerSubject.Kind != ItemSubjectKind.Player || item.OwnerSubject.PlayerId != playerId)
+                    return EffectStepResult.Failed("invalid_influence_target");
+                string target = ReadAnswer(answer);
+                var fact = influenceService.Move(context, sourceId, target);
+                if (!fact.Succeeded) return EffectStepResult.Failed(fact.StableFailureCode);
+                var result = Result(fact, "moved", string.Empty);
+                return EffectStepResult.Completed(result).AddEvent(Event(node, InfluenceEventTypeIds.InfluenceMoved, sourceId, "moved",
+                    MovementPayload(node, result, new[] { new MoveItem { InfluenceId = sourceId, FromSlotId = fact.FromSlotId, TargetSlotId = target } })));
+            }
+
+            var sources = SubjectCandidates(context);
+            if (node.FlowStage == string.Empty)
+            {
+                // 本次来源均属本人，目标资格只依赖同一主体；不展开来源与目标的笛卡尔积。
+                if (sources.Count == 0 || influenceService.GetLegalMovementSlotIds(context.State, sources[0]).Count == 0) return EmptyResult();
+                return EffectStepResult.Continue("awaiting_source").AddInteraction(CreateDispatchMoveInteraction(context, sources, true));
+            }
+            sourceId = ReadAnswer(answer);
+            if (!sources.Contains(sourceId)) return EffectStepResult.Failed("invalid_influence_target");
+            var destinations = influenceService.GetLegalMovementSlotIds(context.State, sourceId);
+            if (destinations.Count == 0) return EffectStepResult.Failed("no_legal_movement_destination");
+            ItemTransferEffectExecutor.Set(node, "selectedInfluenceId", InfluenceEffectSpecFactory.InfluenceReference(sourceId));
+            return EffectStepResult.Continue("awaiting_destination_slot").AddInteraction(CreateDispatchMoveInteraction(context, destinations, false));
+        }
+
+        private static EffectInteractionSpec CreateDispatchMoveInteraction(EffectExecutionContext context, IReadOnlyList<string> candidates, bool source)
+        {
+            var request = new EffectInteractionSpec
+            {
+                SourceNodeId = context.Node.EffectId,
+                InteractionTypeId = source ? InfluenceDispatchActionEffectExecutor.SourceInteractionTypeId : InfluenceDispatchActionEffectExecutor.TargetInteractionTypeId,
+                PromptKey = source ? InfluenceDispatchActionEffectExecutor.SourcePromptKey : InfluenceDispatchActionEffectExecutor.TargetPromptKey,
+                Visibility = GameStateVisibilityPolicy.Owner,
+                AnsweringPlayerId = context.Node.PlayerId,
+                AllowDecline = true,
+                AnswerSchema = "candidate_id",
+                MinSelections = 1,
+                MaxSelections = 1
+            };
+            request.CandidateIds.AddRange(candidates);
+            return ItemTransferEffectExecutor.PrepareInteraction(context, request);
+        }
+
+        private static NormalizedValue MovementPayload(EffectNodeRuntimeState node, NormalizedValue result, IList<MoveItem> moves)
+        {
+            var payload = result.Clone();
+            InfluenceDestinationResolver.Set(payload, "causeKind", NormalizedValue.CreateString(ReadString(node.NormalizedArguments, "causeKind", InfluenceCauseKinds.Direct)));
+            InfluenceDestinationResolver.Set(payload, "executingPlayerId", NormalizedValue.CreateInteger(node.PlayerId));
+            InfluenceDestinationResolver.Set(payload, "moves", CreateMoveArray(moves));
+            return payload;
+        }
+
+        internal static EffectStepResult EmptyResult() => EffectStepResult.Completed(ItemTransferEffectExecutor.Object("changed", NormalizedValue.CreateBoolean(false), "reasonCode", NormalizedValue.CreateString("no_candidates"), "affectedItemIds", ItemTransferEffectExecutor.Strings(Array.Empty<string>()), "originalSubjectKeys", ItemTransferEffectExecutor.Strings(Array.Empty<string>()), "removedItemIds", ItemTransferEffectExecutor.Strings(Array.Empty<string>()), "replacedItemIds", ItemTransferEffectExecutor.Strings(Array.Empty<string>()), "actualEventTypes", ItemTransferEffectExecutor.Strings(Array.Empty<string>())));
+
+        private static bool MatchesSubjectArguments(EffectExecutionContext context, ItemSubjectRef owner)
+        {
+            var key = InfluenceSubjectQuery.GetSubjectKey(owner);
+            string filter = ItemTransferEffectExecutor.Text(context.Node.NormalizedArguments, "subjectFilter", "any");
+            var excluded = ItemTransferEffectExecutor.Value(context.Node.NormalizedArguments, "excludedSubjectKeys");
+            return InfluenceSubjectQuery.Matches(key, context.Node.PlayerId, filter) && (excluded == null || !excluded.Items.Any(value => value.StringValue == key));
+        }
+
+        private static NormalizedValue DeparturePayload(EffectExecutionContext context, string eventType)
+        {
+            var node = context.Node;
+            var payload = node.NormalizedResult.Clone();
+            var id = ItemTransferEffectExecutor.Text(node.ContinuationData, "pendingItemId");
+            InfluenceDestinationResolver.Set(payload, "causeKind", NormalizedValue.CreateString(ReadString(node.NormalizedArguments, "causeKind", InfluenceCauseKinds.Direct)));
+            InfluenceDestinationResolver.Set(payload, "executingPlayerId", NormalizedValue.CreateInteger(node.PlayerId));
+            InfluenceDestinationResolver.Set(payload, "parentOperationEffectId", StringOrNull(node.ParentEffectId));
+            InfluenceDestinationResolver.Set(payload, "fromSlot", GetResultReference(node.NormalizedResult, "fromSlotId", "slot"));
+            if (eventType == InfluenceEventTypeIds.InfluenceRemoved)
+            {
+                InfluenceDestinationResolver.Set(payload, "removeEffectId", InfluenceEffectSpecFactory.EffectReference(node.EffectId));
+                InfluenceDestinationResolver.Set(payload, "influenceRefBeforeRemoval", InfluenceEffectSpecFactory.InfluenceReference(id));
+                InfluenceDestinationResolver.Set(payload, "reasonId", NormalizedValue.CreateString(ReadString(node.NormalizedArguments, "reasonId", "rule.unspecified")));
+            }
+            else
+            {
+                var placed = context.ChildNodes.Single(child => child.EffectTypeId == PlaceEffectTypeId);
+                InfluenceDestinationResolver.Set(payload, "replaceEffectId", InfluenceEffectSpecFactory.EffectReference(node.EffectId));
+                InfluenceDestinationResolver.Set(payload, "placeEffectId", InfluenceEffectSpecFactory.EffectReference(placed.EffectId));
+                InfluenceDestinationResolver.Set(payload, "placedInfluenceRef", GetResultReference(placed.NormalizedResult, "influenceId", "influence"));
+                InfluenceDestinationResolver.Set(payload, "removedInfluenceRef", InfluenceEffectSpecFactory.InfluenceReference(id));
+                InfluenceDestinationResolver.Set(payload, "slot", GetResultReference(node.NormalizedResult, "slotId", "slot"));
+            }
+            return payload;
+        }
+
         private static EffectNodeRuntimeState GetOnlyChild(EffectExecutionContext context, string typeId)
         {
             for (var i = context.Node.ChildEffectIds.Count - 1; i >= 0; i--)
@@ -718,6 +1045,17 @@ namespace YC.Domain.Effects
         {
             var entries = new List<NormalizedValueEntry>
             {
+                InfluenceEffectSpecFactory.Entry("changed", NormalizedValue.CreateBoolean(result?.Changed ?? false)),
+                InfluenceEffectSpecFactory.Entry("operationKind", InfluenceEffectSpecFactory.String(result?.OperationKind ?? "")),
+                InfluenceEffectSpecFactory.Entry("affectedItemIds", ItemTransferEffectExecutor.Strings(result?.AffectedItemIds ?? new List<string>())),
+                InfluenceEffectSpecFactory.Entry("removedItemIds", ItemTransferEffectExecutor.Strings(result?.RemovedItemIds ?? new List<string>())),
+                InfluenceEffectSpecFactory.Entry("replacedItemIds", ItemTransferEffectExecutor.Strings(result?.ReplacedItemIds ?? new List<string>())),
+                InfluenceEffectSpecFactory.Entry("originalSubjectKeys", ItemTransferEffectExecutor.Strings(result?.OriginalSubjectKeys ?? new List<string>())),
+                InfluenceEffectSpecFactory.Entry("actualEventTypes", ItemTransferEffectExecutor.Strings(result?.ActualEventTypes ?? new List<string>())),
+                InfluenceEffectSpecFactory.Entry("positionChanges", NormalizedValue.CreateArray((result?.PositionChanges ?? new List<ItemPositionChange>()).Select(change => ItemTransferEffectExecutor.Object(
+                    "itemId", NormalizedValue.CreateString(change.ItemId), "from", Position(change.From), "to", Position(change.To))).ToList())),
+                InfluenceEffectSpecFactory.Entry("originalPosition", result?.PositionChanges.Count > 0 ? Position(result.PositionChanges[0].From) : NormalizedValue.CreateNull()),
+                InfluenceEffectSpecFactory.Entry("destination", result?.PositionChanges.Count > 0 ? Position(result.PositionChanges[0].To) : NormalizedValue.CreateNull()),
                 InfluenceEffectSpecFactory.Entry("outcome", InfluenceEffectSpecFactory.String(outcome)),
                 InfluenceEffectSpecFactory.Entry("failureCode", InfluenceEffectSpecFactory.String(result == null ? "" : result.StableFailureCode)),
                 InfluenceEffectSpecFactory.Entry("influenceId", string.IsNullOrEmpty(result == null ? "" : result.InfluenceId)
@@ -734,6 +1072,8 @@ namespace YC.Domain.Effects
             };
             return InfluenceEffectSpecFactory.Object(entries);
         }
+
+        private static NormalizedValue Position(ItemPositionRef position) => ItemTransferEffectExecutor.Object("zoneId", NormalizedValue.CreateString(position.ZoneId), "slotId", NormalizedValue.CreateString(position.SlotId));
 
         private static NormalizedValue CreateMoveResult(GameState state, InfluenceOperationResult result, IList<MoveItem> moves)
         {
@@ -792,7 +1132,7 @@ namespace YC.Domain.Effects
                 CreateEventObject(
                     InfluenceEffectSpecFactory.Entry("causeKind", InfluenceEffectSpecFactory.String(causeKind)),
                     InfluenceEffectSpecFactory.Entry("placeEffectId", InfluenceEffectSpecFactory.EffectReference(node.EffectId)),
-                    InfluenceEffectSpecFactory.Entry("executingPlayerId", NormalizedValue.CreateInteger(result.PlayerId)),
+                    InfluenceEffectSpecFactory.Entry("executingPlayerId", NormalizedValue.CreateInteger(node.PlayerId)),
                     InfluenceEffectSpecFactory.Entry("influenceRefAfterPlacement", InfluenceEffectSpecFactory.InfluenceReference(result.InfluenceId)),
                     InfluenceEffectSpecFactory.Entry("ownerSubject", InfluenceEffectSpecFactory.SubjectValue(owner)),
                     InfluenceEffectSpecFactory.Entry("parentOperationEffectId", StringOrNull(parentOperationEffectId)),
@@ -817,7 +1157,7 @@ namespace YC.Domain.Effects
                     InfluenceEffectSpecFactory.Entry("causeKind", InfluenceEffectSpecFactory.String(causeKind)),
                     InfluenceEffectSpecFactory.Entry("destination", InfluenceEffectSpecFactory.String(InfluenceIdentity.PlayerSupplySourceKind)),
                     InfluenceEffectSpecFactory.Entry("removeEffectId", InfluenceEffectSpecFactory.EffectReference(node.EffectId)),
-                    InfluenceEffectSpecFactory.Entry("executingPlayerId", NormalizedValue.CreateInteger(result.PlayerId)),
+                    InfluenceEffectSpecFactory.Entry("executingPlayerId", NormalizedValue.CreateInteger(node.PlayerId)),
                     InfluenceEffectSpecFactory.Entry("fromSlot", InfluenceEffectSpecFactory.SlotReference(result.FromSlotId)),
                     InfluenceEffectSpecFactory.Entry("influenceRefBeforeRemoval", InfluenceEffectSpecFactory.InfluenceReference(result.InfluenceId)),
                     InfluenceEffectSpecFactory.Entry("parentOperationEffectId", StringOrNull(node.ParentEffectId)),
@@ -838,7 +1178,7 @@ namespace YC.Domain.Effects
                 "moved",
                 CreateEventObject(
                     InfluenceEffectSpecFactory.Entry("causeKind", InfluenceEffectSpecFactory.String(causeKind)),
-                    InfluenceEffectSpecFactory.Entry("executingPlayerId", NormalizedValue.CreateInteger(result.PlayerId)),
+                    InfluenceEffectSpecFactory.Entry("executingPlayerId", NormalizedValue.CreateInteger(node.PlayerId)),
                     InfluenceEffectSpecFactory.Entry("moves", CreateMoveArray(moves))));
         }
 
@@ -1198,12 +1538,12 @@ namespace YC.Domain.Effects
                    causeKind == InfluenceCauseKinds.OtherIntrinsicFlow;
         }
 
-        private static string ValidatePlace(EffectSpec spec) { return ValidateKeys(spec, new[] { "causeKind", "executingPlayer", "influenceSource", "ownerSubject", "replaceEffectId", "targetSlot", "targetSlotId", "candidateScope" }, new[] { "executingPlayer", "influenceSource", "ownerSubject" }); }
+        private static string ValidatePlace(EffectSpec spec) { return ValidateKeys(spec, new[] { "subjectFilter", "excludedSubjectKeys", "causeKind", "executingPlayer", "influenceSource", "ownerSubject", "replaceEffectId", "targetSlot", "targetSlotId", "candidateScope" }, new[] { "executingPlayer", "influenceSource", "ownerSubject" }); }
         private static string ValidateRemove(EffectSpec spec)
         {
             string result = ValidateKeys(
                 spec,
-                new[] { "causeKind", "candidateScope", "destination", "executingPlayer", "reasonId", "replaceEffectId", "targetInfluence" },
+                new[] { "subjectFilter", "excludedSubjectKeys", "causeKind", "candidateScope", "destination", "executingPlayer", "reasonId", "replaceEffectId", "targetInfluence" },
                 new[] { "executingPlayer" });
             if (!string.IsNullOrEmpty(result)) return result;
             NormalizedValue target;
@@ -1216,8 +1556,8 @@ namespace YC.Domain.Effects
             }
             return string.Empty;
         }
-        private static string ValidateMove(EffectSpec spec) { return ValidateKeys(spec, new[] { "causeKind", "executingPlayer", "moves", "targetInfluence", "targetSlot", "targetSlotId" }, new[] { "executingPlayer" }); }
-        private static string ValidateReplace(EffectSpec spec) { return ValidateKeys(spec, new[] { "causeKind", "executingPlayer", "placementFailurePolicy", "replacementOwner", "replacementSource", "targetInfluence" }, new[] { "executingPlayer", "targetInfluence", "replacementOwner", "replacementSource", "placementFailurePolicy" }); }
+        private static string ValidateMove(EffectSpec spec) { return ValidateKeys(spec, new[] { "subjectFilter", "excludedSubjectKeys", "causeKind", "executingPlayer", "moves", "targetInfluence", "targetSlot", "targetSlotId" }, new[] { "executingPlayer" }); }
+        private static string ValidateReplace(EffectSpec spec) { return ValidateKeys(spec, new[] { "subjectFilter", "excludedSubjectKeys", "causeKind", "executingPlayer", "placementFailurePolicy", "replacementOwner", "replacementSource", "targetInfluence" }, new[] { "executingPlayer", "targetInfluence", "replacementOwner", "replacementSource", "placementFailurePolicy" }); }
 
         private static string ValidateKeys(EffectSpec spec, IList<string> allowed, IList<string> required)
         {
@@ -1233,6 +1573,9 @@ namespace YC.Domain.Effects
                 NormalizedValue ignored;
                 if (!TryGet(spec.NormalizedArguments, required[i], out ignored)) return "影响力 Effect 缺少必需字段：" + required[i] + "。";
             }
+            if (TryGet(spec.NormalizedArguments, "subjectFilter", out var filter) && (filter.Kind != NormalizedValueKind.String || !new[] { "self", "player", "opponent", "any" }.Contains(filter.StringValue))) return "subject_filter_rejected";
+            if (TryGet(spec.NormalizedArguments, "causeKind", out var cause) && (cause.Kind != NormalizedValueKind.String || !IsCauseKind(cause.StringValue))) return "cause_kind_rejected";
+            if (TryGet(spec.NormalizedArguments, "excludedSubjectKeys", out var excluded) && (excluded.Kind != NormalizedValueKind.Array || excluded.Items.Any(value => value.Kind != NormalizedValueKind.String || !value.StringValue.StartsWith("player:", StringComparison.Ordinal) && value.StringValue != "company:stonehoove_security"))) return "excluded_subject_keys_rejected";
             return string.Empty;
         }
 

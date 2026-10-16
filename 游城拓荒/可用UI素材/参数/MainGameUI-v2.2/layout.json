@@ -1,0 +1,3582 @@
+{
+  "version": "2.2.0",
+  "status": "matte_topbar_2_2_final_metadata_synced",
+  "units": "logical pixels",
+  "coordinate_system": {
+    "origin": "screen_top_left",
+    "x": "right",
+    "y": "down",
+    "rect_order": [
+      "x",
+      "y",
+      "width",
+      "height"
+    ]
+  },
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "aspect": [
+      16,
+      9
+    ],
+    "resize_mode": "uniform_scale_and_center",
+    "outer_margin": 16,
+    "column_gap": 12
+  },
+  "regions": {
+    "screen_frame": [
+      0,
+      0,
+      1920,
+      1080
+    ],
+    "topbar": [
+      0,
+      0,
+      1920,
+      68
+    ],
+    "opponents": [
+      16,
+      72,
+      416,
+      340
+    ],
+    "opponent_1": [
+      16,
+      72,
+      416,
+      108
+    ],
+    "opponent_2": [
+      16,
+      188,
+      416,
+      108
+    ],
+    "opponent_3": [
+      16,
+      304,
+      416,
+      108
+    ],
+    "city": [
+      16,
+      424,
+      416,
+      640
+    ],
+    "map": [
+      444,
+      72,
+      896,
+      760
+    ],
+    "self_summary": [
+      444,
+      840,
+      896,
+      48
+    ],
+    "entrepreneurs": [
+      444,
+      896,
+      424,
+      168
+    ],
+    "hand": [
+      880,
+      896,
+      460,
+      168
+    ],
+    "cooperation": [
+      1352,
+      72,
+      552,
+      282
+    ],
+    "discard": [
+      1352,
+      366,
+      270,
+      268
+    ],
+    "face_down_characters": [
+      1634,
+      366,
+      270,
+      268
+    ],
+    "right_tabs": [
+      1352,
+      646,
+      552,
+      48
+    ],
+    "right_page": [
+      1352,
+      702,
+      552,
+      362
+    ]
+  },
+  "anchors": {
+    "topbar": "top_stretch_horizontal",
+    "opponents": "top_left",
+    "city": "bottom_left",
+    "map": "stretch_center",
+    "self_summary": "bottom_center_above_cards",
+    "entrepreneurs": "bottom_center_left",
+    "hand": "bottom_center_right",
+    "cooperation": "top_right",
+    "discard": "right_middle_left",
+    "face_down_characters": "right_middle_right",
+    "right_tabs": "right_above_page",
+    "right_page": "bottom_right"
+  },
+  "spacing": {
+    "module_content_padding": 16,
+    "module_header_height": 40,
+    "submodule_content_padding": 12,
+    "row_padding": 8,
+    "text_icon_gap": 6,
+    "section_gap": 12
+  },
+  "topbar": {
+    "title_rect": [
+      40,
+      14,
+      430,
+      42
+    ],
+    "turn_badge_rect": [
+      1075,
+      7,
+      204,
+      49
+    ],
+    "collapse_button_rect": [
+      1678,
+      3,
+      167,
+      59
+    ],
+    "settings_button_rect": [
+      1845,
+      3,
+      65,
+      59
+    ],
+    "expanded_label": "收起界面",
+    "collapsed_label": "展开界面",
+    "collapsed_hidden_regions": [
+      "opponents",
+      "city",
+      "self_summary",
+      "entrepreneurs",
+      "hand",
+      "cooperation",
+      "discard",
+      "face_down_characters",
+      "right_tabs",
+      "right_page"
+    ],
+    "collapsed_map_rect": [
+      16,
+      72,
+      1888,
+      992
+    ],
+    "round_phase_rect": [
+      720,
+      14,
+      320,
+      42
+    ],
+    "round_and_phase_combined": true,
+    "title_plaque_rect": [
+      16,
+      0,
+      474,
+      64
+    ],
+    "title_plaque_assets": [
+      "title-plaque-fill",
+      "title-plaque-frame"
+    ],
+    "red_zone_badge_rect": [
+      1436,
+      3,
+      242,
+      59
+    ],
+    "turn_status": {
+      "rect": [
+        1075,
+        7,
+        204,
+        49
+      ],
+      "assets": [
+        "turn-ribbon-fill",
+        "turn-ribbon-frame"
+      ],
+      "label_source": "game_turn_state",
+      "example_label": "轮到你行动",
+      "interactive": false,
+      "click_action": null,
+      "pressed_state": null,
+      "aria_role": "status",
+      "cursor": "default",
+      "use_generic_button_frame": false
+    },
+    "red_zone_status": {
+      "rect": [
+        1436,
+        3,
+        242,
+        59
+      ],
+      "assets": [],
+      "interactive": false,
+      "click_action": null,
+      "hover_tooltip": true,
+      "aria_role": "status",
+      "open_round_by_player_count": {
+        "4": 4,
+        "3": 5,
+        "2": 6
+      },
+      "two_player_rule_mode": "2-player variant",
+      "open_round_field": "redZoneOpenRound",
+      "trigger": "start_of_threshold_round",
+      "is_open_expression": "currentRound >= redZoneOpenRound",
+      "always_display_threshold_round": true,
+      "state_text": {
+        "closed": {
+          "heading": "红区开放",
+          "subline": "第{redZoneOpenRound}回合",
+          "label": "红区开放\n第{redZoneOpenRound}回合",
+          "tooltip_status": "尚未开放"
+        },
+        "open": {
+          "heading": "红区开放",
+          "subline": "第{redZoneOpenRound}回合起",
+          "label": "红区开放\n第{redZoneOpenRound}回合起",
+          "tooltip_status": "已开放"
+        }
+      },
+      "tooltip_template": "红区{status}；{playerCount}人局第{redZoneOpenRound}回合开始可探索红区资源点，或将城市移入红区资源点；红区航道始终可用",
+      "affected_targets": [
+        "red_zone_resource_point_exploration",
+        "city_movement_to_red_zone_resource_points"
+      ],
+      "red_zone_routes_always_usable": true,
+      "rules_sources": [
+        {
+          "pdfPage": 14,
+          "printedPage": 12,
+          "appliesTo": "3-4 players"
+        },
+        {
+          "pdfPage": 25,
+          "printedPage": 23,
+          "appliesTo": "2-player variant"
+        }
+      ],
+      "example": {
+        "playerCount": 4,
+        "currentRound": 4,
+        "redZoneOpenRound": 4,
+        "isOpen": true,
+        "label": "红区开放\n第4回合起",
+        "tooltip": "红区已开放；4人局第4回合开始可探索红区资源点，或将城市移入红区资源点；红区航道始终可用",
+        "heading": "红区开放",
+        "subline": "第4回合起"
+      },
+      "background_owner": "right_cluster",
+      "layout": "two_line",
+      "heading": "红区开放"
+    },
+    "manifest": "01-topbar/topbar-v22.json",
+    "title_text_anchor": {
+      "x": 40,
+      "center_y": 35,
+      "font_size_range": [
+        36,
+        38
+      ]
+    },
+    "negative_space": {
+      "title_to_round": 230,
+      "turn_to_right_cluster": 157
+    },
+    "style": "matte gray-brown with a small yellow turn flag; aligned to approved reference proportions and silhouettes, not pixel-identical",
+    "layer_order": [
+      "topbar-fill",
+      "topbar-frame",
+      "title-plaque-fill + title-plaque-frame",
+      "turn-ribbon-fill + turn-ribbon-frame",
+      "right-cluster-fill + right-cluster-frame",
+      "runtime labels and icons",
+      "transparent interaction hit areas"
+    ],
+    "right_cluster": {
+      "rect": [
+        1436,
+        3,
+        474,
+        59
+      ],
+      "assets": [
+        "right-cluster-fill",
+        "right-cluster-frame"
+      ],
+      "local_regions": {
+        "redZone": [
+          0,
+          0,
+          242,
+          59
+        ],
+        "collapse": [
+          242,
+          0,
+          167,
+          59
+        ],
+        "settings": [
+          409,
+          0,
+          65,
+          59
+        ],
+        "resize": "Keep whole cluster uniform to preserve three control areas; do not nine-slice it as one control."
+      },
+      "resize_mode": "uniform_whole_group",
+      "preserve_internal_segment_proportions": true,
+      "use_generic_button_frame": false
+    },
+    "controls": {
+      "collapse": {
+        "rect": [
+          1678,
+          3,
+          167,
+          59
+        ],
+        "interactive": true,
+        "skin": "shared_right_cluster",
+        "transparent_hit_area": true,
+        "use_generic_button_frame": false
+      },
+      "settings": {
+        "rect": [
+          1845,
+          3,
+          65,
+          59
+        ],
+        "interactive": true,
+        "skin": "shared_right_cluster",
+        "transparent_hit_area": true,
+        "use_generic_button_frame": false
+      }
+    },
+    "legacy_status_ribbons": {
+      "manifest": "01-topbar/status-ribbons.json",
+      "deprecated_assets": [
+        "red-zone-ribbon-fill",
+        "red-zone-ribbon-frame"
+      ],
+      "render": false,
+      "note": "v2.1 red-zone ribbon files remain for compatibility; current turn-ribbon assets are defined by topbar-v22.json."
+    },
+    "text_layout": {
+      "title": {
+        "x": 40,
+        "center_y": 35,
+        "font_size": 38,
+        "weight": 700,
+        "alignment": "left"
+      },
+      "round": {
+        "center_y": 33,
+        "prefix": {
+          "x": 720,
+          "font_size": 23
+        },
+        "current_round": {
+          "x": 753,
+          "font_size": 37
+        },
+        "round_total": {
+          "x": 785,
+          "font_size": 23
+        },
+        "divider": [
+          897,
+          20,
+          897,
+          46
+        ],
+        "phase": {
+          "x": 916,
+          "font_size": 24
+        }
+      },
+      "turn": {
+        "center": [
+          1177,
+          31.5
+        ],
+        "font_size": 22
+      },
+      "red_zone": {
+        "heading_center": [
+          1575,
+          21
+        ],
+        "heading_font_size": 18,
+        "subline_center": [
+          1575,
+          45
+        ],
+        "subline_font_size": 20,
+        "dot": {
+          "center": [
+            1525.5,
+            19.5
+          ],
+          "radius": 2.5
+        }
+      },
+      "collapse": {
+        "label_center": [
+          1743.5,
+          32.5
+        ],
+        "font_size": 24,
+        "chevron_rect": [
+          1803.5,
+          20.5,
+          24,
+          24
+        ]
+      },
+      "settings": {
+        "icon_rect": [
+          1860.5,
+          15.5,
+          34,
+          34
+        ]
+      }
+    }
+  },
+  "typography": {
+    "family": "project CJK sans serif with Latin fallback",
+    "game_title": {
+      "size": 38,
+      "line_height": 42
+    },
+    "topbar": {
+      "size": 22,
+      "line_height": 32
+    },
+    "module_title": {
+      "size": 22,
+      "line_height": 30
+    },
+    "body": {
+      "size": 18,
+      "line_height": 26
+    },
+    "compact": {
+      "size": 16,
+      "line_height": 22
+    },
+    "table_label": {
+      "size": 14,
+      "line_height": 18
+    },
+    "marker_count": {
+      "size": 15,
+      "line_height": 20,
+      "weight": 700
+    },
+    "text_primary": "#F0E5D3",
+    "text_on_light_fill": "#2D251D",
+    "text_secondary": "#C4B8A5"
+  },
+  "player_summary": {
+    "opponents_visible": 3,
+    "opponent_avatar_local_rect": [
+      16,
+      38,
+      40,
+      52
+    ],
+    "opponent_name_local_rect": [
+      16,
+      8,
+      320,
+      26
+    ],
+    "opponent_metrics_local_rect": [
+      64,
+      38,
+      324,
+      28
+    ],
+    "opponent_detail_local_rect": [
+      64,
+      70,
+      304,
+      24
+    ],
+    "opponent_expand_local_rect": [
+      376,
+      70,
+      24,
+      24
+    ],
+    "self_name_local_rect": [
+      16,
+      8,
+      144,
+      32
+    ],
+    "self_metrics_local_rect": [
+      168,
+      8,
+      600,
+      32
+    ],
+    "self_detail_local_rect": [
+      776,
+      8,
+      104,
+      32
+    ],
+    "metric_behavior": "ordered_flex_items_min_content_no_truncated_numbers",
+    "persistent_fields": [
+      "player_identity",
+      "score",
+      "resources",
+      "available_markers",
+      "important_status"
+    ],
+    "detail_fields": [
+      "card_effects",
+      "full_status_text",
+      "expanded_city",
+      "history"
+    ]
+  },
+  "city": {
+    "source_asset": "07-originals/city-board.png",
+    "source_size": [
+      2059,
+      3801
+    ],
+    "source_aspect": [
+      2059,
+      3801
+    ],
+    "content_rect": [
+      32,
+      472,
+      384,
+      576
+    ],
+    "display_rule": "contain_preserve_source_aspect",
+    "display_rect": [
+      67.9905288082,
+      472,
+      312.0189423836,
+      576
+    ],
+    "rows": 4,
+    "columns": 3,
+    "slot_count": 12,
+    "core_command_tower": {
+      "index_base": 1,
+      "row": 3,
+      "column": 2,
+      "cell_count": 1
+    },
+    "slot_hit_mapping": "map_source_grid_cell_rects_through_city_image_transform",
+    "do_not_equal_divide_outer_frame": true
+  },
+  "map": {
+    "viewport_rect": [
+      454,
+      82,
+      876,
+      740
+    ],
+    "controls_rect": [
+      1134,
+      84,
+      178,
+      38
+    ],
+    "map_data_separate_from_ui_textures": true,
+    "layer_order": [
+      "map_image",
+      "routes_and_nodes",
+      "pieces_and_markers",
+      "labels",
+      "hover_overlay"
+    ],
+    "source_asset": "07-originals/world-map.jpg",
+    "source_size": [
+      5000,
+      5000
+    ],
+    "source_crop_rect": [
+      100,
+      300,
+      4690,
+      4520
+    ],
+    "source_crop_order": [
+      "x",
+      "y",
+      "width",
+      "height"
+    ],
+    "image_fit": "contain_after_source_crop",
+    "backdrop": "separate dark blurred cover layer; no game-coordinate mapping",
+    "full_detail_fit": "contain_uncropped_original",
+    "control_rects": {
+      "full_map": [
+        1134,
+        84,
+        74,
+        38
+      ],
+      "zoom_in": [
+        1216,
+        84,
+        44,
+        38
+      ],
+      "zoom_out": [
+        1268,
+        84,
+        44,
+        38
+      ]
+    }
+  },
+  "entrepreneurs": {
+    "viewport_rect": [
+      456,
+      931,
+      393,
+      123
+    ],
+    "card_size": [
+      73,
+      123
+    ],
+    "gap": 7,
+    "default_visible_capacity": 5,
+    "game_limit": null,
+    "overflow_behavior": "horizontal_scroll_or_expand_detail",
+    "card_size_kind": "portrait_thumbnail_slot",
+    "image_fit": "portrait_crop_cover",
+    "original_card_sizes": [
+      [
+        863,
+        1204
+      ],
+      [
+        862,
+        1204
+      ],
+      [
+        865,
+        1204
+      ]
+    ],
+    "card_paths": [
+      "07-originals/entrepreneur-1.jpg",
+      "07-originals/entrepreneur-2.jpg",
+      "07-originals/entrepreneur-3.jpg"
+    ],
+    "source_portrait_crop_rect": [
+      205,
+      40,
+      400,
+      580
+    ],
+    "portrait_content_local_rect": [
+      4,
+      4,
+      65,
+      115
+    ],
+    "sample_card_rect_formula": "[456+80*i,931,73,123], i=0..4",
+    "full_detail_fit": "contain_original_aspect_per_card",
+    "current_preview_scrollbar_visible": false
+  },
+  "hand": {
+    "content_rect": [
+      880,
+      928,
+      460,
+      136
+    ],
+    "card_size": [
+      94,
+      128
+    ],
+    "fan_angle_range_degrees": [
+      -12.5,
+      12.5
+    ],
+    "max_angular_step_degrees": 6,
+    "min_card_exposed_width": 24,
+    "overflow_behavior": "horizontal_browse_or_expand_hand_view",
+    "zoom_rect": [
+      1100,
+      374,
+      216,
+      306
+    ],
+    "zoom_layer": 80,
+    "zoom_blocks_layout": false,
+    "zoom_avoid_regions": [
+      "topbar",
+      "self_summary",
+      "cooperation",
+      "discard",
+      "face_down_characters",
+      "right_tabs",
+      "right_page"
+    ],
+    "source_atlas": "07-originals/character-atlas.jpg",
+    "atlas_grid": {
+      "columns": 4,
+      "rows": 2,
+      "card_width": 600,
+      "card_height": 850
+    },
+    "card_size_kind": "portrait_thumbnail_slot",
+    "sample_count": 6,
+    "sample_rect_formula": "[894+68*i,932+abs(i-2.5)*5,94,128], i=0..5",
+    "sample_rotation_formula": "(i-2.5)*5 degrees about each card bottom center",
+    "thumbnail_fit": "portrait_crop_cover",
+    "full_detail_fit": "contain_original_600x850",
+    "portrait_content_local_rect": [
+      4,
+      22,
+      86,
+      102
+    ],
+    "source_portrait_crops_card_local": [
+      [
+        175,
+        92,
+        350,
+        373
+      ],
+      [
+        190,
+        92,
+        335,
+        378
+      ],
+      [
+        145,
+        92,
+        350,
+        378
+      ],
+      [
+        120,
+        92,
+        365,
+        378
+      ],
+      [
+        105,
+        92,
+        360,
+        378
+      ],
+      [
+        95,
+        92,
+        365,
+        378
+      ],
+      [
+        155,
+        92,
+        360,
+        365
+      ]
+    ],
+    "portrait_crop_atlas_offset_formula": "add [600*(index%4),850*floor(index/4)] to card-local crop origin"
+  },
+  "cooperation": {
+    "companies_visible": 4,
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "company_label_rect": [
+      1424,
+      151,
+      105,
+      172
+    ],
+    "level_header_y": 135,
+    "level_column_x": [
+      1510.5,
+      1569.5,
+      1628.5,
+      1687.5,
+      1746.5,
+      1805.5
+    ],
+    "level_column_width": 59,
+    "row_y": [
+      147,
+      193,
+      239,
+      285
+    ],
+    "row_height": 43,
+    "marker_size": 43,
+    "cell_marker_rule": "one_composite_mask_for_all_players_at_same_company_and_level",
+    "each_player_one_level_per_company": true,
+    "default_count_text": null,
+    "level_header_coordinate_kind": "text_center_y",
+    "level_label_center_x": [
+      1540,
+      1599,
+      1658,
+      1717,
+      1776,
+      1835
+    ],
+    "row_step": 46,
+    "marker_rect_formula": "[1519+59*level,147+46*companyIndex,43,43]",
+    "logo_atlas": "07-originals/enterprise-atlas.jpg",
+    "logo_atlas_size": [
+      2600,
+      3700
+    ],
+    "logo_rect_formula": "[1378,151+46*companyIndex,34,34]",
+    "name_x": 1424,
+    "name_center_y_formula": "168+46*companyIndex",
+    "logo_source_crop_rects": [
+      [
+        76,
+        95,
+        290,
+        245
+      ],
+      [
+        710,
+        95,
+        290,
+        230
+      ],
+      [
+        1338,
+        95,
+        290,
+        210
+      ],
+      [
+        1340,
+        1938,
+        290,
+        215
+      ]
+    ],
+    "logo_fit": "contain",
+    "empty_cell_style": {
+      "fill": "#BCB8AD",
+      "stroke": "#928A7A",
+      "size": [
+        32,
+        32
+      ],
+      "marker_asset_00_unchanged": true
+    }
+  },
+  "card_piles": {
+    "independent_scroll_states": true,
+    "discard": {
+      "viewport": [
+        1368,
+        414,
+        220,
+        204
+      ],
+      "scrollbar_track": [
+        1604,
+        414,
+        6,
+        204
+      ],
+      "scrollbar_hit_area": [
+        1598,
+        410,
+        18,
+        212
+      ],
+      "display": "face_up_when_rules_allow",
+      "preview_card_size": [
+        136,
+        182
+      ],
+      "preview_count": 3,
+      "preview_rect_formula": "[1392+15*i,422+3*i,136,182], i=0..2",
+      "preview_rotation_formula": "-5+6*i degrees about card bottom center",
+      "thumbnail_fit": "portrait_crop_cover"
+    },
+    "face_down_characters": {
+      "viewport": [
+        1650,
+        414,
+        220,
+        204
+      ],
+      "scrollbar_track": [
+        1886,
+        414,
+        6,
+        204
+      ],
+      "scrollbar_hit_area": [
+        1880,
+        410,
+        18,
+        212
+      ],
+      "display": "card_backs_only_until_rules_reveal",
+      "preview_card_size": [
+        108,
+        153
+      ],
+      "preview_count": 3,
+      "preview_rect_formula": "[1658+49*i,434-abs(i-1)*2,108,153], i=0..2",
+      "preview_rotation_formula": "(i-1)*7 degrees about card center",
+      "thumbnail_fit": "contain_original_back"
+    },
+    "count_labels": "data_bound_card_count_not_example_count",
+    "vertical_scroll_formula": "thumbH=clamp(viewportH/contentH*trackH,24,trackH); thumbY=trackY+scrollY/maxScrollY*(trackH-thumbH)",
+    "preview_layout": "three visible sideways overlapping layers; total count independent",
+    "preview_scrollbars_visible": false
+  },
+  "right_pages": {
+    "order": [
+      "main_actions",
+      "quick_actions",
+      "city_styles"
+    ],
+    "tab_rects": [
+      [
+        1352,
+        646,
+        180,
+        48
+      ],
+      [
+        1538,
+        646,
+        180,
+        48
+      ],
+      [
+        1724,
+        646,
+        180,
+        48
+      ]
+    ],
+    "initial_page": "city_styles",
+    "main_actions": {
+      "label": "主要行动",
+      "content_source": "game_rules",
+      "scroll_state_id": "main_actions_scroll",
+      "standard_action_count": 6,
+      "viewport": [
+        1364,
+        748,
+        528,
+        224
+      ],
+      "grid": {
+        "columns": 2,
+        "standard_rows": 3,
+        "row_height": 68,
+        "column_gap": 12,
+        "row_gap": 10,
+        "column_width": 258
+      },
+      "footer": {
+        "rect": [
+          1364,
+          994,
+          528,
+          52
+        ],
+        "independent_from_action_grid": true,
+        "scrolls_with_grid": false,
+        "buttons": [
+          {
+            "id": "facility_supply",
+            "label": "设施供应区",
+            "rect": [
+              1364,
+              994,
+              258,
+              52
+            ]
+          },
+          {
+            "id": "end_action",
+            "label": "结束行动",
+            "rect": [
+              1634,
+              994,
+              258,
+              52
+            ]
+          }
+        ]
+      },
+      "overflow": {
+        "enabled_when": "action_count > 6 or content_height > 224",
+        "viewport": [
+          1368,
+          750,
+          496,
+          224
+        ],
+        "column_width": 243,
+        "scrollbar_track": [
+          1876,
+          750,
+          6,
+          224
+        ],
+        "scrollbar_hit_area": [
+          1870,
+          746,
+          18,
+          232
+        ],
+        "scrollbar_visible_when": "content_height > 224",
+        "content_height_formula": "ceil(action_count/2)*68 + max(0,ceil(action_count/2)-1)*10"
+      }
+    },
+    "quick_actions": {
+      "label": "快速行动",
+      "content_source": "game_rules",
+      "scroll_state_id": "quick_actions_scroll",
+      "viewport": [
+        1368,
+        750,
+        496,
+        298
+      ],
+      "scrollbar_track": [
+        1876,
+        750,
+        6,
+        298
+      ],
+      "scrollbar_hit_area": [
+        1870,
+        746,
+        18,
+        306
+      ],
+      "row_height": 74,
+      "compact_row_height": 56,
+      "row_gap": 8,
+      "row_height_rule": "74 for title plus explanation; 56 for compact single-line items",
+      "item_count": "dynamic",
+      "scrollbar_visible_when": "content_height > 298",
+      "content_height_formula": "count*actual_row_height + max(0,count-1)*8 + extra_content_height",
+      "max_scroll_formula": "max(0,content_height-298)"
+    },
+    "city_styles": {
+      "label": "城市样式",
+      "styles_this_game": 6,
+      "tier_I_count": 4,
+      "tier_II_count": 2,
+      "header_rect": [
+        1368,
+        710,
+        520,
+        32
+      ],
+      "tier_I_row_y": [
+        750,
+        790,
+        830,
+        870
+      ],
+      "tier_I_row_height": 36,
+      "tier_I_states": [
+        {
+          "id": "unused",
+          "label": "未用"
+        },
+        {
+          "id": "used",
+          "label": "已用"
+        }
+      ],
+      "tier_I_state_rects_local": [
+        [
+          212,
+          0,
+          148,
+          36
+        ],
+        [
+          368,
+          0,
+          148,
+          36
+        ]
+      ],
+      "tier_II_header_y": 910,
+      "tier_II_row_y": [
+        944,
+        996
+      ],
+      "tier_II_row_height": 48,
+      "tier_II_state_column_x": [
+        1556,
+        1624,
+        1692,
+        1760,
+        1828
+      ],
+      "tier_II_state_column_width": 60,
+      "tier_II_states": [
+        {
+          "id": "remaining_2",
+          "label": "2",
+          "remaining": 2,
+          "used_flag": false
+        },
+        {
+          "id": "used_remaining_1",
+          "label": "已用余1",
+          "remaining": 1,
+          "used_flag": true
+        },
+        {
+          "id": "remaining_1",
+          "label": "1",
+          "remaining": 1,
+          "used_flag": false
+        },
+        {
+          "id": "used_remaining_0",
+          "label": "已用余0",
+          "remaining": 0,
+          "used_flag": true,
+          "exhausted": true,
+          "can_execute": false,
+          "meaning": "used_and_exhausted"
+        },
+        {
+          "id": "remaining_0",
+          "label": "0",
+          "remaining": 0,
+          "used_flag": false,
+          "exhausted": true,
+          "can_execute": false,
+          "meaning": "exhausted"
+        }
+      ],
+      "state_transitions_source": "game_rules_no_ui_inferred_reset",
+      "same_state_marker_rule": "aggregate_count_only_by_style_id_state_id_and_player_color",
+      "merge_different_player_colors": false,
+      "marker_asset_kind": "digit_base_single_color_plus_runtime_count",
+      "tier_I_marker_layout": {
+        "size": 24,
+        "gap": 4,
+        "max_colors": 4,
+        "mode": "horizontal"
+      },
+      "tier_II_marker_layout": {
+        "size": 20,
+        "gap": 4,
+        "columns": 2,
+        "rows": 2,
+        "cell_local_offset": [
+          8,
+          2
+        ],
+        "count_font_size": 13
+      },
+      "state_mode_source": "card_rules",
+      "tier_I_default_state_mode": "action",
+      "tier_I_state_modes": {
+        "action": {
+          "states": [
+            {
+              "id": "unused",
+              "label": "未用"
+            },
+            {
+              "id": "used",
+              "label": "已用"
+            }
+          ],
+          "state_rects_local": [
+            [
+              212,
+              0,
+              148,
+              36
+            ],
+            [
+              368,
+              0,
+              148,
+              36
+            ]
+          ],
+          "used_by_current_four_action_examples": true
+        },
+        "declared_only": {
+          "states": [
+            {
+              "id": "declared",
+              "label": "已宣告"
+            }
+          ],
+          "state_rects_local": [
+            [
+              212,
+              0,
+              304,
+              36
+            ]
+          ],
+          "example_cards": [
+            "物资中转站"
+          ],
+          "empty_state_representation": "no_player_marker_in_declared_slot"
+        }
+      },
+      "tier_II_availability_rule": "availability is supplied by game rules; zero remaining is never executable even when used_flag is false",
+      "table_background_rect": [
+        1364,
+        744,
+        528,
+        308
+      ],
+      "row_dividers": "subtle lines on shared paper; no per-row enclosing frame"
+    }
+  },
+  "markers": {
+    "folder": "04-markers",
+    "mask_range_hex": [
+      "00",
+      "0f"
+    ],
+    "mask_operation": "bitwise_or",
+    "players": [
+      {
+        "id": "G",
+        "bit": 1,
+        "color": "#5FD200"
+      },
+      {
+        "id": "Y",
+        "bit": 2,
+        "color": "#FFBF00"
+      },
+      {
+        "id": "B",
+        "bit": 4,
+        "color": "#006CFF"
+      },
+      {
+        "id": "R",
+        "bit": 8,
+        "color": "#EC0000"
+      }
+    ],
+    "combination_order": [
+      "G",
+      "Y",
+      "B",
+      "R"
+    ],
+    "two_color_layout": "diagonal_split",
+    "three_color_layout": "equal_vertical_stripes",
+    "four_color_layout": {
+      "top_left": "G",
+      "top_right": "Y",
+      "bottom_left": "B",
+      "bottom_right": "R"
+    },
+    "raster_sizes": [
+      32,
+      64,
+      128
+    ],
+    "vector_format": "svg",
+    "overlays": [
+      "hover",
+      "selected",
+      "focus"
+    ],
+    "count_baked_in": false,
+    "count_rule": "optional_separate_data_text_layer_not_popcount_of_mask",
+    "level_and_state_labels_separate": true,
+    "svg_pattern": "04-markers/cooperation-{hex2}.svg",
+    "png_pattern": "04-markers/cooperation-{hex2}-{size}.png",
+    "overlay_svg_pattern": "04-markers/overlay-{state}.svg",
+    "overlay_png_pattern": "04-markers/overlay-{state}-{size}.png",
+    "digit_base_svg_pattern": "04-markers/digit-base-{color_name}.svg",
+    "digit_base_png_pattern": "04-markers/digit-base-{color_name}-{size}.png",
+    "digit_text_colors": {
+      "green": "#000000",
+      "yellow": "#000000",
+      "blue": "#000000",
+      "red": "#FFFFFF"
+    },
+    "cooperation_uses_combination_masks": true,
+    "city_styles_use_separate_single_color_counts": true
+  },
+  "slicing": {
+    "order": [
+      "left",
+      "top",
+      "right",
+      "bottom"
+    ],
+    "source_pixel_insets": {
+      "screen-frame": [
+        36,
+        36,
+        36,
+        36
+      ],
+      "topbar-frame": [
+        0,
+        0,
+        0,
+        4
+      ],
+      "module-frame": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "submodule-frame": [
+        18,
+        18,
+        18,
+        18
+      ],
+      "module-header-frame": [
+        12,
+        0,
+        0,
+        4
+      ],
+      "card-slot-frame": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "thin-row-frame": [
+        0,
+        0,
+        0,
+        4
+      ],
+      "button-frame": [
+        24,
+        18,
+        24,
+        18
+      ],
+      "tab-frame": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "stepper-frame": [
+        18,
+        18,
+        18,
+        18
+      ],
+      "button-fill-default": [
+        24,
+        18,
+        24,
+        18
+      ],
+      "button-fill-hover": [
+        24,
+        18,
+        24,
+        18
+      ],
+      "button-fill-pressed": [
+        24,
+        18,
+        24,
+        18
+      ],
+      "button-fill-disabled": [
+        24,
+        18,
+        24,
+        18
+      ],
+      "button-fill-primary-active": [
+        24,
+        18,
+        24,
+        18
+      ],
+      "button-fill-primary-pressed": [
+        24,
+        18,
+        24,
+        18
+      ],
+      "tab-fill-default": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "tab-fill-active": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "tab-fill-disabled": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "scrollbar-track-v": [
+        0,
+        8,
+        0,
+        8
+      ],
+      "scrollbar-thumb-v": [
+        0,
+        8,
+        0,
+        8
+      ],
+      "scrollbar-track-h": [
+        8,
+        0,
+        8,
+        0
+      ],
+      "scrollbar-thumb-h": [
+        8,
+        0,
+        8,
+        0
+      ],
+      "chevron-left": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "chevron-right": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "chevron-up": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "chevron-down": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "plus": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "minus": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "close": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "settings": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "expand": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "collapse": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "zoom": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "players": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "hand-cards": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "discard": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "covered-cards": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "city": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "enterprise": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "info": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "stepper-fill-default": [
+        18,
+        18,
+        18,
+        18
+      ],
+      "stepper-fill-hover": [
+        18,
+        18,
+        18,
+        18
+      ],
+      "stepper-fill-pressed": [
+        18,
+        18,
+        18,
+        18
+      ],
+      "stepper-fill-disabled": [
+        18,
+        18,
+        18,
+        18
+      ],
+      "screen-fill": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "topbar-fill": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "module-fill-dark": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "module-fill-paper": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "module-header-fill": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "card-slot-fill": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "title-plaque": [
+        8,
+        0,
+        76,
+        0
+      ],
+      "title-plaque-frame": [
+        8,
+        0,
+        76,
+        0
+      ],
+      "title-plaque-fill": [
+        8,
+        0,
+        76,
+        0
+      ],
+      "turn-ribbon-frame": [
+        24,
+        0,
+        24,
+        0
+      ],
+      "turn-ribbon-fill": [
+        24,
+        0,
+        24,
+        0
+      ],
+      "red-zone-ribbon-frame": [
+        64,
+        0,
+        64,
+        0
+      ],
+      "red-zone-ribbon-fill": [
+        64,
+        0,
+        64,
+        0
+      ],
+      "right-cluster-fill": [
+        62,
+        0,
+        66,
+        0
+      ],
+      "right-cluster-frame": [
+        62,
+        0,
+        66,
+        0
+      ]
+    },
+    "scale_corners_with_canvas_only": true,
+    "preserve_border_corner_shape": true,
+    "art_fills_have_own_resize_rule": true,
+    "compact_control_note": "Use dedicated stepper-frame with matching stepper-fill-default/hover/pressed/disabled for small controls; button-frame uses [24,18,24,18] with minimum height 38.",
+    "topbar_overrides": {
+      "manifest": "01-topbar/topbar-v22.json",
+      "topbar_frame": "Full-width bottom separator 4 px; not a nine-slice frame.",
+      "topbar_fill": "Horizontal stretch or uniform scale.",
+      "title_plaque": "Uniform scale, preserving right shoulder.",
+      "turn_ribbon": "Uniform scale.",
+      "right_cluster": "Uniform whole-group scale; do not nine-slice or stretch its three internal controls independently.",
+      "border_values_are_not_generic_nine_slice_instructions": true
+    }
+  },
+  "layers": [
+    {
+      "z": 0,
+      "role": "map_or_screen_background"
+    },
+    {
+      "z": 10,
+      "role": "panel_fills"
+    },
+    {
+      "z": 20,
+      "role": "panel_frames"
+    },
+    {
+      "z": 30,
+      "role": "cards_pieces_marker_fills"
+    },
+    {
+      "z": 40,
+      "role": "icons_text_counts_slot_labels"
+    },
+    {
+      "z": 50,
+      "role": "hover_selected_focus_overlays"
+    },
+    {
+      "z": 60,
+      "role": "scrollbars_and_local_popovers"
+    },
+    {
+      "z": 80,
+      "role": "hand_card_zoom"
+    },
+    {
+      "z": 90,
+      "role": "modal_detail_and_modal_backdrop"
+    },
+    {
+      "z": 100,
+      "role": "critical_tooltips"
+    }
+  ],
+  "asset_roles": {
+    "00-screen": [
+      "screen-frame",
+      "screen-fill"
+    ],
+    "01-topbar": [
+      "topbar-fill",
+      "topbar-frame",
+      "title-plaque-fill",
+      "title-plaque-frame",
+      "title-plaque",
+      "turn-ribbon-fill",
+      "turn-ribbon-frame",
+      "right-cluster-fill",
+      "right-cluster-frame",
+      "red-zone-ribbon-fill",
+      "red-zone-ribbon-frame"
+    ],
+    "02-modules": [
+      "module-frame",
+      "submodule-frame",
+      "module-header-frame",
+      "card-slot-frame",
+      "thin-row-frame",
+      "module-fill-dark",
+      "module-fill-paper",
+      "module-header-fill",
+      "card-slot-fill"
+    ],
+    "03-controls": [
+      "button-frame",
+      "tab-frame",
+      "stepper-frame",
+      "button-fill-default",
+      "button-fill-hover",
+      "button-fill-pressed",
+      "button-fill-disabled",
+      "button-fill-primary-active",
+      "button-fill-primary-pressed",
+      "tab-fill-default",
+      "tab-fill-active",
+      "tab-fill-disabled",
+      "scrollbar-track-v",
+      "scrollbar-thumb-v",
+      "scrollbar-track-h",
+      "scrollbar-thumb-h",
+      "stepper-fill-default",
+      "stepper-fill-hover",
+      "stepper-fill-pressed",
+      "stepper-fill-disabled"
+    ],
+    "06-icons": [
+      "chevron-left",
+      "chevron-right",
+      "chevron-up",
+      "chevron-down",
+      "plus",
+      "minus",
+      "close",
+      "settings",
+      "expand",
+      "collapse",
+      "zoom",
+      "players",
+      "hand-cards",
+      "discard",
+      "covered-cards",
+      "city",
+      "enterprise",
+      "info"
+    ],
+    "04-markers": [
+      "mask_00_to_0f",
+      "single_color_digit_bases",
+      "hover_overlay",
+      "selected_overlay",
+      "focus_overlay"
+    ],
+    "05-textures": [
+      "independent_art_textures",
+      "art/window-frame-art.png",
+      "art/button-gray-art.png",
+      "art/button-yellow-art.png",
+      "art/title-plaque-source.png",
+      "art/status-gold-ribbon-source.png",
+      "art/status-red-ribbon-source.png",
+      "art/topbar-matte-source.png",
+      "art/topbar-matte-background.png"
+    ],
+    "07-originals": [
+      "original_game_art",
+      "enterprise-atlas.jpg"
+    ]
+  },
+  "separation_contract": {
+    "frames_separate_from_fills": true,
+    "text_separate": true,
+    "icons_separate": true,
+    "numbers_separate": true,
+    "player_markers_separate_from_slot_labels": true
+  },
+  "notes": [
+    "Five entrepreneur slots are display capacity, not a gameplay limit.",
+    "Core command tower is exactly one cell: one-based row 3 column 2.",
+    "Card-pile counts and sample card art are illustrative until bound to game state.",
+    "Layout parameters are engine independent and do not claim a fully implemented game UI."
+  ],
+  "asset_catalogs": {
+    "chrome": "chrome.json",
+    "markers": "04-markers/markers.json",
+    "textures": "textures.json",
+    "title_plaque": "01-topbar/title-plaque.json",
+    "art_prompts": "art-prompts.json",
+    "status_ribbons": "01-topbar/status-ribbons.json",
+    "topbar_v22": "01-topbar/topbar-v22.json"
+  },
+  "assets": {
+    "screen-frame": {
+      "svg": "00-screen/screen-frame.svg",
+      "png": "00-screen/screen-frame.png",
+      "sourceSize": {
+        "width": 1024,
+        "height": 576
+      },
+      "role": "transparent-frame",
+      "stretch": "nine-slice",
+      "contentInset": 18,
+      "artwork": "05-textures/art/window-frame-art.png",
+      "artworkCrop": [
+        8,
+        8,
+        1442,
+        1076
+      ],
+      "artworkBorder": [
+        160,
+        160,
+        160,
+        160
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 160,
+        "height": 144
+      },
+      "sourceBorder": {
+        "left": 36,
+        "top": 36,
+        "right": 36,
+        "bottom": 36
+      }
+    },
+    "topbar-frame": {
+      "svg": "01-topbar/topbar-frame.svg",
+      "png": "01-topbar/topbar-frame.png",
+      "sourceSize": {
+        "width": 1920,
+        "height": 68
+      },
+      "role": "bottom-separation-edge",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 0,
+      "recommendedDisplayRect": [
+        0,
+        0,
+        1920,
+        68
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration",
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 4
+      },
+      "manifest": "01-topbar/topbar-v22.json"
+    },
+    "module-frame": {
+      "svg": "02-modules/module-frame.svg",
+      "png": "02-modules/module-frame.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 320
+      },
+      "role": "transparent-frame",
+      "stretch": "nine-slice",
+      "contentInset": 12,
+      "artwork": "05-textures/art/window-frame-art.png",
+      "artworkCrop": [
+        8,
+        8,
+        1442,
+        1076
+      ],
+      "artworkBorder": [
+        160,
+        160,
+        160,
+        160
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 112,
+        "height": 96
+      },
+      "sourceBorder": {
+        "left": 24,
+        "top": 24,
+        "right": 24,
+        "bottom": 24
+      }
+    },
+    "submodule-frame": {
+      "svg": "02-modules/submodule-frame.svg",
+      "png": "02-modules/submodule-frame.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 180
+      },
+      "role": "transparent-frame",
+      "stretch": "nine-slice",
+      "contentInset": 9,
+      "artwork": "05-textures/art/window-frame-art.png",
+      "artworkCrop": [
+        8,
+        8,
+        1442,
+        1076
+      ],
+      "artworkBorder": [
+        160,
+        160,
+        160,
+        160
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 80,
+        "height": 72
+      },
+      "sourceBorder": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      }
+    },
+    "module-header-frame": {
+      "svg": "02-modules/module-header-frame.svg",
+      "png": "02-modules/module-header-frame.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 44
+      },
+      "role": "transparent-frame",
+      "stretch": "nine-slice",
+      "contentInset": {
+        "left": 16,
+        "top": 3,
+        "right": 4,
+        "bottom": 4
+      },
+      "artwork": "05-textures/art/window-frame-art.png",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 28
+      },
+      "sourceBorder": {
+        "left": 12,
+        "top": 0,
+        "right": 0,
+        "bottom": 4
+      }
+    },
+    "card-slot-frame": {
+      "svg": "02-modules/card-slot-frame.svg",
+      "png": "02-modules/card-slot-frame.png",
+      "sourceSize": {
+        "width": 160,
+        "height": 224
+      },
+      "role": "transparent-frame",
+      "stretch": "nine-slice",
+      "contentInset": 8,
+      "artwork": "05-textures/art/window-frame-art.png",
+      "artworkCrop": [
+        8,
+        8,
+        1442,
+        1076
+      ],
+      "artworkBorder": [
+        160,
+        160,
+        160,
+        160
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 80,
+        "height": 112
+      },
+      "sourceBorder": {
+        "left": 14,
+        "top": 14,
+        "right": 14,
+        "bottom": 14
+      }
+    },
+    "thin-row-frame": {
+      "svg": "02-modules/thin-row-frame.svg",
+      "png": "02-modules/thin-row-frame.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 56
+      },
+      "role": "transparent-frame",
+      "stretch": "nine-slice",
+      "contentInset": {
+        "left": 4,
+        "top": 3,
+        "right": 4,
+        "bottom": 4
+      },
+      "artwork": "05-textures/art/window-frame-art.png",
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 20
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 4
+      }
+    },
+    "button-frame": {
+      "svg": "03-controls/button-frame.svg",
+      "png": "03-controls/button-frame.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "role": "transparent-frame",
+      "stretch": "nine-slice",
+      "contentInset": {
+        "left": 24,
+        "top": 9,
+        "right": 24,
+        "bottom": 9
+      },
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 112,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      }
+    },
+    "tab-frame": {
+      "svg": "03-controls/tab-frame.svg",
+      "png": "03-controls/tab-frame.png",
+      "sourceSize": {
+        "width": 240,
+        "height": 60
+      },
+      "role": "transparent-frame",
+      "stretch": "nine-slice",
+      "contentInset": {
+        "left": 20,
+        "top": 9,
+        "right": 20,
+        "bottom": 9
+      },
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 52
+      },
+      "sourceBorder": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      }
+    },
+    "stepper-frame": {
+      "svg": "03-controls/stepper-frame.svg",
+      "png": "03-controls/stepper-frame.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "transparent-frame",
+      "stretch": "nine-slice",
+      "contentInset": {
+        "left": 18,
+        "top": 9,
+        "right": 18,
+        "bottom": 9
+      },
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 40,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      }
+    },
+    "button-fill-default": {
+      "svg": "03-controls/button-fill-default.svg",
+      "png": "03-controls/button-fill-default.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      }
+    },
+    "button-fill-hover": {
+      "svg": "03-controls/button-fill-hover.svg",
+      "png": "03-controls/button-fill-hover.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      }
+    },
+    "button-fill-pressed": {
+      "svg": "03-controls/button-fill-pressed.svg",
+      "png": "03-controls/button-fill-pressed.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      }
+    },
+    "button-fill-disabled": {
+      "svg": "03-controls/button-fill-disabled.svg",
+      "png": "03-controls/button-fill-disabled.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      }
+    },
+    "button-fill-primary-active": {
+      "svg": "03-controls/button-fill-primary-active.svg",
+      "png": "03-controls/button-fill-primary-active.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-yellow-art.png",
+      "artworkCrop": [
+        10,
+        124,
+        2162,
+        566
+      ],
+      "artworkBorder": [
+        180,
+        190,
+        180,
+        190
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      }
+    },
+    "button-fill-primary-pressed": {
+      "svg": "03-controls/button-fill-primary-pressed.svg",
+      "png": "03-controls/button-fill-primary-pressed.png",
+      "sourceSize": {
+        "width": 256,
+        "height": 72
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-yellow-art.png",
+      "artworkCrop": [
+        10,
+        124,
+        2162,
+        566
+      ],
+      "artworkBorder": [
+        180,
+        190,
+        180,
+        190
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 96,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 24,
+        "top": 18,
+        "right": 24,
+        "bottom": 18
+      }
+    },
+    "tab-fill-default": {
+      "svg": "03-controls/tab-fill-default.svg",
+      "png": "03-controls/tab-fill-default.png",
+      "sourceSize": {
+        "width": 240,
+        "height": 60
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 88,
+        "height": 52
+      },
+      "sourceBorder": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      }
+    },
+    "tab-fill-active": {
+      "svg": "03-controls/tab-fill-active.svg",
+      "png": "03-controls/tab-fill-active.png",
+      "sourceSize": {
+        "width": 240,
+        "height": 60
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-yellow-art.png",
+      "artworkCrop": [
+        10,
+        124,
+        2162,
+        566
+      ],
+      "artworkBorder": [
+        180,
+        190,
+        180,
+        190
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 88,
+        "height": 52
+      },
+      "sourceBorder": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      }
+    },
+    "tab-fill-disabled": {
+      "svg": "03-controls/tab-fill-disabled.svg",
+      "png": "03-controls/tab-fill-disabled.png",
+      "sourceSize": {
+        "width": 240,
+        "height": 60
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 88,
+        "height": 52
+      },
+      "sourceBorder": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      }
+    },
+    "scrollbar-track-v": {
+      "svg": "03-controls/scrollbar-track-v.svg",
+      "png": "03-controls/scrollbar-track-v.png",
+      "sourceSize": {
+        "width": 20,
+        "height": 240
+      },
+      "role": "scrollbar-track",
+      "stretch": "axis-nine-slice",
+      "recommendedMinimum": {
+        "width": 20,
+        "height": 32
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 8,
+        "right": 0,
+        "bottom": 8
+      }
+    },
+    "scrollbar-thumb-v": {
+      "svg": "03-controls/scrollbar-thumb-v.svg",
+      "png": "03-controls/scrollbar-thumb-v.png",
+      "sourceSize": {
+        "width": 16,
+        "height": 64
+      },
+      "role": "scrollbar-thumb",
+      "stretch": "axis-nine-slice",
+      "recommendedMinimum": {
+        "width": 16,
+        "height": 32
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 8,
+        "right": 0,
+        "bottom": 8
+      }
+    },
+    "scrollbar-track-h": {
+      "svg": "03-controls/scrollbar-track-h.svg",
+      "png": "03-controls/scrollbar-track-h.png",
+      "sourceSize": {
+        "width": 240,
+        "height": 20
+      },
+      "role": "scrollbar-track",
+      "stretch": "axis-nine-slice",
+      "recommendedMinimum": {
+        "width": 32,
+        "height": 20
+      },
+      "sourceBorder": {
+        "left": 8,
+        "top": 0,
+        "right": 8,
+        "bottom": 0
+      }
+    },
+    "scrollbar-thumb-h": {
+      "svg": "03-controls/scrollbar-thumb-h.svg",
+      "png": "03-controls/scrollbar-thumb-h.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 16
+      },
+      "role": "scrollbar-thumb",
+      "stretch": "axis-nine-slice",
+      "recommendedMinimum": {
+        "width": 32,
+        "height": 16
+      },
+      "sourceBorder": {
+        "left": 8,
+        "top": 0,
+        "right": 8,
+        "bottom": 0
+      }
+    },
+    "chevron-left": {
+      "svg": "06-icons/chevron-left.svg",
+      "png": "06-icons/chevron-left.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "chevron-right": {
+      "svg": "06-icons/chevron-right.svg",
+      "png": "06-icons/chevron-right.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "chevron-up": {
+      "svg": "06-icons/chevron-up.svg",
+      "png": "06-icons/chevron-up.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "chevron-down": {
+      "svg": "06-icons/chevron-down.svg",
+      "png": "06-icons/chevron-down.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "plus": {
+      "svg": "06-icons/plus.svg",
+      "png": "06-icons/plus.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "minus": {
+      "svg": "06-icons/minus.svg",
+      "png": "06-icons/minus.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "close": {
+      "svg": "06-icons/close.svg",
+      "png": "06-icons/close.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "settings": {
+      "svg": "06-icons/settings.svg",
+      "png": "06-icons/settings.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "expand": {
+      "svg": "06-icons/expand.svg",
+      "png": "06-icons/expand.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "collapse": {
+      "svg": "06-icons/collapse.svg",
+      "png": "06-icons/collapse.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "zoom": {
+      "svg": "06-icons/zoom.svg",
+      "png": "06-icons/zoom.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "players": {
+      "svg": "06-icons/players.svg",
+      "png": "06-icons/players.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "hand-cards": {
+      "svg": "06-icons/hand-cards.svg",
+      "png": "06-icons/hand-cards.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "discard": {
+      "svg": "06-icons/discard.svg",
+      "png": "06-icons/discard.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "covered-cards": {
+      "svg": "06-icons/covered-cards.svg",
+      "png": "06-icons/covered-cards.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "city": {
+      "svg": "06-icons/city.svg",
+      "png": "06-icons/city.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "enterprise": {
+      "svg": "06-icons/enterprise.svg",
+      "png": "06-icons/enterprise.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "info": {
+      "svg": "06-icons/info.svg",
+      "png": "06-icons/info.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "monochrome-icon",
+      "stretch": "uniform",
+      "recommendedMinimum": {
+        "width": 24,
+        "height": 24
+      },
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "stepper-fill-default": {
+      "svg": "03-controls/stepper-fill-default.svg",
+      "png": "03-controls/stepper-fill-default.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 40,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      }
+    },
+    "stepper-fill-hover": {
+      "svg": "03-controls/stepper-fill-hover.svg",
+      "png": "03-controls/stepper-fill-hover.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 40,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      }
+    },
+    "stepper-fill-pressed": {
+      "svg": "03-controls/stepper-fill-pressed.svg",
+      "png": "03-controls/stepper-fill-pressed.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 40,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      }
+    },
+    "stepper-fill-disabled": {
+      "svg": "03-controls/stepper-fill-disabled.svg",
+      "png": "03-controls/stepper-fill-disabled.png",
+      "sourceSize": {
+        "width": 64,
+        "height": 64
+      },
+      "role": "independent-control-fill",
+      "stretch": "nine-slice",
+      "artwork": "05-textures/art/button-gray-art.png",
+      "artworkCrop": [
+        16,
+        168,
+        2156,
+        559
+      ],
+      "artworkBorder": [
+        180,
+        180,
+        180,
+        180
+      ],
+      "representation": "Raster-backed SVG with relative reference to packaged PNG artwork; not vector-painted metal",
+      "recommendedMinimum": {
+        "width": 40,
+        "height": 38
+      },
+      "sourceBorder": {
+        "left": 18,
+        "top": 18,
+        "right": 18,
+        "bottom": 18
+      }
+    },
+    "screen-fill": {
+      "svg": "00-screen/screen-fill.svg",
+      "png": "00-screen/screen-fill.png",
+      "sourceSize": {
+        "width": 1024,
+        "height": 576
+      },
+      "role": "screen-background",
+      "resize": "stretch-or-cover",
+      "material": "05-textures/metal-brown-base.png",
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "topbar-fill": {
+      "svg": "01-topbar/topbar-fill.svg",
+      "png": "01-topbar/topbar-fill.png",
+      "sourceSize": {
+        "width": 1920,
+        "height": 68
+      },
+      "role": "background",
+      "material": "05-textures/art/topbar-matte-background.png",
+      "hasText": false,
+      "centerAlpha": 255,
+      "recommendedDisplayRect": [
+        0,
+        0,
+        1920,
+        68
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration",
+      "sourceCrop": [
+        0,
+        324,
+        2172,
+        77
+      ],
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "manifest": "01-topbar/topbar-v22.json"
+    },
+    "module-fill-dark": {
+      "svg": "02-modules/module-fill-dark.svg",
+      "png": "02-modules/module-fill-dark.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 320
+      },
+      "role": "module-background-dark",
+      "resize": "stretch-or-cover",
+      "material": "05-textures/metal-brown-base.png",
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "module-fill-paper": {
+      "svg": "02-modules/module-fill-paper.svg",
+      "png": "02-modules/module-fill-paper.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 320
+      },
+      "role": "module-background-light",
+      "resize": "stretch-or-cover",
+      "material": "05-textures/paper-ivory-base.png",
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "module-header-fill": {
+      "svg": "02-modules/module-header-fill.svg",
+      "png": "02-modules/module-header-fill.png",
+      "sourceSize": {
+        "width": 512,
+        "height": 44
+      },
+      "role": "module-header-background",
+      "resize": "stretch-or-cover",
+      "material": "05-textures/metal-brown-base.png",
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "card-slot-fill": {
+      "svg": "02-modules/card-slot-fill.svg",
+      "png": "02-modules/card-slot-fill.png",
+      "sourceSize": {
+        "width": 160,
+        "height": 224
+      },
+      "role": "card-slot-background",
+      "resize": "stretch-or-cover",
+      "material": "05-textures/metal-brown-base.png",
+      "sourceBorder": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "title-plaque": {
+      "svg": "01-topbar/title-plaque.svg",
+      "png": "01-topbar/title-plaque.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 64
+      },
+      "role": "optional-combined-title-decoration",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 253,
+      "recommendedDisplayRect": [
+        16,
+        0,
+        474,
+        64
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration",
+      "sourceBorder": {
+        "left": 8,
+        "top": 0,
+        "right": 76,
+        "bottom": 0
+      },
+      "manifest": "01-topbar/topbar-v22.json"
+    },
+    "title-plaque-frame": {
+      "svg": "01-topbar/title-plaque-frame.svg",
+      "png": "01-topbar/title-plaque-frame.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 64
+      },
+      "role": "transparent-frame",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 0,
+      "recommendedDisplayRect": [
+        16,
+        0,
+        474,
+        64
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration",
+      "sourceBorder": {
+        "left": 8,
+        "top": 0,
+        "right": 76,
+        "bottom": 0
+      },
+      "manifest": "01-topbar/topbar-v22.json"
+    },
+    "title-plaque-fill": {
+      "svg": "01-topbar/title-plaque-fill.svg",
+      "png": "01-topbar/title-plaque-fill.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 64
+      },
+      "role": "independent-fill",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 253,
+      "recommendedDisplayRect": [
+        16,
+        0,
+        474,
+        64
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration",
+      "sourceBorder": {
+        "left": 8,
+        "top": 0,
+        "right": 76,
+        "bottom": 0
+      },
+      "manifest": "01-topbar/topbar-v22.json"
+    },
+    "turn-ribbon-frame": {
+      "svg": "01-topbar/turn-ribbon-frame.svg",
+      "png": "01-topbar/turn-ribbon-frame.png",
+      "sourceSize": {
+        "width": 204,
+        "height": 49
+      },
+      "role": "transparent-frame",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 0,
+      "recommendedDisplayRect": [
+        1075,
+        7,
+        204,
+        49
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration",
+      "sourceBorder": {
+        "left": 24,
+        "top": 0,
+        "right": 24,
+        "bottom": 0
+      },
+      "manifest": "01-topbar/topbar-v22.json"
+    },
+    "turn-ribbon-fill": {
+      "svg": "01-topbar/turn-ribbon-fill.svg",
+      "png": "01-topbar/turn-ribbon-fill.png",
+      "sourceSize": {
+        "width": 204,
+        "height": 49
+      },
+      "role": "independent-fill",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 253,
+      "recommendedDisplayRect": [
+        1075,
+        7,
+        204,
+        49
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration",
+      "sourceBorder": {
+        "left": 24,
+        "top": 0,
+        "right": 24,
+        "bottom": 0
+      },
+      "manifest": "01-topbar/topbar-v22.json"
+    },
+    "red-zone-ribbon-frame": {
+      "png": "01-topbar/red-zone-ribbon-frame.png",
+      "svg": "01-topbar/red-zone-ribbon-frame.svg",
+      "sourceSize": {
+        "width": 384,
+        "height": 80
+      },
+      "role": "status-ribbon-frame",
+      "stretch": "horizontal-three-slice",
+      "capScale": "round(sourceCap * targetHeight / 80) in display pixels",
+      "targetCapsAt48pxHeight": 38.4,
+      "contentSafeInsetAt48pxHeight": {
+        "left": 32,
+        "right": 32,
+        "top": 8,
+        "bottom": 8
+      },
+      "centerAlpha": 0,
+      "hasText": false,
+      "interactive": false,
+      "material": "05-textures/art/status-red-ribbon-source.png",
+      "representation": "SVG slices unchanged generated PNG artwork via relative references",
+      "sourceCrop": [
+        34,
+        221,
+        2159,
+        496
+      ],
+      "fillUnderlapPx": 0,
+      "recommendedCapsAt48pxHeight": 38,
+      "sourceBorder": {
+        "left": 64,
+        "top": 0,
+        "right": 64,
+        "bottom": 0
+      },
+      "deprecated": true,
+      "render": false,
+      "replacement": "right-cluster-fill + right-cluster-frame with runtime red-zone labels"
+    },
+    "red-zone-ribbon-fill": {
+      "png": "01-topbar/red-zone-ribbon-fill.png",
+      "svg": "01-topbar/red-zone-ribbon-fill.svg",
+      "sourceSize": {
+        "width": 384,
+        "height": 80
+      },
+      "role": "status-ribbon-fill",
+      "stretch": "horizontal-three-slice",
+      "capScale": "round(sourceCap * targetHeight / 80) in display pixels",
+      "targetCapsAt48pxHeight": 38.4,
+      "contentSafeInsetAt48pxHeight": {
+        "left": 32,
+        "right": 32,
+        "top": 8,
+        "bottom": 8
+      },
+      "centerAlpha": 255,
+      "hasText": false,
+      "interactive": false,
+      "material": "05-textures/art/status-red-ribbon-source.png",
+      "representation": "SVG slices unchanged generated PNG artwork via relative references",
+      "sourceCrop": [
+        34,
+        221,
+        2159,
+        496
+      ],
+      "fillUnderlapPx": 1,
+      "recommendedCapsAt48pxHeight": 38,
+      "sourceBorder": {
+        "left": 64,
+        "top": 0,
+        "right": 64,
+        "bottom": 0
+      },
+      "deprecated": true,
+      "render": false,
+      "replacement": "right-cluster-fill + right-cluster-frame with runtime red-zone labels"
+    },
+    "right-cluster-fill": {
+      "svg": "01-topbar/right-cluster-fill.svg",
+      "png": "01-topbar/right-cluster-fill.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 59
+      },
+      "role": "independent-fill",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 253,
+      "recommendedDisplayRect": [
+        1436,
+        3,
+        474,
+        59
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration",
+      "sourceBorder": {
+        "left": 62,
+        "top": 0,
+        "right": 66,
+        "bottom": 0
+      },
+      "manifest": "01-topbar/topbar-v22.json"
+    },
+    "right-cluster-frame": {
+      "svg": "01-topbar/right-cluster-frame.svg",
+      "png": "01-topbar/right-cluster-frame.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 59
+      },
+      "role": "transparent-frame",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 0,
+      "recommendedDisplayRect": [
+        1436,
+        3,
+        474,
+        59
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration",
+      "sourceBorder": {
+        "left": 62,
+        "top": 0,
+        "right": 66,
+        "bottom": 0
+      },
+      "manifest": "01-topbar/topbar-v22.json"
+    }
+  },
+  "fills": {
+    "svg_dependency": "Relative references to 05-textures, including art subdirectory for raster-backed chrome and title plaque; preserve directory relationships.",
+    "png_standalone": true,
+    "resize": "cover_or_gentle_stretch",
+    "seamless_tiling_verified": false,
+    "materials": [
+      "05-textures/metal-brown-base.png",
+      "05-textures/paper-ivory-base.png"
+    ]
+  },
+  "art_revision": {
+    "version": "2.2.0",
+    "chrome_asset_count": 45,
+    "art_backed_chrome_asset_count": 23,
+    "art_backed_svg_mode": "relative raster references to 05-textures/art; not vector-painted metal",
+    "title_plaque_manifest_separate": true,
+    "static_preview_renderer": "actual PNG composition in SVG, rendered with Inkscape",
+    "browser_interaction_verified": false,
+    "component_sheet": "preview/component-sheet.png",
+    "component_sheet_rebuild_script": "tools/render_component_sheet.py",
+    "status_ribbon_manifest_separate": true,
+    "topbar_manifest": "01-topbar/topbar-v22.json",
+    "topbar_asset_count": 9,
+    "topbar_source": "05-textures/art/topbar-matte-source.png",
+    "topbar_source_size": [
+      2172,
+      724
+    ],
+    "topbar_source_header_band": [
+      0,
+      306,
+      2172,
+      101
+    ],
+    "topbar_rebuild_script": "tools/build_topbar_matte.py",
+    "topbar_svg_mode": "Native SVG clipping of unchanged generated raster source; not editable vector illustration",
+    "legacy_topbar_builders_skip_v22": true,
+    "legacy_red_zone_ribbons_deprecated": true,
+    "unchanged_content_from_y": 72,
+    "topbar_background_source": "05-textures/art/topbar-matte-background.png",
+    "topbar_background_source_size": [
+      2172,
+      724
+    ],
+    "topbar_background_source_crop": [
+      0,
+      324,
+      2172,
+      77
+    ],
+    "status_ribbon_manifest_usage": "legacy compatibility only; v2.2 assets use topbar-v22.json"
+  },
+  "asset_catalog_precedence": {
+    "topbar": "01-topbar/topbar-v22.json",
+    "legacy_compatibility_only": [
+      "01-topbar/status-ribbons.json"
+    ],
+    "note": "The v2.2 topbar catalog overrides older topbar entries in chrome, textures, title-plaque, and status-ribbons catalogs."
+  }
+}

@@ -84,26 +84,25 @@ namespace YC.Presentation
 
         // 卡槽预制体统一拥有查看手势；页面只提供查看内容与返回上下文。
         public void ConfigureInspection(Action open, Func<bool> isCurrent)
+            => ConfigureInspectionCore(open, isCurrent, false);
+
+        public void ConfigureSingleClickInspection(Action open, Func<bool> isCurrent)
+            => ConfigureInspectionCore(open, isCurrent, true);
+
+        private void ConfigureInspectionCore(Action open, Func<bool> isCurrent, bool singleClickPreview)
         {
             pointerInteraction.ConfigureDrag(null, null, null, null);
-            if (button is CardPickerCardButton picker)
-            {
-                pointerInteraction.enabled = false;
-                picker.ConfigurePreview(open, isCurrent);
-            }
-            else
-            {
-                pointerInteraction.ConfigureClick(button, null, () =>
-                {
-                    if (isCurrent == null || isCurrent()) open?.Invoke();
-                });
-            }
+            if (!(button is CardPickerCardButton picker))
+                throw new InvalidOperationException("设施效果卡模板必须绑定共用卡牌手势按钮。");
+            pointerInteraction.enabled = false;
+            if (singleClickPreview) picker.ConfigureSingleClickPreview(open, isCurrent);
+            else picker.ConfigurePreview(open, isCurrent);
             if (detailsButton != null) detailsButton.gameObject.SetActive(false);
         }
 
         public bool TryValidateConfiguration(out string reason)
         {
-            if (cardRect == null || background == null || button == null || outline == null ||
+            if (cardRect == null || background == null || !(button is CardPickerCardButton) || outline == null ||
                 canvasGroup == null || cardImage == null || fallbackLabel == null || pointerInteraction == null)
             {
                 reason = "设施效果卡模板引用不完整。";

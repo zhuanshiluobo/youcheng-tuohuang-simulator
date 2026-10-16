@@ -23,5 +23,9 @@ namespace YC.Application.Sessions
         public bool IdentityVerified;
         public bool GameStateSynchronized;
         public bool IsReady;
+        public string ContentPackHash = string.Empty;
+        public string RuleContractVersion = string.Empty;
+
+        public PlayerSeat Clone() => (PlayerSeat)MemberwiseClone();
     }
 }

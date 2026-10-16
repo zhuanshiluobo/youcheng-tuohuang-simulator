@@ -15,7 +15,7 @@ namespace YC.Tests.EditMode
             GenericLuaEffectExecutor.Register(registry);
             var state = new GameState();
             var executor = new EffectTreeExecutor(state, registry);
-            var id = executor.CreateRoot(new EffectSpec(LuaDomainEffectTypeIds.UpgradeEnterprise));
+            var id = executor.CreateRoot(new EffectSpec(LuaDomainEffectTypeIds.RotateFacilityCard));
             var report = executor.RunUntilQuiescent();
             Assert.That(report.Faulted, Is.True);
             Assert.That(executor.GetNode(id).Status, Is.EqualTo(EffectNodeStatus.Faulted));

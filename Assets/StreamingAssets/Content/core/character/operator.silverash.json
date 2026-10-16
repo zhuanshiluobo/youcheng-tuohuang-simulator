@@ -1,0 +1,49 @@
+{
+  "definitionId": "operator.silverash",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "银灰",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/operator_faces.jpg",
+  "artworkSpriteId": "operator.silverash.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "operator.silverash.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.operator.silverash.strategy",
+      "script": "lua/characters/operator.silverash.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "operator.silverash.tactic",
+      "mode": "tactic",
+      "skillType": "one_shot",
+      "subscriptionId": "content.operator.silverash.tactic",
+      "script": "lua/characters/operator.silverash.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "operator.silverash",
+    "cardId": "operator.silverash",
+    "name": "银灰",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "operator.silverash.strategy",
+    "tacticAbilityId": "operator.silverash.tactic"
+  }
+}

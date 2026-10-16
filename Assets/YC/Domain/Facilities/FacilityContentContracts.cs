@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using YC.Domain.State;
 
@@ -39,7 +39,7 @@ namespace YC.Domain.Facilities
     {
         public static string Resolve(FacilityCardDefinition definition)
         {
-            return definition == null ? FacilityBehaviorFamilies.None : Resolve(definition.EffectId);
+            return definition == null ? FacilityBehaviorFamilies.None : definition.EffectType == FacilityBehaviorFamilies.Enterprise ? FacilityBehaviorFamilies.Enterprise : Resolve(definition.EffectId);
         }
 
         public static string Resolve(string effectId)

@@ -117,7 +117,7 @@ namespace YC.Tests.PlayMode
             var optionContent = shell.GetType().GetMethod("ConfigureOptionScroll")
                 .Invoke(shell, new object[] { "Options", 80f, 80f }) as RectTransform;
             var optionRow = shell.GetType().GetMethod("CreateOptionRow")
-                .Invoke(shell, new object[] { optionContent });
+                .Invoke(shell, new object[] { optionContent, false });
             var selectedOption = Get<Button>(optionRow, "Button");
             optionRow.GetType().GetMethod("SetSelected").Invoke(optionRow, new object[] { true });
             var selectedIndicator = optionRow.GetType().GetField("selectedIndicator",

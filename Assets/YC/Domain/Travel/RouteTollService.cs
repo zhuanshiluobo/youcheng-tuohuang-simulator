@@ -33,6 +33,67 @@ namespace YC.Domain.Travel
             this.roadCoverageQuery = roadCoverageQuery ?? new RuntimeStateRoadCoverageQuery();
         }
 
+        // 一次查询物化公路/影响力；新共用选路不在每个Route循环重复读区域投影。
+        public IReadOnlyList<RouteSelectionRouteOption> ReadRouteFacts(GameState state, int playerId)
+        {
+            if (state == null) throw new ArgumentNullException(nameof(state));
+            var ownRoutes = new HashSet<string>(StringComparer.Ordinal);
+            var recipients = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            var influences = state.Map.Influences.ToArray();
+            foreach (var influence in influences)
+            {
+                if (influence == null) continue;
+                string routeId = influence.RouteId;
+                if (string.IsNullOrEmpty(routeId))
+                {
+                    InfluenceSlotReference slot;
+                    string reason;
+                    if (!InfluenceSlotReference.TryParse(mapQuery, influence.SlotId, out slot, out reason)
+                        || slot.Kind != InfluenceSlotKind.Route) continue;
+                    routeId = slot.RouteId;
+                }
+                bool company = influence.OwnerSubject?.SubjectType == "company";
+                if (!company && influence.PlayerId == playerId) { ownRoutes.Add(routeId); continue; }
+                string subject = company || influence.PlayerId <= 0 ? "bank" : "player:" + influence.PlayerId;
+                HashSet<string> owners;
+                if (!recipients.TryGetValue(routeId, out owners)) recipients.Add(routeId, owners = new HashSet<string>(StringComparer.Ordinal));
+                owners.Add(subject);
+            }
+            var roads = new HashSet<string>(state.Map.RoadRouteIds.ToArray(), StringComparer.Ordinal);
+            var result = new List<RouteSelectionRouteOption>();
+            foreach (var route in mapQuery.Map.Routes)
+            {
+                bool road = roadCoverageQuery is RuntimeStateRoadCoverageQuery
+                    ? roads.Contains(route.RouteId) : roadCoverageQuery.IsRouteCoveredByRoad(state, route.RouteId);
+                bool own = ownRoutes.Contains(route.RouteId);
+                var receivers = new List<RouteRecipient>();
+                if (!road && !own)
+                {
+                    HashSet<string> owners;
+                    if (!recipients.TryGetValue(route.RouteId, out owners)) owners = new HashSet<string>(StringComparer.Ordinal) { "bank" };
+                    var keys = new List<string>(owners);
+                    keys.Sort(StringComparer.Ordinal);
+                    foreach (string subject in keys)
+                    {
+                        int receiver;
+                        if (subject != "bank" && (!int.TryParse(subject.Substring(7), out receiver) || state.FindPlayer(receiver) == null)) continue;
+                        receivers.Add(new RouteRecipient { SubjectKey = subject, Kind = subject == "bank" ? RouteRecipientKind.Bank : RouteRecipientKind.Player,
+                            PlayerId = subject == "bank" ? (int?)null : int.Parse(subject.Substring(7)) });
+                    }
+                }
+                var covered = new List<string>();
+                var seen = new HashSet<string>(StringComparer.Ordinal);
+                if (route.CoveredLocationIds != null) foreach (string location in route.CoveredLocationIds)
+                    if (!string.IsNullOrEmpty(location) && seen.Add(location)) covered.Add(location);
+                foreach (string endpoint in new[] { route.FromLocationId, route.ToLocationId })
+                    if (!string.IsNullOrEmpty(endpoint) && seen.Add(endpoint)) covered.Add(endpoint);
+                result.Add(new RouteSelectionRouteOption { RouteId = route.RouteId, CoveredLocationIds = covered.AsReadOnly(),
+                    FreeReason = road ? (own ? RouteFreeReason.OwnInfluenceAndPublicRoad : RouteFreeReason.PublicRoad) : (own ? RouteFreeReason.OwnInfluence : RouteFreeReason.None),
+                    TollGoldVoucherAmount = road || own ? 0 : RouteCostGoldVoucher, EligibleRecipients = receivers.AsReadOnly() });
+            }
+            return result.AsReadOnly();
+        }
+
         public ValidationResult TryBuildPaymentPlan(
             GameState state,
             int playerId,
@@ -216,9 +277,10 @@ namespace YC.Domain.Travel
             int playerId,
             RouteTollPaymentKeyMode paymentKeyMode)
         {
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            var influences = state.Map.Influences.ToArray();
+            for (var i = 0; i < influences.Length; i++)
             {
-                var influence = state.Map.Influences[i];
+                var influence = influences[i];
                 if (influence.PlayerId == playerId && IsInfluenceOnPaymentKey(influence, paymentKey, paymentKeyMode))
                 {
                     return true;
@@ -235,18 +297,20 @@ namespace YC.Domain.Travel
             RouteTollPaymentKeyMode paymentKeyMode)
         {
             var owners = new List<int>();
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            var influences = state.Map.Influences.ToArray();
+            for (var i = 0; i < influences.Length; i++)
             {
-                var influence = state.Map.Influences[i];
-                if (influence.PlayerId == playerId ||
+                var influence = influences[i];
+                var ownerPlayerId = influence.OwnerSubject?.SubjectType == "company" ? -1 : influence.PlayerId;
+                if (ownerPlayerId == playerId ||
                     !IsInfluenceOnPaymentKey(influence, paymentKey, paymentKeyMode))
                 {
                     continue;
                 }
 
-                if (!owners.Contains(influence.PlayerId))
+                if (!owners.Contains(ownerPlayerId))
                 {
-                    owners.Add(influence.PlayerId);
+                    owners.Add(ownerPlayerId);
                 }
             }
 

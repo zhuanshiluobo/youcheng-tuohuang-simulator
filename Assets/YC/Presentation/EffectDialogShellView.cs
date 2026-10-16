@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using YC.Domain.Presentation;
 
 namespace YC.Presentation
 {
@@ -14,7 +15,12 @@ namespace YC.Presentation
         [SerializeField] private RectTransform panel;
         [SerializeField] private RectTransform expandedContent;
         [SerializeField] private Text titleText;
+        [SerializeField] private RectTransform countedTitleRoot;
+        [SerializeField] private Text countedTitlePrefix;
+        [SerializeField] private Text countedTitleNumber;
+        [SerializeField] private Text countedTitleSuffix;
         [SerializeField] private Text descriptionText;
+        [SerializeField] private GameplayTextView descriptionDocument;
         [SerializeField] private ScrollRect optionScroll;
         [SerializeField] private RectTransform optionContent;
         [SerializeField] private EffectDialogOptionRowView optionRowTemplate;
@@ -31,8 +37,12 @@ namespace YC.Presentation
         [SerializeField] private Text cardPickerHint;
         [SerializeField] private string cardPickerSelectionHint;
         [SerializeField] private string cardPickerReadOnlyHint;
+        [SerializeField] private bool useOptionScrollbarArtwork;
+        [SerializeField] private RawImage optionScrollbarTrackArtwork;
+        [SerializeField] private RawImage optionScrollbarThumbArtwork;
         private float? pendingScrollPosition;
         private Action dismissOnBackgroundClick;
+        private readonly System.Collections.Generic.List<GameObject> dynamicRows = new System.Collections.Generic.List<GameObject>();
         public bool IsCardPicker => cardPickerRow != null;
         // 保留既有“1 = 列表开头”的草稿协议；卡牌页将其映射到横向滚动。
         public float ScrollPosition => pendingScrollPosition ?? (optionScroll == null ? 1f :
@@ -47,13 +57,33 @@ namespace YC.Presentation
 
         private void OnEnable()
         {
+            if (useOptionScrollbarArtwork) Canvas.willRenderCanvases += RefreshOptionScrollbarArtwork;
             if (!pendingScrollPosition.HasValue) return;
             Canvas.willRenderCanvases -= ApplyPendingScroll;
             Canvas.willRenderCanvases += ApplyPendingScroll;
         }
 
-        private void OnDisable() { Canvas.willRenderCanvases -= ApplyPendingScroll; }
-        private void OnDestroy() { Canvas.willRenderCanvases -= ApplyPendingScroll; }
+        private void OnDisable()
+        { Canvas.willRenderCanvases -= ApplyPendingScroll; Canvas.willRenderCanvases -= RefreshOptionScrollbarArtwork; }
+        private void OnDestroy()
+        { Canvas.willRenderCanvases -= ApplyPendingScroll; Canvas.willRenderCanvases -= RefreshOptionScrollbarArtwork; }
+
+        private void RefreshOptionScrollbarArtwork()
+        {
+            if (!useOptionScrollbarArtwork || !isActiveAndEnabled) return;
+            FitOptionScrollbarArtwork(optionScrollbarTrackArtwork);
+            FitOptionScrollbarArtwork(optionScrollbarThumbArtwork);
+        }
+
+        private static void FitOptionScrollbarArtwork(RawImage artwork)
+        {
+            if (artwork == null || !(artwork.transform.parent is RectTransform target)) return;
+            // 只让已裁切、旋转的装饰图适配原控件矩形，不改Scrollbar/Handle的布局或命中范围。
+            var size = new Vector2(target.rect.height, target.rect.width);
+            if (artwork.rectTransform.sizeDelta != size) artwork.rectTransform.sizeDelta = size;
+            var targetGraphic = target.GetComponent<Image>();
+            if (targetGraphic != null) artwork.color = targetGraphic.canvasRenderer.GetColor();
+        }
         private void ApplyPendingScroll()
         {
             if (this == null)
@@ -123,6 +153,11 @@ namespace YC.Presentation
             Require(descriptionText, nameof(descriptionText));
             Require(optionScroll, nameof(optionScroll));
             Require(optionContent, nameof(optionContent));
+            if (useOptionScrollbarArtwork)
+            {
+                Require(optionScrollbarTrackArtwork, nameof(optionScrollbarTrackArtwork));
+                Require(optionScrollbarThumbArtwork, nameof(optionScrollbarThumbArtwork));
+            }
             Require(resourceSummaryText, nameof(resourceSummaryText));
             Require(facilityCardTemplate, nameof(facilityCardTemplate));
             Require(footer, nameof(footer));
@@ -172,6 +207,7 @@ namespace YC.Presentation
         public void PrepareForUse(string overlayName, string panelName, Vector2 panelSize, Vector2 panelPosition,
             bool blockBackgroundInput)
         {
+            ClearDynamicContent();
             dismissOnBackgroundClick = null;
             gameObject.name = overlayName ?? string.Empty;
             panel.gameObject.name = panelName ?? string.Empty;
@@ -205,6 +241,8 @@ namespace YC.Presentation
             string descriptionName,
             int titleSize)
         {
+            if (descriptionDocument != null) descriptionDocument.ClearBinding();
+            ResetCountedHeading();
             titleText.gameObject.name = titleName ?? string.Empty;
             titleText.text = title ?? string.Empty;
             titleText.fontStyle = FontStyle.Normal;
@@ -213,6 +251,53 @@ namespace YC.Presentation
             descriptionText.text = description ?? string.Empty;
             descriptionText.gameObject.SetActive(!string.IsNullOrEmpty(description));
             LayoutRebuilder.MarkLayoutForRebuild(expandedContent);
+        }
+
+        public bool TryRenderGameplayHeading(GameplayTextDocument document,
+            Action<Component, GameplayTextDocument, bool> render, out string reason)
+        {
+            reason = descriptionDocument == null ? "正文GameplayTextView引用缺失。" :
+                descriptionText == null || descriptionDocument.GetComponent<Text>() != descriptionText ? "正文GameplayTextView必须引用原Text同对象。" :
+                render == null ? "正文渲染回调缺失。" : string.Empty;
+            if (reason.Length > 0) return false;
+            descriptionText.gameObject.SetActive(document != null && document.Runs.Count > 0);
+            render(descriptionDocument, document, false);
+            return true;
+        }
+
+        public void ConfigureCountedHeading(string format, int count, string description)
+        {
+            var title = format ?? string.Empty;
+            try { title = string.Format(System.Globalization.CultureInfo.InvariantCulture, title, count); }
+            catch (FormatException) { /* 自定义格式无效时保留原文，不生成替代静态标题。 */ }
+            ConfigureHeading(title, description, 70f, "Title", "Description", 27);
+            var placeholder = (format ?? string.Empty).IndexOf("{0}", StringComparison.Ordinal);
+            if (placeholder < 0 || format.IndexOf('{') != placeholder || format.LastIndexOf('{') != placeholder ||
+                format.IndexOf('}') != placeholder + 2 || format.LastIndexOf('}') != placeholder + 2)
+            {
+                Debug.LogWarning("牌堆计数标题需要一个明确的 {0} 占位符，当前保留普通标题显示。", this);
+                return;
+            }
+            if (countedTitleRoot == null || countedTitlePrefix == null || countedTitleNumber == null || countedTitleSuffix == null)
+            {
+                Debug.LogWarning("牌堆计数标题缺少序列化的文字与数字控件，当前保留普通标题显示。", this);
+                return;
+            }
+            countedTitlePrefix.text = format.Substring(0, placeholder);
+            countedTitleNumber.text = count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            countedTitleSuffix.text = format.Substring(placeholder + 3);
+            titleText.enabled = false;
+            countedTitleRoot.gameObject.SetActive(true);
+            LayoutRebuilder.MarkLayoutForRebuild(countedTitleRoot);
+        }
+
+        private void ResetCountedHeading()
+        {
+            if (titleText != null) titleText.enabled = true;
+            if (countedTitleRoot != null) countedTitleRoot.gameObject.SetActive(false);
+            if (countedTitlePrefix != null) countedTitlePrefix.text = string.Empty;
+            if (countedTitleNumber != null) countedTitleNumber.text = string.Empty;
+            if (countedTitleSuffix != null) countedTitleSuffix.text = string.Empty;
         }
 
         public RectTransform ConfigureOptionScroll(string objectName, float bottom, float top)
@@ -248,6 +333,7 @@ namespace YC.Presentation
         {
             ConfigureOptionScroll("Option Scroll", 0, 0);
             var row = Instantiate(effectRowTemplate, OptionContent, false);
+            dynamicRows.Add(row.gameObject);
             row.gameObject.SetActive(true);
             return row;
         }
@@ -255,6 +341,7 @@ namespace YC.Presentation
         public EffectDialogOptionRowView CreateOptionRow(RectTransform parent, bool execution = false)
         {
             var row = Instantiate(execution ? executionRowTemplate : optionRowTemplate, parent == null ? OptionContent : parent, false);
+            dynamicRows.Add(row.gameObject);
             row.gameObject.SetActive(true);
             return row;
         }
@@ -263,6 +350,7 @@ namespace YC.Presentation
         {
             ConfigureResourceScroll();
             var row = Instantiate(resourceRowTemplate, OptionContent, false);
+            dynamicRows.Add(row.gameObject);
             row.gameObject.SetActive(true);
             return row;
         }
@@ -290,8 +378,37 @@ namespace YC.Presentation
         public FacilityEffectCardView CreateFacilityCard()
         {
             var card = Instantiate(facilityCardTemplate, OptionContent, false);
+            dynamicRows.Add(card.gameObject);
             card.gameObject.SetActive(true);
             return card;
+        }
+
+        public Text CreateDynamicText(Transform parent)
+        {
+            var text = Instantiate(descriptionText, parent, false);
+            dynamicRows.Add(text.gameObject);
+            return text;
+        }
+
+        public void ClearDynamicContent()
+        {
+            ResetCountedHeading();
+            foreach (var item in dynamicRows)
+            {
+                if (item == null) continue;
+                item.SetActive(false);
+                var row = item.GetComponent<UiEffectRowView>(); if (row != null) row.ClearBinding();
+                foreach (var document in item.GetComponentsInChildren<GameplayTextView>(true)) document.ClearBinding();
+                foreach (var text in item.GetComponentsInChildren<Text>(true)) text.text = string.Empty;
+                if (UnityEngine.Application.isPlaying) Destroy(item); else DestroyImmediate(item);
+            }
+            dynamicRows.Clear();
+            dismissOnBackgroundClick = null;
+            if (titleText != null) titleText.text = string.Empty;
+            if (descriptionDocument != null) descriptionDocument.ClearBinding();
+            if (descriptionText != null) descriptionText.text = string.Empty;
+            if (resourceSummaryText != null) resourceSummaryText.text = string.Empty;
+            foreach (var action in actionButtons) if (action != null) { action.Button.onClick.RemoveAllListeners(); action.gameObject.SetActive(false); }
         }
 
     }

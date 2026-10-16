@@ -1,0 +1,193 @@
+{
+  "name": "GameBoxWindow",
+  "version": "1.0",
+  "kind": "engine-neutral-prefab-contract",
+  "referenceCanvas": [
+    1920,
+    1080
+  ],
+  "layoutFile": "layout.json",
+  "assetFile": "assets.json",
+  "defaultClosePolicy": "complete-blank-click",
+  "visibleButtons": [],
+  "hierarchy": [
+    {
+      "name": "ScreenDim",
+      "asset": "dim-overlay",
+      "blockInputToMain": true
+    },
+    {
+      "name": "Window",
+      "children": [
+        {
+          "name": "Fill",
+          "asset": "window-fill"
+        },
+        {
+          "name": "Frame",
+          "asset": "window-frame"
+        },
+        {
+          "name": "Header",
+          "children": [
+            {
+              "name": "Fill",
+              "asset": "header-fill"
+            },
+            {
+              "name": "Icon",
+              "asset": "game-box-icon"
+            },
+            {
+              "name": "Accent",
+              "asset": "header-accent"
+            },
+            {
+              "name": "Title",
+              "text": "游戏盒"
+            },
+            {
+              "name": "Subtitle",
+              "text": "已放回的组件"
+            },
+            {
+              "name": "MarkerStrip",
+              "prefab": "MarkerCountStrip"
+            }
+          ]
+        },
+        {
+          "name": "CharacterModule",
+          "prefab": "CardPileModule",
+          "bind": "characters",
+          "kind": "character"
+        },
+        {
+          "name": "EventModule",
+          "prefab": "CardPileModule",
+          "bind": "events",
+          "kind": "event"
+        },
+        {
+          "name": "OwnEnterpriseModule",
+          "prefab": "EnterpriseModule",
+          "bind": "ownEnterprise"
+        },
+        {
+          "name": "TokenModule",
+          "prefab": "TokenFlowModule",
+          "bind": "tokens"
+        },
+        {
+          "name": "FooterDivider",
+          "asset": "footer-divider"
+        },
+        {
+          "name": "FooterText",
+          "text": "单击牌堆查看 · 点击空白处关闭"
+        }
+      ]
+    }
+  ],
+  "prefabs": {
+    "ModuleChrome": {
+      "assets": [
+        "module-fill",
+        "module-frame",
+        "module-title-fill",
+        "module-title-frame",
+        "module-title-accent"
+      ],
+      "runtimeLabels": [
+        "title",
+        "count"
+      ]
+    },
+    "MarkerCountStrip": {
+      "assets": [
+        "marker-strip-fill",
+        "marker-strip-frame"
+      ],
+      "bind": "markerCounts",
+      "squareAssets": [
+        "player-01",
+        "player-02",
+        "player-04",
+        "player-08"
+      ],
+      "countInsideSquare": true,
+      "consumePointer": true
+    },
+    "CardPileModule": {
+      "chrome": "ModuleChrome",
+      "sourceOrder": "bottom-to-top",
+      "visibleLayers": 5,
+      "layout": "GameBoxLayout.layoutPile",
+      "image": "displayImage",
+      "preserveFacing": true,
+      "onClick": "inspectPile",
+      "mode": "inspect",
+      "source": "game-box",
+      "optionalCardDecorations": [
+        "card-shadow",
+        "generic-card-frame",
+        "pile-hover"
+      ],
+      "emptyMessages": {
+        "character": "暂无放回的角色牌",
+        "event": "暂无放回的事件牌"
+      },
+      "awaitingImageSize": "awaiting-image-size",
+      "countUsesAllEntries": true
+    },
+    "EnterpriseModule": {
+      "chrome": "ModuleChrome",
+      "ownerFilter": "currentViewerPlayerId",
+      "maximum": 1,
+      "preserveAspect": true,
+      "emptyMessage": "尚未放回合作企业板",
+      "consumePointer": true
+    },
+    "TokenFlowModule": {
+      "chrome": "ModuleChrome",
+      "layout": "GameBoxLayout.layoutTokens",
+      "image": "displayImage",
+      "count": "count",
+      "autoMerge": false,
+      "preserveAspect": true,
+      "clipContent": true,
+      "scrollbarSide": "right",
+      "scrollbarAssets": [
+        "scroll-track",
+        "scroll-thumb-default",
+        "scroll-thumb-hover",
+        "scroll-thumb-drag"
+      ],
+      "optionalAssets": [
+        "count-badge",
+        "token-item-hover"
+      ],
+      "emptyMessage": "暂无放回的 Token",
+      "hideScrollbarIfNoOverflow": true,
+      "consumePointer": true
+    }
+  },
+  "eventImageDimensions": {
+    "required": "actual individual sprite width and height",
+    "fallbackToCharacterRatio": false,
+    "originalVerified": false,
+    "previewPlaceholderOnly": true
+  },
+  "emptyTokenModulePolicy": "preserve-layout-show-empty-message",
+  "inspectionReturn": "preserve game box and token scroll offset",
+  "closeGesture": {
+    "consumePointer": true,
+    "maxMovementScreenPixels": 6,
+    "ignoreOpeningGesture": true,
+    "excludeConsumedContent": true
+  },
+  "notes": [
+    "This describes engine integration; it is not a Unity or Godot scene file.",
+    "The preview HTML is an example view. It does not implement the host card inspector or game data loading."
+  ]
+}

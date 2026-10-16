@@ -1,5 +1,5 @@
 return function(ctx)
-    return { Effect.Choice({ player = ctx.playerId, interactionType = 'facility.entry.choice',
+    return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, interactionType = 'effect.choice.execute',
         promptKey = 'facility.entry.choose_vehicle_action', branches = {
             { id = 'vehicle.remove_move', effects = {
                 Effect.SelectInfluence({ player = ctx.playerId, operation = 'remove', ownerFilter = 'any',
@@ -9,5 +9,11 @@ return function(ctx)
             } },
             { id = 'vehicle.explore', effects = { Effect.ChooseExplore({ player = ctx.playerId }) } }
         }
-    }) }
+    }), { interaction = {
+        prompt = Text.Ref('core:interaction.facility.vehicle.prompt'),
+        options = {
+            { candidateId = 'vehicle.remove_move', label = Text.Ref('core:interaction.facility.vehicle.remove_move') },
+            { candidateId = 'vehicle.explore', label = Text.Ref('core:interaction.facility.vehicle.explore') }
+        }
+    } }) }
 end

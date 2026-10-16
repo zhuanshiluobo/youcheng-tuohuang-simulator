@@ -1,0 +1,6 @@
+{
+  "asset": "ivory-paper-original.png",
+  "method": "built-in image_gen",
+  "usage": "Subtle paper fill only; all markers, tabular values, points, layouts and icons are separate deterministic assets/text.",
+  "prompt": "Create one production UI background TEXTURE asset only, NOT a UI screenshot or mockup. Full-bleed perfectly front-facing flat sheet of warm light ivory archival drafting paper for a restrained frontier exploration / corporate cooperation tabletop-game interface. Landscape 3:2, as high resolution as possible. Base tone around sRGB #E5DDC9, extremely subtle short fine paper fibers and microscopic neutral grain, overall bright quiet evenly illuminated matte paper. Near-uniform color and brightness across the entire image. This will sit behind a dense table and dark text, so keep contrast VERY LOW and grain delicate. A clean contemporary planning document material with a small amount of lived-in paper texture, NOT medieval parchment. NO visible long fibers, NO vertical wood-grain bands, NO broad brush strokes, NO folds, NO wrinkled creases, NO stains, NO shadows, NO vignette, NO perspective, NO border, NO frame, NO symbols, NO grids, NO text, NO objects, NO desk. The texture must occupy every pixel edge to edge. It should resemble the quiet unprinted ivory paper surfaces in an elegant warm-charcoal game UI, with nothing else on it."
+}

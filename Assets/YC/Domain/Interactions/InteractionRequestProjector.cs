@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using YC.Domain.Effects;
 using YC.Domain.State;
 
 namespace YC.Domain.Interactions
@@ -7,6 +9,7 @@ namespace YC.Domain.Interactions
     [Serializable]
     public sealed class InteractionRequestProjection
     {
+        public YC.Domain.Presentation.GameplayInteractionPresentation Presentation;
         public bool VisibleToViewer;
         public string InteractionId = string.Empty;
         public string SourceNodeId = string.Empty;
@@ -33,6 +36,36 @@ namespace YC.Domain.Interactions
         public static InteractionRequestProjection ProjectForPlayer(
             InteractionRequest request,
             int viewerPlayerId)
+            => ProjectForPlayerCore(request, viewerPlayerId, null);
+
+        public static InteractionRequestProjection ProjectForPlayer(
+            InteractionRequest request, int viewerPlayerId, GameStateView visibleView, string expectedGameId)
+        {
+            Func<YC.Domain.Presentation.GameplayTextArgument, bool> canSee = null;
+            if (request != null && visibleView?.Interactions != null && !string.IsNullOrEmpty(expectedGameId) &&
+                visibleView.GameId == expectedGameId && visibleView.ViewerRole == GameStateViewerRole.Player &&
+                visibleView.ViewerPlayerId == viewerPlayerId && visibleView.StateRevision >= request.StateRevision)
+            {
+                var matches = visibleView.Interactions.Where(value => value != null &&
+                    value.InteractionId == request.GetStableInteractionId()).Take(2).ToArray();
+                if (matches.Length == 1)
+                {
+                    var match = matches[0];
+                    if (match.SourceNodeId == request.SourceNodeId && match.OwnerEffectId == request.OwnerEffectId &&
+                        match.Kind == request.InteractionTypeId && match.AnsweringPlayerId == request.AnsweringPlayerId &&
+                        match.Visibility == request.Visibility && match.StateRevision == request.StateRevision &&
+                        match.CandidateSetId == request.CandidateSetId && match.CandidateSetVersion == request.CandidateSetVersion &&
+                        match.MinSelections == request.MinSelections && match.MaxSelections == request.MaxSelections &&
+                        match.AllowDecline == request.AllowDecline && match.AnswerSchema == request.AnswerSchema && match.Status == request.Status &&
+                        match.CandidateIds != null && request.CandidateIds != null && match.CandidateIds.SequenceEqual(request.CandidateIds))
+                        canSee = GameStateViewProjector.CreateGameplayTextArgumentVisibility(visibleView);
+                }
+            }
+            return ProjectForPlayerCore(request, viewerPlayerId, canSee);
+        }
+
+        private static InteractionRequestProjection ProjectForPlayerCore(InteractionRequest request, int viewerPlayerId,
+            Func<YC.Domain.Presentation.GameplayTextArgument, bool> canSeeArgument)
         {
             if (request == null) return null;
 
@@ -42,6 +75,12 @@ namespace YC.Domain.Interactions
                 request.Visibility,
                 request.AnsweringPlayerId,
                 GameStateViewer.Player(viewerPlayerId));
+            var rows = visible ? ItemTransferEffectExecutor.Value(request.PromptParameters, "rowIds") : null;
+            IEnumerable<string> rowIds = rows?.Kind == NormalizedValueKind.Array
+                ? rows.Items.Where(value => value != null).Select(value => value.Kind == NormalizedValueKind.StableReference
+                    ? value.ReferenceId : value.Kind == NormalizedValueKind.String ? value.StringValue : null)
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                : Array.Empty<string>();
             var projection = new InteractionRequestProjection
             {
                 VisibleToViewer = visible,
@@ -54,6 +93,7 @@ namespace YC.Domain.Interactions
                 AnsweringPlayerId = visible ? request.AnsweringPlayerId : -1,
                 Visibility = visible ? request.Visibility ?? string.Empty : GameStateVisibilityPolicy.Public,
                 PromptKey = visible ? request.PromptKey : string.Empty,
+                Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.ProjectInteraction(request.Presentation, visible, request.CandidateIds, rowIds, canSeeArgument),
                 PromptParameters = visible && request.PromptParameters != null
                     ? request.PromptParameters.Clone()
                     : NormalizedValue.CreateObject(new List<NormalizedValueEntry>()),

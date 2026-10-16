@@ -59,6 +59,9 @@ namespace YC.Tests.EditMode
 
                 args[5] = true;
                 bind.Invoke(row, args);
+                status.onClick.Invoke(); Assert.That(commands, Is.Zero, "明细即使传入执行回调也只能查看");
+                mode = Enum.Parse(rowType.GetNestedType("Mode"), "ChoiceExecute"); args[3] = mode;
+                bind.Invoke(row, args);
                 status.onClick.Invoke();
                 Assert.That(commands, Is.EqualTo(1));
                 current = false;

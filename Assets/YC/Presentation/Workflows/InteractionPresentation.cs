@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using YC.Domain.Presentation;
 
 namespace YC.Presentation.Workflows
 {
@@ -34,7 +35,14 @@ namespace YC.Presentation.Workflows
             string promptText,
             InteractionMode panelMode,
             bool replacesHighlights)
+            : this(highlights, promptText, panelMode, replacesHighlights, null)
         {
+        }
+
+        public InteractionPresentation(IReadOnlyList<WorkflowHighlight> highlights, string promptText,
+            InteractionMode panelMode, bool replacesHighlights, GameplayTextDocument promptDocument)
+        {
+            PromptDocument = promptDocument;
             Highlights = highlights == null
                 ? NoHighlights
                 : new List<WorkflowHighlight>(highlights).AsReadOnly();
@@ -57,6 +65,8 @@ namespace YC.Presentation.Workflows
 
         public string PromptText { get; private set; }
 
+        public GameplayTextDocument PromptDocument { get; private set; }
+
         public InteractionMode PanelMode { get; private set; }
 
         public bool ReplacesHighlights { get; private set; }
@@ -66,7 +76,7 @@ namespace YC.Presentation.Workflows
             get
             {
                 return Highlights.Count == 0 &&
-                       string.IsNullOrEmpty(PromptText) &&
+                       string.IsNullOrEmpty(PromptText) && PromptDocument == null &&
                        PanelMode == InteractionMode.Hidden;
             }
         }

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using YC.Domain.Cards;
 using YC.Domain.Facilities;
+using YC.Domain.Interactions;
+using YC.Domain.Presentation;
 using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
@@ -28,6 +30,8 @@ namespace YC.Presentation
         {
             get { return view != null; }
         }
+
+        public EventChoiceDialogView Copy => view != null ? view : dialogRegistry.EventChoiceDialogPrefab;
 
         public void SetChoiceHighlightColor(Color color)
         {
@@ -376,6 +380,94 @@ namespace YC.Presentation
                 layout.ExplorePaymentPanelRowStep);
 
             view.ExploreConfirmButton.onClick.AddListener(() => InvokeStep(onConfirm));
+        }
+
+        public void ShowConditionPayment(InteractionRequestProjection request, GameplayTextDocument description,
+            Action<Component, GameplayTextDocument, bool> renderText,
+            Func<bool> isCurrent, Action execute, Action decline)
+        {
+            if (request == null || isCurrent == null || !isCurrent()) return;
+            var copy = dialogRegistry.EventChoiceDialogPrefab;
+            if (!PrepareView(EventChoiceDialogMode.ConditionPayment,
+                    "Condition Payment Overlay", "Condition Payment Panel",
+                    copy.ConditionPaymentPanelSize, copy.ConditionPaymentPanelPosition, false)) return;
+            var kind = request.PromptParameters?.Properties.Find(entry => entry.Name == "sourceKind")?.Value;
+            view.SetConditionPaymentTitle(kind?.StringValue == "condition");
+            if (description == null || renderText == null)
+                throw new InvalidOperationException("条件付款缺少正式提示文档或渲染入口。");
+            view.DescriptionText.gameObject.SetActive(true);
+            view.ConditionPaymentDescriptionDocument.enabled = true;
+            // 两种付款文档共用已配置的紧凑正文尺度，避免短文沿事件正文BestFit上限放大。
+            view.ConditionPaymentDescriptionDocument.SetFontSizeOverride(view.DescriptionText.resizeTextForBestFit
+                ? view.DescriptionText.resizeTextMinSize : view.DescriptionText.fontSize);
+            renderText(view.ConditionPaymentDescriptionDocument, description, false);
+            var canPay = request.PromptParameters?.Properties.Find(entry => entry.Name == "canPay")?.Value;
+            view.ConditionPaymentExecuteButton.interactable = execute != null &&
+                (canPay?.Kind != NormalizedValueKind.Boolean || canPay.BooleanValue);
+            view.ConditionPaymentDeclineButton.gameObject.SetActive(decline != null);
+            view.ConditionPaymentExecuteButton.onClick.AddListener(() =>
+            {
+                if (isCurrent() && view != null && view.ConditionPaymentExecuteButton.IsInteractable())
+                    InvokeTerminal(execute);
+            });
+            if (decline != null) view.ConditionPaymentDeclineButton.onClick.AddListener(() =>
+            {
+                if (isCurrent()) InvokeTerminal(decline);
+            });
+        }
+
+        public void ShowRoutePaymentOptions(RoutePaymentOptionsViewModel model, Func<int, string> getPlayerDisplayName)
+        {
+            if (model?.Recipients == null || model.IsCurrent == null || !model.IsCurrent()) return;
+            var layout = GetLayoutProfile();
+            var buttonCount = model.Recipients.Count + (model.Remove == null ? 0 : 1);
+            if (!PrepareView(EventChoiceDialogMode.ResourceCollectionPayment,
+                    "Resource Collection Payment Overlay", "Resource Collection Payment Panel",
+                    new Vector2(layout.ResourcePaymentPanelWidth,
+                        layout.ResourcePaymentPanelBaseHeight + buttonCount * layout.ResourcePaymentPanelRowStep),
+                    layout.ResourcePaymentPanelPosition, false)) return;
+            var hasPlayers = false;
+            view.ResourcePaymentBankButton.gameObject.SetActive(false);
+            foreach (var recipient in model.Recipients)
+            {
+                var subjectKey = recipient.SubjectKey;
+                var isBank = recipient.Kind == YC.Domain.Travel.RouteRecipientKind.Bank;
+                var playerName = isBank ? view.ResourcePaymentBankName :
+                    getPlayerDisplayName == null ? recipient.PlayerId.ToString() : getPlayerDisplayName(recipient.PlayerId.Value);
+                Button button;
+                if (isBank)
+                {
+                    button = view.ResourcePaymentBankButton;
+                    button.gameObject.SetActive(true);
+                    view.ResourcePaymentBankLabel.text = string.Format(view.ResourcePaymentBankFormat, model.GoldVoucherAmount);
+                }
+                else
+                {
+                    hasPlayers = true;
+                    var row = view.CreateResourceCollectionRecipientButton(view.ResourcePaymentRecipientHost);
+                    row.Root.gameObject.name = "Route Recipient " + subjectKey;
+                    row.Label.text = string.Format(view.ResourcePaymentPlayerFormat, playerName, model.GoldVoucherAmount);
+                    button = row.Button;
+                }
+                button.onClick.AddListener(() =>
+                {
+                    if (model.IsCurrent()) InvokeTerminal(() => model.SelectRecipient?.Invoke(subjectKey));
+                });
+                if (subjectKey == model.SelectedSubjectKey)
+                {
+                    view.ResourcePaymentReceiverText.text = string.Format(view.ResourcePaymentSelectedFormat, playerName, model.GoldVoucherAmount);
+                    button.Select();
+                }
+            }
+            view.ResourcePaymentRecipientHost.gameObject.SetActive(hasPlayers);
+            if (string.IsNullOrEmpty(model.SelectedSubjectKey))
+                view.ResourcePaymentReceiverText.text = hasPlayers ? view.ResourcePaymentPlayerPrompt : view.ResourcePaymentBankPrompt;
+            view.ResourcePaymentCancelButton.gameObject.SetActive(model.Remove != null);
+            if (model.Remove != null) view.ResourcePaymentCancelButton.onClick.AddListener(() =>
+            {
+                if (model.IsCurrent()) InvokeTerminal(model.Remove);
+            });
+            ConfigureClose(() => { if (model.IsCurrent()) model.Cancel?.Invoke(); }, true);
         }
 
         public void ShowResourceCollectionPaymentOptions(

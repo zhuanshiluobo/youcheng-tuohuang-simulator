@@ -32,6 +32,14 @@ namespace YC.Domain.Influence
             return FindInfluenceCore(state, slotId);
         }
 
+        // placements 仅用于当前同步查询批次，不由服务保存或跨刷新复用。
+        public InfluencePlacement FindInfluence(GameState state, string slotId, IReadOnlyList<InfluencePlacement> placements)
+        {
+            if (state == null) throw new ArgumentNullException(nameof(state));
+            if (placements == null) throw new ArgumentNullException(nameof(placements));
+            return FindInfluenceCore(state, slotId, placements);
+        }
+
         public int CountInRegion(GameState state, int playerId, string regionId, bool includeCity)
         {
             if (state == null) throw new ArgumentNullException(nameof(state));
@@ -48,6 +56,7 @@ namespace YC.Domain.Influence
         {
             if (state == null) throw new ArgumentNullException(nameof(state));
             var results = new List<InfluencePlacement>();
+            if (state.FindPlayer(playerId) == null) return results;
             for (var i = 0; i < state.Map.Influences.Count; i++)
             {
                 if (state.Map.Influences[i].PlayerId == playerId)
@@ -72,7 +81,7 @@ namespace YC.Domain.Influence
             for (var i = 0; i < state.Map.Influences.Count; i++)
             {
                 var placement = state.Map.Influences[i];
-                if (!IsPlacementInRegion(placement, region))
+                if (state.FindPlayer(placement.PlayerId) == null || !IsPlacementInRegion(placement, region))
                 {
                     continue;
                 }
@@ -112,6 +121,12 @@ namespace YC.Domain.Influence
 
         private InfluencePlacement FindInfluenceCore(GameState state, string slotId)
         {
+            if (string.IsNullOrEmpty(slotId)) return null;
+            return FindInfluenceCore(state, slotId, state.Map.Influences);
+        }
+
+        private InfluencePlacement FindInfluenceCore(GameState state, string slotId, IReadOnlyList<InfluencePlacement> placements)
+        {
             if (string.IsNullOrEmpty(slotId))
             {
                 return null;
@@ -123,18 +138,18 @@ namespace YC.Domain.Influence
                 mapQuery, slotId, out requestedSlot, out ignoredReason);
 
             // 迁移期参数仍叫 sourceInfluenceId，但优先按实例身份查找，避免槽位移动后寻址漂移。
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            for (var i = 0; i < placements.Count; i++)
             {
-                var placement = state.Map.Influences[i];
+                var placement = placements[i];
                 if (placement != null && string.Equals(InfluenceIdentity.GetStableId(state, placement), slotId, StringComparison.Ordinal))
                 {
                     return placement;
                 }
             }
 
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            for (var i = 0; i < placements.Count; i++)
             {
-                var placement = state.Map.Influences[i];
+                var placement = placements[i];
                 if (placement.SlotId == slotId)
                 {
                     return placement;
@@ -158,6 +173,7 @@ namespace YC.Domain.Influence
 
         private int CountInRegionCore(GameState state, int playerId, MapRegionDefinition region, bool includeCity)
         {
+            if (state.FindPlayer(playerId) == null) return 0;
             var count = 0;
             for (var i = 0; i < state.Map.Influences.Count; i++)
             {
@@ -242,7 +258,7 @@ namespace YC.Domain.Influence
                 return false;
             }
 
-            return region.LocationIds.Contains(locationId);
+            return false;
         }
 
         private bool IsRouteInRegion(string routeId, MapRegionDefinition region)
@@ -262,13 +278,7 @@ namespace YC.Domain.Influence
                 return route.RegionId == region.RegionId;
             }
 
-            if (region.RouteIds.Contains(routeId))
-            {
-                return true;
-            }
-
-            return IsLocationInRegion(route.FromLocationId, region)
-                && IsLocationInRegion(route.ToLocationId, region);
+            return false;
         }
     }
 }

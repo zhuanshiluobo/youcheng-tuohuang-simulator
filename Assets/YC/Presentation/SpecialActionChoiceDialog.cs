@@ -35,6 +35,32 @@ namespace YC.Presentation
             get { return shell.IsShowing; }
         }
 
+        public void ShowPaymentDraft(string description, IReadOnlyList<string> labels,
+            IReadOnlyList<int> maximums, IReadOnlyList<int> initialValues,
+            Action<IReadOnlyList<int>> draftChanged, Action<bool> validityChanged,
+            Func<bool> isCurrent, Func<bool> canConfirm, Func<bool> canEdit, Func<IReadOnlyList<int>, bool> isValid,
+            Action<IReadOnlyList<int>> confirm, Action cancel)
+        {
+            var panel = shell.PreparePage(getCanvas(), "Special Action Choice Overlay",
+                "Special Action Choice Panel", layoutProfile.SpecialActionPaymentPanelSize,
+                layoutProfile.SpecialActionPaymentPanelPosition, true);
+            if (panel == null) return;
+            shell.AddResourceAllocation(panel, new ResourceAllocationSpec
+            {
+                Title = layoutProfile.ResourceAllocationTitle, Description = description,
+                Labels = labels, Maximums = maximums, InitialValues = initialValues,
+                DraftChanged = draftChanged, DraftValidityChanged = validityChanged,
+                IsCurrent = isCurrent, CanConfirm = canConfirm, CanEdit = canEdit, IsValidAllocation = isValid,
+                ShowInventoryPreview = false,
+                LabelWidth = layoutProfile.ResourceLabelWidth, LabelHeight = layoutProfile.ResourceLabelHeight,
+                LabelX = layoutProfile.ResourceLabelX, DecreaseX = layoutProfile.ResourceDecreaseX,
+                ValueX = layoutProfile.ResourceValueX, IncreaseX = layoutProfile.ResourceIncreaseX,
+                ConfirmName = "Confirm Special Action Payment", ConfirmLabel = layoutProfile.SelectionConfirmLabel,
+                CancelName = "Cancel Special Action Payment", CancelLabel = layoutProfile.SelectionCancelLabel,
+                Confirm = confirm, Cancel = cancel, CloseBeforeConfirm = true, CloseBeforeCancel = true
+            });
+        }
+
 
 
         public void ShowCompositePayment(
@@ -56,7 +82,7 @@ namespace YC.Presentation
             Action cancel)
         {
             var canvas = getCanvas();
-            var panel = shell.Rebuild(
+            var panel = shell.PreparePage(
                 canvas,
                 "Special Action Choice Overlay",
                 "Special Action Choice Panel",
@@ -104,7 +130,7 @@ namespace YC.Presentation
             string summary)
         {
             var canvas = getCanvas();
-            var panel = shell.Rebuild(
+            var panel = shell.PreparePage(
                 canvas,
                 "Special Action Choice Overlay",
                 "Special Action Choice Panel",

@@ -105,7 +105,7 @@ namespace YC.Tests.EditMode
             state.PendingSpecialAction.RemainingRepetitions = 1;
             Assert.That(Synchronize(), Is.True);
             var secondOverlay = FindChild(canvasObject, "Special Action Choice Overlay");
-            Assert.That(secondOverlay, Is.Not.SameAs(firstOverlay));
+            Assert.That(secondOverlay.activeInHierarchy, Is.True);
             Assert.That(GetText(secondOverlay, "Description"), Does.Contain("第二段"));
         }
 
@@ -164,7 +164,7 @@ namespace YC.Tests.EditMode
             state.PendingSpecialAction.RemainingRepetitions = 0;
             state.PendingSpecialAction.TraversedRouteId = "R";
             Assert.That(Synchronize(), Is.False);
-            Assert.That(FindChild(canvasObject, "Special Action Choice Overlay"), Is.Null);
+            Assert.That(FindChild(canvasObject, "Special Action Choice Overlay")?.activeInHierarchy ?? false, Is.False);
             Assert.That(TryHandleLocationClicked("B"), Is.False);
         }
 
@@ -180,7 +180,7 @@ namespace YC.Tests.EditMode
             Assert.That(state.PendingSpecialAction.IsValid(), Is.True, "测试需要一个结构仍有效的旧会话。");
             Assert.That(state.PendingSpecialAction.IsValid(state), Is.False);
             Assert.That(Synchronize(), Is.False);
-            Assert.That(FindChild(canvasObject, "Special Action Choice Overlay"), Is.Null);
+            Assert.That(FindChild(canvasObject, "Special Action Choice Overlay")?.activeInHierarchy ?? false, Is.False);
             Assert.That(TryHandleLocationClicked("B"), Is.False);
         }
 
@@ -207,7 +207,7 @@ namespace YC.Tests.EditMode
             Assert.That(state.PendingSpecialAction.IsValid(state), Is.False);
             Assert.That(state.PendingCardSession.IsValid(), Is.True);
             Assert.That(Synchronize(), Is.False);
-            Assert.That(FindChild(canvasObject, "Special Action Choice Overlay"), Is.Null);
+            Assert.That(FindChild(canvasObject, "Special Action Choice Overlay")?.activeInHierarchy ?? false, Is.False);
             Assert.That(TryHandleInfluenceSlotClicked(targetSlot), Is.False,
                 "地图点击应继续交给设施效果协调器。");
         }
@@ -293,7 +293,7 @@ namespace YC.Tests.EditMode
 
             state.PendingSpecialAction = null;
             Assert.That(Synchronize(), Is.False);
-            Assert.That(FindChild(canvasObject, "Special Action Choice Overlay"), Is.Null);
+            Assert.That(FindChild(canvasObject, "Special Action Choice Overlay")?.activeInHierarchy ?? false, Is.False);
         }
 
         private Fixture CreateCoordinator(GameState state)

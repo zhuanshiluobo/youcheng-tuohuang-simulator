@@ -1,0 +1,164 @@
+{
+  "definitionId": "enterprise.raythean",
+  "contentType": "enterprise",
+  "version": "1.0.0",
+  "displayName": "雷神工业",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/enterprise_boards.jpg",
+  "artworkSpriteId": "enterprise.raythean.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.board_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "enterprise.raythean.level_1.special",
+      "mode": "level_1.special",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.raythean.level_1.special",
+      "script": "lua/enterprises/enterprise.raythean.level_1.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.raythean.level_1.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "enterprise.raythean.level_2.reward",
+      "mode": "level_2.reward",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.raythean.level_2.reward",
+      "script": "lua/enterprises/enterprise.raythean.level_2.reward.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.raythean.level_2.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "enterprise.raythean.level_3.special",
+      "mode": "level_3.special",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.raythean.level_3.special",
+      "script": "lua/enterprises/enterprise.raythean.level_3.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.raythean.level_3.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "enterprise.raythean.level_4.reward",
+      "mode": "level_4.reward",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.raythean.level_4.reward",
+      "script": "lua/enterprises/enterprise.raythean.level_4.reward.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.raythean.level_4.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "enterprise.raythean.level_5.special",
+      "mode": "level_5.special",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.raythean.level_5.special",
+      "script": "lua/enterprises/enterprise.raythean.level_5.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.raythean.level_5.description",
+          "arguments": []
+        }
+      }
+    }
+  ],
+  "data": {
+    "levels": [
+      {
+        "level": 0,
+        "kind": "empty",
+        "abilityId": ""
+      },
+      {
+        "level": 1,
+        "kind": "special",
+        "abilityId": "enterprise.raythean.level_1.special",
+        "description": {
+          "key": "core:enterprise.raythean.level_1.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 2,
+        "kind": "reward",
+        "abilityId": "enterprise.raythean.level_2.reward",
+        "description": {
+          "key": "core:enterprise.raythean.level_2.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 3,
+        "kind": "special",
+        "abilityId": "enterprise.raythean.level_3.special",
+        "description": {
+          "key": "core:enterprise.raythean.level_3.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 4,
+        "kind": "reward",
+        "abilityId": "enterprise.raythean.level_4.reward",
+        "description": {
+          "key": "core:enterprise.raythean.level_4.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 5,
+        "kind": "special",
+        "abilityId": "enterprise.raythean.level_5.special",
+        "description": {
+          "key": "core:enterprise.raythean.level_5.description",
+          "arguments": []
+        }
+      }
+    ],
+    "departmentRewardPolicy": ""
+  },
+  "presentation": {
+    "detailScript": "lua/presentation/enterprise.details.lua"
+  }
+}

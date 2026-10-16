@@ -17,7 +17,26 @@
       "cleanupScript": "lua/characters/liskarm.cleanup.lua",
       "skillType": "normal",
       "hasSpecialZone": false,
-      "specialZoneId": ""
+      "specialZoneId": "",
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "character.liskarm.strategy.cleanup_order",
+        "availabilityHandlerId": "character.liskarm.strategy.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.character.liskarm.strategy.label"
+          },
+          "description": {
+            "key": "core:settlement.character.liskarm.strategy.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.character.liskarm.strategy.label"
+          },
+          "iconKey": "core:settlement.chain_defer",
+          "contentMode": "icon_text"
+        },
+        "wholeEffectPolicy": "required"
+      }
     },
     {
       "abilityId": "character.liskarm.tactic",
@@ -39,7 +58,18 @@
     "strategyEffect": 3,
     "tacticEffect": 4,
     "strategyAbilityId": "character.liskarm.strategy",
-    "tacticAbilityId": "character.liskarm.tactic"
+    "tacticAbilityId": "character.liskarm.tactic",
+    "playerDetails": [
+      {
+        "abilityId": "character.liskarm.strategy",
+        "effectText": "策略·安保协议：放置2个你的影响力；本回合收尾阶段移除自己的1个影响力。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Delayed",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "雷蛇"
+      }
+    ]
   },
   "expansionId": "core",
   "replaces": null,

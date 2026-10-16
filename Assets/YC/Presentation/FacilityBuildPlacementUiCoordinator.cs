@@ -91,7 +91,7 @@ namespace YC.Presentation
             if (!legal.Contains(selectedSlot)) selectedSlot = -1;
             var model = new BuildFacilityDraftViewModel(BuildFacilityDraftPhase.Placing,
                 new BuildFacilityOptionQueryService().Query(state(), player()), null,
-                FacilityCardDatabase.Get(facilityId), selectedSlot, Parameter("paymentMode"),
+                FacilityCardDatabase.Get(state(), facilityId), selectedSlot, Parameter("paymentMode"),
                 string.Empty, legal, _ => { });
             page.RefreshSupplyStatus(state(), player());
             page.Show(model, state().Map.Facilities, player(), registry.CardVisualCatalog,

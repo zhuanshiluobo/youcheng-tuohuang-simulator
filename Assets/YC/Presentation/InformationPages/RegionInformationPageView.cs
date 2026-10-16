@@ -37,8 +37,9 @@ namespace YC.Presentation
         public void Render(GameState state, IMapQueryService map)
         {
             if (state == null || map == null) return;
-            var players = new List<PlayerState>(state.Players);
-            players.Sort((a,b) => ((int)PlayerColor(a.Color)).CompareTo((int)PlayerColor(b.Color)));
+            var players = new List<PlayerState>();
+            foreach (var id in new YC.Domain.Rules.TurnOrderService().GetLaunchPlayerOrder(state))
+                players.Add(state.FindPlayer(id));
             Projection = RegionInformationQuery.Build(state, map);
             mapSummary.text = string.Format(mapSummaryFormat,
                 map.Map.MapId == StaticMapDefinitions.ThreePlayerMapId ? threePlayerMap : fourPlayerMap, Projection.Count);

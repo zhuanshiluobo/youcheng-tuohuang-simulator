@@ -150,6 +150,16 @@ namespace YC.Infrastructure.Multiplayer
     {
         public static bool TryValidateStart(RoomState room, out string reason)
         {
+            if (!TryValidateTransport(room, out reason)) return false;
+            foreach (var slot in room.SeatSlots)
+                if (slot.Occupant != null && slot.Occupant.PlayerId != room.HostPlayerId &&
+                    (!slot.IsUserReady || slot.ReadyConfigurationRevision != room.Configuration.ConfigurationRevision))
+                { reason = "player_not_ready"; return false; }
+            return true;
+        }
+
+        public static bool TryValidateTransport(RoomState room, out string reason)
+        {
             reason = string.Empty;
             if (room == null || room.Seats == null)
             {
@@ -161,7 +171,7 @@ namespace YC.Infrastructure.Multiplayer
                 reason = "房间已经开始游戏。";
                 return false;
             }
-            if (room.PlayerCount < 1 || room.Seats.Count != room.PlayerCount)
+            if (room.PlayerCount < 2 || room.PlayerCount > 4 || room.Configuration == null || room.Configuration.PlayerCount != room.PlayerCount)
             {
                 reason = "房间席位数量不完整。";
                 return false;

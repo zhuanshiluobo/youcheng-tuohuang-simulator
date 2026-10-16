@@ -57,8 +57,8 @@ namespace YC.Tests.EditMode
         {
             ResetCharacters(); CharacterCardDatabase.Initialize(pack.CreateCharacters());
             var player = new PlayerState { PlayerId = 1, Color = PlayerColor.Red, RemainingMainActionsThisTurn = 1 };
-            CharacterCardDatabase.InitializePlayerHand(player);
-            player.CoveredCharacterCardId = player.HandCardIds[0]; player.HandCardIds.Clear();
+            // 默认开局始终保留基础五角色；本用例显式持有独立外部包中的测试角色。
+            player.CoveredCharacterCardId = "character.red.p1." + pack.CreateCharacters().Single().TemplateId;
             return new GameState { GameId = "external-test", Phase = GamePhase.ActionRound1, Round = 1, ActionRound = 1, CurrentPlayerId = 1, Players = { player } };
         }
         private static void Use(GameState state, EffectRegistry registry)
@@ -77,7 +77,7 @@ namespace YC.Tests.EditMode
         public void CorePack_LoadsAllRuntimeDefinitionsScriptsAndArtwork()
         {
             var pack = ExternalContentPack.Load(CoreRoot);
-            Assert.That(pack.Definitions, Has.Count.EqualTo(79));
+            Assert.That(pack.Definitions, Has.Count.EqualTo(112));
             Assert.That(pack.CreateCharacters(), Has.Count.EqualTo(5));
             Assert.That(pack.CreateEvents(), Has.Count.EqualTo(22));
             Assert.That(pack.CreateFacilities(), Has.Count.EqualTo(45));

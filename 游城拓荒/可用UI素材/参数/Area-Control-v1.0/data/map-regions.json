@@ -1,0 +1,834 @@
+{
+  "four-player": {
+    "id": "four-player",
+    "label": "四人地图",
+    "regionOrder": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "R"
+    ],
+    "slotTotal": 77,
+    "source": {
+      "name": "四人.jpg",
+      "width": 2048,
+      "height": 2048,
+      "sha256": "8aaa67c8f37c5d063b485d2fbe34fc3d6015383d9c77c16fe996d20181088edd"
+    },
+    "mappingSourceSHA256": "83071c4973c797906e5f764a9d8e179dde6b8f5ad5d9cf92445b04172422d07d",
+    "regions": {
+      "A": {
+        "slotCount": 9,
+        "slots": [
+          {
+            "id": "A-01-S1",
+            "parentKind": "resource",
+            "parentId": "A-01"
+          },
+          {
+            "id": "A-01-S2",
+            "parentKind": "resource",
+            "parentId": "A-01"
+          },
+          {
+            "id": "A-02-S1",
+            "parentKind": "resource",
+            "parentId": "A-02"
+          },
+          {
+            "id": "A-02-S2",
+            "parentKind": "resource",
+            "parentId": "A-02"
+          },
+          {
+            "id": "A-03-S1",
+            "parentKind": "resource",
+            "parentId": "A-03"
+          },
+          {
+            "id": "A-03-S2",
+            "parentKind": "resource",
+            "parentId": "A-03"
+          },
+          {
+            "id": "L07-S1",
+            "parentKind": "route",
+            "parentId": "L07"
+          },
+          {
+            "id": "L15-S1",
+            "parentKind": "route",
+            "parentId": "L15"
+          },
+          {
+            "id": "L15-S2",
+            "parentKind": "route",
+            "parentId": "L15"
+          }
+        ]
+      },
+      "B": {
+        "slotCount": 9,
+        "slots": [
+          {
+            "id": "B-01-S1",
+            "parentKind": "resource",
+            "parentId": "B-01"
+          },
+          {
+            "id": "B-01-S2",
+            "parentKind": "resource",
+            "parentId": "B-01"
+          },
+          {
+            "id": "B-02-S1",
+            "parentKind": "resource",
+            "parentId": "B-02"
+          },
+          {
+            "id": "B-02-S2",
+            "parentKind": "resource",
+            "parentId": "B-02"
+          },
+          {
+            "id": "B-03-S1",
+            "parentKind": "resource",
+            "parentId": "B-03"
+          },
+          {
+            "id": "B-03-S2",
+            "parentKind": "resource",
+            "parentId": "B-03"
+          },
+          {
+            "id": "L17-S1",
+            "parentKind": "route",
+            "parentId": "L17"
+          },
+          {
+            "id": "L22-S1",
+            "parentKind": "route",
+            "parentId": "L22"
+          },
+          {
+            "id": "L22-S2",
+            "parentKind": "route",
+            "parentId": "L22"
+          }
+        ]
+      },
+      "C": {
+        "slotCount": 9,
+        "slots": [
+          {
+            "id": "C-01-S1",
+            "parentKind": "resource",
+            "parentId": "C-01"
+          },
+          {
+            "id": "C-01-S2",
+            "parentKind": "resource",
+            "parentId": "C-01"
+          },
+          {
+            "id": "C-02-S1",
+            "parentKind": "resource",
+            "parentId": "C-02"
+          },
+          {
+            "id": "C-02-S2",
+            "parentKind": "resource",
+            "parentId": "C-02"
+          },
+          {
+            "id": "C-03-S1",
+            "parentKind": "resource",
+            "parentId": "C-03"
+          },
+          {
+            "id": "C-03-S2",
+            "parentKind": "resource",
+            "parentId": "C-03"
+          },
+          {
+            "id": "L20-S1",
+            "parentKind": "route",
+            "parentId": "L20"
+          },
+          {
+            "id": "L21-S1",
+            "parentKind": "route",
+            "parentId": "L21"
+          },
+          {
+            "id": "L21-S2",
+            "parentKind": "route",
+            "parentId": "L21"
+          }
+        ]
+      },
+      "D": {
+        "slotCount": 10,
+        "slots": [
+          {
+            "id": "D-01-S1",
+            "parentKind": "resource",
+            "parentId": "D-01"
+          },
+          {
+            "id": "D-01-S2",
+            "parentKind": "resource",
+            "parentId": "D-01"
+          },
+          {
+            "id": "D-02-S1",
+            "parentKind": "resource",
+            "parentId": "D-02"
+          },
+          {
+            "id": "D-02-S2",
+            "parentKind": "resource",
+            "parentId": "D-02"
+          },
+          {
+            "id": "D-03-S1",
+            "parentKind": "resource",
+            "parentId": "D-03"
+          },
+          {
+            "id": "D-03-S2",
+            "parentKind": "resource",
+            "parentId": "D-03"
+          },
+          {
+            "id": "L08-S1",
+            "parentKind": "route",
+            "parentId": "L08"
+          },
+          {
+            "id": "L08-S2",
+            "parentKind": "route",
+            "parentId": "L08"
+          },
+          {
+            "id": "L09-S1",
+            "parentKind": "route",
+            "parentId": "L09"
+          },
+          {
+            "id": "L09-S2",
+            "parentKind": "route",
+            "parentId": "L09"
+          }
+        ]
+      },
+      "E": {
+        "slotCount": 10,
+        "slots": [
+          {
+            "id": "E-01-S1",
+            "parentKind": "resource",
+            "parentId": "E-01"
+          },
+          {
+            "id": "E-01-S2",
+            "parentKind": "resource",
+            "parentId": "E-01"
+          },
+          {
+            "id": "E-02-S1",
+            "parentKind": "resource",
+            "parentId": "E-02"
+          },
+          {
+            "id": "E-02-S2",
+            "parentKind": "resource",
+            "parentId": "E-02"
+          },
+          {
+            "id": "E-03-S1",
+            "parentKind": "resource",
+            "parentId": "E-03"
+          },
+          {
+            "id": "E-03-S2",
+            "parentKind": "resource",
+            "parentId": "E-03"
+          },
+          {
+            "id": "L18-S1",
+            "parentKind": "route",
+            "parentId": "L18"
+          },
+          {
+            "id": "L18-S2",
+            "parentKind": "route",
+            "parentId": "L18"
+          },
+          {
+            "id": "L19-S1",
+            "parentKind": "route",
+            "parentId": "L19"
+          },
+          {
+            "id": "L19-S2",
+            "parentKind": "route",
+            "parentId": "L19"
+          }
+        ]
+      },
+      "F": {
+        "slotCount": 10,
+        "slots": [
+          {
+            "id": "F-01-S1",
+            "parentKind": "resource",
+            "parentId": "F-01"
+          },
+          {
+            "id": "F-01-S2",
+            "parentKind": "resource",
+            "parentId": "F-01"
+          },
+          {
+            "id": "F-02-S1",
+            "parentKind": "resource",
+            "parentId": "F-02"
+          },
+          {
+            "id": "F-02-S2",
+            "parentKind": "resource",
+            "parentId": "F-02"
+          },
+          {
+            "id": "F-03-S1",
+            "parentKind": "resource",
+            "parentId": "F-03"
+          },
+          {
+            "id": "F-03-S2",
+            "parentKind": "resource",
+            "parentId": "F-03"
+          },
+          {
+            "id": "L04-S1",
+            "parentKind": "route",
+            "parentId": "L04"
+          },
+          {
+            "id": "L05-S1",
+            "parentKind": "route",
+            "parentId": "L05"
+          },
+          {
+            "id": "L05-S2",
+            "parentKind": "route",
+            "parentId": "L05"
+          },
+          {
+            "id": "L10-S1",
+            "parentKind": "route",
+            "parentId": "L10"
+          }
+        ]
+      },
+      "G": {
+        "slotCount": 10,
+        "slots": [
+          {
+            "id": "G-01-S1",
+            "parentKind": "resource",
+            "parentId": "G-01"
+          },
+          {
+            "id": "G-01-S2",
+            "parentKind": "resource",
+            "parentId": "G-01"
+          },
+          {
+            "id": "G-02-S1",
+            "parentKind": "resource",
+            "parentId": "G-02"
+          },
+          {
+            "id": "G-02-S2",
+            "parentKind": "resource",
+            "parentId": "G-02"
+          },
+          {
+            "id": "G-03-S1",
+            "parentKind": "resource",
+            "parentId": "G-03"
+          },
+          {
+            "id": "G-03-S2",
+            "parentKind": "resource",
+            "parentId": "G-03"
+          },
+          {
+            "id": "G-04-S1",
+            "parentKind": "resource",
+            "parentId": "G-04"
+          },
+          {
+            "id": "G-04-S2",
+            "parentKind": "resource",
+            "parentId": "G-04"
+          },
+          {
+            "id": "L01-S1",
+            "parentKind": "route",
+            "parentId": "L01"
+          },
+          {
+            "id": "L03-S1",
+            "parentKind": "route",
+            "parentId": "L03"
+          }
+        ]
+      },
+      "R": {
+        "slotCount": 10,
+        "slots": [
+          {
+            "id": "L02-S1",
+            "parentKind": "route",
+            "parentId": "L02"
+          },
+          {
+            "id": "L02-S2",
+            "parentKind": "route",
+            "parentId": "L02"
+          },
+          {
+            "id": "L06-S1",
+            "parentKind": "route",
+            "parentId": "L06"
+          },
+          {
+            "id": "L06-S2",
+            "parentKind": "route",
+            "parentId": "L06"
+          },
+          {
+            "id": "L11-S1",
+            "parentKind": "route",
+            "parentId": "L11"
+          },
+          {
+            "id": "L12-S1",
+            "parentKind": "route",
+            "parentId": "L12"
+          },
+          {
+            "id": "L13-S1",
+            "parentKind": "route",
+            "parentId": "L13"
+          },
+          {
+            "id": "L14-S1",
+            "parentKind": "route",
+            "parentId": "L14"
+          },
+          {
+            "id": "L16-S1",
+            "parentKind": "route",
+            "parentId": "L16"
+          },
+          {
+            "id": "L16-S2",
+            "parentKind": "route",
+            "parentId": "L16"
+          }
+        ]
+      }
+    }
+  },
+  "three-player": {
+    "id": "three-player",
+    "label": "三人地图",
+    "regionOrder": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "R"
+    ],
+    "slotTotal": 65,
+    "source": {
+      "name": "三人.jpg",
+      "width": 2048,
+      "height": 2048,
+      "sha256": "bd23201dce708c7458d4d9899d0282730a308793167ea99e2b4d8f6c529e5426"
+    },
+    "mappingSourceSHA256": "4064b636f236696668cda66e11c5e7066aef676ba088d1943fd6ad5e1bdb78f9",
+    "regions": {
+      "A": {
+        "slotCount": 9,
+        "slots": [
+          {
+            "id": "A-01-S1",
+            "parentKind": "resource",
+            "parentId": "A-01"
+          },
+          {
+            "id": "A-01-S2",
+            "parentKind": "resource",
+            "parentId": "A-01"
+          },
+          {
+            "id": "A-02-S1",
+            "parentKind": "resource",
+            "parentId": "A-02"
+          },
+          {
+            "id": "A-02-S2",
+            "parentKind": "resource",
+            "parentId": "A-02"
+          },
+          {
+            "id": "A-03-S1",
+            "parentKind": "resource",
+            "parentId": "A-03"
+          },
+          {
+            "id": "A-03-S2",
+            "parentKind": "resource",
+            "parentId": "A-03"
+          },
+          {
+            "id": "L05-S1",
+            "parentKind": "route",
+            "parentId": "L05"
+          },
+          {
+            "id": "L09-S1",
+            "parentKind": "route",
+            "parentId": "L09"
+          },
+          {
+            "id": "L09-S2",
+            "parentKind": "route",
+            "parentId": "L09"
+          }
+        ]
+      },
+      "B": {
+        "slotCount": 9,
+        "slots": [
+          {
+            "id": "B-01-S1",
+            "parentKind": "resource",
+            "parentId": "B-01"
+          },
+          {
+            "id": "B-01-S2",
+            "parentKind": "resource",
+            "parentId": "B-01"
+          },
+          {
+            "id": "B-02-S1",
+            "parentKind": "resource",
+            "parentId": "B-02"
+          },
+          {
+            "id": "B-02-S2",
+            "parentKind": "resource",
+            "parentId": "B-02"
+          },
+          {
+            "id": "B-03-S1",
+            "parentKind": "resource",
+            "parentId": "B-03"
+          },
+          {
+            "id": "B-03-S2",
+            "parentKind": "resource",
+            "parentId": "B-03"
+          },
+          {
+            "id": "L14-S1",
+            "parentKind": "route",
+            "parentId": "L14"
+          },
+          {
+            "id": "L19-S1",
+            "parentKind": "route",
+            "parentId": "L19"
+          },
+          {
+            "id": "L19-S2",
+            "parentKind": "route",
+            "parentId": "L19"
+          }
+        ]
+      },
+      "C": {
+        "slotCount": 9,
+        "slots": [
+          {
+            "id": "C-01-S1",
+            "parentKind": "resource",
+            "parentId": "C-01"
+          },
+          {
+            "id": "C-01-S2",
+            "parentKind": "resource",
+            "parentId": "C-01"
+          },
+          {
+            "id": "C-02-S1",
+            "parentKind": "resource",
+            "parentId": "C-02"
+          },
+          {
+            "id": "C-02-S2",
+            "parentKind": "resource",
+            "parentId": "C-02"
+          },
+          {
+            "id": "C-03-S1",
+            "parentKind": "resource",
+            "parentId": "C-03"
+          },
+          {
+            "id": "C-03-S2",
+            "parentKind": "resource",
+            "parentId": "C-03"
+          },
+          {
+            "id": "L18-S1",
+            "parentKind": "route",
+            "parentId": "L18"
+          },
+          {
+            "id": "L18-S2",
+            "parentKind": "route",
+            "parentId": "L18"
+          },
+          {
+            "id": "L20-S1",
+            "parentKind": "route",
+            "parentId": "L20"
+          }
+        ]
+      },
+      "D": {
+        "slotCount": 10,
+        "slots": [
+          {
+            "id": "D-01-S1",
+            "parentKind": "resource",
+            "parentId": "D-01"
+          },
+          {
+            "id": "D-01-S2",
+            "parentKind": "resource",
+            "parentId": "D-01"
+          },
+          {
+            "id": "D-02-S1",
+            "parentKind": "resource",
+            "parentId": "D-02"
+          },
+          {
+            "id": "D-02-S2",
+            "parentKind": "resource",
+            "parentId": "D-02"
+          },
+          {
+            "id": "D-03-S1",
+            "parentKind": "resource",
+            "parentId": "D-03"
+          },
+          {
+            "id": "D-03-S2",
+            "parentKind": "resource",
+            "parentId": "D-03"
+          },
+          {
+            "id": "L03-S1",
+            "parentKind": "route",
+            "parentId": "L03"
+          },
+          {
+            "id": "L03-S2",
+            "parentKind": "route",
+            "parentId": "L03"
+          },
+          {
+            "id": "L06-S1",
+            "parentKind": "route",
+            "parentId": "L06"
+          },
+          {
+            "id": "L06-S2",
+            "parentKind": "route",
+            "parentId": "L06"
+          }
+        ]
+      },
+      "E": {
+        "slotCount": 10,
+        "slots": [
+          {
+            "id": "E-01-S1",
+            "parentKind": "resource",
+            "parentId": "E-01"
+          },
+          {
+            "id": "E-01-S2",
+            "parentKind": "resource",
+            "parentId": "E-01"
+          },
+          {
+            "id": "E-02-S1",
+            "parentKind": "resource",
+            "parentId": "E-02"
+          },
+          {
+            "id": "E-02-S2",
+            "parentKind": "resource",
+            "parentId": "E-02"
+          },
+          {
+            "id": "E-03-S1",
+            "parentKind": "resource",
+            "parentId": "E-03"
+          },
+          {
+            "id": "E-03-S2",
+            "parentKind": "resource",
+            "parentId": "E-03"
+          },
+          {
+            "id": "L13-S1",
+            "parentKind": "route",
+            "parentId": "L13"
+          },
+          {
+            "id": "L13-S2",
+            "parentKind": "route",
+            "parentId": "L13"
+          },
+          {
+            "id": "L16-S1",
+            "parentKind": "route",
+            "parentId": "L16"
+          },
+          {
+            "id": "L16-S2",
+            "parentKind": "route",
+            "parentId": "L16"
+          }
+        ]
+      },
+      "F": {
+        "slotCount": 9,
+        "slots": [
+          {
+            "id": "F-01-S1",
+            "parentKind": "resource",
+            "parentId": "F-01"
+          },
+          {
+            "id": "F-01-S2",
+            "parentKind": "resource",
+            "parentId": "F-01"
+          },
+          {
+            "id": "F-02-S1",
+            "parentKind": "resource",
+            "parentId": "F-02"
+          },
+          {
+            "id": "F-02-S2",
+            "parentKind": "resource",
+            "parentId": "F-02"
+          },
+          {
+            "id": "F-03-S1",
+            "parentKind": "resource",
+            "parentId": "F-03"
+          },
+          {
+            "id": "F-03-S2",
+            "parentKind": "resource",
+            "parentId": "F-03"
+          },
+          {
+            "id": "L02-S1",
+            "parentKind": "route",
+            "parentId": "L02"
+          },
+          {
+            "id": "L04-S1",
+            "parentKind": "route",
+            "parentId": "L04"
+          },
+          {
+            "id": "L07-S1",
+            "parentKind": "route",
+            "parentId": "L07"
+          }
+        ]
+      },
+      "R": {
+        "slotCount": 9,
+        "slots": [
+          {
+            "id": "L01-S1",
+            "parentKind": "route",
+            "parentId": "L01"
+          },
+          {
+            "id": "L08-S1",
+            "parentKind": "route",
+            "parentId": "L08"
+          },
+          {
+            "id": "L10-S1",
+            "parentKind": "route",
+            "parentId": "L10"
+          },
+          {
+            "id": "L10-S2",
+            "parentKind": "route",
+            "parentId": "L10"
+          },
+          {
+            "id": "L11-S1",
+            "parentKind": "route",
+            "parentId": "L11"
+          },
+          {
+            "id": "L12-S1",
+            "parentKind": "route",
+            "parentId": "L12"
+          },
+          {
+            "id": "L12-S2",
+            "parentKind": "route",
+            "parentId": "L12"
+          },
+          {
+            "id": "L15-S1",
+            "parentKind": "route",
+            "parentId": "L15"
+          },
+          {
+            "id": "L17-S1",
+            "parentKind": "route",
+            "parentId": "L17"
+          }
+        ]
+      }
+    }
+  }
+}

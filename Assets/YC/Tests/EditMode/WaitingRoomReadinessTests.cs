@@ -238,18 +238,23 @@ namespace YC.Tests.EditMode
                 RoomId = "test-room",
                 HostPlayerId = 1,
                 LocalPlayerId = 1,
-                PlayerCount = playerCount,
+                Configuration = new YC.Domain.Rules.GameRuleConfiguration { PlayerCount = playerCount,
+                    MapId = playerCount == 4 ? "map-four-players" : "map-three-players" },
                 HasStarted = false
             };
             for (var playerId = 1; playerId <= playerCount; playerId++)
             {
-                room.Seats.Add(new PlayerSeat
+                room.SeatSlots[playerId - 1].Status = "occupied";
+                room.SeatSlots[playerId - 1].IsUserReady = true;
+                room.SeatSlots[playerId - 1].ReadyConfigurationRevision = 0;
+                room.SeatSlots[playerId - 1].Occupant = new PlayerSeat
                 {
                     PlayerId = playerId,
                     SteamId = identityFactory(playerId),
                     PlayerName = "Player " + playerId,
-                    LobbyMemberPresent = true
-                });
+                    LobbyMemberPresent = true,
+                    Color = RoomConfigurationService.GetSeatColor(playerId - 1)
+                };
             }
             return room;
         }

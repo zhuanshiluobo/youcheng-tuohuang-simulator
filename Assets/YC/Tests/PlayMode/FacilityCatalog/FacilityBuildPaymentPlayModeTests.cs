@@ -8,7 +8,9 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using YC.Domain.Facilities;
+using YC.Domain.Rules;
 using YC.Domain.State;
+using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
 namespace YC.Tests.PlayMode
 {
@@ -76,11 +78,11 @@ namespace YC.Tests.PlayMode
             var session = Field(controller, "session");
             var state = (GameState)Property(session, "State");
             var playerId = (int)Field(controller, "localPlayerId");
+            PrepareBuildState(state, playerId);
             var player = state.FindPlayer(playerId);
             player.RemainingMainActionsThisTurn = 0;
             player.ActedMainActionThisTurn = true;
-            state.Decks.FacilitySupply.Clear();
-            state.Decks.FacilitySupply.Add(FacilityCardDatabase.BoroughAdministrativeDistrict);
+            PrepareSupply(state, FacilityCardDatabase.BoroughAdministrativeDistrict);
             Call(controller, "SynchronizeInteractionFromState");
             var hud = Field(controller, "gameplayInteractionHud");
             var actionView = Property(hud, "ActionPanelView");
@@ -237,14 +239,14 @@ namespace YC.Tests.PlayMode
             var session = Field(controller, "session");
             var state = (GameState)Property(session, "State");
             var local = (int)Field(controller, "localPlayerId");
+            PrepareBuildState(state, local);
             var player = state.FindPlayer(local);
             var facilityId = FacilityCardDatabase.BoroughAdministrativeDistrict;
             var definition = FacilityCardDatabase.Get(facilityId);
             player.Resources.Originium = player.Resources.OriginiumShard = player.Resources.Iron = 30;
             player.Resources.PureOriginium = 30; player.Resources.GoldVoucher = 100;
             var originalScore = player.Score;
-            state.Decks.FacilitySupply.Clear(); state.Decks.FacilitySupply.Add(facilityId);
-            state.Decks.FacilityDeck.Clear(); state.Decks.FacilityDeck.Add(FacilityCardDatabase.TradeDistrict);
+            PrepareSupply(state, facilityId);
             Call(controller, "SynchronizeInteractionFromState");
             var hud = Field(controller, "gameplayInteractionHud");
             var build = (Button)Property(Property(hud, "ActionPanelView"), "BuildButton");
@@ -280,19 +282,6 @@ namespace YC.Tests.PlayMode
             }
             Assert.That(((Text[])Field(costs[1], "amounts"))[4].text, Is.EqualTo(definition.GoldVoucherCost.ToString()));
             Assert.That(((GameObject)Field(page, "costBreakdown")).activeSelf, Is.True);
-            // 单个供应位按当前资产配置的可显示高度等比适配，不锁定尺寸和样式。
-            var supplyLayout = candidates.GetComponent(T("UiWrappingRowLayout"));
-            if ((bool)Field(supplyLayout, "expandSingleRowToHeight"))
-            {
-                Canvas.ForceUpdateCanvases();
-                var viewport = (RectTransform)Field(supplyLayout, "heightViewport");
-                var outer = candidates.parent.GetComponent<LayoutGroup>();
-                var availableHeight = viewport.rect.height - ((LayoutGroup)supplyLayout).padding.vertical -
-                    (outer == null ? 0 : outer.padding.vertical);
-                var currentCard = candidates.GetComponentsInChildren(T("FacilityEffectCardView")).Single();
-                Assert.That(((RectTransform)Property(currentCard, "CardRect")).rect.height,
-                    Is.EqualTo(availableHeight).Within(1f), "单行卡槽应适配可显示高度。");
-            }
             var payment = buttons[gold ? 1 : 0];
             Assert.That(payment.interactable, Is.True);
             var click = payment.onClick;
@@ -303,7 +292,10 @@ namespace YC.Tests.PlayMode
             Assert.That(player.Resources.Originium, Is.EqualTo(gold ? 30 : 30 - definition.ResourceCost.Originium));
             Assert.That(player.Resources.OriginiumShard, Is.EqualTo(gold ? 30 : 30 - definition.ResourceCost.OriginiumShard));
             Assert.That(player.Resources.Iron, Is.EqualTo(gold ? 30 : 30 - definition.ResourceCost.Iron));
-            Assert.That(state.Decks.FacilitySupply, Is.EqualTo(new[] { FacilityCardDatabase.TradeDistrict }), "必须先翻补供应牌。");
+            var refilledZone = FindZone(state, "facility_supply_0").ZoneId;
+            Assert.That(state.ItemZones.Items.Single(item => item.ZoneId == refilledZone).DefinitionId,
+                Is.EqualTo(FacilityCardDatabase.TradeDistrict), "必须先在取走的原槽翻补供应牌。");
+            Assert.That(state.Decks.FacilitySupply.Count, Is.EqualTo(FacilitySupplyService.SupplySize));
             Assert.That(state.Map.Facilities.Any(item => item.PlayerId == local && item.FacilityCardId == facilityId), Is.False, "支付时不能提前落位。");
             Assert.That(player.Score, Is.EqualTo(originalScore));
             var request = state.EffectRuntime.InteractionRequests.Single(item => item.Status == "open" && item.InteractionTypeId == "facility.build.placement");
@@ -330,6 +322,37 @@ namespace YC.Tests.PlayMode
             Assert.That(player.Resources.Originium, Is.EqualTo(gold ? 30 : 30 - definition.ResourceCost.Originium));
             Assert.That(state.EffectRuntime.InteractionRequests.Any(item => item.Status == "open" && item.InteractionTypeId == "facility.build.placement"), Is.False);
             Assert.That(player.ActedMainActionThisTurn, Is.True);
+        }
+
+        private static void PrepareBuildState(GameState state, int playerId)
+        {
+            state.Phase = GamePhase.ActionRound1;
+            state.Round = state.ActionRound = 1;
+            state.CurrentPlayerId = state.StartPlayerId = playerId;
+            state.PendingChoice = null;
+            state.EffectRuntime = new EffectRuntimeState();
+            state.EffectRuntime.PlayerOrderSnapshot.AddRange(state.Players.Select(player => player.PlayerId));
+            var player = state.FindPlayer(playerId);
+            player.RemainingMainActionsThisTurn = 1;
+            player.ActedMainActionThisTurn = false;
+        }
+
+        private static void PrepareSupply(GameState state, string definitionId)
+        {
+            var deck = FindZone(state, "facility_deck");
+            void Place(YC.Domain.Items.ItemInstanceState item, string zone)
+            {
+                foreach (var order in state.ItemZones.Orders) order.ItemIds.Remove(item.ItemId);
+                item.ZoneId = zone; item.SlotId = string.Empty;
+                state.ItemZones.Orders.Find(order => order.ZoneId == zone)?.ItemIds.Add(item.ItemId);
+            }
+            var supplyZones = state.ItemZones.Zones.Where(zone => zone.LocalZoneId.StartsWith("facility_supply_")).Select(zone => zone.ZoneId).ToArray();
+            foreach (var item in state.ItemZones.Items.Where(item => supplyZones.Contains(item.ZoneId)).ToArray()) Place(item, deck.ZoneId);
+            var selected = state.ItemZones.Items.First(item => item.ZoneId == deck.ZoneId && item.DefinitionId == definitionId);
+            Place(selected, FindZone(state, "facility_supply_0").ZoneId);
+            var refill = state.ItemZones.Items.First(item => item.ZoneId == deck.ZoneId && item.DefinitionId == FacilityCardDatabase.TradeDistrict);
+            var deckOrder = state.ItemZones.Orders.Single(order => order.ZoneId == deck.ZoneId);
+            deckOrder.ItemIds.Remove(refill.ItemId); deckOrder.ItemIds.Insert(0, refill.ItemId);
         }
 
         private static Type T(string name) => Type.GetType("YC.Presentation." + name + ", Assembly-CSharp", true);

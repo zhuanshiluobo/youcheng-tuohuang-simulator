@@ -8,9 +8,10 @@ namespace YC.Domain.Cards
     {
         public bool HasResourceToken(MapRuntimeState map, string locationId)
         {
-            for (var i = 0; i < map.ResourceTokens.Count; i++)
+            var tokens = map.ResourceTokens.ToArray();
+            for (var i = 0; i < tokens.Length; i++)
             {
-                if (map.ResourceTokens[i].LocationId == locationId)
+                if (tokens[i].LocationId == locationId)
                 {
                     return true;
                 }

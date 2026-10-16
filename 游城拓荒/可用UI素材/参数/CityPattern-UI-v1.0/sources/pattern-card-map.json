@@ -1,0 +1,564 @@
+{
+  "schemaVersion": 1,
+  "coordinateConvention": "All rectangles are [x,y,width,height], source pixel coordinates, origin at top left; indices are zero-based row-major.",
+  "atlases": [
+    {
+      "id": "asset-056",
+      "file": "originals/patterns-i-atlas.jpg",
+      "size": [
+        2790,
+        1800
+      ],
+      "columns": 3,
+      "rows": 3,
+      "cellSize": [
+        930,
+        600
+      ],
+      "aspectRatio": "31:20",
+      "ttsDeckKey": "165",
+      "sha256": "7644904a93cb936dce3dd4ced190ae8533ebbcc58a6eb3f78506e6528a8f75e0",
+      "validIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "asset-073",
+      "file": "originals/patterns-ii-atlas.jpg",
+      "size": [
+        1860,
+        1200
+      ],
+      "columns": 2,
+      "rows": 2,
+      "cellSize": [
+        930,
+        600
+      ],
+      "aspectRatio": "31:20",
+      "ttsDeckKey": "640",
+      "sha256": "3945062c584e2309efee54db608403e9977a7b35143b1da17af3ddc9177a9eda",
+      "validIndices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "id": "pattern-056-01",
+      "name": "动员配套体系",
+      "tier": "I",
+      "printedPoints": 3,
+      "variant": null,
+      "atlasId": "asset-056",
+      "source": "originals/patterns-i-atlas.jpg",
+      "index": 1,
+      "row0": 0,
+      "column0": 1,
+      "sourceRect": [
+        930,
+        0,
+        930,
+        600
+      ],
+      "aspectRatio": "31:20",
+      "markerLayout": "active",
+      "slots": [
+        {
+          "key": "unused",
+          "printedLabel": "未使用",
+          "cardLocalSafeRect": [
+            530,
+            76,
+            300,
+            229
+          ],
+          "atlasSourceRect": [
+            1460,
+            76,
+            300,
+            229
+          ],
+          "cardLocalCenter": [
+            680.0,
+            190.5
+          ]
+        },
+        {
+          "key": "used",
+          "printedLabel": "已使用",
+          "cardLocalSafeRect": [
+            530,
+            309,
+            300,
+            225
+          ],
+          "atlasSourceRect": [
+            1460,
+            309,
+            300,
+            225
+          ],
+          "cardLocalCenter": [
+            680.0,
+            421.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pattern-056-02",
+      "name": "复合动力系统",
+      "tier": "I",
+      "printedPoints": 3,
+      "variant": null,
+      "atlasId": "asset-056",
+      "source": "originals/patterns-i-atlas.jpg",
+      "index": 2,
+      "row0": 0,
+      "column0": 2,
+      "sourceRect": [
+        1860,
+        0,
+        930,
+        600
+      ],
+      "aspectRatio": "31:20",
+      "markerLayout": "active",
+      "slots": [
+        {
+          "key": "unused",
+          "printedLabel": "未使用",
+          "cardLocalSafeRect": [
+            530,
+            76,
+            300,
+            229
+          ],
+          "atlasSourceRect": [
+            2390,
+            76,
+            300,
+            229
+          ],
+          "cardLocalCenter": [
+            680.0,
+            190.5
+          ]
+        },
+        {
+          "key": "used",
+          "printedLabel": "已使用",
+          "cardLocalSafeRect": [
+            530,
+            309,
+            300,
+            225
+          ],
+          "atlasSourceRect": [
+            2390,
+            309,
+            300,
+            225
+          ],
+          "cardLocalCenter": [
+            680.0,
+            421.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pattern-056-03",
+      "name": "军工化区域",
+      "tier": "I",
+      "printedPoints": 2,
+      "variant": "enterprise-first-versus-repeat",
+      "atlasId": "asset-056",
+      "source": "originals/patterns-i-atlas.jpg",
+      "index": 3,
+      "row0": 1,
+      "column0": 0,
+      "sourceRect": [
+        0,
+        600,
+        930,
+        600
+      ],
+      "aspectRatio": "31:20",
+      "markerLayout": "active",
+      "slots": [
+        {
+          "key": "unused",
+          "printedLabel": "未使用",
+          "cardLocalSafeRect": [
+            530,
+            76,
+            300,
+            229
+          ],
+          "atlasSourceRect": [
+            530,
+            676,
+            300,
+            229
+          ],
+          "cardLocalCenter": [
+            680.0,
+            190.5
+          ]
+        },
+        {
+          "key": "used",
+          "printedLabel": "已使用",
+          "cardLocalSafeRect": [
+            530,
+            309,
+            300,
+            225
+          ],
+          "atlasSourceRect": [
+            530,
+            909,
+            300,
+            225
+          ],
+          "cardLocalCenter": [
+            680.0,
+            421.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pattern-056-06",
+      "name": "核心商业区",
+      "tier": "I",
+      "printedPoints": 3,
+      "variant": null,
+      "atlasId": "asset-056",
+      "source": "originals/patterns-i-atlas.jpg",
+      "index": 6,
+      "row0": 2,
+      "column0": 0,
+      "sourceRect": [
+        0,
+        1200,
+        930,
+        600
+      ],
+      "aspectRatio": "31:20",
+      "markerLayout": "active",
+      "slots": [
+        {
+          "key": "unused",
+          "printedLabel": "未使用",
+          "cardLocalSafeRect": [
+            530,
+            76,
+            300,
+            229
+          ],
+          "atlasSourceRect": [
+            530,
+            1276,
+            300,
+            229
+          ],
+          "cardLocalCenter": [
+            680.0,
+            190.5
+          ]
+        },
+        {
+          "key": "used",
+          "printedLabel": "已使用",
+          "cardLocalSafeRect": [
+            530,
+            309,
+            300,
+            225
+          ],
+          "atlasSourceRect": [
+            530,
+            1509,
+            300,
+            225
+          ],
+          "cardLocalCenter": [
+            680.0,
+            421.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pattern-073-00",
+      "name": "源石工业中枢",
+      "tier": "II",
+      "printedPoints": 6,
+      "variant": null,
+      "atlasId": "asset-073",
+      "source": "originals/patterns-ii-atlas.jpg",
+      "index": 0,
+      "row0": 0,
+      "column0": 0,
+      "sourceRect": [
+        0,
+        0,
+        930,
+        600
+      ],
+      "aspectRatio": "31:20",
+      "markerLayout": "limited",
+      "slots": [
+        {
+          "key": "ready2",
+          "printedLabel": "2",
+          "cardLocalSafeRect": [
+            530,
+            76,
+            300,
+            71
+          ],
+          "atlasSourceRect": [
+            530,
+            76,
+            300,
+            71
+          ],
+          "cardLocalCenter": [
+            680.0,
+            111.5
+          ]
+        },
+        {
+          "key": "used2",
+          "printedLabel": "已使用（上栏）",
+          "cardLocalSafeRect": [
+            530,
+            151,
+            300,
+            87
+          ],
+          "atlasSourceRect": [
+            530,
+            151,
+            300,
+            87
+          ],
+          "cardLocalCenter": [
+            680.0,
+            194.5
+          ]
+        },
+        {
+          "key": "ready1",
+          "printedLabel": "1",
+          "cardLocalSafeRect": [
+            530,
+            242,
+            300,
+            127
+          ],
+          "atlasSourceRect": [
+            530,
+            242,
+            300,
+            127
+          ],
+          "cardLocalCenter": [
+            680.0,
+            305.5
+          ]
+        },
+        {
+          "key": "used1",
+          "printedLabel": "已使用（下栏）",
+          "cardLocalSafeRect": [
+            530,
+            373,
+            300,
+            87
+          ],
+          "atlasSourceRect": [
+            530,
+            373,
+            300,
+            87
+          ],
+          "cardLocalCenter": [
+            680.0,
+            416.5
+          ]
+        },
+        {
+          "key": "zero",
+          "printedLabel": "0",
+          "cardLocalSafeRect": [
+            530,
+            464,
+            300,
+            70
+          ],
+          "atlasSourceRect": [
+            530,
+            464,
+            300,
+            70
+          ],
+          "cardLocalCenter": [
+            680.0,
+            499.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pattern-073-02",
+      "name": "警备队辖区",
+      "tier": "II",
+      "printedPoints": 6,
+      "variant": "6-point",
+      "atlasId": "asset-073",
+      "source": "originals/patterns-ii-atlas.jpg",
+      "index": 2,
+      "row0": 1,
+      "column0": 0,
+      "sourceRect": [
+        0,
+        600,
+        930,
+        600
+      ],
+      "aspectRatio": "31:20",
+      "markerLayout": "limited",
+      "slots": [
+        {
+          "key": "ready2",
+          "printedLabel": "2",
+          "cardLocalSafeRect": [
+            530,
+            76,
+            300,
+            71
+          ],
+          "atlasSourceRect": [
+            530,
+            676,
+            300,
+            71
+          ],
+          "cardLocalCenter": [
+            680.0,
+            111.5
+          ]
+        },
+        {
+          "key": "used2",
+          "printedLabel": "已使用（上栏）",
+          "cardLocalSafeRect": [
+            530,
+            151,
+            300,
+            87
+          ],
+          "atlasSourceRect": [
+            530,
+            751,
+            300,
+            87
+          ],
+          "cardLocalCenter": [
+            680.0,
+            194.5
+          ]
+        },
+        {
+          "key": "ready1",
+          "printedLabel": "1",
+          "cardLocalSafeRect": [
+            530,
+            242,
+            300,
+            127
+          ],
+          "atlasSourceRect": [
+            530,
+            842,
+            300,
+            127
+          ],
+          "cardLocalCenter": [
+            680.0,
+            305.5
+          ]
+        },
+        {
+          "key": "used1",
+          "printedLabel": "已使用（下栏）",
+          "cardLocalSafeRect": [
+            530,
+            373,
+            300,
+            87
+          ],
+          "atlasSourceRect": [
+            530,
+            973,
+            300,
+            87
+          ],
+          "cardLocalCenter": [
+            680.0,
+            416.5
+          ]
+        },
+        {
+          "key": "zero",
+          "printedLabel": "0",
+          "cardLocalSafeRect": [
+            530,
+            464,
+            300,
+            70
+          ],
+          "atlasSourceRect": [
+            530,
+            1064,
+            300,
+            70
+          ],
+          "cardLocalCenter": [
+            680.0,
+            499.0
+          ]
+        }
+      ]
+    }
+  ],
+  "selectedExampleIds": [
+    "pattern-056-03",
+    "pattern-056-01",
+    "pattern-056-02",
+    "pattern-056-06",
+    "pattern-073-00",
+    "pattern-073-02"
+  ],
+  "selectedExampleComposition": {
+    "I": 4,
+    "II": 2
+  },
+  "selectedExampleOrigin": "The existing UI example, not an exact reproduction of the TTS save board state."
+}

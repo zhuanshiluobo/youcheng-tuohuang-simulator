@@ -1,0 +1,52 @@
+{
+  "definitionId": "infected.character.ceobe",
+  "contentType": "character",
+  "version": "2.0.0",
+  "displayName": "刻俄柏",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.ceobe.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.character.ceobe.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.ceobe.strategy",
+      "script": "lua/characters/infected.character.ceobe.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "infected.character.ceobe.tactic",
+      "mode": "tactic",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.ceobe.tactic",
+      "script": "lua/characters/infected.character.ceobe.tactic.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.ceobe.tactic.completed",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.ceobe",
+    "cardId": "infected.character.ceobe",
+    "name": "刻俄柏",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "infected.character.ceobe.strategy",
+    "tacticAbilityId": "infected.character.ceobe.tactic",
+    "strategyName": "可靠伙伴",
+    "tacticName": "我都想要",
+    "sourceReference": "I33"
+  }
+}

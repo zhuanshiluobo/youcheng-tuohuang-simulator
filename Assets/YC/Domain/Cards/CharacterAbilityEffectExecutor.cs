@@ -235,6 +235,8 @@ namespace YC.Domain.Cards
             string cardId = ReadReference(context.Node.NormalizedArguments, "cardInstanceId");
             string mode = ReadString(context.Node.NormalizedArguments, "mode");
             string effectOrder = ReadString(context.Node.NormalizedArguments, "effectOrder");
+            string useId = ReadString(context.Node.NormalizedArguments, "useId");
+            var use = context.State.CharacterUses.Find(value => value.UseId == useId);
             if (!context.Registry.CharacterActivationSubscriptions.TryGetValue(abilityId, out var subscriptionId) ||
                 !context.Registry.HasEventHandler(subscriptionId))
                 throw new KernelException(EffectFaultCodes.UnknownEventHandler, "角色能力缺少外部 Lua handler：" + abilityId);
@@ -256,7 +258,19 @@ namespace YC.Domain.Cards
                 }
 
                 // 卡面是普通 Effect 式；某个可选条件被放弃或普通子 Effect 失败，不回滚整个角色牌。
-                CompleteCharacterUse(context, player, cardId);
+                if (use != null && use.SkippedModes.Contains(mode))
+                {
+                    ItemTransferEffectExecutor.Set(context.Node, CharacterLifecycleService.StoppedUseKey, NormalizedValue.CreateString(use.UseId));
+                    return EffectStepResult.Failed(CharacterLifecycleService.ModeStoppedReason);
+                }
+                if (use != null)
+                {
+                    if (!use.CompletedModes.Contains(mode)) use.CompletedModes.Add(mode);
+                    var contract = use.Modes.Find(value => value.Mode == mode);
+                    contract.Activated = !HasFailedChild(context);
+                    contract.SubscriptionActive = contract.Activated && contract.SkillType == "persistent";
+                }
+                else CompleteCharacterUse(context, player, cardId);
                 var completed = EffectStepResult.Completed(NormalizedValue.CreateObject(new List<NormalizedValueEntry>
                 {
                     new NormalizedValueEntry { Name = "abilityId", Value = NormalizedValue.CreateString(abilityId) },
@@ -268,7 +282,8 @@ namespace YC.Domain.Cards
                 return completed;
             }
 
-            if (player.CoveredCharacterCardId != cardId || player.UsedCharacterThisRound)
+            if (use != null ? use.Finished || use.ExecutingPlayerId != context.Node.PlayerId || use.CardInstanceId != cardId || !use.ModeOrder.Contains(mode) || use.CompletedModes.Contains(mode) :
+                player.CoveredCharacterCardId != cardId || player.UsedCharacterThisRound)
             {
                 return EffectStepResult.Failed("character_ability_activation_invalid");
             }
@@ -288,7 +303,7 @@ namespace YC.Domain.Cards
                 DefinitionVersion = CharacterAbilityCatalog.CurrentDefinitionVersion,
                 SemanticKey = abilityId,
                 Payload = CreateActivationPayload(abilityId, cardId, mode, effectOrder, true),
-                HostOnlyPayload = CreateActivationPayload(abilityId, cardId, mode, effectOrder, false)
+                HostOnlyPayload = CreateActivationPayload(abilityId, cardId, mode, effectOrder, false, useId)
             });
             return result;
         }
@@ -460,7 +475,8 @@ namespace YC.Domain.Cards
             string cardId,
             string mode,
             string effectOrder,
-            bool masked)
+            bool masked,
+            string useId = "")
         {
             return NormalizedValue.CreateObject(new List<NormalizedValueEntry>
             {
@@ -471,7 +487,8 @@ namespace YC.Domain.Cards
                     Value = NormalizedValue.CreateStableReference("character_card", masked ? "hidden" : cardId)
                 },
                 new NormalizedValueEntry { Name = "mode", Value = NormalizedValue.CreateString(mode) },
-                new NormalizedValueEntry { Name = "effectOrder", Value = NormalizedValue.CreateString(effectOrder) }
+                new NormalizedValueEntry { Name = "effectOrder", Value = NormalizedValue.CreateString(effectOrder) },
+                new NormalizedValueEntry { Name = "useId", Value = NormalizedValue.CreateString(useId) }
             });
         }
 

@@ -1,0 +1,113 @@
+{
+  "definitionId": "city_style_pioneer_command_hub",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "拓荒指挥中枢",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/city_style_level_2.jpg",
+  "artworkSpriteId": "city_style_2_004",
+  "tags": [
+    "enterprise"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "city_style_pioneer_command_hub.special",
+      "mode": "special",
+      "skillType": "normal",
+      "subscriptionId": "content.city_style_pioneer_command_hub.special",
+      "script": "lua/city_styles/city_style_pioneer_command_hub.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "data": {
+    "cityStyleId": "city_style_pioneer_command_hub",
+    "name": "拓荒指挥中枢",
+    "level": 2,
+    "score": 7,
+    "description": "本行动轮额外执行1次建设、探索或移动城市；使用角色牌时可按所选顺序执行策略和计谋。",
+    "maxDeclarationsPerPlayer": 2147483647,
+    "specialActionId": "special_action.city_style.pioneer_command_hub",
+    "declarationReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 6,
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 2,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        },
+        {
+          "rowOffset": 2,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        },
+        {
+          "rowOffset": 2,
+          "columnOffset": 2,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        }
+      ]
+    },
+    "specialAction": {
+      "specialActionId": "special_action.city_style.pioneer_command_hub",
+      "cityStyleId": "city_style_pioneer_command_hub",
+      "name": "拓荒指挥中枢",
+      "description": "本行动轮额外执行1次建设、探索或移动城市；使用角色牌时可按所选顺序执行策略和计谋。",
+      "level": 2,
+      "effectKind": 3,
+      "fixedCost": {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      "flexibleOriginiumAndIronCost": 0,
+      "maximumTargetCount": 0,
+      "freeMoveCount": 0,
+      "extraMainActionCount": 1,
+      "locksCharacterCard": false
+    },
+    "luaSubscriptionId": "content.city_style_pioneer_command_hub.special",
+    "luaAbilityId": "city_style_pioneer_command_hub.special",
+    "luaCompletionHandlerId": "",
+    "luaVersion": "1.0.0",
+    "effectScript": "lua/city_styles/city_style_pioneer_command_hub.special.lua"
+  }
+}

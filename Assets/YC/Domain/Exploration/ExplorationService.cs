@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.Cards;
 using YC.Domain.CardFlows;
 using YC.Domain.Commands;
@@ -18,6 +19,8 @@ namespace YC.Domain.Exploration
         private static readonly MainActionBudgetService MainActionBudgetService = new MainActionBudgetService();
 
         private readonly IMapQueryService mapQuery;
+
+        public IMapQueryService MapQuery => mapQuery;
 
         internal EventColor GetEventColor(string locationId)
         {
@@ -49,6 +52,46 @@ namespace YC.Domain.Exploration
             eventEffectResolver = new EventEffectResolver(this.mapQuery, this.influenceService);
             cardFlowService = new CardFlowService();
             routeTollService = new RouteTollService(this.mapQuery);
+        }
+
+        // 手选入口只查询目标资格，不枚举路线或付款组合。开放红区不影响航道通行。
+        public IReadOnlyList<string> GetSelectableLocationIds(GameState state, int playerId, bool allowFacilityEntry = false)
+        {
+            if (state == null) throw new ArgumentNullException(nameof(state));
+            var player = state.FindPlayer(playerId);
+            if (player == null || string.IsNullOrEmpty(player.CityLocationId) || player.InfluenceSupply <= 0
+                || !CommandPhasePolicy.ValidatePhase(state, GameCommandKind.ExploreLocation).IsValid || state.CurrentPlayerId != playerId
+                || (!allowFacilityEntry && !MainActionBudgetService.ValidateCanSpend(state, playerId).IsValid)) return Array.AsReadOnly(new string[0]);
+            var tokens = new HashSet<string>(state.Map.ResourceTokens.ToArray().Select(t => t.LocationId), StringComparer.Ordinal);
+            var occupied = new HashSet<string>(state.Map.Influences.ToArray().Select(i => i.SlotId), StringComparer.Ordinal);
+            var opponentCities = new HashSet<string>(state.Players.Where(p => p.PlayerId != playerId).Select(p => p.CityLocationId), StringComparer.Ordinal);
+            var eventAvailable = new Dictionary<EventColor, bool>();
+            var result = new List<string>();
+            foreach (var location in mapQuery.Map.Locations)
+            {
+                if (tokens.Contains(location.LocationId) || IsRedZoneClosed(state, location) || opponentCities.Contains(location.LocationId)) continue;
+                bool freeSlot = false;
+                for (int i = 0; i < location.InfluenceSlotCount; i++) if (!occupied.Contains(InfluenceService.GetLocationSlotId(location.LocationId, i))) { freeSlot = true; break; }
+                if (!freeSlot) continue;
+                var color = GetEventColor(location.LocationId);
+                bool available;
+                if (!eventAvailable.TryGetValue(color, out available))
+                {
+                    var card = eventDeckService.RemainingCount(state.Decks, color) > 0 ? EventCardDatabase.Get(state, PeekEventCardId(state.Decks, color)) : null;
+                    available = card != null && card.ChoiceRewards.Count > 0;
+                    eventAvailable.Add(color, available);
+                }
+                if (available) result.Add(location.LocationId);
+            }
+            return result.AsReadOnly();
+        }
+
+        // 托管消费者可在预留前复验目标；不把预留后的净钱包拿来重复判断旧路费。
+        public ValidationResult CanExploreTarget(GameState state, int playerId, string targetLocationId, bool allowFacilityEntry = false)
+        {
+            if (state == null) throw new ArgumentNullException(nameof(state));
+            return GetSelectableLocationIds(state, playerId, allowFacilityEntry).Contains(targetLocationId)
+                ? ValidationResult.Success : ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索目标当前不满足资源点、红区、事件或影响力资格。");
         }
 
         public ValidationResult CanExplore(
@@ -136,7 +179,7 @@ namespace YC.Domain.Exploration
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "对应颜色事件牌堆已空。");
             }
 
-            var card = EventCardDatabase.Get(PeekEventCardId(state.Decks, eventColor));
+            var card = EventCardDatabase.Get(state, PeekEventCardId(state.Decks, eventColor));
             if (card == null)
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "事件牌数据不存在。");
@@ -164,7 +207,7 @@ namespace YC.Domain.Exploration
                 playerId,
                 path.RouteIds,
                 paymentRecipientsByRouteId,
-                RouteTollPaymentKeyMode.SharedRegion,
+                RouteTollPaymentKeyMode.RouteId,
                 out payments);
             if (!paymentValidation.IsValid)
             {
@@ -393,7 +436,7 @@ namespace YC.Domain.Exploration
                 playerId,
                 path.RouteIds,
                 paymentRecipientsByRouteId,
-                RouteTollPaymentKeyMode.SharedRegion,
+                RouteTollPaymentKeyMode.RouteId,
                 out payments);
             if (!paymentValidation.IsValid)
             {
@@ -662,14 +705,14 @@ namespace YC.Domain.Exploration
             for (var i = 0; i < path.RouteIds.Count; i++)
             {
                 var routeId = path.RouteIds[i];
-                var paymentKey = routeTollService.GetRoutePaymentKey(routeId, RouteTollPaymentKeyMode.SharedRegion);
+                var paymentKey = routeTollService.GetRoutePaymentKey(routeId, RouteTollPaymentKeyMode.RouteId);
                 score.StepCount += 1;
                 if (paidPaymentKeys.Contains(paymentKey) ||
                     !routeTollService.IsPaymentRequired(
                         state,
                         routeId,
                         playerId,
-                        RouteTollPaymentKeyMode.SharedRegion))
+                        RouteTollPaymentKeyMode.RouteId))
                 {
                     continue;
                 }
@@ -680,7 +723,7 @@ namespace YC.Domain.Exploration
                         state,
                         paymentKey,
                         playerId,
-                        RouteTollPaymentKeyMode.SharedRegion).Count > 0)
+                        RouteTollPaymentKeyMode.RouteId).Count > 0)
                 {
                     score.OpponentTollRouteCount += 1;
                 }
@@ -813,13 +856,13 @@ namespace YC.Domain.Exploration
             var score = current.Score;
             score.StepCount += 1;
 
-            var paymentKey = routeTollService.GetRoutePaymentKey(routeId, RouteTollPaymentKeyMode.SharedRegion);
+            var paymentKey = routeTollService.GetRoutePaymentKey(routeId, RouteTollPaymentKeyMode.RouteId);
             if (!paidPaymentKeys.Contains(paymentKey) &&
                 routeTollService.IsPaymentRequired(
                     state,
                     routeId,
                     playerId,
-                    RouteTollPaymentKeyMode.SharedRegion))
+                    RouteTollPaymentKeyMode.RouteId))
             {
                 paidPaymentKeys.Add(paymentKey);
                 score.TollRouteCount += 1;
@@ -827,7 +870,7 @@ namespace YC.Domain.Exploration
                         state,
                         paymentKey,
                         playerId,
-                        RouteTollPaymentKeyMode.SharedRegion).Count > 0)
+                        RouteTollPaymentKeyMode.RouteId).Count > 0)
                 {
                     score.OpponentTollRouteCount += 1;
                 }
@@ -903,9 +946,10 @@ namespace YC.Domain.Exploration
                 return null;
             }
 
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            var influences = state.Map.Influences.ToArray();
+            for (var i = 0; i < influences.Length; i++)
             {
-                var influence = state.Map.Influences[i];
+                var influence = influences[i];
                 InfluenceSlotReference placedSlot;
                 if (InfluenceSlotReference.TryParse(mapQuery, influence.SlotId, out placedSlot, out reason) &&
                     placedSlot.SlotId == requestedSlot.SlotId)

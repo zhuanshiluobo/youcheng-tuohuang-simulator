@@ -1,0 +1,132 @@
+{
+  "version": "1.1",
+  "states": [
+    "default",
+    "hover",
+    "pressed",
+    "disabled"
+  ],
+  "basePattern": "assets/buttons/{family}/{state}.png",
+  "fillPattern": "assets/buttons/{family}/{state}-fill.png",
+  "framePattern": "assets/buttons/{family}/{state}-frame.png",
+  "iconPattern": "assets/icons/{icon}.png",
+  "disabledIconTone": "muted",
+  "buttons": {
+    "set-password": {
+      "label": "设置密码",
+      "activeLabel": "修改密码",
+      "family": "neutral",
+      "icon": "lock-dark",
+      "visibleWhen": "viewerId == hostId"
+    },
+    "copy-room-number": {
+      "family": "neutral",
+      "icon": "copy-dark",
+      "successIcon": "check-dark",
+      "copyField": "roomNumber",
+      "resultDrivenFeedback": true
+    },
+    "help": {
+      "family": "neutral",
+      "icon": "book-dark",
+      "action": "open-instructions"
+    },
+    "change-seat": {
+      "label": "换位置",
+      "family": "neutral",
+      "icon": "swap-dark",
+      "visibleWhen": "seat.occupant.id == viewerId"
+    },
+    "remove-player": {
+      "label": "移除",
+      "family": "neutral",
+      "icon": "remove-danger",
+      "textColor": "#A63F38",
+      "visibleWhen": "host and occupied and occupant is not host",
+      "result": "occupied -> open"
+    },
+    "invite": {
+      "label": "邀请",
+      "family": "neutral",
+      "emphasisFamily": "accent",
+      "icon": "invite-dark",
+      "visibleWhen": "host and open seat"
+    },
+    "hotseat": {
+      "label": "热座",
+      "family": "neutral",
+      "icon": "hotseat-dark",
+      "visibleWhen": "host and open seat"
+    },
+    "ai": {
+      "label": "人机",
+      "family": "neutral",
+      "icon": "bot-dark",
+      "visibleWhen": "host and open seat"
+    },
+    "close-seat": {
+      "label": "关闭座位",
+      "family": "neutral",
+      "icon": "close-seat-dark",
+      "visibleWhen": "host and open seat",
+      "result": "open -> closed"
+    },
+    "open-seat": {
+      "label": "开启座位",
+      "family": "neutral",
+      "icon": "invite-dark",
+      "visibleWhen": "host and closed seat",
+      "result": "closed -> open"
+    },
+    "start": {
+      "label": "开始游戏",
+      "family": "accent",
+      "icon": "start-dark",
+      "visibleWhen": "host",
+      "enabledField": "canStart"
+    },
+    "ready": {
+      "label": "准备",
+      "family": "accent",
+      "icon": "check-dark",
+      "visibleWhen": "non-host and not ready",
+      "enabledField": "canReady"
+    },
+    "cancel-ready": {
+      "label": "取消准备",
+      "family": "neutral",
+      "icon": "close-dark",
+      "visibleWhen": "non-host and ready"
+    },
+    "back": {
+      "label": "返回",
+      "family": "dark",
+      "icon": "back-light"
+    },
+    "close-dialog": {
+      "family": "neutral",
+      "icon": "close-dark"
+    },
+    "save-password": {
+      "label": "保存",
+      "family": "accent",
+      "icon": "check-dark"
+    },
+    "cancel-password": {
+      "label": "取消",
+      "family": "neutral",
+      "icon": null
+    }
+  },
+  "iconLogicalSizes": {
+    "header": 32,
+    "footer": 32,
+    "seatAction": 40,
+    "status": 26
+  },
+  "minimumHitArea": [
+    44,
+    44
+  ],
+  "copyIncludesPassword": false
+}

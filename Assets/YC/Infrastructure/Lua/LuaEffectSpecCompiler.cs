@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.Cards;
 using YC.Domain.Effects;
 using YC.Domain.Facilities;
@@ -64,10 +65,13 @@ namespace YC.Infrastructure.Lua
 
         public LuaEffectTypeCatalog()
         {
+            Register(new LuaEffectTypeRegistration(ResourceCollectionEffectExecutor.TypeId, spec => ResourceCollectionEffectExecutor.ValidateArguments(spec.RawArguments), CreateRawArguments));
             Register(new LuaEffectTypeRegistration(
                 EffectTypeIds.Condition,
                 spec => spec == null || spec.NestedEffectGroups == null || spec.NestedEffectGroups.Length < 2
-                    ? "Condition 必须提供 leftEffects 和 rightEffects。" : string.Empty,
+                    ? "Condition 必须提供 leftEffects 和 rightEffects。"
+                    : ItemTransferEffectExecutor.Value(spec.RawArguments, "ruleCondition") is NormalizedValue role && role.Kind != NormalizedValueKind.Boolean
+                        ? "规则条件标记必须为布尔值。" : string.Empty,
                 spec => spec.RawArguments == null
                     ? NormalizedValue.CreateObject(new List<NormalizedValueEntry>())
                     : spec.RawArguments.Clone()));
@@ -77,8 +81,9 @@ namespace YC.Infrastructure.Lua
                 spec => CreateArguments(spec, true)));
             Register(new LuaEffectTypeRegistration(
                 "effect.resource.pay",
-                spec => IsResourceType(spec.ResourceTypeId) ? string.Empty : "资源类型未登记。",
-                spec => CreateArguments(spec, true)));
+                spec => spec.RawArguments != null ? ResourceEffectExecutor.ValidateCompositePayment(spec.RawArguments) :
+                    IsResourceType(spec.ResourceTypeId) ? string.Empty : "资源类型未登记。",
+                spec => spec.RawArguments != null ? CreateRawArguments(spec) : CreateArguments(spec, true)));
             Register(new LuaEffectTypeRegistration(
                 "effect.score.gain",
                 null,
@@ -121,11 +126,21 @@ namespace YC.Infrastructure.Lua
                 CreateCharacterAbilityArguments));
             Register(new LuaEffectTypeRegistration(
                 CharacterCoverEffectExecutor.EffectTypeId,
-                ValidateRawObject,
+                spec => ItemTransferEffectExecutor.Value(spec.RawArguments, "apiVersion") == null ? ValidateRawObject(spec) : CharacterCoverEffectExecutor.ValidateArguments(spec.RawArguments),
                 CreateRawArguments));
 
             string[] genericTypes =
             {
+                ContentPrimitiveEffectExecutor.IncompleteEffect,
+                ContentLifecycleEffectExecutor.RetireFacilityTypeId, ContentLifecycleEffectExecutor.ReturnMarkerTypeId,
+                YC.Domain.Influence.RewardAcquisitionFlow.TypeId,
+                ResourceLossEffectExecutor.TypeId, ContentPrimitiveEffectExecutor.LoadMarkers, ContentPrimitiveEffectExecutor.PayMarkers,
+                ContentPrimitiveEffectExecutor.StoreRemoved, ContentPrimitiveEffectExecutor.ClearRouteRoad,
+                ItemTransferEffectExecutor.RefillTypeId, ItemTransferEffectExecutor.RefreshTypeId,
+                CharacterLifecycleService.TransferTypeId,
+                CharacterLifecycleService.ConsumeSourceTypeId,
+                ResourcePaymentSubstitutionEffectExecutor.TypeId,
+                OperatorDispatchFlow.ReplaceTypeId,
                 ContentPrimitiveEffectExecutor.SelectInfluence,
                 CityStyleSpecialActionEffectTypeIds.GrantMainActions,
                 FacilitySelectionEffectExecutor.TypeId,
@@ -133,6 +148,8 @@ namespace YC.Infrastructure.Lua
                 ContentPrimitiveEffectExecutor.OverrideNextStartPlayer,
                 ContentPrimitiveEffectExecutor.ActivateFacilityEntry,
                 ContentPrimitiveEffectExecutor.ChooseResources,
+                ItemTransferEffectExecutor.TypeId,
+                DeckShuffleEffectExecutor.TypeId,
                 LuaDomainEffectTypeIds.Choice,
                 LuaDomainEffectTypeIds.Repeat,
                 LuaDomainEffectTypeIds.RollDice,
@@ -151,6 +168,11 @@ namespace YC.Infrastructure.Lua
                 LuaDomainEffectTypeIds.UpgradeEnterprise,
                 LuaDomainEffectTypeIds.ActivateEnterpriseSpecial,
                 LuaDomainEffectTypeIds.SwitchDepartment,
+                YC.Domain.Enterprises.EnterpriseDistinctUpgradeFlow.TypeId,
+                YC.Domain.Enterprises.EnterpriseEffectExecutor.ChangeLevelTypeId,
+                YC.Domain.Enterprises.EnterpriseEffectExecutor.UpgradeAllPlayersTypeId,
+                YC.Domain.Enterprises.EnterpriseSpecialSelectionExecutor.UpgradeThenActivateTypeId,
+                YC.Domain.Enterprises.EnterpriseSpecialSelectionExecutor.ActivateAllTypeId,
                 LuaDomainEffectTypeIds.ExecuteMainAction,
                 LuaDomainEffectTypeIds.OpenPlayerTaskGroup,
                 LuaDomainEffectTypeIds.MainActionDeploy,
@@ -162,10 +184,42 @@ namespace YC.Infrastructure.Lua
                 FacilityEntryEffectTypeIds.Build,
                 ExplorationEffectTypeIds.Explore
             };
+            genericTypes = genericTypes.Concat(CharacterContentEffectExecutor.Constructors.Values.Select(suffix => CharacterContentEffectExecutor.Prefix + suffix)).Concat(ContentTransactionEffectExecutor.Constructors.Values.Select(suffix => ContentTransactionEffectExecutor.Prefix + suffix)).ToArray();
             for (int i = 0; i < genericTypes.Length; i++)
             {
-                Register(new LuaEffectTypeRegistration(genericTypes[i], ValidateRawObject, CreateRawArguments));
+                string typeId = genericTypes[i];
+                Register(new LuaEffectTypeRegistration(typeId, spec => ValidateGenericArguments(typeId, spec), CreateRawArguments));
             }
+        }
+
+        private static string ValidateGenericArguments(string typeId, LuaEffectSpec spec)
+        {
+            if (typeId == CharacterLifecycleService.ConsumeSourceTypeId) return SettlementHostProtocol.ValidateConsumeSourceArguments(spec?.RawArguments);
+            if (typeId == ResourcePaymentSubstitutionEffectExecutor.TypeId) return ResourcePaymentSubstitutionEffectExecutor.ValidateArguments(spec?.RawArguments);
+            if (typeId == ResourceLossEffectExecutor.TypeId) return ResourceLossEffectExecutor.ValidateArguments(spec?.RawArguments);
+            if (typeId == LuaDomainEffectTypeIds.Choice) return GenericLuaEffectExecutor.ValidateChoiceArguments(spec?.RawArguments);
+            string error = ValidateRawObject(spec);
+            if (error.Length > 0) return error;
+            if (CharacterContentEffectExecutor.IsPublic(typeId)) return CharacterContentEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
+            if (ContentTransactionEffectExecutor.IsType(typeId)) return ContentTransactionEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
+            if (typeId == LuaDomainEffectTypeIds.RollDice) return DiceRollEffectExecutor.ValidateArguments(spec.RawArguments);
+            if (ContentLifecycleEffectExecutor.PublicTypeIds.Contains(typeId)) return ContentLifecycleEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
+            if (ContentPrimitiveEffectExecutor.ContentFlowTypeIds.Contains(typeId)) return ContentPrimitiveEffectExecutor.ValidateContentFlow(typeId, spec.RawArguments);
+            if (typeId == ItemTransferEffectExecutor.RefillTypeId || typeId == ItemTransferEffectExecutor.RefreshTypeId) return ItemTransferEffectExecutor.Value(spec.RawArguments, "apiVersion") == null ? "supply_arguments_incomplete" : ItemTransferEffectExecutor.ValidateSupplyArguments(typeId, spec.RawArguments);
+            if (typeId == LuaDomainEffectTypeIds.ResourceSell && ItemTransferEffectExecutor.Value(spec.RawArguments, "apiVersion") != null) return ContentPrimitiveEffectExecutor.ValidateSaleArguments(spec.RawArguments);
+            if (typeId == OperatorDispatchFlow.TypeId || typeId == OperatorDispatchFlow.ReplaceTypeId) return OperatorDispatchFlow.ValidateArguments(typeId, spec.RawArguments);
+            if (typeId == CharacterLifecycleService.TransferTypeId || typeId == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule) return CharacterLifecycleService.ValidateArguments(typeId, spec.RawArguments);
+            if (typeId == LuaDomainEffectTypeIds.PlaceRoad || typeId == LuaDomainEffectTypeIds.OperateToken)
+                return YC.Domain.Movement.MapOperationEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
+            if (YC.Domain.Enterprises.EnterpriseEffectExecutor.IsEnterpriseType(typeId))
+                return YC.Domain.Enterprises.EnterpriseEffectExecutor.MissingFields(typeId, spec.RawArguments).Count > 0 ? "" : YC.Domain.Enterprises.EnterpriseEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
+            if (typeId == ItemTransferEffectExecutor.TypeId || typeId == LuaDomainEffectTypeIds.MoveFacilityCard || typeId == LuaDomainEffectTypeIds.MoveCharacterCard)
+                return ItemTransferEffectExecutor.MissingTransferFields(typeId, spec.RawArguments).Count > 0 ? "" : ItemTransferEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
+            if (typeId == DeckShuffleEffectExecutor.TypeId || typeId == LuaDomainEffectTypeIds.ShuffleFacilityDeck)
+                return DeckShuffleEffectExecutor.MissingFields(typeId, spec.RawArguments).Count > 0 ? "" : DeckShuffleEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
+            if (typeId == LuaDomainEffectTypeIds.Repeat)
+                return ItemTransferEffectExecutor.Value(spec.RawArguments, "apiVersion")?.IntegerValue == 1 && ItemTransferEffectExecutor.Value(spec.RawArguments, "count") == null ? "" : RepeatEffectExecutor.ValidateArguments(spec.RawArguments);
+            return "";
         }
 
         public void Register(LuaEffectTypeRegistration registration)
@@ -424,9 +478,8 @@ namespace YC.Infrastructure.Lua
                 }
                 if (spec.EffectTypeId == InfluenceEffectTypeIds.MoveInfluence &&
                     string.IsNullOrWhiteSpace(spec.TargetInfluenceId)) return "影响力 Effect 必须提供 targetInfluence。";
-                return spec.EffectTypeId == InfluenceEffectTypeIds.MoveInfluence && string.IsNullOrWhiteSpace(spec.TargetSlotId)
-                    ? "MoveInfluence 必须提供 targetSlotId。"
-                    : string.Empty;
+                // 缺少目标槽时由同一基础移动事务产生正式合法地图目标。
+                return string.Empty;
             }
 
             if (string.IsNullOrWhiteSpace(spec.TargetInfluenceId) ||
@@ -459,13 +512,13 @@ namespace YC.Infrastructure.Lua
 
             if (spec.EffectTypeId == InfluenceEffectTypeIds.PlaceInfluence)
             {
-                entries.Add(new NormalizedValueEntry { Name = "influenceSource", Value = CreateSource(spec.InfluenceSourceId, spec.ExecutingPlayerId) });
+                entries.Add(new NormalizedValueEntry { Name = "influenceSource", Value = CreateSource(spec.InfluenceSourceId, string.IsNullOrEmpty(spec.OwnerSubjectId) ? spec.ExecutingPlayerId : spec.OwnerSubjectId) });
                 if (spec.HasCandidateScope)
                     entries.Add(new NormalizedValueEntry { Name = "candidateScope", Value = CreateCandidateArray(spec.CandidateIds) });
                 entries.Add(new NormalizedValueEntry { Name = "ownerSubject", Value = CreateSubject(string.IsNullOrEmpty(spec.OwnerSubjectId) ? spec.ExecutingPlayerId : spec.OwnerSubjectId) });
                 if (!string.IsNullOrWhiteSpace(spec.TargetSlotId))
                 {
-                    entries.Add(new NormalizedValueEntry { Name = "targetSlotId", Value = NormalizedValue.CreateStableReference("slot", spec.TargetSlotId) });
+                    if (!string.IsNullOrEmpty(spec.TargetSlotId)) entries.Add(new NormalizedValueEntry { Name = "targetSlotId", Value = NormalizedValue.CreateStableReference("slot", spec.TargetSlotId) });
                 }
             }
             else if (spec.EffectTypeId == InfluenceEffectTypeIds.RemoveInfluence)
@@ -489,7 +542,7 @@ namespace YC.Infrastructure.Lua
             else if (spec.EffectTypeId == InfluenceEffectTypeIds.MoveInfluence)
             {
                 entries.Add(new NormalizedValueEntry { Name = "targetInfluence", Value = NormalizedValue.CreateStableReference("influence", spec.TargetInfluenceId) });
-                entries.Add(new NormalizedValueEntry { Name = "targetSlotId", Value = NormalizedValue.CreateStableReference("slot", spec.TargetSlotId) });
+                if (!string.IsNullOrEmpty(spec.TargetSlotId)) entries.Add(new NormalizedValueEntry { Name = "targetSlotId", Value = NormalizedValue.CreateStableReference("slot", spec.TargetSlotId) });
             }
             else
             {
@@ -499,11 +552,15 @@ namespace YC.Infrastructure.Lua
                 entries.Add(new NormalizedValueEntry { Name = "targetInfluence", Value = NormalizedValue.CreateStableReference("influence", spec.TargetInfluenceId) });
             }
 
+            if (spec.SubjectFilter.Length > 0) entries.Add(new NormalizedValueEntry { Name = "subjectFilter", Value = NormalizedValue.CreateString(spec.SubjectFilter) });
+            if (spec.ExcludedSubjectKeys.Count > 0) entries.Add(new NormalizedValueEntry { Name = "excludedSubjectKeys", Value = ItemTransferEffectExecutor.Strings(spec.ExcludedSubjectKeys) });
             return NormalizedValue.CreateObject(entries);
         }
 
         private static NormalizedValue CreateSubject(string playerId)
         {
+            if (playerId != null && playerId.StartsWith("company:", StringComparison.Ordinal))
+                return ItemTransferEffectExecutor.Object("subjectType", NormalizedValue.CreateString("company"), "instanceId", NormalizedValue.CreateString(playerId.Substring("company:".Length)), "definitionId", NormalizedValue.CreateString(playerId.Substring("company:".Length)), "playerId", NormalizedValue.CreateInteger(-1));
             return NormalizedValue.CreateObject(new List<NormalizedValueEntry>
             {
                 new NormalizedValueEntry { Name = "instanceId", Value = NormalizedValue.CreateString(playerId ?? string.Empty) },
@@ -516,7 +573,7 @@ namespace YC.Infrastructure.Lua
         {
             return NormalizedValue.CreateObject(new List<NormalizedValueEntry>
             {
-                new NormalizedValueEntry { Name = "kind", Value = NormalizedValue.CreateString("player_supply") },
+                new NormalizedValueEntry { Name = "kind", Value = NormalizedValue.CreateString(playerId != null && playerId.StartsWith("company:", StringComparison.Ordinal) ? "company_supply" : "player_supply") },
                 new NormalizedValueEntry { Name = "sourceId", Value = NormalizedValue.CreateString(sourceId ?? string.Empty) },
                 new NormalizedValueEntry { Name = "subject", Value = CreateSubject(playerId) }
             });
@@ -584,10 +641,43 @@ namespace YC.Infrastructure.Lua
     public sealed class LuaEffectSpecCompiler
     {
         private readonly LuaEffectTypeCatalog catalog;
+        private readonly GameplayPresentationCatalog presentationCatalog;
+        private readonly Dictionary<string, YC.Domain.Presentation.AbilityPresentationDefinition> abilityPresentations = new Dictionary<string, YC.Domain.Presentation.AbilityPresentationDefinition>(StringComparer.Ordinal);
+        private readonly Dictionary<string, LuaScriptDefinition> abilityCompletionScripts = new Dictionary<string, LuaScriptDefinition>(StringComparer.Ordinal);
 
-        public LuaEffectSpecCompiler(LuaEffectTypeCatalog catalog = null)
+        public LuaEffectSpecCompiler(LuaEffectTypeCatalog catalog = null, ExternalContentPack presentationPack = null)
         {
             this.catalog = catalog ?? new LuaEffectTypeCatalog();
+            presentationCatalog = presentationPack?.Presentation;
+            if (presentationPack != null)
+                foreach (var definition in presentationPack.ActiveDefinitions)
+                foreach (var ability in definition.Abilities)
+                {
+                    if (ability.Presentation != null) abilityPresentations.Add(ability.AbilityId, ability.Presentation);
+                    if (!string.IsNullOrEmpty(ability.CompletionHandlerId))
+                    {
+                        string source = presentationPack.GetScript(ability.Script);
+                        string contentId = definition.ContentType == "character" ? "content." + ability.SubscriptionId : definition.DefinitionId;
+                        abilityCompletionScripts.Add(ability.AbilityId, new LuaScriptDefinition(contentId, ability.AbilityId,
+                            ability.CompletionHandlerId, ability.Version, source, LuaContentHasher.ComputeSha256(source)));
+                    }
+                }
+            if (presentationPack != null)
+                foreach (var definition in presentationPack.ActiveDefinitions.Where(d => d.ContentType == "facility"))
+                {
+                    string handler = (string)definition.Data["completionHandlerId"] ?? "";
+                    if (handler.Length == 0) continue;
+                    string effectId = (string)definition.Data["effectId"];
+                    string id = "facility.entry." + effectId, source = presentationPack.GetFacilityScript(effectId);
+                    var script = new LuaScriptDefinition("content.facility." + effectId, id, handler,
+                        FacilityLuaCatalog.DefinitionVersion, source, LuaContentHasher.ComputeSha256(source));
+                    if (abilityCompletionScripts.TryGetValue(id, out var prior))
+                    {
+                        if (prior.HandlerId != handler || prior.ContentHash != script.ContentHash)
+                            throw new InvalidOperationException("facility_continuation_definition_conflict");
+                    }
+                    else abilityCompletionScripts.Add(id, script);
+                }
         }
 
         public LuaEffectTypeCatalog Catalog { get { return catalog; } }
@@ -663,10 +753,31 @@ namespace YC.Infrastructure.Lua
                     context.PlayerId);
                 // 脚本版本属于内容/handler 收据；节点执行版本由正式 Registry 的
                 // EffectRegistration 决定，避免同一通用 Effect 因内容版本不同而失配。
+                spec.Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(sourceSpec.Presentation);
+                spec.Settlement = GameStateCloneService.DeepClone(sourceSpec.Settlement);
+                spec.ContinuationContext = sourceSpec.ContinuationContext?.Clone();
+                if (presentationCatalog != null)
+                {
+                    abilityPresentations.TryGetValue(context.AbilityId ?? string.Empty, out var abilityPresentation);
+                    spec.Presentation = presentationCatalog.ResolveEffect(spec.EffectTypeId, spec.Presentation, abilityPresentation);
+                }
                 spec.DefinitionVersion = string.Empty;
                 spec.SourceId = string.IsNullOrEmpty(context.SourceId) ? invocation.ContentId : context.SourceId;
                 spec.StableKey = BuildStableKey(context.StableKeyPrefix, i);
                 spec.CompletionHandlerId = context.CompletionHandlerId ?? string.Empty;
+                if (!string.IsNullOrEmpty(sourceSpec.CompletionHandlerId))
+                {
+                    if (!abilityCompletionScripts.TryGetValue(context.AbilityId ?? string.Empty, out var declared) ||
+                        sourceSpec.CompletionHandlerId != declared.HandlerId ||
+                        invocation.ContentId != declared.ContentId || invocation.DefinitionVersion != declared.DefinitionVersion ||
+                        invocation.ContentHash != declared.ContentHash ||
+                        (context.CompletionHandlerId != declared.HandlerId && invocation.HandlerId != declared.HandlerId))
+                    {
+                        fault = new LuaEffectCompilationFault(LuaFailureCode.InvalidEffectSpec, "显式完成绑定必须匹配本能力声明及当前同内容续接。", i);
+                        return false;
+                    }
+                    spec.CompletionHandlerId = sourceSpec.CompletionHandlerId;
+                }
                 spec.ContinuationContentId = invocation.ContentId ?? string.Empty;
                 spec.ContinuationContentInstanceId = context.ContentInstanceId ?? string.Empty;
                 spec.ContinuationAbilityId = string.IsNullOrEmpty(context.AbilityId)
@@ -674,7 +785,10 @@ namespace YC.Infrastructure.Lua
                     : context.AbilityId;
                 spec.ContinuationDefinitionVersion = invocation.DefinitionVersion ?? string.Empty;
                 spec.ContinuationContentHash = invocation.ContentHash ?? string.Empty;
+                if (!BindContextContinuation(spec, out string contextError))
+                { fault = new LuaEffectCompilationFault(LuaFailureCode.InvalidEffectSpec, contextError, i); return false; }
 
+                AssignPaymentExecutor(spec);
                 ApplyExecutionOptions(spec);
                 if (!TryCompileGroups(sourceSpec, spec, context.PlayerId, 0, out fault)) return false;
                 compiled.Add(spec);
@@ -715,9 +829,21 @@ namespace YC.Infrastructure.Lua
                         var args = registration.ArgumentBuilder(child);
                         if (args == null || !args.TryValidate(out error)) throw new ArgumentException(error);
                         var compiled = EffectSpec.Create(child.EffectTypeId, args, playerId);
+                        compiled.Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(child.Presentation);
+                        compiled.Settlement = GameStateCloneService.DeepClone(child.Settlement);
+                        compiled.ContinuationContext = child.ContinuationContext?.Clone();
+                        compiled.CompletionHandlerId = child.CompletionHandlerId ?? string.Empty;
+                        compiled.ContinuationContentId = target.ContinuationContentId;
+                        compiled.ContinuationContentInstanceId = target.ContinuationContentInstanceId;
+                        compiled.ContinuationAbilityId = target.ContinuationAbilityId;
+                        compiled.ContinuationDefinitionVersion = target.ContinuationDefinitionVersion;
+                        compiled.ContinuationContentHash = target.ContinuationContentHash;
+                        if (!BindContextContinuation(compiled, out string continuationError, true)) throw new ArgumentException(continuationError);
+                        if (presentationCatalog != null) compiled.Presentation = presentationCatalog.ResolveEffect(compiled.EffectTypeId, compiled.Presentation);
                         compiled.DefinitionVersion = string.Empty;
                         compiled.SourceId = target.SourceId;
                         compiled.StableKey = BuildStableKey(target.StableKey + ":group:" + group, i);
+                        AssignPaymentExecutor(compiled);
                         ApplyExecutionOptions(compiled);
                         if (!TryCompileGroups(child, compiled, playerId, depth + 1, out fault)) return false;
                         children.Add(compiled);
@@ -733,6 +859,40 @@ namespace YC.Infrastructure.Lua
             return true;
         }
 
+        private bool BindContextContinuation(EffectSpec spec, out string reason, bool explicitNested = false)
+        {
+            reason = "effect_continuation_binding_invalid";
+            if (!EffectContinuationContext.IsValid(spec.ContinuationContext)) return false;
+            if (spec.ContinuationContext == null && string.IsNullOrEmpty(spec.CompletionHandlerId)) { reason = ""; return true; }
+            // 旧隐式顶层绑定仍由原路径验证；独立context/显式嵌套只能绑定本能力声明。
+            if (spec.ContinuationContext == null && !explicitNested) { reason = ""; return true; }
+            if (!abilityCompletionScripts.TryGetValue(spec.ContinuationAbilityId ?? "", out var declared) ||
+                declared.ContentId != spec.ContinuationContentId || declared.DefinitionVersion != spec.ContinuationDefinitionVersion ||
+                declared.ContentHash != spec.ContinuationContentHash ||
+                !string.IsNullOrEmpty(spec.CompletionHandlerId) && spec.CompletionHandlerId != declared.HandlerId) return false;
+            spec.CompletionHandlerId = declared.HandlerId;
+            reason = ""; return true;
+        }
+
+        private static void AssignPaymentExecutor(EffectSpec spec)
+        {
+            // 受信任内容显式指定 payer；支付执行器仍拒绝目标与执行人不一致的节点。
+            if (spec.EffectTypeId != ResourceEffectTypeIds.Pay) return;
+            var payer = spec.NormalizedArguments.Properties.Find(entry => entry.Name == "executingPlayer")?.Value;
+            if (payer == null)
+            {
+                var compositePayer = ItemTransferEffectExecutor.Value(spec.NormalizedArguments, "player");
+                if (compositePayer?.Kind == NormalizedValueKind.String && int.TryParse(compositePayer.StringValue, out int compositePlayerId) && compositePlayerId > 0)
+                    spec.PlayerId = compositePlayerId;
+            }
+            if (payer?.Kind == NormalizedValueKind.StableReference && payer.ReferenceType == "player")
+            {
+                string id = payer.ReferenceId;
+                if (id.StartsWith("p", StringComparison.Ordinal)) id = id.Substring(1);
+                if (int.TryParse(id, out int playerId) && playerId > 0) spec.PlayerId = playerId;
+            }
+        }
+
         private static void ApplyExecutionOptions(EffectSpec spec)
         {
             var args = spec.NormalizedArguments;
@@ -741,7 +901,7 @@ namespace YC.Infrastructure.Lua
             {
                 if (entry == null || entry.Value == null) continue;
                 if (entry.Name == "allowDecline" && entry.Value.Kind == NormalizedValueKind.Boolean)
-                    spec.AllowDecline = entry.Value.BooleanValue;
+                    spec.AllowDecline = spec.EffectTypeId != FacilitySelectionEffectExecutor.TypeId && entry.Value.BooleanValue;
                 if (entry.Name == "decisionPlayer")
                 {
                     int id;

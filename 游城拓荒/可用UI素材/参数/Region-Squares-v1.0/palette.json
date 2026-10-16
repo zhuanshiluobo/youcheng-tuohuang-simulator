@@ -1,0 +1,373 @@
+{
+  "version": "1.0",
+  "sourceMaps": {
+    "four-player": {
+      "filename": "四人.jpg",
+      "sha256": "8aaa67c8f37c5d063b485d2fbe34fc3d6015383d9c77c16fe996d20181088edd",
+      "size": [
+        2048,
+        2048
+      ]
+    },
+    "three-player": {
+      "filename": "三人.jpg",
+      "sha256": "bd23201dce708c7458d4d9899d0282730a308793167ea99e2b4d8f6c529e5426",
+      "size": [
+        2048,
+        2048
+      ]
+    }
+  },
+  "regions": [
+    {
+      "id": "A",
+      "label": "A区",
+      "hex": "#324E7D",
+      "rgb": [
+        50,
+        78,
+        125
+      ],
+      "points": 3,
+      "colorSpace": "sRGB",
+      "alpha": 255,
+      "source": {
+        "map": "four-player",
+        "xyTopLeftOrigin": [
+          98,
+          1842
+        ],
+        "sampleBoxXYWH": [
+          90,
+          1834,
+          17,
+          17
+        ],
+        "method": "most frequent exact RGB triplet",
+        "modePixelCount": 245
+      },
+      "framed": "assets/framed/region-A-64.png",
+      "flat": "assets/flat/region-A-64.png",
+      "threePlayerCrossCheck": {
+        "xyTopLeftOrigin": [
+          122,
+          215
+        ],
+        "sampleRGB": [
+          50,
+          78,
+          125
+        ],
+        "matches": true,
+        "modePixelCount": 208
+      }
+    },
+    {
+      "id": "B",
+      "label": "B区",
+      "hex": "#EC7A48",
+      "rgb": [
+        236,
+        122,
+        72
+      ],
+      "points": 3,
+      "colorSpace": "sRGB",
+      "alpha": 255,
+      "source": {
+        "map": "four-player",
+        "xyTopLeftOrigin": [
+          155,
+          1844
+        ],
+        "sampleBoxXYWH": [
+          147,
+          1836,
+          17,
+          17
+        ],
+        "method": "most frequent exact RGB triplet",
+        "modePixelCount": 182
+      },
+      "framed": "assets/framed/region-B-64.png",
+      "flat": "assets/flat/region-B-64.png",
+      "threePlayerCrossCheck": {
+        "xyTopLeftOrigin": [
+          183,
+          213
+        ],
+        "sampleRGB": [
+          236,
+          122,
+          72
+        ],
+        "matches": true,
+        "modePixelCount": 229
+      }
+    },
+    {
+      "id": "C",
+      "label": "C区",
+      "hex": "#87C2B0",
+      "rgb": [
+        135,
+        194,
+        176
+      ],
+      "points": 3,
+      "colorSpace": "sRGB",
+      "alpha": 255,
+      "source": {
+        "map": "four-player",
+        "xyTopLeftOrigin": [
+          212,
+          1847
+        ],
+        "sampleBoxXYWH": [
+          204,
+          1839,
+          17,
+          17
+        ],
+        "method": "most frequent exact RGB triplet",
+        "modePixelCount": 209
+      },
+      "framed": "assets/framed/region-C-64.png",
+      "flat": "assets/flat/region-C-64.png",
+      "threePlayerCrossCheck": {
+        "xyTopLeftOrigin": [
+          247,
+          211
+        ],
+        "sampleRGB": [
+          135,
+          194,
+          176
+        ],
+        "matches": true,
+        "modePixelCount": 213
+      }
+    },
+    {
+      "id": "D",
+      "label": "D区",
+      "hex": "#AC93D5",
+      "rgb": [
+        172,
+        147,
+        213
+      ],
+      "points": 3,
+      "colorSpace": "sRGB",
+      "alpha": 255,
+      "source": {
+        "map": "four-player",
+        "xyTopLeftOrigin": [
+          269,
+          1848
+        ],
+        "sampleBoxXYWH": [
+          261,
+          1840,
+          17,
+          17
+        ],
+        "method": "most frequent exact RGB triplet",
+        "modePixelCount": 195
+      },
+      "framed": "assets/framed/region-D-64.png",
+      "flat": "assets/flat/region-D-64.png",
+      "threePlayerCrossCheck": {
+        "xyTopLeftOrigin": [
+          309,
+          209
+        ],
+        "sampleRGB": [
+          172,
+          147,
+          213
+        ],
+        "matches": true,
+        "modePixelCount": 245
+      }
+    },
+    {
+      "id": "E",
+      "label": "E区",
+      "hex": "#EBA93B",
+      "rgb": [
+        235,
+        169,
+        59
+      ],
+      "points": 4,
+      "colorSpace": "sRGB",
+      "alpha": 255,
+      "source": {
+        "map": "four-player",
+        "xyTopLeftOrigin": [
+          327,
+          1850
+        ],
+        "sampleBoxXYWH": [
+          319,
+          1842,
+          17,
+          17
+        ],
+        "method": "most frequent exact RGB triplet",
+        "modePixelCount": 230
+      },
+      "framed": "assets/framed/region-E-64.png",
+      "flat": "assets/flat/region-E-64.png",
+      "threePlayerCrossCheck": {
+        "xyTopLeftOrigin": [
+          372,
+          205
+        ],
+        "sampleRGB": [
+          235,
+          169,
+          59
+        ],
+        "matches": true,
+        "modePixelCount": 147
+      }
+    },
+    {
+      "id": "F",
+      "label": "F区",
+      "hex": "#9A2D28",
+      "rgb": [
+        154,
+        45,
+        40
+      ],
+      "points": 4,
+      "colorSpace": "sRGB",
+      "alpha": 255,
+      "source": {
+        "map": "four-player",
+        "xyTopLeftOrigin": [
+          385,
+          1852
+        ],
+        "sampleBoxXYWH": [
+          377,
+          1844,
+          17,
+          17
+        ],
+        "method": "most frequent exact RGB triplet",
+        "modePixelCount": 248
+      },
+      "framed": "assets/framed/region-F-64.png",
+      "flat": "assets/flat/region-F-64.png",
+      "threePlayerCrossCheck": {
+        "xyTopLeftOrigin": [
+          434,
+          203
+        ],
+        "sampleRGB": [
+          154,
+          45,
+          40
+        ],
+        "matches": true,
+        "modePixelCount": 238
+      }
+    },
+    {
+      "id": "G",
+      "label": "G区",
+      "hex": "#439E72",
+      "rgb": [
+        67,
+        158,
+        114
+      ],
+      "points": 3,
+      "colorSpace": "sRGB",
+      "alpha": 255,
+      "source": {
+        "map": "four-player",
+        "xyTopLeftOrigin": [
+          441,
+          1855
+        ],
+        "sampleBoxXYWH": [
+          433,
+          1847,
+          17,
+          17
+        ],
+        "method": "most frequent exact RGB triplet",
+        "modePixelCount": 161
+      },
+      "framed": "assets/framed/region-G-64.png",
+      "flat": "assets/flat/region-G-64.png"
+    },
+    {
+      "id": "R",
+      "label": "R区",
+      "hex": "#D1E0E7",
+      "rgb": [
+        209,
+        224,
+        231
+      ],
+      "points": 3,
+      "colorSpace": "sRGB",
+      "alpha": 255,
+      "source": {
+        "map": "four-player",
+        "xyTopLeftOrigin": [
+          497,
+          1857
+        ],
+        "sampleBoxXYWH": [
+          489,
+          1849,
+          17,
+          17
+        ],
+        "method": "most frequent exact RGB triplet",
+        "modePixelCount": 289
+      },
+      "framed": "assets/framed/region-R-64.png",
+      "flat": "assets/flat/region-R-64.png",
+      "threePlayerCrossCheck": {
+        "xyTopLeftOrigin": [
+          496,
+          201
+        ],
+        "sampleRGB": [
+          209,
+          224,
+          231
+        ],
+        "matches": true,
+        "modePixelCount": 174
+      }
+    }
+  ],
+  "orderFourPlayer": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "R"
+  ],
+  "orderThreePlayer": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "R"
+  ]
+}

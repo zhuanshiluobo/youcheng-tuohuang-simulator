@@ -18,6 +18,15 @@ namespace YC.Presentation
         [SerializeField] private string emptyCharacterName = "未盖放";
         private bool hover;
         private bool focus;
+        public Button Button => button;
+
+        public void Bind(string text, bool available, System.Action execute)
+        {
+            label.text = text;
+            button.onClick.RemoveAllListeners();
+            if (execute != null) button.onClick.AddListener(() => { if (button.interactable) execute(); });
+            SetAvailable(available);
+        }
 
         public void SetCharacterName(string name)
         {

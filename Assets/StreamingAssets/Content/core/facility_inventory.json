@@ -746,5 +746,14 @@
         }
       ]
     }
+  ],
+  "definitionFiles": [
+    "facility/facility_enterprise_office_red.json",
+    "facility/facility_enterprise_office_blue.json",
+    "facility/facility_enterprise_office_yellow.json",
+    "facility/infected.facility.rhodes_office_blue.json",
+    "facility/infected.facility.rhodes_office_red.json",
+    "facility/infected.facility.rhodes_office_yellow.json",
+    "facility/infected.facility.temporary_settlement.json"
   ]
 }

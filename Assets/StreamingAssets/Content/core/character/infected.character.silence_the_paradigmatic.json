@@ -1,0 +1,52 @@
+{
+  "definitionId": "infected.character.silence_the_paradigmatic",
+  "contentType": "character",
+  "version": "2.0.0",
+  "displayName": "淬羽赫默",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.silence_the_paradigmatic.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.character.silence_the_paradigmatic.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.silence_the_paradigmatic.strategy",
+      "script": "lua/characters/infected.character.silence_the_paradigmatic.strategy.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.silence_the_paradigmatic.strategy.completed",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "infected.character.silence_the_paradigmatic.tactic",
+      "mode": "tactic",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.silence_the_paradigmatic.tactic",
+      "script": "lua/characters/infected.character.silence_the_paradigmatic.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.silence_the_paradigmatic",
+    "cardId": "infected.character.silence_the_paradigmatic",
+    "name": "淬羽赫默",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "infected.character.silence_the_paradigmatic.strategy",
+    "tacticAbilityId": "infected.character.silence_the_paradigmatic.tactic",
+    "strategyName": "技术顾问",
+    "tacticName": "锁定协议",
+    "sourceReference": "I30"
+  }
+}

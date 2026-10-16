@@ -4,6 +4,8 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using YC.Application.Sessions;
 using YC.Domain.Rules;
 
@@ -15,13 +17,11 @@ namespace YC.Infrastructure.Multiplayer
         private const int MaxPort = 7799;
         private const int ConnectTimeoutMilliseconds = 5000;
 
-        private static readonly PlayerColor[] SeatColors =
-        {
-            PlayerColor.Blue,
-            PlayerColor.Red,
-            PlayerColor.Green,
-            PlayerColor.Yellow
-        };
+        private readonly IRoomContentCapabilityProvider content;
+        private readonly RoomConfigurationService configurationService;
+        private readonly Dictionary<string, TaskCompletionSource<RoomConfigurationResult>> pendingCommands =
+            new Dictionary<string, TaskCompletionSource<RoomConfigurationResult>>(StringComparer.Ordinal);
+        private int nextPlayerId = 2;
 
         private readonly object syncRoot = new object();
         private readonly List<ClientConnection> hostClients = new List<ClientConnection>();
@@ -49,13 +49,17 @@ namespace YC.Infrastructure.Multiplayer
         public event Action<string> ErrorOccurred;
 
         public NetworkRoomService()
-            : this(true)
+            : this(true, null)
         {
         }
 
-        internal NetworkRoomService(bool enableNetworking)
+        public NetworkRoomService(IRoomContentCapabilityProvider content) : this(true, content) { }
+
+        internal NetworkRoomService(bool enableNetworking, IRoomContentCapabilityProvider content = null)
         {
             this.enableNetworking = enableNetworking;
+            this.content = content;
+            configurationService = new RoomConfigurationService(content);
         }
 
         internal int HostClientCount
@@ -100,7 +104,7 @@ namespace YC.Infrastructure.Multiplayer
             ThrowIfDisposed();
             Shutdown();
 
-            playerCount = Math.Max(3, Math.Min(4, playerCount));
+            if (playerCount < 2 || playerCount > 4) throw new ArgumentOutOfRangeException(nameof(playerCount));
             var port = enableNetworking ? StartListener() : DefaultPort;
             var roomId = (enableNetworking ? GetLocalAddress() : IPAddress.Loopback.ToString()) + ":" + port;
             TcpListener activeListener;
@@ -110,9 +114,13 @@ namespace YC.Infrastructure.Multiplayer
                 isHost = true;
                 roomGeneration++;
                 currentRoom = CreateDefaultRoom(roomId, playerCount);
+                nextPlayerId = 2;
                 currentRoom.LocalPlayerId = currentRoom.HostPlayerId;
                 currentRoom.Seats[0].PlayerName = string.IsNullOrEmpty(hostPlayerName) ? "Player 1" : hostPlayerName;
                 currentRoom.Seats[0].LobbyMemberPresent = true;
+                currentRoom.Configuration.ContentPackHash = content?.GetContentPackHash(currentRoom.Configuration) ?? string.Empty;
+                currentRoom.Seats[0].ContentPackHash = currentRoom.Configuration.ContentPackHash;
+                currentRoom.Seats[0].RuleContractVersion = currentRoom.Configuration.RuleContractVersion;
                 activeListener = listener;
             }
 
@@ -138,7 +146,9 @@ namespace YC.Infrastructure.Multiplayer
 
             var stream = activeClient.GetStream();
             var activeWriter = new StreamWriter(stream) { AutoFlush = true };
-            activeWriter.WriteLine("JOIN|" + Escape(playerName));
+            var localConfiguration = new GameRuleConfiguration();
+            activeWriter.WriteLine("JOIN|2|" + Escape(playerName) + "|" +
+                (content?.GetContentPackHash(localConfiguration) ?? string.Empty) + "|" + localConfiguration.RuleContractVersion);
 
             lock (syncRoot)
             {
@@ -150,8 +160,7 @@ namespace YC.Infrastructure.Multiplayer
                 currentRoom = new RoomState
                 {
                     RoomId = roomId,
-                    LocalPlayerId = -1,
-                    PlayerCount = 0
+                    LocalPlayerId = -1
                 };
             }
 
@@ -179,7 +188,7 @@ namespace YC.Infrastructure.Multiplayer
             long generation = 0;
             lock (syncRoot)
             {
-                if (!isHost || currentRoom == null || currentRoom.HasStarted) return GetCurrentRoom();
+                if (!isHost || currentRoom == null) return GetCurrentRoom();
                 for (var i = 0; i < currentRoom.Seats.Count; i++)
                 {
                     var seat = currentRoom.Seats[i];
@@ -195,6 +204,12 @@ namespace YC.Infrastructure.Multiplayer
                     seat.NetworkClientId = verified ? networkClientId : 0UL;
                     seat.GameStateSynchronized = false;
                     seat.IsReady = ready;
+                    if (!ready)
+                    {
+                        var slot = RoomConfigurationService.FindSlot(currentRoom, playerId);
+                        slot.IsUserReady = false; slot.ReadyConfigurationRevision = -1;
+                    }
+                    currentRoom.StateRevision++;
                     generation = roomGeneration;
                     break;
                 }
@@ -221,6 +236,60 @@ namespace YC.Infrastructure.Multiplayer
 
         public void StartGame() => TryStartGame(out _);
 
+        public async Task<RoomConfigurationResult> SendConfigurationAsync(RoomConfigurationRequest request)
+        {
+            ThrowIfDisposed();
+            RoomConfigurationMessage message;
+            TaskCompletionSource<RoomConfigurationResult> completion;
+            lock (syncRoot)
+            {
+                if (currentRoom == null) return RoomConfigurationService.Result(null, "service_unavailable");
+                if (request == null || request.RequestingPlayerId != currentRoom.LocalPlayerId)
+                    return RoomConfigurationService.Result(currentRoom, "room_protocol_mismatch");
+                message = RoomConfigurationMessage.Create(request, content, currentRoom.Configuration);
+                if (!isHost)
+                {
+                    if (clientWriter == null || pendingCommands.Count >= 32) return RoomConfigurationService.Result(currentRoom, "service_unavailable");
+                    if (!pendingCommands.TryGetValue(request.CommandId, out completion))
+                    {
+                        completion = new TaskCompletionSource<RoomConfigurationResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+                        pendingCommands.Add(request.CommandId, completion);
+                        try { clientWriter.WriteLine("COMMAND|" + JsonConvert.SerializeObject(message)); }
+                        catch (IOException) { pendingCommands.Remove(request.CommandId); return RoomConfigurationService.Result(currentRoom, "service_unavailable"); }
+                    }
+                }
+                else completion = null;
+            }
+            if (completion == null) return ExecuteAuthenticatedConfiguration(message, request.RequestingPlayerId);
+            if (await Task.WhenAny(completion.Task, Task.Delay(10000)).ConfigureAwait(false) != completion.Task)
+            {
+                lock (syncRoot) pendingCommands.Remove(request.CommandId);
+                return RoomConfigurationService.Result(GetCurrentRoom(), "service_unavailable");
+            }
+            return await completion.Task.ConfigureAwait(false);
+        }
+
+        internal RoomConfigurationResult ExecuteAuthenticatedConfiguration(RoomConfigurationMessage message, int authenticatedPlayerId)
+        {
+            RoomConfigurationResult result;
+            bool started;
+            long generation;
+            lock (syncRoot)
+            {
+                if (!isHost || currentRoom == null) return RoomConfigurationService.Result(currentRoom, "service_unavailable");
+                var wasStarted = currentRoom.HasStarted;
+                result = message.Execute(currentRoom, authenticatedPlayerId, configurationService);
+                started = result.Success && !wasStarted && currentRoom.HasStarted;
+                generation = roomGeneration;
+            }
+            if (result.Success)
+            {
+                PublishRoomUpdate(generation);
+                if (started) { Broadcast("START|" + SerializeRoom(result.Snapshot)); RaiseGameStarted(); }
+            }
+            return result;
+        }
+
         public bool TryStartGame(out string error)
         {
             error = null;
@@ -230,13 +299,18 @@ namespace YC.Infrastructure.Multiplayer
             {
                 if (!isHost)
                 {
-                    error = "Only the room host can start the game.";
+                    error = "not_room_host";
                 }
                 else if (currentRoom == null)
                 {
-                    error = "No room has been created.";
+                    error = "service_unavailable";
                 }
-                else if (!RoomReadinessPolicy.TryValidateStart(currentRoom, out error))
+                else if (!configurationService.TryFreezeForLaunch(currentRoom, new StartConfiguredGameRequest
+                {
+                    CommandId = Guid.NewGuid().ToString("N"), RoomId = currentRoom.RoomId,
+                    RequestingPlayerId = currentRoom.HostPlayerId,
+                    ExpectedConfigurationRevision = currentRoom.Configuration.ConfigurationRevision
+                }, out _, out error))
                 {
                 }
                 else
@@ -336,6 +410,8 @@ namespace YC.Infrastructure.Multiplayer
                 playerByIdentityTicket.Clear();
                 hostClientThreads.RemoveAll(thread => !thread.IsAlive);
                 currentRoom = null;
+                foreach (var pending in pendingCommands.Values) pending.TrySetResult(RoomConfigurationService.Result(null, "service_unavailable"));
+                pendingCommands.Clear();
                 localIdentityTicket = string.Empty;
                 isHost = false;
             }
@@ -423,7 +499,10 @@ namespace YC.Infrastructure.Multiplayer
                     return;
                 }
 
-                var playerName = Unescape(line.Substring("JOIN|".Length));
+                var joinParts = line.Split('|');
+                if (joinParts.Length != 5 || joinParts[1] != "2" || joinParts[4] != GameRuleConfiguration.CurrentRuleContractVersion)
+                { connection.WriteLine("ERROR|room_protocol_mismatch"); return; }
+                var playerName = Unescape(joinParts[2]);
                 var assignedPlayerId = AssignSeat(playerName, connection);
                 if (assignedPlayerId < 0)
                 {
@@ -432,16 +511,30 @@ namespace YC.Infrastructure.Multiplayer
                 }
 
                 connection.WriteLine("WELCOME|" + assignedPlayerId + "|" + connection.IdentityTicket);
+                lock (syncRoot)
+                {
+                    var player = RoomConfigurationService.FindSlot(currentRoom, assignedPlayerId).Occupant;
+                    player.ContentPackHash = joinParts[3]; player.RuleContractVersion = joinParts[4];
+                }
                 connection.WriteLine("ROOM|" + SerializeRoom(GetCurrentRoom()));
                 Broadcast("ROOM|" + SerializeRoom(GetCurrentRoom()));
                 if (IsSeatOwner(connection)) RaiseRoomUpdated();
 
                 while (true)
                 {
-                    if (connection.ReadLine() == null)
+                    var commandLine = connection.ReadLine();
+                    if (commandLine == null) return;
+                    if (!commandLine.StartsWith("COMMAND|", StringComparison.Ordinal)) continue;
+                    try
                     {
-                        return;
+                        if (!RoomConfigurationMessage.TryDeserialize(commandLine.Substring(8), out var message))
+                        { connection.WriteLine("ERROR|room_protocol_mismatch"); continue; }
+                        var request = message.ReadRequest();
+                        var result = IsSeatOwner(connection) ? ExecuteAuthenticatedConfiguration(message, connection.PlayerId) :
+                            RoomConfigurationService.Result(GetCurrentRoom(), "room_protocol_mismatch");
+                        connection.WriteLine("RESULT|" + JsonConvert.SerializeObject(new RoomConfigurationReply { CommandId = request.CommandId, Result = result }));
                     }
+                    catch (JsonException) { connection.WriteLine("ERROR|room_protocol_mismatch"); }
                 }
             }
             catch (IOException)
@@ -473,22 +566,7 @@ namespace YC.Infrastructure.Multiplayer
                         playerByIdentityTicket.Remove(connection.IdentityTicket);
                     if (currentRoom != null && !currentRoom.HasStarted)
                     {
-                        for (var i = 0; i < currentRoom.Seats.Count; i++)
-                        {
-                            var seat = currentRoom.Seats[i];
-                            if (seat.PlayerId != connection.PlayerId) continue;
-                            var defaultName = "Player " + seat.PlayerId;
-                            roomChanged = seat.LobbyMemberPresent || seat.IsReady ||
-                                          !string.Equals(seat.PlayerName, defaultName, StringComparison.Ordinal);
-                            seat.PlayerName = defaultName;
-                            seat.LobbyMemberPresent = false;
-                            seat.TransportConnected = false;
-                            seat.IdentityVerified = false;
-                            seat.GameStateSynchronized = false;
-                            seat.NetworkClientId = 0;
-                            seat.IsReady = false;
-                            break;
-                        }
+                        roomChanged = configurationService.VacateSeat(currentRoom, connection.PlayerId);
                     }
                 }
 
@@ -520,29 +598,22 @@ namespace YC.Infrastructure.Multiplayer
                     return connection.PlayerId;
                 }
 
-                for (var i = 0; i < currentRoom.Seats.Count; i++)
+                var playerId = nextPlayerId;
+                var player = new PlayerSeat
                 {
-                    var seat = currentRoom.Seats[i];
-                    if (seat.LobbyMemberPresent || seatOwners.ContainsKey(seat.PlayerId))
-                    {
-                        continue;
-                    }
-
-                    seat.PlayerName = string.IsNullOrEmpty(playerName) ? "Player " + seat.PlayerId : playerName;
-                    seat.LobbyMemberPresent = true;
-                    seat.TransportConnected = false;
-                    seat.IdentityVerified = false;
-                    seat.GameStateSynchronized = false;
-                    seat.IsReady = false;
-                    connection.PlayerId = seat.PlayerId;
-                    connection.IdentityTicket = Guid.NewGuid().ToString("N");
-                    seatOwners[seat.PlayerId] = connection;
-                    playerByIdentityTicket[connection.IdentityTicket] = seat.PlayerId;
-                    return seat.PlayerId;
-                }
+                    PlayerId = playerId, SteamId = LocalMirrorIdentity.ForPlayer(playerId),
+                    PlayerName = string.IsNullOrEmpty(playerName) ? "玩家 " + playerId : playerName,
+                    LobbyMemberPresent = true
+                };
+                if (!configurationService.TryOccupySeat(currentRoom, player, out _)) return -1;
+                nextPlayerId++;
+                connection.PlayerId = playerId;
+                connection.IdentityTicket = Guid.NewGuid().ToString("N");
+                seatOwners[playerId] = connection;
+                playerByIdentityTicket[connection.IdentityTicket] = playerId;
+                return playerId;
             }
 
-            return -1;
         }
 
         private void ClientReadLoop(TcpClient tcpClient)
@@ -589,6 +660,34 @@ namespace YC.Infrastructure.Multiplayer
 
         private void HandleServerMessage(string line)
         {
+            if (line.StartsWith("RESULT|", StringComparison.Ordinal))
+            {
+                try
+                {
+                    if (!RoomConfigurationReply.TryDeserialize(line.Substring(7), out var reply))
+                    { RaiseError("room_protocol_mismatch"); return; }
+                    TaskCompletionSource<RoomConfigurationResult> pending;
+                    lock (syncRoot)
+                    {
+                        if (reply.Result.Snapshot != null && currentRoom != null && reply.Result.Snapshot.RoomId == currentRoom.RoomId)
+                            reply.Result.Snapshot.LocalPlayerId = currentRoom.LocalPlayerId;
+                        if (reply.Result.Snapshot != null && currentRoom != null && reply.Result.Snapshot.RoomId == currentRoom.RoomId &&
+                            reply.Result.Snapshot.StateRevision >= currentRoom.StateRevision)
+                        {
+                            reply.Result.Snapshot.LocalPlayerId = currentRoom.LocalPlayerId;
+                            currentRoom = reply.Result.Snapshot.Clone();
+                        }
+                        if (reply.Result.Snapshot != null && currentRoom != null && reply.Result.Snapshot.RoomId == currentRoom.RoomId)
+                            reply.Result.Snapshot = currentRoom.Clone();
+                        if (!pendingCommands.TryGetValue(reply.CommandId, out pending)) return;
+                        pendingCommands.Remove(reply.CommandId);
+                    }
+                    pending.TrySetResult(reply.Result);
+                    RaiseRoomUpdated();
+                }
+                catch (JsonException) { RaiseError("room_protocol_mismatch"); }
+                return;
+            }
             if (line.StartsWith("WELCOME|", StringComparison.Ordinal))
             {
                 var welcomeParts = line.Substring("WELCOME|".Length).Split('|');
@@ -636,6 +735,8 @@ namespace YC.Infrastructure.Multiplayer
 
         private void ApplyRemoteRoom(string payload, bool started)
         {
+            if (!RoomStateSerializer.TryDeserialize(payload, out var incomingRoom, out var reason))
+            { RaiseError(reason); return; }
             var localPlayerId = -1;
             lock (syncRoot)
             {
@@ -644,12 +745,10 @@ namespace YC.Infrastructure.Multiplayer
                     localPlayerId = currentRoom.LocalPlayerId;
                 }
 
-                currentRoom = DeserializeRoom(payload);
+                if (currentRoom != null && ((currentRoom.PlayerCount > 0 && incomingRoom.RoomId != currentRoom.RoomId) || incomingRoom.StateRevision < currentRoom.StateRevision)) return;
+                currentRoom = incomingRoom;
                 currentRoom.LocalPlayerId = localPlayerId;
-                if (started)
-                {
-                    currentRoom.HasStarted = true;
-                }
+                if (started && !currentRoom.HasStarted) { RaiseError("room_protocol_mismatch"); return; }
             }
 
             if (started)
@@ -790,30 +889,15 @@ namespace YC.Infrastructure.Multiplayer
         {
             var room = new RoomState
             {
-                RoomId = roomId,
-                HostPlayerId = 1,
-                LocalPlayerId = 1,
-                PlayerCount = playerCount
+                RoomId = roomId, HostPlayerId = 1, LocalPlayerId = 1,
+                Configuration = new GameRuleConfiguration { PlayerCount = 1 }
             };
-
-            for (var i = 0; i < playerCount; i++)
+            room.SeatSlots[0].Status = "occupied";
+            room.SeatSlots[0].Occupant = new PlayerSeat
             {
-                var playerId = i + 1;
-                room.Seats.Add(new PlayerSeat
-                {
-                    PlayerId = playerId,
-                    SteamId = LocalMirrorIdentity.ForPlayer(playerId),
-                    NetworkClientId = 0,
-                    PlayerName = "Player " + playerId,
-                    Color = SeatColors[i],
-                    LobbyMemberPresent = false,
-                    TransportConnected = false,
-                    IdentityVerified = false,
-                    GameStateSynchronized = false,
-                    IsReady = false
-                });
-            }
-
+                PlayerId = 1, SteamId = LocalMirrorIdentity.ForPlayer(1),
+                PlayerName = "玩家 1", Color = RoomConfigurationService.GetSeatColor(0), LobbyMemberPresent = true
+            };
             return room;
         }
 
@@ -872,98 +956,12 @@ namespace YC.Infrastructure.Multiplayer
             return IPAddress.Loopback.ToString();
         }
 
-        internal static string SerializeRoom(RoomState room)
-        {
-            if (room == null)
-            {
-                return string.Empty;
-            }
-
-            var seats = new List<string>();
-            for (var i = 0; i < room.Seats.Count; i++)
-            {
-                var seat = room.Seats[i];
-                seats.Add(seat.PlayerId + "," +
-                          Escape(seat.PlayerName) + "," +
-                          (int)seat.Color + "," +
-                          (seat.LobbyMemberPresent ? "1" : "0") + "," +
-                          (seat.TransportConnected ? "1" : "0") + "," +
-                          (seat.IdentityVerified ? "1" : "0") + "," +
-                          seat.NetworkClientId + "," +
-                          (seat.IsReady ? "1" : "0") + "," +
-                          (seat.GameStateSynchronized ? "1" : "0"));
-            }
-
-            return Escape(room.RoomId) + "|" +
-                   room.HostPlayerId + "|" +
-                   room.PlayerCount + "|" +
-                   (room.HasStarted ? "1" : "0") + "|" +
-                   string.Join(";", seats.ToArray());
-        }
-
+        internal static string SerializeRoom(RoomState room) => RoomStateSerializer.Serialize(room);
         internal static RoomState DeserializeRoom(string payload)
         {
-            var parts = payload.Split('|');
-            var room = new RoomState
-            {
-                RoomId = parts.Length > 0 ? Unescape(parts[0]) : string.Empty,
-                HostPlayerId = parts.Length > 1 ? ParseInt(parts[1], -1) : -1,
-                PlayerCount = parts.Length > 2 ? ParseInt(parts[2], 0) : 0,
-                HasStarted = parts.Length > 3 && parts[3] == "1"
-            };
-
-            if (parts.Length > 4 && !string.IsNullOrEmpty(parts[4]))
-            {
-                var seatPayloads = parts[4].Split(';');
-                for (var i = 0; i < seatPayloads.Length; i++)
-                {
-                    var seatParts = seatPayloads[i].Split(',');
-                    if (seatParts.Length < 4)
-                    {
-                        continue;
-                    }
-
-                    var playerId = ParseInt(seatParts[0], -1);
-                    if (playerId < 1 || playerId > 4)
-                    {
-                        continue;
-                    }
-
-                    var legacyReady = seatParts[3] == "1";
-                    var lobbyMemberPresent = legacyReady;
-                    var transportConnected = seatParts.Length >= 9 && seatParts[4] == "1";
-                    var identityVerified = seatParts.Length >= 9 && seatParts[5] == "1";
-                    var networkClientId = seatParts.Length >= 9 ? ParseUlong(seatParts[6], 0UL) : 0UL;
-                    var isReady = seatParts.Length >= 9 ? seatParts[7] == "1" : false;
-                    var synchronized = seatParts.Length >= 9 && seatParts[8] == "1";
-                    room.Seats.Add(new PlayerSeat
-                    {
-                        PlayerId = playerId,
-                        SteamId = LocalMirrorIdentity.ForPlayer(playerId),
-                        NetworkClientId = networkClientId,
-                        PlayerName = Unescape(seatParts[1]),
-                        Color = (PlayerColor)ParseInt(seatParts[2], 0),
-                        LobbyMemberPresent = lobbyMemberPresent,
-                        TransportConnected = transportConnected,
-                        IdentityVerified = identityVerified,
-                        GameStateSynchronized = synchronized,
-                        IsReady = isReady
-                    });
-                }
-            }
-
+            if (!RoomStateSerializer.TryDeserialize(payload, out var room, out var reason))
+                throw new InvalidDataException(reason);
             return room;
-        }
-
-        private static int ParseInt(string value, int fallback)
-        {
-            int parsed;
-            return int.TryParse(value, out parsed) ? parsed : fallback;
-        }
-
-        private static ulong ParseUlong(string value, ulong fallback)
-        {
-            return ulong.TryParse(value, out var parsed) ? parsed : fallback;
         }
 
         private static string Escape(string value)

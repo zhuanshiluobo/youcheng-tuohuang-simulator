@@ -16,8 +16,12 @@ namespace YC.Tests.EditMode
 {
     public sealed class EnterpriseSelectionAssetTests
     {
+        private SceneRuntimeCatalogScope runtimeCatalogs;
         [UnityTearDown] public IEnumerator RestoreEditMode()
-        { if (EditorApplication.isPlaying) yield return new ExitPlayMode(); }
+        {
+            if (EditorApplication.isPlaying) yield return new ExitPlayMode();
+            runtimeCatalogs?.Dispose(); runtimeCatalogs = null;
+        }
         private static Type T(string name) => Type.GetType("YC.Presentation."+name+", Assembly-CSharp",true);
         private static object Call(object o,string name,params object[] args) => o.GetType().GetMethod(name).Invoke(o,args);
         private static V Get<V>(object o,string name) => (V)o.GetType().GetProperty(name).GetValue(o);
@@ -83,11 +87,14 @@ namespace YC.Tests.EditMode
                 foreach(var size in new[]{new Vector2(1920,900),new Vector2(1200,600),new Vector2(2400,730),new Vector2(1920,900)})
                 {
                     ((RectTransform)root.transform).sizeDelta=size;
-                    // EditMode 没有逐帧的 LayoutGroup.Update，分别驱动 Viewport 以下的原生布局根。
+                    // EditMode逐个驱动独立布局根，包含没有LayoutGroup的ILayoutSelfController。
                     for(int i=0;i<4;i++)
                     {
-                        foreach(var group in page.GetComponentsInChildren<LayoutGroup>())
-                            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)group.transform);
+                        foreach(var rect in page.GetComponentsInChildren<Behaviour>()
+                            .Where(component=>component.isActiveAndEnabled && component is ILayoutController)
+                            .Select(component=>component.transform as RectTransform).Where(rect=>rect!=null)
+                            .Distinct().OrderBy(rect=>LayoutDepth(rect)))
+                            LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
                         Canvas.ForceUpdateCanvases();
                     }
                     var panel=Get<RectTransform>(page,"Panel");var body=Get<RectTransform>(page,"Body");
@@ -119,6 +126,7 @@ namespace YC.Tests.EditMode
         [UnityTest]
         public IEnumerator ActualScenes_RegistrySelectionFoldAndInputAreComponentOnly()
         {
+            runtimeCatalogs = new SceneRuntimeCatalogScope();
             yield return new EnterPlayMode();
             foreach(var scene in new[]{"SampleScene","ThreePlayerScene"})
             {
@@ -167,6 +175,12 @@ namespace YC.Tests.EditMode
             var hits=new List<RaycastResult>();EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current)
             {position=RectTransformUtility.WorldToScreenPoint(null,rect.TransformPoint(rect.rect.center))},hits);
             Assert.That(hits,Is.Not.Empty);return hits[0].gameObject;
+        }
+        private static int LayoutDepth(Transform value)
+        {
+            int depth=0;
+            for(var parent=value.parent;parent!=null;parent=parent.parent)depth++;
+            return depth;
         }
         private static Rect Bounds(RectTransform r)
         {var c=new Vector3[4];r.GetWorldCorners(c);return Rect.MinMaxRect(c[0].x,c[0].y,c[2].x,c[2].y);}

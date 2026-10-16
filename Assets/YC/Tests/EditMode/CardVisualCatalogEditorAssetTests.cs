@@ -13,6 +13,26 @@ namespace YC.Tests.EditMode
 {
     public sealed class CardVisualCatalogEditorAssetTests
     {
+        [Test]
+        public void RuntimeInstanceIdsResolveCharacterArtworkWithoutDirtyingTheCatalog()
+        {
+            var catalog = AssetDatabase.LoadMainAssetAtPath(CatalogPath);
+            var resolverField = catalog.GetType().GetField("runtimeDefinitionResolver", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var originalResolver = resolverField.GetValue(catalog);
+            bool wasDirty = EditorUtility.IsDirty(catalog);
+            try
+            {
+                Func<string, string> resolver = id => id == "visible_character_instance" ? CharacterCardDatabase.Liskarm : id;
+                catalog.GetType().GetMethod("BindRuntimeDefinitions").Invoke(catalog, new object[] { resolver });
+                var getter = catalog.GetType().GetMethod("GetCharacterFront");
+                var direct = getter.Invoke(catalog, new object[] { CharacterCardDatabase.Liskarm });
+                Assert.That(direct, Is.Not.Null);
+                Assert.That(getter.Invoke(catalog, new object[] { "visible_character_instance" }), Is.SameAs(direct));
+                Assert.That(EditorUtility.IsDirty(catalog), Is.EqualTo(wasDirty));
+            }
+            finally { resolverField.SetValue(catalog, originalResolver); }
+        }
+
         private const string CatalogPath =
             "Assets/YC/Presentation/Content/CardVisualCatalog.asset";
         private const string GameplayHudPrefabPath =

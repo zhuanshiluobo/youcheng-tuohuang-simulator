@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using YC.Domain.Maps;
 using YC.Domain.State;
 
@@ -21,9 +22,10 @@ namespace YC.Domain.Rules
             }
 
             var totalGoldVoucherCost = 0;
+            var chargedRoutes = new HashSet<string>(StringComparer.Ordinal);
             for (var i = 0; i < path.RouteIds.Count; i++)
             {
-                totalGoldVoucherCost += Math.Max(0, mapQuery.GetRoute(path.RouteIds[i]).BaseCost);
+                if (chargedRoutes.Add(path.RouteIds[i])) totalGoldVoucherCost += Math.Max(0, mapQuery.GetRoute(path.RouteIds[i]).BaseCost);
             }
 
             return new ResourceSet { GoldVoucher = totalGoldVoucherCost };

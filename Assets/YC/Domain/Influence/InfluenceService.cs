@@ -5,6 +5,9 @@ using YC.Domain.Events;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using System.Linq;
+using YC.Domain.Items;
+using YC.Domain.Effects;
 
 namespace YC.Domain.Influence
 {
@@ -17,6 +20,118 @@ namespace YC.Domain.Influence
         private readonly InfluenceMoveRule moveRule;
         private readonly InfluenceRemovalService removalService;
         private readonly InfluenceQueryService queryService;
+        // 后续锁定规则在组合根接入；内核只认位置禁令，不认卡名。
+        private Func<GameState, string, bool> additionalPlacementAllowed = (state, slot) => true;
+        public Func<GameState, string, bool> PlacementAllowed
+        {
+            get => (state, slot) => InfluenceLockRules.PlacementAllowed(state, slot) && additionalPlacementAllowed(state, slot);
+            set => additionalPlacementAllowed = value ?? ((state, slot) => true);
+        }
+
+        public InfluenceOperationResult ValidateItemPlacement(GameState state, ItemSubjectRef owner, string slotId)
+        {
+            return ValidateItemPlacement(state, owner, slotId, null);
+        }
+
+        private InfluenceOperationResult ValidateItemPlacement(GameState state, ItemSubjectRef owner, string slotId,
+            InfluencePlacementQuerySnapshot snapshot)
+        {
+            if (!PlacementAllowed(state, slotId)) return Failure(InfluenceFailureCode.InvalidSlot, "placement_prohibited", -1, slotId, false);
+            if (owner.Kind == ItemSubjectKind.Company)
+            {
+                bool legal = new CompanyInfluenceRules(mapQuery, PlacementAllowed).GetPlacementSlotIds(state).Contains(slotId);
+                return legal ? InfluenceOperationResult.Success(-1, slotId, false) : Failure(InfluenceFailureCode.InvalidSlot, "company_placement_rejected", -1, slotId, false);
+            }
+            if (owner.Kind != ItemSubjectKind.Player) return Failure(InfluenceFailureCode.InvalidPlayer, "unknown_subject", -1, slotId, false);
+            var validation = placementRule.Validate(state, owner.PlayerId, slotId, false, snapshot);
+            if (!validation.Succeeded) return validation;
+            InfluenceSlotReference slot;
+            string reason;
+            if (!InfluenceSlotReference.TryParse(mapQuery, slotId, out slot, out reason)) return Failure(InfluenceFailureCode.InvalidSlot, reason, owner.PlayerId, slotId, false);
+            if (slot.Kind == InfluenceSlotKind.Location &&
+                !(snapshot == null ? state.Map.OpenLocationIds.Contains(slot.LocationId) : snapshot.IsLocationOpen(slot.LocationId)))
+                return Failure(InfluenceFailureCode.InvalidSlot, "location_closed", owner.PlayerId, slotId, false);
+            return validation;
+        }
+
+        public InfluenceOperationResult Place(EffectExecutionContext context, ItemSubjectRef owner, string slotId)
+        {
+            var state = context.State;
+            var validation = ValidateItemPlacement(state, owner, slotId);
+            if (!validation.Succeeded) return validation;
+            var source = state.ItemZones.Zones.Find(zone => owner.Kind == ItemSubjectKind.Player
+                ? zone.TemplateId == "core.zone.player_marker_supply" && zone.OwnerPlayerId == owner.PlayerId
+                : zone.TemplateId == "core.zone.reward_pool" && zone.LocalZoneId == "company_markers");
+            var item = source == null ? null : state.ItemZones.Items.Where(value => value.ZoneId == source.ZoneId &&
+                InfluenceSubjectQuery.GetSubjectKey(value.OwnerSubject) == InfluenceSubjectQuery.GetSubjectKey(owner)).OrderBy(value => value.ItemId, StringComparer.Ordinal).FirstOrDefault();
+            if (item == null) return Failure(InfluenceFailureCode.InsufficientSupply, "insufficient_supply", owner.PlayerId, slotId, false);
+            var before = GameStateCloneService.DeepClone(item);
+            var destination = state.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.influence_slots" && zone.LegalSlotIds.Contains(slotId));
+            new ItemTransferService().RelocateItems(context, Transfer(context, item, destination.ZoneId, slotId, "core.influence_cube"));
+            return InfluenceOperationResult.Success(owner.PlayerId, slotId, true, item.ItemId).WithFact("place", before,
+                new ItemPositionRef { ZoneId = destination.ZoneId, SlotId = slotId }, InfluenceEventTypeIds.InfluencePlaced);
+        }
+
+        public InfluenceOperationResult Move(EffectExecutionContext context, string itemId, string slotId)
+        {
+            var item = new ItemZoneQuery().FindItem(context.State, itemId);
+            if (item == null || !new ItemZoneQuery().IsInfluence(context.State, itemId)) return Failure(InfluenceFailureCode.InfluenceNotFound, "influence_not_found", -1, slotId, false);
+            var validation = ValidateItemPlacement(context.State, item.OwnerSubject, slotId);
+            if (!validation.Succeeded) return validation;
+            var before = GameStateCloneService.DeepClone(item);
+            var destination = context.State.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.influence_slots" && zone.LegalSlotIds.Contains(slotId));
+            new ItemTransferService().RelocateItems(context, Transfer(context, item, destination.ZoneId, slotId, "core.influence_cube"));
+            return InfluenceOperationResult.Success(before.OwnerSubject.PlayerId, slotId, true, itemId, before.SlotId).WithFact("move", before,
+                new ItemPositionRef { ZoneId = destination.ZoneId, SlotId = slotId }, InfluenceEventTypeIds.InfluenceMoved);
+        }
+
+        public IReadOnlyList<string> GetLegalMovementSlotIds(GameState state, string itemId)
+        {
+            var item = new ItemZoneQuery().FindItem(state, itemId);
+            if (item == null || !new ItemZoneQuery().IsInfluence(state, itemId)) return Array.Empty<string>();
+            var slots = state.ItemZones.Zones.Where(zone => zone.TemplateId == "core.zone.influence_slots").SelectMany(zone => zone.LegalSlotIds);
+            return slots.Where(slot => ValidateItemPlacement(state, item.OwnerSubject, slot).Succeeded).OrderBy(slot => slot, StringComparer.Ordinal).ToList().AsReadOnly();
+        }
+
+        public InfluenceOperationResult Depart(EffectExecutionContext context, string itemId, string operationKind)
+        {
+            if (operationKind != "remove" && operationKind != "replace") throw new InvalidOperationException("invalid_departure_kind");
+            var item = new ItemZoneQuery().FindItem(context.State, itemId);
+            if (item == null || !new ItemZoneQuery().IsInfluence(context.State, itemId)) return Failure(InfluenceFailureCode.InfluenceNotFound, "influence_not_found", -1, itemId, false);
+            var before = GameStateCloneService.DeepClone(item);
+            var destination = new InfluenceDestinationResolver().GetStagingZoneId(context);
+            new ItemTransferService().RelocateItems(context, Transfer(context, item, destination, "", "core.cube_storage"));
+            InfluenceDestinationResolver.Set(context.Node.ContinuationData, "pendingItemId", NormalizedValue.CreateString(itemId));
+            InfluenceDestinationResolver.Set(context.Node.ContinuationData, "pendingDepartureKind", NormalizedValue.CreateString(operationKind));
+            InfluenceDestinationResolver.Set(context.Node.ContinuationData, "destinationResolved", NormalizedValue.CreateBoolean(false));
+            return InfluenceOperationResult.Success(before.OwnerSubject.PlayerId, before.SlotId, true, itemId, before.SlotId).WithFact(operationKind, before,
+                new ItemPositionRef { ZoneId = destination }, operationKind == "remove" ? InfluenceEventTypeIds.InfluenceRemoved : "");
+        }
+
+        internal static ItemTransferRequest Transfer(EffectExecutionContext context, ItemInstanceState item, string zoneId, string slotId, string profile) =>
+            new ItemTransferRequest { ItemIds = new List<string> { item.ItemId }, ExpectedSource = new ItemPositionRef { ZoneId = item.ZoneId, SlotId = item.SlotId },
+                Destination = new ZoneRef { ZoneId = zoneId }, InsertionKind = string.IsNullOrEmpty(slotId) ? "unordered" : "slot", DestinationSlotId = slotId,
+                OperationProfileId = profile, CarrierPolicyId = "preserve", ExecutingPlayerId = context.Node.PlayerId, RequiredCount = 1 };
+
+        public IReadOnlyList<string> GetRoadCandidateRouteIds(GameState state) => mapQuery.Map.Routes
+            .Where(route => !state.Map.RoadRouteIds.Contains(route.RouteId)).Select(route => route.RouteId).OrderBy(id => id, StringComparer.Ordinal).ToList().AsReadOnly();
+
+        public string PlaceRoad(EffectExecutionContext context, string routeId)
+        {
+            mapQuery.GetRoute(routeId);
+            if (!GetRoadCandidateRouteIds(context.State).Contains(routeId)) throw new InvalidOperationException("road_already_present");
+            var parent = context.State.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.map_route" && zone.LocalZoneId == routeId);
+            var road = context.State.ItemZones.Zones.Single(zone => zone.ParentId == parent.ZoneId && zone.TemplateId == "core.zone.route_road");
+            var covered = context.State.ItemZones.Zones.Single(zone => zone.ParentId == parent.ZoneId && zone.TemplateId == "core.zone.covered_cubes");
+            var cubes = context.State.ItemZones.Items.Where(item => item.PhysicalKind == ItemPhysicalKind.Cube &&
+                context.State.ItemZones.Zones.Exists(zone => zone.ZoneId == item.ZoneId && zone.ParentId == parent.ZoneId && zone.TemplateId == "core.zone.influence_slots")).Select(GameStateCloneService.DeepClone).ToList();
+            foreach (var cube in cubes) new ItemTransferService().RelocateItems(context, Transfer(context, cube, covered.ZoneId, "", "core.cube_storage"));
+            var mappings = context.State.ContentDefinitions?.Components?.Where(c => c.TypeId == "core.road_token").ToList() ?? new List<YC.Domain.Rules.ComponentContentDefinition>();
+            if (mappings.Count > 1 || mappings.Any(c => c.QuantityPolicy != "infinite" || string.IsNullOrEmpty(c.DefinitionId))) throw new InvalidOperationException("road_component_mapping_invalid");
+            string definitionId = mappings.Count == 0 ? "core.component.road" : mappings[0].DefinitionId;
+            if (!new ItemZoneStateFactory().TryCreateGrantedItem(context.State, context.Node.EffectId, "road", definitionId, "core.road_token", road.ZoneId, new ItemSubjectRef(), out var itemId, out var reason)) throw new InvalidOperationException(reason);
+            return itemId;
+        }
 
         public InfluenceService(IMapQueryService mapQuery)
             : this(null, mapQuery, new RuntimeStateRoadCoverageQuery())
@@ -83,45 +198,45 @@ namespace YC.Domain.Influence
         /// </summary>
         public IReadOnlyList<string> GetLegalPlacementSlotIds(GameState state, int playerId)
         {
+            return EnumerateLegalPlacementSlots(state, playerId).ToList().AsReadOnly();
+        }
+
+        public bool HasAnyLegalPlacementSlot(GameState state, int playerId)
+        {
+            return EnumerateLegalPlacementSlots(state, playerId).Any();
+        }
+
+        private IEnumerable<string> EnumerateLegalPlacementSlots(GameState state, int playerId)
+        {
             ValidateState(state);
-            var result = new List<string>();
-            if (mapQuery == null || mapQuery.Map == null) return result.AsReadOnly();
+            if (mapQuery == null || mapQuery.Map == null) yield break;
+            var snapshot = placementRule.CreateQuerySnapshot(state, playerId);
+            var accepted = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var slotId in EnumeratePlacementSlots())
+            {
+                if (string.IsNullOrEmpty(slotId) || accepted.Contains(slotId)) continue;
+                if (!CanPlaceCore(state, playerId, slotId, snapshot).Succeeded) continue;
+                accepted.Add(slotId);
+                yield return slotId;
+            }
+        }
 
+        private IEnumerable<string> EnumeratePlacementSlots()
+        {
             if (mapQuery.Map.Locations != null)
-            {
-                for (var i = 0; i < mapQuery.Map.Locations.Count; i++)
+                foreach (var location in mapQuery.Map.Locations)
                 {
-                    var location = mapQuery.Map.Locations[i];
                     if (location == null || string.IsNullOrEmpty(location.LocationId)) continue;
-                    for (var slotIndex = 0; slotIndex < location.InfluenceSlotCount; slotIndex++)
-                    {
-                        AddLegalPlacementSlot(
-                            state,
-                            playerId,
-                            GetLocationSlotId(location.LocationId, slotIndex),
-                            result);
-                    }
+                    for (var index = 0; index < location.InfluenceSlotCount; index++)
+                        yield return GetLocationSlotId(location.LocationId, index);
                 }
-            }
-
             if (mapQuery.Map.Routes != null)
-            {
-                for (var i = 0; i < mapQuery.Map.Routes.Count; i++)
+                foreach (var route in mapQuery.Map.Routes)
                 {
-                    var route = mapQuery.Map.Routes[i];
                     if (route == null || string.IsNullOrEmpty(route.RouteId)) continue;
-                    for (var slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
-                    {
-                        AddLegalPlacementSlot(
-                            state,
-                            playerId,
-                            GetRouteSlotId(route.RouteId, slotIndex),
-                            result);
-                    }
+                    for (var index = 0; index < route.InfluenceSlotCount; index++)
+                        yield return GetRouteSlotId(route.RouteId, index);
                 }
-            }
-
-            return result.AsReadOnly();
         }
 
         public InfluenceOperationResult Place(GameState state, int playerId, string slotId)
@@ -509,20 +624,25 @@ namespace YC.Domain.Influence
             return FindInfluence(GetBoundState(), influenceId);
         }
 
-        private InfluenceOperationResult CanPlaceCore(GameState state, int playerId, string slotId)
+        // 调用方在本次同步刷新内提供局部列表；保留状态校验及原查询语义。
+        public InfluencePlacement FindInfluence(GameState state, string influenceId, IReadOnlyList<InfluencePlacement> placements)
         {
             ValidateState(state);
-            return placementRule.Validate(state, playerId, slotId, true);
+            if (placements == null) throw new ArgumentNullException(nameof(placements));
+            if (string.IsNullOrEmpty(influenceId)) return null;
+            return queryService.FindInfluence(state, influenceId, placements);
         }
 
-        private void AddLegalPlacementSlot(
-            GameState state,
-            int playerId,
-            string slotId,
-            List<string> result)
+        private InfluenceOperationResult CanPlaceCore(GameState state, int playerId, string slotId,
+            InfluencePlacementQuerySnapshot snapshot = null)
         {
-            if (string.IsNullOrEmpty(slotId) || result.Contains(slotId)) return;
-            if (CanPlaceCore(state, playerId, slotId).Succeeded) result.Add(slotId);
+            ValidateState(state);
+            if (ItemZoneLegacyProjection.IsActive(state))
+            {
+                var validation = ValidateItemPlacement(state, ItemSubjectRef.Player(playerId), slotId, snapshot);
+                if (!validation.Succeeded) return validation;
+            }
+            return placementRule.Validate(state, playerId, slotId, true, snapshot);
         }
 
         private InfluenceOperationResult PlaceCore(GameState state, int playerId, string slotId)
@@ -667,6 +787,7 @@ namespace YC.Domain.Influence
 
         private InfluenceOperationResult MoveCore(GameState state, int playerId, string sourceInfluenceId, string targetSlotId)
         {
+            YC.Domain.Items.ItemZoneLegacyProjection.RejectLegacyWrite(state);
             ValidateState(state);
             var validation = moveRule.Validate(state, playerId, sourceInfluenceId, targetSlotId);
             if (!validation.Succeeded)

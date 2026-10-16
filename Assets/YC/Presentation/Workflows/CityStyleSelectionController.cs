@@ -32,17 +32,15 @@ namespace YC.Presentation
             }
 
             var result = new List<CityStyleOptionViewModel>();
-            var styleIds = state.Decks.CityStyleSupply.Count > 0
-                ? state.Decks.CityStyleSupply
-                : CityStyleDatabase.DefaultSupplyIds;
+            var styleIds = state.Decks.CityStyleSupply;
 
             for (var i = 0; i < styleIds.Count; i++)
             {
                 var styleId = styleIds[i];
                 CityStyleDefinition cityStyle;
-                if (!CityStyleDatabase.TryGet(styleId, out cityStyle))
+                if (!CityStyleDatabase.TryGet(state, styleId, out cityStyle))
                 {
-                    continue;
+                    throw new InvalidOperationException("本局城市样式定义缺失：" + styleId);
                 }
 
                 var validation = declareCityStyleService.Validate(state, playerId, cityStyle.CityStyleId);
@@ -73,7 +71,7 @@ namespace YC.Presentation
 
             var selectedSlotIndexes = BuildSortedSlotIndexes(usedCityBoardSlotIndexes);
             CityStyleDefinition cityStyle;
-            CityStyleDatabase.TryGet(cityStyleId, out cityStyle);
+            CityStyleDatabase.TryGet(state, cityStyleId, out cityStyle);
             var requiredFacilityCount = GetRequiredFacilityCount(cityStyle);
             var validation = declareCityStyleService.Validate(
                 state,

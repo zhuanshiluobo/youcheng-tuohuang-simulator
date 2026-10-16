@@ -5,6 +5,8 @@ using UnityEngine.UI;
 using YC.Application.Gameplay;
 using YC.Domain.Facilities;
 using YC.Domain.State;
+using YC.Domain.Items;
+using System.Linq;
 using YC.Presentation.Workflows;
 
 namespace YC.Presentation
@@ -34,10 +36,16 @@ namespace YC.Presentation
         [SerializeField] private string payLabel = "确认支付";
         [SerializeField] private string placeLabel = "确认放置";
         [SerializeField] private string pendingQuote = "请选择设施牌和支付方式，支付后补牌，再放入城市面板。";
-        [SerializeField] private string paidQuoteFormat = "已支付并补充设施供应区，请将 {0} 放入城市面板。";
+        [SerializeField] private string paidQuoteFormat = "已支付，请将 {0} 放入城市面板。";
         [SerializeField] private Color legalSlotColor = new Color(.25f, 1f, .45f, .8f);
         [SerializeField] private Color selectedSlotColor = new Color(1f, .8f, .3f, 1f);
         private readonly List<GameObject> generated = new List<GameObject>();
+        private readonly List<RectTransform> fixedSupplySlots = new List<RectTransform>();
+        private readonly List<string> supplyItemIds = new List<string>();
+        private ItemZoneStateView visibleItems;
+        private GameState definitionState;
+        public IReadOnlyList<string> SupplyItemIds => supplyItemIds.AsReadOnly();
+        public IReadOnlyList<RectTransform> SupplySlots => fixedSupplySlots.AsReadOnly();
         [SerializeField] private Text supplyDeckText;
         [SerializeField] private Text extensionHubsText;
         [SerializeField] private string supplyDeckFormat = "设施牌堆·{0}";
@@ -53,7 +61,9 @@ namespace YC.Presentation
 
         public void RefreshSupplyStatus(GameState state, int playerId)
         {
+            definitionState = state;
             if (state == null) return;
+            visibleItems = new ItemZoneQuery().Project(state, GameStateViewer.Player(playerId));
             supplyDeckText.text = string.Format(supplyDeckFormat, state.Decks.FacilityDeck.Count);
             ownedResources.SetCost(state.FindPlayer(playerId)?.Resources);
             var ids = new[] { FacilityCardDatabase.ExtensionHubRed, FacilityCardDatabase.ExtensionHubYellow,
@@ -85,6 +95,7 @@ namespace YC.Presentation
             buildHint.SetActive(!inspectionOnly);
             supplyInspectionHint.SetActive(inspectionOnly);
             bool Current() => this != null && gameObject.activeInHierarchy && !submittingPayment && isCurrent() &&
+                !GameplayHudFrame.InformationInputBlockedThisFrame &&
                 (!placing || !GameplayHudFrame.EffectInputSuspended);
             GameplayHudFrame.Active?.ShowPage(gameObject, placing);
             if (GameplayHudFrame.Active == null) gameObject.SetActive(true);
@@ -100,16 +111,21 @@ namespace YC.Presentation
             }
             var sameDraft = selectedOption != null && model.SelectedOption != null &&
                 selectedOption.FacilityId == model.SelectedOption.FacilityId;
-            FacilityEffectCardView Card(string id, Transform parent, bool selected, Action click)
+            var selectedDefinition = selectedOption == null ? null : FacilityCardDatabase.Get(definitionState,
+                string.IsNullOrEmpty(selectedOption.DefinitionId) ? selectedOption.FacilityId : selectedOption.DefinitionId);
+            if (!placing && selectedOption != null && selectedDefinition == null)
+                throw new InvalidOperationException("所选设施缺少当前内容定义：" + selectedOption.DefinitionId + "（实例=" + selectedOption.FacilityId + "）。");
+            FacilityEffectCardView Card(string id, string definitionId, Transform parent, bool selected, Action click)
             {
                 var card = Instantiate(cardTemplate, parent, false);
                 card.gameObject.SetActive(true);
                 card.FitIntoCell();
-                var sprite = catalog.GetFacility(id);
+                if (string.IsNullOrEmpty(definitionId)) definitionId = id;
+                var sprite = catalog.GetFacility(definitionId);
                 CardArtworkView.Set(card.CardImage, sprite);
                 card.CardImage.color = sprite == null ? Color.clear : Color.white;
                 card.FallbackLabel.gameObject.SetActive(sprite == null);
-                card.FallbackLabel.text = FacilityCardDatabase.Get(id)?.Name ?? id;
+                card.FallbackLabel.text = FacilityCardDatabase.Get(definitionState, definitionId)?.Name ?? definitionId;
                 if (card.SelectionImage != null) card.SelectionImage.enabled = selected;
                 card.Button.interactable = click != null;
                 card.Button.onClick.RemoveAllListeners();
@@ -127,14 +143,38 @@ namespace YC.Presentation
                 }, Current);
                 return card;
             }
-            foreach (var option in model.Options)
+            supplyItemIds.Clear();
+            foreach (var slot in fixedSupplySlots) slot.gameObject.SetActive(model.IsSupplySource);
+            if (model.IsSupplySource)
+            {
+                for (var index = 0; index < FacilitySupplyService.SupplySize; index++)
+                {
+                    if (fixedSupplySlots.Count <= index)
+                    {
+                        var slot = Instantiate(supplySlotTemplate, candidates, false); slot.name = "FacilitySupplySlot";
+                        fixedSupplySlots.Add(slot);
+                    }
+                    var supplySlot = fixedSupplySlots[index]; supplySlot.gameObject.SetActive(true);
+                    var zone = visibleItems?.Zones.Find(value => value.Zone.LocalZoneId == "facility_supply_" + index)?.Zone;
+                    var item = visibleItems?.Items.Find(value => value.ZoneId == zone?.ZoneId);
+                    supplyItemIds.Add(item?.ItemId ?? string.Empty);
+                    string id = item?.ItemId;
+                    // 旧无实体夹具保留固定索引兼容；生产始终使用真实槽区。
+                    if (visibleItems?.Zones.Count == 0 && index < model.Options.Count) id = model.Options[index].FacilityId;
+                    if (string.IsNullOrEmpty(id)) continue;
+                    var option = model.Options.FirstOrDefault(value => value.FacilityId == id);
+                    var card = Card(id, option?.DefinitionId ?? item?.DefinitionId, supplySlot, !placing && id == selectedId,
+                        placing || option == null ? (Action)null : () => selectCard(id));
+                    generated.Add(card.gameObject);
+                    YC.PlayerJourney.PlayerAutomationId.Attach(card.Button.gameObject, "build.candidate." + (item?.ItemId ?? id));
+                }
+            }
+            else foreach (var option in model.Options)
             {
                 var id = option.FacilityId;
-                var supplySlot = Instantiate(supplySlotTemplate, candidates, false);
-                supplySlot.gameObject.SetActive(true);
-                generated.Add(supplySlot.gameObject);
-                var card = Card(id, supplySlot, !placing && id == selectedId,
-                    placing ? (Action)null : () => selectCard(id));
+                var slot = Instantiate(supplySlotTemplate, candidates, false); slot.gameObject.SetActive(true);
+                generated.Add(slot.gameObject);
+                var card = Card(id, option.DefinitionId, slot, !placing && id == selectedId, placing ? (Action)null : () => selectCard(id));
                 YC.PlayerJourney.PlayerAutomationId.Attach(card.Button.gameObject, "build.candidate." + id);
             }
             for (var i = 0; i < citySlots.Length; i++)
@@ -172,13 +212,16 @@ namespace YC.Presentation
                 var mode = i == 0 ? BuildFacilityService.PaymentModeResources : BuildFacilityService.PaymentModeGold;
                 var payment = selectedOption == null ? null :
                     i == 0 ? selectedOption.ResourcesPayment : selectedOption.GoldPayment;
-                var definition = selectedOption == null ? null : FacilityCardDatabase.Get(selectedOption.FacilityId);
-                paymentCosts[i].SetCost(definition == null ? null : i == 0
-                    ? selectedOption.EffectiveResourceCost : new ResourceSet { GoldVoucher = definition.GoldVoucherCost },
-                    definition == null ? null : i == 0 ? definition.ResourceCost :
-                        new ResourceSet { GoldVoucher = definition.GoldVoucherCost });
+                var definition = selectedDefinition;
+                var preparation = sameDraft && model.PaymentPreparation?.PaymentMode == mode ? model.PaymentPreparation : null;
+                paymentCosts[i].SetCost(preparation?.RemainingCost ?? (definition == null ? null : i == 0
+                    ? selectedOption.EffectiveResourceCost : new ResourceSet { GoldVoucher = definition.GoldVoucherCost }),
+                    preparation?.OriginalCost ?? (definition == null ? null : i == 0 ? definition.ResourceCost :
+                        new ResourceSet { GoldVoucher = definition.GoldVoucherCost }));
                 row.SetSelected(false);
-                row.Button.interactable = !inspectionOnly && !placing && payment != null && payment.IsAvailable && sameDraft;
+                row.Button.interactable = !inspectionOnly && !placing && payment != null && sameDraft &&
+                    (model.PaymentPreparation != null && model.PaymentPreparation.PaymentMode == mode
+                        ? model.PaymentPreparation.CanConfirm : payment.IsAvailable);
                 row.Button.onClick.RemoveAllListeners();
                 row.Button.onClick.AddListener(() =>
                 {
@@ -191,7 +234,7 @@ namespace YC.Presentation
                 });
                 YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject, "build.payment." + mode);
             }
-            cancel.interactable = true;
+            cancel.interactable = model.PaymentPreparation == null || model.PaymentPreparation.CanCancel;
             confirm.gameObject.SetActive(placing);
             costBreakdown.SetActive(!placing && selectedOption != null);
             quote.gameObject.SetActive(placing || selectedOption == null);
@@ -199,7 +242,7 @@ namespace YC.Presentation
             else if (selectedOption == null) quote.text = inspectionOnly ? inspectionQuote : pendingQuote;
             else
             {
-                var definition = FacilityCardDatabase.Get(selectedOption.FacilityId);
+                var definition = selectedDefinition;
                 var original = definition.ResourceCost;
                 var effective = selectedOption.EffectiveResourceCost;
                 originalCost.SetCost(new ResourceSet { Originium = original.Originium,
@@ -211,7 +254,8 @@ namespace YC.Presentation
                     Iron = Mathf.Max(0, original.Iron - effective.Iron),
                     PureOriginium = Mathf.Max(0, original.PureOriginium - effective.PureOriginium) });
             }
-            reason.text = inspectionOnly ? string.Empty : selectedOption != null && !selectedOption.CanBuild && !placing ? selectedOption.Reason : model.ErrorMessage;
+            reason.text = inspectionOnly ? string.Empty : selectedOption != null && !selectedOption.CanBuild && !placing &&
+                model.PaymentPreparation?.CanConfirm != true ? selectedOption.Reason : model.ErrorMessage;
             reason.gameObject.SetActive(!string.IsNullOrEmpty(reason.text));
             var selectedLegal = false;
             foreach (var slot in model.LegalSlotIndexes) if (slot == model.CityBoardSlotIndex) selectedLegal = true;

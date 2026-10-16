@@ -9,6 +9,9 @@ using YC.Domain.Maps;
 using YC.Domain.Movement;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Presentation;
+using System.Linq;
+using YC.Domain.Items;
 
 namespace YC.Domain.Effects
 {
@@ -138,6 +141,13 @@ namespace YC.Domain.Effects
             }
 
             string stage = context.Node.FlowStage ?? string.Empty;
+            string preparedId = ReadString(context.Node.NormalizedArguments, "preparedPaymentOwnerEffectId", "");
+            var prepared = preparedId.Length == 0 ? null : context.State.EffectRuntime.EffectNodes.Find(node => node.EffectId == preparedId);
+            if (preparedId.Length > 0 && (prepared?.Payment?.Preparation?.PromotedActionEffectId != context.Node.EffectId ||
+                !prepared.Payment.IsCommitted || !prepared.Payment.Preparation.BusinessBeforeReady ||
+                prepared.Payment.Preparation.TargetId != targetLocationId || prepared.PlayerId != context.Node.PlayerId))
+                return EffectStepResult.Failed("payment_preparation_context_invalid");
+            if (prepared != null && stage.Length == 0) stage = "before_city_move";
             string policy = ReadString(context.Node.NormalizedArguments, "targetPolicy", "standard");
             if (stage == "awaiting_target")
             {
@@ -159,7 +169,8 @@ namespace YC.Domain.Effects
                 {
                     InteractionTypeId = TargetInteractionTypeId, AnsweringPlayerId = context.Node.PlayerId,
                     Visibility = "owner", PromptKey = "city_move.choose_target", MinSelections = 1, MaxSelections = 1,
-                    AnswerSchema = "candidate_id"
+                    AnswerSchema = "candidate_id",
+                    Presentation = new GameplayInteractionPresentation { Prompt = new GameplayTextRef("core:interaction.map.city_move") }
                 };
                 interaction.CandidateIds.AddRange(targets);
                 return EffectStepResult.Continue("awaiting_target").AddInteraction(interaction);
@@ -186,7 +197,7 @@ namespace YC.Domain.Effects
             if (stage == "before_city_move")
             {
                 if (HasFailedChild(context)) return EffectStepResult.Failed("before_city_move_response_failed");
-                ValidationResult validation = Validate(context.State, context.Node.PlayerId, targetLocationId, waiveBaseCost);
+                ValidationResult validation = Validate(context.State, context.Node.PlayerId, targetLocationId, waiveBaseCost || prepared != null);
                 if (!validation.IsValid) return EffectStepResult.Failed(validation.ErrorCode.ToString(), NormalizedValue.CreateString(validation.Reason));
 
                 PlayerState player = context.State.FindPlayer(context.Node.PlayerId);
@@ -197,13 +208,12 @@ namespace YC.Domain.Effects
                     "routeId", route.RouteId);
                 InfluenceIdentity.Ensure(context.State);
                 var children = new List<EffectSpec>();
-                if (!waiveBaseCost)
+                if (!waiveBaseCost && prepared == null)
                 {
                     ResourceSet cost = travelCostService.GetCityMoveBaseCost();
                     children.Add(ResourceEffectSpecFactory.Pay(
                         context.Node.PlayerId,
-                        ResourceType.OriginiumShard,
-                        cost.OriginiumShard,
+                        cost,
                         "city_move.base_cost"));
                 }
 
@@ -217,10 +227,18 @@ namespace YC.Domain.Effects
                         displacedInfluenceIds.Add(influence.InfluenceId);
                     }
                 }
-                displacedInfluenceIds.Sort(StringComparer.Ordinal);
+                // 由主链按本局玩家顺序响应；公司独立排在玩家主体之后。
+                displacedInfluenceIds = displacedInfluenceIds.OrderBy(id =>
+                {
+                    var placement = influenceService.FindInfluence(context.State, id);
+                    int index = context.State.Players.FindIndex(owner => owner.PlayerId == placement.PlayerId);
+                    return index < 0 ? context.State.Players.Count : index;
+                }).ThenBy(id => id, StringComparer.Ordinal).ToList();
                 for (int i = 0; i < displacedInfluenceIds.Count; i++)
                 {
-                    children.Add(InfluenceEffectSpecFactory.RemoveInfluence(
+                    if (ReadString(context.Node.NormalizedArguments, "clearInfluencePolicy", "remove") == "move")
+                        children.Add(InfluenceEffectSpecFactory.MoveInfluence(context.Node.PlayerId, displacedInfluenceIds[i], "", InfluenceCauseKinds.MoveCity));
+                    else children.Add(InfluenceEffectSpecFactory.RemoveInfluence(
                         context.Node.PlayerId,
                         displacedInfluenceIds[i],
                         "city_move_displacement",
@@ -289,6 +307,10 @@ namespace YC.Domain.Effects
                     }
                 }
                 result.Properties.Add(new NormalizedValueEntry { Name = "traversedRouteSlots", Value = NormalizedValue.CreateArray(slots) });
+                int removedOpponentCount = context.ChildNodes.Where(n => n.EffectTypeId == InfluenceEffectTypeIds.RemoveInfluence && n.Status == EffectNodeStatus.Completed)
+                    .Sum(n => ItemTransferEffectExecutor.Value(n.NormalizedResult, "removedItemIds")?.Items.Count ?? 0);
+                result.Properties.Add(new NormalizedValueEntry { Name = "removedOpponentCount", Value = NormalizedValue.CreateInteger(removedOpponentCount) });
+                result.Properties.Sort((left, right) => StringComparer.Ordinal.Compare(left.Name, right.Name));
                 return EffectStepResult.Completed(result);
             }
 
@@ -316,6 +338,7 @@ namespace YC.Domain.Effects
         private bool MatchesPolicy(GameState state, int playerId, string locationId, string policy)
         {
             if (policy == "standard") return true;
+            if (policy == "explored") return resourceTokenService.HasResourceToken(state.Map, locationId);
             if (policy != "explored_own_influence" || !resourceTokenService.HasResourceToken(state.Map, locationId)) return false;
             return state.Map.Influences.Exists(i => i.PlayerId == playerId && i.LocationId == locationId);
         }
@@ -376,6 +399,10 @@ namespace YC.Domain.Effects
             };
         }
 
+        internal static EffectEventRequest CreatePreparedBeforeEvent(GameState state, EffectNodeRuntimeState owner, string targetLocationId)
+            => CreateLifecycleEvent(owner, CityMoveEventTypeIds.BeforeCityMove, targetLocationId, "before",
+                CreateMovePayload(state, owner.PlayerId, targetLocationId, owner.Payment.Preparation.SourceLocationId));
+
         private static NormalizedValue CreateMovePayload(GameState state, int playerId, string targetLocationId, string sourceLocationId)
         {
             PlayerState player = state.FindPlayer(playerId);
@@ -427,7 +454,9 @@ namespace YC.Domain.Effects
             string diagnostic;
             if (!TryReadArguments(spec == null ? null : spec.NormalizedArguments, out target, out waive, out consume, out diagnostic)) return diagnostic;
             string policy = ReadString(spec.NormalizedArguments, "targetPolicy", "standard");
-            return policy == "standard" || policy == "explored_own_influence" ? string.Empty : "未登记的城市移动目标规则。";
+            string clearing = ReadString(spec.NormalizedArguments, "clearInfluencePolicy", "remove");
+            if (clearing != "remove" && clearing != "move") return "未登记的影响力离场规则。";
+            return policy == "standard" || policy == "explored" || policy == "explored_own_influence" ? string.Empty : "未登记的城市移动目标规则。";
         }
 
         private static string ReadString(NormalizedValue value, string name, string fallback)
@@ -526,7 +555,18 @@ namespace YC.Domain.Effects
             {
                 return EffectStepResult.Failed("target_changed");
             }
-            player.CityLocationId = target;
+            if (ItemZoneLegacyProjection.IsActive(context.State))
+            {
+                var city = context.State.ItemZones.Items.Single(item => item.PhysicalKind == ItemPhysicalKind.MobileCity && item.OwnerSubject.Kind == ItemSubjectKind.Player && item.OwnerSubject.PlayerId == player.PlayerId);
+                var parent = context.State.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.map_location" && zone.LocalZoneId == target);
+                var dock = context.State.ItemZones.Zones.Single(zone => zone.ParentId == parent.ZoneId && zone.TemplateId == "core.zone.city_dock");
+                var transfer = new ItemTransferService().RelocateItems(context, InfluenceService.Transfer(context, city, dock.ZoneId, "", "core.mobile_city_move"));
+                if (!transfer.Changed || transfer.MovedCount != 1 || transfer.MovedItemIds.Count != 1 ||
+                    transfer.MovedItemIds[0] != city.ItemId || city.ZoneId != dock.ZoneId)
+                    throw new KernelException("city_position_not_committed", "城市实体尚未迁移至目标停靠区。");
+                InfluenceLockRules.FollowCity(context, city.ItemId);
+            }
+            else player.CityLocationId = target;
             player.HasMovedCityThisRound = true;
             return EffectStepResult.Completed(Result(target, routeId));
         }

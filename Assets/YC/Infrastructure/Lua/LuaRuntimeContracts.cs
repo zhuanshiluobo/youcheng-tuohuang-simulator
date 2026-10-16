@@ -208,10 +208,22 @@ namespace YC.Infrastructure.Lua
     {
         public LuaPlayerSnapshot(string playerId, int score, int goldVoucherCount, string cityLocationId = "",
             int originium = 0, int originiumShard = 0, int iron = 0, int pureOriginium = 0)
+            : this(playerId, score, goldVoucherCount, goldVoucherCount, 0, cityLocationId,
+                originium, originiumShard, iron, pureOriginium)
         {
+        }
+
+        public LuaPlayerSnapshot(string playerId, int score, int goldVoucherCount,
+            int availableGoldVoucherCount, int reservedGoldVoucherCount, string cityLocationId = "",
+            int originium = 0, int originiumShard = 0, int iron = 0, int pureOriginium = 0)
+        {
+            if ((long)availableGoldVoucherCount + reservedGoldVoucherCount != goldVoucherCount)
+                throw new ArgumentException("金券拥有量必须等于可用与预留之和。");
             PlayerId = playerId ?? string.Empty;
             Score = score;
             GoldVoucherCount = goldVoucherCount;
+            AvailableGoldVoucherCount = availableGoldVoucherCount;
+            ReservedGoldVoucherCount = reservedGoldVoucherCount;
             CityLocationId = cityLocationId ?? string.Empty;
             Originium = originium;
             OriginiumShard = originiumShard;
@@ -219,11 +231,15 @@ namespace YC.Infrastructure.Lua
             PureOriginium = pureOriginium;
             HandCardIds = new List<string>();
             DiscardCardIds = new List<string>();
+            BuiltFacilities = new List<LuaSnapshotValue>();
         }
 
+        public LuaSnapshotValue Facts { get; set; } = LuaSnapshotValue.Object(null);
         public string PlayerId { get; }
         public int Score { get; }
         public int GoldVoucherCount { get; }
+        public int AvailableGoldVoucherCount { get; }
+        public int ReservedGoldVoucherCount { get; }
         public string CityLocationId { get; }
         public int Originium { get; }
         public int OriginiumShard { get; }
@@ -231,6 +247,7 @@ namespace YC.Infrastructure.Lua
         public int PureOriginium { get; }
         public List<string> HandCardIds { get; }
         public List<string> DiscardCardIds { get; }
+        public List<LuaSnapshotValue> BuiltFacilities { get; }
     }
 
     /// <summary>
@@ -239,6 +256,9 @@ namespace YC.Infrastructure.Lua
     [Serializable]
     public sealed class LuaFacadeSnapshot
     {
+        // null保留手工最小上下文的兼容；正式Dispatcher总是填入本次事件的准确版本。
+        public int? StateRevision { get; set; }
+        public bool EnabledDlcIdsAvailable { get; set; }
         public string GameId { get; set; } = string.Empty;
         public string PhaseId { get; set; } = string.Empty;
         public int Round { get; set; }
@@ -260,6 +280,12 @@ namespace YC.Infrastructure.Lua
             int goldVoucherCount,
             int playerCount,
             string definitionVersion)
+            => FromInvocation(playerId, playerScore, goldVoucherCount, playerCount,
+                definitionVersion, goldVoucherCount, 0);
+
+        public static LuaFacadeSnapshot FromInvocation(
+            string playerId, int playerScore, int goldVoucherCount, int playerCount,
+            string definitionVersion, int availableGoldVoucherCount, int reservedGoldVoucherCount)
         {
             var snapshot = new LuaFacadeSnapshot
             {
@@ -277,15 +303,28 @@ namespace YC.Infrastructure.Lua
                 snapshot.Players.Add(new LuaPlayerSnapshot(
                     currentId,
                     currentId == playerId ? playerScore : 0,
-                    currentId == playerId ? goldVoucherCount : 0));
+                    currentId == playerId ? goldVoucherCount : 0,
+                    currentId == playerId ? availableGoldVoucherCount : 0,
+                    currentId == playerId ? reservedGoldVoucherCount : 0));
             }
 
             return snapshot;
         }
     }
 
+    public static class LuaQueryLimits
+    {
+        public const string ContractVersion = "lua.public-query.v1";
+        public const int MaximumResults = 1024;
+        public const int MaximumFilterValues = 128;
+        public const int MaximumStringLength = 1024;
+    }
+
     public sealed class LuaInvocationContext
     {
+        public string EntryPoint { get; set; } = string.Empty;
+        public YC.Domain.Effects.SettlementWindowContext SettlementContext { get; set; }
+        public NormalizedValue SettlementFacts { get; set; } = NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
         public LuaInvocationContext(
             string eventId,
             string eventType,
@@ -296,7 +335,19 @@ namespace YC.Infrastructure.Lua
             int playerScore,
             int goldVoucherCount,
             LuaFacadeSnapshot facadeSnapshot = null)
+            : this(eventId, eventType, playerId, stateRevision, definitionVersion, playerCount,
+                playerScore, goldVoucherCount, goldVoucherCount, 0, facadeSnapshot)
         {
+        }
+
+        public LuaInvocationContext(
+            string eventId, string eventType, string playerId, int stateRevision,
+            string definitionVersion, int playerCount, int playerScore, int goldVoucherCount,
+            int availableGoldVoucherCount, int reservedGoldVoucherCount,
+            LuaFacadeSnapshot facadeSnapshot = null)
+        {
+            if ((long)availableGoldVoucherCount + reservedGoldVoucherCount != goldVoucherCount)
+                throw new ArgumentException("金券拥有量必须等于可用与预留之和。");
             EventId = eventId;
             EventType = eventType;
             PlayerId = playerId;
@@ -305,12 +356,16 @@ namespace YC.Infrastructure.Lua
             PlayerCount = playerCount;
             PlayerScore = playerScore;
             GoldVoucherCount = goldVoucherCount;
+            AvailableGoldVoucherCount = availableGoldVoucherCount;
+            ReservedGoldVoucherCount = reservedGoldVoucherCount;
             FacadeSnapshot = facadeSnapshot ?? LuaFacadeSnapshot.FromInvocation(
                 playerId,
                 playerScore,
                 goldVoucherCount,
                 playerCount,
-                definitionVersion);
+                definitionVersion,
+                availableGoldVoucherCount,
+                reservedGoldVoucherCount);
         }
 
         public string EventId { get; }
@@ -321,6 +376,8 @@ namespace YC.Infrastructure.Lua
         public int PlayerCount { get; }
         public int PlayerScore { get; }
         public int GoldVoucherCount { get; }
+        public int AvailableGoldVoucherCount { get; }
+        public int ReservedGoldVoucherCount { get; }
         public LuaFacadeSnapshot FacadeSnapshot { get; }
         public bool AllowOtherPlayerReads { get; set; }
         // Event 分发器在调用前设置响应合同。Lua 不能自行切换返回形状。
@@ -329,6 +386,10 @@ namespace YC.Infrastructure.Lua
 
     public sealed class LuaEffectSpec
     {
+        public string CompletionHandlerId { get; set; } = string.Empty;
+        public NormalizedValue ContinuationContext { get; set; }
+        public YC.Domain.Presentation.SettlementEffectDefinition Settlement { get; set; }
+        public YC.Domain.Presentation.EffectPresentationDefinition Presentation { get; set; }
         public LuaEffectSpec(
             string effectTypeId,
             string recipientPlayerId,
@@ -572,6 +633,8 @@ namespace YC.Infrastructure.Lua
         public string FacilityInstanceId { get; }
         public int SourceSlotIndex { get; }
         public NormalizedValue RawArguments { get; }
+        public string SubjectFilter { get; internal set; } = string.Empty;
+        public IReadOnlyList<string> ExcludedSubjectKeys { get; internal set; } = new List<string>();
         public IReadOnlyList<LuaEffectSpec>[] NestedEffectGroups { get; }
     }
 
@@ -621,6 +684,10 @@ namespace YC.Infrastructure.Lua
         public string DefinitionVersion { get; }
         public string ContentHash { get; }
         public IReadOnlyList<LuaEffectSpec> Effects { get; }
+        public IReadOnlyList<YC.Domain.Effects.SettlementOfferDefinition> SettlementOffers { get; private set; } = Array.Empty<YC.Domain.Effects.SettlementOfferDefinition>();
+        public YC.Domain.Effects.SettlementAvailabilityResult SettlementAvailability { get; private set; }
+        internal static LuaInvocationResult SettlementSuccess(LuaScriptDefinition definition, IReadOnlyList<YC.Domain.Effects.SettlementOfferDefinition> offers, YC.Domain.Effects.SettlementAvailabilityResult availability)
+        { var result = Success(definition, Array.Empty<LuaEffectSpec>()); result.SettlementOffers = offers ?? Array.Empty<YC.Domain.Effects.SettlementOfferDefinition>(); result.SettlementAvailability = availability; return result; }
         public IReadOnlyList<LuaCandidatePatch> CandidatePatches { get; }
 
         public bool IsSuccess => Status == LuaInvocationStatus.Success;

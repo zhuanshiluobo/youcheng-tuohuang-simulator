@@ -1,0 +1,128 @@
+{
+  "definitionId": "enterprise.department.defense",
+  "contentType": "department",
+  "version": "1.0.0",
+  "displayName": "防卫科",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/departments/defense.png",
+  "artworkSpriteId": "enterprise.department.defense.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.board_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "enterprise.department.defense.level_2.reward",
+      "mode": "level_2.reward",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.department.defense.level_2.reward",
+      "script": "lua/departments/enterprise.department.defense.level_2.reward.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.department.defense.level_2.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "enterprise.department.defense.level_3.reward",
+      "mode": "level_3.reward",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.department.defense.level_3.reward",
+      "script": "lua/departments/enterprise.department.defense.level_3.reward.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.department.defense.level_3.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "enterprise.department.defense.level_4.reward",
+      "mode": "level_4.reward",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.department.defense.level_4.reward",
+      "script": "lua/departments/enterprise.department.defense.level_4.reward.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.department.defense.level_4.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "enterprise.department.defense.level_5.reward",
+      "mode": "level_5.reward",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.department.defense.level_5.reward",
+      "script": "lua/departments/enterprise.department.defense.level_5.reward.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.department.defense.level_5.description",
+          "arguments": []
+        }
+      }
+    }
+  ],
+  "data": {
+    "enterpriseRuntimeId": "enterprise.rhine_lab",
+    "rewards": [
+      {
+        "level": 2,
+        "abilityId": "enterprise.department.defense.level_2.reward",
+        "description": {
+          "key": "core:enterprise.department.defense.level_2.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 3,
+        "abilityId": "enterprise.department.defense.level_3.reward",
+        "description": {
+          "key": "core:enterprise.department.defense.level_3.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 4,
+        "abilityId": "enterprise.department.defense.level_4.reward",
+        "description": {
+          "key": "core:enterprise.department.defense.level_4.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 5,
+        "abilityId": "enterprise.department.defense.level_5.reward",
+        "description": {
+          "key": "core:enterprise.department.defense.level_5.description",
+          "arguments": []
+        }
+      }
+    ]
+  },
+  "presentation": {
+    "detailScript": "lua/presentation/enterprise.details.lua"
+  }
+}

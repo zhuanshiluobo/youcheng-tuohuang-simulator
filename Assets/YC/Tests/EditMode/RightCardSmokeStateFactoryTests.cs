@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
@@ -42,9 +43,9 @@ namespace YC.Tests.EditMode
             var second = CreateSmokeState(seats);
 
             first.Players[0].Name = "mutated";
-            first.Players[0].HandCardIds.Add("test-card");
+            first.ItemZones.Items.Single(item => item.ItemId == first.Players[0].HandCardIds[0]).LocalState = YC.Domain.State.NormalizedValue.CreateString("mutated");
             first.Map.OpenLocationIds.Add("test-location");
-            first.Decks.CityStyleSupply.Clear();
+            first.ItemZones.Orders[0].OrderRevision++;
 
             Assert.That(first.Players, Is.Not.SameAs(second.Players));
             Assert.That(first.Players[0].HandCardIds, Is.Not.SameAs(second.Players[0].HandCardIds));
@@ -55,6 +56,8 @@ namespace YC.Tests.EditMode
             Assert.That(second.Players[0].HandCardIds, Does.Not.Contain("test-card"));
             Assert.That(second.Map.OpenLocationIds, Does.Not.Contain("test-location"));
             Assert.That(second.Decks.CityStyleSupply, Is.Not.Empty);
+            Assert.That(first.ItemZones.Items, Is.Not.SameAs(second.ItemZones.Items));
+            Assert.That(first.ItemZones.Orders[0].OrderRevision, Is.Not.EqualTo(second.ItemZones.Orders[0].OrderRevision));
             Assert.That(seats[0].PlayerName, Is.EqualTo("Player 1"));
         }
 

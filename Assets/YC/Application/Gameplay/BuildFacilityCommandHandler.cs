@@ -7,6 +7,8 @@ using YC.Domain.Effects;
 using YC.Domain.Facilities;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Items;
+using System.Linq;
 
 namespace YC.Application.Gameplay
 {
@@ -15,6 +17,8 @@ namespace YC.Application.Gameplay
         public const string FacilityIdParameter = "facilityId";
         public const string CityBoardSlotIndexParameter = "cityBoardSlotIndex";
         public const string PaymentModeParameter = "paymentMode";
+        public const string ExpectedSourceZoneIdParameter = "expectedSourceZoneId";
+        public const string PaymentPreparationOwnerEffectIdParameter = "paymentPreparationOwnerEffectId";
 
         private readonly BuildFacilityService buildFacilityService;
         private readonly RoundAdvanceService roundAdvanceService;
@@ -68,6 +72,24 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(paymentModeValidation);
             }
 
+            string expectedSourceZoneId = "";
+            if (effectRegistry != null && ItemZoneLegacyProjection.IsActive(state))
+            {
+                var snapshot = effectRegistry.FacilityBuildCandidates.Resolve(state, command.PlayerId, stateRevision: state.EffectRuntime.StateRevision);
+                var candidate = snapshot.Candidates.FirstOrDefault(value => value.ItemId == facilityId);
+                // 旧命令只在唯一公共实例时解析定义，不能把牌下同名牌替换成公共牌。
+                if (candidate == null && !state.ItemZones.Items.Any(item => item.ItemId == facilityId))
+                {
+                    var matches = snapshot.Candidates.Where(value => value.DefinitionId == facilityId && value.CarrierItemId.Length == 0).ToList();
+                    if (matches.Count == 1) candidate = matches[0];
+                }
+                if (candidate == null) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该设施不在本人当前可选建设范围内。"));
+                expectedSourceZoneId = candidate.SourceZoneId;
+                string declaredSource = GetParameter(command, ExpectedSourceZoneIdParameter);
+                if (declaredSource.Length > 0 && declaredSource != expectedSourceZoneId)
+                    return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "设施来源已变化，请重新选择。"));
+                facilityId = candidate.ItemId;
+            }
             BuildFacilityResult result;
             if (effectRegistry == null)
             {
@@ -92,18 +114,23 @@ namespace YC.Application.Gameplay
                     cityBoardSlotIndex,
                     paymentMode,
                     false,
-                    command.CommandId ?? string.Empty);
+                    command.CommandId ?? string.Empty, true, expectedSourceZoneId);
                 string buildEffectId;
-                if (!executor.TryCreatePlayerActionEffect(
+                string preparationId = GetParameter(command, PaymentPreparationOwnerEffectIdParameter);
+                string preparationDiagnostic = "";
+                bool created = preparationId.Length > 0 ? executor.TryCreatePreparedPlayerActionEffect(command.PlayerId, preparationId,
+                    buildSpec, state.EffectRuntime.CurrentRoundExecutionId ?? "", command.CommandId, out buildEffectId, out preparationDiagnostic) :
+                    executor.TryCreatePlayerActionEffect(
                         command.PlayerId,
                         buildSpec,
                         state.EffectRuntime.CurrentRoundExecutionId ?? string.Empty,
                         command.CommandId ?? string.Empty,
-                        out buildEffectId))
+                        out buildEffectId);
+                if (!created)
                 {
                     return CommandResult.Invalid(ValidationResult.Failure(
-                        CommandErrorCode.UnknownCommand,
-                        "建设 Effect 创建失败：" + executor.LastDiagnostic));
+                        preparationId.Length > 0 ? SettlementHostProtocol.ErrorCode(preparationDiagnostic) : CommandErrorCode.UnknownCommand,
+                        "建设 Effect 创建失败：" + (preparationId.Length > 0 ? preparationDiagnostic : executor.LastDiagnostic)));
                 }
 
                 EffectRunReport report = executor.RunUntilQuiescent();
@@ -111,7 +138,7 @@ namespace YC.Application.Gameplay
                 {
                     return CommandResult.Invalid(ValidationResult.Failure(
                         CommandErrorCode.UnknownCommand,
-                        "建设 Effect 执行失败：" + report.FaultCode));
+                        "建设 Effect 执行失败：" + report.FaultCode + "：" + state.EffectRuntime.LastFaultMessage));
                 }
 
                 var builtNode = executor.GetNode(buildEffectId);
@@ -131,7 +158,7 @@ namespace YC.Application.Gameplay
                 }
 
                 result = BuildFacilityResult.Success(
-                    FacilityCardDatabase.Get(facilityId),
+                    FacilityCardDatabase.Get(state, facilityId),
                     cityBoardSlotIndex,
                     paymentMode);
             }

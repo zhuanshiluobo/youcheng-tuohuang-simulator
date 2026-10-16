@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using YC.Domain.Rules;
 using YC.Application.Sessions;
 using YC.Infrastructure.Multiplayer;
 using UnityEngine;
@@ -14,7 +16,13 @@ namespace YC.Presentation
         public int LocalPlayerId = 1;
         public string MapId = YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId;
         public string RoomId = string.Empty;
+        public string GameId = string.Empty;
+        public int EventDeckSeed;
+        public GameplayRandomState InitialRandomState;
+        public bool RandomReady => GameplayRandomRuntime.TryValidate(InitialRandomState, GameId, EventDeckSeed, out _);
         public List<PlayerSeat> Players = new List<PlayerSeat>();
+        public List<int> LaunchPlayerOrder = new List<int>();
+        public YC.Domain.Rules.GameRuleConfiguration RuleConfiguration;
         private bool returningToStart;
         public bool IsLeavingGameplay => returningToStart;
         private bool completedSessionDetached;
@@ -50,14 +58,75 @@ namespace YC.Presentation
 
         public void Configure(LaunchMode mode, int localPlayerId, string roomId, IList<PlayerSeat> players, string mapId = null)
         {
+            Configure(mode, localPlayerId, roomId, players, new YC.Domain.Rules.GameRuleConfiguration
+            {
+                MapId = mapId ?? YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId,
+                PlayerCount = players == null || players.Count == 0 ? 1 : players.Count
+            });
+        }
+
+        public void Configure(LaunchMode mode, int localPlayerId, string roomId, IList<PlayerSeat> players,
+            YC.Domain.Rules.GameRuleConfiguration configuration)
+            => Configure(mode, localPlayerId, roomId, players, configuration, null);
+
+        public void Configure(LaunchMode mode, int localPlayerId, string roomId, IList<PlayerSeat> players,
+            YC.Domain.Rules.GameRuleConfiguration configuration, IReadOnlyList<int> launchPlayerOrder)
+        {
+            if (mode != LaunchMode.Local) throw new InvalidOperationException("random_initialization_required");
+            ConfigureNewLocal(localPlayerId, roomId, players, configuration, null, launchPlayerOrder);
+        }
+
+        public void ConfigureNewLocal(int localPlayerId, string roomId, IList<PlayerSeat> players,
+            GameRuleConfiguration configuration, int? explicitSeed = null, IReadOnlyList<int> explicitOrder = null)
+        {
+            if (configuration == null || !configuration.TryValidate(out _)) throw new InvalidOperationException("room_protocol_mismatch");
+            var ids = players == null || players.Count == 0 ? new List<int> { localPlayerId } : players.Select(p => p.PlayerId).ToList();
+            if (ids.Count != configuration.PlayerCount || ids.Any(id => id <= 0) || ids.Distinct().Count() != ids.Count)
+                throw new InvalidOperationException("unsupported_player_count");
+            var gameId = Guid.NewGuid().ToString("N");
+            int seed = explicitSeed ?? GameplayRandomSeed.CreateMatchSeed();
+            var state = new YC.Domain.State.GameState { GameId = gameId, EventDeckSeed = seed, RandomRuntime = GameplayRandomRuntime.Create(gameId) };
+            if (explicitOrder == null) GameplayRandomRuntime.Shuffle(ids, state, GameplayRandomRuntime.LaunchOrder);
+            var seatCopies = players == null ? null : players.Select(p => p.Clone()).ToList();
+            Configure(LaunchMode.Local, localPlayerId, roomId, seatCopies, configuration, explicitOrder ?? ids, gameId, seed, state.RandomRuntime);
+        }
+
+        public void Configure(LaunchMode mode, int localPlayerId, string roomId, IList<PlayerSeat> players,
+            GameRuleConfiguration configuration, IReadOnlyList<int> launchPlayerOrder, string gameId, int seed, GameplayRandomState initialRandomState)
+        {
+            if (!GameplayRandomRuntime.TryValidate(initialRandomState, gameId, seed, out var randomReason))
+                throw new InvalidOperationException(randomReason);
+            if (GameId == gameId)
+            {
+                if (!RandomReady || EventDeckSeed != seed || InitialRandomState.AlgorithmVersion != initialRandomState.AlgorithmVersion ||
+                    Mode != mode || LocalPlayerId != localPlayerId || RoomId != (roomId ?? string.Empty) ||
+                    Newtonsoft.Json.JsonConvert.SerializeObject(RuleConfiguration) != Newtonsoft.Json.JsonConvert.SerializeObject(configuration) ||
+                    launchPlayerOrder == null || !LaunchPlayerOrder.SequenceEqual(launchPlayerOrder) ||
+                    !YC.Domain.State.GameStateCloneService.AreEquivalent(
+                        new YC.Domain.State.GameState { RandomRuntime = InitialRandomState }, new YC.Domain.State.GameState { RandomRuntime = initialRandomState }))
+                    throw new InvalidOperationException("random_initialization_conflict");
+                return;
+            }
+            if (configuration == null) throw new InvalidOperationException("room_protocol_mismatch");
+            if (!configuration.TryValidate(out var reason)) throw new InvalidOperationException(reason);
+            if (configuration.PlayerCount != (players == null || players.Count == 0 ? 1 : players.Count))
+                throw new InvalidOperationException("unsupported_player_count");
+            if (launchPlayerOrder != null && !YC.Domain.Rules.TurnOrderService.IsValidPlayerOrder(
+                launchPlayerOrder, players == null ? new List<int> { localPlayerId } : new List<PlayerSeat>(players).ConvertAll(player => player.PlayerId)))
+                throw new InvalidOperationException("launch_player_order_invalid");
+            if (launchPlayerOrder == null) throw new InvalidOperationException("launch_player_order_invalid");
+            GameId = gameId;
+            EventDeckSeed = seed;
+            InitialRandomState = initialRandomState.Clone();
+            LaunchPlayerOrder = new List<int>(launchPlayerOrder);
+            RuleConfiguration = configuration.Clone();
             UnsubscribeDisconnect();
             UnsubscribeRoomService();
             returningToStart = false;
             completedSessionDetached = false;
             pendingReturnScene = null;
             pendingOnlineSessionNotice = null;
-            MapId = mapId ?? (mode != LaunchMode.Local && players != null && players.Count == 3
-                ? YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId : YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId);
+            MapId = RuleConfiguration.MapId;
             Mode = mode;
             LocalPlayerId = localPlayerId;
             RoomId = roomId ?? string.Empty;
@@ -68,19 +137,7 @@ namespace YC.Presentation
                 for (var i = 0; i < players.Count; i++)
                 {
                     var seat = players[i];
-                    Players.Add(new PlayerSeat
-                    {
-                        PlayerId = seat.PlayerId,
-                        SteamId = seat.SteamId,
-                        NetworkClientId = seat.NetworkClientId,
-                        PlayerName = seat.PlayerName,
-                        Color = seat.Color,
-                        LobbyMemberPresent = seat.LobbyMemberPresent,
-                        TransportConnected = seat.TransportConnected,
-                        IdentityVerified = seat.IdentityVerified,
-                        GameStateSynchronized = seat.GameStateSynchronized,
-                        IsReady = seat.IsReady
-                    });
+                    Players.Add(seat.Clone());
                 }
             }
 
@@ -143,6 +200,7 @@ namespace YC.Presentation
         private void OnNetworkDisconnected()
         {
             if (returningToStart || completedSessionDetached) return;
+            if (subscribedRuntime != null && subscribedRuntime.IsReconnectingLocalClient) return;
             if (MirrorCommandTransport.Instance != null &&
                 MirrorCommandTransport.Instance.HasCompletedSettlement)
             {
@@ -184,7 +242,12 @@ namespace YC.Presentation
                 Instance.Mode = LaunchMode.Local;
                 Instance.LocalPlayerId = 1;
                 Instance.RoomId = string.Empty;
+                Instance.GameId = string.Empty;
+                Instance.EventDeckSeed = 0;
+                Instance.InitialRandomState = null;
                 Instance.Players.Clear();
+                Instance.LaunchPlayerOrder.Clear();
+                Instance.RuleConfiguration = null;
             }
 
             MirrorCommandTransport.Instance?.Shutdown();

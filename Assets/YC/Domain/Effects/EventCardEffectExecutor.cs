@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using YC.Domain.Items;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Influence;
@@ -155,7 +157,7 @@ namespace YC.Domain.Effects
             }
 
             string cardId = ReadString(context.Node.NormalizedResult, "cardId", string.Empty);
-            EventCardDefinition card = EventCardDatabase.Get(cardId);
+            EventCardDefinition card = EventCardDatabase.Get(context.State, cardId);
             if (card == null)
             {
                 return EffectStepResult.Failed("card_definition_missing");
@@ -276,18 +278,33 @@ namespace YC.Domain.Effects
                 return EffectStepResult.Failed("event_deck_empty");
             }
 
-            string cardId = eventDeckService.Draw(context.State.Decks, color);
-            EventCardDefinition card = EventCardDatabase.Get(cardId);
+            string cardId;
+            if (ItemZoneLegacyProjection.IsActive(context.State))
+            {
+                var deck = ItemTransferEffectExecutor.FindZone(context.State, "event_" + color.ToString().ToLowerInvariant());
+                var order = context.State.ItemZones.Orders.Single(o => o.ZoneId == deck.ZoneId);
+                var item = context.State.ItemZones.Items.Single(i => i.ItemId == order.ItemIds[0]);
+                cardId = item.DefinitionId;
+                // 事件牌无公开通用转移许可；抽取由唯一事件业务节点提交。
+                var retired = ItemTransferEffectExecutor.FindZone(context.State, "retired");
+                context.Node.PositionChanges.Add(new ItemPositionChange { ItemId = item.ItemId, From = new ItemPositionRef { ZoneId = deck.ZoneId }, To = new ItemPositionRef { ZoneId = retired.ZoneId } });
+                ItemZoneStateMigrator.SetPosition(context.State, item, retired.ZoneId); order.OrderRevision++;
+            }
+            else cardId = eventDeckService.Draw(context.State.Decks, color);
+            EventCardDefinition card = EventCardDatabase.Get(context.State, cardId);
             if (card == null)
             {
                 return EffectStepResult.Failed("card_definition_missing");
             }
 
-            resourceTokenService.PlaceToken(
-                context.State.Map,
-                targetLocationId,
-                card.RepresentativeResourceType,
-                card.RepresentativeResourceAmount);
+            if (ItemZoneLegacyProjection.IsActive(context.State))
+            {
+                var parent = context.State.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.map_location" && z.LocalZoneId == targetLocationId);
+                var target = context.State.ItemZones.Zones.Single(z => z.ParentId == parent.ZoneId && z.TemplateId == "core.zone.resource_point_markers");
+                if (!new ItemZoneStateFactory().TryCreateGrantedItem(context.State, context.Node.EffectId, "revealed_resource_point", "core.resource_point", "core.resource_point_token", target.ZoneId, new ItemSubjectRef(), out string tokenId, out string reason)) throw new InvalidOperationException(reason);
+                context.State.ItemZones.Items.Single(i => i.ItemId == tokenId).LocalState = ItemTransferEffectExecutor.Object("resourceType", NormalizedValue.CreateInteger((int)card.RepresentativeResourceType), "amount", NormalizedValue.CreateInteger(card.RepresentativeResourceAmount));
+            }
+            else resourceTokenService.PlaceToken(context.State.Map, targetLocationId, card.RepresentativeResourceType, card.RepresentativeResourceAmount);
             if (context.State.Map.OpenLocationIds == null)
             {
                 context.State.Map.OpenLocationIds = new List<string>();

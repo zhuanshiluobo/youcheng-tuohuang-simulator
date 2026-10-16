@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using YC.Domain.State;
+using YC.Domain.Items;
 
 namespace YC.Domain.Facilities
 {
@@ -13,6 +14,20 @@ namespace YC.Domain.Facilities
         public static string EnsureIdentity(GameState state, FacilityPlacement placement)
         {
             if (state == null || placement == null) return string.Empty;
+            if (ItemZoneLegacyProjection.IsActive(state))
+            {
+                var entity = new ItemZoneQuery().FindItem(state, placement.ContentInstanceId);
+                if (entity == null || entity.DefinitionId != placement.FacilityCardId || !ItemTypeRegistry.CreateBuiltIn().IsAssignableTo(entity.TypeId, "core.facility_card"))
+                    throw new InvalidOperationException("FacilityInstances_item_mismatch");
+                var runtime = Find(state, entity.ItemId);
+                if (runtime == null)
+                {
+                    runtime = new FacilityInstanceRuntimeState { ContentInstanceId = entity.ItemId, FacilityCardId = entity.DefinitionId, SchemaVersion = CurrentSchemaVersion };
+                    state.Map.FacilityInstances.Add(runtime);
+                }
+                runtime.BindItemZones(state, false);
+                return entity.ItemId;
+            }
             if (string.IsNullOrEmpty(placement.ContentInstanceId))
             {
                 placement.ContentInstanceId = StableIdFactory.Create(

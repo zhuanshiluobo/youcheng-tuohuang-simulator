@@ -437,6 +437,74 @@ namespace YC.Tests.EditMode
             Assert.That(declaration.UsedCityBoardSlotIndexes, Is.EqualTo(new[] { 1, 4 }));
         }
 
+        [Test]
+        public void CommandOutcome_RebindingRecoversActualAcceptanceAndRejectionWithoutResubmission()
+        {
+            var authority = NetworkCommandConfirmationRecoveryTests.CreateAuthority();
+            var accepted = authority.Command("accepted", 0);
+            Assert.That(authority.Dispatcher.ReceiveClientCommand(42, accepted).Succeeded, Is.True);
+            int revision = authority.Session.State.EffectRuntime.StateRevision;
+            var rejected = authority.Command("rejected", revision - 1);
+            Assert.That(authority.Dispatcher.ReceiveClientCommand(42, rejected).Succeeded, Is.False);
+            authority.Dispatcher.UnregisterClientPlayer(42);
+            authority.Dispatcher.RegisterClientPlayer(77, 3);
+            Assert.That(authority.Dispatcher.TryGetCommandOutcome(42, authority.GameId, 3, accepted.CommandId, out _), Is.False);
+            Assert.That(authority.Dispatcher.TryGetCommandOutcome(77, authority.GameId, 3, accepted.CommandId, out var acceptance), Is.True);
+            Assert.That(acceptance.Outcome, Is.EqualTo(CommandAuthorityOutcomeKind.Accepted));
+            Assert.That(acceptance.AcceptedSequence, Is.EqualTo(1));
+            Assert.That(acceptance.StateRevision, Is.EqualTo(revision));
+            Assert.That(authority.Dispatcher.TryGetCommandOutcome(77, authority.GameId, 3, rejected.CommandId, out var rejection), Is.True);
+            Assert.That(rejection.Outcome, Is.EqualTo(CommandAuthorityOutcomeKind.Rejected));
+            Assert.That(rejection.ErrorCode, Is.EqualTo(CommandErrorCode.StateRevisionMismatch));
+            Assert.That(rejection.Reason, Is.EqualTo(NetworkCommandConfirmationRecoveryTests.OriginalRejection));
+            Assert.That(rejection.AcceptedSequence, Is.Zero);
+            Assert.That(authority.Handler.Calls, Is.EqualTo(2));
+            Assert.That(authority.Session.State.FindPlayer(3).Resources.GoldVoucher, Is.EqualTo(12));
+            Assert.That(authority.Session.State.Logs, Has.Count.EqualTo(1));
+            Assert.That(authority.Dispatcher.CreateInitialStateViewSynchronization(3).NextConfirmedSequence, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void CommandOutcome_OnlyCurrentGameOwnerCanQueryAndMissingRecordsStayUnknown()
+        {
+            var authority = NetworkCommandConfirmationRecoveryTests.CreateAuthority();
+            var command = authority.Command("private-command", 0);
+            command.OptionIds.Add("本人私密选项");
+            Assert.That(authority.Dispatcher.ReceiveClientCommand(42, command).Succeeded, Is.True);
+            authority.Dispatcher.RegisterClientPlayer(99, 1);
+            Assert.That(authority.Dispatcher.TryGetCommandOutcome(99, authority.GameId, 3, command.CommandId, out _), Is.False);
+            Assert.That(authority.Dispatcher.TryGetCommandOutcome(42, authority.GameId, 1, command.CommandId, out _), Is.False);
+            Assert.That(authority.Dispatcher.TryGetCommandOutcome(42, "other-game", 3, command.CommandId, out _), Is.False);
+            Assert.That(authority.Dispatcher.TryGetCommandOutcome(42, authority.GameId, 3, "never-received", out var missing), Is.False);
+            Assert.That(missing, Is.Null);
+            Assert.That(authority.Dispatcher.TryGetCommandOutcome(42, authority.GameId, 3, command.CommandId, out var original), Is.True);
+            Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(original).Contains("本人私密选项"), Is.False);
+            original.Outcome = CommandAuthorityOutcomeKind.Rejected;
+            Assert.That(authority.Dispatcher.TryGetCommandOutcome(42, authority.GameId, 3, command.CommandId, out var unchanged), Is.True);
+            Assert.That(unchanged.Outcome, Is.EqualTo(CommandAuthorityOutcomeKind.Accepted));
+            Assert.That(authority.Handler.Calls, Is.EqualTo(1));
+            Assert.That(authority.Session.State.FindPlayer(3).Resources.GoldVoucher, Is.EqualTo(12));
+            var clientSession = new GameSession(new GameState());
+            var clientDispatcher = new AuthoritativeCommandDispatcher(clientSession, true);
+            var initial = authority.Dispatcher.CreateInitialStateViewSynchronization(3);
+            Assert.That(clientDispatcher.ApplyInitialStateViewSynchronization(initial).Succeeded, Is.True);
+            var current = clientSession.View;
+            foreach (var change in new System.Action<GameStateView>[] {
+                view => view.GameId = "other-game", view => view.StateRevision = current.StateRevision - 1 })
+            {
+                var invalidView = Newtonsoft.Json.JsonConvert.DeserializeObject<GameStateView>(Newtonsoft.Json.JsonConvert.SerializeObject(current));
+                change(invalidView);
+                Assert.That(clientDispatcher.ApplyConfirmedStateViewSynchronization(new ConfirmedGameStateViewDto {
+                    Sequence = clientDispatcher.NextExpectedConfirmedSequence, View = invalidView }).Succeeded, Is.False);
+                Assert.That(clientSession.View, Is.SameAs(current));
+                Assert.That(clientDispatcher.NextExpectedConfirmedSequence, Is.EqualTo(initial.NextConfirmedSequence));
+            }
+            authority.Session.ReplaceState(new GameState { GameId = "next-game" });
+            Assert.That(authority.Dispatcher.TryGetCommandOutcome(42, authority.GameId, 3, command.CommandId, out _), Is.False);
+            Assert.That(authority.Dispatcher.TryGetCommandOutcome(42, "next-game", 3, command.CommandId, out _), Is.False);
+            Assert.That(authority.Handler.Calls, Is.EqualTo(1));
+        }
+
         private static GameSession CreateSession()
         {
             var session = new GameSession(new GameState());

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using YC.Infrastructure.Lua;
 
@@ -63,6 +64,9 @@ namespace YC.Presentation
         }
         public static Sprite GetArtworkSprite(string type, string id)
         {
+            // 本局实例解析为冻结 definitionId；只读取已安装素材，不改变全局活动牌池。
+            var definition = Pack.Definitions.FirstOrDefault(d => d.Enabled && d.ContentType == type && d.DefinitionId == id);
+            if (definition != null) return LoadSprite(definition.Artwork, definition.ArtworkSlice);
             string relative = Pack.FindArtwork(type, id);
             if (relative == null) return null;
             var slice = Pack.FindArtworkSlice(type, id);

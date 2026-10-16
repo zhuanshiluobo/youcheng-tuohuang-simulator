@@ -4,7 +4,7 @@ using YC.Domain.Rules;
 
 namespace YC.Domain.State
 {
-    public enum GameBoxCardKind { Character, Event }
+    public enum GameBoxCardKind { Character = 0, Event = 1, EnterpriseCooperation = 2 }
 
     /// <summary>只记录规则明确放回的组件；不由弃牌、剩余牌堆或玩家库存推算。</summary>
     [Serializable]
@@ -18,11 +18,13 @@ namespace YC.Domain.State
         public static GameBoxState ForViewer(GameBoxState source, GameStateViewer viewer)
         {
             var result = source == null ? new GameBoxState() : GameStateCloneService.DeepClone(source);
-            foreach (var card in result.Cards)
-                if (card != null && !card.FaceUp && !viewer.IsHost) card.CardId = string.Empty;
             if (!viewer.IsHost)
+            {
+                result.Cards.RemoveAll(card => card != null && card.PrivateForPlayerId != -1 &&
+                    (card.PrivateForPlayerId <= 0 || viewer.Role != GameStateViewerRole.Player || card.PrivateForPlayerId != viewer.PlayerId));
                 result.Enterprises.RemoveAll(board => board == null ||
                     viewer.Role != GameStateViewerRole.Player || board.OwnerPlayerId != viewer.PlayerId);
+            }
             return result;
         }
     }
@@ -33,6 +35,9 @@ namespace YC.Domain.State
         public string InstanceId = string.Empty;
         public GameBoxCardKind Kind;
         public string CardId = string.Empty;
+        // -1 为公开，正数为有完整查看权的最后持有者；0 表示没有有效持有者，仅 Host 可见。
+        public int PrivateForPlayerId = -1;
+        // 物理朝向不决定身份查看权。
         public bool FaceUp = true;
         public PlayerColor BackColor;
         public string BackVisualKey = string.Empty;

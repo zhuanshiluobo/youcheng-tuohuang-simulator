@@ -1,0 +1,173 @@
+{
+  "version": "2.2.0",
+  "assets": [
+    {
+      "id": "turn-ribbon-frame",
+      "svg": "01-topbar/turn-ribbon-frame.svg",
+      "png": "01-topbar/turn-ribbon-frame.png",
+      "sourceSize": {
+        "width": 204,
+        "height": 49
+      },
+      "border": {
+        "left": 24,
+        "top": 0,
+        "right": 24,
+        "bottom": 0
+      },
+      "role": "transparent-frame",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 0,
+      "recommendedDisplayRect": [
+        1075,
+        7,
+        204,
+        49
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    },
+    {
+      "id": "turn-ribbon-fill",
+      "svg": "01-topbar/turn-ribbon-fill.svg",
+      "png": "01-topbar/turn-ribbon-fill.png",
+      "sourceSize": {
+        "width": 204,
+        "height": 49
+      },
+      "border": {
+        "left": 24,
+        "top": 0,
+        "right": 24,
+        "bottom": 0
+      },
+      "role": "independent-fill",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 253,
+      "recommendedDisplayRect": [
+        1075,
+        7,
+        204,
+        49
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    },
+    {
+      "id": "red-zone-ribbon-frame",
+      "png": "01-topbar/red-zone-ribbon-frame.png",
+      "svg": "01-topbar/red-zone-ribbon-frame.svg",
+      "sourceSize": {
+        "width": 384,
+        "height": 80
+      },
+      "border": {
+        "left": 64,
+        "top": 0,
+        "right": 64,
+        "bottom": 0
+      },
+      "role": "status-ribbon-frame",
+      "stretch": "horizontal-three-slice",
+      "capScale": "round(sourceCap * targetHeight / 80) in display pixels",
+      "targetCapsAt48pxHeight": 38.4,
+      "contentSafeInsetAt48pxHeight": {
+        "left": 32,
+        "right": 32,
+        "top": 8,
+        "bottom": 8
+      },
+      "centerAlpha": 0,
+      "hasText": false,
+      "interactive": false,
+      "material": "05-textures/art/status-red-ribbon-source.png",
+      "representation": "SVG slices unchanged generated PNG artwork via relative references",
+      "sourceCrop": [
+        34,
+        221,
+        2159,
+        496
+      ],
+      "fillUnderlapPx": 0,
+      "recommendedCapsAt48pxHeight": 38
+    },
+    {
+      "id": "red-zone-ribbon-fill",
+      "png": "01-topbar/red-zone-ribbon-fill.png",
+      "svg": "01-topbar/red-zone-ribbon-fill.svg",
+      "sourceSize": {
+        "width": 384,
+        "height": 80
+      },
+      "border": {
+        "left": 64,
+        "top": 0,
+        "right": 64,
+        "bottom": 0
+      },
+      "role": "status-ribbon-fill",
+      "stretch": "horizontal-three-slice",
+      "capScale": "round(sourceCap * targetHeight / 80) in display pixels",
+      "targetCapsAt48pxHeight": 38.4,
+      "contentSafeInsetAt48pxHeight": {
+        "left": 32,
+        "right": 32,
+        "top": 8,
+        "bottom": 8
+      },
+      "centerAlpha": 255,
+      "hasText": false,
+      "interactive": false,
+      "material": "05-textures/art/status-red-ribbon-source.png",
+      "representation": "SVG slices unchanged generated PNG artwork via relative references",
+      "sourceCrop": [
+        34,
+        221,
+        2159,
+        496
+      ],
+      "fillUnderlapPx": 1,
+      "recommendedCapsAt48pxHeight": 38
+    }
+  ],
+  "layerOrder": [
+    "ribbon fill",
+    "ribbon frame",
+    "independent dynamic label"
+  ],
+  "sourceSliceNotes": "v2.2 turn flag has source size 204 x 49 and horizontal caps 24. Red flag assets remain only for compatibility; use right-cluster for red-zone information.",
+  "redZoneRules": {
+    "openRoundByPlayerCount": {
+      "4": 4,
+      "3": 5,
+      "2": 6
+    },
+    "trigger": "start of the indicated round",
+    "affected": "red-zone resource-point exploration and city-movement destinations",
+    "routes": "red-zone routes remain usable in all rounds",
+    "sources": [
+      {
+        "pdfPage": 14,
+        "printedPage": 12,
+        "appliesTo": "3-4 players"
+      },
+      {
+        "pdfPage": 25,
+        "printedPage": 23,
+        "appliesTo": "2-player variant"
+      }
+    ]
+  },
+  "example": {
+    "playerCount": 4,
+    "currentRound": 4,
+    "openRound": 4,
+    "redZoneIsOpen": true
+  },
+  "deprecated": [
+    "red-zone-ribbon-fill",
+    "red-zone-ribbon-frame"
+  ]
+}

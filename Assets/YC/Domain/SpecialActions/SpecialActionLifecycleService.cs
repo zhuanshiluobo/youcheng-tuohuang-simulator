@@ -143,7 +143,7 @@ namespace YC.Domain.SpecialActions
                         continue;
                     }
 
-                    var definition = SpecialActionDatabase.Get(declaration.UnlockedSpecialActionId);
+                    var definition = SpecialActionDatabase.Get(state, declaration.UnlockedSpecialActionId);
                     if (definition == null)
                     {
                         continue;
@@ -186,7 +186,7 @@ namespace YC.Domain.SpecialActions
             for (var i = 0; i < player.DeclaredCityStyles.Count; i++)
             {
                 var declaration = player.DeclaredCityStyles[i];
-                if (declaration != null && declaration.InfluenceMarkerId == declarationMarkerId)
+                if (declaration != null && declaration.InfluenceMarkerId == declarationMarkerId && declaration.MarkerArea.Length > 0)
                 {
                     return declaration;
                 }

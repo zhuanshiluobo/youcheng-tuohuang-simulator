@@ -1,0 +1,983 @@
+{
+  "schemaVersion": 1,
+  "recipeId": "standard",
+  "initialBasicCharacterCount": 5,
+  "basicCharacterKeepCount": 5,
+  "maxRetainedBasicCharacterCount": 5,
+  "cityStyleLevelOneDrawCount": 4,
+  "cityStyleLevelTwoDrawCount": 2,
+  "entries": [
+    {
+      "entryId": "initial_liskarm",
+      "definitionId": "liskarm",
+      "quantity": 1,
+      "perPlayer": true,
+      "initialZoneRole": "hand",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "initial_elysium",
+      "definitionId": "elysium",
+      "quantity": 1,
+      "perPlayer": true,
+      "initialZoneRole": "hand",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "initial_texas",
+      "definitionId": "texas",
+      "quantity": 1,
+      "perPlayer": true,
+      "initialZoneRole": "hand",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "initial_cannot",
+      "definitionId": "cannot",
+      "quantity": 1,
+      "perPlayer": true,
+      "initialZoneRole": "hand",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "initial_tin-man",
+      "definitionId": "tin-man",
+      "quantity": 1,
+      "perPlayer": true,
+      "initialZoneRole": "hand",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_001",
+      "definitionId": "building_001",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_002",
+      "definitionId": "building_002",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_003",
+      "definitionId": "building_003",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_004",
+      "definitionId": "building_004",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_005",
+      "definitionId": "building_005",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_006",
+      "definitionId": "building_006",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_007",
+      "definitionId": "building_007",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_008",
+      "definitionId": "building_008",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_009",
+      "definitionId": "building_009",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_010",
+      "definitionId": "building_010",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_011",
+      "definitionId": "building_011",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_012",
+      "definitionId": "building_012",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_013",
+      "definitionId": "building_013",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_014",
+      "definitionId": "building_014",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_015",
+      "definitionId": "building_015",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_016",
+      "definitionId": "building_016",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_017",
+      "definitionId": "building_017",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_018",
+      "definitionId": "building_018",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_019",
+      "definitionId": "building_019",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_020",
+      "definitionId": "building_020",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_021",
+      "definitionId": "building_021",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_022",
+      "definitionId": "building_022",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_023",
+      "definitionId": "building_023",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_024",
+      "definitionId": "building_024",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_025",
+      "definitionId": "building_025",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_026",
+      "definitionId": "building_026",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_027",
+      "definitionId": "building_027",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_028",
+      "definitionId": "building_028",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_029",
+      "definitionId": "building_029",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_030",
+      "definitionId": "building_030",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_031",
+      "definitionId": "building_031",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_032",
+      "definitionId": "building_032",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_033",
+      "definitionId": "building_033",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_034",
+      "definitionId": "building_034",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_035",
+      "definitionId": "building_035",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_036",
+      "definitionId": "building_036",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_037",
+      "definitionId": "building_037",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_038",
+      "definitionId": "building_038",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_039",
+      "definitionId": "building_039",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_040",
+      "definitionId": "building_040",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "facility_building_041",
+      "definitionId": "building_041",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "reserve_reserve_002",
+      "definitionId": "reserve_002",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "reserve_reserve_003",
+      "definitionId": "reserve_003",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "reserve_reserve_004",
+      "definitionId": "reserve_004",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_military_industrial_area",
+      "definitionId": "city_style_military_industrial_area",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_mobilization_support_system",
+      "definitionId": "city_style_mobilization_support_system",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_composite_power_system",
+      "definitionId": "city_style_composite_power_system",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_material_relay_station",
+      "definitionId": "city_style_material_relay_station",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_source_stone_industrial_hub",
+      "definitionId": "city_style_source_stone_industrial_hub",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_efficient_mobile_management_system",
+      "definitionId": "city_style_efficient_mobile_management_system",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "player_markers",
+      "definitionId": "core.player_marker",
+      "quantity": 29,
+      "perPlayer": true,
+      "initialZoneRole": "player_markers",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "score_marker",
+      "definitionId": "core.player_marker",
+      "quantity": 1,
+      "perPlayer": true,
+      "initialZoneRole": "score_track",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "mobile_city",
+      "definitionId": "core.mobile_city",
+      "quantity": 1,
+      "perPlayer": true,
+      "initialZoneRole": "city_reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "core_command_tower",
+      "definitionId": "reserve_001",
+      "quantity": 1,
+      "perPlayer": true,
+      "initialZoneRole": "city_cell_7",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_green_01",
+      "initialZoneRole": "event_green",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_green_01"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_green_02",
+      "initialZoneRole": "event_green",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_green_02"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_green_03",
+      "initialZoneRole": "event_green",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_green_03"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_green_04",
+      "initialZoneRole": "event_green",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_green_04"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_green_05",
+      "initialZoneRole": "event_green",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_green_05"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_green_06",
+      "initialZoneRole": "event_green",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_green_06"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_red_01",
+      "initialZoneRole": "event_red",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_red_01"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_red_02",
+      "initialZoneRole": "event_red",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_red_02"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_red_03",
+      "initialZoneRole": "event_red",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_red_03"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_red_04",
+      "initialZoneRole": "event_red",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_red_04"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_red_05",
+      "initialZoneRole": "event_red",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_red_05"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_red_06",
+      "initialZoneRole": "event_red",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_red_06"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_yellow_01",
+      "initialZoneRole": "event_yellow",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_yellow_01"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_yellow_02",
+      "initialZoneRole": "event_yellow",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_yellow_02"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_yellow_03",
+      "initialZoneRole": "event_yellow",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_yellow_03"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_yellow_04",
+      "initialZoneRole": "event_yellow",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_yellow_04"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_yellow_05",
+      "initialZoneRole": "event_yellow",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_yellow_05"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_yellow_06",
+      "initialZoneRole": "event_yellow",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_yellow_06"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_yellow_07",
+      "initialZoneRole": "event_yellow",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_yellow_07"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_yellow_08",
+      "initialZoneRole": "event_yellow",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_yellow_08"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_yellow_09",
+      "initialZoneRole": "event_yellow",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_yellow_09"
+    },
+    {
+      "quantity": 1,
+      "perPlayer": false,
+      "definitionId": "event_yellow_10",
+      "initialZoneRole": "event_yellow",
+      "condition": {
+        "abilityId": "",
+        "kind": "always",
+        "runtimeId": ""
+      },
+      "entryId": "event_event_yellow_10"
+    }
+  ]
+}

@@ -114,6 +114,9 @@ namespace YC.Tests.EditMode
         public void FullRound_CompletesPerPlayerWindowsAndCreatesNextRound()
         {
             var state = CreateState(2);
+            state.MapId = StaticMapDefinitions.FourPlayerMapId;
+            state.FindPlayer(1).CityLocationId = "A-01";
+            state.FindPlayer(2).CityLocationId = "G-01";
             state.FindPlayer(1).CoveredCharacterCardId = "character.p1";
             state.FindPlayer(2).CoveredCharacterCardId = "character.p2";
             var service = new RoundExecutionService();
@@ -131,11 +134,13 @@ namespace YC.Tests.EditMode
             }
 
             Assert.That(GetActiveNode(state).NodeTypeId, Is.EqualTo(RoundMainlineNodeTypeIds.Collection));
-            state.FindPlayer(1).HasCollectedResourcesThisRound = true;
-            AssertValid(service.CompleteResourceCollection(state, 1));
+            RoundLifecycleTestDriver.SubmitEmptyCollection(state, service, 1);
             Assert.That(GetActiveNode(state).NodeTypeId, Is.EqualTo(RoundMainlineNodeTypeIds.Collection));
-            state.FindPlayer(2).HasCollectedResourcesThisRound = true;
-            AssertValid(service.CompleteResourceCollection(state, 2));
+            Assert.That(state.FindPlayer(1).HasCollectedResourcesThisRound, Is.True);
+            Assert.That(state.FindPlayer(2).HasCollectedResourcesThisRound, Is.False);
+            RoundLifecycleTestDriver.SubmitEmptyCollection(state, service, 2);
+            Assert.That(state.FindPlayer(1).HasCollectedResourcesThisRound, Is.False);
+            Assert.That(state.FindPlayer(2).HasCollectedResourcesThisRound, Is.False);
 
             // 空收尾窗口由主链自动完成，完成采集后直接进入下一回合的盖放节点。
             Assert.That(GetActiveNode(state).NodeTypeId, Is.EqualTo(RoundMainlineNodeTypeIds.CharacterCover));

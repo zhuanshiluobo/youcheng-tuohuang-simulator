@@ -1,0 +1,134 @@
+{
+  "version": "3.6.2",
+  "units": "logical UI pixels; x right, y down",
+  "screen": [
+    1920,
+    1080
+  ],
+  "window": [
+    73,
+    96.5,
+    1774,
+    887
+  ],
+  "coordinateSpace": "regions are local to window",
+  "regions": {
+    "title": [
+      96,
+      60,
+      1582,
+      48
+    ],
+    "cardContain": [
+      627,
+      126,
+      520,
+      558
+    ],
+    "plot": [
+      543,
+      736,
+      224,
+      64
+    ],
+    "strategy": [
+      791,
+      736,
+      224,
+      64
+    ],
+    "cancel": [
+      1055,
+      736,
+      176,
+      64
+    ],
+    "inspectHint": [
+      96,
+      764,
+      1582,
+      32
+    ],
+    "useHint": [
+      96,
+      708,
+      1582,
+      24
+    ]
+  },
+  "card": {
+    "fit": "contain",
+    "preserveSourceAspect": true,
+    "sameRectAcrossModes": true,
+    "sampleAspect": [
+      12,
+      17
+    ],
+    "sampleDisplaySize": [
+      393.88235294117646,
+      558
+    ],
+    "sampleDisplayRect": [
+      690.0588235294117,
+      126,
+      393.88235294117646,
+      558
+    ]
+  },
+  "button": {
+    "order": [
+      "计谋",
+      "策略",
+      "取消"
+    ],
+    "textures": [
+      "assets/buttons/action-normal@2x.png",
+      "assets/buttons/action-normal@2x.png",
+      "assets/buttons/cancel-normal@2x.png"
+    ],
+    "manifest": "assets/button-manifest.json",
+    "fontSize": 26,
+    "drawLabelsSeparately": true,
+    "states": [
+      "normal",
+      "hover",
+      "pressed",
+      "disabled"
+    ],
+    "focus": "runtime outline",
+    "stateMethod": "individual SVG/PNG textures; actual-size rectangles, no legacy visible-rect crop"
+  },
+  "mode": {
+    "inspect": {
+      "actionsVisible": false
+    },
+    "use-character": {
+      "actionsVisible": true,
+      "requiredOrigin": "quick-action"
+    }
+  },
+  "assets": {
+    "window.png": {
+      "path": "assets/window.png",
+      "sha256": "e6d9f698114af5c966f085a801963b4bf55aca36ace85e0eab1fc42ec7f9a469",
+      "source": "Card-Picker-UI-v1.zip / assets/window.png",
+      "copiedUnchanged": true
+    }
+  },
+  "legacyCompatibility": {
+    "note": "Only for existing v3.6 sprite mapping. Modern viewer uses assets/buttons/.",
+    "primary": "assets/button-primary.png",
+    "secondary": "assets/button-secondary.png",
+    "sourceSize": [
+      1983,
+      793
+    ],
+    "sourceVisibleRect": [
+      35,
+      102,
+      1916,
+      582
+    ],
+    "changesLayout": false
+  }
+}

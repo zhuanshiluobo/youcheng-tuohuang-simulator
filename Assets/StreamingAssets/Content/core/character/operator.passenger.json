@@ -1,0 +1,102 @@
+{
+  "definitionId": "operator.passenger",
+  "contentType": "character",
+  "version": "1.1.0",
+  "displayName": "异客",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/operator_faces.jpg",
+  "artworkSpriteId": "operator.passenger.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [
+    {
+      "localZoneId": "markers",
+      "zoneTemplateId": "core.zone.card_cube_storage",
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.owned_player_marker",
+      "exitPolicyId": "core.card_payment",
+      "capacityPolicy": "unbounded",
+      "orderingKind": "Unordered",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.return_contents_before_exit",
+      "displayAnchorId": "markers",
+      "emptyExitPolicyId": "core.discard_carrier_when_empty",
+      "paymentPolicyId": "core.basic_resource_substitution",
+      "maxMarkersPerPayment": 2
+    }
+  ],
+  "abilities": [
+    {
+      "abilityId": "operator.passenger.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.operator.passenger.strategy",
+      "script": "lua/characters/operator.passenger.strategy.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "content.operator.passenger.strategy.step_completed",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "operator.passenger.tactic",
+      "mode": "tactic",
+      "skillType": "persistent",
+      "subscriptionId": "content.operator.passenger.tactic",
+      "script": "lua/characters/operator.passenger.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": true,
+      "specialZoneId": "markers",
+      "settlement": {
+        "entryKind": "optional_insertion",
+        "localId": "operator.passenger.tactic.optional_insertion",
+        "availabilityHandlerId": "operator.passenger.tactic.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.operator.passenger.tactic.label"
+          },
+          "description": {
+            "key": "core:settlement.operator.passenger.tactic.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.operator.passenger.tactic.label"
+          },
+          "iconKey": "core:settlement.substitute",
+          "contentMode": "icon_text"
+        },
+        "offerHandlerId": "operator.passenger.tactic.settlement.offers"
+      }
+    }
+  ],
+  "data": {
+    "templateId": "operator.passenger",
+    "cardId": "operator.passenger",
+    "name": "异客",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "operator.passenger.strategy",
+    "tacticAbilityId": "operator.passenger.tactic",
+    "playerDetails": [
+      {
+        "abilityId": "operator.passenger.tactic",
+        "effectText": "计谋·隐蔽仓库（持续性）：从你的供应在本牌上放置至多5个玩家标记。每次支付资源时，可移除此牌上至多2个标记，替代等量源岩、源石碎片或异铁；同一次整笔支付合计至多替代2个，不能替代金券或至纯源石，也不能出售。牌上没有标记时，将本角色移至角色弃牌区。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Subscription",
+        "storageLocalZoneIds": [
+          "markers"
+        ],
+        "includeCoverSlots": false,
+        "displayName": "异客"
+      }
+    ]
+  }
+}

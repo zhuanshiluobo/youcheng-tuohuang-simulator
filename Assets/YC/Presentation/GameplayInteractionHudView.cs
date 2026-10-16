@@ -13,6 +13,7 @@ namespace YC.Presentation
         [SerializeField] private GameplayDialogRegistry dialogRegistry;
         [SerializeField] private MobileCityInteractionController cityInteractionController;
         [SerializeField] private GameplayMainModules mainModules;
+        [SerializeField] private GameplayExpansionUi expansionUi;
 
         public Canvas Canvas => canvas;
         public GameplayHudFrame Frame => frame;
@@ -23,11 +24,15 @@ namespace YC.Presentation
         public GameplayDialogRegistry DialogRegistry => dialogRegistry;
         public MobileCityInteractionController CityInteractionController => cityInteractionController;
         public GameplayMainModules MainModules => mainModules;
+        public GameplayExpansionUi ExpansionUi => expansionUi;
+        public void ConfigureGameplayPresentation(YC.Domain.Presentation.IGameplayTextCatalogSnapshot catalog,
+            System.Collections.Generic.IReadOnlyDictionary<string, string> definitionNames)
+            => frame.ConfigureGameplayPresentation(catalog, definitionNames);
         public bool TryValidateConfiguration(out string reason)
         {
             if (canvas == null || frame == null || tabletopCanvas == null || actionPanelView == null ||
                 characterHandPanel == null || buildInfoPanel == null ||
-                dialogRegistry == null || mainModules == null)
+                dialogRegistry == null || mainModules == null || expansionUi == null)
             {
                 reason = "交互 HUD 总 View 引用不完整。";
                 return false;
@@ -37,7 +42,7 @@ namespace YC.Presentation
                 !tabletopCanvas.TryValidateConfiguration(out reason) ||
                 !actionPanelView.TryValidateConfiguration(out reason) ||
                 !characterHandPanel.TryValidateConfiguration(out reason) ||
-                !mainModules.TryValidateConfiguration(out reason) ||
+                !mainModules.TryValidateConfiguration(out reason) || !expansionUi.TryValidateConfiguration(out reason) ||
                 (GetComponent<GameplayInformationPages>() != null &&
                  !GetComponent<GameplayInformationPages>().TryValidateConfiguration(out reason)) ||
                 buildInfoPanel.View == null ||

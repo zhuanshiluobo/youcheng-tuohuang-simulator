@@ -104,6 +104,227 @@
       "skippedCells": [
         8
       ]
+    },
+    {
+      "id": "enterprise_boards",
+      "artwork": "artwork/sheets/enterprise_boards.jpg",
+      "sourcePath": "游城拓荒/企业扩/企业合作板 2行4列.jpg",
+      "sourceSha256": "e5f0cfd4262b6e58f859249606fd7886070c6eb91adcf33cf51cd51b9a4bc261",
+      "width": 2600,
+      "height": 3700,
+      "rows": 2,
+      "columns": 4,
+      "cellWidth": 650,
+      "cellHeight": 1850,
+      "skippedCells": []
+    },
+    {
+      "id": "operator_faces",
+      "artwork": "artwork/sheets/operator_faces.jpg",
+      "sourcePath": "游城拓荒/企业扩/罗德岛干员牌.jpg",
+      "sourceSha256": "daceb47699c9d18eb408f70b8213fa56cd21092b832aec55283f350abe26c438",
+      "width": 2400,
+      "height": 1700,
+      "rows": 2,
+      "columns": 4,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": []
+    },
+    {
+      "id": "department_engineering",
+      "artwork": "artwork/departments/engineering.png",
+      "sourcePath": "游城拓荒/企业扩/工程科.png",
+      "sourceSha256": "02dda1ba263cd720545a474534fe1845d143429d8e07641917935d347faec5cf",
+      "width": 516,
+      "height": 1000,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 516,
+      "cellHeight": 1000,
+      "skippedCells": []
+    },
+    {
+      "id": "department_defense",
+      "artwork": "artwork/departments/defense.png",
+      "sourcePath": "游城拓荒/企业扩/防卫科.png",
+      "sourceSha256": "57413b8c9b2ccd0fba0e3befb5ffc6d9e9b08b6f20461ad4f7b1c787c4455021",
+      "width": 516,
+      "height": 1000,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 516,
+      "cellHeight": 1000,
+      "skippedCells": []
+    },
+    {
+      "id": "department_structural",
+      "artwork": "artwork/departments/structural.png",
+      "sourcePath": "游城拓荒/企业扩/结构科.png",
+      "sourceSha256": "72ce39e2e78217267b5a06d09cf4e8dbc8869f1cd845c59837bbd7c606f168b2",
+      "width": 516,
+      "height": 1000,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 516,
+      "cellHeight": 1000,
+      "skippedCells": []
+    },
+    {
+      "id": "enterprise_road",
+      "artwork": "artwork/enterprise_road.jpg",
+      "sourcePath": "游城拓荒/企业扩/公路.jpg",
+      "sourceSha256": "27cca228164d328fad464cb736c811d622c561652791619a9c05d978b2168591",
+      "width": 942,
+      "height": 325,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 942,
+      "cellHeight": 325,
+      "skippedCells": []
+    },
+    {
+      "id": "infected_award_enterprise_special",
+      "artwork": "artwork/awards/infected.award.enterprise_special.jpg",
+      "sourcePath": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc241120269363923438301A61A405DF531CED8180160C72A83A579B29F44.jpg",
+      "sourceSha256": "62f1c45d4d01cd5c70b24a1dddfb82202514adfaa8e84ec7a3d7197f92b998de",
+      "width": 600,
+      "height": 850,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": []
+    },
+    {
+      "id": "infected_award_permanent_support",
+      "artwork": "artwork/awards/infected.award.permanent_support.jpg",
+      "sourcePath": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc241120269363923680487AE82E7E70B983DCB0DCDD71F1CB1A8A310A85B.jpg",
+      "sourceSha256": "0f56d8f5663c0ef18cc8e5bba7ed882dfd96dd0d420dac91f020297779ee4424",
+      "width": 600,
+      "height": 850,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": []
+    },
+    {
+      "id": "infected_award_roads",
+      "artwork": "artwork/awards/infected.award.roads.jpg",
+      "sourcePath": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc2411202693639236068E09AEEB1ED5AAA3B1CBB78636F85364943B73B1C.jpg",
+      "sourceSha256": "62313eb1213a5937e22e136de4525466f981dbb5c9dde2b67e266f59cfd96f80",
+      "width": 600,
+      "height": 850,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": []
+    },
+    {
+      "id": "infected_award_score",
+      "artwork": "artwork/awards/infected.award.score.jpg",
+      "sourcePath": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc241120269363923537261F450159774E7453ED41CDD9728FCE643D0A103.jpg",
+      "sourceSha256": "c45606856e4060d43ba95f2f361f24450c6dac5817e98ec10183704c3c2a0e94",
+      "width": 600,
+      "height": 850,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": []
+    },
+    {
+      "id": "infected_city_style_district_management",
+      "artwork": "artwork/city_styles/infected.city_style.district_management.jpg",
+      "sourcePath": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc24112026936392388226C86D269D116B70C2D7EDC62113554F0B7D273FD.jpg",
+      "sourceSha256": "9b6560098800a86f4e2449de0b837f260df15125d4b606c5e340722f0f4befc5",
+      "width": 930,
+      "height": 600,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 930,
+      "cellHeight": 600,
+      "skippedCells": []
+    },
+    {
+      "id": "infected_city_style_emerging_buildings",
+      "artwork": "artwork/city_styles/infected.city_style.emerging_buildings.jpg",
+      "sourcePath": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc241120269363923806240F65D1CC5243CB59B8445661119A586FE7CCA7F.jpg",
+      "sourceSha256": "d2f14ef53ae04696f1141842092c46055a27437a98f69e80e03d36c5a79b5f61",
+      "width": 930,
+      "height": 600,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 930,
+      "cellHeight": 600,
+      "skippedCells": []
+    },
+    {
+      "id": "infected_city_style_enterprise_offices",
+      "artwork": "artwork/city_styles/infected.city_style.enterprise_offices.jpg",
+      "sourcePath": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc2411202693639239637608A08185CAF373EEB1B0E9E8B9720F01DB6EFA4.jpg",
+      "sourceSha256": "6ed6a7c9f0f66be7f25e4126fb98f1bd497fddccb7ed079193bddf40c5df1159",
+      "width": 930,
+      "height": 600,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 930,
+      "cellHeight": 600,
+      "skippedCells": []
+    },
+    {
+      "id": "infected_facility_rhodes_office_blue",
+      "artwork": "artwork/facilities/infected.facility.rhodes_office_blue.jpg",
+      "sourcePath": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc26559378455128280B587F6192039F890B5E652A768A8A801DE13994F.jpg",
+      "sourceSha256": "8d92023f554c56a07c83aa4ba326f24c7afd2f44b8c746e76b4b0942b3dda4d4",
+      "width": 600,
+      "height": 850,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": []
+    },
+    {
+      "id": "infected_facility_rhodes_office_red",
+      "artwork": "artwork/facilities/infected.facility.rhodes_office_red.jpg",
+      "sourcePath": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc2655937845512670668108F9FBA81B373398A7A2522E934A88E54A9B3.jpg",
+      "sourceSha256": "00f25f2d2e6616d596d7570b416bbde00b3123da6c957e0b16f1afe69acf1532",
+      "width": 600,
+      "height": 850,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": []
+    },
+    {
+      "id": "infected_facility_rhodes_office_yellow",
+      "artwork": "artwork/facilities/infected.facility.rhodes_office_yellow.jpg",
+      "sourcePath": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc26559378455128593AFFC098AE9598D05DA19235BB4005688818DE02F.jpg",
+      "sourceSha256": "6c306926e82a7247e6540f0d8f1f236b7be2307c443592680e52a98dfb56f4cf",
+      "width": 600,
+      "height": 850,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": []
+    },
+    {
+      "id": "infected_facility_temporary_settlement",
+      "artwork": "artwork/facilities/infected.facility.temporary_settlement.jpg",
+      "sourcePath": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc2411202693633901188566378F60806F663B1386505F1B28E7A11C77FD2.jpg",
+      "sourceSha256": "157352e15ff9404db84f8fc19efc5ce0067e94cb86431902da357a31522ad51c",
+      "width": 600,
+      "height": 850,
+      "rows": 1,
+      "columns": 1,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": []
     }
   ],
   "slices": [
@@ -178,7 +399,9 @@
       "column": 2,
       "name": "城建开拓区",
       "contentType": "city_style",
-      "definitionIds": [],
+      "definitionIds": [
+        "city_style_city_construction_frontier"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 930,
@@ -187,7 +410,7 @@
         "height": 600
       },
       "level": 1,
-      "ruleStatus": "missing"
+      "ruleStatus": "implemented"
     },
     {
       "id": "city_style_1_006",
@@ -197,7 +420,9 @@
       "column": 3,
       "name": "拓荒者据点",
       "contentType": "city_style",
-      "definitionIds": [],
+      "definitionIds": [
+        "city_style_pioneer_outpost"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 1860,
@@ -206,7 +431,7 @@
         "height": 600
       },
       "level": 1,
-      "ruleStatus": "missing"
+      "ruleStatus": "implemented"
     },
     {
       "id": "city_style_1_007",
@@ -216,7 +441,9 @@
       "column": 1,
       "name": "核心商业区",
       "contentType": "city_style",
-      "definitionIds": [],
+      "definitionIds": [
+        "city_style_core_commercial_area"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 0,
@@ -225,7 +452,7 @@
         "height": 600
       },
       "level": 1,
-      "ruleStatus": "missing"
+      "ruleStatus": "implemented"
     },
     {
       "id": "city_style_1_008",
@@ -235,7 +462,9 @@
       "column": 2,
       "name": "大型企业园",
       "contentType": "city_style",
-      "definitionIds": [],
+      "definitionIds": [
+        "city_style_large_enterprise_park"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 930,
@@ -244,7 +473,7 @@
         "height": 600
       },
       "level": 1,
-      "ruleStatus": "missing"
+      "ruleStatus": "implemented"
     },
     {
       "id": "city_style_1_009",
@@ -317,7 +546,9 @@
       "column": 1,
       "name": "警备队辖区",
       "contentType": "city_style",
-      "definitionIds": [],
+      "definitionIds": [
+        "city_style_security_district"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 0,
@@ -326,7 +557,7 @@
         "height": 600
       },
       "level": 2,
-      "ruleStatus": "missing"
+      "ruleStatus": "implemented"
     },
     {
       "id": "city_style_2_004",
@@ -336,7 +567,9 @@
       "column": 2,
       "name": "拓荒指挥中枢",
       "contentType": "city_style",
-      "definitionIds": [],
+      "definitionIds": [
+        "city_style_pioneer_command_hub"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 930,
@@ -345,7 +578,7 @@
         "height": 600
       },
       "level": 2,
-      "ruleStatus": "missing"
+      "ruleStatus": "implemented"
     },
     {
       "id": "character_001",
@@ -455,7 +688,9 @@
       "column": 2,
       "name": "玛恩纳",
       "contentType": "character",
-      "definitionIds": [],
+      "definitionIds": [
+        "mlynar"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 600,
@@ -463,7 +698,7 @@
         "width": 600,
         "height": 850
       },
-      "ruleStatus": "missing"
+      "ruleStatus": "implemented"
     },
     {
       "id": "character_007",
@@ -473,7 +708,9 @@
       "column": 3,
       "name": "山",
       "contentType": "character",
-      "definitionIds": [],
+      "definitionIds": [
+        "mountain"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 1200,
@@ -481,7 +718,7 @@
         "width": 600,
         "height": 850
       },
-      "ruleStatus": "missing"
+      "ruleStatus": "implemented"
     },
     {
       "id": "facility_001",
@@ -1474,7 +1711,7 @@
       "name": "红色企业办事处",
       "contentType": "facility",
       "definitionIds": [
-        "facility_enterprise_office"
+        "facility_enterprise_office_red"
       ],
       "expansionId": "enterprise",
       "rect": {
@@ -1484,7 +1721,7 @@
         "height": 850
       },
       "color": "red",
-      "ruleStatus": "missing",
+      "ruleStatus": "implemented",
       "note": "旧 facility_enterprise_office 为无色占位且无企业规则，保留旧 ID 的禁用定义仅用于追溯，不加入任何牌池。"
     },
     {
@@ -1495,7 +1732,9 @@
       "column": 5,
       "name": "蓝色企业办事处",
       "contentType": "facility",
-      "definitionIds": [],
+      "definitionIds": [
+        "facility_enterprise_office_blue"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 2400,
@@ -1504,7 +1743,7 @@
         "height": 850
       },
       "color": "blue",
-      "ruleStatus": "missing",
+      "ruleStatus": "implemented",
       "note": "无有效规则定义，仅登记切片。"
     },
     {
@@ -1515,7 +1754,9 @@
       "column": 6,
       "name": "黄色企业办事处",
       "contentType": "facility",
-      "definitionIds": [],
+      "definitionIds": [
+        "facility_enterprise_office_yellow"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 3000,
@@ -1524,7 +1765,7 @@
         "height": 850
       },
       "color": "yellow",
-      "ruleStatus": "missing",
+      "ruleStatus": "implemented",
       "note": "无有效规则定义，仅登记切片。"
     },
     {
@@ -1855,7 +2096,9 @@
       "column": 2,
       "name": "洞穴遗迹（企业选项版）",
       "contentType": "event",
-      "definitionIds": [],
+      "definitionIds": [
+        "enterprise.event.cave_ruins"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 850,
@@ -1863,7 +2106,7 @@
         "width": 850,
         "height": 600
       },
-      "ruleStatus": "missing",
+      "ruleStatus": "implemented",
       "replaces": {
         "expansionId": "core",
         "contentType": "event",
@@ -1999,7 +2242,9 @@
       "column": 1,
       "name": "采集平台残骸（企业选项版）",
       "contentType": "event",
-      "definitionIds": [],
+      "definitionIds": [
+        "enterprise.event.collection_platform"
+      ],
       "expansionId": "enterprise",
       "rect": {
         "x": 0,
@@ -2007,13 +2252,633 @@
         "width": 850,
         "height": 600
       },
-      "ruleStatus": "missing",
+      "ruleStatus": "implemented",
       "replaces": {
         "expansionId": "core",
         "contentType": "event",
         "definitionId": "event_red_03"
       },
       "note": "企业规则未实现；仅登记替换关系，不展示该版本来执行基础规则。"
+    },
+    {
+      "id": "enterprise.rhodes_island.front",
+      "sheetId": "enterprise_boards",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "罗德岛",
+      "contentType": "enterprise",
+      "definitionIds": [
+        "enterprise.rhodes_island"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 0,
+        "y": 1850,
+        "width": 650,
+        "height": 1850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "enterprise.hyde_brothers.front",
+      "sheetId": "enterprise_boards",
+      "cell": 2,
+      "row": 1,
+      "column": 2,
+      "name": "海德兄弟",
+      "contentType": "enterprise",
+      "definitionIds": [
+        "enterprise.hyde_brothers"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 650,
+        "y": 1850,
+        "width": 650,
+        "height": 1850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "enterprise.rhine_lab.front",
+      "sheetId": "enterprise_boards",
+      "cell": 3,
+      "row": 1,
+      "column": 3,
+      "name": "莱茵生命",
+      "contentType": "enterprise",
+      "definitionIds": [
+        "enterprise.rhine_lab"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 1300,
+        "y": 1850,
+        "width": 650,
+        "height": 1850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "enterprise.fussen_bank.front",
+      "sheetId": "enterprise_boards",
+      "cell": 4,
+      "row": 1,
+      "column": 4,
+      "name": "富森银行",
+      "contentType": "enterprise",
+      "definitionIds": [
+        "enterprise.fussen_bank"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 1950,
+        "y": 1850,
+        "width": 650,
+        "height": 1850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "enterprise.raythean.front",
+      "sheetId": "enterprise_boards",
+      "cell": 5,
+      "row": 2,
+      "column": 1,
+      "name": "雷神工业",
+      "contentType": "enterprise",
+      "definitionIds": [
+        "enterprise.raythean"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 650,
+        "height": 1850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "enterprise.mama_johns.front",
+      "sheetId": "enterprise_boards",
+      "cell": 6,
+      "row": 2,
+      "column": 2,
+      "name": "约翰老妈",
+      "contentType": "enterprise",
+      "definitionIds": [
+        "enterprise.mama_johns"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 650,
+        "y": 0,
+        "width": 650,
+        "height": 1850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "enterprise.blacksteel.front",
+      "sheetId": "enterprise_boards",
+      "cell": 7,
+      "row": 2,
+      "column": 3,
+      "name": "黑钢国际",
+      "contentType": "enterprise",
+      "definitionIds": [
+        "enterprise.blacksteel"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 1300,
+        "y": 0,
+        "width": 650,
+        "height": 1850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "enterprise.rim_billiton.front",
+      "sheetId": "enterprise_boards",
+      "cell": 8,
+      "row": 2,
+      "column": 4,
+      "name": "雷姆必拓",
+      "contentType": "enterprise",
+      "definitionIds": [
+        "enterprise.rim_billiton"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 1950,
+        "y": 0,
+        "width": 650,
+        "height": 1850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "operator.silverash.front",
+      "sheetId": "operator_faces",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "银灰",
+      "contentType": "character",
+      "definitionIds": [
+        "operator.silverash"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 0,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "operator.mudrock.front",
+      "sheetId": "operator_faces",
+      "cell": 2,
+      "row": 1,
+      "column": 2,
+      "name": "泥岩",
+      "contentType": "character",
+      "definitionIds": [
+        "operator.mudrock"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 600,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "operator.eunectes.front",
+      "sheetId": "operator_faces",
+      "cell": 3,
+      "row": 1,
+      "column": 3,
+      "name": "森蚺",
+      "contentType": "character",
+      "definitionIds": [
+        "operator.eunectes"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 1200,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "operator.closure.front",
+      "sheetId": "operator_faces",
+      "cell": 4,
+      "row": 1,
+      "column": 4,
+      "name": "可露希尔",
+      "contentType": "character",
+      "definitionIds": [
+        "operator.closure"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 1800,
+        "y": 850,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "operator.kaltsit.front",
+      "sheetId": "operator_faces",
+      "cell": 5,
+      "row": 2,
+      "column": 1,
+      "name": "凯尔希",
+      "contentType": "character",
+      "definitionIds": [
+        "operator.kaltsit"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "operator.w.front",
+      "sheetId": "operator_faces",
+      "cell": 6,
+      "row": 2,
+      "column": 2,
+      "name": "W",
+      "contentType": "character",
+      "definitionIds": [
+        "operator.w"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 600,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "operator.dorothy.front",
+      "sheetId": "operator_faces",
+      "cell": 7,
+      "row": 2,
+      "column": 3,
+      "name": "多萝西",
+      "contentType": "character",
+      "definitionIds": [
+        "operator.dorothy"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 1200,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "operator.passenger.front",
+      "sheetId": "operator_faces",
+      "cell": 8,
+      "row": 2,
+      "column": 4,
+      "name": "异客",
+      "contentType": "character",
+      "definitionIds": [
+        "operator.passenger"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 1800,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "enterprise.department.engineering.front",
+      "sheetId": "department_engineering",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "工程科",
+      "contentType": "department",
+      "definitionIds": [
+        "enterprise.department.engineering"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 516,
+        "height": 1000
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "enterprise.department.defense.front",
+      "sheetId": "department_defense",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "防卫科",
+      "contentType": "department",
+      "definitionIds": [
+        "enterprise.department.defense"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 516,
+        "height": 1000
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "enterprise.department.structural.front",
+      "sheetId": "department_structural",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "结构科",
+      "contentType": "department",
+      "definitionIds": [
+        "enterprise.department.structural"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 516,
+        "height": 1000
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "enterprise.component.road.front",
+      "sheetId": "enterprise_road",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "公路",
+      "contentType": "component",
+      "definitionIds": [
+        "enterprise.component.road"
+      ],
+      "expansionId": "enterprise",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 942,
+        "height": 325
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "infected_award_enterprise_special",
+      "sheetId": "infected_award_enterprise_special",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "梅兰德基金会—授勋卡",
+      "contentType": "award",
+      "definitionIds": [
+        "infected.award.enterprise_special"
+      ],
+      "expansionId": "infected",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "infected_award_permanent_support",
+      "sheetId": "infected_award_permanent_support",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "梅兰德基金会—授勋卡",
+      "contentType": "award",
+      "definitionIds": [
+        "infected.award.permanent_support"
+      ],
+      "expansionId": "infected",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "infected_award_roads",
+      "sheetId": "infected_award_roads",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "梅兰德基金会—授勋卡",
+      "contentType": "award",
+      "definitionIds": [
+        "infected.award.roads"
+      ],
+      "expansionId": "infected",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "infected_award_score",
+      "sheetId": "infected_award_score",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "梅兰德基金会—授勋卡",
+      "contentType": "award",
+      "definitionIds": [
+        "infected.award.score"
+      ],
+      "expansionId": "infected",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "infected_city_style_district_management",
+      "sheetId": "infected_city_style_district_management",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "城区管理中心",
+      "contentType": "city_style",
+      "definitionIds": [
+        "infected.city_style.district_management"
+      ],
+      "expansionId": "infected",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 930,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "infected_city_style_emerging_buildings",
+      "sheetId": "infected_city_style_emerging_buildings",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "新兴建筑群",
+      "contentType": "city_style",
+      "definitionIds": [
+        "infected.city_style.emerging_buildings"
+      ],
+      "expansionId": "infected",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 930,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "infected_city_style_enterprise_offices",
+      "sheetId": "infected_city_style_enterprise_offices",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "综合企业办公区",
+      "contentType": "city_style",
+      "definitionIds": [
+        "infected.city_style.enterprise_offices"
+      ],
+      "expansionId": "infected",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 930,
+        "height": 600
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "infected_facility_rhodes_office_blue",
+      "sheetId": "infected_facility_rhodes_office_blue",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "罗德岛办事处",
+      "contentType": "facility",
+      "definitionIds": [
+        "infected.facility.rhodes_office_blue"
+      ],
+      "expansionId": "infected",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "infected_facility_rhodes_office_red",
+      "sheetId": "infected_facility_rhodes_office_red",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "罗德岛办事处",
+      "contentType": "facility",
+      "definitionIds": [
+        "infected.facility.rhodes_office_red"
+      ],
+      "expansionId": "infected",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "infected_facility_rhodes_office_yellow",
+      "sheetId": "infected_facility_rhodes_office_yellow",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "罗德岛办事处",
+      "contentType": "facility",
+      "definitionIds": [
+        "infected.facility.rhodes_office_yellow"
+      ],
+      "expansionId": "infected",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
+    },
+    {
+      "id": "infected_facility_temporary_settlement",
+      "sheetId": "infected_facility_temporary_settlement",
+      "cell": 1,
+      "row": 1,
+      "column": 1,
+      "name": "临时聚居点",
+      "contentType": "facility",
+      "definitionIds": [
+        "infected.facility.temporary_settlement"
+      ],
+      "expansionId": "infected",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 850
+      },
+      "ruleStatus": "implemented"
     }
   ]
 }

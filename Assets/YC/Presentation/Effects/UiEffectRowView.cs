@@ -83,14 +83,76 @@ namespace YC.Presentation
         private bool focus;
         [SerializeField] private HorizontalLayoutGroup rowLayout;
         private Func<string, int, bool> contextIsCurrent;
+        private int titleBaseSize, descriptionBaseSize;
+        private int fittedTitleSize, fittedDescriptionSize;
+        private GameplayTextHostStandard titleStandard, descriptionStandard;
+        private string fittedKey;
 
         public string ItemId => itemId;
         public Button StatusButton => statusButton;
+        public Text TitleText => title;
+        public Text DescriptionText => description;
+
+        private void Awake() => RememberBaseSizes();
+        private void RememberBaseSizes()
+        {
+            if (titleStandard == null && title != null) { titleStandard = new GameplayTextHostStandard(title); titleBaseSize = titleStandard.FontSize; titleStandard.AttachDocument(); }
+            if (descriptionStandard == null && description != null) { descriptionStandard = new GameplayTextHostStandard(description); descriptionBaseSize = descriptionStandard.FontSize; descriptionStandard.AttachDocument(); }
+        }
+
+        private void OnEnable() { RememberBaseSizes(); fittedKey = null; Canvas.willRenderCanvases += FitText; }
+        private void OnDestroy() => Canvas.willRenderCanvases -= FitText;
+
+        /// <summary>只缩两个字号；布局尺寸始终由资产决定，换文或窗口变化从原字号重算。</summary>
+        public void FitText()
+        {
+            if (title == null || description == null) return;
+            if (CanvasUpdateRegistry.IsRebuildingLayout() || CanvasUpdateRegistry.IsRebuildingGraphics()) return;
+            RememberBaseSizes();
+            titleStandard.Apply(false); descriptionStandard.Apply(false);
+            var titleDocument = title.GetComponent<GameplayTextView>();
+            var bodyDocument = description.GetComponent<GameplayTextView>();
+            var key = (titleDocument != null && titleDocument.HasDocument ? titleDocument.MeasurementCacheKey : title.text) + "\n" +
+                (bodyDocument != null && bodyDocument.HasDocument ? bodyDocument.MeasurementCacheKey : description.text) +
+                "|" + title.rectTransform.rect.size.ToString("R") + "|" + description.rectTransform.rect.size.ToString("R");
+            if (fittedKey == key)
+            {
+                if (title.fontSize != fittedTitleSize) title.fontSize = fittedTitleSize;
+                if (description.fontSize != fittedDescriptionSize) description.fontSize = fittedDescriptionSize;
+                return;
+            }
+            if (title.rectTransform.rect.width <= 0 || description.rectTransform.rect.width <= 0 ||
+                title.rectTransform.rect.height <= 0 || description.rectTransform.rect.height <= 0) return;
+            fittedKey = key;
+            int steps = Mathf.Max(titleBaseSize, descriptionBaseSize);
+            int step = GameplayTextLayout.FitSharedStep(titleBaseSize, descriptionBaseSize,
+                candidate => Fits(title, titleDocument, candidate), candidate => Fits(description, bodyDocument, candidate));
+            fittedTitleSize = GameplayTextLayout.ScaledFontSize(titleBaseSize, step, steps);
+            fittedDescriptionSize = GameplayTextLayout.ScaledFontSize(descriptionBaseSize, step, steps);
+            title.fontSize = fittedTitleSize; description.fontSize = fittedDescriptionSize;
+            if (step == 1 && (!Fits(title, titleDocument, title.fontSize) || !Fits(description, bodyDocument, description.fontSize)))
+                Debug.LogWarning("条目在最小字号仍无法完整容纳当前正文或分数叠数，请核对该条目的实际框体与内容。", this);
+        }
+
+        private static bool Fits(Text text, GameplayTextView document, int fontSize)
+        {
+            if (document != null && document.HasDocument) return document.FitsAtFontSize(fontSize);
+            if (string.IsNullOrEmpty(text.text)) return true;
+            var settings = text.GetGenerationSettings(text.rectTransform.rect.size);
+            settings.fontSize = fontSize; settings.resizeTextForBestFit = false;
+            return text.cachedTextGeneratorForLayout.GetPreferredHeight(text.text, settings) / text.pixelsPerUnit <= text.rectTransform.rect.height + .1f;
+        }
 
         public void Bind(Binding data, Func<string, int, bool> isCurrent,
             Action<string> showBody, Action<string> execute)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
+            if (data.RowMode == Mode.PersistentDetail)
+            {
+                Bind(data.StableItemId, data.RequestId, data.Revision, data.RowMode, Status.None, false, false,
+                    data.Title, data.Description, data.Markers, isCurrent, showBody, null);
+                return;
+            }
             var details = new System.Collections.Generic.List<string>();
             if (!string.IsNullOrEmpty(data.Description)) details.Add(data.Description);
             if (!string.IsNullOrEmpty(data.Source)) details.Add(sourcePrefix + data.Source);
@@ -137,6 +199,7 @@ namespace YC.Presentation
             string heading, string detail, Marker[] markers,
             Func<string, int, bool> isCurrent, Action<string> showBody, Action<string> execute)
         {
+            if (rowMode == Mode.PersistentDetail) { rightStatus = Status.None; enabled = false; isPending = false; execute = null; }
             if (externalCommandButton)
                 throw new InvalidOperationException("此条目的正式按钮由原入口控制，不能重新绑定执行监听。");
             bodyButton.onClick.RemoveAllListeners();
@@ -151,9 +214,13 @@ namespace YC.Presentation
             hasExecute = execute != null;
             externalCommandButton = false;
             contextIsCurrent = isCurrent;
+            RememberBaseSizes(); titleStandard?.Apply(true); descriptionStandard?.Apply(true);
+            title.GetComponent<GameplayTextView>()?.ClearBinding();
+            description.GetComponent<GameplayTextView>()?.ClearBinding();
+            fittedKey = null;
             title.text = heading ?? string.Empty;
             description.text = detail ?? string.Empty;
-            if (markers != null)
+            if (markers != null && rowMode != Mode.PersistentDetail)
             {
                 for (var i = 0; i < markers.Length && i < 2; i++)
                 {
@@ -219,6 +286,9 @@ namespace YC.Presentation
                 if (markerSlots[i] != null) markerSlots[i].gameObject.SetActive(false);
             if (title != null) title.text = string.Empty;
             if (description != null) description.text = string.Empty;
+            if (title != null) title.GetComponent<GameplayTextView>()?.ClearBinding();
+            if (description != null) description.GetComponent<GameplayTextView>()?.ClearBinding();
+            titleStandard?.Apply(true); descriptionStandard?.Apply(true); fittedKey = null;
             Refresh();
             if (rowLayout != null) LayoutRebuilder.MarkLayoutForRebuild((RectTransform)rowLayout.transform);
         }
@@ -234,12 +304,12 @@ namespace YC.Presentation
         private bool CanExecute() => status == Status.Use && explicitlyEnabled &&
             !pending && hasExecute && IsCurrent();
 
-        private void LateUpdate() { Refresh(); }
+        private void LateUpdate() { Refresh(); FitText(); }
         public void OnPointerEnter(PointerEventData data) { hover = true; Refresh(); }
         public void OnPointerExit(PointerEventData data) { hover = false; Refresh(); }
         public void OnSelect(BaseEventData data) { focus = true; Refresh(); }
         public void OnDeselect(BaseEventData data) { focus = false; Refresh(); }
-        private void OnDisable() { hover = focus = false; }
+        private void OnDisable() { hover = focus = false; Canvas.willRenderCanvases -= FitText; }
 
         public void Refresh()
         {

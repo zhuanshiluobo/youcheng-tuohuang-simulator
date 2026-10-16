@@ -1,0 +1,408 @@
+{
+  "isIllustrativeExample": true,
+  "mapId": "four-player",
+  "players": [
+    {
+      "id": "green",
+      "label": "绿方",
+      "marker": "assets/player-markers/cooperation-01-64.png"
+    },
+    {
+      "id": "yellow",
+      "label": "黄方",
+      "marker": "assets/player-markers/cooperation-02-64.png"
+    },
+    {
+      "id": "blue",
+      "label": "蓝方",
+      "marker": "assets/player-markers/cooperation-04-64.png"
+    },
+    {
+      "id": "red",
+      "label": "红方",
+      "marker": "assets/player-markers/cooperation-08-64.png"
+    }
+  ],
+  "influenceByRegion": {
+    "A": {
+      "green": 4,
+      "yellow": 2,
+      "blue": 1,
+      "red": 0
+    },
+    "B": {
+      "green": 1,
+      "yellow": 3,
+      "blue": 0,
+      "red": 2
+    },
+    "C": {
+      "green": 0,
+      "yellow": 1,
+      "blue": 4,
+      "red": 2
+    },
+    "D": {
+      "green": 2,
+      "yellow": 2,
+      "blue": 1,
+      "red": 1
+    },
+    "E": {
+      "green": 4,
+      "yellow": 1,
+      "blue": 2,
+      "red": 0
+    },
+    "F": {
+      "green": 1,
+      "yellow": 2,
+      "blue": 0,
+      "red": 4
+    },
+    "G": {
+      "green": 2,
+      "yellow": 0,
+      "blue": 3,
+      "red": 1
+    },
+    "R": {
+      "green": 1,
+      "yellow": 3,
+      "blue": 3,
+      "red": 0
+    }
+  },
+  "slotStates": {
+    "A-01-S1": {
+      "isEmpty": false
+    },
+    "A-01-S2": {
+      "isEmpty": false
+    },
+    "A-02-S1": {
+      "isEmpty": false
+    },
+    "A-02-S2": {
+      "isEmpty": false
+    },
+    "A-03-S1": {
+      "isEmpty": false
+    },
+    "A-03-S2": {
+      "isEmpty": false
+    },
+    "L07-S1": {
+      "isEmpty": false
+    },
+    "L15-S1": {
+      "isEmpty": true
+    },
+    "L15-S2": {
+      "isEmpty": true
+    },
+    "B-01-S1": {
+      "isEmpty": false
+    },
+    "B-01-S2": {
+      "isEmpty": false
+    },
+    "B-02-S1": {
+      "isEmpty": false
+    },
+    "B-02-S2": {
+      "isEmpty": false
+    },
+    "B-03-S1": {
+      "isEmpty": false
+    },
+    "B-03-S2": {
+      "isEmpty": false
+    },
+    "L17-S1": {
+      "isEmpty": true
+    },
+    "L22-S1": {
+      "isEmpty": true
+    },
+    "L22-S2": {
+      "isEmpty": true
+    },
+    "C-01-S1": {
+      "isEmpty": false
+    },
+    "C-01-S2": {
+      "isEmpty": false
+    },
+    "C-02-S1": {
+      "isEmpty": false
+    },
+    "C-02-S2": {
+      "isEmpty": false
+    },
+    "C-03-S1": {
+      "isEmpty": false
+    },
+    "C-03-S2": {
+      "isEmpty": false
+    },
+    "L20-S1": {
+      "isEmpty": false
+    },
+    "L21-S1": {
+      "isEmpty": true
+    },
+    "L21-S2": {
+      "isEmpty": true
+    },
+    "D-01-S1": {
+      "isEmpty": false
+    },
+    "D-01-S2": {
+      "isEmpty": false
+    },
+    "D-02-S1": {
+      "isEmpty": false
+    },
+    "D-02-S2": {
+      "isEmpty": false
+    },
+    "D-03-S1": {
+      "isEmpty": false
+    },
+    "D-03-S2": {
+      "isEmpty": false
+    },
+    "L08-S1": {
+      "isEmpty": true
+    },
+    "L08-S2": {
+      "isEmpty": true
+    },
+    "L09-S1": {
+      "isEmpty": true
+    },
+    "L09-S2": {
+      "isEmpty": true
+    },
+    "E-01-S1": {
+      "isEmpty": false
+    },
+    "E-01-S2": {
+      "isEmpty": false
+    },
+    "E-02-S1": {
+      "isEmpty": false
+    },
+    "E-02-S2": {
+      "isEmpty": false
+    },
+    "E-03-S1": {
+      "isEmpty": false
+    },
+    "E-03-S2": {
+      "isEmpty": false
+    },
+    "L18-S1": {
+      "isEmpty": false
+    },
+    "L18-S2": {
+      "isEmpty": true
+    },
+    "L19-S1": {
+      "isEmpty": true
+    },
+    "L19-S2": {
+      "isEmpty": true
+    },
+    "F-01-S1": {
+      "isEmpty": false
+    },
+    "F-01-S2": {
+      "isEmpty": false
+    },
+    "F-02-S1": {
+      "isEmpty": false
+    },
+    "F-02-S2": {
+      "isEmpty": false
+    },
+    "F-03-S1": {
+      "isEmpty": false
+    },
+    "F-03-S2": {
+      "isEmpty": false
+    },
+    "L04-S1": {
+      "isEmpty": false
+    },
+    "L05-S1": {
+      "isEmpty": true
+    },
+    "L05-S2": {
+      "isEmpty": true
+    },
+    "L10-S1": {
+      "isEmpty": true
+    },
+    "G-01-S1": {
+      "isEmpty": false
+    },
+    "G-01-S2": {
+      "isEmpty": false
+    },
+    "G-02-S1": {
+      "isEmpty": false
+    },
+    "G-02-S2": {
+      "isEmpty": false
+    },
+    "G-03-S1": {
+      "isEmpty": false
+    },
+    "G-03-S2": {
+      "isEmpty": false
+    },
+    "G-04-S1": {
+      "isEmpty": true
+    },
+    "G-04-S2": {
+      "isEmpty": true
+    },
+    "L01-S1": {
+      "isEmpty": true
+    },
+    "L03-S1": {
+      "isEmpty": true
+    },
+    "L02-S1": {
+      "isEmpty": false
+    },
+    "L02-S2": {
+      "isEmpty": false
+    },
+    "L06-S1": {
+      "isEmpty": false
+    },
+    "L06-S2": {
+      "isEmpty": false
+    },
+    "L11-S1": {
+      "isEmpty": false
+    },
+    "L12-S1": {
+      "isEmpty": false
+    },
+    "L13-S1": {
+      "isEmpty": false
+    },
+    "L14-S1": {
+      "isEmpty": true
+    },
+    "L16-S1": {
+      "isEmpty": true
+    },
+    "L16-S2": {
+      "isEmpty": true
+    }
+  },
+  "expectedRows": [
+    {
+      "region": "A",
+      "points": 3,
+      "influence": [
+        4,
+        2,
+        1,
+        0
+      ],
+      "emptySlots": 2,
+      "totalSlots": 9
+    },
+    {
+      "region": "B",
+      "points": 3,
+      "influence": [
+        1,
+        3,
+        0,
+        2
+      ],
+      "emptySlots": 3,
+      "totalSlots": 9
+    },
+    {
+      "region": "C",
+      "points": 3,
+      "influence": [
+        0,
+        1,
+        4,
+        2
+      ],
+      "emptySlots": 2,
+      "totalSlots": 9
+    },
+    {
+      "region": "D",
+      "points": 3,
+      "influence": [
+        2,
+        2,
+        1,
+        1
+      ],
+      "emptySlots": 4,
+      "totalSlots": 10
+    },
+    {
+      "region": "E",
+      "points": 4,
+      "influence": [
+        4,
+        1,
+        2,
+        0
+      ],
+      "emptySlots": 3,
+      "totalSlots": 10
+    },
+    {
+      "region": "F",
+      "points": 4,
+      "influence": [
+        1,
+        2,
+        0,
+        4
+      ],
+      "emptySlots": 3,
+      "totalSlots": 10
+    },
+    {
+      "region": "G",
+      "points": 3,
+      "influence": [
+        2,
+        0,
+        3,
+        1
+      ],
+      "emptySlots": 4,
+      "totalSlots": 10
+    },
+    {
+      "region": "R",
+      "points": 3,
+      "influence": [
+        1,
+        3,
+        3,
+        0
+      ],
+      "emptySlots": 3,
+      "totalSlots": 10
+    }
+  ],
+  "emptySlotTotal": 24
+}

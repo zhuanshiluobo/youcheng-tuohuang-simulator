@@ -57,6 +57,15 @@ namespace YC.Presentation
         }
 
         public bool ControlsCurrentPlayerLocally => controlsCurrentPlayerLocally();
+        public bool CanSubmitCommands
+        {
+            get
+            {
+                var submission = getCommandSubmission();
+                return submission != null && (!submission.UsesDeterministicSimulation ||
+                    (submission.IsSimulationReady && submission.CanSubmitForLocalPlayer));
+            }
+        }
 
         public void SetLocalPlayerId(int playerId)
         {

@@ -21,7 +21,6 @@ namespace YC.Tests.EditMode
                 var interaction = owner.AddComponent(interactionType);
                 var button = owner.GetComponent<Button>();
                 var singleClicks = 0;
-                var doubleClicks = 0;
                 var dragBegins = 0;
                 var dragUpdates = 0;
                 var dragEnds = 0;
@@ -42,8 +41,7 @@ namespace YC.Tests.EditMode
                     .Invoke(interaction, new object[]
                     {
                         button,
-                        new Action(() => singleClicks += 1),
-                        new Action(() => doubleClicks += 1)
+                        new Action(() => singleClicks += 1)
                     });
                 interactionType.GetMethod("ConfigureHover", BindingFlags.Instance | BindingFlags.Public)
                     .Invoke(interaction, new object[]
@@ -66,7 +64,7 @@ namespace YC.Tests.EditMode
                 pointer.clickCount = 2;
                 ((IPointerDownHandler)interaction).OnPointerDown(pointer);
                 ((IPointerClickHandler)interaction).OnPointerClick(pointer);
-                Assert.That(doubleClicks, Is.EqualTo(1));
+                Assert.That(singleClicks, Is.EqualTo(2), "快速重复点击仍执行原单击动作。");
 
                 pointer.clickCount = 1;
                 ((IPointerDownHandler)interaction).OnPointerDown(pointer);
@@ -77,7 +75,7 @@ namespace YC.Tests.EditMode
                 Assert.That(dragBegins, Is.EqualTo(1));
                 Assert.That(dragUpdates, Is.EqualTo(1));
                 Assert.That(dragEnds, Is.EqualTo(1));
-                Assert.That(singleClicks, Is.EqualTo(1), "拖动后的点击不应再次触发单击。");
+                Assert.That(singleClicks, Is.EqualTo(2), "拖动后的点击不应再次触发单击。");
 
                 var rightPointer = CreatePointer(PointerEventData.InputButton.Right, 1);
                 ((IBeginDragHandler)interaction).OnBeginDrag(rightPointer);

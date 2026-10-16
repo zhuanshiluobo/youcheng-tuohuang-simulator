@@ -2,6 +2,8 @@ namespace YC.Domain.Influence
 {
     using YC.Domain.Commands;
     using YC.Domain.Rules;
+    using System.Collections.Generic;
+    using YC.Domain.Items;
 
     public enum InfluenceFailureCode
     {
@@ -31,7 +33,7 @@ namespace YC.Domain.Influence
             string fromSlotId)
         {
             Succeeded = succeeded;
-            StateChanged = stateChanged;
+            Changed = stateChanged;
             FailureCode = failureCode;
             Reason = reason;
             PlayerId = playerId;
@@ -41,7 +43,31 @@ namespace YC.Domain.Influence
         }
 
         public bool Succeeded { get; private set; }
-        public bool StateChanged { get; private set; }
+        public bool Changed { get; private set; }
+        public bool StateChanged => Changed;
+        public string OperationKind { get; private set; } = string.Empty;
+        public List<string> AffectedItemIds { get; } = new List<string>();
+        public List<string> RemovedItemIds { get; } = new List<string>();
+        public List<string> ReplacedItemIds { get; } = new List<string>();
+        public List<string> OriginalSubjectKeys { get; } = new List<string>();
+        public List<ItemPositionChange> PositionChanges { get; } = new List<ItemPositionChange>();
+        public List<string> ActualEventTypes { get; } = new List<string>();
+
+        internal InfluenceOperationResult WithFact(string kind, ItemInstanceState original, ItemPositionRef destination, string eventType)
+        {
+            OperationKind = kind;
+            if (original != null)
+            {
+                AffectedItemIds.Add(original.ItemId);
+                OriginalSubjectKeys.Add(InfluenceSubjectQuery.GetSubjectKey(original.OwnerSubject));
+                if (kind == "remove") RemovedItemIds.Add(original.ItemId);
+                if (kind == "replace") ReplacedItemIds.Add(original.ItemId);
+                PositionChanges.Add(new ItemPositionChange { ItemId = original.ItemId,
+                    From = new ItemPositionRef { ZoneId = original.ZoneId, SlotId = original.SlotId }, To = destination });
+            }
+            if (!string.IsNullOrEmpty(eventType)) ActualEventTypes.Add(eventType);
+            return this;
+        }
         public InfluenceFailureCode FailureCode { get; private set; }
         public string Reason { get; private set; }
         public int PlayerId { get; private set; }

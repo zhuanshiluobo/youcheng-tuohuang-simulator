@@ -24,6 +24,43 @@ namespace YC.Presentation
         [SerializeField] private RectTransform[] opponentDetailContents;
         [SerializeField] private GameObject[] opponentDetailEmptyHints;
         [SerializeField] private RectTransform[] opponentSeats;
+        [SerializeField] private Button[] opponentPortraits;
+        [SerializeField] private Text cityTitle;
+        [SerializeField] private GameObject viewedCityReturnHint;
+        [SerializeField] private CityBoardInspectionInput cityInspectionInput;
+        [SerializeField] private string viewedCityTitleFormat = "{0}的城市";
+        [SerializeField] private Font viewedCityTitleFont;
+        private string ownCityTitle;
+        private Font ownCityTitleFont;
+        private bool ownCityTitleRichText;
+        private Action<int> inspectCity;
+        public void ConfigureCityInspection(Action<int> inspect) => inspectCity = inspect;
+        public void RenderCityInspection(GameStateView visible, int playerId)
+        {
+            var player = visible?.Players.Find(p => p.PlayerId == playerId);
+            var inspecting = player != null && playerId != visible.ViewerPlayerId;
+            if (cityTitle != null)
+            {
+                CaptureOwnCityTitle();
+                cityTitle.font = inspecting && viewedCityTitleFont != null ? viewedCityTitleFont : ownCityTitleFont;
+                cityTitle.supportRichText = inspecting ? false : ownCityTitleRichText;
+                cityTitle.text = inspecting ? string.Format(viewedCityTitleFormat,
+                    string.IsNullOrEmpty(player.Name) ? string.Format(unnamedPlayerFormat, playerId) : player.Name) : ownCityTitle;
+            }
+            if (viewedCityReturnHint != null) viewedCityReturnHint.SetActive(inspecting);
+            if (cityInspectionInput != null)
+            {
+                cityInspectionInput.Configure(() => inspectCity?.Invoke(-1));
+                cityInspectionInput.gameObject.SetActive(inspecting);
+            }
+        }
+        private void CaptureOwnCityTitle()
+        {
+            if (cityTitle == null || ownCityTitle != null) return;
+            ownCityTitle = cityTitle.text;
+            ownCityTitleFont = cityTitle.font;
+            ownCityTitleRichText = cityTitle.supportRichText;
+        }
         [SerializeField] private RectTransform cityRegion;
         [SerializeField] private RawImage cityBoardArtwork;
         [SerializeField] private UiOpponentDetailInput playerCityLayout;
@@ -64,21 +101,40 @@ namespace YC.Presentation
             openCoveredPreview = openPreview;
         }
 
-        public void RenderCharacterPiles(CharacterCardPanelViewModel model, CardVisualCatalog catalog)
+        public void RenderCharacterPiles(CharacterCardPanelViewModel model, CardVisualCatalog catalog,
+            ViewedCharacterPilesViewModel physicalPiles = null)
         {
             var discarded = new List<string>();
             var covered = new List<string>();
             if (model != null)
             {
                 foreach (var card in model.DiscardCards) discarded.Add(card.CardId);
-                if (!string.IsNullOrEmpty(model.CoveredCardId)) covered.Add(model.CoveredCardId);
+                foreach (var card in model.CoveredCards) covered.Add(card.CardId);
             }
             // 原顺序由规则提供，最后追加的弃牌为顶牌，不经过手牌排序。
-            discardPile.RenderSprites(discarded, id => catalog.GetCharacterFront(id), null);
-            coveredPile.RenderTextures(covered, _ => catalog.GetCharacterBack(model.CoveredCardBackColor),
-                _ => openCoveredPreview?.Invoke());
+            discardPile.RenderSprites(discarded, id => catalog.GetCharacterFront(model.ResolveDefinitionId(id)), null);
+            if (physicalPiles != null && physicalPiles.HasCoveredProjection)
+                coveredPile.RenderTextures(physicalPiles.CoveredBackIds,
+                    id => catalog.GetCharacterBack(physicalPiles.ResolveBackVisualKey(id)), _ => openCoveredPreview?.Invoke());
+            else
+                coveredPile.RenderTextures(covered, _ => catalog.GetCharacterBack(model.CoveredCardBackColor),
+                    _ => openCoveredPreview?.Invoke());
             if (coveredCountText != null)
                 coveredCountText.text = string.Format(coveredCountFormat, covered.Count);
+            RenderDiscardCount(discarded.Count);
+        }
+
+        public void RenderInspectionPiles(ViewedCharacterPilesViewModel model, CardVisualCatalog catalog)
+        {
+            var discarded = new List<string>();
+            if (model != null)
+                foreach (var card in model.DiscardCards) discarded.Add(card.CardId);
+            discardPile.RenderSprites(discarded, id => catalog.GetCharacterFront(model.ResolveDefinitionId(id)), null);
+            coveredPile.RenderTextures(model == null ? (IReadOnlyList<string>)Array.Empty<string>() : model.CoveredBackIds,
+                id => catalog.GetCharacterBack(model.ResolveBackVisualKey(id)), null);
+            if (coveredCountText != null)
+                coveredCountText.text = string.Format(coveredCountFormat, model?.CoveredCardCount ?? 0);
+            RenderDiscardCount(model?.DiscardCardCount ?? 0);
         }
 
         public void ConfigureDiscardPreview(Action openPreview)
@@ -118,6 +174,15 @@ namespace YC.Presentation
         private void OpenDiscardPreview() => openDiscardPreview?.Invoke();
         private void Awake()
         {
+            CaptureOwnCityTitle();
+            for (var i = 0; opponentPortraits != null && i < opponentPortraits.Length; i++)
+            {
+                var slot = i;
+                if (opponentPortraits[i] != null) opponentPortraits[i].onClick.AddListener(() =>
+                {
+                    if (slot < opponentIds.Length && opponentIds[slot] >= 0) inspectCity?.Invoke(opponentIds[slot]);
+                });
+            }
             for (var i = 0; opponentDetailToggles != null && i < opponentDetailToggles.Length; i++)
             {
                 if (opponentDetailToggles == null || i >= opponentDetailToggles.Length ||
@@ -148,6 +213,8 @@ namespace YC.Presentation
                 opponentDetailContents == null || opponentDetailContents.Length != 3 ||
                 opponentDetailEmptyHints == null || opponentDetailEmptyHints.Length != 3 ||
                 opponentSeats == null || opponentSeats.Length != 3 ||
+                opponentPortraits == null || opponentPortraits.Length != 3 || Array.Exists(opponentPortraits, button => button == null) ||
+                cityTitle == null || viewedCityReturnHint == null || cityInspectionInput == null ||
                 cityRegion == null || cityBoardArtwork == null || playerCityLayout == null ||
                 detailToggleCollapsed == null || detailToggleExpanded == null ||
                 detailToggleDown == null || detailToggleUp == null ||
@@ -215,8 +282,9 @@ namespace YC.Presentation
             var nextOpponent = 0;
             if (visible != null && visible.Players != null)
             {
-                foreach (var player in visible.Players)
+                foreach (var id in new YC.Domain.Rules.TurnOrderService().GetLaunchPlayerOrder(visible))
                 {
+                    var player = visible.Players.Find(p => p.PlayerId == id);
                     if (player == null || player.PlayerId == localPlayerId) continue;
                     if (nextOpponent >= opponentData.Length) break;
                     RenderOpponent(nextOpponent++, player.PlayerId, player.Name, player.Color,
@@ -226,8 +294,9 @@ namespace YC.Presentation
             }
             else if (state != null && state.Players != null)
             {
-                foreach (var player in state.Players)
+                foreach (var id in new YC.Domain.Rules.TurnOrderService().GetLaunchPlayerOrder(state))
                 {
+                    var player = state.FindPlayer(id);
                     if (player == null || player.PlayerId == localPlayerId) continue;
                     if (nextOpponent >= opponentData.Length) break;
                     RenderOpponent(nextOpponent++, player.PlayerId, player.Name, player.Color,

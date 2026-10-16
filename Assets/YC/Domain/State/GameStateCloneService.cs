@@ -1,18 +1,85 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace YC.Domain.State
 {
     /// <summary>
     /// GameState 的唯一深克隆入口。状态 DTO 只允许由可序列化字段和 List
-    /// 组成，因此这里用反射遍历完整字段图：新增权威字段会自动进入克隆，
+    /// 组成，因此按缓存的字段访问计划遍历完整字段图：新增权威字段会自动进入克隆，
     /// 未受支持的持久化容器会明确失败，而不是静默浅拷贝。
     /// </summary>
     public static class GameStateCloneService
     {
+        [ThreadStatic] private static CloneTimingScope currentTimingScope;
+        [ThreadStatic] private static int timingOperationDepth;
+
+        /// <summary>仅诊断当前线程动态范围内的顶层 GameState 克隆/复制；不进入持久化状态。</summary>
+        public static IDisposable BeginTimingScope(Action<string, long> recordSample)
+        {
+            if (recordSample == null) throw new ArgumentNullException(nameof(recordSample));
+            var scope = new CloneTimingScope(recordSample, currentTimingScope);
+            currentTimingScope = scope;
+            return scope;
+        }
+
+        private sealed class CloneTimingScope : IDisposable
+        {
+            private readonly Action<string, long> recordSample;
+            private readonly CloneTimingScope previous;
+            private readonly int ownerThreadId;
+            private bool disposed;
+
+            public CloneTimingScope(Action<string, long> recordSample, CloneTimingScope previous)
+            {
+                this.recordSample = recordSample;
+                this.previous = previous;
+                ownerThreadId = Thread.CurrentThread.ManagedThreadId;
+            }
+
+            public void Record(string phase, long elapsedTicks)
+            {
+                // 新诊断接收器的异常不能替换原克隆/复制结果或业务异常。
+                try { recordSample(phase, elapsedTicks); }
+                catch (Exception) { }
+            }
+
+            public void Dispose()
+            {
+                if (disposed || Thread.CurrentThread.ManagedThreadId != ownerThreadId) return;
+                disposed = true;
+                if (!ReferenceEquals(currentTimingScope, this)) return;
+                var restored = previous;
+                while (restored != null && restored.disposed) restored = restored.previous;
+                currentTimingScope = restored;
+            }
+        }
+
+        private readonly struct CloneTimingOperation : IDisposable
+        {
+            private readonly CloneTimingScope scope;
+            private readonly string phase;
+            private readonly long started;
+
+            public CloneTimingOperation(string phase, bool isGameState)
+            {
+                scope = isGameState && timingOperationDepth == 0 ? currentTimingScope : null;
+                this.phase = scope == null ? null : phase;
+                started = scope == null ? 0 : Stopwatch.GetTimestamp();
+                if (scope != null) timingOperationDepth++;
+            }
+
+            public void Dispose()
+            {
+                if (scope == null) return;
+                try { scope.Record(phase, Stopwatch.GetTimestamp() - started); }
+                finally { timingOperationDepth--; }
+            }
+        }
+
         public static GameState DeepClone(GameState source)
         {
             return DeepClone<GameState>(source);
@@ -25,16 +92,20 @@ namespace YC.Domain.State
 
         public static T DeepClone<T>(T source) where T : class
         {
+            using var timing = new CloneTimingOperation("handler.clone", typeof(T) == typeof(GameState) || source is GameState);
             if (source == null)
             {
                 return null;
             }
 
-            return (T)CloneValue(source, typeof(T), typeof(T).Name, new HashSet<object>(ReferenceEqualityComparer.Instance));
+            var result = (T)CloneValue(source, typeof(T), typeof(T).Name, new HashSet<object>(ReferenceEqualityComparer.Instance));
+            if (result is GameState state) YC.Domain.Items.ItemZoneLegacyProjection.Bind(state);
+            return result;
         }
 
         public static void CopyTo(GameState target, GameState source)
         {
+            using var timing = new CloneTimingOperation("handler.copy", true);
             if (target == null) throw new ArgumentNullException(nameof(target));
             if (source == null) throw new ArgumentNullException(nameof(source));
             if (ReferenceEquals(target, source)) return;
@@ -46,6 +117,7 @@ namespace YC.Domain.State
                 source,
                 typeof(GameState).Name,
                 new HashSet<ReferencePair>(ReferencePairComparer.Instance));
+            YC.Domain.Items.ItemZoneLegacyProjection.Bind(target);
         }
 
         public static bool AreEquivalent(GameState left, GameState right)
@@ -70,7 +142,8 @@ namespace YC.Domain.State
             }
 
             Type type = value.GetType();
-            if (type == typeof(string) || type.IsPrimitive || type.IsEnum || type == typeof(decimal))
+            var metadata = StateCopyMetadata.For(type);
+            if (metadata.IsScalar)
             {
                 return value;
             }
@@ -85,7 +158,7 @@ namespace YC.Domain.State
                 return CloneList((IList)value, type, path, activeReferences);
             }
 
-            if (typeof(IDictionary).IsAssignableFrom(type) || IsDictionaryType(type))
+            if (metadata.IsDictionary)
             {
                 throw new InvalidOperationException(
                     "持久化状态禁止 Dictionary：" + path + "。请改用有序 List DTO。");
@@ -96,7 +169,7 @@ namespace YC.Domain.State
                 return CloneObjectFields(value, type, path, activeReferences, false);
             }
 
-            if (!Attribute.IsDefined(type, typeof(SerializableAttribute), true))
+            if (!metadata.IsSerializable)
             {
                 throw new InvalidOperationException(
                     "状态字段必须是 [Serializable] DTO：" + path + " (" + type.FullName + ")。");
@@ -110,7 +183,7 @@ namespace YC.Domain.State
             EnterReference(source, path, activeReferences);
             try
             {
-                Type elementType = source.GetType().GetElementType();
+                Type elementType = StateCopyMetadata.For(source.GetType()).ElementType;
                 Array clone = Array.CreateInstance(elementType, source.Length);
                 for (int i = 0; i < source.Length; i++)
                 {
@@ -134,11 +207,13 @@ namespace YC.Domain.State
             EnterReference(source, path, activeReferences);
             try
             {
-                IList clone = (IList)Activator.CreateInstance(listType);
-                Type elementType = listType.GetGenericArguments()[0];
+                var metadata = StateCopyMetadata.For(listType);
+                IList clone = (IList)metadata.Create();
+                Type elementType = metadata.ElementType;
+                bool scalarElement = StateCopyMetadata.For(elementType).IsScalar;
                 for (int i = 0; i < source.Count; i++)
                 {
-                    clone.Add(CloneValue(source[i], elementType, path + "[" + i + "]", activeReferences));
+                    clone.Add(scalarElement ? source[i] : CloneValue(source[i], elementType, path + "[" + i + "]", activeReferences));
                 }
 
                 return clone;
@@ -163,15 +238,16 @@ namespace YC.Domain.State
 
             try
             {
-                object clone = Activator.CreateInstance(type);
-                FieldInfo[] fields = GetSerializableFields(type);
+                var metadata = StateCopyMetadata.For(type);
+                object clone = metadata.Create();
+                StateCopyField[] fields = metadata.Fields;
                 for (int i = 0; i < fields.Length; i++)
                 {
-                    FieldInfo field = fields[i];
+                    StateCopyField field = fields[i];
                     object fieldValue = field.GetValue(source);
                     field.SetValue(
                         clone,
-                        CloneValue(fieldValue, field.FieldType, path + "." + field.Name, activeReferences));
+                        field.IsScalar ? fieldValue : CloneValue(fieldValue, field.FieldType, path + "." + field.Name, activeReferences));
                 }
 
                 return clone;
@@ -208,16 +284,15 @@ namespace YC.Domain.State
                 return;
             }
 
-            FieldInfo[] fields = GetSerializableFields(source.GetType());
+            StateCopyField[] fields = StateCopyMetadata.For(source.GetType()).Fields;
             for (int i = 0; i < fields.Length; i++)
             {
-                FieldInfo field = fields[i];
-                object targetValue = field.GetValue(target);
+                StateCopyField field = fields[i];
                 object sourceValue = field.GetValue(source);
                 field.SetValue(
                     target,
-                    CopyValueInto(
-                        targetValue,
+                    field.IsScalar ? sourceValue : CopyValueInto(
+                        field.GetValue(target),
                         sourceValue,
                         field.FieldType,
                         path + "." + field.Name,
@@ -238,7 +313,8 @@ namespace YC.Domain.State
             }
 
             Type type = source.GetType();
-            if (type == typeof(string) || type.IsPrimitive || type.IsEnum || type == typeof(decimal))
+            var metadata = StateCopyMetadata.For(type);
+            if (metadata.IsScalar)
             {
                 return source;
             }
@@ -255,7 +331,7 @@ namespace YC.Domain.State
                 ReferencePair pair = new ReferencePair(targetArray, sourceArray);
                 if (visited.Add(pair))
                 {
-                    Type elementType = type.GetElementType();
+                    Type elementType = metadata.ElementType;
                     for (int i = 0; i < sourceArray.Length; i++)
                     {
                         targetArray.SetValue(
@@ -287,11 +363,12 @@ namespace YC.Domain.State
                     return targetList;
                 }
 
-                Type elementType = type.GetGenericArguments()[0];
+                Type elementType = metadata.ElementType;
+                bool scalarElement = StateCopyMetadata.For(elementType).IsScalar;
                 int sharedCount = Math.Min(targetList.Count, sourceList.Count);
                 for (int i = 0; i < sharedCount; i++)
                 {
-                    targetList[i] = CopyValueInto(
+                    targetList[i] = scalarElement ? sourceList[i] : CopyValueInto(
                         targetList[i],
                         sourceList[i],
                         elementType,
@@ -306,7 +383,7 @@ namespace YC.Domain.State
 
                 for (int i = targetList.Count; i < sourceList.Count; i++)
                 {
-                    targetList.Add(CopyValueInto(
+                    targetList.Add(scalarElement ? sourceList[i] : CopyValueInto(
                         null,
                         sourceList[i],
                         elementType,
@@ -317,7 +394,7 @@ namespace YC.Domain.State
                 return targetList;
             }
 
-            if (typeof(IDictionary).IsAssignableFrom(type) || IsDictionaryType(type))
+            if (metadata.IsDictionary)
             {
                 throw new InvalidOperationException(
                     "持久化状态禁止 Dictionary：" + path + "。请改用有序 List DTO。");
@@ -328,7 +405,7 @@ namespace YC.Domain.State
                 return CloneValue(source, declaredType, path, new HashSet<object>(ReferenceEqualityComparer.Instance));
             }
 
-            if (!Attribute.IsDefined(type, typeof(SerializableAttribute), true))
+            if (!metadata.IsSerializable)
             {
                 throw new InvalidOperationException(
                     "状态字段必须是 [Serializable] DTO：" + path + " (" + type.FullName + ")。");
@@ -368,7 +445,8 @@ namespace YC.Domain.State
             Type leftType = left.GetType();
             Type rightType = right.GetType();
             if (leftType != rightType) return false;
-            if (leftType == typeof(string) || leftType.IsPrimitive || leftType.IsEnum || leftType == typeof(decimal))
+            var metadata = StateCopyMetadata.For(leftType);
+            if (metadata.IsScalar)
             {
                 return left.Equals(right);
             }
@@ -385,7 +463,7 @@ namespace YC.Domain.State
                     if (!AreEquivalentValue(
                             leftArray.GetValue(i),
                             rightArray.GetValue(i),
-                            leftType.GetElementType(),
+                            metadata.ElementType,
                             visited,
                             ignoreEffectRuntime,
                             false)) return false;
@@ -401,7 +479,7 @@ namespace YC.Domain.State
                 if (leftList.Count != rightList.Count) return false;
                 ReferencePair pair = new ReferencePair(left, right);
                 if (!visited.Add(pair)) return true;
-                Type elementType = leftType.GetGenericArguments()[0];
+                Type elementType = metadata.ElementType;
                 for (int i = 0; i < leftList.Count; i++)
                 {
                     if (!AreEquivalentValue(
@@ -416,14 +494,14 @@ namespace YC.Domain.State
                 return true;
             }
 
-            if (typeof(IDictionary).IsAssignableFrom(leftType) || IsDictionaryType(leftType))
+            if (metadata.IsDictionary)
             {
                 throw new InvalidOperationException("状态比较遇到 Dictionary：" + leftType.FullName + "。");
             }
 
             ReferencePair objectPair = new ReferencePair(left, right);
             if (!visited.Add(objectPair)) return true;
-            FieldInfo[] fields = GetSerializableFields(leftType);
+            StateCopyField[] fields = metadata.Fields;
             for (int i = 0; i < fields.Length; i++)
             {
                 if (isRoot && ignoreEffectRuntime && fields[i].Name == "EffectRuntime")
@@ -431,7 +509,7 @@ namespace YC.Domain.State
                     continue;
                 }
 
-                FieldInfo field = fields[i];
+                StateCopyField field = fields[i];
                 if (!AreEquivalentValue(
                         field.GetValue(left),
                         field.GetValue(right),
@@ -444,34 +522,9 @@ namespace YC.Domain.State
             return true;
         }
 
-        private static FieldInfo[] GetSerializableFields(Type type)
-        {
-            List<FieldInfo> fields = new List<FieldInfo>();
-            for (Type current = type; current != null && current != typeof(object); current = current.BaseType)
-            {
-                FieldInfo[] declared = current.GetFields(
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
-                for (int i = 0; i < declared.Length; i++)
-                {
-                    if (!declared[i].IsStatic && !declared[i].IsNotSerialized)
-                    {
-                        fields.Add(declared[i]);
-                    }
-                }
-            }
-
-            fields.Sort((left, right) => StringComparer.Ordinal.Compare(left.Name, right.Name));
-            return fields.ToArray();
-        }
-
         private static bool IsListType(Type type)
         {
-            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
-        }
-
-        private static bool IsDictionaryType(Type type)
-        {
-            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>);
+            return StateCopyMetadata.For(type).IsList;
         }
 
         private static void EnterReference(object value, string path, HashSet<object> activeReferences)

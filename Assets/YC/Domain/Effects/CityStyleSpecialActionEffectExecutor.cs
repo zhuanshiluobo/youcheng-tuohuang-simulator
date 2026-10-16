@@ -7,6 +7,7 @@ using YC.Domain.Influence;
 using YC.Domain.Interactions;
 using YC.Domain.Maps;
 using YC.Domain.Movement;
+using YC.Domain.Presentation;
 using YC.Domain.Rules;
 using YC.Domain.SpecialActions;
 using YC.Domain.State;
@@ -174,14 +175,30 @@ namespace YC.Domain.Effects
             if (string.IsNullOrEmpty(actionId) || string.IsNullOrEmpty(markerId))
                 return EffectStepResult.Failed("invalid_arguments");
 
-            SpecialActionDefinition definition = SpecialActionDatabase.Get(actionId);
+            SpecialActionDefinition definition = SpecialActionDatabase.Get(context.State, actionId);
             PlayerState player = context.State.FindPlayer(context.Node.PlayerId);
             if (definition == null || player == null)
                 return EffectStepResult.Failed("invalid_source");
 
+            string activationSource = ReadString(context.Node.NormalizedArguments, "activationSource", "");
+            bool publicSource = activationSource == "public_style", immediate = activationSource == "immediate";
+            if (activationSource.Length > 0)
+            {
+                var parent = context.State.EffectRuntime.EffectNodes.Find(n => n.EffectId == context.Node.ParentEffectId);
+                string expected = publicSource ? "public_style" : "immediate_special";
+                bool boundContent = parent?.EffectTypeId == ContentTransactionEffectExecutor.Prefix + "activate_style" &&
+                    !string.IsNullOrEmpty(parent.ContinuationContentHash) && ReadString(parent.NormalizedArguments, "specialActionId", "") == actionId &&
+                    ReadString(parent.NormalizedArguments, "declarationMarkerId", "") == markerId && ReadString(parent.NormalizedArguments, "activationSource", "") == activationSource;
+                bool ordinaryImmediate = immediate && parent?.EffectTypeId == YC.Domain.Cards.CharacterContentEffectExecutor.Prefix + "immediate_special";
+                if ((!publicSource && !immediate) || (!boundContent && !ordinaryImmediate) || parent.PlayerId != context.Node.PlayerId)
+                    return EffectStepResult.Failed("special_action_source_invalid");
+                if (publicSource && (definition.Level != 1 || !context.State.ItemZones.Items.Exists(i => i.DefinitionId == definition.CityStyleId && context.State.ItemZones.Zones.Exists(z => z.ZoneId == i.ZoneId && z.LocalZoneId == "city_styles"))))
+                    return EffectStepResult.Failed("special_action_source_invalid");
+            }
+
             if (string.IsNullOrEmpty(stage))
             {
-                ValidationResult validation = ValidateActivation(context.State, player, definition, markerId);
+                ValidationResult validation = ValidateActivation(context.State, player, definition, markerId, publicSource, immediate);
                 if (!validation.IsValid)
                     return EffectStepResult.Failed(validation.ErrorCode.ToString(), NormalizedValue.CreateString(validation.Reason));
 
@@ -200,28 +217,55 @@ namespace YC.Domain.Effects
                 }
                 else if (definition.FixedCost != null)
                 {
-                    foreach (var item in definition.FixedCost.Enumerate())
-                        if (item.Value > 0) left.Add(ResourceEffectSpecFactory.Pay(context.Node.PlayerId, item.Key, item.Value, actionId));
+                    if (definition.FixedCost.Originium > 0 || definition.FixedCost.OriginiumShard > 0 ||
+                        definition.FixedCost.Iron > 0 || definition.FixedCost.PureOriginium > 0 || definition.FixedCost.GoldVoucher > 0)
+                        left.Add(ResourceEffectSpecFactory.Pay(context.Node.PlayerId, definition.FixedCost, actionId));
                 }
                 var content = EffectSpec.Create(CityStyleSpecialActionEffectTypeIds.ResolveContent,
                     context.Node.NormalizedArguments.Clone(), context.Node.PlayerId);
-                var condition = EffectSpec.Condition(left, new List<EffectSpec> { content });
+                if (left.Count == 0) return EffectStepResult.Continue("activated_free").AddChild(content);
+                var condition = EffectSpec.Condition(left, new List<EffectSpec> { content }, ruleCondition: true);
                 condition.PlayerId = context.Node.PlayerId;
+                condition.Presentation = new EffectPresentationDefinition {
+                    Interaction = new GameplayInteractionPresentation { Prompt = ConditionPrompt(definition) }
+                };
                 return EffectStepResult.Continue("activated").AddChild(condition);
             }
-            if (stage != "activated") return EffectStepResult.Failed("invalid_flow_stage");
+            if (stage != "activated" && stage != "activated_free") return EffectStepResult.Failed("invalid_flow_stage");
             if (HasNonTerminalChild(context)) return EffectStepResult.NoProgress("特殊行动子 Effect 尚未结束。");
-            if (context.ChildNodes.Count == 0 || ReadString(context.ChildNodes[0].NormalizedResult, "outcome", "") != "condition_met")
+            if (context.ChildNodes.Count == 0 || (stage == "activated"
+                ? ReadString(context.ChildNodes[0].NormalizedResult, "outcome", "") != "condition_met"
+                : context.ChildNodes[0].Status != EffectNodeStatus.Completed))
                 return EffectStepResult.Failed("special_action_condition_not_met");
-            new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId);
+            if (activationSource.Length == 0) new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId, true);
             return EffectStepResult.Completed(NormalizedValue.CreateString("completed"));
+        }
+
+        private static GameplayTextRef ConditionPrompt(SpecialActionDefinition definition)
+        {
+            switch (definition.SpecialActionId)
+            {
+                case SpecialActionDatabase.CompositePowerSystem:
+                    return new GameplayTextRef("core:condition.city_style.composite_power_system",
+                        new GameplayTextArgument { Name = "shards", Kind = "integer", Value = NormalizedValue.CreateInteger(definition.FixedCost.OriginiumShard) },
+                        new GameplayTextArgument { Name = "flexibleCost", Kind = "integer", Value = NormalizedValue.CreateInteger(definition.FlexibleOriginiumAndIronCost) });
+                case SpecialActionDatabase.SourceStoneIndustrialHub:
+                    return new GameplayTextRef("core:condition.city_style.source_stone_industrial_hub",
+                        new GameplayTextArgument { Name = "cost", Kind = "integer", Value = NormalizedValue.CreateInteger(definition.FixedCost.GoldVoucher) },
+                        new GameplayTextArgument { Name = "count", Kind = "integer", Value = NormalizedValue.CreateInteger(definition.ExtraMainActionCount) });
+                case SpecialActionDatabase.EfficientMobileManagementSystem:
+                    return new GameplayTextRef("core:condition.city_style.efficient_mobile_management_system",
+                        new GameplayTextArgument { Name = "cost", Kind = "integer", Value = NormalizedValue.CreateInteger(definition.FixedCost.OriginiumShard) },
+                        new GameplayTextArgument { Name = "count", Kind = "integer", Value = NormalizedValue.CreateInteger(definition.FreeMoveCount) });
+                default: return null;
+            }
         }
 
         private EffectStepResult ExecuteContent(EffectExecutionContext context)
         {
             string actionId = ReadString(context.Node.NormalizedArguments, "specialActionId", "");
             string markerId = ReadString(context.Node.NormalizedArguments, "declarationMarkerId", "");
-            var definition = SpecialActionDatabase.Get(actionId);
+            var definition = SpecialActionDatabase.Get(context.State, actionId);
             var player = context.State.FindPlayer(context.Node.PlayerId);
             if (definition == null || player == null) return EffectStepResult.Failed("invalid_source");
             if (string.IsNullOrEmpty(context.Node.FlowStage))
@@ -235,7 +279,7 @@ namespace YC.Domain.Effects
                 if (context.State.EffectRuntime.CandidateResolutions == null)
                     context.State.EffectRuntime.CandidateResolutions = new List<CandidateResolutionRecord>();
                 context.State.EffectRuntime.CandidateResolutions.Add(resolution.Record.Clone());
-                MarkActivated(player, definition, markerId);
+                if (ReadString(context.Node.NormalizedArguments, "activationSource", "") != "public_style") MarkActivated(context, player, definition, markerId);
                 if (player.UsedSpecialActionIdsThisRound == null)
                     player.UsedSpecialActionIdsThisRound = new List<string>();
                 if (!player.UsedSpecialActionIdsThisRound.Contains(definition.SpecialActionId))
@@ -295,30 +339,30 @@ namespace YC.Domain.Effects
                     CityStyleDeclarationState marker = player.DeclaredCityStyles[i];
                     if (marker == null) continue;
                     SpecialActionDefinition definition = string.IsNullOrEmpty(marker.UnlockedSpecialActionId)
-                        ? null : SpecialActionDatabase.Get(marker.UnlockedSpecialActionId);
+                        ? null : SpecialActionDatabase.Get(context.State, marker.UnlockedSpecialActionId);
                     if (definition == null)
                     {
-                        if (marker.MarkerArea == CityStyleMarkerAreas.Used) marker.MarkerArea = CityStyleMarkerAreas.Declared;
+                        if (marker.MarkerArea == CityStyleMarkerAreas.Used) CityStyleDeclarationEffectExecutor.MoveMarker(context, marker, CityStyleMarkerAreas.Declared);
                         continue;
                     }
                     if (definition.Level < 2 && marker.MarkerArea == CityStyleMarkerAreas.Used)
                     {
-                        marker.MarkerArea = CityStyleMarkerAreas.Unused;
-                        marker.RemainingSpecialActionUses = 1;
+                        CityStyleDeclarationEffectExecutor.MoveMarker(context, marker, CityStyleMarkerAreas.Unused);
+                        if (!YC.Domain.Items.ItemZoneLegacyProjection.IsActive(context.State)) marker.RemainingSpecialActionUses = 1;
                     }
                     else if (definition.Level >= 2 &&
                              (marker.MarkerArea == SpecialActionMarkerAreas.UsedFromTwo ||
                               (marker.MarkerArea == CityStyleMarkerAreas.Used && marker.RemainingSpecialActionUses >= 2)))
                     {
-                        marker.MarkerArea = CityStyleMarkerAreas.UsesOne;
-                        marker.RemainingSpecialActionUses = 1;
+                        CityStyleDeclarationEffectExecutor.MoveMarker(context, marker, CityStyleMarkerAreas.UsesOne);
+                        if (!YC.Domain.Items.ItemZoneLegacyProjection.IsActive(context.State)) marker.RemainingSpecialActionUses = 1;
                     }
                     else if (definition.Level >= 2 &&
                              (marker.MarkerArea == SpecialActionMarkerAreas.UsedFromOne ||
                               (marker.MarkerArea == CityStyleMarkerAreas.Used && marker.RemainingSpecialActionUses == 1)))
                     {
-                        marker.MarkerArea = CityStyleMarkerAreas.UsesZero;
-                        marker.RemainingSpecialActionUses = 0;
+                        CityStyleDeclarationEffectExecutor.MoveMarker(context, marker, CityStyleMarkerAreas.UsesZero);
+                        if (!YC.Domain.Items.ItemZoneLegacyProjection.IsActive(context.State)) marker.RemainingSpecialActionUses = 0;
                     }
                 }
             }
@@ -329,13 +373,16 @@ namespace YC.Domain.Effects
         {
             int amount = ReadInt(context.Node.NormalizedArguments, "amount", 0);
             if (amount <= 0) return EffectStepResult.Failed("invalid_amount");
-            new MainActionBudgetService().GrantAdditionalMainActions(context.State, context.Node.PlayerId, amount);
+            var allowed = ReadStringArray(context.Node.NormalizedArguments, "allowedActionTypes");
+            if (allowed.Count > 0 && (allowed.Count != 3 || !allowed.Contains("build") || !allowed.Contains("explore") || !allowed.Contains("move_city")))
+                return EffectStepResult.Failed("main_action_restriction_invalid");
+            new MainActionBudgetService().GrantAdditionalMainActions(context.State, context.Node.PlayerId, amount, allowed.Count > 0);
             if (ReadBool(context.Node.NormalizedArguments, "lockCharacterCard", true))
                 new MainActionBudgetService().LockCharacterCard(context.State, context.Node.PlayerId);
             return EffectStepResult.Completed(NormalizedValue.CreateInteger(amount));
         }
 
-        private ValidationResult ValidateActivation(GameState state, PlayerState player, SpecialActionDefinition definition, string markerId)
+        private ValidationResult ValidateActivation(GameState state, PlayerState player, SpecialActionDefinition definition, string markerId, bool publicSource = false, bool immediate = false)
         {
             if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
                 return ValidationResult.Failure(CommandErrorCode.WrongPhase, "特殊行动只能在行动轮阶段发动。");
@@ -343,16 +390,16 @@ namespace YC.Domain.Effects
                 return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "当前不是该玩家的行动轮。");
             if (state.HasPendingChoice() || state.HasOpenActionableInteraction())
                 return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先完成当前待处理交互。");
-            ValidationResult budget = new MainActionBudgetService().ValidateCanSpend(state, player.PlayerId);
+            ValidationResult budget = publicSource || immediate ? ValidationResult.Success : new MainActionBudgetService().ValidateCanSpendSpecial(state, player.PlayerId);
             if (!budget.IsValid) return budget;
             if (player.UsedSpecialActionIdsThisRound != null && player.UsedSpecialActionIdsThisRound.Contains(definition.SpecialActionId))
                 return ValidationResult.Failure(CommandErrorCode.InvalidSource, "该特殊行动本回合已经使用过。");
             CityStyleDeclarationState marker = FindMarker(player, markerId);
-            if (marker == null || marker.UnlockedSpecialActionId != definition.SpecialActionId)
+            if (!publicSource && (marker == null || marker.UnlockedSpecialActionId != definition.SpecialActionId))
                 return ValidationResult.Failure(CommandErrorCode.InvalidSource, "所选城市样式标记未解锁该特殊行动。");
-            if (marker.RemainingSpecialActionUses <= 0)
+            if (!publicSource && marker.RemainingSpecialActionUses <= 0)
                 return ValidationResult.Failure(CommandErrorCode.InvalidSource, "该城市样式标记的特殊行动次数已耗尽。");
-            if (definition.LocksCharacterCard && player.UsedCharacterThisTurn)
+            if (definition.LocksCharacterCard && (player.UsedCharacterThisTurn || state.CharacterUses.Exists(u => u.ExecutingPlayerId == player.PlayerId && !u.Finished)))
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "本玩家行动轮已使用角色牌。");
             return ValidationResult.Success;
         }
@@ -420,6 +467,7 @@ namespace YC.Domain.Effects
                 Entry("requiredTargetCount", NormalizedValue.CreateInteger(RequiredTargetCount(state, node.PlayerId, definition, resolution.FinalCandidateIds))),
                 Entry("maximumTargetCount", NormalizedValue.CreateInteger(definition.MaximumTargetCount)),
                 Entry("freeMoveCount", NormalizedValue.CreateInteger(definition.FreeMoveCount)),
+                Entry("declarationMarkerCount", NormalizedValue.CreateInteger(CountDeclarations(state.FindPlayer(node.PlayerId), definition.CityStyleId))),
                 Entry("extraMainActionCount", NormalizedValue.CreateInteger(definition.ExtraMainActionCount)),
                 Entry("locksCharacterCard", NormalizedValue.CreateBoolean(definition.LocksCharacterCard))
             });
@@ -454,7 +502,7 @@ namespace YC.Domain.Effects
             for (int i = 0; i < player.DeclaredCityStyles.Count; i++)
             {
                 CityStyleDeclarationState declaration = player.DeclaredCityStyles[i];
-                if (declaration != null && declaration.CityStyleId == cityStyleId) count++;
+                if (declaration != null && declaration.CityStyleId == cityStyleId && declaration.MarkerArea.Length > 0) count++;
             }
             return count;
         }
@@ -482,16 +530,16 @@ namespace YC.Domain.Effects
             return string.Empty;
         }
 
-        private static void MarkActivated(PlayerState player, SpecialActionDefinition definition, string markerId)
+        private static void MarkActivated(EffectExecutionContext context, PlayerState player, SpecialActionDefinition definition, string markerId)
         {
             CityStyleDeclarationState marker = FindMarker(player, markerId);
             if (definition.Level >= 2)
             {
-                marker.MarkerArea = marker.RemainingSpecialActionUses >= 2 ? SpecialActionMarkerAreas.UsedFromTwo : SpecialActionMarkerAreas.UsedFromOne;
+                CityStyleDeclarationEffectExecutor.MoveMarker(context, marker, marker.RemainingSpecialActionUses >= 2 ? SpecialActionMarkerAreas.UsedFromTwo : SpecialActionMarkerAreas.UsedFromOne);
                 return;
             }
-            marker.MarkerArea = CityStyleMarkerAreas.Used;
-            marker.RemainingSpecialActionUses = 0;
+            CityStyleDeclarationEffectExecutor.MoveMarker(context, marker, CityStyleMarkerAreas.Used);
+            if (!YC.Domain.Items.ItemZoneLegacyProjection.IsActive(context.State)) marker.RemainingSpecialActionUses = 0;
             for (int i = 0; i < player.DeclaredCityStyles.Count; i++)
             {
                 CityStyleDeclarationState other = player.DeclaredCityStyles[i];
@@ -499,8 +547,8 @@ namespace YC.Domain.Effects
                     (other.MarkerArea == CityStyleMarkerAreas.Declared ||
                      (other.UnlockedSpecialActionId == definition.SpecialActionId && other.MarkerArea == CityStyleMarkerAreas.Unused && other.RemainingSpecialActionUses > 0)))
                 {
-                    other.MarkerArea = CityStyleMarkerAreas.Used;
-                    other.RemainingSpecialActionUses = 0;
+                    CityStyleDeclarationEffectExecutor.MoveMarker(context, other, CityStyleMarkerAreas.Used);
+                    if (!YC.Domain.Items.ItemZoneLegacyProjection.IsActive(context.State)) other.RemainingSpecialActionUses = 0;
                 }
             }
         }
@@ -509,7 +557,7 @@ namespace YC.Domain.Effects
         {
             if (player == null || player.DeclaredCityStyles == null) return null;
             for (int i = 0; i < player.DeclaredCityStyles.Count; i++)
-                if (player.DeclaredCityStyles[i] != null && player.DeclaredCityStyles[i].InfluenceMarkerId == markerId) return player.DeclaredCityStyles[i];
+                if (player.DeclaredCityStyles[i] != null && player.DeclaredCityStyles[i].InfluenceMarkerId == markerId && player.DeclaredCityStyles[i].MarkerArea.Length > 0) return player.DeclaredCityStyles[i];
             return null;
         }
 

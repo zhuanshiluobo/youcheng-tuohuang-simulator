@@ -1,0 +1,666 @@
+[
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 13813,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 14112,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 14408,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 14704,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 15000,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 15296,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 15592,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 15888,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 16184,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 16480,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 16776,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 17072,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 17368,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 17664,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 17960,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 18256,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 18552,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 18848,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 19144,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 19440,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 19736,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 20032,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 20328,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 20624,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 20920,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 21216,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 21512,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 21808,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 22104,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 22400,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 22696,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 22992,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "line": 23288,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "line": 41051,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "line": 46851,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2D.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: d2a36eaffcff7c64c80b212aed5e18bb, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "line": 47147,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2D.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: d2a36eaffcff7c64c80b212aed5e18bb, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 523,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleStatusRow.prefab",
+    "object_id": "7451260000000000581",
+    "property": "m_Sprite",
+    "reference": "{fileID: 0}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 4094,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 4390,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 4686,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 4982,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 5278,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 5574,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 5870,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 6166,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 6462,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 6758,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 7054,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 7350,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 7646,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 7942,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 8238,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 8534,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 8830,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 9126,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 9422,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleLimitedStatusRow.prefab",
+    "line": 9718,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleRewardStatusRow.prefab",
+    "line": 347,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleStatusRow.prefab",
+    "object_id": "7451260000000000581",
+    "property": "m_Sprite",
+    "reference": "{fileID: 0}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleRewardStatusRow.prefab",
+    "line": 1528,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleRewardStatusRow.prefab",
+    "line": 1824,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleRewardStatusRow.prefab",
+    "line": 2120,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleRewardStatusRow.prefab",
+    "line": 2416,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleStatusRow.prefab",
+    "line": 1800,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleStatusRow.prefab",
+    "line": 2096,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleStatusRow.prefab",
+    "line": 2392,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleStatusRow.prefab",
+    "line": 2688,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleStatusRow.prefab",
+    "line": 2984,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleStatusRow.prefab",
+    "line": 3280,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleStatusRow.prefab",
+    "line": 3576,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/CityStyles/CityStyleStatusRow.prefab",
+    "line": 3872,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CityStyleDeclarationPreviewDialog.prefab",
+    "line": 17025,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/Enterprise/EnterprisePickerBoard.prefab",
+    "line": 71,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/Enterprise/EnterpriseBoardItem.prefab",
+    "object_id": "1013",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/Enterprise/EnterprisePickerBoard.prefab",
+    "line": 91,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/Enterprise/EnterpriseBoardItem.prefab",
+    "object_id": "1022",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/Enterprise/EnterprisePickerBoard.prefab",
+    "line": 111,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/Enterprise/EnterpriseBoardItem.prefab",
+    "object_id": "1031",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/Enterprise/EnterprisePickerBoard.prefab",
+    "line": 131,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/Enterprise/EnterpriseBoardItem.prefab",
+    "object_id": "1040",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Effects/Prefabs/EffectRow.prefab",
+    "line": 1305,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2D.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: d2a36eaffcff7c64c80b212aed5e18bb, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/Effects/Prefabs/EffectRow.prefab",
+    "line": 1601,
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2D.prefab",
+    "object_id": "100103",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: d2a36eaffcff7c64c80b212aed5e18bb, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/CommonUi/Verification/Ui002Preview.unity",
+    "line": 772,
+    "prefab": "Assets/YC/Presentation/CommonUi/Prefabs/StatusRow.prefab",
+    "object_id": "2835380316971636495",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: a772bf793ea41d54c8a4e9198c2c6b2b, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/CommonUi/Verification/Ui002Preview.unity",
+    "line": 780,
+    "prefab": "Assets/YC/Presentation/CommonUi/Prefabs/StatusRow.prefab",
+    "object_id": "5712718640161548013",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: cc9cea303e29af54b9138a367f3c2401, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/CommonUi/Verification/Ui002Preview.unity",
+    "line": 894,
+    "prefab": "Assets/YC/Presentation/CommonUi/Prefabs/StatusRow.prefab",
+    "object_id": "2835380316971636495",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: f74fdea60ee0c6d45806b6411416ba4a, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/CommonUi/Verification/Ui002Preview.unity",
+    "line": 902,
+    "prefab": "Assets/YC/Presentation/CommonUi/Prefabs/StatusRow.prefab",
+    "object_id": "5712718640161548013",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 7d33d8aaa12b8484ab725526bf9aeebe, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/CommonUi/Verification/Ui002Preview.unity",
+    "line": 1386,
+    "prefab": "Assets/YC/Presentation/CommonUi/Prefabs/StatusRow.prefab",
+    "object_id": "2835380316971636495",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: f74fdea60ee0c6d45806b6411416ba4a, type: 3}"
+  },
+  {
+    "file": "Assets/YC/Presentation/CommonUi/Verification/Ui002Preview.unity",
+    "line": 1394,
+    "prefab": "Assets/YC/Presentation/CommonUi/Prefabs/StatusRow.prefab",
+    "object_id": "5712718640161548013",
+    "property": "m_Sprite",
+    "reference": "{fileID: 21300000, guid: 7d33d8aaa12b8484ab725526bf9aeebe, type: 3}"
+  }
+]

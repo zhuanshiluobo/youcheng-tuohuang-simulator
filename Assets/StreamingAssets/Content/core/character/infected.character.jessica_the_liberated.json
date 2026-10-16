@@ -1,0 +1,84 @@
+{
+  "definitionId": "infected.character.jessica_the_liberated",
+  "contentType": "character",
+  "version": "2.0.0",
+  "displayName": "涤火杰西卡",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.jessica_the_liberated.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.character.jessica_the_liberated.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.jessica_the_liberated.strategy",
+      "script": "lua/characters/infected.character.jessica_the_liberated.strategy.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.jessica_the_liberated.strategy.completed",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "infected.character.jessica_the_liberated.tactic",
+      "mode": "tactic",
+      "skillType": "persistent",
+      "subscriptionId": "content.infected.character.jessica_the_liberated.tactic",
+      "script": "lua/characters/infected.character.jessica_the_liberated.tactic.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.jessica_the_liberated.tactic.completed",
+      "cleanupScript": "lua/characters/infected.character.jessica_the_liberated.tactic.lua",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "titleKey": "不义之财",
+      "descriptionKey": "支付绑定设施卡面金券费用加2，获得2分并弃置角色。",
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "infected.character.jessica_the_liberated.tactic.cleanup_order",
+        "availabilityHandlerId": "infected.character.jessica_the_liberated.tactic.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.infected.character.jessica_the_liberated.tactic.label"
+          },
+          "description": {
+            "key": "core:settlement.infected.character.jessica_the_liberated.tactic.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.infected.character.jessica_the_liberated.tactic.label"
+          },
+          "iconKey": "core:settlement.trigger_ready",
+          "contentMode": "icon_text"
+        },
+        "wholeEffectPolicy": "optional"
+      }
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.jessica_the_liberated",
+    "cardId": "infected.character.jessica_the_liberated",
+    "name": "涤火杰西卡",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "infected.character.jessica_the_liberated.strategy",
+    "tacticAbilityId": "infected.character.jessica_the_liberated.tactic",
+    "strategyName": "仗义之举",
+    "tacticName": "不义之财",
+    "sourceReference": "I27",
+    "playerDetails": [
+      {
+        "abilityId": "infected.character.jessica_the_liberated.tactic",
+        "effectText": "计谋·不义之财（持续性）：支付2分，免费建设1个设施，将本角色放在该设施之中。每个收尾阶段一次，支付该设施卡面金券费用加2的金券，获得2分后将本角色移至角色弃牌区。金券不足时保留本角色和绑定；绑定设施回盒时，本角色一同回盒。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Subscription",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "涤火杰西卡"
+      }
+    ]
+  }
+}

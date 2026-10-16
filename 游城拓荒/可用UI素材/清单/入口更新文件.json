@@ -1,0 +1,143 @@
+{
+  "date": "2026-10-08",
+  "scope": "仅两个 prompt 分类根层当前 Markdown；历史执行记录与快照未改",
+  "files": [
+    {
+      "path": "prompt/UI换新/00-共同执行约束.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\00-共同执行约束.md",
+      "beforeSHA256": "a5f7dbd84407fb25121709c171c8bf7efc4954b9088d3e71a58d760ee6ef6101",
+      "afterSHA256": "9bf61eb71a0105aa70ac00cea327aefd7cc6c3591be3f9e78cc9c967eb4eabf3"
+    },
+    {
+      "path": "prompt/UI换新/02-单页面与字体补充规范.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\02-单页面与字体补充规范.md",
+      "beforeSHA256": "5aad882089d0903a2dd6d0daaa7c15208483326ba2175d86a306bba775ab6733",
+      "afterSHA256": "9c76ad5e94a008f2ce4ac98b8cc646b5ff7963da4d2281470d1e0fd394e8511b"
+    },
+    {
+      "path": "prompt/UI换新/03-视觉搭建优先与分阶段验收.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\03-视觉搭建优先与分阶段验收.md",
+      "beforeSHA256": "b85aec963eeaa7e5e4e844e35af7b0c171bb4ec368ab195670a584fd74df6b2e",
+      "afterSHA256": "fa7b5311dd8add6313596b335c7119783e153860c27f5a7593ac677fe1b43cd9"
+    },
+    {
+      "path": "prompt/UI换新/04-主界面按钮3.2增量规范.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\04-主界面按钮3.2增量规范.md",
+      "beforeSHA256": "93220146fcc54e57b5f7b75bbcd9bfc398e3ed6efed1275e096d4a2cc944d2e1",
+      "afterSHA256": "dd294c3de64d2e3ea19b6b9bc9072bcbfed3c691db688f4647a017865f9b265a"
+    },
+    {
+      "path": "prompt/UI换新/06-效果条目3.4与主框3.5增量规范.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\06-效果条目3.4与主框3.5增量规范.md",
+      "beforeSHA256": "485b99bbcce756b7da21452c3b60d62dc5de8a898abbb1af4b190092ca3dffff",
+      "afterSHA256": "53243fec68cd81af77d41b549704b0c32ad8eadbbf63fe1669a92009a6feaf05"
+    },
+    {
+      "path": "prompt/UI换新/README.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\README.md",
+      "beforeSHA256": "f6c344e0ff1137990059ae1025749ce2bd14b025d8dfa79989c0d032f17794bd",
+      "afterSHA256": "009b65f61a7d768d9af98a405249372cb02bf19aaad90a40fda2952f3d243895"
+    },
+    {
+      "path": "prompt/UI换新/UI-001-当前入口与资产接入核对.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\UI-001-当前入口与资产接入核对.md",
+      "beforeSHA256": "482696912d579e627ae66c1f85a2fb5cc3e625a5f80de1dcc8c859ad672bdb6a",
+      "afterSHA256": "2468d82b6a48b1ecf3cedcb5cecefb0fb9e96681f7f6709b353ba1f7f7a36274"
+    },
+    {
+      "path": "prompt/UI换新/UI-002-新版素材导入与共用组件.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\UI-002-新版素材导入与共用组件.md",
+      "beforeSHA256": "6b6733868584afe6fa0bece626810210c948c3b729c632375ef66f4b07a749ef",
+      "afterSHA256": "168ed343c0a19a7676f2b5588cce7775e7c51de5201b7124d8f30e0c55506992"
+    },
+    {
+      "path": "prompt/UI换新/UI-003-常驻顶底栏与自适应框架.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\UI-003-常驻顶底栏与自适应框架.md",
+      "beforeSHA256": "4225e521d2f8c15d92fbea6e69ccc862ce76c1b95596cae4d499f44b7efa7805",
+      "afterSHA256": "9cb89b516df4eb302e34757e8c22bbb9bbbf3525aedd09efecdfb4acd6277d79"
+    },
+    {
+      "path": "prompt/UI换新/UI-005-补充-主界面按钮3.2.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\UI-005-补充-主界面按钮3.2.md",
+      "beforeSHA256": "b6d4644ae8b69afcaf4e51a474e458d86fa2e00656089a85e76582664920643a",
+      "afterSHA256": "937a2e1e75e26dac09476686aee88f1f9a3e56c5e2c8410509d455658cdfb55b"
+    },
+    {
+      "path": "prompt/UI换新/UI-006-补充-效果条目3.4与主框3.5.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\UI-006-补充-效果条目3.4与主框3.5.md",
+      "beforeSHA256": "11a7004ae2422d7bf4466f0ea8a15f7c05c3246469f74879632a7e9bed75460c",
+      "afterSHA256": "284b925d2df04a02fc87c4b6d318b1b13791e9e81121f450cc5ce2985a5541ae"
+    },
+    {
+      "path": "prompt/UI换新/UI-007-通用卡牌与选项窗口.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\UI-007-通用卡牌与选项窗口.md",
+      "beforeSHA256": "a0fe008b212366ee627f87378129bd00ea2afa602bf52604263df01c98a8595a",
+      "afterSHA256": "77195f43039558cec1ca4443fd6baa998b4d3e3923b592e5450c56cde0ac5900"
+    },
+    {
+      "path": "prompt/UI换新/UI-009-企业与科室选择.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\UI-009-企业与科室选择.md",
+      "beforeSHA256": "97368ffdcb24c4b7537766871ff058b18670d6ef13fd615fd94404a7105c2a84",
+      "afterSHA256": "647d4f24ba428fcb08456a277393c6473f3e45d0efdc4cf82246d3d357c51eea"
+    },
+    {
+      "path": "prompt/UI换新/UI-010-补充-城市样式素材构图纠正.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\UI-010-补充-城市样式素材构图纠正.md",
+      "beforeSHA256": "594c38b322cfa003aa106fce9115460dab6e1aa48e8b3e66e982300f035a07a3",
+      "afterSHA256": "053a3acfee07633ab964acff011818835b9f1156d3feeb6a9e4a5ccad3b324b1"
+    },
+    {
+      "path": "prompt/UI换新/UI-011-补充-卡牌查看器3.6.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\UI换新\\UI-011-补充-卡牌查看器3.6.md",
+      "beforeSHA256": "82d0653ec0a0204d883ea0364da870e26e8b0334f060f49326d70f5944ae5401",
+      "afterSHA256": "51a09b9d3d46e7ab60dbfcd566e7a15f95393f7a6cd9bf2201c33a3d973b37ba"
+    },
+    {
+      "path": "prompt/企业扩与感染者基础实装/00-共同执行约束.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\00-共同执行约束.md",
+      "beforeSHA256": "ff2d3556ef3bbfff569b0380a2559d079875ef42dd75e4d20f9fa1e780dda102",
+      "afterSHA256": "d5eca4275dad13ecc62a13b6cb07ded789bd8a6880c69da967eb6688fd1c2c5c"
+    },
+    {
+      "path": "prompt/企业扩与感染者基础实装/01-审阅结论与待处理项.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\01-审阅结论与待处理项.md",
+      "beforeSHA256": "01578511beb2ef36c62a942fefbe01a5ac1d93c061599bb3861f4e8a3616cc1a",
+      "afterSHA256": "0bb7a594989753f6c52a6fd96e9d401848626d187a08dba2caa86e6003b61dc2"
+    },
+    {
+      "path": "prompt/企业扩与感染者基础实装/02-房间UI接入合同.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\02-房间UI接入合同.md",
+      "beforeSHA256": "df409f57ff9442d203d13044ce6610f7baa49b05414605fd049a850a213ae65c",
+      "afterSHA256": "901423a2a576b34dc7f1892fe091245c3986c2f6581ab9ddacc31f1091c7c7ce"
+    },
+    {
+      "path": "prompt/企业扩与感染者基础实装/04-路径索引与实施文件归属.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\04-路径索引与实施文件归属.md",
+      "beforeSHA256": "3d249620319828a5a1bc400c301c250b6578d556320877319650f5fa7873fd93",
+      "afterSHA256": "44dc0a8f4f3f0d8427db4bebbe9e1f6f2d69b4e4a4b02aa953b863ab5ded8433"
+    },
+    {
+      "path": "prompt/企业扩与感染者基础实装/EXP-004-房间配置与权威同步.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\EXP-004-房间配置与权威同步.md",
+      "beforeSHA256": "d71a87e283ec9777269a59d0c9e16f7f5a6472bb4745087d4578fbbd452b98e7",
+      "afterSHA256": "a045776114ecd6fb4b30de03a25bb30036f29129bbe9a09df201107156e00e42"
+    },
+    {
+      "path": "prompt/企业扩与感染者基础实装/EXP-005-房间界面素材与接线.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\EXP-005-房间界面素材与接线.md",
+      "beforeSHA256": "c057f3ad45814a19defdb166558d75a0db36785c1404aa3948b5ce42052b8eb6",
+      "afterSHA256": "dba43f9d91b1641e122f48d20dc3d261b2c2ca733265887a8edb71256100b784"
+    },
+    {
+      "path": "prompt/企业扩与感染者基础实装/README.md",
+      "absolutePath": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\README.md",
+      "beforeSHA256": "2cfeeed1a8349c76543c3673e99a33fe76abc7f5850533150fc34f95fb2c4780",
+      "afterSHA256": "af81a476bdd0e83912cebb92127e4b131cca1edbd2b608fb94f5fa6821c0fd96"
+    }
+  ],
+  "validation": {
+    "newLibraryLinkCount": 66,
+    "missingLinks": [],
+    "historyEdited": false
+  }
+}

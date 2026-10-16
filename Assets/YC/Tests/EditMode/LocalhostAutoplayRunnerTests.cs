@@ -1,4 +1,7 @@
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using YC.Domain.Effects;
 using YC.Application.DevTools;
 using YC.Domain.Cards;
 using YC.Domain.CityStyles;
@@ -10,12 +13,31 @@ namespace YC.Tests.EditMode
 {
     public sealed class LocalhostAutoplayRunnerTests
     {
+        private static void RegisterContentAndObserveMainline(EffectRegistry registry)
+        {
+            YC.Infrastructure.Lua.LuaContentCatalog.Register(registry);
+            var rounds = new HashSet<int>(); var actionRounds = new HashSet<string>();
+            registry.RegisterEventHandler(new EffectEventHandlerRegistration("test.autoplay.round_observer", "RoundStarted", "*", "test.autoplay.round_observer", context =>
+            {
+                Assert.That(rounds.Add(context.State.Round), Is.True, "回合开始事件重复发布。");
+                Console.WriteLine("自动跑局进入第 " + context.State.Round + " 回合，人数 " + context.State.Players.Count + "。");
+                var patternBuilder = context.State.FindPlayer(context.State.Players.Count == 3 ? 2 : 4);
+                Console.WriteLine("图案建设者玩家 " + patternBuilder.PlayerId + " 的已建设施：" + string.Join(",", patternBuilder.BuiltFacilityIds) + "。");
+                return new List<EffectSpec>();
+            }));
+            registry.RegisterEventHandler(new EffectEventHandlerRegistration("test.autoplay.action_round_observer", "ActionRoundStarted", "*", "test.autoplay.action_round_observer", context =>
+            {
+                Assert.That(actionRounds.Add(context.State.Round + ":" + context.State.ActionRound), Is.True, "行动轮开始事件重复发布。");
+                return new List<EffectSpec>();
+            }));
+        }
         [Test]
         public void RunToRound8Settlement_FillsFourSeatsAndOutputsSnapshot()
         {
-            var result = LocalhostAutoplayRunner.RunToRound8Settlement(YC.Infrastructure.Lua.LuaContentCatalog.Register);
+            var result = LocalhostAutoplayRunner.RunToRound8Settlement(RegisterContentAndObserveMainline);
 
             Assert.That(result.Succeeded, Is.True, result.Snapshot);
+            Assert.That(result.FinalState.EffectRuntime.RuleEvents.FindAll(e => e.EventType == "ActionRoundStarted").Count, Is.EqualTo(16));
             Assert.That(result.Seats, Has.Count.EqualTo(4));
             Assert.That(result.FinalState.Players, Has.Count.EqualTo(4));
             Assert.That(result.FinalState.Round, Is.EqualTo(8));
@@ -189,10 +211,11 @@ namespace YC.Tests.EditMode
         public void RunToRound8Settlement_FillsThreeSeatsAndOutputsSnapshot()
         {
             var result = LocalhostAutoplayRunner.RunToRound8Settlement(
-                YC.Infrastructure.Lua.LuaContentCatalog.Register,
+                RegisterContentAndObserveMainline,
                 3);
 
             Assert.That(result.Succeeded, Is.True, result.Snapshot);
+            Assert.That(result.FinalState.EffectRuntime.RuleEvents.FindAll(e => e.EventType == "ActionRoundStarted").Count, Is.EqualTo(16));
             Assert.That(result.FinalState, Is.Not.Null, result.Snapshot);
             Assert.That(result.FinalState.MapId, Is.EqualTo(YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId));
             Assert.That(result.Seats, Has.Count.EqualTo(3));

@@ -35,6 +35,10 @@ namespace YC.Presentation
         [SerializeField] private CharacterBackTextureEntry[] characterBackTextures =
             new CharacterBackTextureEntry[0];
         [SerializeField] private Texture2D cityBoardTexture;
+        [NonSerialized] private Func<string, string> runtimeDefinitionResolver;
+
+        public void BindRuntimeDefinitions(Func<string, string> resolver) => runtimeDefinitionResolver = resolver;
+        private string ResolveDefinition(string id) => runtimeDefinitionResolver?.Invoke(id) ?? id;
 
         public int FacilityCount => CountContent("facility");
         public int CityStyleCount => CountContent("city_style");
@@ -86,12 +90,13 @@ namespace YC.Presentation
             }
         }
 
-        public Sprite GetFacility(string facilityId) => ExternalContentRuntime.GetArtworkSprite("facility", facilityId);
+        public Sprite GetFacility(string facilityId) => ExternalContentRuntime.GetArtworkSprite("facility", ResolveDefinition(facilityId));
 
-        public Sprite GetCityStyle(string cityStyleId) => ExternalContentRuntime.GetArtworkSprite("city_style", cityStyleId);
+        public Sprite GetCityStyle(string cityStyleId) => ExternalContentRuntime.GetArtworkSprite("city_style", ResolveDefinition(cityStyleId));
 
         public Sprite GetCharacterFront(string cardId)
         {
+            cardId = ResolveDefinition(cardId);
             var direct = ExternalContentRuntime.GetArtworkSprite("character", cardId);
             if (direct != null) return direct;
             var definition = CharacterCardDatabase.Get(cardId);
@@ -99,9 +104,15 @@ namespace YC.Presentation
         }
 
         public Texture2D GetCharacterBack(PlayerColor color) =>
-            ExternalContentRuntime.GetSharedArtwork("character_back_" + ((int)color).ToString());
+            GetCharacterBack("character_back_" + ((int)color).ToString());
 
-        public Sprite GetEvent(string cardId) => ExternalContentRuntime.GetArtworkSprite("event", cardId);
+        public Texture2D GetCharacterBack(string backVisualKey) =>
+            backVisualKey == "operator_back" || backVisualKey == "flowing_shape_back" || backVisualKey == "character_back_0" ||
+            backVisualKey == "character_back_1" || backVisualKey == "character_back_2" ||
+            backVisualKey == "character_back_3"
+                ? ExternalContentRuntime.GetSharedArtwork(backVisualKey) : null;
+
+        public Sprite GetEvent(string cardId) => ExternalContentRuntime.GetArtworkSprite("event", ResolveDefinition(cardId));
 
         public Texture2D GetCityBoard() => ExternalContentRuntime.GetSharedArtwork("city_board");
 

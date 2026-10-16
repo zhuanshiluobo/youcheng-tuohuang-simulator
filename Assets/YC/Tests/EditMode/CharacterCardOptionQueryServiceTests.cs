@@ -201,6 +201,7 @@ namespace YC.Tests.EditMode
         {
             return new GameState
             {
+                MapId = YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId,
                 Phase = GamePhase.ActionRound1,
                 CurrentPlayerId = 1,
                 StartPlayerId = 1,

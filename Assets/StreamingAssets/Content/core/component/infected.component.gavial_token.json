@@ -1,0 +1,19 @@
+{
+  "definitionId": "infected.component.gavial_token",
+  "contentType": "component",
+  "version": "1.0.0",
+  "displayName": "嘉维尔指示物",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/components/infected.component.gavial_token.png",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "infected.gavial_token",
+  "cardZones": [],
+  "abilities": [],
+  "data": {
+    "instanceTypeId": "infected.gavial_token",
+    "quantityPolicy": "finite"
+  }
+}

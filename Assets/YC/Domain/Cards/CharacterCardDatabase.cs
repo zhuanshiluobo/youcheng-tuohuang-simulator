@@ -7,6 +7,9 @@ namespace YC.Domain.Cards
 {
     public static class CharacterCardDatabase
     {
+        public static CharacterCardDefinition Get(GameState state, string id) => state?.ContentDefinitions == null ? Get(id) :
+            GameStateCloneService.DeepClone(state.ContentDefinitions.Characters.Find(value => value.TemplateId == GameSetupRecipeDefinitionId(state, id)));
+        private static string GameSetupRecipeDefinitionId(GameState state, string id) => YC.Domain.Rules.GameContentDefinitions.ResolveDefinitionId(state, id);
         public const string Liskarm = "liskarm";
         public const string Elysium = "elysium";
         public const string Texas = "texas";
@@ -19,6 +22,9 @@ namespace YC.Domain.Cards
         {
             Liskarm, Elysium, Texas, Cannot, TinMan
         };
+
+        public static IReadOnlyList<string> CanonicalDisplayOrder { get; } =
+            Array.AsReadOnly(CanonicalInitialTemplateIds);
 
         private static readonly object Gate = new object();
         private static IReadOnlyDictionary<string, CharacterCardDefinition> templatesById;
@@ -88,7 +94,7 @@ namespace YC.Domain.Cards
             IReadOnlyList<string> templateIds;
             lock (Gate)
             {
-                templateIds = initialTemplateIds;
+                templateIds = templatesById == null ? null : CanonicalInitialTemplateIds;
             }
 
             if (templateIds == null)
@@ -130,7 +136,8 @@ namespace YC.Domain.Cards
                     "CharacterCardDatabase 未初始化：必须先由 EventCharacterCatalogBootstrap 注入完整目录。");
             }
 
-            var templateId = GetTemplateId(cardId);
+            var templateId = !string.IsNullOrEmpty(cardId) && snapshot.ContainsKey(cardId)
+                ? cardId : GetTemplateId(cardId);
             if (string.IsNullOrEmpty(templateId) ||
                 !snapshot.TryGetValue(templateId, out var template))
             {
@@ -191,6 +198,7 @@ namespace YC.Domain.Cards
                 CardId = source.CardId,
                 TemplateId = source.TemplateId,
                 Name = source.Name,
+                BackVisualKey = source.BackVisualKey,
                 IsExternalDefinition = source.IsExternalDefinition,
                 ConfiguredStrategyAbilityId = source.ConfiguredStrategyAbilityId,
                 ConfiguredTacticAbilityId = source.ConfiguredTacticAbilityId,
@@ -237,6 +245,7 @@ namespace YC.Domain.Cards
             return left.CardId == right.CardId &&
                    left.TemplateId == right.TemplateId &&
                    left.Name == right.Name &&
+                   left.BackVisualKey == right.BackVisualKey &&
                    left.StrategyAbilityId == right.StrategyAbilityId && left.TacticAbilityId == right.TacticAbilityId &&
                    left.StrategyEffect == right.StrategyEffect &&
                    left.TacticEffect == right.TacticEffect;

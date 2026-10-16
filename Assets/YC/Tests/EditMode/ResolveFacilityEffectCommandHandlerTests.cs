@@ -680,6 +680,7 @@ namespace YC.Tests.EditMode
             var build = new BuildFacilityService();
             var state = new GameState
             {
+                MapId = StaticMapDefinitions.FourPlayerMapId,
                 Phase = GamePhase.ActionRound1,
                 CurrentPlayerId = 1,
                 Round = 4

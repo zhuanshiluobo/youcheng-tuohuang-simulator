@@ -87,7 +87,11 @@ namespace YC.Tests.EditMode
             state.EffectRuntime.RuleEvents[0].StateRevision = commit.StateRevision;
             state.EffectRuntime.RuleEvents[0].CommitSequence = commit.LastCommitSequence;
 
-            GameState roundTrip = JsonUtility.FromJson<GameState>(JsonUtility.ToJson(state));
+            // Host 存档使用 Newtonsoft；JsonUtility 无法保留当前可选引用和实体位置结构。
+            var archiveSettings = (Newtonsoft.Json.JsonSerializerSettings)typeof(HostRecoveryService)
+                .GetField("ArchiveSettings", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+            GameState roundTrip = Newtonsoft.Json.JsonConvert.DeserializeObject<GameState>(
+                Newtonsoft.Json.JsonConvert.SerializeObject(state, archiveSettings), archiveSettings);
 
             Assert.That(roundTrip, Is.Not.Null);
             Assert.That(roundTrip.EffectRuntime, Is.Not.Null);

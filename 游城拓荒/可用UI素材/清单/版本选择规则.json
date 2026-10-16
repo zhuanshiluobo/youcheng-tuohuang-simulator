@@ -1,0 +1,1500 @@
+{
+  "generatedAt": "2026-10-08",
+  "scope": "只读来源规则审阅；未改项目贴图或原库",
+  "matching": "pattern均相对各ZIP根目录，多个命中按更具体路径/限制条目优先；规则旨在供策展审阅，不可直接无条件删文件。",
+  "principles": [
+    "包内实际最新版本高于文件名版本与过期外部说明。",
+    "版本按职责覆盖，不因新包存在就淘汰所有旧包；每个保留旧图必须列允许用途与开发文档依据。",
+    "preview/reference/examples/verification图只作说明，不入可选运行时素材；source原料仅支持SVG依赖。",
+    "同一字节可有不同用途许可，去重必须保留所有来源与允许/禁止作用域。",
+    "缺少匹配素材时报告缺口和所需语义，不拿相似图替代，不重画，不用系统默认UI掩盖缺图。"
+  ],
+  "packages": {
+    "MainGameUI-v2.2.zip": {
+      "adoptedVersion": "2.2内容基线",
+      "zipRoot": "MainGameUI-v2.2",
+      "rules": [
+        {
+          "pattern": "02-modules/card-slot-frame.png",
+          "decision": "保留",
+          "scope": "主界面角色牌卡槽（手牌、弃牌、盖牌）及企业家卡框的当前标准",
+          "reason": "当前主界面卡框采用2.2 card-slot-frame，按实际Sliced、源切片14、Image倍率3配置；该用途旧3.1迁移期望失效",
+          "evidence": [
+            "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+            "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+          ]
+        },
+        {
+          "pattern": "07-originals/entrepreneur-*.jpg",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "企业家演示原画未核准为当前正式来源，不作为可选UI素材"
+        },
+        {
+          "pattern": "07-originals/character-atlas.jpg",
+          "decision": "仅正式切片来源映射",
+          "scope": "角色卡正面",
+          "reason": "已与正式角色卡.jpg字节核对相同；不得直接赋给RawImage，不另导出逐张正面。",
+          "replacement": "ArtworkSliceCatalog/CardVisualCatalog + artwork_slices.json"
+        },
+        {
+          "pattern": "07-originals/entrepreneur-*.jpg",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "演示原画未获得当前正式内容核准，不能作为UI候选。"
+        },
+        {
+          "pattern": "00-screen/*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "旧主屏框与底图已被Frontier3.1按角色替换",
+          "replacement": "Frontier module-bg / MainFrame3.5 outer-frame",
+          "evidence": [
+            "FrontierUI-v3-Incremental.md:素材清单与旧包映射",
+            "FrontierUI-v3-Patch/skin-patch.json:oldRoleToNewAssetIds"
+          ]
+        },
+        {
+          "pattern": "01-topbar/*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "旧顶栏含红旗、标题组合层已淘汰",
+          "replacement": "FrontierUI3.1 topbar-v3/*"
+        },
+        {
+          "pattern": "02-modules/*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "未被具体当前标准选中的旧模块层不作为候选；主界面card-slot-frame按专门条目采用2.2",
+          "replacement": "FrontierUI3.1 shared-v3/*"
+        },
+        {
+          "pattern": "03-controls/button-*",
+          "decision": "排除或仅登记有效特例",
+          "scope": "全部",
+          "reason": "主次按钮旧外观被Frontier替代；不得作为3.2行动按钮回退",
+          "replacement": "Frontier通用按钮 / MainButtons3.2"
+        },
+        {
+          "pattern": "03-controls/tab-*",
+          "decision": "限制使用",
+          "scope": "保留仅供未被更新的专用页签",
+          "reason": "不得用于3.2列出的三个主行动页签；专用窗口未明示替代的页签仍可用",
+          "replacement": "MainButtons3.2 tab-*"
+        },
+        {
+          "pattern": "03-controls/stepper-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "未被补丁取代的数量步进器"
+        },
+        {
+          "pattern": "03-controls/scrollbar-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "未被补丁取代的通用滚动条"
+        },
+        {
+          "pattern": "04-markers/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "玩家色及组合语义明确沿用；gallery仅参考不可接入"
+        },
+        {
+          "pattern": "05-textures/*",
+          "decision": "排除运行时可选项",
+          "scope": "全部",
+          "reason": "生成原料、旧皮肤与参考图；不是缺失素材替代品"
+        },
+        {
+          "pattern": "06-icons/*",
+          "decision": "限制使用",
+          "scope": "全部",
+          "reason": "按具体语义保留；settings/collapse等新版顶栏职责使用3.1图标"
+        },
+        {
+          "pattern": "07-originals/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "城市原板与资源原符号未被换肤取代"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "MainGameUI-v2.2"
+      ]
+    },
+    "MainGameUI-Topbar-v2.2.zip": {
+      "adoptedVersion": "已淘汰",
+      "zipRoot": "MainGameUI-Topbar-v2.2",
+      "rules": [
+        {
+          "pattern": "*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "独立历史顶栏不进入当前可用库",
+          "replacement": "FrontierUI3.1 topbar-v3/*"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "MainGameUI-Topbar-v2.2"
+      ]
+    },
+    "MainGameUI-CooperationMarkers-v1.zip": {
+      "adoptedVersion": "1",
+      "zipRoot": "MainGameUI-CooperationMarkers-v1",
+      "rules": [
+        {
+          "pattern": "04-markers/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "玩家组合标记、数量底板和叠层，按哈希合并来源"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "MainGameUI-CooperationMarkers-v1"
+      ]
+    },
+    "FrontierUI-v3-Patch.zip": {
+      "adoptedVersion": "3.1组件 / 3.0区域布局",
+      "zipRoot": "FrontierUI-v3-Patch",
+      "rules": [
+        {
+          "pattern": "shared-v3/button-*",
+          "decision": "保留",
+          "scope": "UI-011普通页面及其他当前采用3.1通用按钮的用途",
+          "reason": "UI-011普通按钮当前标准是3.1主/次/禁用按钮；企业/科室标准为3.2，不属于此图应迁移目标；不能回退早期主界面或CardPicker缺角按钮",
+          "evidence": [
+            "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+            "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+          ]
+        },
+        {
+          "pattern": "shared-v3/card-frame.*",
+          "decision": "保留",
+          "scope": "已使用3.1卡框的其他卡区；不含主界面角色牌和企业家卡框",
+          "reason": "3.1 card-frame仅用于其当前卡区；主界面角色牌及企业家采用2.2，不再作为此图迁移目标",
+          "evidence": [
+            "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+            "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+          ]
+        },
+        {
+          "pattern": "shared-v3/module-frame.*",
+          "decision": "保留",
+          "scope": "当前普通窗口外框及已有内部分区",
+          "reason": "当前普通窗口外框使用module-frame，逐实例沿用实际Image倍率；不得恢复outer-frame或统一套倍率3；主界面四项3.5框体不变",
+          "evidence": [
+            "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+            "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+          ]
+        },
+        {
+          "pattern": "shared-v3/outer-frame.*",
+          "decision": "排除",
+          "scope": "当前普通窗口",
+          "reason": "当前普通窗口采用module-frame；3.1 outer-frame旧窗口默认期望失效，仅旧备用模板尚有引用，不能据此保留为候选",
+          "evidence": [
+            "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+            "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+          ]
+        },
+        {
+          "pattern": "bottom-v3/bottom-bar.*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "3.5干净底图替换白角旧底图",
+          "replacement": "MainFrame3.5 bottom-bar-clean"
+        },
+        {
+          "pattern": "bottom-v3/bottom-frame.*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "3.5细框替代",
+          "replacement": "MainFrame3.5 bottom-frame"
+        },
+        {
+          "pattern": "bottom-v3/chain-slot-frame.*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "3.5细框替代",
+          "replacement": "MainFrame3.5 chain-slot-frame"
+        },
+        {
+          "pattern": "bottom-v3/chain-slot-bg.*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "3.5明确原槽底图可沿用"
+        },
+        {
+          "pattern": "bottom-v3/undo-*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "底栏撤销外观已在3.2十一按钮范围",
+          "replacement": "MainButtons3.2 undo-*"
+        },
+        {
+          "pattern": "shared-v3/icon-undo-*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "底栏撤销图标已在3.2十一按钮范围",
+          "replacement": "MainButtons3.2 icons/undo-*"
+        },
+        {
+          "pattern": "topbar-v3/turn-tag.*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "3.0兼容图不得作为现用图",
+          "replacement": "topbar-v3/turn-tag-refined.*"
+        },
+        {
+          "pattern": "topbar-v3/redzone-paper.*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "3.1现用红区分组是redzone-plaque",
+          "replacement": "topbar-v3/redzone-plaque.*"
+        },
+        {
+          "pattern": "shared-v3/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "其余模块、卡底、卡框、抽屉、图标按manifest角色"
+        },
+        {
+          "pattern": "topbar-v3/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "其余3.1顶栏组件按manifest角色"
+        },
+        {
+          "pattern": "sources/*",
+          "decision": "仅构建依赖",
+          "scope": "全部",
+          "reason": "SVG引用原料，不能作为单独运行时素材"
+        },
+        {
+          "pattern": "preview/*",
+          "decision": "仅参考",
+          "scope": "全部",
+          "reason": "禁止把整图或样例卡直接接入UI"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "FrontierUI-v3-Patch"
+      ]
+    },
+    "MainButtons-v3.2-Patch.zip": {
+      "adoptedVersion": "3.2",
+      "zipRoot": "MainButtons-v3.2-Patch",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "主界面11按钮、企业/科室按钮，以及其他已明确采用3.2的目标",
+          "reason": "当前3.2负责主界面11按钮及企业/科室确认/返回/取消等已用按钮；action/primary四态按实际绑定。UI-011普通按钮期望仍为3.1；建设/部署图标按项目现用图",
+          "evidence": [
+            "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+            "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+          ]
+        },
+        {
+          "pattern": "assets/icons/deploy-*",
+          "decision": "排除",
+          "scope": "主界面部署按钮图标",
+          "reason": "部署按钮各状态当前统一使用项目action-deploy.png，原版deploy三色及各分辨率不再作为候选",
+          "evidence": [
+            "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+            "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+          ]
+        },
+        {
+          "pattern": "assets/icons/build-*",
+          "decision": "排除",
+          "scope": "主界面建设按钮图标",
+          "reason": "建设按钮各状态当前统一使用项目action-build.png，原版build三色及各分辨率不再作为候选",
+          "evidence": [
+            "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+            "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+          ]
+        },
+        {
+          "pattern": "integration/*",
+          "decision": "仅参数参考",
+          "scope": "全部",
+          "reason": "安装合并清单不能覆盖之后3.4/3.5的同名角色"
+        }
+      ],
+      "notes": [
+        "企业/科室按钮3.2为当前标准，不是用途例外；以本轮用户确认覆写旧文档的不覆盖企业窗口结论。",
+        "城市样式确认继续采用已指定primary四态；本轮不扩大到UI-011普通页面。",
+        "建设/部署图标采用项目当前替换图，light/dark/muted三字段均绑定同一张对应图，原版三色退出候选。"
+      ],
+      "actualZipRoots": [
+        "MainButtons-v3.2-Patch"
+      ]
+    },
+    "EffectRows-v3.4-Patch.zip": {
+      "adoptedVersion": "3.4",
+      "zipRoot": "EffectRows-v3.4-Patch",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "选择执行、其他玩家持续明细、快速行动三模式共用；右侧use/used/unused不混用"
+        },
+        {
+          "pattern": "integration/asset-manifest.json",
+          "decision": "仅参数参考",
+          "scope": "全部",
+          "reason": "内含旧主框，绝不可整份覆盖3.5"
+        },
+        {
+          "pattern": "preview/*",
+          "decision": "仅参考",
+          "scope": "全部",
+          "reason": "不是运行时素材"
+        }
+      ],
+      "notes": [
+        "v33-兼容ID仍指向3.4，无需装3.3。",
+        "最新2026-10-06用户要求效果条目外框76、正文31；长文只同步缩小两种字号，不能增加条目长宽。依据prompt/企业扩与感染者基础实装/10-局内明细内容与条目返工清单.md及06增量规范第3行。"
+      ],
+      "actualZipRoots": [
+        "EffectRows-v3.4-Patch"
+      ]
+    },
+    "MainFrame-v3.5-Patch.zip": {
+      "adoptedVersion": "3.5",
+      "zipRoot": "main-frame-patch-v3.5",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "外框、底栏框、结算槽框、干净底栏底图，整图与八片二选一"
+        },
+        {
+          "pattern": "integration/catalog-overrides.json",
+          "decision": "保留参数",
+          "scope": "全部",
+          "reason": "2x路径+2x源切片，目标切片仍1x，不能混用"
+        }
+      ],
+      "notes": [
+        "替换职责只有四项，不概括为所有专用窗口强制用3.5；普通模块边框继续Frontier3.1。"
+      ],
+      "actualZipRoots": [
+        "main-frame-patch-v3.5"
+      ]
+    },
+    "CardViewer-v3.6-Patch.zip": {
+      "adoptedVersion": "3.6.2",
+      "zipRoot": "CardViewer-v3.6.2",
+      "rules": [
+        {
+          "pattern": "assets/window.png",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "明确复用原Card-Picker合并底图，不能假装纯九宫格框"
+        },
+        {
+          "pattern": "assets/button-primary.png",
+          "decision": "可选兼容方案",
+          "scope": "全部",
+          "reason": "3.6.2新版米灰按钮，1983x793，visibleRect [35,102,1916,582]"
+        },
+        {
+          "pattern": "assets/button-secondary.png",
+          "decision": "可选兼容方案",
+          "scope": "全部",
+          "reason": "3.6.2新版暖棕按钮，1983x793，visibleRect [35,102,1916,582]"
+        },
+        {
+          "pattern": "assets/buttons/*",
+          "decision": "推荐且项目已采用",
+          "scope": "全部",
+          "reason": "四态紧凑新按钮；计谋/策略224x64、取消176x64；不套旧visibleRect"
+        },
+        {
+          "pattern": "preview/originals/*",
+          "decision": "仅演示",
+          "scope": "全部",
+          "reason": "卡图从正式当前游戏内容传入"
+        }
+      ],
+      "notes": [
+        "包文件名3.6不能盖过包内3.6.2文档。外部CardViewer-v3.6-Layout.md中的旧金色按钮描述已过期。",
+        "两种新按钮接入路径择一；项目执行记录/角色牌3.6.2修复/说明.md明确采用紧凑@2x。"
+      ],
+      "actualZipRoots": [
+        "CardViewer-v3.6.2"
+      ]
+    },
+    "Card-Picker-UI-v1.zip": {
+      "adoptedVersion": "1.0专用保留",
+      "zipRoot": "card-picker-ui-v1",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "evidence": [
+            "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
+            "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
+          ]
+        }
+      ],
+      "notes": [
+        "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。"
+      ],
+      "actualZipRoots": [
+        "card-picker-ui-v1"
+      ]
+    },
+    "Option-Picker-UI-v1.zip": {
+      "adoptedVersion": "1",
+      "zipRoot": "option-picker-ui-v1",
+      "rules": [
+        {
+          "pattern": "assets/window.png",
+          "decision": "限制使用",
+          "scope": "只在有明确未迁移界面用途时",
+          "reason": "现局内通用壳已采用Frontier窗口皮肤，不可用旧整窗作为当前局内选择窗口替代",
+          "replacement": "Frontier window roles"
+        },
+        {
+          "pattern": "assets/button-primary.png",
+          "decision": "限制使用",
+          "scope": "全部",
+          "reason": "旧按钮不要回退局内已换肤通用壳；若与CardPicker同哈希仅登记CardPicker许可"
+        },
+        {
+          "pattern": "assets/button-secondary.png",
+          "decision": "限制使用",
+          "scope": "全部",
+          "reason": "旧按钮不要回退局内已换肤通用壳；若与CardPicker同哈希仅登记CardPicker许可"
+        },
+        {
+          "pattern": "assets/button-stepper.png",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "资源数量编辑，非立即执行use按钮"
+        },
+        {
+          "pattern": "assets/option-row.png",
+          "decision": "限制使用",
+          "scope": "不得替代3.4 choice_execute",
+          "reason": "普通单选/重复出售布局；3.4选择执行场景用效果行",
+          "replacement": "EffectRows3.4"
+        },
+        {
+          "pattern": "assets/resource-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "原资源符号"
+        },
+        {
+          "pattern": "assets/scrollbar-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "专用滚动条"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "option-picker-ui-v1"
+      ]
+    },
+    "EnterprisePicker-v1.0.zip": {
+      "adoptedVersion": "1.0.1",
+      "zipRoot": "EnterprisePicker-v1.0",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "可选、选中、不可选状态层按专用用途，不可用普通card-frame替代"
+        },
+        {
+          "pattern": "shared/02-modules/*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "旧框/底/标题已明示映射Frontier",
+          "replacement": "Frontier windowRoleToNewAssetIds"
+        },
+        {
+          "pattern": "shared/03-controls/button-*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "旧企业/科室包按钮不作为候选，当前使用3.2；不再期望恢复3.1",
+          "replacement": "MainButtons3.2 action/primary四态（企业/科室当前标准）",
+          "evidence": [
+            "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+            "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+          ]
+        },
+        {
+          "pattern": "shared/03-controls/scrollbar-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "未被专项覆盖的滚动控件"
+        },
+        {
+          "pattern": "shared/03-controls/stepper-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "未被专项覆盖的数量步进器"
+        },
+        {
+          "pattern": "shared/03-controls/tab-*",
+          "decision": "限制使用",
+          "scope": "全部",
+          "reason": "专用页签可保留，不能替代3.2三个行动页签"
+        },
+        {
+          "pattern": "shared/04-markers/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "按哈希合并玩家标记来源"
+        },
+        {
+          "pattern": "shared/card-picker/*",
+          "decision": "仅其他合法专用用途",
+          "scope": "全部",
+          "reason": "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并"
+        },
+        {
+          "pattern": "shared/05-textures/*",
+          "decision": "排除运行时可选项",
+          "scope": "全部",
+          "reason": "旧皮肤/生产原料"
+        },
+        {
+          "pattern": "originals/main-background.*",
+          "decision": "排除运行时可选项",
+          "scope": "全部",
+          "reason": "旧主屏拼装参考不得用作窗口背景"
+        },
+        {
+          "pattern": "originals/*",
+          "decision": "保留原画",
+          "scope": "全部",
+          "reason": "按正式内容目录挑选当前有效卡/板，不用演示样本覆盖正式内容"
+        }
+      ],
+      "notes": [
+        "2026-10-07用户明确企业页外层Frame改Frontier module-frame，原先仅EnterpriseSelectionDialog，三种模式共用；后续2026-10-07 22:31记录确认Department也已获准并改为module-frame。",
+        "当前标准：外框module-frame，确认/返回/取消等按钮MainButtons3.2；内容板图、分区与其他既有层按实际资产使用。本轮确认覆盖较早3.1按钮期望。"
+      ],
+      "actualZipRoots": [
+        "EnterprisePicker-v1.0"
+      ]
+    },
+    "FacilityBuild-UI-v1.0.zip": {
+      "adoptedVersion": "1.0",
+      "zipRoot": "FacilityBuild-UI-v1.0",
+      "rules": [
+        {
+          "pattern": "originals/patterns-*-atlas.jpg",
+          "decision": "仅正式切片来源映射",
+          "scope": "对应卡牌正面",
+          "reason": "已与正式整图字节核对相同；不得直接当UI贴图，不另导出逐张正面。",
+          "replacement": "ArtworkSliceCatalog/CardVisualCatalog + artwork_slices.json"
+        },
+        {
+          "pattern": "originals/facility-atlas.jpg",
+          "decision": "仅正式切片来源映射",
+          "scope": "对应卡牌正面",
+          "reason": "已与正式整图字节核对相同；不得直接当UI贴图，不另导出逐张正面。",
+          "replacement": "ArtworkSliceCatalog/CardVisualCatalog + artwork_slices.json"
+        },
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "可选、选中、不可选状态层按专用用途，不可用普通card-frame替代"
+        },
+        {
+          "pattern": "shared/02-modules/*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "旧框/底/标题已明示映射Frontier",
+          "replacement": "Frontier windowRoleToNewAssetIds"
+        },
+        {
+          "pattern": "shared/03-controls/button-*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "旧主次按钮换肤已明确",
+          "replacement": "Frontier button-primary/secondary/disabled"
+        },
+        {
+          "pattern": "shared/03-controls/scrollbar-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "未被专项覆盖的滚动控件"
+        },
+        {
+          "pattern": "shared/03-controls/stepper-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "未被专项覆盖的数量步进器"
+        },
+        {
+          "pattern": "shared/03-controls/tab-*",
+          "decision": "限制使用",
+          "scope": "全部",
+          "reason": "专用页签可保留，不能替代3.2三个行动页签"
+        },
+        {
+          "pattern": "shared/04-markers/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "按哈希合并玩家标记来源"
+        },
+        {
+          "pattern": "shared/card-picker/*",
+          "decision": "仅其他合法专用用途",
+          "scope": "全部",
+          "reason": "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并"
+        },
+        {
+          "pattern": "shared/05-textures/*",
+          "decision": "排除运行时可选项",
+          "scope": "全部",
+          "reason": "旧皮肤/生产原料"
+        },
+        {
+          "pattern": "originals/main-background.*",
+          "decision": "排除运行时可选项",
+          "scope": "全部",
+          "reason": "旧主屏拼装参考不得用作窗口背景"
+        },
+        {
+          "pattern": "originals/*",
+          "decision": "保留原画",
+          "scope": "全部",
+          "reason": "按正式内容目录挑选当前有效卡/板，不用演示样本覆盖正式内容"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "FacilityBuild-UI-v1.0"
+      ]
+    },
+    "CityPattern-UI-v1.0.zip": {
+      "adoptedVersion": "1.0",
+      "zipRoot": "CityPattern-UI-v1.0",
+      "rules": [
+        {
+          "pattern": "originals/patterns-*-atlas.jpg",
+          "decision": "仅正式切片来源映射",
+          "scope": "对应卡牌正面",
+          "reason": "已与正式整图字节核对相同；不得直接当UI贴图，不另导出逐张正面。",
+          "replacement": "ArtworkSliceCatalog/CardVisualCatalog + artwork_slices.json"
+        },
+        {
+          "pattern": "originals/facility-atlas.jpg",
+          "decision": "仅正式切片来源映射",
+          "scope": "对应卡牌正面",
+          "reason": "已与正式整图字节核对相同；不得直接当UI贴图，不另导出逐张正面。",
+          "replacement": "ArtworkSliceCatalog/CardVisualCatalog + artwork_slices.json"
+        },
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "可选、选中、不可选状态层按专用用途，不可用普通card-frame替代"
+        },
+        {
+          "pattern": "shared/02-modules/*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "旧框/底/标题已明示映射Frontier",
+          "replacement": "Frontier windowRoleToNewAssetIds"
+        },
+        {
+          "pattern": "shared/03-controls/button-*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "旧主次按钮换肤已明确",
+          "replacement": "Frontier button-primary/secondary/disabled"
+        },
+        {
+          "pattern": "shared/03-controls/scrollbar-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "未被专项覆盖的滚动控件"
+        },
+        {
+          "pattern": "shared/03-controls/stepper-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "未被专项覆盖的数量步进器"
+        },
+        {
+          "pattern": "shared/03-controls/tab-*",
+          "decision": "限制使用",
+          "scope": "全部",
+          "reason": "专用页签可保留，不能替代3.2三个行动页签"
+        },
+        {
+          "pattern": "shared/04-markers/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "按哈希合并玩家标记来源"
+        },
+        {
+          "pattern": "shared/card-picker/*",
+          "decision": "仅其他合法专用用途",
+          "scope": "全部",
+          "reason": "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并"
+        },
+        {
+          "pattern": "shared/05-textures/*",
+          "decision": "排除运行时可选项",
+          "scope": "全部",
+          "reason": "旧皮肤/生产原料"
+        },
+        {
+          "pattern": "originals/main-background.*",
+          "decision": "排除运行时可选项",
+          "scope": "全部",
+          "reason": "旧主屏拼装参考不得用作窗口背景"
+        },
+        {
+          "pattern": "originals/*",
+          "decision": "保留原画",
+          "scope": "全部",
+          "reason": "按正式内容目录挑选当前有效卡/板，不用演示样本覆盖正式内容"
+        }
+      ],
+      "notes": [
+        "城市样式明确用户例外：去掉所有Unavailable Lock、额外宣告带、取消/放大/返回按钮；状态Track不再叠Image/State Label；97%卡图、零值全透明；确认用3.2 primary四态。icon-lock仍可供其他合法窗口，禁止城市样式恢复。"
+      ],
+      "actualZipRoots": [
+        "CityPattern-UI-v1.0"
+      ]
+    },
+    "RhineDepartment-UI-v1.0.zip": {
+      "adoptedVersion": "1.0",
+      "zipRoot": "RhineDepartment-UI-v1.0",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "可选、选中、不可选状态层按专用用途，不可用普通card-frame替代"
+        },
+        {
+          "pattern": "shared/02-modules/*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "旧框/底/标题已明示映射Frontier",
+          "replacement": "Frontier windowRoleToNewAssetIds"
+        },
+        {
+          "pattern": "shared/03-controls/button-*",
+          "decision": "排除",
+          "scope": "全部",
+          "reason": "旧企业/科室包按钮不作为候选，当前使用3.2；不再期望恢复3.1",
+          "replacement": "MainButtons3.2 action/primary四态（企业/科室当前标准）",
+          "evidence": [
+            "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+            "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+          ]
+        },
+        {
+          "pattern": "shared/03-controls/scrollbar-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "未被专项覆盖的滚动控件"
+        },
+        {
+          "pattern": "shared/03-controls/stepper-*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "未被专项覆盖的数量步进器"
+        },
+        {
+          "pattern": "shared/03-controls/tab-*",
+          "decision": "限制使用",
+          "scope": "全部",
+          "reason": "专用页签可保留，不能替代3.2三个行动页签"
+        },
+        {
+          "pattern": "shared/04-markers/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "按哈希合并玩家标记来源"
+        },
+        {
+          "pattern": "shared/card-picker/*",
+          "decision": "仅其他合法专用用途",
+          "scope": "全部",
+          "reason": "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并"
+        },
+        {
+          "pattern": "shared/05-textures/*",
+          "decision": "排除运行时可选项",
+          "scope": "全部",
+          "reason": "旧皮肤/生产原料"
+        },
+        {
+          "pattern": "originals/main-background.*",
+          "decision": "排除运行时可选项",
+          "scope": "全部",
+          "reason": "旧主屏拼装参考不得用作窗口背景"
+        },
+        {
+          "pattern": "originals/*",
+          "decision": "保留原画",
+          "scope": "全部",
+          "reason": "按正式内容目录挑选当前有效卡/板，不用演示样本覆盖正式内容"
+        }
+      ],
+      "notes": [
+        "当前标准：外框module-frame，确认/返回/取消等按钮MainButtons3.2；内容板图、分区与其他既有层按实际资产使用。本轮确认覆盖较早3.1按钮期望。"
+      ],
+      "actualZipRoots": [
+        "RhineDepartment-UI-v1.0"
+      ]
+    },
+    "Room-UI-v1.0.zip": {
+      "adoptedVersion": "已被完整包替代",
+      "zipRoot": "Room-UI-v1.0",
+      "rules": [
+        {
+          "pattern": "*",
+          "decision": "排除重复旧包",
+          "scope": "全部",
+          "reason": "1.1是完整独立包，当前只提供最新布局与其皮肤",
+          "replacement": "Room-UI-v1.1-VerticalMaps.zip"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "Room-UI-v1.0"
+      ]
+    },
+    "Room-UI-v1.1-VerticalMaps.zip": {
+      "adoptedVersion": "1.1",
+      "zipRoot": "Room-UI-v1.1-VerticalMaps",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "最新房间、座位、地图、说明页、密码弹窗独立皮肤；与1.0字节相同是继承不是遗漏"
+        },
+        {
+          "pattern": "sources/*",
+          "decision": "仅构建依赖",
+          "scope": "全部",
+          "reason": "SVG纹理依赖，PNG不依赖"
+        },
+        {
+          "pattern": "preview/*",
+          "decision": "仅参考",
+          "scope": "全部",
+          "reason": "地图/头像/文字来自运行时，不烘焙整张预览"
+        }
+      ],
+      "notes": [
+        "最新三人图上、四人图下；只有四名已入座玩家强制四人图，减少人数不自动换图。"
+      ],
+      "actualZipRoots": [
+        "Room-UI-v1.1-VerticalMaps"
+      ]
+    },
+    "Settlement-Effects-v1.0.zip": {
+      "adoptedVersion": "1.0",
+      "zipRoot": "Settlement-Effects-v1.0",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "底栏结算区域横向效果按钮条，pending/disabled语义不同；整底与fill+frame二选一"
+        },
+        {
+          "pattern": "reference/*",
+          "decision": "排除运行时可选项",
+          "scope": "全部",
+          "reason": "只为演示的既有结算槽底图薄框，使用当前3.5槽框及Frontier槽底"
+        }
+      ],
+      "notes": [
+        "M03用户确认尚未实现；保留为待实现专用素材，不判定为当前错用，不在本次整理中接入。"
+      ],
+      "actualZipRoots": [
+        "Settlement-Effects-v1.0"
+      ]
+    },
+    "Settlement-Icons-Extra-v1.1.zip": {
+      "adoptedVersion": "1.1增补",
+      "zipRoot": "Settlement-Icons-Extra-v1.1",
+      "rules": [
+        {
+          "pattern": "assets/icons-extra/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记"
+        }
+      ],
+      "notes": [
+        "1.1不是1.0换皮覆盖；22x22逻辑像素等比，色版按状态。翻面图标存在不授权恢复已删除翻面功能。"
+      ],
+      "actualZipRoots": [
+        "Settlement-Icons-Extra-v1.1"
+      ]
+    },
+    "Main-Info-Buttons-v1.0.zip": {
+      "adoptedVersion": "1.0",
+      "zipRoot": "Main-Info-Buttons-v1.0",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "仅区控/游戏盒入口，region/game-box两种专用底板与图标，不取代六主要行动"
+        },
+        {
+          "pattern": "preview/*",
+          "decision": "仅参考",
+          "scope": "全部",
+          "reason": "预览拼装不作为运行时贴图"
+        },
+        {
+          "pattern": "sources/*",
+          "decision": "仅构建依赖",
+          "scope": "全部",
+          "reason": "不能作为缺图的随意替代"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "Main-Info-Buttons-v1.0"
+      ]
+    },
+    "Region-Squares-v1.0.zip": {
+      "adoptedVersion": "1.0",
+      "zipRoot": "Region-Squares-v1.0",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "A/B/C/D/E/F/G/R区域色块，不是玩家标记；保留原色，数字独立"
+        },
+        {
+          "pattern": "preview/*",
+          "decision": "仅参考",
+          "scope": "全部",
+          "reason": "预览拼装不作为运行时贴图"
+        },
+        {
+          "pattern": "sources/*",
+          "decision": "仅构建依赖",
+          "scope": "全部",
+          "reason": "不能作为缺图的随意替代"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "Region-Squares-v1.0"
+      ]
+    },
+    "Area-Control-v1.0.zip": {
+      "adoptedVersion": "1.0",
+      "zipRoot": "Area-Control-v1.0",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "区控信息页、区域表、计分及玩家标记；region-squares拷贝按哈希合并"
+        },
+        {
+          "pattern": "preview/*",
+          "decision": "仅参考",
+          "scope": "全部",
+          "reason": "预览拼装不作为运行时贴图"
+        },
+        {
+          "pattern": "sources/*",
+          "decision": "仅构建依赖",
+          "scope": "全部",
+          "reason": "不能作为缺图的随意替代"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "Area-Control-v1.0"
+      ]
+    },
+    "Player-Select-v1.0.zip": {
+      "adoptedVersion": "1.0",
+      "zipRoot": "Player-Select-v1.0",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "玩家选择窗口，真实候选与权限，不把预览头像/名称当正式数据"
+        },
+        {
+          "pattern": "preview/*",
+          "decision": "仅参考",
+          "scope": "全部",
+          "reason": "预览拼装不作为运行时贴图"
+        },
+        {
+          "pattern": "sources/*",
+          "decision": "仅构建依赖",
+          "scope": "全部",
+          "reason": "不能作为缺图的随意替代"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "Player-Select-v1.0"
+      ]
+    },
+    "Game-Box-v1.0.zip": {
+      "adoptedVersion": "1.0",
+      "zipRoot": "Game-Box-v1.0",
+      "rules": [
+        {
+          "pattern": "assets/*",
+          "decision": "保留",
+          "scope": "全部",
+          "reason": "游戏盒信息页与卡牌/token展示，正式物品来自游戏数据"
+        },
+        {
+          "pattern": "preview/*",
+          "decision": "仅参考",
+          "scope": "全部",
+          "reason": "预览拼装不作为运行时贴图"
+        },
+        {
+          "pattern": "sources/*",
+          "decision": "仅构建依赖",
+          "scope": "全部",
+          "reason": "不能作为缺图的随意替代"
+        }
+      ],
+      "notes": [],
+      "actualZipRoots": [
+        "Game-Box-v1.0"
+      ]
+    }
+  },
+  "explicitDevelopmentOverrides": [
+    {
+      "scope": "CardPicker七张原图",
+      "decision": "限定多卡选择专用保留，不能挪回新CardViewer",
+      "evidence": "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10"
+    },
+    {
+      "scope": "CardViewer按钮",
+      "decision": "3.6.2紧凑@2x四态",
+      "evidence": "prompt/UI换新/执行记录/角色牌3.6.2修复/说明.md:8"
+    },
+    {
+      "scope": "城市样式",
+      "decision": "3.2确认+原四色标记；删锁/额外带/取消放大返回按钮；97%卡图与零值透明",
+      "evidence": "prompt/UI换新/UI-010-补充-城市样式素材构图纠正.md:15-28"
+    },
+    {
+      "scope": "效果明细",
+      "decision": "条目76/正文31；文字长只缩两字号，不增大条目",
+      "evidence": "prompt/企业扩与感染者基础实装/10-局内明细内容与条目返工清单.md"
+    },
+    {
+      "scope": "正式卡牌整图",
+      "decision": "角色/设施/样式atlas与当前指定整图字节相同，但只能通过正式Sprite切片消费；不导出逐张正面，不建立平行原画来源。未核准entrepreneur演示图不入可选库。",
+      "evidence": "prompt/卡牌Sprite切片替换/01-卡牌整图Sprite切片替换.md:5-21；Artifacts/ui-curation-2026-10-08/original_art_hash_audit.json"
+    },
+    {
+      "scope": "建设支付与合法槽提示",
+      "decision": "保留原支付底图倍率2，删除3.4 Row Frame；合法未选槽保留row-bg-default绿色半透明Sliced填充，不改边框；资源图标为主界面去背景同源。",
+      "evidence": "docs/设计/建设交互流程需求.md:12,22,30"
+    },
+    {
+      "scope": "主界面角色牌快速行动",
+      "decision": "独立UiQuickActionRow，删除右箭头和旧标题/说明分区；不改全部EffectRow。",
+      "evidence": "docs/设计/主界面快速行动.md:5-9"
+    }
+  ],
+  "validatedArtwork": {
+    "42859d86d80867bea640052ef8e85348063c45b72f4c0add8cc0a47f4ae76847": {
+      "members": [
+        "MainGameUI-v2.2/07-originals/character-atlas.jpg"
+      ],
+      "matches": [
+        "游城拓荒\\素材\\角色卡.jpg"
+      ]
+    },
+    "081182980414c10c123b05e43c7f905e23124a26c8d80cca66c21e61767eb828": {
+      "members": [
+        "MainGameUI-v2.2/07-originals/character-back-reunion.jpg"
+      ],
+      "matches": []
+    },
+    "0361f0e12abcad6642631dff3020010afea0163ddeee33e03a8f88d5158c3b7f": {
+      "members": [
+        "MainGameUI-v2.2/07-originals/character-back-rhodes.jpg"
+      ],
+      "matches": [
+        "游城拓荒\\企业扩\\罗德岛干员牌背.jpg"
+      ]
+    },
+    "e5f0cfd4262b6e58f859249606fd7886070c6eb91adcf33cf51cd51b9a4bc261": {
+      "members": [
+        "MainGameUI-v2.2/07-originals/enterprise-atlas.jpg"
+      ],
+      "matches": [
+        "游城拓荒\\企业扩\\企业合作板 2行4列.jpg"
+      ]
+    },
+    "3aa098e6a1b2b682997b1b6fc4f50e7035b0bc222901b9c18c819e22b7bf8452": {
+      "members": [
+        "MainGameUI-v2.2/07-originals/entrepreneur-1.jpg"
+      ],
+      "matches": []
+    },
+    "aa52cd4718387d366ab50eb694ee9c3e6e99b82b08afca7e260fab2a9dfa768f": {
+      "members": [
+        "MainGameUI-v2.2/07-originals/entrepreneur-2.jpg"
+      ],
+      "matches": []
+    },
+    "6dcaf1a548aca0b428339bf03b0074e15f79fa596c044015957cd837c5b1ac69": {
+      "members": [
+        "MainGameUI-v2.2/07-originals/entrepreneur-3.jpg"
+      ],
+      "matches": []
+    },
+    "605f6fb43c8021706847d7d9db0d4483a5bfa05fcd09bf15b13e96b6996464bf": {
+      "members": [
+        "MainGameUI-v2.2/07-originals/world-map.jpg"
+      ],
+      "matches": [
+        "游城拓荒\\地图\\四人.jpg"
+      ]
+    },
+    "5025430462e59fb39e424f0ff44c30d7027fb1e04d40ed26b880ae98146eb269": {
+      "members": [
+        "FacilityBuild-UI-v1.0/originals/facility-atlas.jpg",
+        "CityPattern-UI-v1.0/originals/facility-atlas.jpg"
+      ],
+      "matches": [
+        "游城拓荒\\素材\\建设牌堆.jpg"
+      ]
+    },
+    "7644904a93cb936dce3dd4ced190ae8533ebbcc58a6eb3f78506e6528a8f75e0": {
+      "members": [
+        "CityPattern-UI-v1.0/originals/patterns-i-atlas.jpg"
+      ],
+      "matches": [
+        "游城拓荒\\素材\\城市样式牌1.jpg"
+      ]
+    },
+    "3945062c584e2309efee54db608403e9977a7b35143b1da17af3ddc9177a9eda": {
+      "members": [
+        "CityPattern-UI-v1.0/originals/patterns-ii-atlas.jpg"
+      ],
+      "matches": [
+        "游城拓荒\\素材\\城市样式牌2.jpg"
+      ]
+    }
+  },
+  "projectAssets": [
+    {
+      "source": "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-orirock.png",
+      "path": "资产/项目已授权派生/资源图标/resource-orirock.png",
+      "sha256": "8169788424ab3bd5a628b4fd087cb71bcf0e08f2c90561f3e5d212f5a3ac1a1b",
+      "purpose": "当前主界面同源去背景资源/金券/分数图标；建设费用与库存沿用，禁止回退包内带底图版",
+      "evidence": [
+        "docs/设计/建设交互流程需求.md:12",
+        "docs/设计/建设交互流程需求.md:30",
+        "prompt/UI换新/执行记录/2026-10-02_新增信息页PageHost与原生布局.md:35"
+      ]
+    },
+    {
+      "source": "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-originium-shard.png",
+      "path": "资产/项目已授权派生/资源图标/resource-originium-shard.png",
+      "sha256": "0d42200e77c0907ffcb507c2b795908845862d53b4bbfdc315960e5b7fb71b2f",
+      "purpose": "当前主界面同源去背景资源/金券/分数图标；建设费用与库存沿用，禁止回退包内带底图版",
+      "evidence": [
+        "docs/设计/建设交互流程需求.md:12",
+        "docs/设计/建设交互流程需求.md:30",
+        "prompt/UI换新/执行记录/2026-10-02_新增信息页PageHost与原生布局.md:35"
+      ]
+    },
+    {
+      "source": "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-iron.png",
+      "path": "资产/项目已授权派生/资源图标/resource-iron.png",
+      "sha256": "9b38b152b545bad3547e2e36c2ba4847e0d2928e6d6ca086fe4793610246be15",
+      "purpose": "当前主界面同源去背景资源/金券/分数图标；建设费用与库存沿用，禁止回退包内带底图版",
+      "evidence": [
+        "docs/设计/建设交互流程需求.md:12",
+        "docs/设计/建设交互流程需求.md:30",
+        "prompt/UI换新/执行记录/2026-10-02_新增信息页PageHost与原生布局.md:35"
+      ]
+    },
+    {
+      "source": "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-pure-originium.png",
+      "path": "资产/项目已授权派生/资源图标/resource-pure-originium.png",
+      "sha256": "01524d7c6bd1992a2aed6cb1228261e7d40c29b709057b109d0453f0689633fa",
+      "purpose": "当前主界面同源去背景资源/金券/分数图标；建设费用与库存沿用，禁止回退包内带底图版",
+      "evidence": [
+        "docs/设计/建设交互流程需求.md:12",
+        "docs/设计/建设交互流程需求.md:30",
+        "prompt/UI换新/执行记录/2026-10-02_新增信息页PageHost与原生布局.md:35"
+      ]
+    },
+    {
+      "source": "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-gold-voucher.png",
+      "path": "资产/项目已授权派生/资源图标/resource-gold-voucher.png",
+      "sha256": "f65b9d6946c6910ba5ad9eede7082bd208dc1af9c44c5b3e8d0f3b003524d855",
+      "purpose": "当前主界面同源去背景资源/金券/分数图标；建设费用与库存沿用，禁止回退包内带底图版",
+      "evidence": [
+        "docs/设计/建设交互流程需求.md:12",
+        "docs/设计/建设交互流程需求.md:30",
+        "prompt/UI换新/执行记录/2026-10-02_新增信息页PageHost与原生布局.md:35"
+      ]
+    },
+    {
+      "source": "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-score.png",
+      "path": "资产/项目已授权派生/资源图标/resource-score.png",
+      "sha256": "1cbc9e3a6496e13ae04f2baf2d7cf804c62188ff12566b5b25f345c860fa38c8",
+      "purpose": "当前主界面同源去背景资源/金券/分数图标；建设费用与库存沿用，禁止回退包内带底图版",
+      "evidence": [
+        "docs/设计/建设交互流程需求.md:12",
+        "docs/设计/建设交互流程需求.md:30",
+        "prompt/UI换新/执行记录/2026-10-02_新增信息页PageHost与原生布局.md:35"
+      ]
+    },
+    {
+      "source": "Assets/YC/Presentation/CommonUi/Sprites/MainGame22/card-slot-frame.png",
+      "path": "资产/通用控件与原画/MainGameUI-v2.2/02-modules/card-slot-frame.png",
+      "sha256": "0d72948250f5318e56dcd740301c932aa34d9da5476304aba60171c4305d01a9",
+      "purpose": "当前主界面卡框采用2.2 card-slot-frame，按实际Sliced、源切片14、Image倍率3配置；该用途旧3.1迁移期望失效",
+      "scope": "主界面角色牌卡槽（手牌、弃牌、盖牌）及企业家卡框的当前标准",
+      "sourceKind": "项目当前标准",
+      "evidence": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "documents": [
+        "文档/当前用途标准与实际参数.md"
+      ],
+      "actualUsage": "参数/项目实际用法/实际使用参数.json"
+    },
+    {
+      "source": "Assets/YC/Presentation/GameplayHud/Sprites/Icons/action-build.png",
+      "path": "资产/主行动按钮/项目当前图标/action-build.png",
+      "sha256": "ebbe73dd626d08ccd895a753271321949d1f09999382300d91ef758e23c2a0cb",
+      "purpose": "建设按钮当前标准图；light/dark/muted均绑定此图",
+      "scope": "仅主界面建设图标，按钮底板沿用3.2 action四态",
+      "sourceKind": "项目当前标准",
+      "evidence": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "documents": [
+        "文档/当前用途标准与实际参数.md"
+      ],
+      "actualUsage": "参数/项目实际用法/实际使用参数.json"
+    },
+    {
+      "source": "Assets/YC/Presentation/GameplayHud/Sprites/Icons/action-deploy.png",
+      "path": "资产/主行动按钮/项目当前图标/action-deploy.png",
+      "sha256": "5a5188d2e6bb74161f6b73267c84d7de443864d31699735dda81e5f21eb36ff2",
+      "purpose": "部署按钮当前标准图；light/dark/muted均绑定此图",
+      "scope": "仅主界面部署图标，按钮底板沿用3.2 action四态",
+      "sourceKind": "项目当前标准",
+      "evidence": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "documents": [
+        "文档/当前用途标准与实际参数.md"
+      ],
+      "actualUsage": "参数/项目实际用法/实际使用参数.json"
+    }
+  ],
+  "currentUsageStandards": [
+    {
+      "id": "A01",
+      "role": "主界面角色牌与企业家卡框",
+      "expected": "MainGameUI2.2 card-slot-frame",
+      "status": "已采用",
+      "scope": "GameplayCardSlot及当前手牌/弃牌/盖牌和企业家实例",
+      "basis": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "0d72948250f5318e56dcd740301c932aa34d9da5476304aba60171c4305d01a9"
+      ]
+    },
+    {
+      "id": "A02",
+      "role": "企业与科室按钮",
+      "expected": "MainButtons3.2 action/primary四态",
+      "status": "已采用",
+      "scope": "EnterpriseSelectionDialog、DepartmentSelectionDialog及其现有相关按钮",
+      "basis": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "079072283a94c6250ffec782a1343c0f2220fac037e72fafa8831e8410dd8615",
+        "7ebd1e07458fefd2ed54b3e31eec5bc30b5e6ac5da479f29d08cead1469ba7cb",
+        "33c15dfc0af935ed58dfc32a343054e18ad0778a64903609f872d34a08d253ae",
+        "e3dae6b9ea08de870a170a84e02b6e6023d69184e78026d367af41e02360d551",
+        "744cb1414223be8e28d2dac592c1e98ccf583252e2cd1bd8abb4232b55020ca1",
+        "a52a246490f12a68ade347e1e279b4d4c331c5fa9389996cfca67ec16635804d",
+        "3379c0efe18212368dec821fab8e96ee5196044b3ba1d7cca8a0fe8ac22bb541",
+        "9e0859ed5a9cfea8d4b49f60c737b104933d5c5f0676cb707d1b2215b7d6563e",
+        "d0c3fec299a35fa98a4ae69aa2e3800f54195032db210c257d5097579748f66b",
+        "bf895c76f23c4aa4f4485b5eee37dcfcec6b1ced21715646c7c8b23d6a8ca3f2",
+        "216defb846f79e083761e4deb17d21a2f1ec0f2d6fb638a4407708812dc571af",
+        "0757c2d70e33f6ca7f82a9edc3b7eaaec796efc1380f31a7c52a14cce90c4ac3",
+        "3cce1df77ac1219db9357de7e0c16459a2aa37545343fbbd7c6b061c1f5f2a55",
+        "4b2b62bf1ecd3933e4eabeac88a7a542f026b72ef7a751c94936dc1e90b63de2",
+        "14c625de0332e1d488f5b7744dca9c1d4a1d7c9aa27121dc6330e21dab6cd4d7",
+        "63c1612efb123f881afd770610070736d360e6672250751253b166c85705df93"
+      ]
+    },
+    {
+      "id": "U01",
+      "role": "UI-011普通页面按钮",
+      "expected": "Frontier3.1主/次/禁用按钮",
+      "status": "待修正",
+      "scope": "设置、日志、图片查看器等报告U01普通页面；不覆盖A02",
+      "basis": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "f09b0927d83dc1dfff2c0c4cde128f361709c4856ef2e7bf699d4408045dae37",
+        "27cdb7e5379b316141b3020ae93934b41eb7f540b3d28712cd8088dafab3b6e0",
+        "67530acea04e5c020ddd6c5154b6a9232762a805021a58feff2290325c1ad1f1"
+      ]
+    },
+    {
+      "id": "U02",
+      "role": "当前普通窗口外框",
+      "expected": "Frontier3.1 module-frame，逐实例沿用实际倍率",
+      "status": "当前保留",
+      "scope": "当前使用module-frame的窗口；主界面四项3.5框体不变",
+      "basis": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "23609d9070dd3be87cc9c7146b582a6c17b648055c4e8867422d11f74ac90b52"
+      ]
+    },
+    {
+      "id": "U03",
+      "role": "主界面建设与部署图标",
+      "expected": "项目现用action-build/action-deploy，三色状态均绑定对应现用图",
+      "status": "已采用",
+      "scope": "主界面建设、部署图标；按钮底板仍为3.2 action四态",
+      "basis": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "ebbe73dd626d08ccd895a753271321949d1f09999382300d91ef758e23c2a0cb",
+        "5a5188d2e6bb74161f6b73267c84d7de443864d31699735dda81e5f21eb36ff2"
+      ]
+    },
+    {
+      "id": "M03",
+      "role": "结算插入横条",
+      "expected": "Settlement-Effects1.0 chip专用素材",
+      "status": "未实现",
+      "scope": "保留待实现用途，本次不接入；备用图标不要求全部使用",
+      "basis": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "c358fa8f21ece11d267dcc3662f16c3079b398a7187461875c254f5e451d64bd",
+        "02035b57f6a0d01a88a8786c443330bf8fc5d23297ff15960670910a7264c3bd",
+        "b8ba7eb294ee2079a84acd56ee51c542f1faae0f24b43763d3c51ab877d599c0",
+        "009f3f9f325eb53f33df19347b4b2fb9d5b4b357f59936f58a2579afd0f90a17",
+        "d28e48f2f14cb5e0ab8c79c413cca5fb2b0a547c43f2ec9598df04aa168e00f1",
+        "97b8af12648574ffeda0ab84d67855de9fc8dd8a75cd18589935cdfccac2ff0e",
+        "af635418091e8b219bafbad9af827f8094801a05f109704d098274ea6999add8",
+        "e1f10929409fb48e76dd49c925e3ffff1e7750f0635d8cf78d5c889f9f772521",
+        "cc41d03a35ba20492c907cbaa8ee7fa3df799497f06347c1865975e7c2d0e48f",
+        "6bf6aeadb9329fb5080d237945b34967a1f274cc496c610f9a46ce9a5024ff4d",
+        "7ca126327c254d192038176693f5b1b9f2c6cade5fd5d6c7831514d51f4ca491",
+        "e86e51297a1cc707fb808418bad9555ccd1fd218799e3cea2deecb021b3af613",
+        "bff5b5f40717c93c7aa717b98dbe94af06e27eda278d98eb47e20487c1bca2aa",
+        "44896f19393c800b2b069b8e8f569c3bf6b58997675bd7491830808cd8c3f99d",
+        "f55dc6ab0ddec79fab6d383661825c335be80a4f65cb2beac15af4dfec0ab657",
+        "6ec00b358799809e190320d42aa46a011fb32dab835c424151fc1b8f3111a5ec",
+        "44d62e37fce51552eb6f399bdf01e0bd5ddfd2a611a1ecd479561ed373772132",
+        "2c4de207297e2643ea611e2a320b1ae8b28369628700c0b06f85a6c23d8c1844",
+        "9632688d4045edd540df68375878ca30b812ad63b65eab4bfe849ac185e8fb33",
+        "2ed214cd2ec841b99d984ef6d0a5f41bd4291b1a2a7d38caf1e6df3df868421e",
+        "50bff3607d0a13b2fbf18d01d62546ff2a75b7ea60f26175ca2d3ac794d24474",
+        "6461216b4c918bc795cc4555ce4e9de164e4b08559c6cceebfbb698c31fc1c80",
+        "643f1e783e97d1155365f7127d6f4c6fde2fa3ee498a33d224cbb7606e570de6",
+        "bc899ee9a57f0451e4f3875e48438a105a1569bb48cb8b15b434099cdedb47d5",
+        "3658527767e9af3dd03053bf989630467ade30cf79302a65d08f068700d5834e",
+        "8c952b641531af56e12cec25b2d6d181d9c8c518b2837a59f638609b431b3aee",
+        "70f831ecb35dc2bd9ef257de45348db596a727adaee2cd90e6b7282c2161bd7e",
+        "62396cb6e087fe9a860b8d8818685d5062a84172c5114982cb942c9326367db4",
+        "11ecca32a90d75c952e5973055669e91275fb6e14f5e07aad30147850977f706",
+        "42781cc715a4ac18250f5e924eb5dd700c6e4890c3c06d08547f20ec9586e9f8",
+        "63d47c08d8db89c6b4d1a2a7ec977ab3111af78ed7728e5076e4a84dcbaf791e",
+        "44d2a9e89c4178a76a298ee243df60072d01dfe976505a66db40a3be47e6645d",
+        "ead757f5d265ec7bef6d47298235b8d27199cf04e229580f481f24b0b6a03118",
+        "b21207a2b8305faf31668eb8c6af8d4ad0a32973afe802be685eb580c1abd93e",
+        "ffe8391e8d97439982e48e0833c0921f2ac63dc4550cee6bd2c1c9a762881a04",
+        "3791073a8d029e7fa4afba5e8148ef8e42b6767c9e5b72817d2ea864a9f93fbd",
+        "54cdff1348621b6ec17930fdb9dae47f976058a0205e8de2a83a76d8f7629787",
+        "50a77c734a246b64be7924d71debe81fe08e05e0b80ae32427589a9e4004e0a6",
+        "b7e6480c9b0b3cc36b62046e2c2dc053601225e59dd4c43b3c3581bf6fb8d3c3",
+        "cbf751028d948c0391c8d20f76fb609015f9ce408364b512cbd0f7755e0c6fde",
+        "3a97f0a4628e3aaa20ee916656b245c237df484d41da31e5a029cf1153a80346",
+        "06ab56c3a6830193498231bbc57261cdb3a4dd14f3f5996d31227c9a4400cd8f",
+        "a6aad505d02a1184b78cee32db3fee7be80c567590da7f7a2b0e49ab1e0b6d67",
+        "a73903e6ea26f797f07d3422d5002aa13f3b18dd1ac735eecf0d6b956ed65898",
+        "7c6dec3c6d14e30d556f457566577264576f15082c0115bc536a5460abe2ad6a",
+        "6fef61c7ade449a623e38951a64d074a36ff84170df0059513dd426739ed3bb3",
+        "6ae546895fec6ffd28cc01b416be5e3fc9198de21b4f4c0e67ce654c9d0ec0b7",
+        "443c61ad4a82c84249cc955a265d3a16dc3481766b253caf32d0851424a054ac",
+        "f98b9c03d8e214be4bdbd7937c42177e51fda115a69485d85c6548cefde42f56",
+        "f4b739ce343b12d408202e0f915d6a7c60132d3426d0dda3636a253bc56b0d26",
+        "d2c475b3dbbee6cc63d139196ab9db4718cd4dea9d468efa158541a40da03c60",
+        "e522cb30d714bf550aae154cb1a7254b194211d7d57c2bc17e3018ae9f914eea",
+        "dc8a14e9ddabf6c9380e0f1e5dbfc3c5a9e136eade051e1a6c70671ff42be23a",
+        "bcf2215e36ec2c049b7b2076044a29341d0dd6257ffa1bb172f3982763c8294f",
+        "ed2ba3b3e6681812838640799521c972a68dd68132bca1a662880e3c71c9e5df",
+        "8f5192cf2f539d4100320cb63655af720fcf7790610e61c3dcf5e6e0bd988270"
+      ]
+    }
+  ],
+  "authority": "当前用途标准优先于原包旧映射。用户明确更改用途时直接覆写对应用途期望，不将旧默认与新例外并存。"
+}

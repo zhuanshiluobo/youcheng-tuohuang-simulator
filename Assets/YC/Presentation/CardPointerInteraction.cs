@@ -218,7 +218,6 @@ namespace YC.Presentation
     {
         private Button button;
         private Action singleClick;
-        private Action doubleClick;
         private Func<bool> canBeginDrag;
         private Action<PointerEventData> beginDrag;
         private Action<PointerEventData> drag;
@@ -232,12 +231,10 @@ namespace YC.Presentation
 
         public void ConfigureClick(
             Button configuredButton,
-            Action configuredSingleClick,
-            Action configuredDoubleClick)
+            Action configuredSingleClick)
         {
             button = configuredButton;
             singleClick = configuredSingleClick;
-            doubleClick = configuredDoubleClick;
         }
 
         public void ConfigureDrag(
@@ -283,12 +280,6 @@ namespace YC.Presentation
             if (suppressClickForCurrentPress)
             {
                 suppressClickForCurrentPress = false;
-                return;
-            }
-
-            if (eventData.clickCount >= 2)
-            {
-                doubleClick?.Invoke();
                 return;
             }
 

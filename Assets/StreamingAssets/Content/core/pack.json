@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "packId": "core",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "definitions": [
     "character/liskarm.json",
     "character/elysium.json",
@@ -35,18 +35,209 @@
     "event/event_yellow_07.json",
     "event/event_yellow_08.json",
     "event/event_yellow_09.json",
-    "event/event_yellow_10.json"
+    "event/event_yellow_10.json",
+    "enterprise/enterprise.rhodes_island.json",
+    "enterprise/enterprise.hyde_brothers.json",
+    "enterprise/enterprise.rhine_lab.json",
+    "enterprise/enterprise.fussen_bank.json",
+    "enterprise/enterprise.raythean.json",
+    "enterprise/enterprise.mama_johns.json",
+    "enterprise/enterprise.blacksteel.json",
+    "enterprise/enterprise.rim_billiton.json",
+    "department/enterprise.department.engineering.json",
+    "department/enterprise.department.defense.json",
+    "department/enterprise.department.structural.json",
+    "character/operator.silverash.json",
+    "character/operator.mudrock.json",
+    "character/operator.eunectes.json",
+    "character/operator.closure.json",
+    "character/operator.kaltsit.json",
+    "character/operator.w.json",
+    "character/operator.dorothy.json",
+    "character/operator.passenger.json",
+    "character/mountain.json",
+    "character/mlynar.json",
+    "component/enterprise.component.road.json",
+    "city_style/city_style_city_construction_frontier.json",
+    "city_style/city_style_pioneer_outpost.json",
+    "city_style/city_style_core_commercial_area.json",
+    "city_style/city_style_large_enterprise_park.json",
+    "city_style/city_style_security_district.json",
+    "city_style/city_style_pioneer_command_hub.json",
+    "event/enterprise.event.collection_platform.json",
+    "event/enterprise.event.cave_ruins.json",
+    "award/infected.award.enterprise_special.json",
+    "award/infected.award.permanent_support.json",
+    "award/infected.award.roads.json",
+    "award/infected.award.score.json",
+    "character/infected.character.amiya.json",
+    "character/infected.character.ceobe.json",
+    "character/infected.character.flowing_shape_alpha.json",
+    "character/infected.character.flowing_shape_beta.json",
+    "character/infected.character.flowing_shape_gamma.json",
+    "character/infected.character.gavial_the_invincible.json",
+    "character/infected.character.hellagur.json",
+    "character/infected.character.jessica_the_liberated.json",
+    "character/infected.character.lin.json",
+    "character/infected.character.muelsyse.json",
+    "character/infected.character.silence_the_paradigmatic.json",
+    "character/infected.character.swire.json",
+    "city_style/infected.city_style.district_management.json",
+    "city_style/infected.city_style.emerging_buildings.json",
+    "city_style/infected.city_style.enterprise_offices.json",
+    "component/infected.component.company_marker.json",
+    "component/infected.component.gavial_token.json",
+    "component/infected.component.influence_lock_token.json",
+    "contract/infected.contract.lifetime_security.json",
+    "enterprise/infected.enterprise.maylander_foundation.json",
+    "enterprise/infected.enterprise.rhodes_island.json",
+    "enterprise/infected.enterprise.stonehoove_security.json"
   ],
   "sharedArtwork": {
     "character_back_0": "artwork/character_back_0.jpg",
     "character_back_3": "artwork/character_back_3.jpg",
     "character_back_2": "artwork/character_back_2.jpg",
     "character_back_1": "artwork/character_back_1.jpg",
-    "city_board": "artwork/city_board.png"
+    "city_board": "artwork/city_board.png",
+    "enterprise_back": "artwork/enterprise_back.jpg",
+    "operator_back": "artwork/operator_back.jpg",
+    "flowing_shape_back": "artwork/flowing_shape_back.jpg"
   },
   "enabledExpansionIds": [
     "core"
   ],
   "facilityInventory": "facility_inventory.json",
-  "artworkSlices": "artwork_slices.json"
+  "artworkSlices": "artwork_slices.json",
+  "requiredCapabilities": [
+    "item_zones.v1",
+    "item_transfer.v1",
+    "deck_shuffle.v1",
+    "character_lifecycle.v1",
+    "gameplay_presentation.v1"
+  ],
+  "expansionDependencies": [
+    {
+      "requiredCapabilities": [
+        "enterprise_rules.v1"
+      ],
+      "expansionId": "enterprise",
+      "requires": [
+        "core"
+      ]
+    },
+    {
+      "requiredCapabilities": [
+        "infected_rules.v1"
+      ],
+      "expansionId": "infected",
+      "requires": [
+        "enterprise"
+      ]
+    }
+  ],
+  "setupRecipes": [
+    "recipes/standard.json",
+    "recipes/enterprise.json",
+    "recipes/infected.json"
+  ],
+  "presentation": {
+    "schemaVersion": 1,
+    "texts": [
+      "presentation/texts.zh-CN.json"
+    ],
+    "icons": "presentation/icons.json",
+    "defaults": "presentation/defaults.json"
+  },
+  "settlementHandlers": [
+    {
+      "handlerId": "character.liskarm.strategy.settlement.availability",
+      "script": "lua/settlements/character.liskarm.strategy.lua",
+      "entryPoint": "availability",
+      "version": "1.3.0"
+    },
+    {
+      "handlerId": "infected.award.permanent_support.cleanup.settlement.availability",
+      "script": "lua/settlements/infected.award.permanent_support.cleanup.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "infected.character.amiya.tactic.settlement.offers",
+      "script": "lua/settlements/infected.character.amiya.tactic.lua",
+      "entryPoint": "offers",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "infected.character.amiya.tactic.settlement.availability",
+      "script": "lua/settlements/infected.character.amiya.tactic.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "infected.character.gavial_the_invincible.tactic.settlement.availability",
+      "script": "lua/settlements/infected.character.gavial_the_invincible.tactic.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "infected.character.hellagur.strategy.settlement.availability",
+      "script": "lua/settlements/infected.character.hellagur.strategy.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "infected.character.jessica_the_liberated.tactic.settlement.availability",
+      "script": "lua/settlements/infected.character.jessica_the_liberated.tactic.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "infected.character.lin.tactic.settlement.availability",
+      "script": "lua/settlements/infected.character.lin.tactic.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "infected.character.muelsyse.strategy.settlement.availability",
+      "script": "lua/settlements/infected.character.muelsyse.strategy.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "infected.character.swire.tactic.settlement.availability",
+      "script": "lua/settlements/infected.character.swire.tactic.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "operator.dorothy.tactic.settlement.availability",
+      "script": "lua/settlements/operator.dorothy.tactic.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "operator.mudrock.tactic.settlement.availability",
+      "script": "lua/settlements/operator.mudrock.tactic.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "operator.passenger.tactic.settlement.offers",
+      "script": "lua/settlements/operator.passenger.tactic.lua",
+      "entryPoint": "offers",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "operator.passenger.tactic.settlement.availability",
+      "script": "lua/settlements/operator.passenger.tactic.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    },
+    {
+      "handlerId": "operator.w.strategy.settlement.availability",
+      "script": "lua/settlements/operator.w.strategy.lua",
+      "entryPoint": "availability",
+      "version": "1.0.0"
+    }
+  ]
 }

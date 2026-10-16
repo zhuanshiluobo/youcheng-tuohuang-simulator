@@ -1,0 +1,180 @@
+{
+  "referenceCanvas": [
+    1920,
+    1080
+  ],
+  "coordinateOrigin": "top-left",
+  "rectFormat": [
+    "x",
+    "y",
+    "width",
+    "height"
+  ],
+  "window": [
+    288,
+    210,
+    1344,
+    660
+  ],
+  "headerAccent": [
+    320,
+    248,
+    4,
+    48
+  ],
+  "headerIcon": [
+    346,
+    251,
+    40,
+    40
+  ],
+  "title": [
+    405,
+    244,
+    1000,
+    52
+  ],
+  "subtitle": [
+    344,
+    302,
+    1100,
+    36
+  ],
+  "close": [
+    1512,
+    242,
+    64,
+    56
+  ],
+  "headerDivider": [
+    344,
+    348,
+    1232,
+    1
+  ],
+  "cardsRegion": [
+    344,
+    370,
+    1232,
+    320
+  ],
+  "cardSize": [
+    284,
+    320
+  ],
+  "cardGap": 32,
+  "cardRectsFour": [
+    [
+      344,
+      370,
+      284,
+      320
+    ],
+    [
+      660,
+      370,
+      284,
+      320
+    ],
+    [
+      976,
+      370,
+      284,
+      320
+    ],
+    [
+      1292,
+      370,
+      284,
+      320
+    ]
+  ],
+  "avatarLocal": [
+    60,
+    28,
+    164,
+    164
+  ],
+  "avatarImageLocal": [
+    64,
+    32,
+    156,
+    156
+  ],
+  "nameLocal": [
+    20,
+    210,
+    244,
+    42
+  ],
+  "markerLocal": [
+    80,
+    260,
+    32,
+    32
+  ],
+  "markerLabelLocal": [
+    124,
+    256,
+    110,
+    40
+  ],
+  "selectionLocal": [
+    236,
+    12,
+    32,
+    32
+  ],
+  "selfLabelLocal": [
+    14,
+    12,
+    70,
+    28
+  ],
+  "disabledReasonLocal": [
+    16,
+    292,
+    252,
+    24
+  ],
+  "footerDivider": [
+    344,
+    730,
+    1232,
+    1
+  ],
+  "countText": [
+    344,
+    765,
+    690,
+    38
+  ],
+  "hintText": [
+    344,
+    809,
+    730,
+    28
+  ],
+  "cancel": [
+    1144,
+    770,
+    176,
+    64
+  ],
+  "confirm": [
+    1352,
+    770,
+    224,
+    64
+  ],
+  "layoutRule": "Center N cards, N=1..4. rowWidth=N*284+(N-1)*32, startX=960-rowWidth/2. Empty/closed room seats are not players.",
+  "backdropClickCancels": false,
+  "confirmOnCardClick": false,
+  "avatarFit": "cover",
+  "colors": {
+    "green": "#5FD200",
+    "yellow": "#FFBF00",
+    "blue": "#006CFF",
+    "red": "#EC0000"
+  }
+}

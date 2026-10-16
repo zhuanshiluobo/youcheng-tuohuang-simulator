@@ -28,7 +28,7 @@ return function(ctx)
         openRound = 5
     end
 
-    if game.round < openRound then
+    if game.round ~= openRound then
         return {}
     end
 

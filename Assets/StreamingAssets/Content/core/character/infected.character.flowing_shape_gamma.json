@@ -1,0 +1,53 @@
+{
+  "definitionId": "infected.character.flowing_shape_gamma",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "流形丙",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.flowing_shape_gamma.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.generated_character_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.character.flowing_shape_gamma.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.flowing_shape_gamma.strategy",
+      "script": "lua/characters/infected.character.flowing_shape_gamma.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "infected.character.flowing_shape_gamma.tactic",
+      "mode": "tactic",
+      "skillType": "one_shot",
+      "subscriptionId": "content.infected.character.flowing_shape_gamma.tactic",
+      "script": "lua/characters/infected.character.flowing_shape_gamma.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.flowing_shape_gamma",
+    "cardId": "infected.character.flowing_shape_gamma",
+    "name": "流形丙",
+    "acquisitionRole": "generated",
+    "backVisualKey": "flowing_shape_back",
+    "instanceTypeId": "core.generated_character_card",
+    "strategyAbilityId": "infected.character.flowing_shape_gamma.strategy",
+    "tacticAbilityId": "infected.character.flowing_shape_gamma.tactic",
+    "strategyName": "滋养",
+    "tacticName": "交流",
+    "sourceReference": "I14"
+  }
+}

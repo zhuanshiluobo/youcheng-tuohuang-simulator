@@ -148,7 +148,7 @@ namespace YC.Tests.EditMode
             var presentation = interaction.BuildPresentation();
             Assert.That(presentation.IsEmpty, Is.False);
             Assert.That(presentation.PanelMode, Is.EqualTo(InteractionMode.Busy));
-            Assert.That(presentation.PromptText, Is.Not.Empty);
+            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel().Phase, Is.EqualTo(BuildFacilityDraftPhase.Selecting));
             Assert.That(interaction.OnEscape(), Is.SameAs(InteractionResult.Consumed));
 
             var promptBeforeLifecycleCancel = fixture.View.Prompt;
@@ -292,8 +292,8 @@ namespace YC.Tests.EditMode
             Assert.That(
                 buildViewModel.StatusText,
                 Is.EqualTo(fixture.Presenter.BuildInteraction.BuildPresentation().PromptText));
-            Assert.That(buildViewModel.StatusText, Does.Contain("建设"));
-            Assert.That(buildViewModel.StatusText, Does.Not.Contain("剩余额外主要行动"));
+            Assert.That(fixture.Presenter.BuildInteraction.IsActive, Is.True);
+            Assert.That(buildViewModel.Mode, Is.EqualTo(InteractionMode.Busy));
 
             fixture.Presenter.CancelBuildFacility();
             fixture.Presenter.BeginMoveAction();
@@ -423,7 +423,7 @@ namespace YC.Tests.EditMode
             var presentation = interaction.BuildPresentation();
             Assert.That(presentation.IsEmpty, Is.False);
             Assert.That(presentation.PanelMode, Is.EqualTo(InteractionMode.Busy));
-            Assert.That(presentation.PromptText, Is.Not.Empty);
+            Assert.That(presentation.Highlights, Has.Count.EqualTo(1));
             var router = new InteractionRouter(fixture.View.ShowPrompt);
             router.Register(interaction);
             Assert.That(router.OnLocationClicked("B", 1), Is.SameAs(InteractionResult.Consumed));
@@ -563,14 +563,14 @@ namespace YC.Tests.EditMode
             fixture.MapQuery.Map.MinPlayers = 4;
             fixture.MapQuery.Map.MaxPlayers = 4;
             fixture.MapQuery.GetLocation("B").IsRedZone = true;
-            fixture.Context.State.Round = 3;
+            fixture.Context.State.Round = 5;
 
             fixture.Presenter.BeginMoveAction();
 
             Assert.That(fixture.View.Highlights, Is.Empty);
 
             fixture.Flow.ResetToChooseAction();
-            fixture.Context.State.Round = 4;
+            fixture.Context.State.Round = 6;
             fixture.Presenter.BeginMoveAction();
 
             Assert.That(fixture.View.Highlights, Has.Count.EqualTo(1));
@@ -749,19 +749,20 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void BuildEscape_SelectingAndDraggingKeepLocalDraft()
+        public void BuildEscape_SelectingAndDraggingCancelUnplacedDraft()
         {
             var fixture = CreateFixture();
             fixture.Presenter.BeginBuildAction();
 
             fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Escape());
-            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Selecting));
+            Assert.That(fixture.View.BuildDraft, Is.Null);
+            fixture.Presenter.BeginBuildAction();
 
             fixture.View.BuildDraft.Dispatch(
                 new BuildFacilityIntent.BeginDrag(FacilityCardDatabase.TradeDistrict));
             fixture.View.BuildDraft.Dispatch(new BuildFacilityIntent.Escape());
-            Assert.That(fixture.View.BuildDraft.Phase, Is.EqualTo(BuildFacilityDraftPhase.Dragging));
-            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Not.Null);
+            Assert.That(fixture.View.BuildDraft, Is.Null);
+            Assert.That(fixture.Presenter.BuildBuildFacilityDraftViewModel(), Is.Null);
             Assert.That(fixture.Commands.LastCommand, Is.Null);
         }
 
@@ -1198,10 +1199,9 @@ namespace YC.Tests.EditMode
             fixture.Presenter.BeginDeployAction();
             Assert.That(fixture.Exploration.Mode, Is.EqualTo(InteractionMode.ChooseAction));
             Assert.That(fixture.Exploration.IsSelectingExploreTarget, Is.False);
-            Assert.That(fixture.Flow.IsActive(fixture.Influence), Is.False, "部署目标由权威 Interaction 提供");
-            Assert.That(fixture.Commands.LastCommand.Kind, Is.EqualTo(GameCommandKind.DeployInfluence));
-            Assert.That(fixture.Commands.LastCommand.TargetId, Is.Null.Or.Empty);
-            Assert.That(fixture.Influence.IsSelectingDeployTarget, Is.False);
+            Assert.That(fixture.Flow.IsActive(fixture.Influence), Is.True);
+            Assert.That(fixture.Commands.SubmitCount, Is.Zero);
+            Assert.That(fixture.Influence.IsSelectingDeployTarget, Is.True);
         }
 
         [Test]

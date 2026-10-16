@@ -162,9 +162,10 @@ namespace YC.Tests.EditMode
                 1,
                 new List<PlayerSeat>
                 {
-                    new PlayerSeat { PlayerId = 1, PlayerName = "测试玩家" }
+                    new PlayerSeat { PlayerId = 1, PlayerName = "测试玩家", Color = PlayerColor.Blue },
+                    new PlayerSeat { PlayerId = 2, PlayerName = "测试玩家二", Color = PlayerColor.Red }
                 },
-                "test",
+                YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId,
                 12345);
             InvokePublic(controller, "Refresh", state, 1);
             Canvas.ForceUpdateCanvases();
@@ -348,7 +349,7 @@ namespace YC.Tests.EditMode
                 {
                     view,
                     catalog,
-                    noop,
+                    (Action<string>)(_ => { }),
                     noop,
                     noop,
                     noop,

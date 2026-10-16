@@ -1,0 +1,372 @@
+{
+  "schemaVersion": 1,
+  "recipeId": "enterprise",
+  "initialBasicCharacterCount": 7,
+  "basicCharacterKeepCount": 5,
+  "maxRetainedBasicCharacterCount": 5,
+  "cityStyleLevelOneDrawCount": 4,
+  "cityStyleLevelTwoDrawCount": 2,
+  "entries": [
+    {
+      "entryId": "initial_mountain",
+      "definitionId": "mountain",
+      "quantity": 1,
+      "perPlayer": true,
+      "initialZoneRole": "hand",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "initial_mlynar",
+      "definitionId": "mlynar",
+      "quantity": 1,
+      "perPlayer": true,
+      "initialZoneRole": "hand",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_rhodes_island",
+      "definitionId": "enterprise.rhodes_island",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_hyde_brothers",
+      "definitionId": "enterprise.hyde_brothers",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_rhine_lab",
+      "definitionId": "enterprise.rhine_lab",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_fussen_bank",
+      "definitionId": "enterprise.fussen_bank",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_raythean",
+      "definitionId": "enterprise.raythean",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_mama_johns",
+      "definitionId": "enterprise.mama_johns",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_blacksteel",
+      "definitionId": "enterprise.blacksteel",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_rim_billiton",
+      "definitionId": "enterprise.rim_billiton",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "department_engineering",
+      "definitionId": "enterprise.department.engineering",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "departments",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "enterprise.rhine_lab",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "department_defense",
+      "definitionId": "enterprise.department.defense",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "departments",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "enterprise.rhine_lab",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "department_structural",
+      "definitionId": "enterprise.department.structural",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "departments",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "enterprise.rhine_lab",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_silverash",
+      "definitionId": "operator.silverash",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "enterprise.rhodes_island",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_mudrock",
+      "definitionId": "operator.mudrock",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "enterprise.rhodes_island",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_eunectes",
+      "definitionId": "operator.eunectes",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "enterprise.rhodes_island",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_closure",
+      "definitionId": "operator.closure",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "enterprise.rhodes_island",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_kaltsit",
+      "definitionId": "operator.kaltsit",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "enterprise.rhodes_island",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_w",
+      "definitionId": "operator.w",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "enterprise.rhodes_island",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_dorothy",
+      "definitionId": "operator.dorothy",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "enterprise.rhodes_island",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_passenger",
+      "definitionId": "operator.passenger",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "enterprise.rhodes_island",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_office_red",
+      "definitionId": "facility_enterprise_office_red",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_office_blue",
+      "definitionId": "facility_enterprise_office_blue",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_office_yellow",
+      "definitionId": "facility_enterprise_office_yellow",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_city_construction_frontier",
+      "definitionId": "city_style_city_construction_frontier",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_pioneer_outpost",
+      "definitionId": "city_style_pioneer_outpost",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_core_commercial_area",
+      "definitionId": "city_style_core_commercial_area",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_large_enterprise_park",
+      "definitionId": "city_style_large_enterprise_park",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_security_district",
+      "definitionId": "city_style_security_district",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_city_style_pioneer_command_hub",
+      "definitionId": "city_style_pioneer_command_hub",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    }
+  ],
+  "enterpriseEntrance": true
+}

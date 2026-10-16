@@ -5,33 +5,38 @@ using UnityEngine.UI;
 
 namespace YC.Presentation
 {
-    /// <summary>单击选牌；长按、双击或右键查看。拖动交给所在的滚动列表。</summary>
+    /// <summary>单击立即选牌；长按或右键查看。拖动交给所在的滚动列表。</summary>
     public sealed class CardPickerCardButton : Button,
         IInitializePotentialDragHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         [SerializeField] private float longPressSeconds = .5f;
-        [SerializeField] private float doubleClickSeconds = .3f;
         private Action preview;
         private Func<bool> canPreview;
         private PointerEventData heldPointer;
         private Vector2 pressedPosition;
-        private float pressedAt, selectAt;
-        private bool held, suppressClick, pendingSelect, secondPress;
+        private float pressedAt;
+        private bool held, suppressClick;
+        private bool previewOnSingleClick;
         private ScrollRect scroll;
 
         public void ConfigurePreview(Action open, Func<bool> isCurrent)
         {
             preview = open;
             canPreview = isCurrent;
+            previewOnSingleClick = false;
             ResetGesture();
+        }
+
+        public void ConfigureSingleClickPreview(Action open, Func<bool> isCurrent)
+        {
+            ConfigurePreview(open, isCurrent);
+            previewOnSingleClick = true;
         }
 
         public override void OnPointerDown(PointerEventData data)
         {
             base.OnPointerDown(data);
             if (data == null) return;
-            secondPress = pendingSelect && Time.unscaledTime <= selectAt;
-            pendingSelect = false;
             suppressClick = false;
             pressedPosition = data.position;
             pressedAt = Time.unscaledTime;
@@ -55,30 +60,30 @@ namespace YC.Presentation
         public override void OnPointerClick(PointerEventData data)
         {
             if (data == null || !IsActive() || suppressClick) return;
-            if (data.button == PointerEventData.InputButton.Right ||
-                (data.button == PointerEventData.InputButton.Left && (secondPress || data.clickCount >= 2)))
+            if (data.button == PointerEventData.InputButton.Right)
             {
                 OpenPreview();
                 return;
             }
-            if (data.button != PointerEventData.InputButton.Left || !IsInteractable()) return;
-            // 等待双击窗口，避免第一次点击重建选择页后丢失第二次点击。
-            pendingSelect = true;
-            selectAt = Time.unscaledTime + doubleClickSeconds;
+            if (data.button != PointerEventData.InputButton.Left) return;
+            if (previewOnSingleClick)
+            {
+                OpenPreview();
+                return;
+            }
+            if (!IsInteractable()) return;
+            onClick.Invoke();
         }
 
         private void Update()
         {
             if (held && Moved(heldPointer)) { held = false; suppressClick = true; }
             if (held && Time.unscaledTime - pressedAt >= longPressSeconds) OpenPreview();
-            if (!pendingSelect || held || Time.unscaledTime < selectAt) return;
-            pendingSelect = false;
-            if (IsActive() && IsInteractable()) onClick.Invoke();
         }
 
         private void OpenPreview()
         {
-            held = pendingSelect = false;
+            held = false;
             suppressClick = true;
             if (IsActive() && preview != null && (canPreview == null || canPreview())) preview();
         }
@@ -97,7 +102,7 @@ namespace YC.Presentation
 
         public void OnBeginDrag(PointerEventData data)
         {
-            held = pendingSelect = false;
+            held = false;
             suppressClick = true;
             if (scroll != null) scroll.OnBeginDrag(data);
         }
@@ -120,7 +125,7 @@ namespace YC.Presentation
 
         private void ResetGesture()
         {
-            held = pendingSelect = secondPress = suppressClick = false;
+            held = suppressClick = false;
             heldPointer = null;
         }
     }

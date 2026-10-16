@@ -31,5 +31,12 @@ namespace YC.Presentation.Workflows
         void Cancel();
 
         void NotifyCommandSettled(string commandId);
+
+    }
+
+    public interface IInteractionCommandResultConsumer
+    {
+        void NotifyInteractionCommandResolved(string gameId, string commandId, bool accepted,
+            YC.Domain.Rules.CommandErrorCode errorCode);
     }
 }

@@ -6,6 +6,24 @@ using YC.Domain.State;
 
 namespace YC.Application.Sessions
 {
+    public enum CommandAuthorityOutcomeKind { Unknown, Accepted, Rejected }
+
+    /// <summary>准确命令结果的有界记录；不保存投影、选项或规则状态，不用于重新执行命令。</summary>
+    [Serializable]
+    public sealed class CommandAuthorityOutcome
+    {
+        public const int CurrentProtocolVersion = 1;
+        public int ProtocolVersion = CurrentProtocolVersion;
+        public string GameId = string.Empty;
+        public int PlayerId;
+        public string CommandId = string.Empty;
+        public CommandAuthorityOutcomeKind Outcome;
+        public int AcceptedSequence;
+        public int StateRevision;
+        public CommandErrorCode ErrorCode;
+        public string Reason = string.Empty;
+    }
+
     public sealed class AuthoritativeCommandDispatcher
     {
         private readonly GameSession session;
@@ -13,6 +31,10 @@ namespace YC.Application.Sessions
         private int nextAcceptedSequence = 1;
         private int nextExpectedConfirmedSequence = 1;
         private bool initialStateSynchronized;
+        private const int CommandOutcomeCapacity = 512;
+        private readonly Dictionary<string, CommandAuthorityOutcome> commandOutcomes = new Dictionary<string, CommandAuthorityOutcome>(StringComparer.Ordinal);
+        private readonly Queue<string> commandOutcomeOrder = new Queue<string>();
+        private string outcomeGameId;
 
         public AuthoritativeCommandDispatcher(GameSession session)
             : this(session, false)
@@ -33,6 +55,8 @@ namespace YC.Application.Sessions
             get { return initialStateSynchronized; }
         }
 
+        public int NextExpectedConfirmedSequence => nextExpectedConfirmedSequence;
+
         public void RegisterClientPlayer(ulong clientId, int playerId)
         {
             if (playerId <= 0)
@@ -41,6 +65,27 @@ namespace YC.Application.Sessions
             }
 
             playerIdsByClientId[clientId] = playerId;
+            // 重新绑定后，旧连接不能继续查询该玩家的命令结果。
+            foreach (var prior in new List<KeyValuePair<ulong, int>>(playerIdsByClientId))
+                if (prior.Key != clientId && prior.Value == playerId) playerIdsByClientId.Remove(prior.Key);
+        }
+
+        public void UnregisterClientPlayer(ulong clientId) => playerIdsByClientId.Remove(clientId);
+
+        public bool TryGetCommandOutcome(ulong senderClientId, string gameId, int playerId,
+            string commandId, out CommandAuthorityOutcome outcome)
+        {
+            outcome = null;
+            ResetCommandOutcomesForCurrentGame();
+            if (!playerIdsByClientId.TryGetValue(senderClientId, out var owner) || owner != playerId ||
+                playerId <= 0 || string.IsNullOrEmpty(commandId) || string.IsNullOrEmpty(gameId) ||
+                !string.Equals(gameId, outcomeGameId, StringComparison.Ordinal) ||
+                !commandOutcomes.TryGetValue(CommandOutcomeKey(playerId, commandId), out var recorded)) return false;
+            // 查询者不能修改权威记录，也不会触发Submit、费用或Effect。
+            outcome = new CommandAuthorityOutcome { GameId = recorded.GameId, PlayerId = recorded.PlayerId,
+                CommandId = recorded.CommandId, Outcome = recorded.Outcome, AcceptedSequence = recorded.AcceptedSequence,
+                StateRevision = recorded.StateRevision, ErrorCode = recorded.ErrorCode, Reason = recorded.Reason };
+            return true;
         }
 
         public CommandResult SubmitHostCommand(GameCommandDto dto)
@@ -101,7 +146,7 @@ namespace YC.Application.Sessions
             return new InitialGameStateViewDto
             {
                 NextConfirmedSequence = nextAcceptedSequence,
-                View = GameStateViewProjector.Project(session.State, viewer)
+                View = session.ProjectFor(viewer)
             };
         }
 
@@ -118,7 +163,7 @@ namespace YC.Application.Sessions
                 Command = IsCommandVisibleToViewer(confirmed.Command, viewer)
                     ? CloneCommandDto(confirmed.Command)
                     : null,
-                View = GameStateViewProjector.Project(session.State, viewer)
+                View = session.ProjectFor(viewer)
             };
         }
 
@@ -173,12 +218,21 @@ namespace YC.Application.Sessions
 
         public CommandResult ApplyInitialStateViewSynchronization(InitialGameStateViewDto snapshot)
         {
-            if (snapshot == null || snapshot.View == null || snapshot.View.SchemaVersion <= 0 ||
-                snapshot.View.SchemaVersion > GameStateView.CurrentSchemaVersion)
+            if (snapshot == null || snapshot.ProtocolVersion != GameStateView.CurrentSchemaVersion || snapshot.View == null ||
+                snapshot.View.SchemaVersion != GameStateView.CurrentSchemaVersion || !HasMatchingPlayerOrder(snapshot.View))
             {
                 return CommandResult.Invalid(ValidationResult.Failure(
                     CommandErrorCode.UnknownCommand,
                     "Initial game state view payload is empty or unsupported."));
+            }
+
+            if (initialStateSynchronized && session.View != null &&
+                (snapshot.View.GameId != session.View.GameId ||
+                 snapshot.View.StateRevision < session.View.StateRevision ||
+                 snapshot.NextConfirmedSequence < nextExpectedConfirmedSequence))
+            {
+                return CommandResult.Invalid(ValidationResult.Failure(
+                    CommandErrorCode.UnknownCommand, "过期或不同对局的同步快照不能覆盖当前投影。"));
             }
 
             session.ReplaceView(snapshot.View);
@@ -242,17 +296,32 @@ namespace YC.Application.Sessions
                     CommandErrorCode.UnknownCommand,
                     "Confirmed view sequence is not continuous."));
             }
-            if (confirmed.View == null || confirmed.View.SchemaVersion <= 0 ||
-                confirmed.View.SchemaVersion > GameStateView.CurrentSchemaVersion)
+            if (confirmed.ProtocolVersion != GameStateView.CurrentSchemaVersion || confirmed.View == null ||
+                confirmed.View.SchemaVersion != GameStateView.CurrentSchemaVersion || !HasMatchingPlayerOrder(confirmed.View))
             {
                 return CommandResult.Invalid(ValidationResult.Failure(
                     CommandErrorCode.UnknownCommand,
                     "Confirmed game state view payload is empty or unsupported."));
             }
 
+            if (session.View != null && (confirmed.View.GameId != session.View.GameId ||
+                confirmed.View.StateRevision < session.View.StateRevision))
+                return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand,
+                    "过期或不同对局的确认不能覆盖当前投影。"));
+
             session.ReplaceView(confirmed.View);
             nextExpectedConfirmedSequence++;
             return CommandResult.SuccessResult(new List<YC.Domain.Events.GameEvent>(), "Confirmed game state view synchronized.");
+        }
+
+        private bool HasMatchingPlayerOrder(GameStateView view)
+        {
+            if (!view.HasValidPlayerOrderAndSlots()) return false;
+            if (session.State.Players.Count == 0) return true;
+            var expected = new YC.Domain.Rules.TurnOrderService().GetLaunchPlayerOrder(session.State);
+            if (expected.Count != view.LaunchPlayerOrder.Count) return false;
+            for (var i = 0; i < expected.Count; i++) if (expected[i] != view.LaunchPlayerOrder[i]) return false;
+            return true;
         }
 
         private CommandResult SubmitAuthorityCommand(GameCommandDto dto)
@@ -271,21 +340,27 @@ namespace YC.Application.Sessions
             }
             catch (Exception ex)
             {
-                return CommandResult.Invalid(ValidationResult.Failure(
+                var invalid = CommandResult.Invalid(ValidationResult.Failure(
                     CommandErrorCode.UnknownCommand,
                     "Network command payload could not be restored: " + ex.Message));
+                RecordCommandOutcome(dto, invalid, 0);
+                return invalid;
             }
 
             var result = session.Submit(command);
             if (!result.Succeeded)
             {
+                RecordCommandOutcome(dto, result, 0);
                 return result;
             }
 
+            int acceptedSequence = nextAcceptedSequence++;
+            var acceptedCommand = GameCommandDto.FromCommand(command);
+            RecordCommandOutcome(acceptedCommand, result, acceptedSequence);
             var confirmed = new ConfirmedGameCommandDto
             {
-                Sequence = nextAcceptedSequence++,
-                Command = GameCommandDto.FromCommand(command),
+                Sequence = acceptedSequence,
+                Command = acceptedCommand,
                 State = GameStateCloneService.DeepClone(session.State)
             };
 
@@ -296,6 +371,33 @@ namespace YC.Application.Sessions
             }
 
             return result;
+        }
+
+        private void ResetCommandOutcomesForCurrentGame()
+        {
+            string gameId = session.State.GameId ?? string.Empty;
+            if (string.Equals(outcomeGameId, gameId, StringComparison.Ordinal)) return;
+            commandOutcomes.Clear();
+            commandOutcomeOrder.Clear();
+            outcomeGameId = gameId;
+        }
+
+        private static string CommandOutcomeKey(int playerId, string commandId) =>
+            playerId.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":" + commandId;
+
+        private void RecordCommandOutcome(GameCommandDto command, CommandResult result, int acceptedSequence)
+        {
+            ResetCommandOutcomesForCurrentGame();
+            if (command == null || command.PlayerId <= 0 || string.IsNullOrEmpty(command.CommandId) ||
+                string.IsNullOrEmpty(outcomeGameId)) return;
+            string key = CommandOutcomeKey(command.PlayerId, command.CommandId);
+            if (commandOutcomes.ContainsKey(key)) return;
+            if (commandOutcomes.Count >= CommandOutcomeCapacity) commandOutcomes.Remove(commandOutcomeOrder.Dequeue());
+            commandOutcomes.Add(key, new CommandAuthorityOutcome { GameId = outcomeGameId, PlayerId = command.PlayerId,
+                CommandId = command.CommandId, Outcome = result.Succeeded ? CommandAuthorityOutcomeKind.Accepted : CommandAuthorityOutcomeKind.Rejected,
+                AcceptedSequence = acceptedSequence, StateRevision = session.State.EffectRuntime?.StateRevision ?? 0,
+                ErrorCode = result.Validation?.ErrorCode ?? CommandErrorCode.None, Reason = result.Validation?.Reason ?? string.Empty });
+            commandOutcomeOrder.Enqueue(key);
         }
 
         private CommandResult Reject(ulong senderClientId, GameCommandDto dto, CommandErrorCode errorCode, string reason)

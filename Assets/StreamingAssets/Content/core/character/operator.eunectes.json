@@ -1,0 +1,49 @@
+{
+  "definitionId": "operator.eunectes",
+  "contentType": "character",
+  "version": "2.0.0",
+  "displayName": "森蚺",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/operator_faces.jpg",
+  "artworkSpriteId": "operator.eunectes.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "operator.eunectes.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.operator.eunectes.strategy",
+      "script": "lua/characters/operator.eunectes.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "operator.eunectes.tactic",
+      "mode": "tactic",
+      "skillType": "normal",
+      "subscriptionId": "content.operator.eunectes.tactic",
+      "script": "lua/characters/operator.eunectes.tactic.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.operator.eunectes.tactic.completed",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "operator.eunectes",
+    "cardId": "operator.eunectes",
+    "name": "森蚺",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "operator.eunectes.strategy",
+    "tacticAbilityId": "operator.eunectes.tactic"
+  }
+}

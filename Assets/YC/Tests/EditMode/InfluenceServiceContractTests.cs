@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
@@ -323,22 +322,7 @@ namespace YC.Tests.EditMode
 
         private static void AddRoadRoute(GameState state, string routeId)
         {
-            var mapState = state.Map;
-            var field = mapState.GetType().GetField("RoadRouteIds", BindingFlags.Instance | BindingFlags.Public);
-            if (field != null && field.GetValue(mapState) is IList roadRouteIds)
-            {
-                roadRouteIds.Add(routeId);
-                return;
-            }
-
-            var property = mapState.GetType().GetProperty("RoadRouteIds", BindingFlags.Instance | BindingFlags.Public);
-            if (property != null && property.GetValue(mapState, null) is IList propertyRoadRouteIds)
-            {
-                propertyRoadRouteIds.Add(routeId);
-                return;
-            }
-
-            Assert.Fail("MapRuntimeState must expose RoadRouteIds so roads can block route influence slots.");
+            state.Map.RoadRouteIds.Add(routeId);
         }
 
         private static string LocationSlot(string locationId, int index)

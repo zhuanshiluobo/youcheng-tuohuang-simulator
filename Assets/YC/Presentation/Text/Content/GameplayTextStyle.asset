@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62cdcf5c6581402bba9c99f014bedc75, type: 3}
+  m_Name: GameplayTextStyle
+  m_EditorClassIdentifier:
+  fontRoles: {fileID: 11400000, guid: 28fb9ecaab0c9024699a38366cdeb6aa, type: 2}
+  fontBindings: []
+  semanticKeywords: []
+  useDefaultSemanticKeywords: 1
+  numberOverlays:
+  - Key: core:score_number_overlay
+    OverlayRect: {serializedVersion: 2, x: 0.22, y: 0.25, width: 0.54, height: 0.56}
+    Ink: {r: 1, g: 1, b: 1, a: 1}
+    FontSizeRatio: 0.8
+  lineSpacing: 2
+  iconSpacing: 2
+  iconHeightRatio: 1.15
+  iconBaselineOffset: 0

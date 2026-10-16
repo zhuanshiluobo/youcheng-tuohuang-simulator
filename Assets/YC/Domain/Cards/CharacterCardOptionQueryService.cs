@@ -4,6 +4,7 @@ using YC.Domain.Facilities;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Movement;
+using YC.Domain.Presentation;
 using YC.Domain.Rules;
 using YC.Domain.State;
 
@@ -142,51 +143,72 @@ namespace YC.Domain.Cards
             }
             else if (pending.ChoiceType == CharacterPendingChoiceTypes.TinManDiscard)
             {
-                result.Add(CharacterEffectParameterKeys.Choice, CharacterEffectChoiceIds.GainGold, "获得 5 金券");
-                result.Add(CharacterEffectParameterKeys.Choice, CharacterEffectChoiceIds.MoveInfluence, "移动 1 个影响力");
+                result.SetPresentation(new GameplayInteractionPresentation
+                {
+                    Prompt = string.IsNullOrEmpty(pending.RemainingCardIds[0])
+                        ? new GameplayTextRef("core:legacy.character.tin_man.discard.prompt_without_card")
+                        : new GameplayTextRef("core:legacy.character.tin_man.discard.prompt",
+                        new GameplayTextArgument
+                        {
+                            Name = "card", Kind = "definition",
+                            Value = NormalizedValue.CreateStableReference("definition", pending.RemainingCardIds[0])
+                        })
+                });
+                AddPresentedChoice(result, CharacterEffectChoiceIds.GainGold,
+                    new GameplayTextRef("core:legacy.character.tin_man.discard.gain_gold", Integer("gold", 5)));
+                AddPresentedChoice(result, CharacterEffectChoiceIds.MoveInfluence,
+                    new GameplayTextRef("core:legacy.character.tin_man.discard.move_influence", Integer("count", 1)));
                 QuerySingleInfluenceMove(state, playerId, selectedParameters, result);
             }
             else if (pending.ChoiceType == CharacterPendingChoiceTypes.TinManFirstPurchase)
             {
                 result.SetSummary(
-                    "已固定获得 1 分。现在可以支付 " +
-                    CharacterCardService.TinManFirstPureOriginiumCost +
-                    " 金券获得第一个至纯源石；取消则立即结束本次策略结算。",
+                    string.Empty,
                     0,
                     1,
                     0);
+                result.SetPresentation(new GameplayInteractionPresentation
+                {
+                    Prompt = new GameplayTextRef("core:legacy.character.tin_man.first_purchase.prompt",
+                        Integer("score", result.ScoreGain),
+                        Integer("cost", CharacterCardService.TinManFirstPureOriginiumCost))
+                });
                 AddPendingChoiceIfPresent(
                     pending,
                     result,
                     CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium,
-                    "支付 " + CharacterCardService.TinManFirstPureOriginiumCost + " 金券，获得 1 个至纯源石");
+                    new GameplayTextRef("core:legacy.character.tin_man.first_purchase.buy",
+                        Integer("cost", CharacterCardService.TinManFirstPureOriginiumCost), Integer("amount", 1)));
                 AddPendingChoiceIfPresent(
                     pending,
                     result,
                     CharacterEffectChoiceIds.TinManFinishPurchasing,
-                    "取消购买并结算");
+                    new GameplayTextRef("core:legacy.character.tin_man.first_purchase.finish"));
             }
             else if (pending.ChoiceType == CharacterPendingChoiceTypes.TinManSecondPurchase)
             {
                 result.SetSummary(
-                    "第一笔 " +
-                    CharacterCardService.TinManFirstPureOriginiumCost +
-                    " 金券已支付并获得 1 个至纯源石。现在可以再支付 " +
-                    CharacterCardService.TinManSecondPureOriginiumCost +
-                    " 金券获得第二个；取消则按当前结果结算。",
+                    string.Empty,
                     CharacterCardService.TinManFirstPureOriginiumCost,
                     1,
                     1);
+                result.SetPresentation(new GameplayInteractionPresentation
+                {
+                    Prompt = new GameplayTextRef("core:legacy.character.tin_man.second_purchase.prompt",
+                        Integer("paid", result.GoldVoucherCost), Integer("amount", result.PureOriginiumGain),
+                        Integer("cost", CharacterCardService.TinManSecondPureOriginiumCost))
+                });
                 AddPendingChoiceIfPresent(
                     pending,
                     result,
                     CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium,
-                    "再支付 " + CharacterCardService.TinManSecondPureOriginiumCost + " 金券，再获得 1 个至纯源石");
+                    new GameplayTextRef("core:legacy.character.tin_man.second_purchase.buy",
+                        Integer("cost", CharacterCardService.TinManSecondPureOriginiumCost), Integer("amount", 1)));
                 AddPendingChoiceIfPresent(
                     pending,
                     result,
                     CharacterEffectChoiceIds.TinManFinishPurchasing,
-                    "取消第二笔购买并结算");
+                    new GameplayTextRef("core:legacy.character.tin_man.second_purchase.finish"));
             }
 
             return result;
@@ -196,13 +218,24 @@ namespace YC.Domain.Cards
             PendingCharacterEffectState pending,
             CharacterCardOptionQueryResult result,
             string choiceId,
-            string displayName)
+            GameplayTextRef label)
         {
             if (pending.OptionIds != null && pending.OptionIds.Contains(choiceId))
             {
-                result.Add(CharacterEffectParameterKeys.Choice, choiceId, displayName);
+                AddPresentedChoice(result, choiceId, label);
             }
         }
+
+        private static void AddPresentedChoice(CharacterCardOptionQueryResult result, string choiceId, GameplayTextRef label)
+        {
+            result.Add(CharacterEffectParameterKeys.Choice, choiceId, string.Empty);
+            result.Presentation.Options.Add(new GameplayOptionPresentation { CandidateId = choiceId, Label = label });
+        }
+
+        private static GameplayTextArgument Integer(string name, int value) => new GameplayTextArgument
+        {
+            Name = name, Kind = "integer", Value = NormalizedValue.CreateInteger(value)
+        };
 
         private bool HasCompleteLiskarmPlacement(GameState state, int playerId)
         {
@@ -446,6 +479,12 @@ namespace YC.Domain.Cards
         public int GoldVoucherCost { get; private set; }
         public int ScoreGain { get; private set; }
         public int PureOriginiumGain { get; private set; }
+        public GameplayInteractionPresentation Presentation { get; private set; }
+
+        public void SetPresentation(GameplayInteractionPresentation presentation)
+        {
+            Presentation = GameplayPresentationNormalizer.Clone(presentation);
+        }
 
         public void SetSummary(string summaryText, int goldVoucherCost, int scoreGain, int pureOriginiumGain)
         {

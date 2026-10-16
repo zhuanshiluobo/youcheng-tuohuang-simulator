@@ -22,23 +22,30 @@ namespace YC.Infrastructure.Lua
 
         public static void Register(EffectRegistry registry)
         {
+            RegisterCards(registry, new[] { EventColor.Green, EventColor.Red, EventColor.Yellow }.SelectMany(EventCardDatabase.GetCardIds).Select(EventCardDatabase.Get));
+        }
+        public static void Register(EffectRegistry registry, ExternalContentPack pack) => RegisterCards(registry, pack.CreateEvents(), pack);
+        private static void RegisterCards(EffectRegistry registry, IEnumerable<EventCardDefinition> cards, ExternalContentPack pack = null)
+        {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
 
             var dispatcher = new LuaEffectEventDispatcher(registry);
             PlayerEntranceLuaCatalog.Register(registry);
             RegisterCityMoveObserver(dispatcher, registry);
-            foreach (string cardId in new[] { EventColor.Green, EventColor.Red, EventColor.Yellow }.SelectMany(EventCardDatabase.GetCardIds))
+            foreach (var card in cards)
             {
-                EventCardDefinition card = EventCardDatabase.Get(cardId);
                 if (card == null) continue;
 
                 string subscriptionId = "lua:event-card:" + card.CardId;
                 if (registry.HasEventHandler(subscriptionId)) continue;
+                var external = pack?.ActiveDefinitions.Single(d => d.DefinitionId == card.CardId || d.RuntimeId == card.CardId);
+                var scriptDefinition = external?.Data["effectScript"] == null ? CreateDefinition(card) : new LuaScriptDefinition(external.DefinitionId, card.CardId, subscriptionId, external.Version,
+                    pack.GetContentScript("event", external.DefinitionId), LuaContentHasher.ComputeSha256(pack.GetContentScript("event", external.DefinitionId)));
                 dispatcher.Register(new LuaHandlerDefinition(
                     subscriptionId,
                     EventCardEffectEventTypeIds.Resolved,
                     card.CardId,
-                    CreateDefinition(card),
+                    scriptDefinition,
                     EffectHandlerRole.Primary,
                     0,
                     string.Empty,
@@ -137,7 +144,9 @@ end";
 
                 IReadOnlyList<EventEffect> pendingEffects = card.ChoicePendingEffects[optionIndex];
                 ResourceSet costs = CollectCosts(pendingEffects);
-                AppendResourcePayments(builder, costs, "event_card.cost:" + card.CardId);
+                bool rulePayment = card.CardId == "event_yellow_04" && costs.Enumerate().Any(pair => pair.Value > 0);
+                if (rulePayment) builder.AppendLine("        local outerEffects = effects; effects = {}");
+                else AppendResourcePayments(builder, costs, "event_card.cost:" + card.CardId);
 
                 int slotCursor = 1;
                 for (int effectIndex = 0; effectIndex < pendingEffects.Count; effectIndex++)
@@ -165,6 +174,12 @@ end";
                     }
                 }
 
+                if (rulePayment)
+                {
+                    string costFields = string.Join(", ", costs.Enumerate().Select(pair => pair.Key.ToString() + " = " + pair.Value.ToString(CultureInfo.InvariantCulture)));
+                    builder.AppendLine("        local rightEffects = effects; effects = outerEffects");
+                    builder.AppendLine("        table.insert(effects, Effect.WithPresentation(Effect.Condition({ leftEffects = { Effect.PayResource({ player = ctx.playerId, cost = { " + costFields + " } }) }, rightEffects = rightEffects }), { interaction = { prompt = Text.Ref('core:condition.event.event_yellow_04.payment') } }))");
+                }
                 builder.AppendLine("    end");
             }
 

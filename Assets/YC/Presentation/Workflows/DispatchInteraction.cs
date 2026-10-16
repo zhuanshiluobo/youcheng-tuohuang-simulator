@@ -16,10 +16,9 @@ namespace YC.Presentation.Workflows
 
         public override InteractionPriority Priority => InteractionPriority.ActiveAction;
 
-        public override bool IsActive =>
-            presenter.IsSelectingDispatchSource ||
-            presenter.IsSelectingDispatchTarget ||
-            presenter.IsChoosingDispatchContinuation;
+        public override bool IsActive => presenter.IsDispatchSubmissionInFlight;
+
+        public override void NotifyCommandSettled(string commandId) => presenter.NotifyDispatchCommandSettled(commandId);
 
         public override InteractionResult OnLocationClicked(string locationId)
         {
@@ -46,7 +45,7 @@ namespace YC.Presentation.Workflows
             return IsActive
                 ? new InteractionPresentation(
                     null,
-                    presenter.CurrentPrompt,
+                    CommandGateway.BuildWaitingForHostPrompt("调度命令"),
                     InteractionMode.Busy,
                     false)
                 : InteractionPresentation.Empty;

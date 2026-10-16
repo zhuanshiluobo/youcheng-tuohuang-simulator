@@ -1,0 +1,105 @@
+{
+  "definitionId": "infected.character.swire",
+  "contentType": "character",
+  "version": "2.0.0",
+  "displayName": "诗怀雅",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.swire.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [
+    {
+      "localZoneId": "markers",
+      "zoneTemplateId": "core.zone.card_cube_storage",
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.card_payment",
+      "capacityPolicy": "unbounded",
+      "orderingKind": "Unordered",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.return_contents_before_exit",
+      "displayAnchorId": "markers",
+      "emptyExitPolicyId": "core.discard_carrier_when_empty",
+      "paymentPolicyId": "",
+      "maxMarkersPerPayment": 0
+    }
+  ],
+  "abilities": [
+    {
+      "abilityId": "infected.character.swire.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.swire.strategy",
+      "script": "lua/characters/infected.character.swire.strategy.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.swire.strategy.completed",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "infected.character.swire.tactic",
+      "mode": "tactic",
+      "skillType": "persistent",
+      "subscriptionId": "content.infected.character.swire.tactic",
+      "script": "lua/characters/infected.character.swire.tactic.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.swire.tactic.completed",
+      "cleanupScript": "lua/characters/infected.character.swire.tactic.lua",
+      "hasSpecialZone": true,
+      "specialZoneId": "markers",
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "infected.character.swire.tactic.cleanup_order",
+        "availabilityHandlerId": "infected.character.swire.tactic.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.infected.character.swire.tactic.label"
+          },
+          "description": {
+            "key": "core:settlement.infected.character.swire.tactic.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.infected.character.swire.tactic.label"
+          },
+          "iconKey": "core:settlement.target_other",
+          "contentMode": "icon_text"
+        },
+        "wholeEffectPolicy": "optional"
+      }
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.swire",
+    "cardId": "infected.character.swire",
+    "name": "诗怀雅",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "infected.character.swire.strategy",
+    "tacticAbilityId": "infected.character.swire.tactic",
+    "strategyName": "分散投资",
+    "tacticName": "和气生财",
+    "sourceReference": "I28",
+    "playerDetails": [
+      {
+        "abilityId": "infected.character.swire.tactic",
+        "effectText": "计谋·和气生财（持续性）：选至多2位不同对手，各将其供应中的1枚玩家标记放在本牌上，保留原所有者。每个收尾阶段一次，移除此牌上1枚标记并归还其所有者，获得6金券；选择1家企业，你和该标记所有者各提升1级合作等级。牌上无标记时，将本角色移至角色弃牌区。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Subscription",
+        "storageLocalZoneIds": [
+          "markers"
+        ],
+        "includeCoverSlots": false,
+        "displayName": "诗怀雅"
+      }
+    ]
+  }
+}

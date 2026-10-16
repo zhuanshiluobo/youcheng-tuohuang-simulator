@@ -506,7 +506,6 @@ GameObject:
   - component: {fileID: 2495237620975492102}
   - component: {fileID: 4435602226422539921}
   - component: {fileID: 8842628590678753254}
-  - component: {fileID: 1313920209312967616}
   - component: {fileID: 7451260000000000005}
   m_Layer: 5
   m_Name: Image Panel
@@ -576,21 +575,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &1313920209312967616
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2492868877964320945}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_EffectColor: {r: 0.78, g: 0.63, b: 0.38, a: 0.85}
-  m_EffectDistance: {x: 3, y: -3}
-  m_UseGraphicAlpha: 1
 --- !u!1 &3138755140555036325
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
@@ -52,10 +53,12 @@ namespace YC.Tests.EditMode
         }
 
         [TestCase(2, 1920)]
+        [TestCase(5, 1920)]
         [TestCase(6, 1920)]
         [TestCase(7, 1920)]
         [TestCase(9, 1920)]
         [TestCase(2, 1024)]
+        [TestCase(5, 1024)]
         [TestCase(6, 1024)]
         [TestCase(7, 1024)]
         [TestCase(9, 1024)]
@@ -85,9 +88,13 @@ namespace YC.Tests.EditMode
                     "卡牌空槽不能整体充当选择按钮。");
                 AssertWithin((RectTransform)face.transform, Property<RectTransform>(card, "CardRect"));
             }
-            if (count > 7)
+            if (count > 5)
                 Assert.That(scroll.content.rect.width, Is.GreaterThan(scroll.viewport.rect.width),
-                    "超过七张的卡牌应可通过横向滚动访问。");
+                    "第六张开始必须真实溢出并可通过横向滚动访问。");
+            else
+                Assert.That(scroll.content.rect.width, Is.LessThanOrEqualTo(scroll.viewport.rect.width + .01f));
+            var row = scroll.content.GetComponent(RuntimeType("CardPickerRowLayout"));
+            Assert.That(Property<bool>(row, "FitsAvailableHeight"), Is.True);
             Call(page, "RestoreScrollPosition", 0f);
             Refresh(page);
             var last = cards[cards.Length - 1];
@@ -234,6 +241,32 @@ namespace YC.Tests.EditMode
             Assert.That(cancellations, Is.EqualTo(1));
         }
 
+        [Test]
+        public void PageScaleUsesPhysicalScreenAndOnlyClampsWhenScreenCannotFit()
+        {
+            var type = RuntimeType("CardPickerPageScale");
+            var method = type.GetMethod("CalculateScale", BindingFlags.Public | BindingFlags.Static);
+            float Scale(Vector2 baseline, Rect safe, Vector2 center) =>
+                (float)method.Invoke(null, new object[] { baseline, safe, center, 1.2f });
+            Assert.That(Scale(new Vector2(1488.1889f, 744.0944f), new Rect(0, 0, 1920, 1080), new Vector2(960, 540)),
+                Is.EqualTo(1.2f).Within(.0001f));
+            Assert.That(Scale(new Vector2(1059, 529.5f), new Rect(0, 0, 1366, 768), new Vector2(683, 384)),
+                Is.EqualTo(1.2f).Within(.0001f));
+            var clamped = Scale(new Vector2(1000, 500), new Rect(0, 0, 1024, 768), new Vector2(512, 384));
+            Assert.That(clamped, Is.EqualTo(1.024f).Within(.0001f));
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardPickerDialog.prefab");
+            var scale = prefab.GetComponentInChildren(type, true);
+            Assert.That(scale, Is.Not.Null);
+            Assert.That(Property<float>(scale, "RequestedScale"), Is.EqualTo(1.2f));
+            var window = (RectTransform)scale.transform;
+            Assert.That(window.anchorMin, Is.EqualTo(Vector2.one * .5f));
+            Assert.That(window.anchorMax, Is.EqualTo(Vector2.one * .5f));
+            Assert.That(window.pivot, Is.EqualTo(Vector2.one * .5f));
+            Assert.That(window.rect.width / window.rect.height, Is.EqualTo(2f).Within(.0001f));
+            Assert.That(window.GetComponentsInParent<Mask>(true), Is.Empty);
+            Assert.That(window.GetComponentsInParent<RectMask2D>(true), Is.Empty);
+        }
+
         private static void OpenCardPreview(Button card)
         {
             ExecuteEvents.Execute(card.gameObject, new PointerEventData(EventSystem.current)
@@ -287,10 +320,22 @@ namespace YC.Tests.EditMode
         private static void Refresh(Component page)
         {
             Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)page.transform);
-            Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)page.transform);
-            Canvas.ForceUpdateCanvases();
+            for (int pass = 0; pass < 2; pass++)
+            {
+                // 独立ILayoutSelfController可能位于没有LayoutGroup的中间层，根重建不会遍历到它。
+                foreach (var rect in page.GetComponentsInChildren<Behaviour>()
+                    .Where(component => component.isActiveAndEnabled && component is ILayoutController)
+                    .Select(component => component.transform as RectTransform).Where(rect => rect != null)
+                    .Distinct().OrderBy(rect => LayoutDepth(rect)))
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+                Canvas.ForceUpdateCanvases();
+            }
+        }
+        private static int LayoutDepth(Transform value)
+        {
+            int depth = 0;
+            for (var parent = value.parent; parent != null; parent = parent.parent) depth++;
+            return depth;
         }
         private static Rect Bounds(RectTransform rect)
         {

@@ -1,0 +1,92 @@
+{
+  "assets": [
+    {
+      "id": "title-plaque",
+      "svg": "01-topbar/title-plaque.svg",
+      "png": "01-topbar/title-plaque.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 64
+      },
+      "border": {
+        "left": 8,
+        "top": 0,
+        "right": 76,
+        "bottom": 0
+      },
+      "role": "optional-combined-title-decoration",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 253,
+      "recommendedDisplayRect": [
+        16,
+        0,
+        474,
+        64
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    },
+    {
+      "id": "title-plaque-frame",
+      "svg": "01-topbar/title-plaque-frame.svg",
+      "png": "01-topbar/title-plaque-frame.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 64
+      },
+      "border": {
+        "left": 8,
+        "top": 0,
+        "right": 76,
+        "bottom": 0
+      },
+      "role": "transparent-frame",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 0,
+      "recommendedDisplayRect": [
+        16,
+        0,
+        474,
+        64
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    },
+    {
+      "id": "title-plaque-fill",
+      "svg": "01-topbar/title-plaque-fill.svg",
+      "png": "01-topbar/title-plaque-fill.png",
+      "sourceSize": {
+        "width": 474,
+        "height": 64
+      },
+      "border": {
+        "left": 8,
+        "top": 0,
+        "right": 76,
+        "bottom": 0
+      },
+      "role": "independent-fill",
+      "material": "05-textures/art/topbar-matte-source.png",
+      "hasText": false,
+      "centerAlpha": 253,
+      "recommendedDisplayRect": [
+        16,
+        0,
+        474,
+        64
+      ],
+      "resize": "uniform; topbar fill may stretch horizontally; preserve grouped control proportions",
+      "representation": "Native SVG clipping of unchanged generated raster source; not editable vector illustration"
+    }
+  ],
+  "layerOrder": [
+    "title-plaque-fill",
+    "title-plaque-frame",
+    "runtime title text"
+  ],
+  "note": "Use the new matte layers at 474 x 64. Combined title is optional; do not overlay with separate layers.",
+  "version": "2.2.0"
+}
