@@ -101,6 +101,9 @@ namespace YC.Presentation.Workflows
             get { return selection.Phase; }
         }
 
+        public string FacilityId => selection.FacilityId;
+        public int CityBoardSlotIndex => selection.CityBoardSlotIndex;
+
         public bool IsSubmissionInFlight
         {
             get { return !string.IsNullOrEmpty(inFlightCommandId) || paymentPreparation.IsInFlight; }

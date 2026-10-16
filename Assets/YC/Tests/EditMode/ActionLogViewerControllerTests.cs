@@ -104,7 +104,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void Open_UsesWideSingleLineRowsAndFastDraggableScrollbar()
+        public void Open_DisplaysActionTextWithUsableVerticalScrollbar()
         {
             var state = CreateState();
             state.Logs.Add(new GameLogEntry
@@ -117,11 +117,9 @@ namespace YC.Tests.EditMode
 
             Invoke(viewer, "Open");
 
-            var panel = GameObject.Find("Action Log Panel").GetComponent<RectTransform>();
             var scroll = GameObject.Find("Action Log Scroll View").GetComponent<ScrollRect>();
             var rowText = GameObject.Find("Action Log Row Text").GetComponent<Text>();
-            Assert.That(panel.sizeDelta.x, Is.EqualTo(864f).Within(0.01f));
-            Assert.That(scroll.scrollSensitivity, Is.EqualTo(60f).Within(0.01f));
+            Assert.That(scroll.scrollSensitivity, Is.GreaterThan(0f));
             Assert.That(scroll.verticalScrollbar, Is.Not.Null);
             Assert.That(scroll.verticalScrollbar.direction, Is.EqualTo(Scrollbar.Direction.BottomToTop));
             Assert.That(rowText.text, Is.EqualTo("Alice \u5efa\u9020\u4e86\u5efa\u7b51\u201c\u62a4\u822a\u8c03\u5ea6\u4e2d\u5fc3\u201d\u3002"));

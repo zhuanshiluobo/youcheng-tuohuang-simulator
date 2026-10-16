@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
 
@@ -11,6 +10,13 @@ namespace YC.Presentation
     {
         private readonly BuildInfoPanel panel;
         private readonly TurnActionPresenter presenter;
+        private readonly List<string> draggableFacilityIds = new List<string>();
+        private bool hasSynchronized;
+        private bool synchronizedFacilityEffectSelectionActive;
+        private bool refreshRequired = true;
+        private BuildFacilityDraftPhase synchronizedDraftPhase;
+        private string synchronizedFacilityId;
+        private int synchronizedCityBoardSlotIndex;
 
         internal BuildFacilityInteractionUiCoordinator(
             BuildInfoPanel panel,
@@ -26,6 +32,8 @@ namespace YC.Presentation
         public void Refresh(GameState state, int localPlayerId)
         {
             panel.Refresh(state, localPlayerId);
+            // 游戏状态会原地更新；显式刷新后必须重新查询可用设施与合法槽位。
+            refreshRequired = true;
             Synchronize();
         }
 
@@ -33,11 +41,36 @@ namespace YC.Presentation
         {
             if (!panel.IsFacilityEffectSelectionActive)
             {
+                if (hasSynchronized && !synchronizedFacilityEffectSelectionActive)
+                {
+                    refreshRequired = false;
+                    return;
+                }
+
+                hasSynchronized = true;
+                synchronizedFacilityEffectSelectionActive = false;
+                refreshRequired = false;
                 SetLegacyBuildViewVisible(false);
-                panel.SetBuildInteraction(false, new List<string>(), null, string.Empty);
+                panel.SetBuildInteraction(false, null, null, string.Empty);
                 panel.SetPendingBuildGhost(false, string.Empty, -1, null, null);
                 return;
             }
+
+            var interaction = presenter.BuildInteraction;
+            if (hasSynchronized && synchronizedFacilityEffectSelectionActive && !refreshRequired &&
+                synchronizedDraftPhase == interaction.Phase &&
+                synchronizedFacilityId == interaction.FacilityId &&
+                synchronizedCityBoardSlotIndex == interaction.CityBoardSlotIndex)
+            {
+                return;
+            }
+
+            hasSynchronized = true;
+            synchronizedFacilityEffectSelectionActive = true;
+            refreshRequired = false;
+            synchronizedDraftPhase = interaction.Phase;
+            synchronizedFacilityId = interaction.FacilityId;
+            synchronizedCityBoardSlotIndex = interaction.CityBoardSlotIndex;
             var model = presenter.BuildBuildFacilityDraftViewModel();
             if (model == null)
             {
@@ -57,14 +90,14 @@ namespace YC.Presentation
 
             SetLegacyBuildViewVisible(true);
 
-            var draggableIds = new List<string>();
+            draggableFacilityIds.Clear();
             if (model.Phase != BuildFacilityDraftPhase.Dragging)
             {
                 for (var i = 0; i < model.Options.Count; i++)
                 {
                     if (model.Options[i].CanBuild)
                     {
-                        draggableIds.Add(model.Options[i].FacilityId);
+                        draggableFacilityIds.Add(model.Options[i].FacilityId);
                     }
                 }
             }
@@ -73,7 +106,7 @@ namespace YC.Presentation
                                  model.Phase == BuildFacilityDraftPhase.Ghosted;
             panel.SetBuildInteraction(
                 true,
-                draggableIds,
+                draggableFacilityIds,
                 showLegalSlots ? model.LegalSlotIndexes : null,
                 model.Facility == null ? string.Empty : model.Facility.FacilityId);
             panel.SetBuildAvailabilityMessage(string.Empty);
