@@ -1645,9 +1645,12 @@ namespace YC.Tests.EditMode
                 Assert.That(Read(move, "CanResumePreparedDraft"), Is.EqualTo(true));
                 var payment = Visible(native).PreparedActionPayments.Single();
                 var digest = RuleStateDigestService.Compute(native.State);
+                int beforeReloadCommands = native.Commands.Count;
                 Native resumed = null; yield return native.ReloadSavedScene(2, value => resumed = value);
                 using (resumed)
                 {
+                    Assert.That(native.Commands.Count, Is.EqualTo(beforeReloadCommands), "销毁旧场景不能发送取消付款准备命令");
+                    Assert.That(RuleStateDigestService.Compute(native.State), Is.EqualTo(digest), "销毁旧界面不能修改已保存的规则会话");
                     Assert.That(RuleStateDigestService.Compute(resumed.State), Is.EqualTo(digest), "恢复付款准备不得重建或取消权威状态");
                     Assert.That(ActionPaymentPreparation.SameIdentity(payment, Visible(resumed).PreparedActionPayments.Single()), Is.True);
                     var restoredMove = Read(Read(resumed.Mobile, "turnActionPresenter"), "MoveInteraction");

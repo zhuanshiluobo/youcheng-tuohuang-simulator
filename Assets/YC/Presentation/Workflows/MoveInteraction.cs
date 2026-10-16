@@ -307,6 +307,13 @@ namespace YC.Presentation.Workflows
             CancelLocal();
         }
 
+        public void BeginShutdown()
+        {
+            paymentPreparation.BeginShutdown();
+            inFlightCommandId = string.Empty;
+            CancelLocal();
+        }
+
         private void CancelLocal()
         {
             selectionVersion++;

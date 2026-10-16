@@ -113,6 +113,12 @@ namespace YC.Presentation.Workflows
 
         public void Cancel() { MoveInteraction.Cancel(); }
 
+        public void BeginShutdown()
+        {
+            MoveInteraction.BeginShutdown();
+            BuildInteraction.BeginShutdown();
+        }
+
         public void RestorePreparedMove()
         {
             if (MoveInteraction.TryRestorePreparedDraft())

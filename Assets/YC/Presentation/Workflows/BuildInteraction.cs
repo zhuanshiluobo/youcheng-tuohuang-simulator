@@ -155,6 +155,14 @@ namespace YC.Presentation.Workflows
             CancelCore(false);
         }
 
+        public void BeginShutdown()
+        {
+            paymentPreparation.BeginShutdown();
+            inFlightCommandId = string.Empty;
+            ClearFinalPaymentIntent();
+            selection.Cancel();
+        }
+
         public void Begin()
         {
             if (RejectMutationWhileSubmitting())

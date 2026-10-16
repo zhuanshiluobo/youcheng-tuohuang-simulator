@@ -389,6 +389,8 @@ namespace YC.Presentation
         {
             uiShuttingDown = true;
             workflowView?.BeginShutdown();
+            // 场景销毁只释放 UI 意图，不能把保存中的领域付款准备当成玩家主动取消。
+            turnActionPresenter?.BeginShutdown();
             gameplayInteractionHud?.ExpansionUi?.BeginShutdown();
             characterUsePage?.Hide();
             specialActionUsePage?.Hide();

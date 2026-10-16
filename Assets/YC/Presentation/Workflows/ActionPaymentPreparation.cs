@@ -18,7 +18,7 @@ namespace YC.Presentation.Workflows
         private readonly Action<string> prompt;
         private string commandId, commandGameId, commandOperation;
         private int commandPlayerId;
-        private bool preparationRequested;
+        private bool preparationRequested, shuttingDown;
         private Action afterCancellation;
         public Func<GameStateView> GetVisibleState { private get; set; }
         public bool IsInFlight => !string.IsNullOrEmpty(commandId);
@@ -26,7 +26,7 @@ namespace YC.Presentation.Workflows
         public string LastResolvedOperation { get; private set; }
         public bool HasPreparation => preparationRequested || Current != null;
         public bool CanCancel => !IsInFlight && (!HasPreparation || Current?.CanCancel == true);
-        private GameStateView View => GetVisibleState != null ? GetVisibleState() :
+        private GameStateView View => shuttingDown ? null : GetVisibleState != null ? GetVisibleState() :
             GameStateViewProjector.ProjectForPlayer(context.CurrentState, context.LocalPlayerId);
         public PreparedActionPaymentView Current
         {
@@ -49,7 +49,7 @@ namespace YC.Presentation.Workflows
         }
         public bool Prepare(string targetId, string paymentMode = null, string sourceZoneId = null)
         {
-            if (IsInFlight) return false;
+            if (shuttingDown || IsInFlight) return false;
             var command = NewCommand("prepare_action");
             command.TargetId = targetId ?? string.Empty;
             command.Parameters["actionKind"] = actionKind;
@@ -60,7 +60,7 @@ namespace YC.Presentation.Workflows
         }
         public bool Cancel(Action afterApplied)
         {
-            if (IsInFlight) return false;
+            if (shuttingDown || IsInFlight) return false;
             var payment = Current;
             if (payment == null)
             {
@@ -76,6 +76,7 @@ namespace YC.Presentation.Workflows
         }
         public bool BindFinalCommand(GameCommand command)
         {
+            if (shuttingDown) return false;
             var payment = Current;
             if (!HasPreparation) return true;
             if (command == null || IsInFlight || payment == null || !payment.IsReady || !payment.CanConfirm) return false;
@@ -99,6 +100,13 @@ namespace YC.Presentation.Workflows
             return true;
         }
         public void ResetAfterCommit() { preparationRequested = false; afterCancellation = null; }
+        public void BeginShutdown()
+        {
+            shuttingDown = true;
+            commandId = commandGameId = commandOperation = null;
+            preparationRequested = false;
+            afterCancellation = null;
+        }
         private GameCommand NewCommand(string operation)
         {
             var command = new GameCommand { Kind = GameCommandKind.PreparePaymentDraft, PlayerId = context.LocalPlayerId };
