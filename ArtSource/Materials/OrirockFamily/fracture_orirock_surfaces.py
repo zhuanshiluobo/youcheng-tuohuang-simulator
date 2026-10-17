@@ -18,7 +18,7 @@ def status(stage,**extra):
     STATUS.write_text(json.dumps({'stage':stage,**extra},ensure_ascii=False,indent=2),encoding='utf-8')
 
 jobs=[]
-for key,name,level in [('Orirock','源岩',1),('OrirockCube','固源岩',2),('OrirockCluster','固源岩组',3),('OrirockConcentration','提纯源岩',4)]:
+for key,name,level in [('Orirock','源岩',1),('OrirockCluster','固源岩组',3),('OrirockConcentration','提纯源岩',4)]:
     scene=bpy.data.scenes[name+'_材质版']
     bpy.context.window.scene=scene
     root=next(o for o in scene.objects if o.name.startswith(key+'_Root'))

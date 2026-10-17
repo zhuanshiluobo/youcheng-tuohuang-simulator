@@ -1,4 +1,4 @@
-"""在独立场景制作固源岩、固源岩组和提纯源岩；不覆盖已完成模型和收藏室场景。"""
+"""在独立场景制作固源岩组和提纯源岩；不覆盖已完成模型和收藏室场景。"""
 import bpy
 import bmesh
 import math
@@ -221,11 +221,6 @@ def create_job(key, name, level):
         root=root,meshes=[],materials=materials,dir=directory)
     jobs.append(job)
     return job
-
-j = create_job('OrirockCube','固源岩',2)
-rock(j,'固块_完整主体',(0,0,0.03),(0.71,0.65,0.73),44,0.38,(2,-5,-7))
-rock(j,'左下崩裂碎角',(-0.60,-0.46,-0.65),(0.19,0.22,0.16),45,0.65,(15,10,-20),True)
-rock(j,'底部碎片',(0.39,-0.44,-0.68),(0.15,0.20,0.10),46,0.75,(-2,8,21),True)
 
 j = create_job('OrirockCluster','固源岩组',3)
 rock(j,'后部高岩',(-0.13,0.27,0.33),(0.56,0.46,0.60),61,0.44,(4,-15,-9))

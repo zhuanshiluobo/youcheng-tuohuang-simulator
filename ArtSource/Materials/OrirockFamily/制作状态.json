@@ -2,12 +2,6 @@
   "stage": "完成",
   "models": [
     {
-      "name": "固源岩",
-      "key": "OrirockCube",
-      "parts": 3,
-      "triangles": 1710
-    },
-    {
       "name": "固源岩组",
       "key": "OrirockCluster",
       "parts": 5,

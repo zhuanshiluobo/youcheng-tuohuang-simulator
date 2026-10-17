@@ -18,7 +18,7 @@ def color(rgb):
     return tuple(linear(v/255) for v in rgb)+(1,)
 
 jobs=[]
-for key,name in [('Orirock','源岩'),('OrirockCube','固源岩'),('OrirockCluster','固源岩组'),('OrirockConcentration','提纯源岩')]:
+for key,name in [('Orirock','源岩'),('OrirockCluster','固源岩组'),('OrirockConcentration','提纯源岩')]:
     scene=bpy.data.scenes[name+'_材质版']
     bpy.context.window.scene=scene
     meshes=[o for o in scene.objects if o.type=='MESH']
@@ -44,7 +44,6 @@ for key,name in [('Orirock','源岩'),('OrirockCube','固源岩'),('OrirockClust
         front.location.x-=.35
         right.data.update()
     if key=='Orirock':palette={0:(201,183,126)}
-    elif key=='OrirockCube':palette={0:(211,195,142)}
     elif key=='OrirockCluster':palette={0:(210,192,139),1:(90,87,72)}
     else:palette={0:(207,179,118)}
     for index,rgb in palette.items():

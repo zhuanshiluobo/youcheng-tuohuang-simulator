@@ -25,7 +25,7 @@ def color(rgb):
     return tuple(linear(v/255) for v in rgb)+(1,)
 
 jobs=[]
-for key,name,level in [('OrirockCube','固源岩',2),('OrirockCluster','固源岩组',3),('OrirockConcentration','提纯源岩',4)]:
+for key,name,level in [('OrirockCluster','固源岩组',3),('OrirockConcentration','提纯源岩',4)]:
     scene=bpy.data.scenes[name+'_材质版']
     bpy.context.window.scene=scene
     root=next(o for o in scene.objects if o.name.startswith(key+'_Root'))
@@ -69,7 +69,7 @@ for key,name,level in [('OrirockCube','固源岩',2),('OrirockCluster','固源�
             low=Vector([min(v.co[i] for v in mesh.vertices) for i in range(3)])
             high=Vector([max(v.co[i] for v in mesh.vertices) for i in range(3)])
             span=high-low
-            # 不规则裂口落在上沿和左右棱线上，保持固源岩的整体方块轮廓。
+            # 不规则裂口落在上沿和左右棱线上，保持整体方块轮廓。
             positions=[Vector((low.x+span.x*.28,low.y+span.y*.07,high.z)),
                        Vector((high.x,low.y+span.y*.05,low.z+span.z*.45)),
                        Vector((low.x,low.y+span.y*.42,low.z+span.z*.65))]
